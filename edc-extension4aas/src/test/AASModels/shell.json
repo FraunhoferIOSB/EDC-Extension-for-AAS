@@ -1,0 +1,34 @@
+{
+  "assetInformation": {
+    "assetKind": "Instance",
+    "globalAssetId": {
+      "keys": [
+        {
+          "idType": "Iri",
+          "type": "Asset",
+          "value": "https://acplt.org/Test_Asset2"
+        }
+      ]
+    },
+    "billOfMaterial": [
+      {
+        "keys": [
+          {
+            "idType": "Iri",
+            "type": "Submodel",
+            "value": "http://acplt.org/Submodels/Assets/TestAsset/BillOfMaterial"
+          }
+        ]
+      }
+    ]
+  },
+  "submodels": [],
+  "identification": {
+    "idType": "Iri",
+    "id": "https://example.com/ids/aas/3235_8090_6012_89322"
+  },
+  "idShort": "FestoDemoAAS2",
+  "modelType": {
+    "name": "AssetAdministrationShell"
+  }
+}

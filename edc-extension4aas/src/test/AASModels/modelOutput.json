@@ -1,0 +1,40 @@
+{
+  "assetAdministrationShells": [
+    {
+      "idShort": "CoffeeBeanOrderAas",
+      "idType": "Iri",
+      "id": "urn:aas:id:aas:coffeebean",
+      "submodelRefs": [
+        { "id type": "Iri", "value": "urn:aas:id:sm:1" },
+        { "id type": "Iri", "value": "urn:aas:id:sm:2" }
+      ]
+    }
+  ],
+  "submodels": [
+    {
+      "idShort": "OrderInfo",
+      "idType": "Iri",
+      "id": "urn:aas:id:sm:1",
+      "submodelElements": [
+        { "idShort": "Price", "modelType": "Property" },
+        { "idShort": "MinSize", "modelType": "Property" },
+        { "idShort": "MaxSize", "modelType": "Property" },
+        { "idShort": "BeanType", "modelType": "Property" },
+        { "idShort": "OriginCountry", "modelType": "Property" },
+        { "idShort": "AllowFracture", "modelType": "Property" },
+        { "idShort": "Roast", "modelType": "Property" },
+        { "idShort": "OrderWeight", "modelType": "Property" }
+      ]
+    },
+    {
+      "idShort": "TableSortInfo",
+      "idType": "Iri",
+      "id": "urn:aas:id:sm:2",
+      "submodelElements": [
+        { "idShort": "EstimatedProgress", "modelType": "Property" },
+        { "idShort": "TotalObjectAndMaterialClass", "modelType": "Property" }
+      ]
+    }
+  ],
+  "conceptDescriptions": []
+}

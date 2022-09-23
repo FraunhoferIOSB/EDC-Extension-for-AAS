@@ -1,0 +1,19 @@
+{
+    "value": "",
+    "semanticId": {
+      "keys": [              
+         {
+           "idType": "Iri",
+           "type": "GlobalReference",
+           "value": "0173-1#02-AAO677#002"
+         }
+       ]
+    },
+    "idShort": "LED_yellow",
+    "category": "Variable",
+    "modelType": {
+      "name": "Property"
+    },
+    "valueType": "boolean",
+    "kind": "Instance"
+  }

@@ -1,0 +1,21 @@
+{
+  "semanticId": {
+         "keys": [              
+           {
+             "idType": "Iri",
+             "type": "GlobalReference",
+             "value": "0173-1#02-AAO677#002"
+           }
+         ]
+  },
+  "identification": {
+    "idType": "Iri",
+    "id": "https://example.com/ids/sm/1145_8090_6012_50971231"
+  },
+  "idShort": "Config",
+  "modelType": {
+    "name": "Submodel"
+  },
+  "kind": "Instance",
+  "submodelElements": []
+}

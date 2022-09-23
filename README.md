@@ -28,7 +28,7 @@ External changes to the model of an AAS are automatically synchronized by the Ex
 
 ### Use Cases
 
-Provide digital twin (AAS) data to business partners in Data Spaces like Catena-X, Manufacturing-X, Platform Industry 4.0 Collaborative Condition Monitoring, etc.
+Provide digital twin (AAS) data to business partners in Data Spaces like Catena-X or Manufacturing-X
 
 ## Technical Details
 

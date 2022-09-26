@@ -62,14 +62,14 @@ Provide digital twin (AAS) data to business partners in Data Spaces like Catena-
 
 | Key | Value Type | Description |
 | :----| :-----------| :------|
-| edc.idsaasapp.remoteAasLocation | URL | A URL of an AAS service (such as FA³ST service) that is already running and is conformant to official AAS API specification|
-|edc.idsaasapp.localAASModelPath| path | A path to a serialized AAS environment compatible to specification version 3.0RC01 (see: https://github.com/FraunhoferIOSB/FAAAST-Service/blob/main/README.md)|
-|edc.idsaasapp.localAASServicePort| (1-65535)| Port to locally created AAS service. Required, if localAASModelPath is defined|
-|edc.idsaasapp.localAASServiceConfigPath|path|Path to AAS config for locally started AAS service. Required, if localAASServicePort is not defined, but localAASModelPath is defined|
-|edc.idsaasapp.syncPeriod |number in seconds |Time period in which AAS services should be polled for structural changes (added/deleted elements etc.). Default value is 5 (seconds).|
-|edc.idsaasapp.exposeSelfDescription| True/False| Whether the Self Description should be exposed on {edc}/api/selfDescription|
-|edc.idsaasapp.defaultAccessPolicyDefinitionPath|path |Path to a default access policy definition file.|
-|edc.idsaasapp.defaultContractPolicyDefinitionPath|path |Path to a default contract policy definition file.|
+|edc.aas.remoteAasLocation | URL | A URL of an AAS service (such as FA³ST service) that is already running and is conformant to official AAS API specification|
+|edc.aas.localAASModelPath| path | A path to a serialized AAS environment compatible to specification version 3.0RC01 (see: https://github.com/FraunhoferIOSB/FAAAST-Service/blob/main/README.md)|
+|edc.aas.localAASServicePort| (1-65535)| Port to locally created AAS service. Required, if localAASModelPath is defined|
+|edc.aas.localAASServiceConfigPath|path|Path to AAS config for locally started AAS service. Required, if localAASServicePort is not defined, but localAASModelPath is defined|
+|edc.aas.syncPeriod |number in seconds |Time period in which AAS services should be polled for structural changes (added/deleted elements etc.). Default value is 5 (seconds).|
+|edc.aas.exposeSelfDescription| True/False| Whether the Self Description should be exposed on {edc}/api/selfDescription|
+|edc.aas.defaultAccessPolicyDefinitionPath|path |Path to a default access policy definition file.|
+|edc.aas.defaultContractPolicyDefinitionPath|path |Path to a default contract policy definition file.|
 
 ## Terminology
 | Term | Description |

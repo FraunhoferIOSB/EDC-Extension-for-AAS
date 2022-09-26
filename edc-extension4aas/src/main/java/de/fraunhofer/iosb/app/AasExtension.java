@@ -1,11 +1,23 @@
-package org.eclipse.dataspaceconnector.extensions.idsaasextension;
+/*
+ * Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
+ * Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
+ * Forschung e.V.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package de.fraunhofer.iosb.app;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.fraunhofer.iosb.app.Endpoint;
-import de.fraunhofer.iosb.app.Logger;
-import de.fraunhofer.iosb.app.RequestType;
 import de.fraunhofer.iosb.app.controller.AasController;
 import de.fraunhofer.iosb.app.controller.ConfigurationController;
 import de.fraunhofer.iosb.app.controller.ResourceController;
@@ -30,7 +42,7 @@ import java.util.concurrent.TimeUnit;
  * Extension providing/connecting EDC logic to the EDC-AAS-Application.
  */
 @Requires({ WebService.class })
-public class IdsAasExtension implements ServiceExtension {
+public class AasExtension implements ServiceExtension {
 
     @Inject
     private ContractDefinitionStore contractStore;
@@ -41,7 +53,7 @@ public class IdsAasExtension implements ServiceExtension {
     @Inject
     private OkHttpClient okHttpClient;
 
-    private static final String SETTINGS_PREFIX = "edc.idsaasapp.";
+    private static final String SETTINGS_PREFIX = "edc.aas.";
     private final Logger logger = Logger.getInstance();
 
     private Endpoint endpoint;
@@ -94,14 +106,14 @@ public class IdsAasExtension implements ServiceExtension {
 
         Config config = context.getConfig();
 
-        logger.setPrefix(config.getString(SETTINGS_PREFIX + "logPrefix", "IDS AAS Extension"));
+        logger.setPrefix(config.getString(SETTINGS_PREFIX + "logPrefix", "AAS Extension"));
 
         String configAsString;
         try {
             configAsString = objectMapper.writeValueAsString(config.getRelativeEntries(SETTINGS_PREFIX));
         } catch (JsonProcessingException e) {
             // This should not be reached, unless there is an error inside EDC's Config.java
-            logger.error("Could not load IDS AAS extension configuration, using default values", e);
+            logger.error("Could not load AAS extension configuration, using default values", e);
             configAsString = "";
         }
         // Currently, only one configuration at a time is supported

@@ -12,19 +12,19 @@ The example has following structure:
 First, the extension and the connector is built via the following command:
 
 ```sh
-cd /edc-aas-extension
+cd /EDC-Extension-for-AAS
 ./gradlew clean build
 ```
 
 The following command starts an EDC connector with the _EDC AAS Extension_ with a configration file:
 
 ```sh
-java -Dedc.fs.config=./example/resources/configurations/provider.properties -jar ./example/build/libs/dataspace-connector.jar
+java -Dedc.fs.config=./example/configurations/provider.properties -jar ./example/build/libs/dataspace-connector.jar
 ```
 
 In case using **PowerShell** the `-D` parameter needs to be encapsulated with `"`: 
 ```sh
-java "-Dedc.fs.config=./example/resources/configurations/provider.properties" -jar ./example/build/libs/dataspace-connector.jar
+java "-Dedc.fs.config=./example/configurations/provider.properties" -jar ./example/build/libs/dataspace-connector.jar
 ```
 
 ## Configuration
@@ -48,10 +48,10 @@ A few basic EDC config values:
 An example configuration for an ready to use EDC with the _edc-extension4AAS_ and _ids_:
 ```
 # extension4AAS
-edc.idsaasapp.logPrefix = EDC-AAS-Extension
-edc.idsaasapp.localAASModelPath = ./example/resources/FestoDemoAAS.json
-edc.idsaasapp.localAASServicePort = 8080
-edc.idsaasapp.syncPeriod = 100
+edc.aas.logPrefix = EDC-AAS-Extension
+edc.aas.localAASModelPath = ./example/resources/FestoDemoAAS.json
+edc.aas.localAASServicePort = 8080
+edc.aas.syncPeriod = 100
 
 # EDC 
 web.http.port=8181
@@ -81,20 +81,20 @@ ids.webhook.address=http://localhost:8282
 
 Build the EDC with the extensions.
 ```sh
-cd /edc-aas-extension
+cd /EDC-Extension-for-AAS
 ./gradlew clean build
 ```
 
 Start the provider connector:
 
 ```sh
-java -Dedc.fs.config=./example/resources/configurations/provider.properties -jar ./example/build/libs/dataspace-connector.jar
+java -Dedc.fs.config=./example/configurations/provider.properties -jar ./example/build/libs/dataspace-connector.jar
 ```
 
 Open another console and start the consumer connector:
 
 ```sh
-java -Dedc.fs.config=./example/resources/configurations/consumer.properties -jar ./example/build/libs/dataspace-connector.jar
+java -Dedc.fs.config=./example/configurations/consumer.properties -jar ./example/build/libs/dataspace-connector.jar
 ```
 
 Starting the data transfer from provider to consumer. There is a `postman collection` containing all necessary http request for data transfer in this extensions repository located in `/examples/resources`. Do following steps:

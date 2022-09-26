@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
+ * Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
+ * Forschung e.V.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package de.fraunhofer.iosb.app.model.configuration;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -13,7 +28,7 @@ import java.util.Objects;
 @JsonSerialize
 public class Configuration {
 
-    private static final String SETTINGS_PREFIX = "edc.idsaasapp.";
+    private static final String SETTINGS_PREFIX = "edc.aas.";
 
     private static Configuration instance;
 
@@ -21,7 +36,7 @@ public class Configuration {
     private URL remoteAasLocation;
     private String localAasModelPath;
     private int localAasServicePort;
-    private String logPrefix = "IDS AAS Extension";
+    private String logPrefix = "AAS Extension";
     private String aasServiceConfigPath;
     private URL registryUrl;
     private int syncPeriod = 5; // default value: 5 seconds

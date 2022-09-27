@@ -18,7 +18,7 @@ dependencies {
     // FA³ST
     implementation ("de.fraunhofer.iosb.ilt.faaast.service:starter:0.1.0")
     // AAS serializer
-    implementation("io.admin-shell.aas:dataformat-json:1.2.0")
+    implementation("io.admin-shell.aas:dataformat-json:1.2.1")
     // AAS model by admin-shell.io, used for parsing submodelElementCollections
     implementation("io.admin-shell.aas:model:1.2.0")
 

@@ -16,7 +16,7 @@ dependencies {
     val edcGroup = "org.eclipse.dataspaceconnector"
     val edcVersion = "0.0.1-milestone-6"
     // FA³ST
-    implementation ("de.fraunhofer.iosb.ilt.faaast.service:starter:0.1.0")
+    implementation ("de.fraunhofer.iosb.ilt.faaast.service:starter:0.2.1")
     // AAS serializer
     implementation("io.admin-shell.aas:dataformat-json:1.2.1")
     // AAS model by admin-shell.io, used for parsing submodelElementCollections

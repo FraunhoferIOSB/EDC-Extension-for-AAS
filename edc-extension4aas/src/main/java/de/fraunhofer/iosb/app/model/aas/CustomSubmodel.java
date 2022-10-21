@@ -19,7 +19,6 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -28,7 +27,7 @@ public class CustomSubmodel extends IdsAssetElement {
 
     protected Identifier identification;
     protected String idShort;
-    protected Collection<CustomSubmodelElement> submodelElements = new ArrayList<>();
+    protected List<CustomSubmodelElement> submodelElements = new ArrayList<>();
 
     public Identifier getIdentification() {
         return identification;
@@ -46,7 +45,7 @@ public class CustomSubmodel extends IdsAssetElement {
         this.idShort = idShort;
     }
 
-    public Collection<CustomSubmodelElement> getSubmodelElements() {
+    public List<CustomSubmodelElement> getSubmodelElements() {
         return submodelElements;
     }
 
@@ -54,11 +53,6 @@ public class CustomSubmodel extends IdsAssetElement {
         this.submodelElements = submodelElements;
     }
 
-    @Override
-    public int hashCode() {
-        return super.hashCode();
-    }
-    
     @Override
     public boolean equals(Object obj) {
         if (obj == null) {
@@ -80,6 +74,11 @@ public class CustomSubmodel extends IdsAssetElement {
             return false;
         }
 
-        return true;
+        if ((this.getSubmodelElements() == null) ? (other.getSubmodelElements() != null)
+                : this.getSubmodelElements().size() != other.getSubmodelElements().size()) {
+            return false;
+        }
+
+        return this.getSubmodelElements().stream().allMatch(element -> other.getSubmodelElements().contains(element));
     }
 }

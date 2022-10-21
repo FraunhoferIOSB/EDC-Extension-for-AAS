@@ -1,0 +1,108 @@
+[
+    {
+        "semanticId": {
+            "keys": [
+                {
+                    "idType": "Iri",
+                    "type": "GlobalReference",
+                    "value": "0173-1#02-AAO677#002"
+                }
+            ]
+        },
+        "identification": {
+            "idType": "Iri",
+            "id": "https://example.com/ids/sm/1145_8090_6012_5097"
+        },
+        "idShort": "Config",
+        "modelType": {
+            "name": "Submodel"
+        },
+        "kind": "Instance",
+        "submodelElements": []
+    },
+    {
+        "semanticId": {
+            "keys": [
+                {
+                    "idType": "Iri",
+                    "type": "GlobalReference",
+                    "value": "0173-1#02-AAO677#002"
+                }
+            ]
+        },
+        "identification": {
+            "idType": "Iri",
+            "id": "https://example.com/ids/sm/4445_8090_6012_7409"
+        },
+        "idShort": "Status",
+        "modelType": {
+            "name": "Submodel"
+        },
+        "kind": "Instance",
+        "submodelElements": [],
+        "descriptions": []
+    },
+    {
+        "semanticId": {
+            "keys": [
+                {
+                    "idType": "Iri",
+                    "type": "GlobalReference",
+                    "value": "0173-1#02-AAO677#002"
+                }
+            ]
+        },
+        "identification": {
+            "idType": "Iri",
+            "id": "https://example.com/ids/sm/2110_9090_6012_8448"
+        },
+        "idShort": "CalculatedAverages",
+        "modelType": {
+            "name": "Submodel"
+        },
+        "kind": "Instance",
+        "submodelElements": []
+    },
+    {
+        "semanticId": {
+            "keys": [
+                {
+                    "idType": "Iri",
+                    "type": "GlobalReference",
+                    "value": "0173-1#02-AAO677#002"
+                }
+            ]
+        },
+        "identification": {
+            "idType": "Iri",
+            "id": "https://example.com/ids/sm/5410_9090_6012_0950"
+        },
+        "idShort": "DaySummary",
+        "modelType": {
+            "name": "Submodel"
+        },
+        "kind": "Instance",
+        "submodelElements": []
+    },
+    {
+        "semanticId": {
+            "keys": [
+                {
+                    "idType": "Iri",
+                    "type": "GlobalReference",
+                    "value": "0173-1#02-AAO677#002"
+                }
+            ]
+        },
+        "identification": {
+            "idType": "Iri",
+            "id": "https://example.com/ids/sm/2402_1191_1022_1090"
+        },
+        "idShort": "ProducerRecommendations",
+        "modelType": {
+            "name": "Submodel"
+        },
+        "kind": "Instance",
+        "submodelElements": []
+    }
+]

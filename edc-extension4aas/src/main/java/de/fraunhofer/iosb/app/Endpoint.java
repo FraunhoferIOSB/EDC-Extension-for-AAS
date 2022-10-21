@@ -23,9 +23,7 @@ import de.fraunhofer.iosb.app.controller.ResourceController;
 import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShellEnvironment;
 import de.fraunhofer.iosb.app.model.aas.IdsAssetElement;
 import de.fraunhofer.iosb.app.model.aas.util.SubmodelUtil;
-import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import de.fraunhofer.iosb.app.model.ids.SelfDescription;
-import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
 import io.adminshell.aas.v3.dataformat.DeserializationException;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
@@ -39,6 +37,7 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status.Family;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 
 import java.io.IOException;
@@ -46,8 +45,12 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
+
+import static java.lang.String.format;
 
 /**
  * Delegates (HTTP) Requests to controllers.
@@ -57,8 +60,7 @@ import java.util.stream.Collectors;
 @Path("/")
 public class Endpoint {
 
-    private static final String AAS_REQUEST_PATH = "aas";
-    private final Configuration config = Configuration.getInstance();
+    public static final String AAS_REQUEST_PATH = "aas";
 
     private final ConfigurationController configurationController;
     private final AasController aasController;
@@ -66,7 +68,7 @@ public class Endpoint {
     private final Logger logger;
     private final ObjectMapper objectMapper;
 
-    private SelfDescriptionRepository selfDescriptionRepository;
+    private Map<URL, SelfDescription> selfDescriptionRepository;
 
     /**
      * Class constructor
@@ -75,8 +77,12 @@ public class Endpoint {
      * @param aasController             Communication with AAS services
      * @param resourceController        Communication with EDC
      */
-    public Endpoint(SelfDescriptionRepository selfDescriptionRepository, AasController aasController,
+    public Endpoint(Map<URL, SelfDescription> selfDescriptionRepository, AasController aasController,
             ResourceController resourceController) {
+        Objects.requireNonNull(selfDescriptionRepository);
+        Objects.requireNonNull(aasController);
+        Objects.requireNonNull(resourceController);
+
         this.configurationController = new ConfigurationController();
         this.selfDescriptionRepository = selfDescriptionRepository;
         this.resourceController = resourceController;
@@ -106,8 +112,9 @@ public class Endpoint {
      */
     @PUT
     @Path("config")
-    public Response putConfig(String newConfigurationJson) {
+    public Response putConfig(@Nonnull String newConfigurationJson) {
         logger.debug("Received a config PUT request");
+        Objects.requireNonNull(newConfigurationJson);
         return configurationController.handleRequest(RequestType.PUT, null, newConfigurationJson);
     }
 
@@ -185,17 +192,17 @@ public class Endpoint {
             }
 
         } catch (IOException aasServiceException) {
-            logger.error("Could not start/read from AAS service. Message from AAS Service: " +
-                    aasServiceException.getMessage());
+            logger.error(format("Could not start/read from AAS service. Message from AAS Service: %s",
+                    aasServiceException.getMessage()));
         } catch (java.nio.file.InvalidPathException invalidPathException) {
             logger.error("Could not resolve paths", invalidPathException);
             return Response.status(Response.Status.BAD_REQUEST).build();
         } catch (DeserializationException aasModelDeserializationException) {
-            logger.error("Could not deserialize AAS model: ", aasModelDeserializationException);
+            logger.error("Could not deserialize AAS model.", aasModelDeserializationException);
         }
         logger.error("Could not boot up or register AAS service");
         return Response.status(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),
-                "Could not start AAS service.Check logs for details").build();
+                "Could not start AAS service. Check logs for details").build();
     }
 
     /**
@@ -206,7 +213,7 @@ public class Endpoint {
      */
     @DELETE
     @Path("client")
-    public Response removeAasService(@QueryParam("url") URL aasServiceUrl) {
+    public Response removeAasService(@QueryParam("url") @Nonnull URL aasServiceUrl) {
         logger.log("Received a client DELETE request");
         Objects.requireNonNull(aasServiceUrl);
         final var selfDescription = selfDescriptionRepository.get(aasServiceUrl);
@@ -217,7 +224,7 @@ public class Endpoint {
 
         final var environment = selfDescription.getEnvironment();
 
-        removeAssetsContracts(environment);
+        removeAssetsContracts(getAllElements(environment));
 
         // Stop AAS Service if started internally
         aasController.stopAssetAdministrationShellService(aasServiceUrl);
@@ -237,12 +244,12 @@ public class Endpoint {
      */
     @POST
     @Path(AAS_REQUEST_PATH)
-    public Response postAasRequest(@QueryParam("requestUrl") URL requestUrl, String requestBody) {
+    public Response postAasRequest(@QueryParam("requestUrl") @Nonnull URL requestUrl, @Nonnull String requestBody) {
         logger.log("Received an AAS POST request");
         Objects.requireNonNull(requestUrl);
         Objects.requireNonNull(requestBody);
-        final var response = aasController.handleRequest(RequestType.POST, requestUrl, "", requestBody);
-        if (response.getStatusInfo() != Response.Status.CREATED) {
+        final var response = aasController.handleRequest(RequestType.POST, requestUrl, requestBody);
+        if (!response.getStatusInfo().getFamily().equals(Family.SUCCESSFUL)) {
             logger.error("AAS request failed. Response from URL: " + response.getStatusInfo());
             return Response.status(response.getStatus()).build();
         }
@@ -273,17 +280,18 @@ public class Endpoint {
      */
     @DELETE
     @Path(AAS_REQUEST_PATH)
-    public Response deleteAasRequest(@QueryParam("requestUrl") URL requestUrl) {
+    public Response deleteAasRequest(@QueryParam("requestUrl") @Nonnull URL requestUrl) {
         logger.log("Received an AAS DELETE request");
         Objects.requireNonNull(requestUrl);
-        final var response = aasController.handleRequest(RequestType.DELETE, requestUrl, "", null);
-        if (response.getStatusInfo() != Response.Status.CREATED) {
+        final var response = aasController.handleRequest(RequestType.DELETE, requestUrl, new String());
+        if (!response.getStatusInfo().getFamily().equals(Family.SUCCESSFUL)) {
             logger.error("AAS request failed. Response from URL: " + response.getStatusInfo());
             return Response.status(response.getStatus()).build();
         }
         URL requestUrlNoPath;
         try {
-            requestUrlNoPath = new URL(requestUrl.toString().replace(requestUrl.getPath(), ""));
+            requestUrlNoPath = new URL(requestUrl.getProtocol(), requestUrl.getHost(), requestUrl.getPort(),
+                    new String());
             syncAasWithEdc(requestUrlNoPath);
         } catch (MalformedURLException e) {
             logger.error("Could not determine AAS service from URL", e);
@@ -307,11 +315,33 @@ public class Endpoint {
      */
     @PUT
     @Path(AAS_REQUEST_PATH)
-    public Response putAasRequest(@QueryParam("requestUrl") URL requestUrl, String requestBody) {
+    public Response putAasRequest(@QueryParam("requestUrl") @Nonnull URL requestUrl, @Nonnull String requestBody) {
         logger.log("Received an AAS PUT request");
         Objects.requireNonNull(requestUrl);
         Objects.requireNonNull(requestBody);
-        return aasController.handleRequest(RequestType.PUT, requestUrl, "", requestBody);
+        final var response = aasController.handleRequest(RequestType.PUT, requestUrl, requestBody);
+        if (!response.getStatusInfo().getFamily().equals(Family.SUCCESSFUL)) {
+            logger.error("AAS request failed. Response from URL: " + response.getStatusInfo());
+            return Response.status(response.getStatus()).build();
+        }
+
+        URL requestUrlNoPath;
+        try {
+            requestUrlNoPath = new URL(requestUrl.getProtocol(), requestUrl.getHost(), requestUrl.getPort(),
+                    new String());
+            syncAasWithEdc(requestUrlNoPath);
+        } catch (MalformedURLException e) {
+            logger.error("Could not determine AAS service from URL", e);
+            return Response.serverError().build();
+        } catch (EdcException edcException) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), edcException.getMessage())
+                    .build();
+        }
+
+        logger.log("AAS request succeeded.");
+
+        return Response.ok().build();
+
     }
 
     /**
@@ -324,26 +354,21 @@ public class Endpoint {
     @GET
     @Path("selfDescription")
     public Response getSelfDescription(@QueryParam("aasService") URL aasServiceUrl) {
-        logger.debug("Received a self description GET request");
-        if (!config.isExposeSelfDescription()) {
-            logger.log("Self description will not be exposed due to configuration");
-            return Response.status(Status.FORBIDDEN).build();
-        }
+        if (Objects.isNull(aasServiceUrl)) {
+            logger.debug("Received a self description GET request");
+            // Build JSON object containing all self descriptions
+            var selfDescriptions = objectMapper.createArrayNode();
+            selfDescriptionRepository.values()
+                    .forEach(selfDescription -> selfDescriptions.add(objectMapper.valueToTree(selfDescription)));
 
-        if (Objects.isNull(aasServiceUrl)) { // get all
-            // Build large JSON object containing all the self descriptions
-            var selfDescriptionStringBuilder = new StringBuilder().append("[")
-                    .append(selfDescriptionRepository.getAll().values().stream()
-                            .map(selfDescription -> selfDescription.toString()).collect(Collectors.joining(",")))
-                    .append("]");
-            return Response.ok(selfDescriptionStringBuilder.toString()).build();
+            return Response.ok(selfDescriptions.toString()).build();
         } else {
-            logger.debug("Received a self description GET request to " + aasServiceUrl);
+            logger.debug(format("Received a self description GET request to %s", aasServiceUrl));
             var selfDescription = selfDescriptionRepository.get(aasServiceUrl);
             if (Objects.nonNull(selfDescription)) {
                 return Response.ok(selfDescription.toString()).build();
             } else {
-                logger.error("Self description with URL " + aasServiceUrl.toString() + " not found.");
+                logger.error(format("Self description with URL %s not found.", aasServiceUrl.toString()));
                 return Response.status(Status.NOT_FOUND).build();
             }
         }
@@ -352,94 +377,128 @@ public class Endpoint {
     @POST
     @Path("receiveTransfer/{param}")
     public void testReceive(@PathParam("param") String param, String body) {
+        // Testing a data transfer to an HTTP endpoint
         logger.log(body);
     }
 
     /**
-     * Synchronize AAS element structure w/ EDC AssetIndex
+     * Synchronize AAS element structure with EDC AssetIndex
 
-     * @param aasUrl AAS Service URL
+     * @param aasUrl AAS service URL
      */
     public void syncAasWithEdc(URL aasUrl) {
+        Objects.requireNonNull(aasUrl);
+
         final var oldSelfDescription = selfDescriptionRepository.get(aasUrl);
         CustomAssetAdministrationShellEnvironment newEnvironment;
+
+        if (Objects.isNull(oldSelfDescription)) {
+            throw new EdcException(format(
+                    "AAS service with URL %s is not registered at this extension", aasUrl));
+        }
 
         try {
             newEnvironment = aasController.getAasModelWithUrls(aasUrl);
         } catch (IOException aasServiceUnreachableException) {
-            throw new EdcException("Could not reach AAS service: " + aasServiceUnreachableException.getMessage());
+            throw new EdcException(format("Could not reach AAS service (%s): %s", aasUrl,
+                    aasServiceUnreachableException.getMessage()));
         } catch (DeserializationException aasModelDeserializationException) {
-            throw new EdcException("Could not deserialize AAS model: " + aasModelDeserializationException.getMessage());
+            throw new EdcException(format("Could not deserialize AAS model (%s): %s", aasUrl,
+                    aasModelDeserializationException.getMessage()));
         }
 
-        if (Objects.isNull(newEnvironment) || Objects.isNull(oldSelfDescription)) {
-            throw new EdcException(
-                    "Could not reach AAS service by URL" + aasUrl + "or AAS service is not registered at EDC");
+        if (Objects.isNull(newEnvironment)) {
+            throw new EdcException(format(
+                    "Could not reach AAS service by URL %s", aasUrl));
         }
 
         var oldEnvironment = oldSelfDescription.getEnvironment();
 
+        // For all shells, submodels, conceptDescriptions: Check, whether any were added
+        // or removed.
+        // If a new element was added: This element is now in newEnvironment without
+        // idsContractId/idsAssetId
+        // If the element exists in oldEnvironment, copy the old element into
+        // newEnvironment, already having an idsContractId/idsAssetId
         newEnvironment.getAssetAdministrationShells().replaceAll(
                 shell -> oldEnvironment.getAssetAdministrationShells().contains(shell)
                         ? oldEnvironment.getAssetAdministrationShells()
                                 .get(oldEnvironment.getAssetAdministrationShells().indexOf(shell))
                         : shell);
-        newEnvironment.getSubmodels()
-                .replaceAll(shell -> oldEnvironment.getSubmodels().contains(shell)
-                        ? oldEnvironment.getSubmodels().get(oldEnvironment.getSubmodels().indexOf(shell))
-                        : shell);
+        newEnvironment.getSubmodels().forEach(submodel -> {
+            final var newSubmodel = submodel;
+            if (oldEnvironment.getSubmodels().contains(submodel)) {
+                var oldSubmodel = oldEnvironment.getSubmodels().get(oldEnvironment.getSubmodels().indexOf(submodel));
+                submodel.setIdsAssetId(oldSubmodel.getIdsAssetId());
+                submodel.setIdsContractId(oldSubmodel.getIdsContractId());
+            } else if (oldEnvironment.getSubmodels().stream()
+                    .anyMatch(oldSubmodel -> oldSubmodel.getIdentification().equals(newSubmodel.getIdentification())
+                            && oldSubmodel.getIdShort().equals(newSubmodel.getIdShort()))) {
+                // Only submodelElements are different, same submodel exists -> replace existing
+                // elements
+                var oldSubmodel = oldEnvironment.getSubmodels().stream().filter(
+                        oldSubmodelTest -> oldSubmodelTest.getIdentification().equals(newSubmodel.getIdentification())
+                                && oldSubmodelTest.getIdShort().equals(newSubmodel.getIdShort()))
+                        .findFirst().orElse(submodel);
+                submodel.setIdsAssetId(oldSubmodel.getIdsAssetId());
+                submodel.setIdsContractId(oldSubmodel.getIdsContractId());
+                submodel.getSubmodelElements().forEach(element -> {
+                    if (oldSubmodel.getSubmodelElements().contains(element)) {
+                        element = oldSubmodel.getSubmodelElements().get(
+                                oldSubmodel.getSubmodelElements().indexOf(element));
+                    }
+                });
+            }
+        });
         newEnvironment.getConceptDescriptions()
-                .replaceAll(shell -> oldEnvironment.getConceptDescriptions().contains(shell)
+                .replaceAll(conceptDescription -> oldEnvironment.getConceptDescriptions().contains(conceptDescription)
                         ? oldEnvironment.getConceptDescriptions()
-                                .get(oldEnvironment.getConceptDescriptions().indexOf(shell))
-                        : shell);
+                                .get(oldEnvironment.getConceptDescriptions().indexOf(conceptDescription))
+                        : conceptDescription);
 
+        // All elements that are new (no idsContractId) are now added to the EDC
+        // AssetIndex/ContractDefinitionStore
         addAssetsContracts(getAllElements(newEnvironment).stream()
                 .filter(element -> Objects.isNull(element.getIdsContractId())).collect(Collectors.toList()));
 
+        // Now: Check, if elements got deleted, and remove those
         var oldElements = getAllElements(oldEnvironment);
         oldElements.removeAll(getAllElements(newEnvironment));
         removeAssetsContracts(oldElements);
 
-        selfDescriptionRepository.update(aasUrl, new SelfDescription(newEnvironment));
+        // Finally, update the self description
+        selfDescriptionRepository.put(aasUrl, new SelfDescription(newEnvironment));
     }
 
     private void registerAasService(final URL newUrl, final CustomAssetAdministrationShellEnvironment newEnvironment) {
-        // Create the self description
-        // NOTE: Initially, access URLs of the AAS elements are stored in their asset
-        // ID field.
-        var allElements = getAllElements(newEnvironment);
-
-        addAssetsContracts(allElements);
-        selfDescriptionRepository.add(newUrl, new SelfDescription(newEnvironment));
+        addAssetsContracts(getAllElements(newEnvironment));
+        selfDescriptionRepository.put(newUrl, new SelfDescription(newEnvironment));
     }
 
     private void addAssetsContracts(List<? extends IdsAssetElement> elements) {
-        // Add each AAS element to EDC assetStore, giving it a contract
+        // Add each AAS element to EDC AssetIndex, giving it a contract
         elements.forEach(element -> {
-            var sourceUrl = element.getIdsAssetId();
-
-            var assetContractPair = resourceController.createResource(sourceUrl);
-
+            var assetContractPair = resourceController.createResource(element.getSourceUrl());
             element.setIdsAssetId(assetContractPair.getFirst());
             element.setIdsContractId(assetContractPair.getSecond());
         });
     }
 
-    private void removeAssetsContracts(CustomAssetAdministrationShellEnvironment environment) {
-        removeAssetsContracts(getAllElements(environment));
-    }
-
+    /*
+     * Removes any EDC asset and EDC contract off the EDC
+     * AssetIndex/ContractDefinitionStore given a list of AAS elements.
+     */
     private void removeAssetsContracts(List<? extends IdsAssetElement> elements) {
-        // Remove each AAS element from EDC assetStore as well as its contract
         elements.forEach(element -> {
             resourceController.deleteAsset(element.getIdsAssetId());
-            resourceController.deleteContractReference(element.getIdsContractId(), element.getIdsAssetId());
+            resourceController.deleteContract(element.getIdsContractId());
         });
     }
 
+    /*
+     * Returns all AAS elements in a flattened list format.
+     */
     private List<? extends IdsAssetElement> getAllElements(CustomAssetAdministrationShellEnvironment env) {
-        // Collect all assets and contracts associated with this AAS
         var allElements = new ArrayList<IdsAssetElement>();
         allElements.addAll(env.getConceptDescriptions());
         allElements.addAll(env.getAssetAdministrationShells());

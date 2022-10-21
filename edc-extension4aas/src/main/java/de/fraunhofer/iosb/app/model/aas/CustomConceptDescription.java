@@ -42,11 +42,6 @@ public class CustomConceptDescription extends IdsAssetElement {
     }
     
     @Override
-    public int hashCode() {
-        return super.hashCode();
-    }
-    
-    @Override
     public boolean equals(Object obj) {
         if (obj == null) {
             return false;

@@ -22,8 +22,9 @@ import de.fraunhofer.iosb.app.controller.AasController;
 import de.fraunhofer.iosb.app.controller.ConfigurationController;
 import de.fraunhofer.iosb.app.controller.ResourceController;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
-import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
+import de.fraunhofer.iosb.app.model.ids.SelfDescription;
 import okhttp3.OkHttpClient;
+import org.eclipse.dataspaceconnector.api.auth.AuthenticationService;
 import org.eclipse.dataspaceconnector.spi.WebService;
 import org.eclipse.dataspaceconnector.spi.asset.AssetLoader;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
@@ -34,7 +35,9 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.configuration.Config;
 
+import java.net.URL;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -52,6 +55,10 @@ public class AasExtension implements ServiceExtension {
     private PolicyDefinitionStore policyStore;
     @Inject
     private OkHttpClient okHttpClient;
+    @Inject
+    private WebService webService;
+    @Inject
+    private AuthenticationService authenticationService;
 
     private static final String SETTINGS_PREFIX = "edc.aas.";
     private final Logger logger = Logger.getInstance();
@@ -66,8 +73,8 @@ public class AasExtension implements ServiceExtension {
         logger.setMonitor(context.getMonitor());
 
         // Distribute controllers, repositories
-        final var selfDescriptionRepository = new SelfDescriptionRepository();
-        final var resourceController = new ResourceController(assetLoader, okHttpClient, contractStore, policyStore);
+        final var selfDescriptionRepository = new ConcurrentHashMap<URL, SelfDescription>();
+        final var resourceController = new ResourceController(assetLoader, contractStore, policyStore);
         aasController = new AasController(okHttpClient);
 
         endpoint = new Endpoint(selfDescriptionRepository, aasController, resourceController);
@@ -86,13 +93,14 @@ public class AasExtension implements ServiceExtension {
                     configInstance.getLocalAasServicePort());
         }
 
+        // Task: get all AAS service URLs, synchronize EDC and AAS
         syncExecutor.scheduleAtFixedRate(
-                () -> selfDescriptionRepository.getAll() // Task: get all AAS service URLs, synchronize EDC and AAS
-                        .forEach((url, selfDescription) -> endpoint.syncAasWithEdc(url)),
+                () -> selfDescriptionRepository.keys().asIterator()
+                        .forEachRemaining(url -> endpoint.syncAasWithEdc(url)),
                 configInstance.getSyncPeriod(),
                 configInstance.getSyncPeriod(), TimeUnit.SECONDS);
 
-        context.getService(WebService.class).registerResource(endpoint);
+        webService.registerResource(endpoint);
     }
 
     /**
@@ -116,7 +124,6 @@ public class AasExtension implements ServiceExtension {
             logger.error("Could not load AAS extension configuration, using default values", e);
             configAsString = "";
         }
-        // Currently, only one configuration at a time is supported
         new ConfigurationController().handleRequest(RequestType.PUT, null, configAsString);
     }
 

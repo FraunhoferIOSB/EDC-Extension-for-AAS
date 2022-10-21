@@ -1,10 +1,13 @@
 plugins {
     `java-library`
+    jacoco
 }
 
 val rsApi = "3.1.0"
 val okHttpVersion = "4.10.0"
 val javaVersion = 11
+val mockitoVersion = "4.2.0"
+val jupiterVersion = "5.9.1"
 
 java {
 	toolchain {
@@ -31,11 +34,26 @@ dependencies {
     // HTTP endpoint of extension
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 
+    // Tests
+    // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api
+    testImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
+    testImplementation("org.mockito:mockito-core:${mockitoVersion}")
+    testImplementation("org.mock-server:mockserver-netty:5.11.1") 
+    testImplementation("org.mock-server:mockserver-junit-jupiter:5.11.1") 
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")
 }
 
 repositories {
 	mavenLocal()
 	mavenCentral()
+}
+
+tasks.test {
+    useJUnitPlatform()
+}
+
+tasks.jacocoTestReport {
+    dependsOn(tasks.test) // tests are required to run before generating the report
 }
 
 configurations.all {

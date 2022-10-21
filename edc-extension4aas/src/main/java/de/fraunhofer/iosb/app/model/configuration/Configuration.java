@@ -41,8 +41,8 @@ public class Configuration {
     private URL registryUrl;
     private int syncPeriod = 5; // default value: 5 seconds
     private boolean exposeSelfDescription = true;
-    private String defaultAccessPolicyDefinitionPath;
-    private String defaultContractPolicyDefinitionPath;
+    private String defaultAccessPolicyPath;
+    private String defaultContractPolicyPath;
 
     public static synchronized Configuration getInstance() {
         if (Objects.isNull(instance)) {
@@ -109,6 +109,7 @@ public class Configuration {
         return registryUrl;
     }
 
+    @JsonProperty(SETTINGS_PREFIX + "registryurl")
     public void setRegistryUrl(URL registryUrl) {
         this.registryUrl = registryUrl;
     }
@@ -131,21 +132,21 @@ public class Configuration {
         this.exposeSelfDescription = exposeSelfDescription;
     }
 
-    public String getDefaultAccessPolicyDefinitionPath() {
-        return defaultAccessPolicyDefinitionPath;
+    public String getDefaultAccessPolicyPath() {
+        return defaultAccessPolicyPath;
     }
 
-    @JsonProperty(SETTINGS_PREFIX + "defaultaccesspolicydefinitionpath")
-    public void setDefaultAccessPolicyDefinitionPath(String defaultAccessPolicyDefinitionPath) {
-        this.defaultAccessPolicyDefinitionPath = defaultAccessPolicyDefinitionPath;
+    @JsonProperty(SETTINGS_PREFIX + "defaultaccesspolicypath")
+    public void setDefaultAccessPolicyPath(String defaultAccessPolicyPath) {
+        this.defaultAccessPolicyPath = defaultAccessPolicyPath;
     }
 
-    public String getDefaultContractPolicyDefinitionPath() {
-        return defaultContractPolicyDefinitionPath;
+    public String getDefaultContractPolicyPath() {
+        return defaultContractPolicyPath;
     }
 
-    @JsonProperty(SETTINGS_PREFIX + "defaultcontractpolicydefinitionpath")
-    public void setDefaultContractPolicyDefinitionPath(String defaultContractPolicyDefinitionPath) {
-        this.defaultContractPolicyDefinitionPath = defaultContractPolicyDefinitionPath;
+    @JsonProperty(SETTINGS_PREFIX + "defaultcontractpolicypath")
+    public void setDefaultContractPolicyPath(String defaultContractPolicyPath) {
+        this.defaultContractPolicyPath = defaultContractPolicyPath;
     }
 }

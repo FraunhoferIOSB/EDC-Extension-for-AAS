@@ -24,37 +24,40 @@ import io.adminshell.aas.v3.model.SubmodelElementCollection;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Objects;
 
 public final class SubmodelUtil {
-    
+
     private SubmodelUtil() {
     }
 
     /**
      * Get Custom Submodel Elements with Structure From Submodel
-
+     * 
      * @param submodel Submodel whose elements are to be returned in a flat list
      * @return flat list of submodels elements
      */
-    public static Collection<CustomSubmodelElement> getCustomSubmodelElementStructureWithUrlsFromSubmodel(
+    public static Collection<CustomSubmodelElement> getCustomSubmodelElementStructureFromSubmodel(
             Submodel submodel) {
+        Objects.requireNonNull(submodel);
         return unpackElements(submodel.getSubmodelElements());
     }
 
     /**
      * Make structure of submodelElements inside this submodel flat and return list
      * of them
-
+     * 
      * @param submodel Submodel whose elements are to be returned in a flat list
      * @return flat list of submodels elements
      */
     public static Collection<CustomSubmodelElement> getAllSubmodelElements(CustomSubmodel submodel) {
+        Objects.requireNonNull(submodel);
         return flattenElements(new ArrayList<CustomSubmodelElement>(), submodel.getSubmodelElements());
     }
 
     /**
      * Recursive unpacking of submodelElementCollections + their contents into
-     * custom submodel. Also creates relative URLs.
+     * custom submodel.
      */
     private static Collection<CustomSubmodelElement> unpackElements(Collection<SubmodelElement> submodelElements) {
         Collection<CustomSubmodelElement> customSubmodelElements = new ArrayList<>();

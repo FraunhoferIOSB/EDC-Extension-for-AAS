@@ -16,6 +16,7 @@
 package de.fraunhofer.iosb.app.model.aas;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
  * Combining EDC and AAS elements by creating an element with both values.
@@ -25,6 +26,8 @@ public class IdsAssetElement {
 
     protected String idsContractId;
     protected String idsAssetId;
+    @JsonIgnore // Do not print this in selfDescriptions
+    protected String sourceUrl;
 
     public String getIdsContractId() {
         return idsContractId;
@@ -41,4 +44,13 @@ public class IdsAssetElement {
     public void setIdsAssetId(String idsAssetId) {
         this.idsAssetId = idsAssetId;
     }
+    
+    public String getSourceUrl() {
+        return sourceUrl;
+    }
+
+    public void setSourceUrl(String sourceUrl) {
+        this.sourceUrl = sourceUrl;
+    }
+
 }

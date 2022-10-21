@@ -15,6 +15,7 @@
  */
 package de.fraunhofer.iosb.app.controller;
 
+import de.fraunhofer.iosb.app.Logger;
 import de.fraunhofer.iosb.app.RequestType;
 import de.fraunhofer.iosb.app.aas.AasAgent;
 import de.fraunhofer.iosb.app.aas.AssetAdministrationShellServiceManager;
@@ -29,15 +30,22 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.Objects;
 
+import static java.lang.String.format;
+
 /**
  * Handles requests regarding the Asset Administration Shells registered to this
  * extension
  */
 public class AasController implements Controllable {
+
     private final AasAgent aasAgent;
     private final AssetAdministrationShellServiceManager aasServiceManager;
+    private final Logger logger;
 
     public AasController(OkHttpClient okHttpClient) {
+        Objects.requireNonNull(okHttpClient);
+
+        logger = Logger.getInstance();
         aasAgent = new AasAgent(okHttpClient);
         aasServiceManager = new FaaastServiceManager();
     }
@@ -46,11 +54,11 @@ public class AasController implements Controllable {
     public Response handleRequest(RequestType requestType, URL url, String... requestData) {
         switch (requestType) {
             case POST:
-                return aasAgent.postModel(url, requestData[1], requestData[2]);
+                return aasAgent.postModel(url, requestData[0]);
             case PUT:
-                return aasAgent.putModel(url, requestData[1], requestData[2]);
+                return aasAgent.putModel(url, requestData[0]);
             case DELETE:
-                return aasAgent.deleteModel(url, requestData[1], requestData[2]);
+                return aasAgent.deleteModel(url, requestData[0]);
 
             default:
                 return Response.status(Response.Status.NOT_IMPLEMENTED).build();
@@ -60,20 +68,21 @@ public class AasController implements Controllable {
     /**
      * Returns the AAS model of the AAS service behind the aasServiceUrl, as a self
      * description (see model/aas/*). This model has the access URL of each AAS
-     * element in the contractId field.
+     * element in the sourceUrl field.
 
      * @param aasServiceUrl url of the service
      * @return aasServiceUrl's model, in self description form
      * @throws DeserializationException AAS from service could not be deserialized
-     * @throws IOException Communication with AAS service failed
+     * @throws IOException              Communication with AAS service failed
      */
     public CustomAssetAdministrationShellEnvironment getAasModelWithUrls(URL aasServiceUrl)
             throws IOException, DeserializationException {
+        Objects.requireNonNull(aasServiceUrl);
         return aasAgent.getAasEnvWithUrls(aasServiceUrl);
     }
 
     /**
-     * Start an AAS service internally by given parameters
+     * Starts an AAS service internally
 
      * @param aasModelPath   AAS Environment for the AAS service
      * @param aasServicePort AAS service's exposed HTTP port for communication
@@ -83,18 +92,27 @@ public class AasController implements Controllable {
      * @throws IOException If the URL creation fails
      */
     public URL startService(Path aasModelPath, int aasServicePort, Path aasConfigPath) throws IOException {
+        Objects.requireNonNull(aasModelPath);
+
         if (Objects.isNull(aasConfigPath)) {
+            logger.log(format(
+                    "Booting up AAS service given AAS model path (%s)\n and service port (%s)\n...",
+                    aasModelPath, aasServicePort));
             return aasServiceManager.startService(aasModelPath, aasServicePort);
         }
+        logger.log(format(
+                "Booting up AAS service given AAS model path (%s)\n and service config path (%s)...",
+                aasModelPath, aasConfigPath));
         return aasServiceManager.startService(aasModelPath, aasConfigPath);
     }
 
     /**
-     * Stops an AAS service by its URL if internally started
+     * Stops an AAS service given its URL if internally started
 
      * @param aasServiceUrl URL of service to be stopped
      */
     public void stopAssetAdministrationShellService(URL aasServiceUrl) {
+        logger.log(format("Shutting down AAS service with URL %s...", aasServiceUrl.toString()));
         aasServiceManager.stopService(aasServiceUrl);
     }
 
@@ -102,6 +120,7 @@ public class AasController implements Controllable {
      * Stops all internally started AAS services
      */
     public void stopServices() {
+        logger.log("Shutting down all AAS services...");
         aasServiceManager.stopServices();
     }
 }

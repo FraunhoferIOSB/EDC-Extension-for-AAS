@@ -38,11 +38,6 @@ public class CustomSubmodelElement extends IdsAssetElement {
     }
 
     @Override
-    public int hashCode() {
-        return super.hashCode();
-    }
-    
-    @Override
     public boolean equals(Object obj) {
         if (obj == null) {
             return false;
@@ -56,6 +51,14 @@ public class CustomSubmodelElement extends IdsAssetElement {
 
         if (!this.getIdShort().equals(other.getIdShort())) {
             return false;
+        }
+
+        if ((this instanceof CustomSubmodelElementCollection)) {
+            if (!(other instanceof CustomSubmodelElementCollection)) {
+                return false;
+            }
+            return ((CustomSubmodelElementCollection) this).getValue().stream()
+                    .allMatch(element -> ((CustomSubmodelElementCollection) other).getValue().contains(element));
         }
 
         return true;

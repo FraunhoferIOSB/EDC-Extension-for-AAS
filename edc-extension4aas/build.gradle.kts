@@ -38,7 +38,7 @@ dependencies {
     // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api
     testImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
     testImplementation("org.mockito:mockito-core:${mockitoVersion}")
-    testImplementation("org.mock-server:mockserver-netty:5.11.1") 
+    testImplementation("org.mock-server:mockserver-netty:5.14.0") 
     testImplementation("org.mock-server:mockserver-junit-jupiter:5.11.1") 
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")
 }

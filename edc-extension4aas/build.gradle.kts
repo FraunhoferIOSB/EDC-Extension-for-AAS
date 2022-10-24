@@ -6,7 +6,7 @@ plugins {
 val rsApi = "3.1.0"
 val okHttpVersion = "4.10.0"
 val javaVersion = 11
-val mockitoVersion = "4.2.0"
+val mockitoVersion = "4.8.1"
 val jupiterVersion = "5.9.1"
 
 java {

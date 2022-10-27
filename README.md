@@ -34,18 +34,17 @@ Provide digital twin (AAS) data to business partners in Data Spaces like Catena-
 
 ### Interfaces
 
-| HTTP Method | Interface (edc:1234/api/...) | Parameters ((r) = required) | Description |
+| HTTP Method | Interface (edc:1234/api/...) ((a) = only for authenticated users) | Parameters ((r) = required) | Description |
 | :----| :----| :---- | :-------------------- |
-| GET | config | - | Get current extension configuration values
-| PUT | config | Body: new config values (JSON) | Put new config values
-| POST | client | Query Parameter "url" (r) | Register a standalone AAS service (e.g., FA³ST) to this extension
-| DELETE | client | Query Parameter "url" (r) | Unregister an AAS service (e.g., FA³ST) from this extension
-| POST | environment | Query Parameter "environment": Path to new AAS environment (r), Query Parameter "port": Port of service to be created , Query Parameter "config": Path of AAS service configuration file | Create a new AAS service. Either (http) "port" or "config" must be given to ensure communication with the AAS service.
-| POST | aas | Query Parameter "requestUrl": URL of AAS service to be updated (r), request body: AAS element (r) | Forward POST request to provided host in requestUrl. If requestUrl is an AAS service that is registered at this EDC, synchronize assets and self description aswell.
-| DELETE | aas | Query Parameter requestUrl: URL of AAS service to be updated (r)| Forward DELETE request to provided host in requestUrl. If requestUrl is an AAS service that is registered at this EDC, synchronize assets and self description aswell.
-| PUT | aas | Query Parameter "requestUrl": URL of AAS service to be updated (r), request body: AAS element (r) | Forward PUT request to provided host in requestUrl.
+| GET | config (a) | - | Get current extension configuration values.
+| PUT | config (a) | Body: Updated config values (JSON) (r) | Update config values.
+| POST | client (a) | Query Parameter "url" (r) | Register a standalone AAS service (e.g., FA³ST) to this extension.
+| DELETE | client (a) | Query Parameter "url" (r) | Unregister an AAS service (e.g., FA³ST) from this extension, possibly shutting down the service if it has been started internally.
+| POST | environment (a) | Query Parameter "environment": Path to new AAS environment (r), Query Parameter "port": Port of service to be created , Query Parameter "config": Path of AAS service configuration file | Create a new AAS service. Either (http) "port" or "config" must be given to ensure communication with the AAS service via an HTTP endpoint on the service's side. This command returns the URL of the newly created AAS service on success, which can be used to remove the service using the interface "DELETE /client"
+| POST | aas (a) | Query Parameter "requestUrl": URL of AAS service to be updated (r), request body: AAS element (r) | Forward POST request to provided host in requestUrl. If requestUrl is an AAS service that is registered at this EDC, synchronize assets and self description as well.
+| DELETE | aas (a) | Query Parameter requestUrl: URL of AAS service to be updated (r)| Forward DELETE request to provided host in requestUrl. If requestUrl is an AAS service that is registered at this EDC, synchronize assets and self description as well.
+| PUT | aas (a) | Query Parameter "requestUrl": URL of AAS service to be updated (r), request body: AAS element (r) | Forward PUT request to provided host in requestUrl.
 | GET | selfDescription | - | Return self description of extension.
-
 
 ### Dependencies
 
@@ -54,7 +53,7 @@ Provide digital twin (AAS) data to business partners in Data Spaces like Catena-
 | de.fraunhofer.iosb.ilt.faaast.service:starter | [FA³ST Service](https://github.com/FraunhoferIOSB/FAAAST-Service) to start AAS services internally.
 | io.admin-shell.aas:dataformat-json | [admin-shell-io java serializer](https://github.com/admin-shell-io/java-serializer) (de-)serialize AAS models
 | io.admin-shell.aas:model | [admin-shell-io java model](https://github.com/admin-shell-io/java-model) (de-)serialize AAS models
-| :extensions:dataloading | EDC asset/contract management
+| org.eclipse.dataspaceconnector:data-management-api | EDC asset/contract management
 | com.squareup.okhttp3:okhttp | Send HTTP requests to AAS services
 | jakarta.ws.rs:jakarta.ws.rs-api | provides HTTP endpoints of extension
 
@@ -64,12 +63,12 @@ Provide digital twin (AAS) data to business partners in Data Spaces like Catena-
 | :----| :-----------| :------|
 |edc.aas.remoteAasLocation | URL | A URL of an AAS service (such as FA³ST service) that is already running and is conformant to official AAS API specification|
 |edc.aas.localAASModelPath| path | A path to a serialized AAS environment compatible to specification version 3.0RC01 (see: https://github.com/FraunhoferIOSB/FAAAST-Service/blob/main/README.md)|
-|edc.aas.localAASServicePort| (1-65535)| Port to locally created AAS service. Required, if localAASModelPath is defined|
-|edc.aas.localAASServiceConfigPath|path|Path to AAS config for locally started AAS service. Required, if localAASServicePort is not defined, but localAASModelPath is defined|
-|edc.aas.syncPeriod |number in seconds |Time period in which AAS services should be polled for structural changes (added/deleted elements etc.). Default value is 5 (seconds).|
-|edc.aas.exposeSelfDescription| True/False| Whether the Self Description should be exposed on {edc}/api/selfDescription|
-|edc.aas.defaultAccessPolicyDefinitionPath|path |Path to a default access policy definition file.|
-|edc.aas.defaultContractPolicyDefinitionPath|path |Path to a default contract policy definition file.|
+|edc.aas.localAASServicePort| (1-65535)| Port to locally created AAS service. Required, if localAASModelPath is defined and localAASServiceConfigPath is not defined.|
+|edc.aas.localAASServiceConfigPath|path|Path to AAS config for locally started AAS service. Required, if localAASServicePort is not defined, but localAASModelPath is defined.|
+|edc.aas.syncPeriod |number in seconds |Time period in which AAS services should be polled for structural changes (added/deleted elements etc.). Default value is 5 (seconds). Note: This configuration value is only read on startup, the synchronization period cannot be changed at runtime.|
+|edc.aas.exposeSelfDescription| True/False| Whether the Self Description should be exposed on {edc}/api/selfDescription. When set to False, the selfDescription is still available for authenticated requests.|
+|edc.aas.defaultAccessPolicyPath|path |Path to an access policy file (JSON). This policy will be used as the default access policy for all assets created after the configuration value has been set.|
+|edc.aas.defaultContractPolicyPath|path |Path to a contract policy file (JSON). This policy will be used as the default contract policy for all assets created after the configuration value has been set.|
 
 ## Terminology
 | Term | Description |
@@ -80,6 +79,5 @@ Provide digital twin (AAS) data to business partners in Data Spaces like Catena-
 ## Roadmap
 Features in development:
 - Graphical interface to simplify providing and requesting AAS
-- Built-in client to request AAS data from other EDC (automatic contract negotitation)
-- Dockerhub Container deployment
-
+- Built-in client to request AAS data from other EDC (automatic contract negotiation)
+- Docker Hub container deployment

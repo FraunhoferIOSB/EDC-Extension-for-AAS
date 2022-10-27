@@ -4,6 +4,11 @@
 
 **New Features**
 
+* Custom AuthenticationRequestFilter
+    * Requests to the extension are now intercepted by a request filter
+    * Requests to all endpoints except /api/selfDescription require authentication
+    * The authentication method is defined within the launcher's build file. In the example launcher, a mocked identity and access management service is used: _org.eclipse.dataspaceconnector:iam-mock_
+
 * Configuration value "exposeSelfDescription"
     * Set to _False_ to not expose the extension's self descriptions
     * Default value is _True_

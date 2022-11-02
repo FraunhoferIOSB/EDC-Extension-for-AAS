@@ -23,12 +23,11 @@ import jakarta.ws.rs.container.ContainerRequestContext;
 
 /**
  * Custom AuthenticationRequestFilter filtering requests that go directly to an
- * AAS service (managed by this extension).
+ * AAS service (managed by this extension) or the extension's configuration.
  */
 public class CustomAuthenticationRequestFilter extends AuthenticationRequestFilter {
 
     private final Configuration config;
-    private static final String selfDescriptionEndpointName = "selfDescription";
 
     public CustomAuthenticationRequestFilter(AuthenticationService authenticationService) {
         super(authenticationService);
@@ -37,13 +36,12 @@ public class CustomAuthenticationRequestFilter extends AuthenticationRequestFilt
 
     @Override
     public void filter(ContainerRequestContext requestContext) {
-        // SelfDescription request?
-        if (requestContext.getUriInfo().getPath().equals(selfDescriptionEndpointName)
+        if (!Endpoint.SELF_DESCRIPTION_PATH.equalsIgnoreCase(requestContext.getUriInfo().getPath())
                 && config.isExposeSelfDescription()) {
+            Logger.getInstance().debug("CustomAuthenticationRequestFilter: Intercepting this request");
+            super.filter(requestContext);
+        } else {
             Logger.getInstance().debug("CustomAuthenticationRequestFilter: Not intercepting this request");
-            return;
         }
-        Logger.getInstance().debug("CustomAuthenticationRequestFilter: Intercepting this request");
-        super.filter(requestContext);
     }
 }

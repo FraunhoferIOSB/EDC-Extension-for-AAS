@@ -60,8 +60,13 @@ import static java.lang.String.format;
 @Path("/")
 public class Endpoint {
 
-    public static final String AAS_REQUEST_PATH = "aas";
+    public static final String SELF_DESCRIPTION_PATH = "selfDescription";
 
+    private static final String AAS_REQUEST_PATH = "aas";
+    private static final String CONFIG_PATH = "config";
+    private static final String CLIENT_PATH = "client";
+    private static final String ENVIRONMENT_PATH = "environment";
+    
     private final ConfigurationController configurationController;
     private final AasController aasController;
     private final ResourceController resourceController;
@@ -98,7 +103,7 @@ public class Endpoint {
      * @return Current configuration values
      */
     @GET
-    @Path("config")
+    @Path(CONFIG_PATH)
     public Response getConfig() {
         logger.debug("Received a config GET request");
         return configurationController.handleRequest(RequestType.GET, null);
@@ -111,7 +116,7 @@ public class Endpoint {
      * @return Response with status code
      */
     @PUT
-    @Path("config")
+    @Path(CONFIG_PATH)
     public Response putConfig(@Nonnull String newConfigurationJson) {
         logger.debug("Received a config PUT request");
         Objects.requireNonNull(newConfigurationJson);
@@ -125,7 +130,7 @@ public class Endpoint {
      * @return Response
      */
     @POST
-    @Path("client")
+    @Path(CLIENT_PATH)
     public Response postAasService(@QueryParam("url") URL aasServiceUrl) {
         logger.log("Received a client POST request");
         Objects.requireNonNull(aasServiceUrl);
@@ -166,7 +171,7 @@ public class Endpoint {
      * @return Response containing new AAS URL or error code
      */
     @POST
-    @Path("environment")
+    @Path(ENVIRONMENT_PATH)
     public Response postAasEnvironment(@QueryParam("environment") String pathToEnvironment,
             @QueryParam("config") String pathToAssetAdministrationShellConfig, @QueryParam("port") int port) {
         logger.log("Received an environment POST request");
@@ -212,7 +217,7 @@ public class Endpoint {
      * @return Response "ok" containing status message
      */
     @DELETE
-    @Path("client")
+    @Path(CLIENT_PATH)
     public Response removeAasService(@QueryParam("url") @Nonnull URL aasServiceUrl) {
         logger.log("Received a client DELETE request");
         Objects.requireNonNull(aasServiceUrl);
@@ -352,7 +357,7 @@ public class Endpoint {
      * @return Self description(s)
      */
     @GET
-    @Path("selfDescription")
+    @Path(SELF_DESCRIPTION_PATH)
     public Response getSelfDescription(@QueryParam("aasService") URL aasServiceUrl) {
         if (Objects.isNull(aasServiceUrl)) {
             logger.debug("Received a self description GET request");

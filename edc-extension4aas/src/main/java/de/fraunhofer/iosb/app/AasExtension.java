@@ -101,6 +101,7 @@ public class AasExtension implements ServiceExtension {
                 configInstance.getSyncPeriod(), TimeUnit.SECONDS);
 
         webService.registerResource(endpoint);
+        webService.registerResource(new CustomAuthenticationRequestFilter(authenticationService));
     }
 
     /**

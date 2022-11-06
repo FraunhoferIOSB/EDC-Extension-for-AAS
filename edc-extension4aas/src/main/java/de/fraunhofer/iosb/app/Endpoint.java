@@ -253,26 +253,7 @@ public class Endpoint {
         logger.log("Received an AAS POST request");
         Objects.requireNonNull(requestUrl);
         Objects.requireNonNull(requestBody);
-        final var response = aasController.handleRequest(RequestType.POST, requestUrl, requestBody);
-        if (!response.getStatusInfo().getFamily().equals(Family.SUCCESSFUL)) {
-            logger.error("AAS request failed. Response from URL: " + response.getStatusInfo());
-            return Response.status(response.getStatus()).build();
-        }
-        URL requestUrlNoPath;
-        try {
-            requestUrlNoPath = new URL(requestUrl.toString().replace(requestUrl.getPath(), ""));
-            syncAasWithEdc(requestUrlNoPath);
-        } catch (MalformedURLException e) {
-            logger.error("Could not determine AAS service from URL", e);
-            return Response.serverError().build();
-        } catch (EdcException edcException) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), edcException.getMessage())
-                    .build();
-        }
-
-        logger.log("AAS request succeeded.");
-
-        return Response.ok().build();
+        return handleAasRequest(RequestType.POST, requestUrl, new String());
     }
 
     /**
@@ -288,27 +269,7 @@ public class Endpoint {
     public Response deleteAasRequest(@QueryParam("requestUrl") @Nonnull URL requestUrl) {
         logger.log("Received an AAS DELETE request");
         Objects.requireNonNull(requestUrl);
-        final var response = aasController.handleRequest(RequestType.DELETE, requestUrl, new String());
-        if (!response.getStatusInfo().getFamily().equals(Family.SUCCESSFUL)) {
-            logger.error("AAS request failed. Response from URL: " + response.getStatusInfo());
-            return Response.status(response.getStatus()).build();
-        }
-        URL requestUrlNoPath;
-        try {
-            requestUrlNoPath = new URL(requestUrl.getProtocol(), requestUrl.getHost(), requestUrl.getPort(),
-                    new String());
-            syncAasWithEdc(requestUrlNoPath);
-        } catch (MalformedURLException e) {
-            logger.error("Could not determine AAS service from URL", e);
-            return Response.serverError().build();
-        } catch (EdcException edcException) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), edcException.getMessage())
-                    .build();
-        }
-
-        logger.log("AAS request succeeded.");
-
-        return Response.ok().build();
+        return handleAasRequest(RequestType.DELETE, requestUrl, new String());
     }
 
     /**
@@ -324,29 +285,7 @@ public class Endpoint {
         logger.log("Received an AAS PUT request");
         Objects.requireNonNull(requestUrl);
         Objects.requireNonNull(requestBody);
-        final var response = aasController.handleRequest(RequestType.PUT, requestUrl, requestBody);
-        if (!response.getStatusInfo().getFamily().equals(Family.SUCCESSFUL)) {
-            logger.error("AAS request failed. Response from URL: " + response.getStatusInfo());
-            return Response.status(response.getStatus()).build();
-        }
-
-        URL requestUrlNoPath;
-        try {
-            requestUrlNoPath = new URL(requestUrl.getProtocol(), requestUrl.getHost(), requestUrl.getPort(),
-                    new String());
-            syncAasWithEdc(requestUrlNoPath);
-        } catch (MalformedURLException e) {
-            logger.error("Could not determine AAS service from URL", e);
-            return Response.serverError().build();
-        } catch (EdcException edcException) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), edcException.getMessage())
-                    .build();
-        }
-
-        logger.log("AAS request succeeded.");
-
-        return Response.ok().build();
-
+        return handleAasRequest(RequestType.PUT, requestUrl, new String());
     }
 
     /**
@@ -364,7 +303,7 @@ public class Endpoint {
             // Build JSON object containing all self descriptions
             var selfDescriptions = objectMapper.createArrayNode();
             selfDescriptionRepository.values()
-                    .forEach(selfDescription -> selfDescriptions.add(objectMapper.valueToTree(selfDescription)));
+                    .forEach(selfDescription -> selfDescriptions.add(selfDescription.toJsonNode()));
 
             return Response.ok(selfDescriptions.toString()).build();
         } else {
@@ -473,6 +412,31 @@ public class Endpoint {
 
         // Finally, update the self description
         selfDescriptionRepository.put(aasUrl, new SelfDescription(newEnvironment));
+    }
+
+    private Response handleAasRequest(RequestType requestType, URL requestUrl, String body) {
+        final var response = aasController.handleRequest(requestType, requestUrl, body);
+
+        if (!response.getStatusInfo().getFamily().equals(Family.SUCCESSFUL)) {
+            logger.error("AAS request failed. Response from URL: " + response.getStatusInfo());
+            return Response.status(response.getStatus()).build();
+        }
+        URL requestUrlNoPath;
+        try {
+            requestUrlNoPath = new URL(requestUrl.getProtocol(), requestUrl.getHost(), requestUrl.getPort(),
+                    new String());
+            syncAasWithEdc(requestUrlNoPath);
+        } catch (MalformedURLException e) {
+            logger.error("Could not determine AAS service from URL", e);
+            return Response.serverError().build();
+        } catch (EdcException edcException) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), edcException.getMessage())
+                    .build();
+        }
+
+        logger.log("AAS request succeeded.");
+
+        return Response.ok().build();
     }
 
     private void registerAasService(final URL newUrl, final CustomAssetAdministrationShellEnvironment newEnvironment) {

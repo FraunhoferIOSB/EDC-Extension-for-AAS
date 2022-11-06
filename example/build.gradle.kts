@@ -15,40 +15,32 @@ plugins {
 }
 
 val jupiterVersion: String by project
+val edcGroup: String by project
+val edcVersion: String by project
 
 dependencies {
-    val edcGroup = "org.eclipse.dataspaceconnector"
-    val edcVersion = "0.0.1-milestone-6"
-
-    implementation("$edcGroup:core-base:$edcVersion")
-    implementation("$edcGroup:core-boot:$edcVersion")
-
-    implementation("$edcGroup:control-plane-core:$edcVersion")
+    implementation("${edcGroup}:control-plane-core:${edcVersion}")
 
     // IDS AAS App:
     implementation(project(":edc-extension4aas"))
 
     // IDS stuff such as IDS messages
-    implementation("$edcGroup:ids:$edcVersion") {
-        exclude("$edcGroup","ids-token-validation")
+    implementation("${edcGroup}:ids:${edcVersion}") {
+        exclude("${edcGroup}","ids-token-validation")
     }
 
     // Identity and access management MOCK -> only for testing
-    implementation("$edcGroup:iam-mock:$edcVersion")
-    implementation("$edcGroup:auth-tokenbased:$edcVersion")
-
+    implementation("${edcGroup}:iam-mock:${edcVersion}")
+    implementation("${edcGroup}:auth-tokenbased:${edcVersion}")
+    
     // Read configuration values
-    implementation("$edcGroup:filesystem-configuration:$edcVersion")
+    implementation("${edcGroup}:filesystem-configuration:${edcVersion}")
 
-    // Read/write from/to http endpoints
-    implementation("$edcGroup:data-management-api:$edcVersion")
 
-    implementation("$edcGroup:data-plane-selector-client:$edcVersion")
-    implementation("$edcGroup:data-plane-http:$edcVersion")
-    implementation("$edcGroup:data-plane-core:$edcVersion")
-    implementation("$edcGroup:data-plane-selector-core:$edcVersion")
-    implementation("$edcGroup:data-plane-transfer-client:$edcVersion")
-
+    // Data transfer (read from AAS service/write to HTTP endpoint)
+    implementation("${edcGroup}:data-plane-core:${edcVersion}")
+    implementation("${edcGroup}:data-plane-http:${edcVersion}")
+    implementation("${edcGroup}:data-plane-transfer-client:${edcVersion}")
 }
 
 application {

@@ -3,11 +3,14 @@ plugins {
     jacoco
 }
 
-val rsApi = "3.1.0"
-val okHttpVersion = "4.10.0"
-val javaVersion = 11
-val mockitoVersion = "4.8.1"
-val jupiterVersion = "5.9.1"
+val javaVersion: String by project
+val faaastVersion: String by project
+val edcGroup: String by project
+val edcVersion: String by project
+val okHttpVersion: String by project
+val rsApi: String by project
+val mockitoVersion: String by project
+val mockserverVersion: String by project
 
 java {
 	toolchain {
@@ -16,17 +19,15 @@ java {
 }
 
 dependencies {
-    val edcGroup = "org.eclipse.dataspaceconnector"
-    val edcVersion = "0.0.1-milestone-6"
     // FA³ST
-    implementation ("de.fraunhofer.iosb.ilt.faaast.service:starter:0.1.0")
+    implementation ("de.fraunhofer.iosb.ilt.faaast.service:starter:${faaastVersion}")
     // AAS serializer
     implementation("io.admin-shell.aas:dataformat-json:1.2.1")
     // AAS model by admin-shell.io, used for parsing submodelElementCollections
     implementation("io.admin-shell.aas:model:1.2.0")
 
     // EDC asset management
-    implementation("$edcGroup:data-management-api:$edcVersion")
+    implementation("${edcGroup}:data-management-api:${edcVersion}")
 
     // Send HTTP requests to AAS service
     implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
@@ -35,12 +36,11 @@ dependencies {
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 
     // Tests
-    // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api
-    testImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
     testImplementation("org.mockito:mockito-core:${mockitoVersion}")
-    testImplementation("org.mock-server:mockserver-netty:5.14.0") 
-    testImplementation("org.mock-server:mockserver-junit-jupiter:5.14.0") 
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")
+    testImplementation("${edcGroup}:junit:${edcVersion}")
+    
+    testImplementation("org.mock-server:mockserver-junit-jupiter:${mockserverVersion}") 
+    testImplementation("org.mock-server:mockserver-netty:${mockserverVersion}") 
 }
 
 repositories {

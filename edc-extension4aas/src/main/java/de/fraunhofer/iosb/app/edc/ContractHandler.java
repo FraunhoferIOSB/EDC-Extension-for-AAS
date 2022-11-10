@@ -16,6 +16,7 @@
 package de.fraunhofer.iosb.app.edc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
 import de.fraunhofer.iosb.app.Logger;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import org.eclipse.dataspaceconnector.policy.model.Action;
@@ -57,6 +58,7 @@ public class ContractHandler {
     private final PolicyDefinitionStore policyDefinitionStore;
     private final Configuration configuration;
     private final Logger logger;
+    private final ObjectReader objectReader;
 
     public ContractHandler(final ContractDefinitionStore contractStore,
             final PolicyDefinitionStore policyStore) {
@@ -66,6 +68,8 @@ public class ContractHandler {
         this.policyDefinitionStore = policyStore;
         configuration = Configuration.getInstance();
         logger = Logger.getInstance();
+        var objectMapper = new ObjectMapper();
+        objectReader = objectMapper.readerFor(Policy.class);
     }
 
     /**
@@ -132,17 +136,14 @@ public class ContractHandler {
 
         if (Objects.nonNull(defaultAccessPolicyPath)) {
             try {
-
-                var defaultAccessPolicy = new ObjectMapper().readValue(
-                        Path.of(defaultAccessPolicyPath).toFile(), Policy.class);
+                var defaultAccessPolicy = objectReader.readValue(Path.of(defaultAccessPolicyPath).toFile());
                 defaultAccessPolicyDefinition = PolicyDefinition.Builder.newInstance()
-                        .id(contractPolicyId)
+                        .id(accessPolicyId)
                         .policy(defaultAccessPolicy.withTarget(assetId))
                         .build();
-
             } catch (IOException ioException) {
                 logger.error(
-                        format("Could not find access policy at path %s. Using internal default policy.",
+                        format("Could not find a correct access policy at path %s. Using internal default policy.",
                                 defaultAccessPolicyPath),
                         ioException);
             }
@@ -151,19 +152,15 @@ public class ContractHandler {
 
         if (Objects.nonNull(defaultContractPolicyPath)) {
             try {
-
-                var defaultContractPolicy = new ObjectMapper()
-                        .readValue(Path.of(defaultContractPolicyPath).toFile(),
-                                Policy.class);
+                var defaultContractPolicy = objectReader.readValue(Path.of(defaultContractPolicyPath).toFile());
                 defaultContractPolicyDefinition = PolicyDefinition.Builder.newInstance()
                         .id(contractPolicyId)
                         .policy(defaultContractPolicy.withTarget(assetId))
                         .build();
-
             } catch (IOException ioException) {
                 logger.error(
-                        format("Could not find contract policy at path %s. Using internal default policy.",
-                                defaultAccessPolicyPath),
+                        format("Could not find a correct contract policy at path %s. Using internal default policy.",
+                                defaultContractPolicyPath),
                         ioException);
             }
         }

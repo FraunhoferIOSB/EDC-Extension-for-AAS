@@ -21,6 +21,7 @@ import de.fraunhofer.iosb.app.controller.AasController;
 import de.fraunhofer.iosb.app.controller.ConfigurationController;
 import de.fraunhofer.iosb.app.controller.ResourceController;
 import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShellEnvironment;
+import de.fraunhofer.iosb.app.model.aas.CustomSubmodel;
 import de.fraunhofer.iosb.app.model.aas.IdsAssetElement;
 import de.fraunhofer.iosb.app.model.aas.util.SubmodelUtil;
 import de.fraunhofer.iosb.app.model.ids.SelfDescription;
@@ -66,7 +67,7 @@ public class Endpoint {
     private static final String CONFIG_PATH = "config";
     private static final String CLIENT_PATH = "client";
     private static final String ENVIRONMENT_PATH = "environment";
-    
+
     private final ConfigurationController configurationController;
     private final AasController aasController;
     private final ResourceController resourceController;
@@ -77,7 +78,7 @@ public class Endpoint {
 
     /**
      * Class constructor
-
+     * 
      * @param selfDescriptionRepository Manage self descriptions
      * @param aasController             Communication with AAS services
      * @param resourceController        Communication with EDC
@@ -99,7 +100,7 @@ public class Endpoint {
 
     /**
      * Return the current configuration values of this extension.
-
+     * 
      * @return Current configuration values
      */
     @GET
@@ -111,7 +112,7 @@ public class Endpoint {
 
     /**
      * Update the current configuration.
-
+     * 
      * @param newConfigurationJson New configuration values as JSON string
      * @return Response with status code
      */
@@ -125,7 +126,7 @@ public class Endpoint {
 
     /**
      * Register a remote AAS service (e.g., FA³ST) to this extension
-
+     *
      * @param aasServiceUrl The URL of the new AAS client
      * @return Response
      */
@@ -161,7 +162,7 @@ public class Endpoint {
     /**
      * Create a new AAS service. Either (http) port or AAS config path must be given
      * to ensure communication with the AAS service.
-
+     * 
      * @param pathToEnvironment                    Path to new AAS environment
      *                                             (required)
      * @param port                                 Port of service to be created
@@ -212,7 +213,7 @@ public class Endpoint {
 
     /**
      * Unregister an AAS service (e.g., FA³ST) from this extension
-
+     * 
      * @param aasServiceUrl The URL of the new AAS client
      * @return Response "ok" containing status message
      */
@@ -242,7 +243,7 @@ public class Endpoint {
      * Forward POST request to provided host in requestUrl. If requestUrl is an AAS
      * service that is registered at this EDC, synchronize assets and self
      * description as well.
-
+     * 
      * @param requestUrl  URL of AAS service to be updated
      * @param requestBody AAS element
      * @return Response status
@@ -260,7 +261,7 @@ public class Endpoint {
      * Forward DELETE request to provided host in requestUrl. If requestUrl is an
      * AAS service that is registered at this EDC, synchronize assets and self
      * description aswell.
-
+     * 
      * @param requestUrl URL of AAS service to be deleted
      * @return Response status
      */
@@ -274,7 +275,7 @@ public class Endpoint {
 
     /**
      * Forward PUT request to provided host in requestUrl.
-
+     * 
      * @param requestUrl  URL of AAS service to be updated
      * @param requestBody AAS element
      * @return Response status
@@ -291,7 +292,7 @@ public class Endpoint {
     /**
      * Print self descriptions of AAS environments registered at this EDC. If no
      * query parameter is given, print all self descriptions available.
-
+     * 
      * @param aasServiceUrl Specify an AAS environment by its service
      * @return Self description(s)
      */
@@ -327,7 +328,7 @@ public class Endpoint {
 
     /**
      * Synchronize AAS element structure with EDC AssetIndex
-
+     * 
      * @param aasUrl AAS service URL
      */
     public void syncAasWithEdc(URL aasUrl) {
@@ -371,28 +372,35 @@ public class Endpoint {
                         : shell);
         newEnvironment.getSubmodels().forEach(submodel -> {
             final var newSubmodel = submodel;
+            CustomSubmodel oldSubmodel;
             if (oldEnvironment.getSubmodels().contains(submodel)) {
-                var oldSubmodel = oldEnvironment.getSubmodels().get(oldEnvironment.getSubmodels().indexOf(submodel));
-                submodel.setIdsAssetId(oldSubmodel.getIdsAssetId());
-                submodel.setIdsContractId(oldSubmodel.getIdsContractId());
+                oldSubmodel = oldEnvironment.getSubmodels().get(oldEnvironment.getSubmodels().indexOf(submodel));
             } else if (oldEnvironment.getSubmodels().stream()
-                    .anyMatch(oldSubmodel -> oldSubmodel.getIdentification().equals(newSubmodel.getIdentification())
-                            && oldSubmodel.getIdShort().equals(newSubmodel.getIdShort()))) {
+                    .anyMatch(oldSubmodelTest -> oldSubmodelTest.getIdentification()
+                            .equals(newSubmodel.getIdentification())
+                            && oldSubmodelTest.getIdShort().equals(newSubmodel.getIdShort()))) {
                 // Only submodelElements are different, same submodel exists -> replace existing
                 // elements
-                var oldSubmodel = oldEnvironment.getSubmodels().stream().filter(
+                oldSubmodel = oldEnvironment.getSubmodels().stream().filter(
                         oldSubmodelTest -> oldSubmodelTest.getIdentification().equals(newSubmodel.getIdentification())
                                 && oldSubmodelTest.getIdShort().equals(newSubmodel.getIdShort()))
                         .findFirst().orElse(submodel);
-                submodel.setIdsAssetId(oldSubmodel.getIdsAssetId());
-                submodel.setIdsContractId(oldSubmodel.getIdsContractId());
-                submodel.getSubmodelElements().forEach(element -> {
-                    if (oldSubmodel.getSubmodelElements().contains(element)) {
-                        element = oldSubmodel.getSubmodelElements().get(
-                                oldSubmodel.getSubmodelElements().indexOf(element));
-                    }
-                });
+            } else {
+                return;
             }
+            submodel.setIdsAssetId(oldSubmodel.getIdsAssetId());
+            submodel.setIdsContractId(oldSubmodel.getIdsContractId());
+            var allElements = SubmodelUtil.getAllSubmodelElements(submodel);
+            var allOldElements = SubmodelUtil.getAllSubmodelElements(oldSubmodel);
+            allElements.forEach(element -> {
+                if (allOldElements.contains(element)) {
+                    var oldElement = allOldElements.stream()
+                            .filter(oldElementTest -> oldElementTest.equals(element)).findFirst().orElse(element);
+                    element.setIdsAssetId(oldElement.getIdsAssetId());
+                    element.setIdsContractId(oldElement.getIdsContractId());
+                }
+            });
+
         });
         newEnvironment.getConceptDescriptions()
                 .replaceAll(conceptDescription -> oldEnvironment.getConceptDescriptions().contains(conceptDescription)

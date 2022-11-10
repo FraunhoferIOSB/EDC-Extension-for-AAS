@@ -136,7 +136,7 @@ public class ContractHandler {
 
         if (Objects.nonNull(defaultAccessPolicyPath)) {
             try {
-                var defaultAccessPolicy = objectReader.readValue(Path.of(defaultAccessPolicyPath).toFile());
+                Policy defaultAccessPolicy = objectReader.readValue(Path.of(defaultAccessPolicyPath).toFile());
                 defaultAccessPolicyDefinition = PolicyDefinition.Builder.newInstance()
                         .id(accessPolicyId)
                         .policy(defaultAccessPolicy.withTarget(assetId))
@@ -152,7 +152,7 @@ public class ContractHandler {
 
         if (Objects.nonNull(defaultContractPolicyPath)) {
             try {
-                var defaultContractPolicy = objectReader.readValue(Path.of(defaultContractPolicyPath).toFile());
+                Policy defaultContractPolicy = objectReader.readValue(Path.of(defaultContractPolicyPath).toFile());
                 defaultContractPolicyDefinition = PolicyDefinition.Builder.newInstance()
                         .id(contractPolicyId)
                         .policy(defaultContractPolicy.withTarget(assetId))

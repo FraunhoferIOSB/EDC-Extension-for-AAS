@@ -27,6 +27,21 @@ In case using **PowerShell** the `-D` parameter needs to be encapsulated with `"
 java "-Dedc.fs.config=./example/configurations/provider.properties" -jar ./example/build/libs/dataspace-connector.jar
 ```
 
+### Alternative: docker & docker-compose
+
+After building the extension as seen above, a docker image can be built with
+
+```sh
+cd ./example
+docker build -t edc-aas-extension:latest .
+```
+
+This docker image can be run individually or **inside a docker-compose file**:
+
+```sh
+docker-compose up
+```
+
 ## Configuration
 
 The EDC and its extensions can be configured with a `.properties` file. In `example/resources/configurations` there are few examples of configurations. 
@@ -121,3 +136,28 @@ It should return:
 
 4. Put the `<agreement-id>` in the postman collection's agreement-id variable.
 Execute request 3 of the Data Transfer folder. The provider connector should now send the data, and in the consumer edc's logs there should be confirmation of the transfer. The consumer prints as console output the fetched AAS element.
+
+## Debugging the extension
+
+With the gradle goal `run` and the additional flag `--debug-jvm`, the extension can be debugged while running within the example launcher (or any other launcher). A configuration file can be provided by creating a file named _dataspaceconnector-configuration.properties_ in the same folder as the _build.gradle.kts_ file of the launcher (e.g., _./example/dataspaceconnector-configuration.properties_). After executing the gradle run goal, attach to the debugger with your IDE. The following snippet is an example _launch.json_ file to attach to a debugger in vscode running on port 5005:
+
+```json
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Attach to debugger at port 5005",
+            "request": "attach",
+            "hostName": "localhost",
+            "port": "5005"
+        }
+    ]
+}
+```
+
+### Debugging TL;DR
+
+1. `./gradlew :example:run --debug-jvm`
+
+2. Attach to debugger at exposed port (see console logs)

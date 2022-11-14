@@ -131,6 +131,7 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
 
     @Override
     public void stopService(URL aasServiceUrl) {
+        Objects.requireNonNull(aasServiceUrl);
         logger.debug(format("Shutting down FA³ST service with URL %s...", aasServiceUrl.toString()));
         final var serviceToStop = faaastServiceRepository.get(aasServiceUrl);
         if (Objects.nonNull(serviceToStop)) {

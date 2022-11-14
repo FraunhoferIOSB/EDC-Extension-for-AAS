@@ -109,21 +109,4 @@ public class HttpRestClient {
         }
         return client.newCall(request).execute();
     }
-
-    /**
-     * Build jakarta reponse from okHttp response object
-
-     * @param toTransform okHttp response
-     */
-    public jakarta.ws.rs.core.Response toJakartaResponse(Response toTransform) {
-        int statuscode = toTransform.code();
-        String body;
-        try {
-            body = toTransform.body().string();
-        } catch (IOException e) {
-            logger.error("Failed transforming HTTP Response", e);
-            return jakarta.ws.rs.core.Response.status(jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR).build();
-        }
-        return jakarta.ws.rs.core.Response.status(statuscode).entity(body).build();
-    }
 }

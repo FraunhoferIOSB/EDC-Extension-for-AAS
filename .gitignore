@@ -48,3 +48,8 @@ distributions/azure/azure.properties
 **/.terraform*
 **/out
 *.hprof
+
+.project
+.classpath
+bin
+.settings

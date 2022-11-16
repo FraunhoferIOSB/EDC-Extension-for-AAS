@@ -30,7 +30,7 @@ public interface AssetAdministrationShellServiceManager {
      * @param aasModelPath AAS Environment for the AAS service
      * @param port         AAS service's exposed HTTP port for communication
      *                     with this extension
-     * @return The URL of the new service or null on error
+     * @return The URL of the new service
      * @throws IOException If the URL creation fails
      */
     URL startService(Path aasModelPath, int port) throws IOException;
@@ -40,7 +40,7 @@ public interface AssetAdministrationShellServiceManager {
 
      * @param aasModelPath AAS Environment for the AAS service
      * @param configPath   AAS service config
-     * @return The URL of the new service or null on error
+     * @return The URL of the new service
      * @throws IOException If the URL creation fails
      */
     URL startService(Path aasModelPath, Path configPath) throws IOException;

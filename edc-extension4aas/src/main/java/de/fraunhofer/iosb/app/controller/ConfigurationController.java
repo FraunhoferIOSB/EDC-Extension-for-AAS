@@ -55,14 +55,13 @@ public class ConfigurationController implements Controllable {
     }
 
     private Response readConfiguration() {
-        String serializedConfiguration;
         try {
-            serializedConfiguration = objectMapper.writeValueAsString(configuration);
+            var serializedConfiguration = objectMapper.writeValueAsString(configuration);
+            return Response.status(Response.Status.OK).entity(serializedConfiguration).build();
         } catch (JsonProcessingException jsonProcessingException) {
             logger.error("Serialization of configuration object failed.\n", jsonProcessingException);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
-        return Response.status(Response.Status.OK).entity(serializedConfiguration).build();
     }
 
     private Response updateConfiguration(String newConfigValues) {

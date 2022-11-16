@@ -34,7 +34,7 @@ public class SubmodelUtilTest {
     @BeforeAll
     public static void createNestedCustomSubmodelElementCollection() {
         testCustomSubmodel = new CustomSubmodel();
-        final var incrediblyNestedCustomCollectionWithOneHundredLayers = new CustomSubmodelElementCollection();
+        var incrediblyNestedCustomCollectionWithOneHundredLayers = new CustomSubmodelElementCollection();
         var customCollObj = incrediblyNestedCustomCollectionWithOneHundredLayers;
         customCollObj.setIdShort("0");
         for (int i = 0; i < 100; i++) {
@@ -54,7 +54,7 @@ public class SubmodelUtilTest {
     @Test
     public void getCustomSubmodelElementStructureFromSubmodel() {
         var testSubmodel = new DefaultSubmodel();
-        final var incrediblyNestedCollectionWithOneHundredLayers = new DefaultSubmodelElementCollection();
+        var incrediblyNestedCollectionWithOneHundredLayers = new DefaultSubmodelElementCollection();
         var collObj = incrediblyNestedCollectionWithOneHundredLayers;
         collObj.setIdShort("0");
 

@@ -15,8 +15,22 @@
  */
 package de.fraunhofer.iosb.app;
 
+import static java.lang.String.format;
+
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+import org.eclipse.edc.spi.EdcException;
+
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import de.fraunhofer.iosb.app.controller.AasController;
 import de.fraunhofer.iosb.app.controller.ConfigurationController;
 import de.fraunhofer.iosb.app.controller.ResourceController;
@@ -39,19 +53,6 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 import jakarta.ws.rs.core.Response.Status.Family;
-import org.eclipse.dataspaceconnector.spi.EdcException;
-
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
-
-import static java.lang.String.format;
 
 /**
  * Delegates (HTTP) Requests to controllers.
@@ -67,7 +68,7 @@ public class Endpoint {
     private static final String CONFIG_PATH = "config";
     private static final String CLIENT_PATH = "client";
     private static final String ENVIRONMENT_PATH = "environment";
-
+    
     private final ConfigurationController configurationController;
     private final AasController aasController;
     private final ResourceController resourceController;
@@ -118,7 +119,7 @@ public class Endpoint {
      */
     @PUT
     @Path(CONFIG_PATH)
-    public Response putConfig(@Nonnull String newConfigurationJson) {
+    public Response putConfig(String newConfigurationJson) {
         logger.debug("Received a config PUT request");
         Objects.requireNonNull(newConfigurationJson);
         return configurationController.handleRequest(RequestType.PUT, null, newConfigurationJson);
@@ -126,7 +127,7 @@ public class Endpoint {
 
     /**
      * Register a remote AAS service (e.g., FA³ST) to this extension
-     *
+     * 
      * @param aasServiceUrl The URL of the new AAS client
      * @return Response
      */
@@ -174,7 +175,7 @@ public class Endpoint {
     @POST
     @Path(ENVIRONMENT_PATH)
     public Response postAasEnvironment(@QueryParam("environment") String pathToEnvironment,
-            @QueryParam("config") String pathToAssetAdministrationShellConfig, @QueryParam("port") int port) {
+            @QueryParam(CONFIG_PATH) String pathToAssetAdministrationShellConfig, @QueryParam("port") int port) {
         logger.log("Received an environment POST request");
         Objects.requireNonNull(pathToEnvironment);
 
@@ -185,11 +186,11 @@ public class Endpoint {
             if (Objects.nonNull(pathToAssetAdministrationShellConfig)) {
                 aasConfigPath = java.nio.file.Path.of(pathToAssetAdministrationShellConfig);
             }
-            final var newAssetAdministrationShellUrl = aasController.startService(environmentPath, port, aasConfigPath);
+            var newAssetAdministrationShellUrl = aasController.startService(environmentPath, port, aasConfigPath);
             if (Objects.nonNull(newAssetAdministrationShellUrl)) {
 
                 // Fetch CustomAssetAdministrationShellEnvironment from newly created service
-                final var newEnvironment = aasController.getAasModelWithUrls(newAssetAdministrationShellUrl);
+                var newEnvironment = aasController.getAasModelWithUrls(newAssetAdministrationShellUrl);
 
                 registerAasService(newAssetAdministrationShellUrl, newEnvironment);
 
@@ -219,16 +220,16 @@ public class Endpoint {
      */
     @DELETE
     @Path(CLIENT_PATH)
-    public Response removeAasService(@QueryParam("url") @Nonnull URL aasServiceUrl) {
+    public Response removeAasService(@QueryParam("url") URL aasServiceUrl) {
         logger.log("Received a client DELETE request");
         Objects.requireNonNull(aasServiceUrl);
-        final var selfDescription = selfDescriptionRepository.get(aasServiceUrl);
+        var selfDescription = selfDescriptionRepository.get(aasServiceUrl);
 
         if (Objects.isNull(selfDescription)) {
             return Response.ok("Service was not registered to EDC").build();
         }
 
-        final var environment = selfDescription.getEnvironment();
+        var environment = selfDescription.getEnvironment();
 
         removeAssetsContracts(getAllElements(environment));
 
@@ -250,7 +251,7 @@ public class Endpoint {
      */
     @POST
     @Path(AAS_REQUEST_PATH)
-    public Response postAasRequest(@QueryParam("requestUrl") @Nonnull URL requestUrl, @Nonnull String requestBody) {
+    public Response postAasRequest(@QueryParam("requestUrl") URL requestUrl, String requestBody) {
         logger.log("Received an AAS POST request");
         Objects.requireNonNull(requestUrl);
         Objects.requireNonNull(requestBody);
@@ -267,7 +268,7 @@ public class Endpoint {
      */
     @DELETE
     @Path(AAS_REQUEST_PATH)
-    public Response deleteAasRequest(@QueryParam("requestUrl") @Nonnull URL requestUrl) {
+    public Response deleteAasRequest(@QueryParam("requestUrl") URL requestUrl) {
         logger.log("Received an AAS DELETE request");
         Objects.requireNonNull(requestUrl);
         return handleAasRequest(RequestType.DELETE, requestUrl, new String());
@@ -282,7 +283,7 @@ public class Endpoint {
      */
     @PUT
     @Path(AAS_REQUEST_PATH)
-    public Response putAasRequest(@QueryParam("requestUrl") @Nonnull URL requestUrl, @Nonnull String requestBody) {
+    public Response putAasRequest(@QueryParam("requestUrl") URL requestUrl, String requestBody) {
         logger.log("Received an AAS PUT request");
         Objects.requireNonNull(requestUrl);
         Objects.requireNonNull(requestBody);
@@ -334,7 +335,7 @@ public class Endpoint {
     public void syncAasWithEdc(URL aasUrl) {
         Objects.requireNonNull(aasUrl);
 
-        final var oldSelfDescription = selfDescriptionRepository.get(aasUrl);
+        var oldSelfDescription = selfDescriptionRepository.get(aasUrl);
         CustomAssetAdministrationShellEnvironment newEnvironment;
 
         if (Objects.isNull(oldSelfDescription)) {
@@ -352,42 +353,43 @@ public class Endpoint {
                     aasModelDeserializationException.getMessage()));
         }
 
-        if (Objects.isNull(newEnvironment)) {
-            throw new EdcException(format(
-                    "Could not reach AAS service by URL %s", aasUrl));
-        }
-
         var oldEnvironment = oldSelfDescription.getEnvironment();
 
-        // For all shells, submodels, conceptDescriptions: Check, whether any were added
+        // For all shells, conceptDescriptions, submodels, submodelElements: Check,
+        // whether any were added
         // or removed.
         // If a new element was added: This element is now in newEnvironment without
         // idsContractId/idsAssetId
-        // If the element exists in oldEnvironment, copy the old element into
+        // If the element exists in oldEnvironment, copy the old elements into
         // newEnvironment, already having an idsContractId/idsAssetId
         newEnvironment.getAssetAdministrationShells().replaceAll(
                 shell -> oldEnvironment.getAssetAdministrationShells().contains(shell)
                         ? oldEnvironment.getAssetAdministrationShells()
                                 .get(oldEnvironment.getAssetAdministrationShells().indexOf(shell))
                         : shell);
+
+        newEnvironment.getConceptDescriptions()
+                .replaceAll(conceptDescription -> oldEnvironment.getConceptDescriptions().contains(conceptDescription)
+                        ? oldEnvironment.getConceptDescriptions()
+                                .get(oldEnvironment.getConceptDescriptions().indexOf(conceptDescription))
+                        : conceptDescription);
+
         newEnvironment.getSubmodels().forEach(submodel -> {
-            final var newSubmodel = submodel;
             CustomSubmodel oldSubmodel;
-            if (oldEnvironment.getSubmodels().contains(submodel)) {
-                oldSubmodel = oldEnvironment.getSubmodels().get(oldEnvironment.getSubmodels().indexOf(submodel));
-            } else if (oldEnvironment.getSubmodels().stream()
-                    .anyMatch(oldSubmodelTest -> oldSubmodelTest.getIdentification()
-                            .equals(newSubmodel.getIdentification())
-                            && oldSubmodelTest.getIdShort().equals(newSubmodel.getIdShort()))) {
-                // Only submodelElements are different, same submodel exists -> replace existing
-                // elements
-                oldSubmodel = oldEnvironment.getSubmodels().stream().filter(
-                        oldSubmodelTest -> oldSubmodelTest.getIdentification().equals(newSubmodel.getIdentification())
-                                && oldSubmodelTest.getIdShort().equals(newSubmodel.getIdShort()))
-                        .findFirst().orElse(submodel);
+            
+            if (oldEnvironment.getSubmodels().indexOf(submodel) > -1) {
+                oldSubmodel = oldEnvironment.getSubmodels()
+                        .get(oldEnvironment.getSubmodels().indexOf(submodel));
             } else {
-                return;
+                oldSubmodel = oldEnvironment.getSubmodels().stream().filter(
+                        oldSubmodelTest -> oldSubmodelTest.getIdentification().equals(submodel.getIdentification())
+                                && oldSubmodelTest.getIdShort().equals(submodel.getIdShort()))
+                        .findFirst().orElse(null);
+                if (Objects.isNull(oldSubmodel)) {
+                    return;
+                }
             }
+
             submodel.setIdsAssetId(oldSubmodel.getIdsAssetId());
             submodel.setIdsContractId(oldSubmodel.getIdsContractId());
             var allElements = SubmodelUtil.getAllSubmodelElements(submodel);
@@ -400,21 +402,16 @@ public class Endpoint {
                     element.setIdsContractId(oldElement.getIdsContractId());
                 }
             });
-
         });
-        newEnvironment.getConceptDescriptions()
-                .replaceAll(conceptDescription -> oldEnvironment.getConceptDescriptions().contains(conceptDescription)
-                        ? oldEnvironment.getConceptDescriptions()
-                                .get(oldEnvironment.getConceptDescriptions().indexOf(conceptDescription))
-                        : conceptDescription);
 
-        // All elements that are new (no idsContractId) are now added to the EDC
+        // All elements that are new are now added to the EDC
         // AssetIndex/ContractDefinitionStore
         addAssetsContracts(getAllElements(newEnvironment).stream()
                 .filter(element -> Objects.isNull(element.getIdsContractId())).collect(Collectors.toList()));
 
-        // Now: Check, if elements got deleted, and remove those
         var oldElements = getAllElements(oldEnvironment);
+        // Important: Equality is when identification & idShort & containing elements
+        // are equal
         oldElements.removeAll(getAllElements(newEnvironment));
         removeAssetsContracts(oldElements);
 
@@ -423,7 +420,7 @@ public class Endpoint {
     }
 
     private Response handleAasRequest(RequestType requestType, URL requestUrl, String body) {
-        final var response = aasController.handleRequest(requestType, requestUrl, body);
+        var response = aasController.handleRequest(requestType, requestUrl, body);
 
         if (!response.getStatusInfo().getFamily().equals(Family.SUCCESSFUL)) {
             logger.error("AAS request failed. Response from URL: " + response.getStatusInfo());
@@ -447,7 +444,7 @@ public class Endpoint {
         return Response.ok().build();
     }
 
-    private void registerAasService(final URL newUrl, final CustomAssetAdministrationShellEnvironment newEnvironment) {
+    private void registerAasService(URL newUrl, CustomAssetAdministrationShellEnvironment newEnvironment) {
         addAssetsContracts(getAllElements(newEnvironment));
         selfDescriptionRepository.put(newUrl, new SelfDescription(newEnvironment));
     }

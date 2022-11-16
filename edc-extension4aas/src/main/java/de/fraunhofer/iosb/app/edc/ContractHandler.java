@@ -15,25 +15,29 @@
  */
 package de.fraunhofer.iosb.app.edc;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
-import de.fraunhofer.iosb.app.Logger;
-import de.fraunhofer.iosb.app.model.configuration.Configuration;
-import org.eclipse.dataspaceconnector.policy.model.Action;
-import org.eclipse.dataspaceconnector.policy.model.Permission;
-import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
-import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
-import org.eclipse.dataspaceconnector.spi.policy.PolicyDefinition;
-import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
-import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
+import static java.lang.String.format;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Objects;
 
-import static java.lang.String.format;
+import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
+import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
+import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
+import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
+import org.eclipse.edc.policy.model.Action;
+import org.eclipse.edc.policy.model.Permission;
+import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.asset.AssetSelectorExpression;
+import org.eclipse.edc.spi.query.Criterion;
+import org.eclipse.edc.spi.query.QuerySpec;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
+
+import de.fraunhofer.iosb.app.Logger;
+import de.fraunhofer.iosb.app.model.configuration.Configuration;
 
 /**
  * Handle interactions with the ContractDefinitionStore, PolicyDefinitionStore.
@@ -60,8 +64,7 @@ public class ContractHandler {
     private final Logger logger;
     private final ObjectReader objectReader;
 
-    public ContractHandler(final ContractDefinitionStore contractStore,
-            final PolicyDefinitionStore policyStore) {
+    public ContractHandler(ContractDefinitionStore contractStore, PolicyDefinitionStore policyStore) {
         Objects.requireNonNull(contractStore);
         Objects.requireNonNull(policyStore);
         this.contractDefinitionStore = contractStore;
@@ -74,23 +77,23 @@ public class ContractHandler {
 
     /**
      * Registers the given assetId to the default contract.
-
+     * 
      * @param assetId The asset ID
      * @return Contract id of contract this assetId was registered to
      */
-    public String registerAssetToDefaultContract(final String assetId) {
+    public String registerAssetToDefaultContract(String assetId) {
         Objects.requireNonNull(assetId);
         return createDefaultContract(assetId);
     }
 
     /**
      * Deletes any contract linked to a given assetId.
-
+     * 
      * @param assetId Asset ID
      */
-    public void deleteContractsWithAssetId(final String assetId) {
-        var assetFilterExpression = format("%s = %s", ASSET_PROPERTY_ID, assetId);
-        var queryAssetFilter = QuerySpec.Builder.newInstance().filter(assetFilterExpression).build();
+    public void deleteContractsWithAssetId(String assetId) {
+        var assetFilterExpression = new Criterion(ASSET_PROPERTY_ID, "=", assetId);
+        var queryAssetFilter = QuerySpec.Builder.newInstance().filter(List.of(assetFilterExpression)).build();
 
         contractDefinitionStore.findAll(queryAssetFilter)
                 .forEach(contract -> contractDefinitionStore.deleteById(contract.getId()));
@@ -98,26 +101,26 @@ public class ContractHandler {
 
     /**
      * Deletes the contract definition with the given id. (wrapping
-     * org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition.deleteById)
-
+     * org.eclipse.edc.spi.types.domain.contract.offer.ContractDefinition.deleteById)
+     * 
      * @param contractId Contract to be deleted
      * @return The removed contract definition or null if the contract definition
      *         was not found
      */
-    public ContractDefinition deleteContractDefinition(final String contractId) {
+    public ContractDefinition deleteContractDefinition(String contractId) {
         return contractDefinitionStore.deleteById(contractId);
     }
 
-    private String createDefaultContract(final String assetId) {
+    private String createDefaultContract(String assetId) {
         contractNumber++;
-        final var accessPolicyId = DEFAULT_ACCESS_POLICY_UID + contractNumber;
-        final var contractPolicyId = DEFAULT_CONTRACT_POLICY_UID + contractNumber;
-        final var contractDefinitionId = DEFAULT_CONTRACT_DEFINITION_UID + contractNumber;
+        var accessPolicyId = DEFAULT_ACCESS_POLICY_UID + contractNumber;
+        var contractPolicyId = DEFAULT_CONTRACT_POLICY_UID + contractNumber;
+        var contractDefinitionId = DEFAULT_CONTRACT_DEFINITION_UID + contractNumber;
 
-        final var defaultAccessPolicyPath = configuration.getDefaultAccessPolicyPath();
-        final var defaultContractPolicyPath = configuration.getDefaultContractPolicyPath();
+        var defaultAccessPolicyPath = configuration.getDefaultAccessPolicyPath();
+        var defaultContractPolicyPath = configuration.getDefaultContractPolicyPath();
 
-        final var usePermissionPolicy = Policy.Builder.newInstance()
+        var usePermissionPolicy = Policy.Builder.newInstance()
                 .permission(Permission.Builder.newInstance()
                         .action(Action.Builder.newInstance().type("USE").build())
                         .target(assetId)

@@ -15,9 +15,9 @@
  */
 package de.fraunhofer.iosb.app.controller;
 
-import org.eclipse.dataspaceconnector.spi.asset.AssetLoader;
-import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
-import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
+import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
+import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
+import org.eclipse.edc.spi.asset.AssetIndex;
 
 import de.fraunhofer.iosb.app.edc.ContractHandler;
 import de.fraunhofer.iosb.app.edc.ResourceHandler;
@@ -31,7 +31,7 @@ public class ResourceController {
     private final ResourceHandler resourceAgent;
     private final ContractHandler contractHandler;
 
-    public ResourceController(AssetLoader assetLoader, ContractDefinitionStore contractStore,
+    public ResourceController(AssetIndex assetLoader, ContractDefinitionStore contractStore,
             PolicyDefinitionStore policyStore) {
         resourceAgent = new ResourceHandler(assetLoader);
         contractHandler = new ContractHandler(contractStore, policyStore);
@@ -45,8 +45,8 @@ public class ResourceController {
      * @return contract id
      */
     public Pair<String, String> createResource(String linkToResource) {
-        final var assetId = resourceAgent.createAsset(linkToResource);
-        final var contractId = contractHandler.registerAssetToDefaultContract(assetId);
+        var assetId = resourceAgent.createAsset(linkToResource);
+        var contractId = contractHandler.registerAssetToDefaultContract(assetId);
         return new Pair<>(assetId, contractId);
     }
 

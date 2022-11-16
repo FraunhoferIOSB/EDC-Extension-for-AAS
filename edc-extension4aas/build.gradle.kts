@@ -11,6 +11,7 @@ val okHttpVersion: String by project
 val rsApi: String by project
 val mockitoVersion: String by project
 val mockserverVersion: String by project
+val metaModelVersion: String by project
 
 java {
 	toolchain {
@@ -19,6 +20,7 @@ java {
 }
 
 dependencies {
+    api("${edcGroup}:runtime-metamodel:${metaModelVersion}")
     // FA³ST
     implementation ("de.fraunhofer.iosb.ilt.faaast.service:starter:${faaastVersion}")
     // AAS serializer
@@ -44,8 +46,10 @@ dependencies {
 }
 
 repositories {
-	mavenLocal()
 	mavenCentral()
+    maven {// while runtime-metamodel dependency is still a snapshot
+        url = uri("https://oss.sonatype.org/content/repositories/snapshots/")
+    }
 }
 
 tasks.test {

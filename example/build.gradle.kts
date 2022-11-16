@@ -34,7 +34,7 @@ dependencies {
     implementation("${edcGroup}:auth-tokenbased:${edcVersion}")
     
     // Read configuration values
-    implementation("${edcGroup}:filesystem-configuration:${edcVersion}")
+    implementation("${edcGroup}:configuration-filesystem:${edcVersion}")
 
 
     // Data transfer (read from AAS service/write to HTTP endpoint)
@@ -44,7 +44,7 @@ dependencies {
 }
 
 application {
-    mainClass.set("org.eclipse.dataspaceconnector.boot.system.runtime.BaseRuntime")
+    mainClass.set("org.eclipse.edc.boot.system.runtime.BaseRuntime")
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
@@ -59,6 +59,9 @@ repositories {
     mavenCentral()
     maven {
         url = uri("https://maven.iais.fraunhofer.de/artifactory/eis-ids-public/")
+    }
+    maven {// while runtime-metamodel dependency is still a snapshot
+        url = uri("https://oss.sonatype.org/content/repositories/snapshots/")
     }
 }
 

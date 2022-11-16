@@ -15,19 +15,19 @@
  */
 package de.fraunhofer.iosb.app.edc;
 
-import org.eclipse.dataspaceconnector.spi.asset.AssetLoader;
-import org.eclipse.dataspaceconnector.spi.types.domain.HttpDataAddress;
-import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.eclipse.edc.spi.asset.AssetIndex;
+import org.eclipse.edc.spi.types.domain.HttpDataAddress;
+import org.eclipse.edc.spi.types.domain.asset.Asset;
 
 /**
  * Internal communication with EDC. Manages EDC assets and contracts.
  */
 public class ResourceHandler {
 
-    private final AssetLoader assetLoader;
+    private final AssetIndex assetIndex;
 
-    public ResourceHandler(AssetLoader assetLoader) {
-        this.assetLoader = assetLoader;
+    public ResourceHandler(AssetIndex assetIndex) {
+        this.assetIndex = assetIndex;
     }
 
     /**
@@ -37,10 +37,10 @@ public class ResourceHandler {
      * @return asset ID of created asset
      */
     public String createAsset(String sourceUrl) {
-        final var assetId = createAssetId(sourceUrl);
-        final var dataAddress = HttpDataAddress.Builder.newInstance().baseUrl(sourceUrl).build();
-        final var asset = Asset.Builder.newInstance().id(assetId.toString()).build();
-        assetLoader.accept(asset, dataAddress);
+        var assetId = createAssetId(sourceUrl);
+        var dataAddress = HttpDataAddress.Builder.newInstance().baseUrl(sourceUrl).build();
+        var asset = Asset.Builder.newInstance().id(assetId.toString()).build();
+        assetIndex.accept(asset, dataAddress);
         return assetId;
     }
 
@@ -50,7 +50,7 @@ public class ResourceHandler {
      * @param assetId asset id
      */
     public void deleteAsset(String assetId) {
-        assetLoader.deleteById(assetId);
+        assetIndex.deleteById(assetId);
     }
 
     private String createAssetId(String sourceUrl) {

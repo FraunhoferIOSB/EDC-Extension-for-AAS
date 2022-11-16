@@ -15,7 +15,7 @@
  */
 package de.fraunhofer.iosb.app;
 
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -24,7 +24,7 @@ import java.util.stream.Stream;
 /**
  * Singleton class.
  * Wrapper for prefix logging using
- * org.eclipse.dataspaceconnector.spi.monitor.Monitor.
+ * org.eclipse.edc.spi.monitor.Monitor.
  * 
  */
 public class Logger {

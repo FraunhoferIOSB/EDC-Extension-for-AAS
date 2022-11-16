@@ -15,10 +15,8 @@
  */
 package de.fraunhofer.iosb.app;
 
-import java.util.Objects;
-
-import org.eclipse.dataspaceconnector.api.auth.AuthenticationRequestFilter;
-import org.eclipse.dataspaceconnector.api.auth.AuthenticationService;
+import org.eclipse.edc.api.auth.spi.AuthenticationRequestFilter;
+import org.eclipse.edc.api.auth.spi.AuthenticationService;
 
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import jakarta.ws.rs.container.ContainerRequestContext;
@@ -38,7 +36,6 @@ public class CustomAuthenticationRequestFilter extends AuthenticationRequestFilt
 
     @Override
     public void filter(ContainerRequestContext requestContext) {
-        Objects.requireNonNull(requestContext);
         if (!Endpoint.SELF_DESCRIPTION_PATH.equalsIgnoreCase(requestContext.getUriInfo().getPath())
                 && config.isExposeSelfDescription()) {
             Logger.getInstance().debug("CustomAuthenticationRequestFilter: Intercepting this request");
@@ -46,5 +43,7 @@ public class CustomAuthenticationRequestFilter extends AuthenticationRequestFilt
         } else {
             Logger.getInstance().debug("CustomAuthenticationRequestFilter: Not intercepting this request");
         }
+        Logger.getInstance().debug("CustomAuthenticationRequestFilter: Intercepting this request");
+        super.filter(requestContext);
     }
 }

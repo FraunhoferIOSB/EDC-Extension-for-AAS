@@ -15,13 +15,13 @@
  */
 package de.fraunhofer.iosb.app;
 
+import static java.lang.String.format;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
-
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -30,10 +30,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.eclipse.dataspaceconnector.spi.asset.AssetLoader;
-import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
+import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
+import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
+import org.eclipse.edc.spi.asset.AssetIndex;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -77,7 +77,7 @@ public class EndpointTest {
     public static void initialize() throws MalformedURLException {
         Logger.getInstance().setMonitor(mock(Monitor.class));
         port = 8080;
-        url = new URL(String.format("http://localhost:%s", port));
+        url = new URL(format("http://localhost:%s", port));
 
     }
 
@@ -89,7 +89,7 @@ public class EndpointTest {
                 new AasController(
                         new OkHttpClient()),
                 new ResourceController(
-                        mock(AssetLoader.class),
+                        mock(AssetIndex.class),
                         mock(ContractDefinitionStore.class),
                         mock(PolicyDefinitionStore.class)));
     }
@@ -191,11 +191,14 @@ public class EndpointTest {
         // prepare updated SubmodelElement mocked response
         mockServer.when(request().withMethod("PUT"), Times.exactly(1)).respond(response().withStatusCode(200));
 
-        mockServer.when(request().withMethod("GET").withPath("/shells"), Times.exactly(1)).respond(response().withBody(shells));
-        mockServer.when(request().withMethod("GET").withPath("/submodels"), Times.exactly(1)).respond(response().withBody(submodelsWithUpdatedSubmodelElement));
-        mockServer.when(request().withMethod("GET").withPath("/concept-descriptions"), Times.exactly(1)).respond(response().withBody(conceptDescriptions));
+        mockServer.when(request().withMethod("GET").withPath("/shells"), Times.exactly(1))
+                .respond(response().withBody(shells));
+        mockServer.when(request().withMethod("GET").withPath("/submodels"), Times.exactly(1))
+                .respond(response().withBody(submodelsWithUpdatedSubmodelElement));
+        mockServer.when(request().withMethod("GET").withPath("/concept-descriptions"), Times.exactly(1))
+                .respond(response().withBody(conceptDescriptions));
 
-        endpoint.putAasRequest(new URL(String.format(url.toString(), "/submodels/",
+        endpoint.putAasRequest(new URL(format(url.toString(), "/submodels/",
                 Encoder.encodeBase64("https://example.com/ids/sm/4445_8090_6012_7409"),
                 "/submodel-elements/GripperUp")),
                 FileManager.loadResource("submodelElement.json"));
@@ -220,7 +223,8 @@ public class EndpointTest {
     }
 
     /**
-     * Also tests whether a submodel/SMC is reloaded into AssetIndex/ContractStore if
+     * Also tests whether a submodel/SMC is reloaded into AssetIndex/ContractStore
+     * if
      * only its submodelElements were modified (should not happen)
      */
     @Test
@@ -233,10 +237,13 @@ public class EndpointTest {
                 mockedSelfDescriptionRepo.get(url).toString());
 
         // prepare "removed SubmodelElement" mocked response
-        mockServer.when(request().withMethod("GET").withPath("/shells"), Times.exactly(1)).respond(response().withBody(shells));
-        mockServer.when(request().withMethod("GET").withPath("/submodels"), Times.exactly(1)).respond(response().withBody(submodelsNoSubmodelElements));
-        mockServer.when(request().withMethod("GET").withPath("/concept-descriptions"), Times.exactly(1)).respond(response().withBody(conceptDescriptions));
-        
+        mockServer.when(request().withMethod("GET").withPath("/shells"), Times.exactly(1))
+                .respond(response().withBody(shells));
+        mockServer.when(request().withMethod("GET").withPath("/submodels"), Times.exactly(1))
+                .respond(response().withBody(submodelsNoSubmodelElements));
+        mockServer.when(request().withMethod("GET").withPath("/concept-descriptions"), Times.exactly(1))
+                .respond(response().withBody(conceptDescriptions));
+
         endpoint.syncAasWithEdc(url);
         assertEquals(FileManager.loadResource("selfDescriptionWithIdsNoSubmodelElements.json"),
                 mockedSelfDescriptionRepo.get(url).toString());
@@ -258,14 +265,19 @@ public class EndpointTest {
     }
 
     private void prepareDefaultMockedResponse() {
-        mockServer.when(request().withMethod("GET").withPath("/shells"), Times.exactly(1)).respond(response().withBody(shells));
-        mockServer.when(request().withMethod("GET").withPath("/submodels"), Times.exactly(1)).respond(response().withBody(submodels));
-        mockServer.when(request().withMethod("GET").withPath("/concept-descriptions"), Times.exactly(1)).respond(response().withBody(conceptDescriptions));
+        mockServer.when(request().withMethod("GET").withPath("/shells"), Times.exactly(1))
+                .respond(response().withBody(shells));
+        mockServer.when(request().withMethod("GET").withPath("/submodels"), Times.exactly(1))
+                .respond(response().withBody(submodels));
+        mockServer.when(request().withMethod("GET").withPath("/concept-descriptions"), Times.exactly(1))
+                .respond(response().withBody(conceptDescriptions));
     }
 
     private void prepareEmptyMockedResponse() {
-        mockServer.when(request().withMethod("GET").withPath("/shells"), Times.exactly(1)).respond(response().withBody("[]"));
-        mockServer.when(request().withMethod("GET").withPath("/submodels"), Times.exactly(1)).respond(response().withBody("[]"));
+        mockServer.when(request().withMethod("GET").withPath("/shells"), Times.exactly(1))
+                .respond(response().withBody("[]"));
+        mockServer.when(request().withMethod("GET").withPath("/submodels"), Times.exactly(1))
+                .respond(response().withBody("[]"));
         mockServer.when(request().withMethod("GET").withPath("/concept-descriptions"), Times.exactly(1))
                 .respond(response().withBody("[]"));
     }

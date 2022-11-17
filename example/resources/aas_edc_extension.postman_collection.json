@@ -6,17 +6,159 @@
 	},
 	"item": [
 		{
+			"name": "Client",
+			"item": [
+				{
+					"name": "Automated Negotiation",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-api-key",
+								"value": "password",
+								"type": "default"
+							}
+						],
+						"url": {
+							"raw": "{{consumer}}/api/automated/negotiate?providerUrl={{provider-ids}}&assetId={{asset-id}}",
+							"host": [
+								"{{consumer}}"
+							],
+							"path": [
+								"api",
+								"automated",
+								"negotiate"
+							],
+							"query": [
+								{
+									"key": "providerUrl",
+									"value": "{{provider-ids}}"
+								},
+								{
+									"key": "assetId",
+									"value": "{{asset-id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "1. Get contract offers for asset",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{consumer}}/api/automated/contractOffers?providerUrl={{provider-ids}}&assetId={{asset-id}}",
+							"host": [
+								"{{consumer}}"
+							],
+							"path": [
+								"api",
+								"automated",
+								"contractOffers"
+							],
+							"query": [
+								{
+									"key": "providerUrl",
+									"value": "{{provider-ids}}"
+								},
+								{
+									"key": "assetId",
+									"value": "{{asset-id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2. Initiate negotiation with contractOffer",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n        \"id\": \"DEFAULT_CONTRACT2:8988c78c-5cec-4094-8501-2547843180a1\",\r\n        \"policy\": {\r\n            \"permissions\": [\r\n                {\r\n                    \"edctype\": \"dataspaceconnector:permission\",\r\n                    \"uid\": null,\r\n                    \"target\": \"-1379397334\",\r\n                    \"action\": {\r\n                        \"type\": \"USE\",\r\n                        \"includedIn\": null,\r\n                        \"constraint\": null\r\n                    },\r\n                    \"assignee\": null,\r\n                    \"assigner\": null,\r\n                    \"constraints\": [],\r\n                    \"duties\": []\r\n                }\r\n            ],\r\n            \"prohibitions\": [],\r\n            \"obligations\": [],\r\n            \"extensibleProperties\": {},\r\n            \"inheritsFrom\": null,\r\n            \"assigner\": null,\r\n            \"assignee\": null,\r\n            \"target\": \"-1379397334\",\r\n            \"@type\": {\r\n                \"@policytype\": \"set\"\r\n            }\r\n        },\r\n        \"asset\": {\r\n            \"id\": \"-1379397334\",\r\n            \"createdAt\": 1668678146550,\r\n            \"properties\": {\r\n                \"asset:prop:byteSize\": null,\r\n                \"asset:prop:id\": \"-1379397334\",\r\n                \"asset:prop:fileName\": null\r\n            }\r\n        },\r\n        \"provider\": \"urn:connector:provider\",\r\n        \"consumer\": \"urn:connector:consumer\",\r\n        \"offerStart\": null,\r\n        \"offerEnd\": null,\r\n        \"contractStart\": null,\r\n        \"contractEnd\": null\r\n    }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{consumer}}/api/automated/negotiateContract?providerUrl={{provider-ids}}",
+							"host": [
+								"{{consumer}}"
+							],
+							"path": [
+								"api",
+								"automated",
+								"negotiateContract"
+							],
+							"query": [
+								{
+									"key": "providerUrl",
+									"value": "{{provider-ids}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "3. Get data for agreement id and asset id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{consumer}}/api/automated/transfer?providerUrl={{provider-ids}}&agreementId={{agreement-id}}&assetId={{asset-id}}",
+							"host": [
+								"{{consumer}}"
+							],
+							"path": [
+								"api",
+								"automated",
+								"transfer"
+							],
+							"query": [
+								{
+									"key": "providerUrl",
+									"value": "{{provider-ids}}"
+								},
+								{
+									"key": "agreementId",
+									"value": "{{agreement-id}}"
+								},
+								{
+									"key": "assetId",
+									"value": "{{asset-id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
 			"name": "Extension REST API",
 			"item": [
 				{
 					"name": "Add external AAS service",
 					"request": {
 						"method": "POST",
-						"header": [],
+						"header": [
+							{
+								"key": "x-api-key",
+								"value": "password",
+								"type": "default"
+							}
+						],
 						"url": {
-							"raw": "{{provider-connector-url}}/api/client?url=http://localhost:8080",
+							"raw": "{{provider}}/api/client?url=http://localhost:8080",
 							"host": [
-								"{{provider-connector-url}}"
+								"{{provider}}"
 							],
 							"path": [
 								"api",
@@ -45,9 +187,9 @@
 							}
 						],
 						"url": {
-							"raw": "{{provider-connector-url}}/api/environment?environment=path/to/edc-aas-extension/extensions/ids-aas-extension/src/test/AASModels/FestoDemoAAS.json&port=12345",
+							"raw": "{{provider}}/api/environment?environment=/path/to/AAS.json&port=12345",
 							"host": [
-								"{{provider-connector-url}}"
+								"{{provider}}"
 							],
 							"path": [
 								"api",
@@ -81,9 +223,9 @@
 							}
 						],
 						"url": {
-							"raw": "{{provider-connector-url}}/api/client?url=http://localhost:12345",
+							"raw": "{{provider}}/api/client?url=http://localhost:12345",
 							"host": [
-								"{{provider-connector-url}}"
+								"{{provider}}"
 							],
 							"path": [
 								"api",
@@ -105,9 +247,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{provider-connector-url}}/api/selfDescription",
+							"raw": "{{provider}}/api/selfDescription",
 							"host": [
-								"{{provider-connector-url}}"
+								"{{provider}}"
 							],
 							"path": [
 								"api",
@@ -138,9 +280,9 @@
 							}
 						},
 						"url": {
-							"raw": "{{provider-connector-url}}/api/aas?requestUrl=http://localhost:12345/submodels/aHR0cHM6Ly9leGFtcGxlLmNvbS9pZHMvc20vMTE0NV84MDkwXzYwMTJfNTA5Nw",
+							"raw": "{{provider}}/api/aas?requestUrl=http://localhost:12345/submodels/aHR0cHM6Ly9leGFtcGxlLmNvbS9pZHMvc20vMTE0NV84MDkwXzYwMTJfNTA5Nw",
 							"host": [
-								"{{provider-connector-url}}"
+								"{{provider}}"
 							],
 							"path": [
 								"api",
@@ -177,9 +319,9 @@
 							}
 						},
 						"url": {
-							"raw": "{{provider-connector-url}}/api/aas?requestUrl=http://localhost:12345/submodels/aHR0cHM6Ly9leGFtcGxlLmNvbS9pZHMvc20vNDQ0NV84MDkwXzYwMTJfNzQwOQ",
+							"raw": "{{provider}}/api/aas?requestUrl=http://localhost:12345/submodels/aHR0cHM6Ly9leGFtcGxlLmNvbS9pZHMvc20vNDQ0NV84MDkwXzYwMTJfNzQwOQ",
 							"host": [
-								"{{provider-connector-url}}"
+								"{{provider}}"
 							],
 							"path": [
 								"api",
@@ -218,7 +360,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"connectorId\": \"provider\",\r\n    \"connectorAddress\": \"{{provider-connector-ids-url}}\",\r\n    \"protocol\": \"ids-multipart\",\r\n    \"offer\": {\r\n        \"offerId\": \"{{contract-id}}:3a75736e-001d-4364-8bd4-9888490edb57\",\r\n        \"assetId\": \"{{asset-id}}\",\r\n        \"policy\": {\r\n            \"permissions\": [\r\n                {\r\n                    \"edctype\": \"dataspaceconnector:permission\",\r\n                    \"uid\": null,\r\n                    \"target\": \"{{asset-id}}\",\r\n                    \"action\": {\r\n                        \"type\": \"USE\",\r\n                        \"includedIn\": null,\r\n                        \"constraint\": null\r\n                    },\r\n                    \"assignee\": null,\r\n                    \"assigner\": null,\r\n                    \"constraints\": [],\r\n                    \"duties\": []\r\n                }\r\n            ],\r\n            \"prohibitions\": [],\r\n            \"obligations\": [],\r\n            \"extensibleProperties\": {},\r\n            \"inheritsFrom\": null,\r\n            \"assigner\": null,\r\n            \"assignee\": null,\r\n            \"target\": \"{{asset-id}}\",\r\n            \"@type\": {\r\n                \"@policytype\": \"set\"\r\n            }\r\n        },\r\n        \"asset\": {\r\n            \"properties\": {\r\n                \"ids:byteSize\": null,\r\n                \"asset:prop:id\": \"{{asset-id}}\",\r\n                \"ids:fileName\": null\r\n            }\r\n        }\r\n    }\r\n}",
+							"raw": "{\r\n    \"connectorId\": \"providerT\",\r\n    \"connectorAddress\": \"{{provider-ids}}\",\r\n    \"protocol\": \"ids-multipart\",\r\n    \"offer\": {\r\n        \"offerId\": \"{{contract-id}}:3a75736e-001d-4364-8bd4-9888490edb57\",\r\n        \"assetId\": \"{{asset-id}}\",\r\n        \"policy\": {\r\n            \"permissions\": [\r\n                {\r\n                    \"edctype\": \"dataspaceconnector:permission\",\r\n                    \"uid\": null,\r\n                    \"target\": \"{{asset-id}}\",\r\n                    \"action\": {\r\n                        \"type\": \"USE\",\r\n                        \"includedIn\": null,\r\n                        \"constraint\": null\r\n                    },\r\n                    \"assignee\": null,\r\n                    \"assigner\": null,\r\n                    \"constraints\": [],\r\n                    \"duties\": []\r\n                }\r\n            ],\r\n            \"prohibitions\": [],\r\n            \"obligations\": [],\r\n            \"extensibleProperties\": {},\r\n            \"inheritsFrom\": null,\r\n            \"assigner\": null,\r\n            \"assignee\": null,\r\n            \"target\": \"{{asset-id}}\",\r\n            \"@type\": {\r\n                \"@policytype\": \"set\"\r\n            }\r\n        },\r\n        \"asset\": {\r\n            \"properties\": {\r\n                \"ids:byteSize\": null,\r\n                \"asset:prop:id\": \"{{asset-id}}\",\r\n                \"ids:fileName\": null\r\n            }\r\n        }\r\n    }\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -226,9 +368,9 @@
 							}
 						},
 						"url": {
-							"raw": "{{consumer-connector-url}}/api/v1/data/contractnegotiations",
+							"raw": "{{consumer}}/api/v1/data/contractnegotiations",
 							"host": [
-								"{{consumer-connector-url}}"
+								"{{consumer}}"
 							],
 							"path": [
 								"api",
@@ -252,9 +394,9 @@
 							}
 						],
 						"url": {
-							"raw": "{{consumer-connector-url}}/api/v1/data/contractnegotiations/{{negotiation-id}}",
+							"raw": "{{consumer}}/api/v1/data/contractnegotiations/{{negotiation-id}}",
 							"host": [
-								"{{consumer-connector-url}}"
+								"{{consumer}}"
 							],
 							"path": [
 								"api",
@@ -288,7 +430,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n  \"protocol\": \"ids-multipart\",\r\n  \"assetId\": \"{{asset-id}}\",\r\n  \"contractId\": \"{{agreement-id}}\",\r\n  \"dataDestination\": {\r\n    \"properties\": {\r\n      \"baseUrl\": \"{{consumer-connector-endpoint-url}}/api/receiveTransfer/test\",\r\n      \"type\": \"HttpData\",\r\n      \"authKey\":\"x-api-key\",\r\n      \"authCode\": \"password\"\r\n    }\r\n  },\r\n  \"transferType\": {\r\n    \"contentType\": \"application/json\",\r\n    \"isFinite\": true\r\n  },\r\n  \"managedResources\": false,\r\n  \"connectorAddress\": \"{{provider-connector-ids-url}}\",\r\n  \"connectorId\": \"consumer\"\r\n}",
+							"raw": "{\r\n  \"protocol\": \"ids-multipart\",\r\n  \"assetId\": \"{{asset-id}}\",\r\n  \"contractId\": \"{{agreement-id}}\",\r\n  \"dataDestination\": {\r\n    \"properties\": {\r\n      \"baseUrl\": \"{{consumer}}/api/receiveTransfer/test\",\r\n      \"type\": \"HttpData\",\r\n      \"authKey\":\"x-api-key\",\r\n      \"authCode\": \"password\"\r\n    }\r\n  },\r\n  \"transferType\": {\r\n    \"contentType\": \"application/json\",\r\n    \"isFinite\": true\r\n  },\r\n  \"managedResources\": false,\r\n  \"connectorAddress\": \"{{provider-ids}}\",\r\n  \"connectorId\": \"consumer\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -296,9 +438,9 @@
 							}
 						},
 						"url": {
-							"raw": "{{consumer-connector-url}}/api/v1/data/transferprocess",
+							"raw": "{{consumer}}/api/v1/data/transferprocess",
 							"host": [
-								"{{consumer-connector-url}}"
+								"{{consumer}}"
 							],
 							"path": [
 								"api",
@@ -333,7 +475,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"connectorId\": \"provider\",\r\n    \"connectorAddress\": \"{{docker-provider-connector-ids-url}}\",\r\n    \"protocol\": \"ids-multipart\",\r\n    \"offer\": {\r\n        \"offerId\": \"{{contract-id}}:3a75736e-001d-4364-8bd4-9888490edb57\",\r\n        \"assetId\": \"{{asset-id}}\",\r\n        \"policy\": {\r\n            \"permissions\": [\r\n                {\r\n                    \"edctype\": \"dataspaceconnector:permission\",\r\n                    \"uid\": null,\r\n                    \"target\": \"{{asset-id}}\",\r\n                    \"action\": {\r\n                        \"type\": \"USE\",\r\n                        \"includedIn\": null,\r\n                        \"constraint\": null\r\n                    },\r\n                    \"assignee\": null,\r\n                    \"assigner\": null,\r\n                    \"constraints\": [\r\n                        {\r\n                            \"edctype\": \"AtomicConstraint\",\r\n                            \"leftExpression\": {\r\n                                \"edctype\": \"dataspaceconnector:literalexpression\",\r\n                                \"value\": \"region\"\r\n                            },\r\n                            \"rightExpression\": {\r\n                                \"edctype\": \"dataspaceconnector:literalexpression\",\r\n                                \"value\": \"eu\"\r\n                            },\r\n                            \"operator\": \"EQ\"\r\n                        }\r\n                    ],\r\n                    \"duties\": []\r\n                }\r\n            ],\r\n            \"prohibitions\": [],\r\n            \"obligations\": [],\r\n            \"extensibleProperties\": {},\r\n            \"inheritsFrom\": null,\r\n            \"assigner\": null,\r\n            \"assignee\": null,\r\n            \"target\": \"{{asset-id}}\",\r\n            \"@type\": {\r\n                \"@policytype\": \"set\"\r\n            }\r\n        },\r\n        \"asset\": {\r\n            \"properties\": {\r\n                \"ids:byteSize\": null,\r\n                \"asset:prop:id\": \"{{asset-id}}\",\r\n                \"ids:fileName\": null\r\n            }\r\n        }\r\n    }\r\n}",
+							"raw": "{\r\n    \"connectorId\": \"provider\",\r\n    \"connectorAddress\": \"{{docker-provider-ids}}\",\r\n    \"protocol\": \"ids-multipart\",\r\n    \"offer\": {\r\n        \"offerId\": \"{{contract-id}}:3a75736e-001d-4364-8bd4-9888490edb57\",\r\n        \"assetId\": \"{{asset-id}}\",\r\n        \"policy\": {\r\n            \"permissions\": [\r\n                {\r\n                    \"edctype\": \"dataspaceconnector:permission\",\r\n                    \"uid\": null,\r\n                    \"target\": \"{{asset-id}}\",\r\n                    \"action\": {\r\n                        \"type\": \"USE\",\r\n                        \"includedIn\": null,\r\n                        \"constraint\": null\r\n                    },\r\n                    \"assignee\": null,\r\n                    \"assigner\": null,\r\n                    \"constraints\": [\r\n                        {\r\n                            \"edctype\": \"AtomicConstraint\",\r\n                            \"leftExpression\": {\r\n                                \"edctype\": \"dataspaceconnector:literalexpression\",\r\n                                \"value\": \"region\"\r\n                            },\r\n                            \"rightExpression\": {\r\n                                \"edctype\": \"dataspaceconnector:literalexpression\",\r\n                                \"value\": \"eu\"\r\n                            },\r\n                            \"operator\": \"EQ\"\r\n                        }\r\n                    ],\r\n                    \"duties\": []\r\n                }\r\n            ],\r\n            \"prohibitions\": [],\r\n            \"obligations\": [],\r\n            \"extensibleProperties\": {},\r\n            \"inheritsFrom\": null,\r\n            \"assigner\": null,\r\n            \"assignee\": null,\r\n            \"target\": \"{{asset-id}}\",\r\n            \"@type\": {\r\n                \"@policytype\": \"set\"\r\n            }\r\n        },\r\n        \"asset\": {\r\n            \"properties\": {\r\n                \"ids:byteSize\": null,\r\n                \"asset:prop:id\": \"{{asset-id}}\",\r\n                \"ids:fileName\": null\r\n            }\r\n        }\r\n    }\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -341,9 +483,9 @@
 							}
 						},
 						"url": {
-							"raw": "{{consumer-connector-url}}/api/v1/data/contractnegotiations",
+							"raw": "{{consumer}}/api/v1/data/contractnegotiations",
 							"host": [
-								"{{consumer-connector-url}}"
+								"{{consumer}}"
 							],
 							"path": [
 								"api",
@@ -367,9 +509,9 @@
 							}
 						],
 						"url": {
-							"raw": "{{consumer-connector-url}}/api/v1/data/contractnegotiations/{{negotiation-id}}",
+							"raw": "{{consumer}}/api/v1/data/contractnegotiations/{{negotiation-id}}",
 							"host": [
-								"{{consumer-connector-url}}"
+								"{{consumer}}"
 							],
 							"path": [
 								"api",
@@ -403,7 +545,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n  \"protocol\": \"ids-multipart\",\r\n  \"assetId\": \"{{asset-id}}\",\r\n  \"contractId\": \"{{agreement-id}}\",\r\n  \"dataDestination\": {\r\n    \"properties\": {\r\n      \"baseUrl\": \"{{docker-consumer-connector-endpoint-url}}/api/receiveTransfer/test\",\r\n      \"type\": \"HttpData\",\r\n      \"authKey\":\"x-api-key\",\r\n      \"authCode\": \"password\"\r\n    }\r\n  },\r\n  \"transferType\": {\r\n    \"contentType\": \"application/json\",\r\n    \"isFinite\": true\r\n  },\r\n  \"managedResources\": false,\r\n  \"connectorAddress\": \"{{docker-provider-connector-ids-url}}\",\r\n  \"connectorId\": \"consumer\"\r\n}",
+							"raw": "{\r\n  \"protocol\": \"ids-multipart\",\r\n  \"assetId\": \"{{asset-id}}\",\r\n  \"contractId\": \"{{agreement-id}}\",\r\n  \"dataDestination\": {\r\n    \"properties\": {\r\n      \"baseUrl\": \"{{docker-consumer-connector-endpoint-url}}/api/receiveTransfer/test\",\r\n      \"type\": \"HttpData\",\r\n      \"authKey\":\"x-api-key\",\r\n      \"authCode\": \"password\"\r\n    }\r\n  },\r\n  \"transferType\": {\r\n    \"contentType\": \"application/json\",\r\n    \"isFinite\": true\r\n  },\r\n  \"managedResources\": false,\r\n  \"connectorAddress\": \"{{docker-provider-ids}}\",\r\n  \"connectorId\": \"consumer\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -411,9 +553,9 @@
 							}
 						},
 						"url": {
-							"raw": "{{consumer-connector-url}}/api/v1/data/transferprocess",
+							"raw": "{{consumer}}/api/v1/data/transferprocess",
 							"host": [
-								"{{consumer-connector-url}}"
+								"{{consumer}}"
 							],
 							"path": [
 								"api",
@@ -442,9 +584,9 @@
 							}
 						],
 						"url": {
-							"raw": "{{provider-data-api-url}}/contractdefinitions",
+							"raw": "{{provider-data-api}}/contractdefinitions",
 							"host": [
-								"{{provider-data-api-url}}"
+								"{{provider-data-api}}"
 							],
 							"path": [
 								"contractdefinitions"
@@ -465,9 +607,9 @@
 							}
 						],
 						"url": {
-							"raw": "{{provider-data-api-url}}/policydefinitions",
+							"raw": "{{provider-data-api}}/policydefinitions",
 							"host": [
-								"{{provider-data-api-url}}"
+								"{{provider-data-api}}"
 							],
 							"path": [
 								"policydefinitions"
@@ -500,9 +642,9 @@
 							}
 						},
 						"url": {
-							"raw": "{{provider-data-api-url}}/policydefinitions",
+							"raw": "{{provider-data-api}}/policydefinitions",
 							"host": [
-								"{{provider-data-api-url}}"
+								"{{provider-data-api}}"
 							],
 							"path": [
 								"policydefinitions"
@@ -523,9 +665,9 @@
 							}
 						],
 						"url": {
-							"raw": "{{consumer-connector-url}}/api/v1/data/catalog?providerUrl={{provider-connector-ids-url}}",
+							"raw": "{{consumer}}/api/v1/data/catalog?providerUrl={{provider-ids}}",
 							"host": [
-								"{{consumer-connector-url}}"
+								"{{consumer}}"
 							],
 							"path": [
 								"api",
@@ -536,7 +678,7 @@
 							"query": [
 								{
 									"key": "providerUrl",
-									"value": "{{provider-connector-ids-url}}"
+									"value": "{{provider-ids}}"
 								}
 							]
 						}
@@ -568,28 +710,28 @@
 	],
 	"variable": [
 		{
-			"key": "provider-connector-url",
+			"key": "provider",
 			"value": "http://localhost:8181",
 			"type": "default"
 		},
 		{
-			"key": "provider-connector-ids-url",
+			"key": "provider-ids",
 			"value": "http://localhost:8282/api/v1/ids/data",
 			"type": "default"
 		},
 		{
-			"key": "provider-data-api-url",
+			"key": "provider-data-api",
 			"value": "http://localhost:8182/api/v1/data",
 			"type": "default"
 		},
 		{
-			"key": "consumer-connector-url",
-			"value": "http://localhost:9192",
+			"key": "consumer",
+			"value": "http://localhost:9191",
 			"type": "default"
 		},
 		{
-			"key": "consumer-connector-endpoint-url",
-			"value": "http://localhost:9191",
+			"key": "consumer-data-api",
+			"value": "http://localhost:9192",
 			"type": "default"
 		},
 		{
@@ -618,7 +760,7 @@
 			"type": "default"
 		},
 		{
-			"key": "docker-provider-connector-ids-url",
+			"key": "docker-provider-ids",
 			"value": "http://provider:8282/api/v1/ids/data",
 			"type": "default"
 		},

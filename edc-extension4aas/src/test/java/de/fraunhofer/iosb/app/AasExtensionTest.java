@@ -19,13 +19,23 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
+import java.time.Clock;
+
 import org.eclipse.edc.api.auth.spi.AuthenticationService;
+import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
+import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationObservable;
+import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
+import org.eclipse.edc.connector.spi.catalog.CatalogService;
+import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.asset.AssetIndex;
+import org.eclipse.edc.spi.event.EventRouter;
+import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.injection.ObjectFactory;
 import org.eclipse.edc.web.spi.WebService;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,9 +58,29 @@ public class AasExtensionTest {
         context.registerService(OkHttpClient.class, mock(OkHttpClient.class));
         context.registerService(WebService.class, mock(WebService.class));
         context.registerService(AuthenticationService.class, mock(AuthenticationService.class));
+        context.registerService(CatalogService.class, mock(CatalogService.class));
+        context.registerService(ConsumerContractNegotiationManager.class,
+                mock(ConsumerContractNegotiationManager.class));
+        context.registerService(ContractDefinitionStore.class, mock(ContractDefinitionStore.class));
+        context.registerService(ContractNegotiationStore.class, mock(ContractNegotiationStore.class));
+        context.registerService(OkHttpClient.class, mock(OkHttpClient.class));
+        context.registerService(PolicyDefinitionStore.class, mock(PolicyDefinitionStore.class));
+        context.registerService(RemoteMessageDispatcherRegistry.class, mock(RemoteMessageDispatcherRegistry.class));
+        context.registerService(TransferProcessManager.class, mock(TransferProcessManager.class));
+        context.registerService(WebService.class, mock(WebService.class));
+        context.registerService(ContractNegotiationObservable.class, mock(ContractNegotiationObservable.class));
+        context.registerService(EventRouter.class, mock(EventRouter.class));
+        context.registerService(Clock.class, mock(Clock.class));
+        Config mockConf = mock(Config.class);
 
         this.context = spy(context); // used to inject the config
+
         when(this.context.getMonitor()).thenReturn(mock(Monitor.class));
+        when(this.context.getConfig()).thenReturn(mockConf);
+        when(mockConf.getString("ids.webhook.address")).thenReturn("http://localhost:8080");
+        when(mockConf.getString("web.http.port")).thenReturn("1234");
+        when(mockConf.getString("web.http.path")).thenReturn("api-path");
+
         extension = factory.constructInstance(AasExtension.class);
     }
 

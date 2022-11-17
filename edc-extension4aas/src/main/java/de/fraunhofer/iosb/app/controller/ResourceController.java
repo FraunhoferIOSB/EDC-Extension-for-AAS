@@ -31,9 +31,9 @@ public class ResourceController {
     private final ResourceHandler resourceAgent;
     private final ContractHandler contractHandler;
 
-    public ResourceController(AssetIndex assetLoader, ContractDefinitionStore contractStore,
+    public ResourceController(AssetIndex assetIndex, ContractDefinitionStore contractStore,
             PolicyDefinitionStore policyStore) {
-        resourceAgent = new ResourceHandler(assetLoader);
+        resourceAgent = new ResourceHandler(assetIndex);
         contractHandler = new ContractHandler(contractStore, policyStore);
     }
 
@@ -55,7 +55,7 @@ public class ResourceController {
 
      * @param assetId Asset ID of asset to be deleted
      */
-    public void deleteAsset(String assetId) {
+    public void deleteAssetAndContracts(String assetId) {
         contractHandler.deleteContractsWithAssetId(assetId);
         resourceAgent.deleteAsset(assetId);
     }

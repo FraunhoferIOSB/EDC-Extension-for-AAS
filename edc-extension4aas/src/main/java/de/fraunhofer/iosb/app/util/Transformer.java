@@ -33,7 +33,7 @@ public final class Transformer {
     /*
      * Transform an okHttp client response to a jakarta response object.
      */
-    public static Response okHttpResponseToJakartaResponse(final okhttp3.Response response) {
+    public static Response okHttpResponseToJakartaResponse(okhttp3.Response response) {
         var statusCode = response.code();
         String body;
         try {

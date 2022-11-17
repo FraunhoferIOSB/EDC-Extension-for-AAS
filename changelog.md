@@ -4,6 +4,8 @@
 
 **New Features**
 
+* Support of **Eclipse Dataspace Connection v0.0.1-Milestone 7**
+
 **Bugfixes**
 
 ## V1.0.0-alpha

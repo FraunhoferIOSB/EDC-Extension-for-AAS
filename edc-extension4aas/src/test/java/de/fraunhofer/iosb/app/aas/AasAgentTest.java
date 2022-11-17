@@ -25,7 +25,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;

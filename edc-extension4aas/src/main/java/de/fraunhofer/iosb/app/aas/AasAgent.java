@@ -35,7 +35,7 @@ import io.adminshell.aas.v3.model.Submodel;
 import io.adminshell.aas.v3.model.impl.DefaultSubmodel;
 import jakarta.ws.rs.core.Response;
 import okhttp3.OkHttpClient;
-import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.edc.spi.EdcException;
 
 import java.io.IOException;
 import java.net.URISyntaxException;

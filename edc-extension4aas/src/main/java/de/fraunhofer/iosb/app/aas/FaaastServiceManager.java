@@ -24,6 +24,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.eclipse.edc.spi.EdcException;
+
 import de.fraunhofer.iosb.app.Logger;
 import de.fraunhofer.iosb.ilt.faaast.service.Service;
 import de.fraunhofer.iosb.ilt.faaast.service.config.CoreConfig;
@@ -58,12 +60,11 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
 
         try {
             var aasEnvironment = AASEnvironmentHelper.fromFile(aasModelPath.toFile());
-            ServiceConfig serviceConfig;
 
-            final var httpEndpointConfig = new HttpEndpointConfig();
+            var httpEndpointConfig = new HttpEndpointConfig();
             httpEndpointConfig.setPort(port);
 
-            serviceConfig = new ServiceConfig.Builder()
+            var serviceConfig = new ServiceConfig.Builder()
                     .core(new CoreConfig.Builder().requestHandlerThreadPoolSize(2).build())
                     .endpoint(new HttpEndpointConfig.Builder().port(port).build())
                     .persistence(new PersistenceInMemoryConfig())
@@ -77,8 +78,7 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
             faaastServiceRepository.put(new URL(LOCALHOST_URL + String.valueOf(port)), service);
 
         } catch (Exception faaastServiceException) {
-            logger.error(FAAAST_SERVICE_EXCEPTION_MESSAGE, faaastServiceException);
-            return null;
+            throw new EdcException(FAAAST_SERVICE_EXCEPTION_MESSAGE, faaastServiceException);
         }
 
         return new URL(LOCALHOST_URL + String.valueOf(port));
@@ -94,17 +94,15 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
         var localFaaastServicePort = 0;
         try {
             var aasEnvironment = AASEnvironmentHelper.fromFile(aasModelPath.toFile());
-            ServiceConfig serviceConfig;
 
-            serviceConfig = ServiceConfigHelper.load(configPath.toFile());
+            var serviceConfig = ServiceConfigHelper.load(configPath.toFile());
             if (serviceConfig.getEndpoints().isEmpty()) {
-                logger.error(
+                throw new IllegalArgumentException(
                         "No HTTP endpoint has been defined in this configuration. Not booting up this FA³ST service.");
-                return null;
             }
             ServiceConfigHelper.autoComplete(serviceConfig);
 
-            for (final var endpointConfig : serviceConfig.getEndpoints()) {
+            for (var endpointConfig : serviceConfig.getEndpoints()) {
                 if (endpointConfig instanceof HttpEndpointConfig) {
                     localFaaastServicePort = ((HttpEndpointConfig) endpointConfig).getPort();
                 }
@@ -117,8 +115,7 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
             faaastServiceRepository.put(new URL(LOCALHOST_URL + String.valueOf(localFaaastServicePort)), service);
 
         } catch (Exception faaastServiceException) {
-            logger.error(FAAAST_SERVICE_EXCEPTION_MESSAGE, faaastServiceException);
-            return null;
+            throw new EdcException(FAAAST_SERVICE_EXCEPTION_MESSAGE, faaastServiceException);
         }
         return new URL(LOCALHOST_URL + String.valueOf(localFaaastServicePort));
     }
@@ -133,7 +130,7 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
     public void stopService(URL aasServiceUrl) {
         Objects.requireNonNull(aasServiceUrl);
         logger.debug(format("Shutting down FA³ST service with URL %s...", aasServiceUrl.toString()));
-        final var serviceToStop = faaastServiceRepository.get(aasServiceUrl);
+        var serviceToStop = faaastServiceRepository.get(aasServiceUrl);
         if (Objects.nonNull(serviceToStop)) {
             serviceToStop.stop();
             faaastServiceRepository.remove(aasServiceUrl);

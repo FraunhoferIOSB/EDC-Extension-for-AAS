@@ -15,48 +15,47 @@
  */
 package de.fraunhofer.iosb.app;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import de.fraunhofer.iosb.app.controller.AasController;
-import de.fraunhofer.iosb.app.controller.ConfigurationController;
-import de.fraunhofer.iosb.app.controller.ResourceController;
-import de.fraunhofer.iosb.app.model.configuration.Configuration;
-import de.fraunhofer.iosb.app.model.ids.SelfDescription;
-import okhttp3.OkHttpClient;
-import org.eclipse.dataspaceconnector.api.auth.AuthenticationService;
-import org.eclipse.dataspaceconnector.spi.WebService;
-import org.eclipse.dataspaceconnector.spi.asset.AssetLoader;
-import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
-import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
-import org.eclipse.dataspaceconnector.spi.system.Inject;
-import org.eclipse.dataspaceconnector.spi.system.Requires;
-import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
-import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
-import org.eclipse.dataspaceconnector.spi.system.configuration.Config;
-
 import java.net.URL;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import org.eclipse.edc.api.auth.spi.AuthenticationService;
+import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
+import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
+import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.spi.asset.AssetIndex;
+import org.eclipse.edc.spi.system.ServiceExtension;
+import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.web.spi.WebService;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import de.fraunhofer.iosb.app.controller.AasController;
+import de.fraunhofer.iosb.app.controller.ConfigurationController;
+import de.fraunhofer.iosb.app.controller.ResourceController;
+import de.fraunhofer.iosb.app.model.configuration.Configuration;
+import de.fraunhofer.iosb.app.model.ids.SelfDescription;
+import okhttp3.OkHttpClient;
+
 /**
  * Extension providing/connecting EDC logic to the EDC-AAS-Application.
  */
-@Requires({ WebService.class })
 public class AasExtension implements ServiceExtension {
 
     @Inject
+    private WebService webService;
+    @Inject
     private ContractDefinitionStore contractStore;
     @Inject
-    private AssetLoader assetLoader;
+    private AssetIndex assetLoader;
     @Inject
     private PolicyDefinitionStore policyStore;
     @Inject
     private OkHttpClient okHttpClient;
-    @Inject
-    private WebService webService;
     @Inject
     private AuthenticationService authenticationService;
 
@@ -73,8 +72,8 @@ public class AasExtension implements ServiceExtension {
         logger.setMonitor(context.getMonitor());
 
         // Distribute controllers, repositories
-        final var selfDescriptionRepository = new ConcurrentHashMap<URL, SelfDescription>();
-        final var resourceController = new ResourceController(assetLoader, contractStore, policyStore);
+        var selfDescriptionRepository = new ConcurrentHashMap<URL, SelfDescription>();
+        var resourceController = new ResourceController(assetLoader, contractStore, policyStore);
         aasController = new AasController(okHttpClient);
 
         endpoint = new Endpoint(selfDescriptionRepository, aasController, resourceController);
@@ -110,10 +109,10 @@ public class AasExtension implements ServiceExtension {
      * @param context EDC config reference provider
      */
     private void loadConfig(ServiceExtensionContext context) {
-        final var objectMapper = new ObjectMapper();
+        var objectMapper = new ObjectMapper();
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-        Config config = context.getConfig();
+        var config = context.getConfig();
 
         logger.setPrefix(config.getString(SETTINGS_PREFIX + "logPrefix", "AAS Extension"));
 

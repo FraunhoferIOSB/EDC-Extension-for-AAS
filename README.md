@@ -6,7 +6,7 @@ This [Eclipse Dataspace Connector (EDC)](https://github.com/eclipse-dataspacecon
 ## Version compatibility
 | Specification | Version |
 |:--| -- |
-| Eclipse Dataspace Connector | v0.0.1-milestone-6
+| Eclipse Dataspace Connector | v0.0.1-milestone-7
 | AAS - Details of the Asset Administration Shell - Part 1<br />The exchange of information between partners in the value chain of Industrie 4.0 | Version 3.0RC01<br />(based on [admin-shell-io/java-model](https://github.com/admin-shell-io/java-model))
 
 ## Repo Structure
@@ -53,7 +53,7 @@ Provide digital twin (AAS) data to business partners in Data Spaces like Catena-
 | de.fraunhofer.iosb.ilt.faaast.service:starter | [FA³ST Service](https://github.com/FraunhoferIOSB/FAAAST-Service) to start AAS services internally.
 | io.admin-shell.aas:dataformat-json | [admin-shell-io java serializer](https://github.com/admin-shell-io/java-serializer) (de-)serialize AAS models
 | io.admin-shell.aas:model | [admin-shell-io java model](https://github.com/admin-shell-io/java-model) (de-)serialize AAS models
-| org.eclipse.dataspaceconnector:data-management-api | EDC asset/contract management
+| org.eclipse.edc:data-management-api | EDC asset/contract management
 | com.squareup.okhttp3:okhttp | Send HTTP requests to AAS services
 | jakarta.ws.rs:jakarta.ws.rs-api | provides HTTP endpoints of extension
 

@@ -7,9 +7,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import org.eclipse.dataspaceconnector.api.auth.AuthenticationService;
-import org.eclipse.dataspaceconnector.spi.exception.AuthenticationFailedException;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.edc.api.auth.spi.AuthenticationService;
+import org.eclipse.edc.web.spi.exception.AuthenticationFailedException;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 

@@ -24,7 +24,8 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
 
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -59,19 +60,30 @@ public class FaaastServiceManagerTest {
 
     @Test
     public void startServiceFalsePathTest() throws IOException {
-        assertEquals(null, faaastServiceManager.startService(Path.of("fake-path"), 12345));
+        try {
+            faaastServiceManager.startService(Path.of("fake-path"), 12345);
+            fail("EdcException should have been thrown");
+        } catch (EdcException expected) {
+        }
     }
 
     @Test
     public void startServiceFalsePortTest() throws IOException {
-        assertEquals(null,
-                faaastServiceManager.startService(Path.of("./src/test/resources/aasEnvironment.json"), -800));
+        try {
+            faaastServiceManager.startService(Path.of("./src/test/resources/aasEnvironment.json"), -800);
+            fail("EdcException should have been thrown");
+        } catch (EdcException expected) {
+        }
     }
 
     @Test
     public void startServiceFalsePortConfigPathTest() throws IOException {
-        assertEquals(null, faaastServiceManager.startService(Path.of("./src/test/resources/aasEnvironment.json"),
-                Path.of("./src/test/resources/aasEnvironment.json")));
+        try {
+            faaastServiceManager.startService(Path.of("./src/test/resources/aasEnvironment.json"),
+                    Path.of("./src/test/resources/aasEnvironment.json"));
+            fail("EdcException should have been thrown");
+        } catch (EdcException expected) {
+        }
     }
 
     @Test
@@ -106,7 +118,7 @@ public class FaaastServiceManagerTest {
     }
 
     @AfterEach
-    public void stopServices(){
+    public void stopServices() {
         faaastServiceManager.stopServices();
     }
 }

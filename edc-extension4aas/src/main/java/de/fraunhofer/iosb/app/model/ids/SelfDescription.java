@@ -42,7 +42,7 @@ public class SelfDescription {
 
     /**
      * Serializes the underlying CustomAASEnvironment using the
-     * ObjectMapper.writeValueAsString method.
+     * com.fasterxml.jackson.databind.ObjectMapper.writeValueAsString method.
      */
     @Override
     public String toString() {
@@ -69,7 +69,7 @@ public class SelfDescription {
 
     /**
      * Returns the underlying environment.
-
+     * 
      * @return The underlying environment
      */
     public CustomAssetAdministrationShellEnvironment getEnvironment() {

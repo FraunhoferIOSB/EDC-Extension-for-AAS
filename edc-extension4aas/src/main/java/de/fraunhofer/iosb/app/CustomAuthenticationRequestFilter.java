@@ -17,8 +17,8 @@ package de.fraunhofer.iosb.app;
 
 import java.util.Objects;
 
-import org.eclipse.dataspaceconnector.api.auth.AuthenticationRequestFilter;
-import org.eclipse.dataspaceconnector.api.auth.AuthenticationService;
+import org.eclipse.edc.api.auth.spi.AuthenticationRequestFilter;
+import org.eclipse.edc.api.auth.spi.AuthenticationService;
 
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import jakarta.ws.rs.container.ContainerRequestContext;

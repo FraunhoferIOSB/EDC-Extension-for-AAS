@@ -6,7 +6,7 @@
 
 **Bugfixes**
 
-## V1.0.0
+## V1.0.0-alpha
 This version is compatible to **Eclipse Dataspace Connection v0.0.1-Milestone 6**
 
 **New Features**

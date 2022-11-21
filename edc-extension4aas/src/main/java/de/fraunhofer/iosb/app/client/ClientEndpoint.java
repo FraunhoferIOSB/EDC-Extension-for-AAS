@@ -35,6 +35,7 @@ import org.eclipse.edc.spi.EdcException;
 
 import de.fraunhofer.iosb.app.Logger;
 import de.fraunhofer.iosb.app.client.contract.ContractOfferService;
+import de.fraunhofer.iosb.app.client.dataTransfer.DataTransferObservable;
 import de.fraunhofer.iosb.app.client.dataTransfer.TransferInitiator;
 import de.fraunhofer.iosb.app.client.exception.AmbiguousOrNullException;
 import de.fraunhofer.iosb.app.client.negotiation.Negotiator;
@@ -107,7 +108,7 @@ public class ClientEndpoint {
 
         List<ContractOffer> contractOffers;
         try {
-            contractOffers = contractOfferService.getContractForAssetId(providerUrl, assetId);
+            contractOffers = contractOfferService.getContractsForAssetId(providerUrl, assetId);
         } catch (InterruptedException negotiationException) {
             LOGGER.error(format("Getting contractOffers failed for provider %s and asset %s", providerUrl,
                     assetId), negotiationException);
@@ -150,7 +151,7 @@ public class ClientEndpoint {
         Objects.requireNonNull(providerUrl, "Provider URL must not be null");
 
         try {
-            var contractOffers = contractOfferService.getContractForAssetId(providerUrl, assetId);
+            var contractOffers = contractOfferService.getContractsForAssetId(providerUrl, assetId);
             return Response.ok(contractOffers).build();
         } catch (InterruptedException interruptedException) {
             LOGGER.error(format("Getting contractOffers failed for provider %s and asset %s", providerUrl,
@@ -205,12 +206,18 @@ public class ClientEndpoint {
      */
     @POST
     @Path(RECEIVE_DATA_PATH)
-    public Response putData(@QueryParam("agreementId") final String agreementId, final String requestBody) {
+    public Response putData(@QueryParam("agreementId") String agreementId, String requestBody) {
         LOGGER.log(format("Receiving data for agreement %s...", agreementId));
         Objects.requireNonNull(agreementId);
         Objects.requireNonNull(requestBody);
         observable.update(agreementId, requestBody);
         return Response.ok().build();
+    }
+
+    @POST
+    @Path("contractOffer")
+    public Response addAcceptedContract(ContractOffer contractOffer) {
+        return Response.status(Response.Status.NOT_IMPLEMENTED).build();
     }
 
     private String waitForData(URL providerUrl, String agreementId, String assetId)

@@ -1,4 +1,4 @@
-package de.fraunhofer.iosb.app.client;
+package de.fraunhofer.iosb.app.client.dataTransfer;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;

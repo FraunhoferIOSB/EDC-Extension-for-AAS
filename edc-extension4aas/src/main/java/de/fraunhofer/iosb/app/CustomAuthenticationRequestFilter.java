@@ -39,8 +39,8 @@ public class CustomAuthenticationRequestFilter extends AuthenticationRequestFilt
     @Override
     public void filter(ContainerRequestContext requestContext) {
         Objects.requireNonNull(requestContext);
-        if (!Endpoint.SELF_DESCRIPTION_PATH.equalsIgnoreCase(requestContext.getUriInfo().getPath())
-                && config.isExposeSelfDescription()) {
+        if (!(Endpoint.SELF_DESCRIPTION_PATH.equalsIgnoreCase(requestContext.getUriInfo().getPath())
+                && config.isExposeSelfDescription())) {
             Logger.getInstance().debug("CustomAuthenticationRequestFilter: Intercepting this request");
             super.filter(requestContext);
         } else {

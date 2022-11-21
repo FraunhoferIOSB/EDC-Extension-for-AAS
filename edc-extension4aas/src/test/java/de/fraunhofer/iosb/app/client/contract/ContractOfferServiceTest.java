@@ -51,7 +51,7 @@ public class ContractOfferServiceTest {
 
         when(mockCatalogService.getByProviderUrl(any(), any())).thenReturn(mockedFuture);
 
-        assertEquals("mocked-contract-id", contractOfferService.getContractForAssetId(testUrl, "test-asset-id").get(0).getId());
+        assertEquals("mocked-contract-id", contractOfferService.getContractsForAssetId(testUrl, "test-asset-id").get(0).getId());
     }
 
     @Test
@@ -61,7 +61,7 @@ public class ContractOfferServiceTest {
         when(mockCatalogService.getByProviderUrl(any(), any())).thenReturn(mockedFuture);
         mockedFuture.completeExceptionally(new Throwable());
         try {
-            contractOfferService.getContractForAssetId(new URL("http://fakeUrl:4321/not/working"), "test-asset-id");
+            contractOfferService.getContractsForAssetId(new URL("http://fakeUrl:4321/not/working"), "test-asset-id");
             fail("This should not complete without throwing an exception");
         } catch (EdcException expected) {
 

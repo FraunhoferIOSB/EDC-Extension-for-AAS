@@ -45,6 +45,7 @@ public class Configuration {
     private String defaultContractPolicyPath;
     private int waitForTransferTimeout = 10; // Seconds
     private int waitForAgreementTimeout = 10; // Seconds
+    private boolean acceptAllProviderOffers = false;
 
     public static synchronized Configuration getInstance() {
         if (Objects.isNull(instance)) {
@@ -155,16 +156,27 @@ public class Configuration {
     public int getWaitForAgreementTimeout() {
         return waitForAgreementTimeout;
     }
-    
+
     @JsonProperty(SETTINGS_PREFIX + "client.waitforagreementtimeout")
     public void setWaitForAgreementTimeout(int waitForAgreementTimeout) {
         this.waitForAgreementTimeout = waitForAgreementTimeout;
     }
+
     public int getWaitForTransferTimeout() {
         return waitForTransferTimeout;
     }
+
     @JsonProperty(SETTINGS_PREFIX + "client.waitfortransfertimeout")
     public void setWaitForTransferTimeout(int waitForTransferTimeout) {
         this.waitForTransferTimeout = waitForTransferTimeout;
+    }
+
+    public boolean isAcceptAllProviderOffers() {
+        return acceptAllProviderOffers;
+    }
+
+    @JsonProperty(SETTINGS_PREFIX + "client.acceptallprovideroffers")
+    public void setAcceptAllProviderOffers(boolean acceptAllProviderOffers) {
+        this.acceptAllProviderOffers = acceptAllProviderOffers;
     }
 }

@@ -31,6 +31,7 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.query.QuerySpec;
 
 import de.fraunhofer.iosb.app.client.exception.AmbiguousOrNullException;
+import de.fraunhofer.iosb.app.model.configuration.Configuration;
 
 /**
  * Finds out contract offer for a given asset id and provider EDC url
@@ -38,6 +39,7 @@ import de.fraunhofer.iosb.app.client.exception.AmbiguousOrNullException;
 public class ContractOfferService {
 
     // private static final String ASSET_PROPERTY_ID = "asset:prop:id";
+    private static final Configuration configuration = Configuration.getInstance();
 
     private final CatalogService catalogService;
     private final ContractOfferStore contractOfferStore;
@@ -50,6 +52,7 @@ public class ContractOfferService {
     public ContractOfferService(CatalogService catalogService, ContractOfferStore contractOfferStore) {
         this.catalogService = catalogService;
         this.contractOfferStore = contractOfferStore;
+
     }
 
     /**
@@ -112,12 +115,15 @@ public class ContractOfferService {
                     format("Multiple or no contracts were found for assetId %s! (amount of offers: %s)",
                             assetId, contractOffers.size()));
         }
-
-        var contractOffer = contractOffers.stream()
-                .filter(offer -> contractOfferStore.getOffers().stream()
-                        .filter(acceptedOffer -> contractOfferRulesEquality(acceptedOffer, offer)).count() > 0)
-                .count() > 0 ? contractOffers.get(0) : null;
-
+        ContractOffer contractOffer;
+        if (configuration.isAcceptAllProviderOffers()) { // Get first (only) contractOffer
+            contractOffer = contractOffers.get(0);
+        } else {
+            contractOffer = contractOffers.stream()
+                    .filter(offer -> contractOfferStore.getOffers().stream()
+                            .filter(acceptedOffer -> contractOfferRulesEquality(acceptedOffer, offer)).count() > 0)
+                    .count() > 0 ? contractOffers.get(0) : null;
+        }
         if (Objects.isNull(contractOffer)) {
             throw new EdcException(
                     "Could not find any contract offer matching this connector's accepted contract offers");

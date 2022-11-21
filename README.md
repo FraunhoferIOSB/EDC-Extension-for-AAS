@@ -71,6 +71,7 @@ Provide digital twin (AAS) data to business partners in Data Spaces like Catena-
 |edc.aas.defaultContractPolicyPath|path |Path to a contract policy file (JSON). This policy will be used as the default contract policy for all assets created after the configuration value has been set.|
 |edc.aas.client.waitForAgreementTimeout|whole number in seconds |How long should the extension wait for an agreement when automatically negotiating a contract? Default value is 10(s).|
 |edc.aas.client.waitForTransferTimeout|whole number in seconds |How long should the extension wait for a data transfer when automatically negotiating a contract? Default value is 10(s).|
+|edc.aas.client.acceptAllProviderOffers|boolean|If true, the client accepts any contractOffer offered by a provider connector on automated contract negotiation (e.g., trusted provider). Default value: false|
 
 ## Terminology
 | Term | Description |

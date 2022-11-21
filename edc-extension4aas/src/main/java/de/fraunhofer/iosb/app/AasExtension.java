@@ -117,22 +117,25 @@ public class AasExtension implements ServiceExtension {
                 configInstance.getSyncPeriod(), TimeUnit.SECONDS);
 
         webService.registerResource(endpoint);
-        webService.registerResource(
-                new ClientEndpoint(createOwnUriFromConfigurationValues(context.getConfig()),
-                        catalogService,
-                        consumerNegotiationManager, contractNegotiationObservable,
-                        transferProcessManager));
 
-        webService.registerResource(new CustomAuthenticationRequestFilter(authenticationService));
+        try {
+            var ownUri = createOwnUriFromConfigurationValues(context.getConfig());
+            webService.registerResource(
+                    new ClientEndpoint(ownUri, catalogService, consumerNegotiationManager,
+                            contractNegotiationObservable, transferProcessManager));
+        } catch (EdcException buildUriException) {
+            logger.error("Own URI for client could not be built. Reason:", buildUriException);
+            logger.warn("Client Endpoint will not be exposed and its functionality will not be available");
+        }
     }
 
     private URI createOwnUriFromConfigurationValues(Config config) {
         URL idsAddress;
         try {
             idsAddress = new URL(config.getString("ids.webhook.address"));
-        } catch (MalformedURLException IdsWebhookAddressException) {
-            throw new EdcException("Configuration value ids.webhook.address is a malformed URL",
-                    IdsWebhookAddressException);
+        } catch (MalformedURLException idsWebhookAddressException) {
+            throw new EdcException("Configuration value ids.webhook.address is a malformed URL:",
+                    idsWebhookAddressException);
         }
 
         int ownPort = Integer.parseInt(config.getString("web.http.port"));
@@ -147,7 +150,7 @@ public class AasExtension implements ServiceExtension {
         try {
             return ownUriBuilder.build();
         } catch (URISyntaxException ownUriBuildException) {
-            throw new EdcException("Own URI could not be built", ownUriBuildException);
+            throw new EdcException("Own URI could not be built:", ownUriBuildException);
         }
     }
 

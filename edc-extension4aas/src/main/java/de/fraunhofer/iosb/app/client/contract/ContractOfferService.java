@@ -38,6 +38,7 @@ public class ContractOfferService {
     // private static final String ASSET_PROPERTY_ID = "asset:prop:id";
 
     private final CatalogService catalogService;
+    private final ContractOfferStore contractOfferStore;
 
     /**
      * Class constructor
@@ -46,6 +47,7 @@ public class ContractOfferService {
      */
     public ContractOfferService(CatalogService catalogService) {
         this.catalogService = catalogService;
+        contractOfferStore = new ContractOfferStore();
     }
 
     /**
@@ -60,7 +62,7 @@ public class ContractOfferService {
      * @throws InterruptedException Thread for agreementId was waiting, sleeping, or
      *                              otherwise occupied, and was interrupted.
      */
-    public List<ContractOffer> getContractForAssetId(URL providerUrl, String assetId)
+    public List<ContractOffer> getContractsForAssetId(URL providerUrl, String assetId)
             throws InterruptedException {
         var catalogFuture = catalogService
                 .getByProviderUrl(providerUrl.toString(),

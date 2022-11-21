@@ -19,7 +19,6 @@ import static java.lang.String.format;
 
 import java.net.URI;
 import java.net.URL;
-import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -35,9 +34,9 @@ import org.eclipse.edc.spi.EdcException;
 
 import de.fraunhofer.iosb.app.Logger;
 import de.fraunhofer.iosb.app.client.contract.ContractOfferService;
+import de.fraunhofer.iosb.app.client.contract.ContractOfferStore;
 import de.fraunhofer.iosb.app.client.dataTransfer.DataTransferObservable;
 import de.fraunhofer.iosb.app.client.dataTransfer.TransferInitiator;
-import de.fraunhofer.iosb.app.client.exception.AmbiguousOrNullException;
 import de.fraunhofer.iosb.app.client.negotiation.Negotiator;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import jakarta.ws.rs.Consumes;
@@ -62,13 +61,15 @@ public class ClientEndpoint {
      */
     public static final String AUTOMATED_PATH = "automated";
     /*
-     * Path for providers to send transfer data to.
+     * Path for providers to send data to.
      */
     public static final String RECEIVE_DATA_PATH = "receiveData";
-    private static final String NEGOTIATE_PATH = "negotiate";
+    private static final String CONTRACT_OFFER_PATH = "contractOffer";
     private static final String CONTRACT_OFFERS_PATH = "contractOffers";
     private static final String NEGOTIATE_CONTRACT_PATH = "negotiateContract";
+    private static final String NEGOTIATE_PATH = "negotiate";
     private static final String TRANSFER_PATH = "transfer";
+
     private static final Logger LOGGER = Logger.getInstance();
 
     private final Negotiator negotiator;
@@ -81,7 +82,7 @@ public class ClientEndpoint {
             ContractNegotiationObservable contractNegotiationObservable,
             TransferProcessManager transferProcessManager) {
         this.negotiator = new Negotiator(consumerNegotiationManager, contractNegotiationObservable);
-        this.contractOfferService = new ContractOfferService(catalogService);
+        this.contractOfferService = new ContractOfferService(catalogService, new ContractOfferStore());
         this.transferInitiator = new TransferInitiator(ownUri, transferProcessManager);
 
         observable = new DataTransferObservable();
@@ -106,9 +107,9 @@ public class ClientEndpoint {
         Objects.requireNonNull(providerUrl, "Provider URL must not be null");
         Objects.requireNonNull(assetId, "Asset ID must not be null");
 
-        List<ContractOffer> contractOffers;
+        ContractOffer contractOffer;
         try {
-            contractOffers = contractOfferService.getContractsForAssetId(providerUrl, assetId);
+            contractOffer = contractOfferService.getContractForAssetId(providerUrl, assetId);
         } catch (InterruptedException negotiationException) {
             LOGGER.error(format("Getting contractOffers failed for provider %s and asset %s", providerUrl,
                     assetId), negotiationException);
@@ -116,13 +117,6 @@ public class ClientEndpoint {
                     .build();
         }
 
-        if (contractOffers.size() != 1) {
-            throw new AmbiguousOrNullException(
-                    format("Multiple or no contracts were found for assetId %s! (amount of offers: %s)",
-                            assetId, contractOffers.size()));
-        }
-
-        var contractOffer = contractOffers.get(0);
         String agreementId;
         try {
             agreementId = negotiator.negotiate(providerUrl, contractOffer);
@@ -199,6 +193,7 @@ public class ClientEndpoint {
     /**
      * Only for automated access. Send data of an agreement to this endpoint.
      * 
+     * 
      * @param agreementId The agreement ID corresponding to the data in the request
      *                    body.
      * @param requestBody The asset data of a transfer request.
@@ -215,9 +210,12 @@ public class ClientEndpoint {
     }
 
     @POST
-    @Path("contractOffer")
-    public Response addAcceptedContract(ContractOffer contractOffer) {
-        return Response.status(Response.Status.NOT_IMPLEMENTED).build();
+    @Path(CONTRACT_OFFER_PATH)
+    public Response addAcceptedContractOffer(ContractOffer contractOffer) {
+        LOGGER.log("Received new accepted contract offer");
+        Objects.requireNonNull(contractOffer, "ContractOffer is null");
+        contractOfferService.addAccepted(contractOffer);
+        return Response.ok().build();
     }
 
     private String waitForData(URL providerUrl, String agreementId, String assetId)

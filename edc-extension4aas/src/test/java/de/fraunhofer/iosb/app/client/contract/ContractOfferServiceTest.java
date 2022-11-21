@@ -37,7 +37,7 @@ public class ContractOfferServiceTest {
 
     @BeforeEach
     void initializeContractOfferService() throws IOException {
-        contractOfferService = new ContractOfferService(mockCatalogService);
+        contractOfferService = new ContractOfferService(mockCatalogService, new ContractOfferStore());
     }
 
     @Test

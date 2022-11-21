@@ -116,14 +116,6 @@ public class EndpointTest {
     }
 
     @Test
-    public void getConfigTest() {
-        new ConfigurationController().handleRequest(RequestType.PUT, null, "");
-
-        assertEquals(FileManager.loadResource("defaultConfig.json"),
-                endpoint.getConfig().getEntity());
-    }
-
-    @Test
     public void changeSingleConfigValueTest() {
         var config = FileManager.loadResource("config.json");
         var configController = new ConfigurationController();

@@ -92,7 +92,49 @@ edc.ids.catalog.id = urn:catalog:default
 ids.webhook.address=http://localhost:8282
 ```
 
-## Running the Example
+## Usage of the client's automated contract negotiation and data transfer interfaces
+
+Build the EDC with the extensions.
+```sh
+cd /EDC-Extension-for-AAS
+./gradlew clean build
+```
+
+Start the provider connector:
+
+```sh
+java -Dedc.fs.config=./example/configurations/provider.properties -jar ./example/build/libs/dataspace-connector.jar
+```
+
+Start the consumer connector:
+
+```sh
+java -Dedc.fs.config=./example/configurations/consumer.properties -jar ./example/build/libs/dataspace-connector.jar
+```
+
+Starting the data transfer from provider to consumer. There is a `postman collection` containing the necessary http request located in `/examples/resources`. Do the following steps:
+
+1. Call the provider's self description on `http://localhost:8181/api/selfDescription`, and choose an element you want to fetch. Put its `asset id` as a variable in the postman collection's variables section.
+
+### Fully automated
+(This will currently fetch the provider's contract offer for the selected asset and accept all terms on this offer. If multiple or no offers exist for this asset, no negotiation will take place.)
+
+2. Execute the request `Client/Automated Negotiation`. The consumer connector will now try to negotiate a contract with the provider to get the data of the selected asset.
+
+3. If everything went right, the response should already be the data behind the `asset id` you selected.
+
+### Separate requests
+
+2. Execute the request `Client/1. Get contract offers for asset`
+Choose a contract offer of the response body.
+
+3. Put the contract offer inside of request `Client/2. Initiate negotiation with contractOffer`'s body and execute said request.
+
+4. If everything went right, request `2` returns an agreementID. Update the postman collection's agreementID variable with the response value.
+
+5. Execute request `3. Get data for agreement id and asset id`. If everything went right, the response should be the data behind the previously selected asset.
+
+## Running the Example (manual)
 
 Build the EDC with the extensions.
 ```sh
@@ -112,7 +154,7 @@ Open another console and start the consumer connector:
 java -Dedc.fs.config=./example/configurations/consumer.properties -jar ./example/build/libs/dataspace-connector.jar
 ```
 
-Starting the data transfer from provider to consumer. There is a `postman collection` containing all necessary http request for data transfer in this extensions repository located in `/examples/resources`. Do following steps:
+Starting the data transfer from provider to consumer. There is a `postman collection` containing all necessary http request for data transfer in this extensions repository located in `/examples/resources`. Do the following steps:
 
 1. Call the provider's self description on `http://localhost:8181/api/selfDescription`, and choose an element you want to fetch. Put its `asset id` and `contract id` as variables in the postman collection.
    

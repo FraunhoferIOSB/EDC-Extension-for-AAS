@@ -117,7 +117,8 @@ Starting the data transfer from provider to consumer. There is a `postman collec
 1. Call the provider's self description on `http://localhost:8181/api/selfDescription`, and choose an element you want to fetch. Put its `asset id` as a variable in the postman collection's variables section.
 
 ### Fully automated
-(This will currently fetch the provider's contract offer for the selected asset and accept all terms on this offer. If multiple or no offers exist for this asset, no negotiation will take place.)
+!Important!: If the (consumer's) config value `edc.aas.client.acceptAllProviderOffers` is set to `true`: This command will fetch the provider's contract offer for the selected asset and accept all terms on this offer. If multiple or no offers exist for this asset, no negotiation will take place.
+If the config value is set to `false` (default): This command will request the provider's offered contractOffer and check it against its own accepted contractOffers. Initially, this store is empty and can be filled up by the request `Client/Add accepted contractOffer` (tip: with the request `EDC API/GET catalog`, contractOffers for all assets of the provider can be viewed and added to the consumer connector).
 
 2. Execute the request `Client/Automated Negotiation`. The consumer connector will now try to negotiate a contract with the provider to get the data of the selected asset.
 

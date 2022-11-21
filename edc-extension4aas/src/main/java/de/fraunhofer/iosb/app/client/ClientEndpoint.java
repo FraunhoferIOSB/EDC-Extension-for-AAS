@@ -151,6 +151,14 @@ public class ClientEndpoint {
         }
     }
 
+    /**
+     * Returns all contract offers offered by the given provider for the given
+     * assetID.
+     * 
+     * @param providerUrl Provider whose contracts should be fetched (non null).
+     * @param assetId     Asset ID for which contractOffers should be fetched.
+     * @return A list of contract offers or an error message.
+     */
     @GET
     @Path(CONTRACT_OFFERS_PATH)
     public Response getContractOffers(@QueryParam("providerUrl") URL providerUrl,
@@ -168,6 +176,14 @@ public class ClientEndpoint {
         }
     }
 
+    /**
+     * Initiate a contract negotiation, acting as a consumer, with a provider
+     * connector.
+     * 
+     * @param providerUrl   The provider's url.
+     * @param contractOffer A contract offer to be negotiated with.
+     * @return An agreementID on success or an error message on error.
+     */
     @POST
     @Path(NEGOTIATE_CONTRACT_PATH)
     public Response negotiateContract(@QueryParam("providerUrl") URL providerUrl,
@@ -185,6 +201,15 @@ public class ClientEndpoint {
         }
     }
 
+    /**
+     * Initiate a data transfer.
+     * 
+     * @param providerUrl The data provider's url
+     * @param agreementId The basis of the data transfer.
+     * @param assetId     The asset of which the data should be transferred
+     * @return On success, the data of the desired asset. Else, returns an error
+     *         message.
+     */
     @GET
     @Path(TRANSFER_PATH)
     public Response getData(@QueryParam("providerUrl") URL providerUrl,
@@ -222,6 +247,15 @@ public class ClientEndpoint {
         return Response.ok().build();
     }
 
+    /**
+     * Add a contract offer to the 'accepted list'. This contract offer's policies'
+     * rules or the rules of any other stored contract offer's policies' rules must
+     * be matched on automated contract negotiation. This means, any contract offer
+     * by a provider must have the same rules as any of the stored contract offers.
+     * 
+     * @param contractOffer The contractOffer to add (Only its rules are relevant)
+     * @return OK as response.
+     */
     @POST
     @Path(CONTRACT_OFFER_PATH)
     public Response addAcceptedContractOffer(ContractOffer contractOffer) {

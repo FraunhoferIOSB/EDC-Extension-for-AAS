@@ -15,11 +15,14 @@
  */
 package de.fraunhofer.iosb.app;
 
+import static java.lang.String.format;
+
 import java.util.Objects;
 
 import org.eclipse.edc.api.auth.spi.AuthenticationRequestFilter;
 import org.eclipse.edc.api.auth.spi.AuthenticationService;
 
+import de.fraunhofer.iosb.app.client.ClientEndpoint;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import jakarta.ws.rs.container.ContainerRequestContext;
 
@@ -39,12 +42,14 @@ public class CustomAuthenticationRequestFilter extends AuthenticationRequestFilt
     @Override
     public void filter(ContainerRequestContext requestContext) {
         Objects.requireNonNull(requestContext);
-        if (!(Endpoint.SELF_DESCRIPTION_PATH.equalsIgnoreCase(requestContext.getUriInfo().getPath())
-                && config.isExposeSelfDescription())) {
-            Logger.getInstance().debug("CustomAuthenticationRequestFilter: Intercepting this request");
-            super.filter(requestContext);
-        } else {
+        var requestpath = requestContext.getUriInfo().getPath();
+        if ((Endpoint.SELF_DESCRIPTION_PATH.equalsIgnoreCase(requestpath) && config.isExposeSelfDescription())
+                || requestpath
+                        .startsWith(format("%s/%s", ClientEndpoint.AUTOMATED_PATH, ClientEndpoint.RECEIVE_DATA_PATH))) {
             Logger.getInstance().debug("CustomAuthenticationRequestFilter: Not intercepting this request");
+            return;
         }
+        Logger.getInstance().debug("CustomAuthenticationRequestFilter: Intercepting this request");
+        super.filter(requestContext);
     }
 }

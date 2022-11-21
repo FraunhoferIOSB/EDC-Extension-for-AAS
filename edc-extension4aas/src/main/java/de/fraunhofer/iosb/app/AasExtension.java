@@ -15,25 +15,37 @@
  */
 package de.fraunhofer.iosb.app;
 
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.http.client.utils.URIBuilder;
 import org.eclipse.edc.api.auth.spi.AuthenticationService;
+import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
+import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
+import org.eclipse.edc.connector.spi.catalog.CatalogService;
+import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.web.spi.WebService;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import de.fraunhofer.iosb.app.client.ClientEndpoint;
 import de.fraunhofer.iosb.app.controller.AasController;
 import de.fraunhofer.iosb.app.controller.ConfigurationController;
 import de.fraunhofer.iosb.app.controller.ResourceController;
@@ -47,25 +59,30 @@ import okhttp3.OkHttpClient;
 public class AasExtension implements ServiceExtension {
 
     @Inject
-    private WebService webService;
+    private AssetIndex assetIndex;
+    @Inject
+    private ConsumerContractNegotiationManager consumerNegotiationManager;
+    @Inject
+    private CatalogService catalogService;
     @Inject
     private ContractDefinitionStore contractStore;
     @Inject
-    private AssetIndex assetLoader;
+    private OkHttpClient okHttpClient;
     @Inject
     private PolicyDefinitionStore policyStore;
     @Inject
-    private OkHttpClient okHttpClient;
+    private TransferProcessManager transferProcessManager;
+    @Inject
+    private WebService webService;
+    @Inject
+    private ContractNegotiationObservable contractNegotiationObservable;
     @Inject
     private AuthenticationService authenticationService;
 
     private static final String SETTINGS_PREFIX = "edc.aas.";
     private final Logger logger = Logger.getInstance();
-
-    private Endpoint endpoint;
     private AasController aasController;
-
-    private final ScheduledThreadPoolExecutor syncExecutor = new ScheduledThreadPoolExecutor(1);
+    private final ScheduledExecutorService syncExecutor = new ScheduledThreadPoolExecutor(1);
 
     @Override
     public void initialize(ServiceExtensionContext context) {
@@ -73,10 +90,10 @@ public class AasExtension implements ServiceExtension {
 
         // Distribute controllers, repositories
         var selfDescriptionRepository = new ConcurrentHashMap<URL, SelfDescription>();
-        var resourceController = new ResourceController(assetLoader, contractStore, policyStore);
         aasController = new AasController(okHttpClient);
 
-        endpoint = new Endpoint(selfDescriptionRepository, aasController, resourceController);
+        var endpoint = new Endpoint(selfDescriptionRepository, aasController,
+                new ResourceController(assetIndex, contractStore, policyStore));
 
         loadConfig(context);
         var configInstance = Configuration.getInstance();
@@ -100,12 +117,43 @@ public class AasExtension implements ServiceExtension {
                 configInstance.getSyncPeriod(), TimeUnit.SECONDS);
 
         webService.registerResource(endpoint);
+        webService.registerResource(
+                new ClientEndpoint(createOwnUriFromConfigurationValues(context.getConfig()),
+                        catalogService,
+                        consumerNegotiationManager, contractNegotiationObservable,
+                        transferProcessManager));
+
         webService.registerResource(new CustomAuthenticationRequestFilter(authenticationService));
+    }
+
+    private URI createOwnUriFromConfigurationValues(Config config) {
+        URL idsAddress;
+        try {
+            idsAddress = new URL(config.getString("ids.webhook.address"));
+        } catch (MalformedURLException IdsWebhookAddressException) {
+            throw new EdcException("Configuration value ids.webhook.address is a malformed URL",
+                    IdsWebhookAddressException);
+        }
+
+        int ownPort = Integer.parseInt(config.getString("web.http.port"));
+        String ownPath = config.getString("web.http.path");
+
+        var ownUriBuilder = new URIBuilder();
+        ownUriBuilder.setScheme(idsAddress.getProtocol())
+                .setHost(idsAddress.getHost())
+                .setPort(ownPort)
+                .setPath(ownPath);
+
+        try {
+            return ownUriBuilder.build();
+        } catch (URISyntaxException ownUriBuildException) {
+            throw new EdcException("Own URI could not be built", ownUriBuildException);
+        }
     }
 
     /**
      * Get extension specific configuration from EDC config object
-
+     * 
      * @param context EDC config reference provider
      */
     private void loadConfig(ServiceExtensionContext context) {

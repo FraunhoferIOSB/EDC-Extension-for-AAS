@@ -37,6 +37,10 @@ dependencies {
     // HTTP endpoint of extension
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 
+    // Client Service dependencies:
+    implementation("${edcGroup}:catalog-api:${edcVersion}")
+    implementation("${edcGroup}:contract-core:${edcVersion}")
+
     // Tests
     testImplementation("org.mockito:mockito-core:${mockitoVersion}")
     testImplementation("${edcGroup}:junit:${edcVersion}")

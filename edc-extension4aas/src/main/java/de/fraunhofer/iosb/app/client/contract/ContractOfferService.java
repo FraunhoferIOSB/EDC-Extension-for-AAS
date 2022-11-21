@@ -96,6 +96,17 @@ public class ContractOfferService {
     }
 
     /**
+     * Adds an accepted contractOFfer to match when checking a provider
+     * contractOffer. Only the policies' rules are relevant.
+     * 
+     * @param contractOffer A contract offer whose policies' rules are acceptable
+     *                      for an automated contract negotiation
+     */
+    public void addAccepted(ContractOffer contractOffer) {
+        contractOfferStore.putOffer(contractOffer);
+    }
+
+    /**
      * Return contract offers for assetId that match any contractOffers' policy of
      * this Services' ContractOfferStore instance containing user added contract
      * offers. If more than one contractOffers are provided by the provider
@@ -149,9 +160,5 @@ public class ContractOfferService {
     private <T extends Rule> boolean ruleEquality(T first, T second) {
         return Objects.equals(first.getAction(), second.getAction())
                 && Objects.equals(first.getConstraints(), second.getConstraints());
-    }
-
-    public void addAccepted(ContractOffer contractOffer) {
-        contractOfferStore.putOffer(contractOffer);
     }
 }

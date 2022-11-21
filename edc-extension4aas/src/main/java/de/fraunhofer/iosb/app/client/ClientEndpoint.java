@@ -77,6 +77,19 @@ public class ClientEndpoint {
     private final ContractOfferService contractOfferService;
     private final DataTransferObservable observable;
 
+    /**
+     * Initialize a client endpoint.
+     * 
+     * @param ownUri                        Needed for providing this connector's
+     *                                      address in a data transfer process.
+     * @param catalogService                Fetch catalogs from a provider
+     *                                      connector.
+     * @param consumerNegotiationManager    Initiate a contract negotiation as a
+     *                                      consumer.
+     * @param contractNegotiationObservable Listen for contract negotiation changes
+     *                                      (confirmed, failed, ...).
+     * @param transferProcessManager        Initiate a data transfer.
+     */
     public ClientEndpoint(URI ownUri, CatalogService catalogService,
             ConsumerContractNegotiationManager consumerNegotiationManager,
             ContractNegotiationObservable contractNegotiationObservable,

@@ -15,20 +15,29 @@
  */
 package de.fraunhofer.iosb.app.client.contract;
 
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import de.fraunhofer.iosb.app.Logger;
+import de.fraunhofer.iosb.app.model.configuration.Configuration;
+
 /**
  * Contains user added contract offers.
  */
 public class ContractOfferStore {
     private final List<ContractOffer> offers;
+    private static final Logger LOGGER = Logger.getInstance();
 
     public ContractOfferStore() {
         this.offers = new ArrayList<>();
+        loadContractOffers(Configuration.getInstance());
     }
 
     /**
@@ -48,5 +57,19 @@ public class ContractOfferStore {
     public void putOffer(ContractOffer offer) {
         Objects.requireNonNull(offer, "ContractOffer is null");
         offers.add(offer);
+    }
+
+    private void loadContractOffers(Configuration config) {
+        if(Objects.isNull(config.getAcceptedContractOffersPath())){
+            return;
+        }
+        var acceptedContractsPath = Path.of(config.getAcceptedContractOffersPath());
+        try {
+            var acceptedContracts = new ObjectMapper().readValue(acceptedContractsPath.toFile(), ContractOffer[].class);
+            offers.addAll(List.of(acceptedContracts));
+        } catch (IOException e) {
+            LOGGER.warn("[Client] Could not load accepted ContractOffers (edc.ids.client.acceptedContractOfferPaths)",
+                    e);
+        }
     }
 }

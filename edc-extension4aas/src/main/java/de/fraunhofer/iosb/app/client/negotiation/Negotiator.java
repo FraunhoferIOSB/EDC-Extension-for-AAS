@@ -18,9 +18,7 @@ package de.fraunhofer.iosb.app.client.negotiation;
 import static java.lang.String.format;
 
 import java.net.URL;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -42,7 +40,7 @@ public class Negotiator {
     private static final String PROTOCOL_IDS_MULTIPART = "ids-multipart";
 
     private final ConsumerContractNegotiationManager consumerNegotiationManager;
-    private final Map<String, CompletableFuture<ContractNegotiation>> subscribers;
+    private final ClientContractNegotiationListener listener;
 
     /**
      * Class constructor
@@ -53,8 +51,9 @@ public class Negotiator {
     public Negotiator(ConsumerContractNegotiationManager consumerNegotiationManager,
             ContractNegotiationObservable observable) {
         this.consumerNegotiationManager = consumerNegotiationManager;
-        subscribers = new ConcurrentHashMap<>();
-        observable.registerListener(new ClientContractNegotiationListener(subscribers));
+
+        listener = new ClientContractNegotiationListener();
+        observable.registerListener(listener);
     }
 
     /**
@@ -89,12 +88,12 @@ public class Negotiator {
 
     private String waitForAgreement(String negotiationId) throws InterruptedException, ExecutionException {
         var agreementFuture = new CompletableFuture<ContractNegotiation>();
-        subscribers.put(negotiationId, agreementFuture);
+        listener.addListener(negotiationId, agreementFuture);
 
         try {
             var negotiation = agreementFuture.get(Configuration.getInstance().getWaitForAgreementTimeout(),
                     TimeUnit.SECONDS);
-            subscribers.remove(negotiationId);
+            listener.removeListener(negotiationId);
 
             return negotiation.getContractAgreement().getId();
         } catch (TimeoutException agreementTimeoutExceededException) {

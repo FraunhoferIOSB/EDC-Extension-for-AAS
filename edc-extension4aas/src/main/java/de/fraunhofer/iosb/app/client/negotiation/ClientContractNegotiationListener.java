@@ -19,6 +19,7 @@ import static java.lang.String.format;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationListener;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
@@ -43,8 +44,8 @@ public class ClientContractNegotiationListener implements ContractNegotiationLis
      * @param negotiationId Non-null valid Negotiation ID (will not be checked)
      * @param future        Uncompleted Future
      */
-    public ClientContractNegotiationListener(Map<String, CompletableFuture<ContractNegotiation>> subscribers) {
-        this.subscribers = subscribers;
+    ClientContractNegotiationListener() {
+        this.subscribers = new ConcurrentHashMap<>();
     }
 
     /**
@@ -58,7 +59,6 @@ public class ClientContractNegotiationListener implements ContractNegotiationLis
         if (subscribers.keySet().contains(negotiationId)) {
             subscribers.get(negotiationId).complete(negotiation);
         }
-
     }
 
     /**
@@ -88,7 +88,13 @@ public class ClientContractNegotiationListener implements ContractNegotiationLis
             subscribers.get(negotiationId).completeExceptionally(
                     new Throwable(format("Negotiation with ID %s failed.", negotiationId)));
         }
-
     }
 
+    void addListener(String negotiationId, CompletableFuture<ContractNegotiation> negotiationFuture) {
+        subscribers.put(negotiationId, negotiationFuture);
+    }
+
+    void removeListener(String negotiationId) {
+        subscribers.remove(negotiationId);
+    }
 }

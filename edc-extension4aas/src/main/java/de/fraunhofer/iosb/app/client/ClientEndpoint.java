@@ -272,9 +272,10 @@ public class ClientEndpoint {
         observable.register(dataFuture, agreementId);
         transferInitiator.initiateTransferProcess(providerUrl, agreementId, assetId);
         try {
-            // Fetch everytime to adapt to runtime config changes
-            var transferTimeout = Configuration.getInstance().getWaitForTransferTimeout();
-            return dataFuture.get(transferTimeout, TimeUnit.SECONDS);
+            // Fetch TransferTimeout everytime to adapt to runtime config changes
+            var data = dataFuture.get(Configuration.getInstance().getWaitForTransferTimeout(), TimeUnit.SECONDS);
+            observable.unregister(agreementId);
+            return data;
         } catch (TimeoutException transferTimeoutExceededException) {
             observable.unregister(agreementId);
             throw new EdcException(format("Waiting for an transfer failed for agreementId: %s", agreementId),

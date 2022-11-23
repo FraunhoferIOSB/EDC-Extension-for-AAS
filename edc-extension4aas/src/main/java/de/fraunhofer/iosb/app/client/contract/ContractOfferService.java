@@ -127,19 +127,18 @@ public class ContractOfferService {
                             assetId, contractOffers.size()));
         }
         ContractOffer contractOffer;
-        if (configuration.isAcceptAllProviderOffers()) { // Get first (only) contractOffer
+        if (configuration.isAcceptAllProviderOffers() || matchesOwnContractOffers(contractOffers.get(0))) {
             contractOffer = contractOffers.get(0);
         } else {
-            contractOffer = contractOffers.stream()
-                    .filter(offer -> contractOfferStore.getOffers().stream()
-                            .filter(acceptedOffer -> contractOfferRulesEquality(acceptedOffer, offer)).count() > 0)
-                    .count() > 0 ? contractOffers.get(0) : null;
-        }
-        if (Objects.isNull(contractOffer)) {
             throw new EdcException(
                     "Could not find any contract offer matching this connector's accepted contract offers");
         }
         return contractOffer;
+    }
+
+    private boolean matchesOwnContractOffers(ContractOffer contractOffer) {
+        return contractOfferStore.getOffers().stream()
+                .filter(acceptedOffer -> contractOfferRulesEquality(acceptedOffer, contractOffer)).count() > 0;
     }
 
     private boolean contractOfferRulesEquality(ContractOffer first, ContractOffer second) {

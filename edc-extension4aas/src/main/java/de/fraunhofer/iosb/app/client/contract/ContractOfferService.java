@@ -52,7 +52,6 @@ public class ContractOfferService {
     public ContractOfferService(CatalogService catalogService, ContractOfferStore contractOfferStore) {
         this.catalogService = catalogService;
         this.contractOfferStore = contractOfferStore;
-
     }
 
     /**

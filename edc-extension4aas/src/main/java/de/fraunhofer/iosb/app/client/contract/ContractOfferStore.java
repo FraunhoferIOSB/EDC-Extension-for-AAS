@@ -43,7 +43,7 @@ public class ContractOfferStore {
     /**
      * Get all stored offers.
      * 
-     * @return Stored offers (not null)
+     * @return Stored offers (non null but possibly empty)
      */
     public List<ContractOffer> getOffers() {
         return offers;

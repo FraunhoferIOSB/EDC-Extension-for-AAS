@@ -17,9 +17,11 @@ package de.fraunhofer.iosb.app.client.contract;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 
@@ -32,11 +34,11 @@ import de.fraunhofer.iosb.app.model.configuration.Configuration;
  * Contains user added contract offers.
  */
 public class ContractOfferStore {
-    private final List<ContractOffer> offers;
+    private final Map<String, ContractOffer> offers;
     private static final Logger LOGGER = Logger.getInstance();
 
     public ContractOfferStore() {
-        this.offers = new ArrayList<>();
+        this.offers = new ConcurrentHashMap<>();
         loadContractOffers(Configuration.getInstance());
     }
 
@@ -46,17 +48,7 @@ public class ContractOfferStore {
      * @return Stored offers (non null but possibly empty)
      */
     public List<ContractOffer> getOffers() {
-        return offers;
-    }
-
-    /**
-     * Add an offer to the store.
-     * 
-     * @param offer A contract offer to be stored (non null)
-     */
-    public void putOffer(ContractOffer offer) {
-        Objects.requireNonNull(offer, "ContractOffer is null");
-        offers.add(offer);
+        return offers.values().stream().collect(Collectors.toList());
     }
 
     /**
@@ -64,19 +56,44 @@ public class ContractOfferStore {
      * 
      * @param offer Contract offers to be stored (non null)
      */
-    public void putOffer(ContractOffer... newOffers) {
+    public void putOffers(ContractOffer... newOffers) {
         Objects.requireNonNull(newOffers, "ContractOffer is null");
-        offers.addAll(List.of(newOffers));
+        for (ContractOffer newOffer : newOffers) {
+            offers.put(newOffer.getId(), newOffer);
+        }
+    }
+
+    /**
+     * Remove an offer
+     * 
+     * @param contractOfferId Offer ID (non null)
+     */
+    public void removeOffer(String contractOfferId) {
+        Objects.requireNonNull(contractOfferId, "offerId is null");
+        offers.remove(contractOfferId);
+    }
+
+    /**
+     * Update an offer
+     * 
+     * @param contractOfferId Offer ID (non null)
+     * @param contractOffer   The updated contract offer
+     */
+    public void updateOffer(String contractOfferId, ContractOffer contractOffer) {
+        Objects.requireNonNull(contractOfferId, "contractOfferId is null");
+        Objects.requireNonNull(contractOffer, "contractOffer is null");
+        offers.put(contractOfferId, contractOffer);
     }
 
     private void loadContractOffers(Configuration config) {
-        if(Objects.isNull(config.getAcceptedContractOffersPath())){
+        if (Objects.isNull(config.getAcceptedContractOffersPath())) {
             return;
         }
         var acceptedContractsPath = Path.of(config.getAcceptedContractOffersPath());
         try {
-            var acceptedContracts = new ObjectMapper().readValue(acceptedContractsPath.toFile(), ContractOffer[].class);
-            offers.addAll(List.of(acceptedContracts));
+            var acceptedContractOffers = new ObjectMapper().readValue(acceptedContractsPath.toFile(),
+                    ContractOffer[].class);
+            putOffers(acceptedContractOffers);
         } catch (IOException e) {
             LOGGER.warn("[Client] Could not load accepted ContractOffers (edc.ids.client.acceptedContractOfferPaths)",
                     e);

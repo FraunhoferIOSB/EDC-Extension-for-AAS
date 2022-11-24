@@ -102,7 +102,25 @@ public class ContractOfferService {
      *                      for an automated contract negotiation
      */
     public void addAccepted(ContractOffer[] contractOffers) {
-        contractOfferStore.putOffer(contractOffers);
+        contractOfferStore.putOffers(contractOffers);
+    }
+
+    /**
+     * Removes an accepted contractOffer.
+     * 
+     * @param contractOfferID Contract offer id of contract offer to be removed
+     */
+    public void removeAccepted(String contractOfferId) {
+        contractOfferStore.removeOffer(contractOfferId);
+    }
+
+    /**
+     * Removes an accepted contractOffer.
+     * 
+     * @param contractOfferID Contract offer id of contract offer to be removed
+     */
+    public void updateAccepted(String contractOfferId, ContractOffer contractOffer) {
+        contractOfferStore.updateOffer(contractOfferId, contractOffer);
     }
 
     /**

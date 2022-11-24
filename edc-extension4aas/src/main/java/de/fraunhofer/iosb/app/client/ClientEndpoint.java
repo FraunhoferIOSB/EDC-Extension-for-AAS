@@ -35,8 +35,10 @@ import de.fraunhofer.iosb.app.client.dataTransfer.DataTransferObservable;
 import de.fraunhofer.iosb.app.client.dataTransfer.TransferInitiator;
 import de.fraunhofer.iosb.app.client.negotiation.Negotiator;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
@@ -235,9 +237,39 @@ public class ClientEndpoint {
     @POST
     @Path(CONTRACT_OFFERS_PATH)
     public Response addAcceptedContractOffers(ContractOffer[] contractOffers) {
-        LOGGER.log("Received new accepted contract offers");
+        LOGGER.log(format("Adding %s accepted contract offers", contractOffers.length));
         Objects.requireNonNull(contractOffers, "ContractOffer is null");
         contractOfferService.addAccepted(contractOffers);
+        return Response.ok().build();
+    }
+
+    /**
+     * Removes a contract offer from the 'accepted list'.
+     * 
+     * @param contractOffer The id of the contractOffer to remove
+     * @return OK as response.
+     */
+    @DELETE
+    @Path(CONTRACT_OFFERS_PATH)
+    public Response deleteAcceptedContractOffer(@QueryParam("contractOfferId") String contractOfferId) {
+        LOGGER.log(format("Removing contract offer with id %s", contractOfferId));
+        Objects.requireNonNull(contractOfferId, "ContractOffer is null");
+        contractOfferService.removeAccepted(contractOfferId);
+        return Response.ok().build();
+    }
+
+    /**
+     * Updates a contract offer of the 'accepted list'.
+     * 
+     * @param contractOffer The contractOffer to update
+     * @return OK as response.
+     */
+    @PUT
+    @Path(CONTRACT_OFFERS_PATH)
+    public Response updateAcceptedContractOffer(@QueryParam("contractOfferId") ContractOffer contractOffer) {
+        LOGGER.log(format("Updating contract offer with id %s", contractOffer.getId()));
+        Objects.requireNonNull(contractOffer, "contractOffer is null");
+        contractOfferService.updateAccepted(contractOffer.getId(), contractOffer);
         return Response.ok().build();
     }
 }

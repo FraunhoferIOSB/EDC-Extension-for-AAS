@@ -45,6 +45,12 @@ Provide digital twin (AAS) data to business partners in Data Spaces like Catena-
 | DELETE | aas (a) | Query Parameter requestUrl: URL of AAS service to be updated (r)| Forward DELETE request to provided host in requestUrl. If requestUrl is an AAS service that is registered at this EDC, synchronize assets and self description as well.
 | PUT | aas (a) | Query Parameter "requestUrl": URL of AAS service to be updated (r), request body: AAS element (r) | Forward PUT request to provided host in requestUrl.
 | GET | selfDescription | - | Return self description of extension.
+|-|-|-|-
+| POST | negotiate (a) | Query Parameter "providerUrl": URL (r), Query Parameter "assetId": String (r) | Perform an automated contract negotiation with a provider and get the data stored in the specified asset.
+| GET | contractOffers (a) | Query Parameter "providerUrl": URL (r), Query Parameter "assetId": String (r) | Get all offered ContractOffers from the specified provider that contain the specified asset as data.
+| POST | negotiateContract (a) | Query Parameter "providerUrl": URL (r), request body: contractOffer (r) | Using a contractOffer and a providerUrl, negotiate a contract. Returns an agreementId on success.
+| GET | transfer (a) | Query Parameter "providerUrl": URL (r), Query Parameter "agreementId": String (r), Query Parameter "assetId": String (r) | Submits a data transfer request to the providerUrl. On success, returns the data behind the specified asset.
+| POST | contractOffers (a) | request body: List of ContractOffers (JSON) (r) | Adds the given ContractOffers to the accepted ContractOffers list: On fully automated negotiation, the provider's ContractOffer is matched against the consumer's accepted ContractOffer list. If any ContractOffer's policies fit the provider's, the negotiation continues.
 
 ### Dependencies
 

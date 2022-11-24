@@ -254,7 +254,7 @@ public class ClientEndpoint {
     @POST
     @Path(CONTRACT_OFFERS_PATH)
     public Response addAcceptedContractOffers(ContractOffer[] contractOffers) {
-        LOGGER.log("Received new accepted contract offer");
+        LOGGER.log("Received new accepted contract offers");
         Objects.requireNonNull(contractOffers, "ContractOffer is null");
         contractOfferService.addAccepted(contractOffers);
         return Response.ok().build();

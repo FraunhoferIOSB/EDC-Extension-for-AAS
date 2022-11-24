@@ -59,6 +59,16 @@ public class ContractOfferStore {
         offers.add(offer);
     }
 
+    /**
+     * Add offers to the store.
+     * 
+     * @param offer Contract offers to be stored (non null)
+     */
+    public void putOffer(ContractOffer... newOffers) {
+        Objects.requireNonNull(newOffers, "ContractOffer is null");
+        offers.addAll(List.of(newOffers));
+    }
+
     private void loadContractOffers(Configuration config) {
         if(Objects.isNull(config.getAcceptedContractOffersPath())){
             return;

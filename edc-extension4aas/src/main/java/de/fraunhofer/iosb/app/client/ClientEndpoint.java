@@ -64,7 +64,6 @@ public class ClientEndpoint {
      * Path for providers to send data to.
      */
     public static final String RECEIVE_DATA_PATH = "receiveData";
-    private static final String CONTRACT_OFFER_PATH = "contractOffer";
     private static final String CONTRACT_OFFERS_PATH = "contractOffers";
     private static final String NEGOTIATE_CONTRACT_PATH = "negotiateContract";
     private static final String NEGOTIATE_PATH = "negotiate";
@@ -202,7 +201,7 @@ public class ClientEndpoint {
     }
 
     /**
-     * Initiate a data transfer.
+     * Submits a data transfer request to the providerUrl.
      * 
      * @param providerUrl The data provider's url
      * @param agreementId The basis of the data transfer.
@@ -257,11 +256,11 @@ public class ClientEndpoint {
      * @return OK as response.
      */
     @POST
-    @Path(CONTRACT_OFFER_PATH)
-    public Response addAcceptedContractOffer(ContractOffer contractOffer) {
+    @Path(CONTRACT_OFFERS_PATH)
+    public Response addAcceptedContractOffers(ContractOffer[] contractOffers) {
         LOGGER.log("Received new accepted contract offer");
-        Objects.requireNonNull(contractOffer, "ContractOffer is null");
-        contractOfferService.addAccepted(contractOffer);
+        Objects.requireNonNull(contractOffers, "ContractOffer is null");
+        contractOfferService.addAccepted(contractOffers);
         return Response.ok().build();
     }
 

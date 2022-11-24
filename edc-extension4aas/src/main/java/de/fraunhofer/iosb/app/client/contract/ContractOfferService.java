@@ -101,8 +101,8 @@ public class ContractOfferService {
      * @param contractOffer A contract offer whose policies' rules are acceptable
      *                      for an automated contract negotiation
      */
-    public void addAccepted(ContractOffer contractOffer) {
-        contractOfferStore.putOffer(contractOffer);
+    public void addAccepted(ContractOffer[] contractOffers) {
+        contractOfferStore.putOffer(contractOffers);
     }
 
     /**

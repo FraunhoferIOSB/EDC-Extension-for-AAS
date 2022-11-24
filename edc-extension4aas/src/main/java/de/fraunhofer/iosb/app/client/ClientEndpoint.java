@@ -68,7 +68,6 @@ public class ClientEndpoint {
     private final Negotiator negotiator;
     private final TransferInitiator transferInitiator;
     private final ContractOfferService contractOfferService;
-    private final DataTransferObservable observable;
 
     /**
      * Initialize a client endpoint.
@@ -86,11 +85,11 @@ public class ClientEndpoint {
     public ClientEndpoint(URI ownUri, CatalogService catalogService,
             ConsumerContractNegotiationManager consumerNegotiationManager,
             ContractNegotiationObservable contractNegotiationObservable,
-            TransferProcessManager transferProcessManager) {
+            TransferProcessManager transferProcessManager,
+            DataTransferObservable observable) {
         this.negotiator = new Negotiator(consumerNegotiationManager, contractNegotiationObservable);
         this.contractOfferService = new ContractOfferService(catalogService);
-        
-        observable = new DataTransferObservable();
+
         this.transferInitiator = new TransferInitiator(ownUri, transferProcessManager, observable);
     }
 
@@ -221,25 +220,6 @@ public class ClientEndpoint {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(negotiationException.getMessage())
                     .build();
         }
-    }
-
-    /**
-     * Only for automated access. Send data of an agreement to this endpoint.
-     * 
-     * 
-     * @param agreementId The agreement ID corresponding to the data in the request
-     *                    body.
-     * @param requestBody The asset data of a transfer request.
-     * @return OK as response.
-     */
-    @POST
-    @Path(RECEIVE_DATA_PATH)
-    public Response putData(@QueryParam("agreementId") String agreementId, String requestBody) {
-        LOGGER.log(format("Receiving data for agreement %s...", agreementId));
-        Objects.requireNonNull(agreementId);
-        Objects.requireNonNull(requestBody);
-        observable.update(agreementId, requestBody);
-        return Response.ok().build();
     }
 
     /**

@@ -46,6 +46,8 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import de.fraunhofer.iosb.app.client.ClientEndpoint;
+import de.fraunhofer.iosb.app.client.dataTransfer.DataTransferEndpoint;
+import de.fraunhofer.iosb.app.client.dataTransfer.DataTransferObservable;
 import de.fraunhofer.iosb.app.controller.AasController;
 import de.fraunhofer.iosb.app.controller.ConfigurationController;
 import de.fraunhofer.iosb.app.controller.ResourceController;
@@ -120,9 +122,13 @@ public class AasExtension implements ServiceExtension {
 
         try {
             var ownUri = createOwnUriFromConfigurationValues(context.getConfig());
+            var observable = new DataTransferObservable();
+            var dataTransferEndpoint = new DataTransferEndpoint(observable);
+
             webService.registerResource(
                     new ClientEndpoint(ownUri, catalogService, consumerNegotiationManager,
-                            contractNegotiationObservable, transferProcessManager));
+                            contractNegotiationObservable, transferProcessManager, observable));
+            webService.registerResource(dataTransferEndpoint);
         } catch (EdcException buildUriException) {
             logger.error("Own URI for client could not be built. Reason:", buildUriException);
             logger.warn("Client Endpoint will not be exposed and its functionality will not be available");

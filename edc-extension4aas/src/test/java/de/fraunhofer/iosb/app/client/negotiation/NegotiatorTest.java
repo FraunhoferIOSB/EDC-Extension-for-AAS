@@ -62,6 +62,6 @@ public class NegotiatorTest {
         Thread.sleep(1000);
         observable.invokeForEach(l -> l.confirmed(contractNegotiation));
 
-        assertEquals("agreementId", future.get());
+        assertEquals(agreement, future.get());
     }
 }

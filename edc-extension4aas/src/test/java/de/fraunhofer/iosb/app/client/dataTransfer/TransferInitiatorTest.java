@@ -30,7 +30,8 @@ public class TransferInitiatorTest {
     @SuppressWarnings("unchecked")
     void initializeContractOfferService() throws IOException, URISyntaxException {
         ownUri = new URI("http://localhost:4321/api/ids");
-        transferInitiator = new TransferInitiator(ownUri, mockTransferProcessManager);
+        transferInitiator = new TransferInitiator(ownUri, mockTransferProcessManager,
+                mock(DataTransferObservable.class));
         mockStatusResult = mock(StatusResult.class);
         when(mockTransferProcessManager.initiateConsumerRequest(any())).thenReturn(mockStatusResult);
     }

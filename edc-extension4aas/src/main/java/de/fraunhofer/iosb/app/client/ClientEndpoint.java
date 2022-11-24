@@ -24,6 +24,7 @@ import java.util.concurrent.ExecutionException;
 
 import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationObservable;
+import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.spi.catalog.CatalogService;
 import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
@@ -122,9 +123,9 @@ public class ClientEndpoint {
                     .build();
         }
 
-        String agreementId;
+        ContractAgreement agreement;
         try {
-            agreementId = negotiator.negotiate(providerUrl, contractOffer);
+            agreement = negotiator.negotiate(providerUrl, contractOffer);
         } catch (InterruptedException | ExecutionException negotiationException) {
             LOGGER.error(format("Negotiation failed for provider %s and contractOffer %s", providerUrl,
                     contractOffer.getId()), negotiationException);
@@ -133,12 +134,12 @@ public class ClientEndpoint {
         }
 
         try {
-            var dataFuture = transferInitiator.initiateTransferProcess(providerUrl, agreementId, assetId);
+            var dataFuture = transferInitiator.initiateTransferProcess(providerUrl, agreement);
             var data = transferInitiator.waitForData(dataFuture, assetId);
             return Response.ok(data).build();
         } catch (InterruptedException | ExecutionException negotiationException) {
             LOGGER.error(format("Getting data failed for provider %s and agreementId %s", providerUrl,
-                    agreementId), negotiationException);
+                    agreement.getId()), negotiationException);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(negotiationException.getMessage())
                     .build();
         }

@@ -25,6 +25,7 @@ import java.util.concurrent.TimeoutException;
 
 import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationObservable;
+import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferRequest;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
@@ -61,7 +62,7 @@ public class Negotiator {
      * 
      * @param providerUrl   The provider of the data.
      * @param contractOffer The object of negotiation.
-     * @return agreementID of the completed negotiation.
+     * @return contractAgreement of the completed negotiation.
      * @throws ExecutionException   Attempted to retrieve the agreementId but the
      *                              task aborted by throwing an exception. This
      *                              exception can be inspected using the getCause()
@@ -69,7 +70,7 @@ public class Negotiator {
      * @throws InterruptedException Thread for agreementId was waiting, sleeping, or
      *                              otherwise occupied, and was interrupted.
      */
-    public String negotiate(URL providerUrl, ContractOffer contractOffer)
+    public ContractAgreement negotiate(URL providerUrl, ContractOffer contractOffer)
             throws InterruptedException, ExecutionException {
         var contractOfferRequest = ContractOfferRequest.Builder.newInstance()
                 .connectorAddress(providerUrl.toString())
@@ -86,7 +87,7 @@ public class Negotiator {
         }
     }
 
-    private String waitForAgreement(String negotiationId) throws InterruptedException, ExecutionException {
+    private ContractAgreement waitForAgreement(String negotiationId) throws InterruptedException, ExecutionException {
         var agreementFuture = new CompletableFuture<ContractNegotiation>();
         listener.addListener(negotiationId, agreementFuture);
 
@@ -95,7 +96,7 @@ public class Negotiator {
                     TimeUnit.SECONDS);
             listener.removeListener(negotiationId);
 
-            return negotiation.getContractAgreement().getId();
+            return negotiation.getContractAgreement();
         } catch (TimeoutException agreementTimeoutExceededException) {
             throw new EdcException(format("Waiting for an agreement failed for negotiationId: %s", negotiationId),
                     agreementTimeoutExceededException);

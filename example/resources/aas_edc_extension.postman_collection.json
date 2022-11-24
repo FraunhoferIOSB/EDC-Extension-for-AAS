@@ -21,7 +21,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n            \"id\": \"DEFAULT_CONTRACT2:76f31572-47cb-4a89-a5d0-4135f7f272fa\",\r\n            \"policy\": {\r\n                \"permissions\": [\r\n                    {\r\n                        \"edctype\": \"dataspaceconnector:permission\",\r\n                        \"uid\": null,\r\n                        \"target\": \"-1379397334\",\r\n                        \"action\": {\r\n                            \"type\": \"USE\",\r\n                            \"includedIn\": null,\r\n                            \"constraint\": null\r\n                        },\r\n                        \"assignee\": null,\r\n                        \"assigner\": null,\r\n                        \"constraints\": [],\r\n                        \"duties\": []\r\n                    }\r\n                ],\r\n                \"prohibitions\": [],\r\n                \"obligations\": [],\r\n                \"extensibleProperties\": {},\r\n                \"inheritsFrom\": null,\r\n                \"assigner\": null,\r\n                \"assignee\": null,\r\n                \"target\": \"-1379397334\",\r\n                \"@type\": {\r\n                    \"@policytype\": \"set\"\r\n                }\r\n            },\r\n            \"asset\": {\r\n                \"id\": \"-1379397334\",\r\n                \"createdAt\": 1669040327365,\r\n                \"properties\": {\r\n                    \"asset:prop:byteSize\": null,\r\n                    \"asset:prop:id\": \"-1379397334\",\r\n                    \"asset:prop:fileName\": null\r\n                }\r\n            },\r\n            \"provider\": \"urn:connector:provider\",\r\n            \"consumer\": \"urn:connector:consumer\",\r\n            \"offerStart\": null,\r\n            \"offerEnd\": null,\r\n            \"contractStart\": null,\r\n            \"contractEnd\": null\r\n        }",
+							"raw": "[\r\n    {\r\n        \"id\": \"DEFAULT_CONTRACT2:76f31572-47cb-4a89-a5d0-4135f7f272fa\",\r\n        \"policy\": {\r\n            \"permissions\": [\r\n                {\r\n                    \"edctype\": \"dataspaceconnector:permission\",\r\n                    \"uid\": null,\r\n                    \"target\": \"-1379397334\",\r\n                    \"action\": {\r\n                        \"type\": \"USE\",\r\n                        \"includedIn\": null,\r\n                        \"constraint\": null\r\n                    },\r\n                    \"assignee\": null,\r\n                    \"assigner\": null,\r\n                    \"constraints\": [],\r\n                    \"duties\": []\r\n                }\r\n            ],\r\n            \"prohibitions\": [],\r\n            \"obligations\": [],\r\n            \"extensibleProperties\": {},\r\n            \"inheritsFrom\": null,\r\n            \"assigner\": null,\r\n            \"assignee\": null,\r\n            \"target\": \"-1379397334\",\r\n            \"@type\": {\r\n                \"@policytype\": \"set\"\r\n            }\r\n        },\r\n        \"asset\": {\r\n            \"id\": \"-1379397334\",\r\n            \"createdAt\": 1669040327365,\r\n            \"properties\": {\r\n                \"asset:prop:byteSize\": null,\r\n                \"asset:prop:id\": \"-1379397334\",\r\n                \"asset:prop:fileName\": null\r\n            }\r\n        },\r\n        \"provider\": \"urn:connector:provider\",\r\n        \"consumer\": \"urn:connector:consumer\",\r\n        \"offerStart\": null,\r\n        \"offerEnd\": null,\r\n        \"contractStart\": null,\r\n        \"contractEnd\": null\r\n    }\r\n]",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -29,14 +29,14 @@
 							}
 						},
 						"url": {
-							"raw": "{{consumer}}/api/automated/contractOffer",
+							"raw": "{{consumer}}/api/automated/contractOffers",
 							"host": [
 								"{{consumer}}"
 							],
 							"path": [
 								"api",
 								"automated",
-								"contractOffer"
+								"contractOffers"
 							]
 						}
 					},
@@ -699,9 +699,9 @@
 							}
 						],
 						"url": {
-							"raw": "{{consumer}}/api/v1/data/catalog?providerUrl={{provider-ids}}",
+							"raw": "{{provider-data-api}}/catalog?providerUrl={{provider-ids}}",
 							"host": [
-								"{{consumer}}"
+								"{{provider-data-api}}"
 							],
 							"path": [
 								"catalog"

@@ -20,25 +20,19 @@ import static java.lang.String.format;
 import java.net.URI;
 import java.net.URL;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.spi.catalog.CatalogService;
 import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
-import org.eclipse.edc.spi.EdcException;
 
 import de.fraunhofer.iosb.app.Logger;
 import de.fraunhofer.iosb.app.client.contract.ContractOfferService;
-import de.fraunhofer.iosb.app.client.contract.ContractOfferStore;
 import de.fraunhofer.iosb.app.client.dataTransfer.DataTransferObservable;
 import de.fraunhofer.iosb.app.client.dataTransfer.TransferInitiator;
 import de.fraunhofer.iosb.app.client.negotiation.Negotiator;
-import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
@@ -94,10 +88,10 @@ public class ClientEndpoint {
             ContractNegotiationObservable contractNegotiationObservable,
             TransferProcessManager transferProcessManager) {
         this.negotiator = new Negotiator(consumerNegotiationManager, contractNegotiationObservable);
-        this.contractOfferService = new ContractOfferService(catalogService, new ContractOfferStore());
-        this.transferInitiator = new TransferInitiator(ownUri, transferProcessManager);
-
+        this.contractOfferService = new ContractOfferService(catalogService);
+        
         observable = new DataTransferObservable();
+        this.transferInitiator = new TransferInitiator(ownUri, transferProcessManager, observable);
     }
 
     /**
@@ -140,7 +134,8 @@ public class ClientEndpoint {
         }
 
         try {
-            var data = waitForData(providerUrl, agreementId, assetId);
+            var dataFuture = transferInitiator.initiateTransferProcess(providerUrl, agreementId, assetId);
+            var data = transferInitiator.waitForData(dataFuture, assetId);
             return Response.ok(data).build();
         } catch (InterruptedException | ExecutionException negotiationException) {
             LOGGER.error(format("Getting data failed for provider %s and agreementId %s", providerUrl,
@@ -217,7 +212,8 @@ public class ClientEndpoint {
         Objects.requireNonNull(agreementId, "AgreementId must not be null");
         Objects.requireNonNull(assetId, "AssetId must not be null");
         try {
-            var data = waitForData(providerUrl, agreementId, assetId);
+            var dataFuture = transferInitiator.initiateTransferProcess(providerUrl, agreementId, assetId);
+            var data = transferInitiator.waitForData(dataFuture, assetId);
             return Response.ok(data).build();
         } catch (InterruptedException | ExecutionException negotiationException) {
             LOGGER.error(format("Getting data failed for provider %s and agreementId %s", providerUrl,
@@ -262,23 +258,5 @@ public class ClientEndpoint {
         Objects.requireNonNull(contractOffers, "ContractOffer is null");
         contractOfferService.addAccepted(contractOffers);
         return Response.ok().build();
-    }
-
-    private String waitForData(URL providerUrl, String agreementId, String assetId)
-            throws InterruptedException, ExecutionException {
-        // Prepare for incoming data
-        var dataFuture = new CompletableFuture<String>();
-        observable.register(dataFuture, agreementId);
-        transferInitiator.initiateTransferProcess(providerUrl, agreementId, assetId);
-        try {
-            // Fetch TransferTimeout everytime to adapt to runtime config changes
-            var data = dataFuture.get(Configuration.getInstance().getWaitForTransferTimeout(), TimeUnit.SECONDS);
-            observable.unregister(agreementId);
-            return data;
-        } catch (TimeoutException transferTimeoutExceededException) {
-            observable.unregister(agreementId);
-            throw new EdcException(format("Waiting for an transfer failed for agreementId: %s", agreementId),
-                    transferTimeoutExceededException);
-        }
     }
 }

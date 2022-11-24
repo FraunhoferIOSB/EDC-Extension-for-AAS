@@ -38,8 +38,7 @@ public class ClientContractNegotiationListener implements ContractNegotiationLis
     /**
      * Make this listener listen to contract negotiation events containing the given
      * negotiationId in the Map, completing the given future on the predefined
-     * events
-     * "Confirmed", "Declined", "Failed".
+     * events "Confirmed", "Declined", "Failed".
      * 
      * @param negotiationId Non-null valid Negotiation ID (will not be checked)
      * @param future        Uncompleted Future

@@ -20,6 +20,10 @@ import static java.lang.String.format;
 import java.net.URI;
 import java.net.URL;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.apache.http.client.utils.URIBuilder;
 import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
@@ -29,6 +33,7 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.types.domain.HttpDataAddress;
 
 import de.fraunhofer.iosb.app.client.ClientEndpoint;
+import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import jakarta.ws.rs.core.MediaType;
 
 /**
@@ -38,6 +43,7 @@ public class TransferInitiator {
 
     private static final String PROTOCOL_IDS_MULTIPART = "ids-multipart";
 
+    private final DataTransferObservable observable;
     private final TransferProcessManager transferProcessManager;
     private final URI ownUri;
 
@@ -49,22 +55,27 @@ public class TransferInitiator {
      *                               consumer.
      */
     public TransferInitiator(URI ownUri,
-            TransferProcessManager transferProcessManager) {
+            TransferProcessManager transferProcessManager, DataTransferObservable observable) {
         this.ownUri = ownUri
                 .resolve(format("./%s/%s/%s", ownUri.getPath(), ClientEndpoint.AUTOMATED_PATH,
                         ClientEndpoint.RECEIVE_DATA_PATH));
         this.transferProcessManager = transferProcessManager;
+        this.observable = observable;
     }
 
     /**
      * Initiates the transfer process defined by the arguments. The data of the
      * transfer will be sent to {@link ClientEndpoint#RECEIVE_DATA_PATH}.
      * 
-     * @param providerUrl Non-null URL of provider service that should send the data.
+     * @param providerUrl Non-null URL of provider service that should send the
+     *                    data.
      * @param agreementId Non-null agreementId of the negotiation process.
      * @param assetId     Non-null asset whose data is to be transferred.
      */
-    public void initiateTransferProcess(URL providerUrl, String agreementId, String assetId) {
+    public CompletableFuture<String> initiateTransferProcess(URL providerUrl, String agreementId, String assetId) {
+        // Prepare for incoming data
+        var dataFuture = new CompletableFuture<String>();
+        observable.register(dataFuture, agreementId);
 
         var dataRequest = DataRequest.Builder.newInstance()
                 .id(UUID.randomUUID().toString()) // this is not relevant, thus can be random
@@ -86,6 +97,20 @@ public class TransferInitiator {
         if (transferProcessStatus.failed()) {
             throw new EdcException(transferProcessStatus.getFailureDetail());
         }
+        return dataFuture;
     }
 
+    public String waitForData(CompletableFuture<String> dataFuture, String agreementId)
+            throws InterruptedException, ExecutionException {
+        try {
+            // Fetch TransferTimeout everytime to adapt to runtime config changes
+            var data = dataFuture.get(Configuration.getInstance().getWaitForTransferTimeout(), TimeUnit.SECONDS);
+            observable.unregister(agreementId);
+            return data;
+        } catch (TimeoutException transferTimeoutExceededException) {
+            observable.unregister(agreementId);
+            throw new EdcException(format("Waiting for an transfer failed for agreementId: %s", agreementId),
+                    transferTimeoutExceededException);
+        }
+    }
 }

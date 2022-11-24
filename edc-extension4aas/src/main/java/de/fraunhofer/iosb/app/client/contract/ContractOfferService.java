@@ -49,9 +49,9 @@ public class ContractOfferService {
      * 
      * @param catalogService Fetching the catalog of a provider.
      */
-    public ContractOfferService(CatalogService catalogService, ContractOfferStore contractOfferStore) {
+    public ContractOfferService(CatalogService catalogService) {
         this.catalogService = catalogService;
-        this.contractOfferStore = contractOfferStore;
+        this.contractOfferStore = new ContractOfferStore();
     }
 
     /**

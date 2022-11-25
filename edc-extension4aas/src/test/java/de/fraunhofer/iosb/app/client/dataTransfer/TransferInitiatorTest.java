@@ -19,6 +19,8 @@ import org.eclipse.edc.spi.response.StatusResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import de.fraunhofer.iosb.app.authentication.CustomAuthenticationRequestFilter;
+
 public class TransferInitiatorTest {
 
     private URI ownUri;
@@ -31,7 +33,7 @@ public class TransferInitiatorTest {
     void initializeContractOfferService() throws IOException, URISyntaxException {
         ownUri = new URI("http://localhost:4321/api/ids");
         transferInitiator = new TransferInitiator(ownUri, mockTransferProcessManager,
-                mock(DataTransferObservable.class));
+                mock(DataTransferObservable.class), mock(CustomAuthenticationRequestFilter.class));
         mockStatusResult = mock(StatusResult.class);
         when(mockTransferProcessManager.initiateConsumerRequest(any())).thenReturn(mockStatusResult);
     }

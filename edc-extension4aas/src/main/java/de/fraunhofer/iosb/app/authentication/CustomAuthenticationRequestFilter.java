@@ -76,7 +76,7 @@ public class CustomAuthenticationRequestFilter extends AuthenticationRequestFilt
 
         if (endpoints.length != 0) {
             for (String endpoint : endpoints) {
-                if (endpoint.equalsIgnoreCase(requestPath)) {
+                if (Objects.nonNull(endpoint) && endpoint.equalsIgnoreCase(requestPath)) {
                     LOGGER.debug(
                             "CustomAuthenticationRequestFilter: Not intercepting this request to an open endpoint");
                     return;
@@ -87,7 +87,7 @@ public class CustomAuthenticationRequestFilter extends AuthenticationRequestFilt
         for (String key : tempKeys.keySet()) {
             if (requestContext.getHeaders().containsKey(key)
                     && requestContext.getHeaderString(key).equals(tempKeys.get(key))
-                    && requestPath.equals(
+                    && requestPath.startsWith(
                             format("%s/%s", ClientEndpoint.AUTOMATED_PATH, DataTransferEndpoint.RECEIVE_DATA_PATH))) {
                 LOGGER.debug(
                         format("CustomAuthenticationRequestFilter: Data Transfer request with custom api key %s", key));

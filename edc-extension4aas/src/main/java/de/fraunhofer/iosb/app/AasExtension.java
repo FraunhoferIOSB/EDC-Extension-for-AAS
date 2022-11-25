@@ -45,6 +45,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import de.fraunhofer.iosb.app.authentication.CustomAuthenticationRequestFilter;
 import de.fraunhofer.iosb.app.client.ClientEndpoint;
 import de.fraunhofer.iosb.app.client.dataTransfer.DataTransferEndpoint;
 import de.fraunhofer.iosb.app.client.dataTransfer.DataTransferObservable;
@@ -82,9 +83,9 @@ public class AasExtension implements ServiceExtension {
     private AuthenticationService authenticationService;
 
     private static final String SETTINGS_PREFIX = "edc.aas.";
-    private final Logger logger = Logger.getInstance();
-    private AasController aasController;
+    private static final Logger logger = Logger.getInstance();
     private final ScheduledExecutorService syncExecutor = new ScheduledThreadPoolExecutor(1);
+    private AasController aasController;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
@@ -119,20 +120,30 @@ public class AasExtension implements ServiceExtension {
                 configInstance.getSyncPeriod(), TimeUnit.SECONDS);
 
         webService.registerResource(endpoint);
+        webService.registerResource(new CustomAuthenticationRequestFilter(authenticationService,
+                configInstance.isExposeSelfDescription() ? Endpoint.SELF_DESCRIPTION_PATH : null));
 
+        initializeClient(context);
+    }
+
+    private void initializeClient(ServiceExtensionContext context) {
+        URI ownUri;
         try {
-            var ownUri = createOwnUriFromConfigurationValues(context.getConfig());
-            var observable = new DataTransferObservable();
-            var dataTransferEndpoint = new DataTransferEndpoint(observable);
-
-            webService.registerResource(
-                    new ClientEndpoint(ownUri, catalogService, consumerNegotiationManager,
-                            contractNegotiationObservable, transferProcessManager, observable));
-            webService.registerResource(dataTransferEndpoint);
+            ownUri = createOwnUriFromConfigurationValues(context.getConfig());
         } catch (EdcException buildUriException) {
             logger.error("Own URI for client could not be built. Reason:", buildUriException);
             logger.warn("Client Endpoint will not be exposed and its functionality will not be available");
+            return;
         }
+        var observable = new DataTransferObservable();
+        var dataEndpointAuthenticationRequestFilter = new CustomAuthenticationRequestFilter(authenticationService);
+        webService.registerResource(dataEndpointAuthenticationRequestFilter);
+        var dataTransferEndpoint = new DataTransferEndpoint(observable);
+        webService.registerResource(
+                new ClientEndpoint(ownUri, catalogService, consumerNegotiationManager,
+                        contractNegotiationObservable, transferProcessManager, observable,
+                        dataEndpointAuthenticationRequestFilter));
+        webService.registerResource(dataTransferEndpoint);
     }
 
     private URI createOwnUriFromConfigurationValues(Config config) {

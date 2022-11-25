@@ -64,11 +64,15 @@ public class AasExtension implements ServiceExtension {
     @Inject
     private AssetIndex assetIndex;
     @Inject
-    private ConsumerContractNegotiationManager consumerNegotiationManager;
+    private AuthenticationService authenticationService;
     @Inject
     private CatalogService catalogService;
     @Inject
+    private ConsumerContractNegotiationManager consumerNegotiationManager;
+    @Inject
     private ContractDefinitionStore contractStore;
+    @Inject
+    private ContractNegotiationObservable contractNegotiationObservable;
     @Inject
     private OkHttpClient okHttpClient;
     @Inject
@@ -77,10 +81,6 @@ public class AasExtension implements ServiceExtension {
     private TransferProcessManager transferProcessManager;
     @Inject
     private WebService webService;
-    @Inject
-    private ContractNegotiationObservable contractNegotiationObservable;
-    @Inject
-    private AuthenticationService authenticationService;
 
     private static final String SETTINGS_PREFIX = "edc.aas.";
     private static final Logger logger = Logger.getInstance();

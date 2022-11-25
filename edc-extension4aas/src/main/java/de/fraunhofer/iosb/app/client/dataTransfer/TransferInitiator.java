@@ -117,6 +117,15 @@ public class TransferInitiator {
         return dataFuture;
     }
 
+    /**
+     * Call this with a future received by initiateTransferProcess()
+     * 
+     * @param dataFuture Data future created by initiateTransferProcess method
+     * @param agreementId AgreementId corresponding to this transfer
+     * @return The data
+     * @throws InterruptedException If the future was interrupted
+     * @throws ExecutionException If the data transfer process failed
+     */
     public String waitForData(CompletableFuture<String> dataFuture, String agreementId)
             throws InterruptedException, ExecutionException {
         try {

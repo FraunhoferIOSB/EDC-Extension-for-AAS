@@ -106,6 +106,14 @@ public class ContractOfferService {
     }
 
     /**
+     * Return accepted contract offers
+     * @return Accepted contract offer list
+     */
+    public List<ContractOffer> getAccepted() {
+        return contractOfferStore.getOffers();
+    }
+
+    /**
      * Removes an accepted contractOffer.
      * 
      * @param contractOfferID Contract offer id of contract offer to be removed

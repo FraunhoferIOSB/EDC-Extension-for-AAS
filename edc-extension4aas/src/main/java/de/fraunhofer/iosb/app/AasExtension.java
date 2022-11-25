@@ -120,13 +120,16 @@ public class AasExtension implements ServiceExtension {
                 configInstance.getSyncPeriod(), TimeUnit.SECONDS);
 
         webService.registerResource(endpoint);
-        webService.registerResource(new CustomAuthenticationRequestFilter(authenticationService,
-                configInstance.isExposeSelfDescription() ? Endpoint.SELF_DESCRIPTION_PATH : null));
+        var authenticationRequestFilter = new CustomAuthenticationRequestFilter(authenticationService,
+                configInstance.isExposeSelfDescription() ? Endpoint.SELF_DESCRIPTION_PATH : null);
 
-        initializeClient(context);
+        webService.registerResource(authenticationRequestFilter);
+
+        initializeClient(context, authenticationRequestFilter);
     }
 
-    private void initializeClient(ServiceExtensionContext context) {
+    private void initializeClient(ServiceExtensionContext context,
+            CustomAuthenticationRequestFilter authenticationRequestFilter) {
         URI ownUri;
         try {
             ownUri = createOwnUriFromConfigurationValues(context.getConfig());
@@ -136,13 +139,11 @@ public class AasExtension implements ServiceExtension {
             return;
         }
         var observable = new DataTransferObservable();
-        var dataEndpointAuthenticationRequestFilter = new CustomAuthenticationRequestFilter(authenticationService);
-        webService.registerResource(dataEndpointAuthenticationRequestFilter);
         var dataTransferEndpoint = new DataTransferEndpoint(observable);
         webService.registerResource(
                 new ClientEndpoint(ownUri, catalogService, consumerNegotiationManager,
                         contractNegotiationObservable, transferProcessManager, observable,
-                        dataEndpointAuthenticationRequestFilter));
+                        authenticationRequestFilter));
         webService.registerResource(dataTransferEndpoint);
     }
 

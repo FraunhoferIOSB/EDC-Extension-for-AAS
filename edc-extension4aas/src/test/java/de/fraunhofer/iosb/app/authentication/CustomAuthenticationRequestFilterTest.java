@@ -1,4 +1,4 @@
-package de.fraunhofer.iosb.app;
+package de.fraunhofer.iosb.app.authentication;
 
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
@@ -8,11 +8,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import org.eclipse.edc.api.auth.spi.AuthenticationService;
-import org.eclipse.edc.web.spi.exception.AuthenticationFailedException;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.web.spi.exception.AuthenticationFailedException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import de.fraunhofer.iosb.app.Endpoint;
+import de.fraunhofer.iosb.app.Logger;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.core.MultivaluedHashMap;

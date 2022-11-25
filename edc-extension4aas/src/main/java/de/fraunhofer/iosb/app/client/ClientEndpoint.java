@@ -30,6 +30,7 @@ import org.eclipse.edc.connector.spi.catalog.CatalogService;
 import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
 
 import de.fraunhofer.iosb.app.Logger;
+import de.fraunhofer.iosb.app.authentication.CustomAuthenticationRequestFilter;
 import de.fraunhofer.iosb.app.client.contract.ContractOfferService;
 import de.fraunhofer.iosb.app.client.dataTransfer.DataTransferObservable;
 import de.fraunhofer.iosb.app.client.dataTransfer.TransferInitiator;
@@ -57,10 +58,7 @@ public class ClientEndpoint {
      * Root path for the client
      */
     public static final String AUTOMATED_PATH = "automated";
-    /*
-     * Path for providers to send data to.
-     */
-    public static final String RECEIVE_DATA_PATH = "receiveData";
+
     private static final String CONTRACT_OFFERS_PATH = "contractOffers";
     private static final String NEGOTIATE_CONTRACT_PATH = "negotiateContract";
     private static final String NEGOTIATE_PATH = "negotiate";
@@ -84,16 +82,17 @@ public class ClientEndpoint {
      * @param contractNegotiationObservable Listen for contract negotiation changes
      *                                      (confirmed, failed, ...).
      * @param transferProcessManager        Initiate a data transfer.
+     * @param dataEndpointAuthenticationRequestFilter
      */
     public ClientEndpoint(URI ownUri, CatalogService catalogService,
             ConsumerContractNegotiationManager consumerNegotiationManager,
             ContractNegotiationObservable contractNegotiationObservable,
             TransferProcessManager transferProcessManager,
-            DataTransferObservable observable) {
+            DataTransferObservable observable, CustomAuthenticationRequestFilter dataEndpointAuthenticationRequestFilter) {
         this.negotiator = new Negotiator(consumerNegotiationManager, contractNegotiationObservable);
         this.contractOfferService = new ContractOfferService(catalogService);
 
-        this.transferInitiator = new TransferInitiator(ownUri, transferProcessManager, observable);
+        this.transferInitiator = new TransferInitiator(ownUri, transferProcessManager, observable, dataEndpointAuthenticationRequestFilter);
     }
 
     /**

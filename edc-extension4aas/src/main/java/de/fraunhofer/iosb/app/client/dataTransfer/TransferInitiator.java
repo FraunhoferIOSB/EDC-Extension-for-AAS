@@ -33,6 +33,7 @@ import org.eclipse.edc.connector.transfer.spi.types.TransferType;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.types.domain.HttpDataAddress;
 
+import de.fraunhofer.iosb.app.authentication.CustomAuthenticationRequestFilter;
 import de.fraunhofer.iosb.app.client.ClientEndpoint;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import jakarta.ws.rs.core.MediaType;
@@ -42,26 +43,32 @@ import jakarta.ws.rs.core.MediaType;
  */
 public class TransferInitiator {
 
+    private static final String DATA_TRANSFER_API_KEY = "data-transfer-api-key";
     private static final String PROTOCOL_IDS_MULTIPART = "ids-multipart";
 
     private final DataTransferObservable observable;
     private final TransferProcessManager transferProcessManager;
     private final URI ownUri;
+    private final CustomAuthenticationRequestFilter dataEndpointAuthenticationRequestFilter;
 
     /**
      * Class constructor
      * 
-     * @param ownUri                 URL of this EDC.
-     * @param transferProcessManager Initiating a transfer process as a
-     *                               consumer.
+     * @param ownUri                                  URL of this EDC.
+     * @param transferProcessManager                  Initiating a transfer process
+     *                                                as a
+     *                                                consumer.
+     * @param dataEndpointAuthenticationRequestFilter
      */
     public TransferInitiator(URI ownUri,
-            TransferProcessManager transferProcessManager, DataTransferObservable observable) {
+            TransferProcessManager transferProcessManager, DataTransferObservable observable,
+            CustomAuthenticationRequestFilter dataEndpointAuthenticationRequestFilter) {
         this.ownUri = ownUri
                 .resolve(format("./%s/%s/%s", ownUri.getPath(), ClientEndpoint.AUTOMATED_PATH,
-                        ClientEndpoint.RECEIVE_DATA_PATH));
+                        DataTransferEndpoint.RECEIVE_DATA_PATH));
         this.transferProcessManager = transferProcessManager;
         this.observable = observable;
+        this.dataEndpointAuthenticationRequestFilter = dataEndpointAuthenticationRequestFilter;
     }
 
     /**
@@ -84,7 +91,8 @@ public class TransferInitiator {
         // Prepare for incoming data
         var dataFuture = new CompletableFuture<String>();
         observable.register(dataFuture, agreementId);
-
+        var apiKey = String.valueOf(agreementId.hashCode());
+        dataEndpointAuthenticationRequestFilter.addTemporaryApiKey(DATA_TRANSFER_API_KEY, apiKey);
         var dataRequest = DataRequest.Builder.newInstance()
                 .id(UUID.randomUUID().toString()) // this is not relevant, thus can be random
                 .connectorAddress(providerUrl.toString()) // the address of the provider connector
@@ -93,6 +101,7 @@ public class TransferInitiator {
                 .assetId(assetId)
                 .dataDestination(HttpDataAddress.Builder.newInstance()
                         .baseUrl(new URIBuilder(ownUri).addParameter("agreementId", agreementId).toString())
+                        .addAdditionalHeader(DATA_TRANSFER_API_KEY, apiKey) // API key for validation on consumer side
                         .build())
                 .transferType(
                         TransferType.Builder.transferType().contentType(MediaType.APPLICATION_JSON)

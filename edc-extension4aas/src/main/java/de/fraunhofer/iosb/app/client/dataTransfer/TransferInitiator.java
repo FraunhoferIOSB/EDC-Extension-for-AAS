@@ -26,7 +26,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.apache.http.client.utils.URIBuilder;
-import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferType;
@@ -77,16 +76,6 @@ public class TransferInitiator {
      * 
      * @param agreement Non-null ContractAgreement of the negotiation process.
      */
-    public CompletableFuture<String> initiateTransferProcess(URL providerUrl, ContractAgreement agreement) {
-        return initiateTransferProcess(providerUrl, agreement.getId(), agreement.getAssetId());
-    }
-
-    /**
-     * Initiates the transfer process defined by the arguments. The data of the
-     * transfer will be sent to {@link ClientEndpoint#RECEIVE_DATA_PATH}.
-     * 
-     * @param agreement Non-null ContractAgreement of the negotiation process.
-     */
     public CompletableFuture<String> initiateTransferProcess(URL providerUrl, String agreementId, String assetId) {
         // Prepare for incoming data
         var dataFuture = new CompletableFuture<String>();
@@ -120,11 +109,11 @@ public class TransferInitiator {
     /**
      * Call this with a future received by initiateTransferProcess()
      * 
-     * @param dataFuture Data future created by initiateTransferProcess method
+     * @param dataFuture  Data future created by initiateTransferProcess method
      * @param agreementId AgreementId corresponding to this transfer
      * @return The data
      * @throws InterruptedException If the future was interrupted
-     * @throws ExecutionException If the data transfer process failed
+     * @throws ExecutionException   If the data transfer process failed
      */
     public String waitForData(CompletableFuture<String> dataFuture, String agreementId)
             throws InterruptedException, ExecutionException {

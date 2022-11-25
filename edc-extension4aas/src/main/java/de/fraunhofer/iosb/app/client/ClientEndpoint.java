@@ -59,6 +59,7 @@ public class ClientEndpoint {
      */
     public static final String AUTOMATED_PATH = "automated";
 
+    private static final String ACCEPTED_CONTRACT_OFFERS_PATH = "acceptedContractOffers";
     private static final String CONTRACT_OFFERS_PATH = "contractOffers";
     private static final String NEGOTIATE_CONTRACT_PATH = "negotiateContract";
     private static final String NEGOTIATE_PATH = "negotiate";
@@ -73,26 +74,33 @@ public class ClientEndpoint {
     /**
      * Initialize a client endpoint.
      * 
-     * @param ownUri                        Needed for providing this connector's
-     *                                      address in a data transfer process.
-     * @param catalogService                Fetch catalogs from a provider
-     *                                      connector.
-     * @param consumerNegotiationManager    Initiate a contract negotiation as a
-     *                                      consumer.
-     * @param contractNegotiationObservable Listen for contract negotiation changes
-     *                                      (confirmed, failed, ...).
-     * @param transferProcessManager        Initiate a data transfer.
+     * @param ownUri                                  Needed for providing this
+     *                                                connector's
+     *                                                address in a data transfer
+     *                                                process.
+     * @param catalogService                          Fetch catalogs from a provider
+     *                                                connector.
+     * @param consumerNegotiationManager              Initiate a contract
+     *                                                negotiation as a
+     *                                                consumer.
+     * @param contractNegotiationObservable           Listen for contract
+     *                                                negotiation changes
+     *                                                (confirmed, failed, ...).
+     * @param transferProcessManager                  Initiate a data transfer.
      * @param dataEndpointAuthenticationRequestFilter
      */
     public ClientEndpoint(URI ownUri, CatalogService catalogService,
             ConsumerContractNegotiationManager consumerNegotiationManager,
             ContractNegotiationObservable contractNegotiationObservable,
             TransferProcessManager transferProcessManager,
-            DataTransferObservable observable, CustomAuthenticationRequestFilter dataEndpointAuthenticationRequestFilter) {
+            DataTransferObservable observable,
+            CustomAuthenticationRequestFilter dataEndpointAuthenticationRequestFilter) {
         this.negotiator = new Negotiator(consumerNegotiationManager, contractNegotiationObservable);
         this.contractOfferService = new ContractOfferService(catalogService);
 
-        this.transferInitiator = new TransferInitiator(ownUri, transferProcessManager, observable, dataEndpointAuthenticationRequestFilter);
+        this.transferInitiator = new TransferInitiator(ownUri, transferProcessManager, observable,
+                dataEndpointAuthenticationRequestFilter);
+        // new ProviderAssetDataStore(transferInitiator);
     }
 
     /**
@@ -135,8 +143,8 @@ public class ClientEndpoint {
         }
 
         try {
-            var dataFuture = transferInitiator.initiateTransferProcess(providerUrl, agreement);
-            var data = transferInitiator.waitForData(dataFuture, assetId);
+            var dataFuture = transferInitiator.initiateTransferProcess(providerUrl, agreement.getId(), assetId);
+            var data = transferInitiator.waitForData(dataFuture, agreement.getId());
             return Response.ok(data).build();
         } catch (InterruptedException | ExecutionException negotiationException) {
             LOGGER.error(format("Getting data failed for provider %s and agreementId %s", providerUrl,
@@ -214,7 +222,7 @@ public class ClientEndpoint {
         Objects.requireNonNull(assetId, "AssetId must not be null");
         try {
             var dataFuture = transferInitiator.initiateTransferProcess(providerUrl, agreementId, assetId);
-            var data = transferInitiator.waitForData(dataFuture, assetId);
+            var data = transferInitiator.waitForData(dataFuture, agreementId);
             return Response.ok(data).build();
         } catch (InterruptedException | ExecutionException negotiationException) {
             LOGGER.error(format("Getting data failed for provider %s and agreementId %s", providerUrl,
@@ -234,12 +242,24 @@ public class ClientEndpoint {
      * @return OK as response.
      */
     @POST
-    @Path(CONTRACT_OFFERS_PATH)
+    @Path(ACCEPTED_CONTRACT_OFFERS_PATH)
     public Response addAcceptedContractOffers(ContractOffer[] contractOffers) {
         LOGGER.log(format("Adding %s accepted contract offers", contractOffers.length));
         Objects.requireNonNull(contractOffers, "ContractOffer is null");
         contractOfferService.addAccepted(contractOffers);
         return Response.ok().build();
+    }
+
+    /**
+     * Returns all contract offers in the 'accepted list'.
+     * 
+     * @return A list of accepted contract offers
+     */
+    @GET
+    @Path(ACCEPTED_CONTRACT_OFFERS_PATH)
+    public Response getAcceptedContractOffers() {
+        LOGGER.log("Returning accepted contract offers");
+        return Response.ok(contractOfferService.getAccepted()).build();
     }
 
     /**
@@ -249,7 +269,7 @@ public class ClientEndpoint {
      * @return OK as response.
      */
     @DELETE
-    @Path(CONTRACT_OFFERS_PATH)
+    @Path(ACCEPTED_CONTRACT_OFFERS_PATH)
     public Response deleteAcceptedContractOffer(@QueryParam("contractOfferId") String contractOfferId) {
         LOGGER.log(format("Removing contract offer with id %s", contractOfferId));
         Objects.requireNonNull(contractOfferId, "ContractOffer is null");
@@ -264,8 +284,8 @@ public class ClientEndpoint {
      * @return OK as response.
      */
     @PUT
-    @Path(CONTRACT_OFFERS_PATH)
-    public Response updateAcceptedContractOffer(@QueryParam("contractOfferId") ContractOffer contractOffer) {
+    @Path(ACCEPTED_CONTRACT_OFFERS_PATH)
+    public Response updateAcceptedContractOffer(ContractOffer contractOffer) {
         LOGGER.log(format("Updating contract offer with id %s", contractOffer.getId()));
         Objects.requireNonNull(contractOffer, "contractOffer is null");
         contractOfferService.updateAccepted(contractOffer.getId(), contractOffer);

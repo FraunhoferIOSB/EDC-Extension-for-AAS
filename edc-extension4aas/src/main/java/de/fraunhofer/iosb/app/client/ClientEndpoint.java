@@ -35,6 +35,7 @@ import de.fraunhofer.iosb.app.client.contract.ContractOfferService;
 import de.fraunhofer.iosb.app.client.dataTransfer.DataTransferObservable;
 import de.fraunhofer.iosb.app.client.dataTransfer.TransferInitiator;
 import de.fraunhofer.iosb.app.client.negotiation.Negotiator;
+import de.fraunhofer.iosb.app.client.storage.AgreementStore;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -70,6 +71,7 @@ public class ClientEndpoint {
     private final Negotiator negotiator;
     private final TransferInitiator transferInitiator;
     private final ContractOfferService contractOfferService;
+    private final AgreementStore agreementStore;
 
     /**
      * Initialize a client endpoint.
@@ -97,10 +99,10 @@ public class ClientEndpoint {
             CustomAuthenticationRequestFilter dataEndpointAuthenticationRequestFilter) {
         this.negotiator = new Negotiator(consumerNegotiationManager, contractNegotiationObservable);
         this.contractOfferService = new ContractOfferService(catalogService);
-
         this.transferInitiator = new TransferInitiator(ownUri, transferProcessManager, observable,
                 dataEndpointAuthenticationRequestFilter);
-        // new ProviderAssetDataStore(transferInitiator);
+
+        this.agreementStore = new AgreementStore();
     }
 
     /**
@@ -135,6 +137,8 @@ public class ClientEndpoint {
         ContractAgreement agreement;
         try {
             agreement = negotiator.negotiate(providerUrl, contractOffer);
+            // Store agreement in agrementStore
+            agreementStore.addAgreement(providerUrl, assetId, agreement);
         } catch (InterruptedException | ExecutionException negotiationException) {
             LOGGER.error(format("Negotiation failed for provider %s and contractOffer %s", providerUrl,
                     contractOffer.getId()), negotiationException);
@@ -194,8 +198,10 @@ public class ClientEndpoint {
         Objects.requireNonNull(providerUrl, "Provider URL must not be null");
         Objects.requireNonNull(contractOffer, "ContractOffer must not be null");
         try {
-            var agreementId = negotiator.negotiate(providerUrl, contractOffer);
-            return Response.ok(agreementId).build();
+            var agreement = negotiator.negotiate(providerUrl, contractOffer);
+            // Store agreement in agrementStore
+            agreementStore.addAgreement(providerUrl, contractOffer.getAsset().getId(), agreement);
+            return Response.ok(agreement).build();
         } catch (InterruptedException | ExecutionException negotiationException) {
             LOGGER.error(format("Negotiation failed for provider %s and contractOffer %s", providerUrl,
                     contractOffer.getId()), negotiationException);
@@ -304,17 +310,28 @@ public class ClientEndpoint {
     @GET
     @Path("agreements")
     public Response getAgreements(@QueryParam("providerUrl") URL providerUrl, @QueryParam("assetId") String assetId) {
-        return Response.status(Response.Status.NOT_IMPLEMENTED).build();
+        if (Objects.nonNull(assetId) && Objects.nonNull(providerUrl)) {
+            return Response.ok(agreementStore.getAgreement(providerUrl, assetId)).build();
+        } else if (Objects.nonNull(providerUrl)) {
+            return Response.ok(agreementStore.getAllProviderAgreements(providerUrl)).build();
+        } else {
+            return Response.ok(agreementStore.getAllAgreements()).build();
+        }
     }
 
     /**
      * Remove an agreement from the extension's agreementStore
+     * 
      * @param agreementId AgreementId of agreement to be removed (non null)
      * @return Status of the remove operation
      */
     @DELETE
     @Path("agreements")
     public Response deleteAgreement(@QueryParam("agremeentId") String agreementId) {
-        return Response.status(Response.Status.NOT_IMPLEMENTED).build();
+        Objects.requireNonNull(agreementId, "agreementId cannot be null");
+        if (agreementStore.removeAgreement(agreementId)) {
+            return Response.ok().build();
+        }
+        return Response.status(Response.Status.NOT_FOUND).build();
     }
 }

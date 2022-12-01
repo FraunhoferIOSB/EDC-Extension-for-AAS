@@ -18,7 +18,6 @@ package de.fraunhofer.iosb.app.client.storage;
 import java.net.URL;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -58,13 +57,23 @@ public class AgreementStore {
     }
 
     /**
+     * Get all stored agreements
+     * 
+     * @return non null map of agreements
+     */
+    public Map<Pair<URL, String>, ContractAgreement> getAllAgreements() {
+        return agreements;
+    }
+
+    /**
      * Add an agreement to the store
      * 
      * @param provider  non null provider url
+     * @param assetId   non null assetId
      * @param agreement non null agreement
      */
-    public void addAgreement(URL provider, ContractAgreement agreement) {
-        agreements.put(new Pair<>(provider, agreement.getAssetId()), agreement);
+    public void addAgreement(URL provider, String assetId, ContractAgreement agreement) {
+        agreements.put(new Pair<>(provider, assetId), agreement);
     }
 
     /**
@@ -90,13 +99,9 @@ public class AgreementStore {
     /**
      * Remove an agreement in the store
      * 
-     * @param provider  non null provider url
-     * @param agreement non null updated agreement
+     * @param agreementId non null agreement to be removed
      */
-    public boolean removeAgreement(URL provider, String assetId) {
-        if (Objects.nonNull(agreements.remove(new Pair<>(provider, assetId)))) {
-            return true;
-        }
-        return false;
+    public boolean removeAgreement(String agreementId) {
+        return agreements.entrySet().removeIf(entry -> agreementId.equals(entry.getValue().getId()));
     }
 }

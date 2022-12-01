@@ -291,4 +291,30 @@ public class ClientEndpoint {
         contractOfferService.updateAccepted(contractOffer.getId(), contractOffer);
         return Response.ok().build();
     }
+
+    /**
+     * Return agreements of already negotiated contracts.
+     * 
+     * @param providerUrl Provider whose contractAgreements are to be fetched
+     *                    (Optional)
+     * @param assetId     Asset ID for single agremeent (Optional)
+     * @return Response containing agreements in a list (Provider, AssetId,
+     *         AgreementId)
+     */
+    @GET
+    @Path("agreements")
+    public Response getAgreements(@QueryParam("providerUrl") URL providerUrl, @QueryParam("assetId") String assetId) {
+        return Response.status(Response.Status.NOT_IMPLEMENTED).build();
+    }
+
+    /**
+     * Remove an agreement from the extension's agreementStore
+     * @param agreementId AgreementId of agreement to be removed (non null)
+     * @return Status of the remove operation
+     */
+    @DELETE
+    @Path("agreements")
+    public Response deleteAgreement(@QueryParam("agremeentId") String agreementId) {
+        return Response.status(Response.Status.NOT_IMPLEMENTED).build();
+    }
 }

@@ -311,10 +311,14 @@ public class ClientEndpoint {
     @Path("agreements")
     public Response getAgreements(@QueryParam("providerUrl") URL providerUrl, @QueryParam("assetId") String assetId) {
         if (Objects.nonNull(assetId) && Objects.nonNull(providerUrl)) {
+            LOGGER.log(format("Returning agreements for provider %s and asset %s", providerUrl, assetId));
             return Response.ok(agreementStore.getAgreement(providerUrl, assetId)).build();
         } else if (Objects.nonNull(providerUrl)) {
+
+            LOGGER.log(format("Returning agreements for provider %s", providerUrl));
             return Response.ok(agreementStore.getAllProviderAgreements(providerUrl)).build();
         } else {
+            LOGGER.log("Returning agreements");
             return Response.ok(agreementStore.getAllAgreements()).build();
         }
     }
@@ -329,6 +333,7 @@ public class ClientEndpoint {
     @Path("agreements")
     public Response deleteAgreement(@QueryParam("agremeentId") String agreementId) {
         Objects.requireNonNull(agreementId, "agreementId cannot be null");
+        LOGGER.log(format("Removing agreement with id %s", agreementId));
         if (agreementStore.removeAgreement(agreementId)) {
             return Response.ok().build();
         }

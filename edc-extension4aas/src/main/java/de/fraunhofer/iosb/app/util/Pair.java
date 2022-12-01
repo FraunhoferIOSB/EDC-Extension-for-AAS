@@ -43,6 +43,11 @@ public class Pair<T, U> {
         this.second = u;
     }
 
+    @Override
+    public String toString() {
+        return first.toString().concat(";").concat(second.toString());
+    }
+
     public static class PairBuilder<T, U> {
         private T first;
         private U second;

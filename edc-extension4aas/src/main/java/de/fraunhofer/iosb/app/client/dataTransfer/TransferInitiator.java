@@ -53,11 +53,10 @@ public class TransferInitiator {
     /**
      * Class constructor
      * 
-     * @param ownUri                                  URL of this EDC.
-     * @param transferProcessManager                  Initiating a transfer process
-     *                                                as a
-     *                                                consumer.
-     * @param dataEndpointAuthenticationRequestFilter
+     * @param ownUri URL of this running EDC.
+     * @param transferProcessManager Initiating a transfer process as a consumer.
+     * @param observable Status updates for waiting data transfer requestors to avoid busy waiting.
+     * @param dataEndpointAuthenticationRequestFilter Creating and passing through custom api keys for each data transfer
      */
     public TransferInitiator(URI ownUri,
             TransferProcessManager transferProcessManager, DataTransferObservable observable,
@@ -74,7 +73,11 @@ public class TransferInitiator {
      * Initiates the transfer process defined by the arguments. The data of the
      * transfer will be sent to {@link ClientEndpoint#RECEIVE_DATA_PATH}.
      * 
-     * @param agreement Non-null ContractAgreement of the negotiation process.
+     * @param providerUrl The provider from whom the data is to be fetched.
+     * @param agreementId Non-null ContractAgreement of the negotiation process.
+     * @param assetId The asset to be fetched.
+     * 
+     * @return A completable future whose result will be the data or an error message.
      */
     public CompletableFuture<String> initiateTransferProcess(URL providerUrl, String agreementId, String assetId) {
         // Prepare for incoming data
@@ -111,7 +114,9 @@ public class TransferInitiator {
      * 
      * @param dataFuture  Data future created by initiateTransferProcess method
      * @param agreementId AgreementId corresponding to this transfer
+     * 
      * @return The data
+     * 
      * @throws InterruptedException If the future was interrupted
      * @throws ExecutionException   If the data transfer process failed
      */

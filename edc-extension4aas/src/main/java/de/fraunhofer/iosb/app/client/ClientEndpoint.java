@@ -76,31 +76,30 @@ public class ClientEndpoint {
     /**
      * Initialize a client endpoint.
      * 
-     * @param ownUri                                  Needed for providing this
-     *                                                connector's
-     *                                                address in a data transfer
-     *                                                process.
-     * @param catalogService                          Fetch catalogs from a provider
-     *                                                connector.
-     * @param consumerNegotiationManager              Initiate a contract
-     *                                                negotiation as a
-     *                                                consumer.
-     * @param contractNegotiationObservable           Listen for contract
-     *                                                negotiation changes
-     *                                                (confirmed, failed, ...).
-     * @param transferProcessManager                  Initiate a data transfer.
-     * @param dataEndpointAuthenticationRequestFilter
+     * @param ownUri                        Needed for providing this connector's
+     *                                      address in a data transfer process.
+     * @param catalogService                Fetch catalogs from a provider
+     *                                      connector.
+     * @param consumerNegotiationManager    Initiate a contract negotiation as a
+     *                                      consumer.
+     * @param contractNegotiationObservable Listen for contract negotiation changes
+     *                                      (confirmed, failed, ...).
+     * @param transferProcessManager        Initiate a data transfer.
+     * @param observable                    Status updates for waiting data transfer
+     *                                      requestors to avoid busy waiting.
+     * @param dataEndpointAuthRequestFilter Creating and passing through custom api
+     *                                      keys for each data transfer.
      */
     public ClientEndpoint(URI ownUri, CatalogService catalogService,
             ConsumerContractNegotiationManager consumerNegotiationManager,
             ContractNegotiationObservable contractNegotiationObservable,
             TransferProcessManager transferProcessManager,
             DataTransferObservable observable,
-            CustomAuthenticationRequestFilter dataEndpointAuthenticationRequestFilter) {
+            CustomAuthenticationRequestFilter dataEndpointAuthRequestFilter) {
         this.negotiator = new Negotiator(consumerNegotiationManager, contractNegotiationObservable);
         this.contractOfferService = new ContractOfferService(catalogService);
         this.transferInitiator = new TransferInitiator(ownUri, transferProcessManager, observable,
-                dataEndpointAuthenticationRequestFilter);
+                dataEndpointAuthRequestFilter);
 
         this.agreementStore = new AgreementStore();
     }
@@ -113,8 +112,6 @@ public class ClientEndpoint {
      * @param providerUrl Provider EDC's URL (IDS endpoint)
      * @param assetId     ID of the asset to be retrieved
      * @return Asset data
-     * @throws ExecutionException
-     * @throws InterruptedException
      */
     @POST
     @Path(NEGOTIATE_PATH)
@@ -244,7 +241,8 @@ public class ClientEndpoint {
      * be matched on automated contract negotiation. This means, any contract offer
      * by a provider must have the same rules as any of the stored contract offers.
      * 
-     * @param contractOffer The contractOffer to add (Only its rules are relevant)
+     * @param contractOffers The contractOffer to add (Only its rules are relevant)
+     * 
      * @return OK as response.
      */
     @POST

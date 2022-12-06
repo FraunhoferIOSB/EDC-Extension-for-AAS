@@ -81,6 +81,8 @@ public class AgreementStore {
      * 
      * @param provider  non null provider url
      * @param agreement non null assetID
+     * 
+     * @return The agreement for the provider, asset pair
      */
     public ContractAgreement getAgreement(URL provider, String assetId) {
         return agreements.get(new Pair<>(provider, assetId));
@@ -100,6 +102,8 @@ public class AgreementStore {
      * Remove an agreement in the store
      * 
      * @param agreementId non null agreement to be removed
+     * 
+     * @return True, if the element was removed
      */
     public boolean removeAgreement(String agreementId) {
         return agreements.entrySet().removeIf(entry -> agreementId.equals(entry.getValue().getId()));

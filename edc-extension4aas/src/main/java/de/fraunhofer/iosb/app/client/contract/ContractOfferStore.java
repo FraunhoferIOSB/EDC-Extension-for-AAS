@@ -54,7 +54,7 @@ public class ContractOfferStore {
     /**
      * Add offers to the store.
      * 
-     * @param offer Contract offers to be stored (non null)
+     * @param newOffers Contract offers to be stored (non null)
      */
     public void putOffers(ContractOffer... newOffers) {
         Objects.requireNonNull(newOffers, "ContractOffer is null");

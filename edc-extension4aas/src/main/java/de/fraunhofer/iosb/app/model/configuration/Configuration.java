@@ -39,10 +39,14 @@ public class Configuration {
     private String logPrefix = "AAS Extension";
     private String aasServiceConfigPath;
     private URL registryUrl;
-    private int syncPeriod = 5; // default value: 5 seconds
+    private int syncPeriod = 5; // Seconds
     private boolean exposeSelfDescription = true;
     private String defaultAccessPolicyPath;
     private String defaultContractPolicyPath;
+    private int waitForTransferTimeout = 10; // Seconds
+    private int waitForAgreementTimeout = 10; // Seconds
+    private boolean acceptAllProviderOffers = false;
+    private String acceptedContractOffersPath;
 
     public static synchronized Configuration getInstance() {
         if (Objects.isNull(instance)) {
@@ -148,5 +152,41 @@ public class Configuration {
     @JsonProperty(SETTINGS_PREFIX + "defaultcontractpolicypath")
     public void setDefaultContractPolicyPath(String defaultContractPolicyPath) {
         this.defaultContractPolicyPath = defaultContractPolicyPath;
+    }
+
+    public int getWaitForAgreementTimeout() {
+        return waitForAgreementTimeout;
+    }
+
+    @JsonProperty(SETTINGS_PREFIX + "client.waitforagreementtimeout")
+    public void setWaitForAgreementTimeout(int waitForAgreementTimeout) {
+        this.waitForAgreementTimeout = waitForAgreementTimeout;
+    }
+
+    public int getWaitForTransferTimeout() {
+        return waitForTransferTimeout;
+    }
+
+    @JsonProperty(SETTINGS_PREFIX + "client.waitfortransfertimeout")
+    public void setWaitForTransferTimeout(int waitForTransferTimeout) {
+        this.waitForTransferTimeout = waitForTransferTimeout;
+    }
+
+    public boolean isAcceptAllProviderOffers() {
+        return acceptAllProviderOffers;
+    }
+
+    @JsonProperty(SETTINGS_PREFIX + "client.acceptallprovideroffers")
+    public void setAcceptAllProviderOffers(boolean acceptAllProviderOffers) {
+        this.acceptAllProviderOffers = acceptAllProviderOffers;
+    }
+        
+    public String getAcceptedContractOffersPath() {
+        return acceptedContractOffersPath;
+    }
+
+    @JsonProperty(SETTINGS_PREFIX + "client.acceptedcontractofferspath")
+    public void setAcceptedContractOffersPath(String acceptedContractOffersPath) {
+        this.acceptedContractOffersPath = acceptedContractOffersPath;
     }
 }

@@ -34,6 +34,8 @@ Provide digital twin (AAS) data to business partners in Data Spaces like Catena-
 
 ### Interfaces
 
+#### **Provider Interfaces**
+
 | HTTP Method | Interface (edc:1234/api/...) ((a) = only for authenticated users) | Parameters ((r) = required) | Description |
 | :----| :----| :---- | :-------------------- |
 | GET | config (a) | - | Get current extension configuration values.
@@ -45,6 +47,18 @@ Provide digital twin (AAS) data to business partners in Data Spaces like Catena-
 | DELETE | aas (a) | Query Parameter requestUrl: URL of AAS service to be updated (r)| Forward DELETE request to provided host in requestUrl. If requestUrl is an AAS service that is registered at this EDC, synchronize assets and self description as well.
 | PUT | aas (a) | Query Parameter "requestUrl": URL of AAS service to be updated (r), request body: AAS element (r) | Forward PUT request to provided host in requestUrl.
 | GET | selfDescription | - | Return self description of extension.
+
+#### **Client Interfaces**
+
+| HTTP Method | Interface (edc:1234/api/...) ((a) = only for authenticated users) | Parameters ((r) = required) | Description |
+| :----| :----| :---- | :-------------------- |
+| POST | negotiate (a) | Query Parameter "providerUrl": URL (r), Query Parameter "assetId": String (r) | Perform an automated contract negotiation with a provider and get the data stored in the specified asset.
+| GET | contractOffers (a) | Query Parameter "providerUrl": URL (r), Query Parameter "assetId": String (r) | Get all offered ContractOffers from the specified provider that contain the specified asset as data.
+| POST | negotiateContract (a) | Query Parameter "providerUrl": URL (r), request body: contractOffer (r) | Using a contractOffer and a providerUrl, negotiate a contract. Returns an agreementId on success.
+| GET | transfer (a) | Query Parameter "providerUrl": URL (r), Query Parameter "agreementId": String (r), Query Parameter "assetId": String (r) | Submits a data transfer request to the providerUrl. On success, returns the data behind the specified asset.
+| POST | contractOffers (a) | request body: List of ContractOffers (JSON) (r) | Adds the given ContractOffers to the accepted ContractOffers list: On fully automated negotiation, the provider's ContractOffer is matched against the consumer's accepted ContractOffer list. If any ContractOffer's policies fit the provider's, the negotiation continues.
+| GET | agreements (a) | Query Parameter "providerUrl": URL, Query Parameter "assetId": String | Get agreements for already negotiated contracts. These agreements are stored within the extension.
+| DELETE | agreements (a) | Query Parameter "agreementId": String (r) | Remove an agremeent of an already negotiated contract.
 
 ### Dependencies
 
@@ -65,10 +79,19 @@ Provide digital twin (AAS) data to business partners in Data Spaces like Catena-
 |edc.aas.localAASModelPath| path | A path to a serialized AAS environment compatible to specification version 3.0RC01 (see: https://github.com/FraunhoferIOSB/FAAAST-Service/blob/main/README.md)|
 |edc.aas.localAASServicePort| (1-65535)| Port to locally created AAS service. Required, if localAASModelPath is defined and localAASServiceConfigPath is not defined.|
 |edc.aas.localAASServiceConfigPath|path|Path to AAS config for locally started AAS service. Required, if localAASServicePort is not defined, but localAASModelPath is defined.|
-|edc.aas.syncPeriod |number in seconds |Time period in which AAS services should be polled for structural changes (added/deleted elements etc.). Default value is 5 (seconds). Note: This configuration value is only read on startup, the synchronization period cannot be changed at runtime.|
+|edc.aas.syncPeriod |whole number in seconds |Time period in which AAS services should be polled for structural changes (added/deleted elements etc.). Default value is 5 (seconds). Note: This configuration value is only read on startup, the synchronization period cannot be changed at runtime.|
 |edc.aas.exposeSelfDescription| True/False| Whether the Self Description should be exposed on {edc}/api/selfDescription. When set to False, the selfDescription is still available for authenticated requests.|
 |edc.aas.defaultAccessPolicyPath|path |Path to an access policy file (JSON). This policy will be used as the default access policy for all assets created after the configuration value has been set.|
 |edc.aas.defaultContractPolicyPath|path |Path to a contract policy file (JSON). This policy will be used as the default contract policy for all assets created after the configuration value has been set.|
+
+#### **Client Configurations**
+
+| Key | Value Type | Description |
+| :----| :-----------| :------|
+|edc.aas.client.waitForAgreementTimeout|whole number in seconds |How long should the extension wait for an agreement when automatically negotiating a contract? Default value is 10(s).|
+|edc.aas.client.waitForTransferTimeout|whole number in seconds |How long should the extension wait for a data transfer when automatically negotiating a contract? Default value is 10(s).|
+|edc.aas.client.acceptAllProviderOffers|boolean|If true, the client accepts any contractOffer offered by a provider connector on automated contract negotiation (e.g., trusted provider). Default value: false|
+|edc.aas.client.acceptedContractOffersPath|path|Path pointing to a JSON-file containing acceptable ContractOffers for automated contract negotiation in a list (only policies must match in a provider's ContractOffer)|
 
 ## Terminology
 | Term | Description |

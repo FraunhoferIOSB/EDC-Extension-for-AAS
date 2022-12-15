@@ -1,0 +1,23 @@
+[
+    {
+        "id": "unimportant",
+        "policy": {
+            "permissions": [
+                {
+                    "edctype": "dataspaceconnector:permission",
+                    "action": {
+                        "type": "USE",
+                        "includedIn": null,
+                        "constraint": null
+                    },
+                    "constraints": [],
+                    "duties": []
+                }
+            ],
+            "prohibitions": [],
+            "obligations": [],
+            "extensibleProperties": {}
+        },
+        "asset": {}
+    } 
+]

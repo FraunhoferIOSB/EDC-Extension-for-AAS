@@ -25,7 +25,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @JsonTypeInfo(use = JsonTypeInfo.Id.DEDUCTION)
 @JsonInclude(Include.NON_NULL)
 @JsonSubTypes.Type(CustomSubmodelElementCollection.class)
-public class CustomSubmodelElement extends IdsAssetElement {
+public class CustomSubmodelElement extends AASElement {
 
     protected String idShort;
 

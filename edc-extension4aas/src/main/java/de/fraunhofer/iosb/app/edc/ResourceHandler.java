@@ -33,13 +33,20 @@ public class ResourceHandler {
     /**
      * Registers an asset at the EDC.
 
-     * @param sourceUrl Data of the asset
+     * @param sourceUrl   Data of the asset
+     * @param name        The name of the asset (e.g., idShort)
+     * @param contentType Content behind the sourceUrl
+     * @param version     For versioning of assets
      * @return asset ID of created asset
      */
-    public String createAsset(String sourceUrl) {
+    public String createAsset(String sourceUrl, String name, String contentType, String version) {
         var assetId = createAssetId(sourceUrl);
         var dataAddress = HttpDataAddress.Builder.newInstance().baseUrl(sourceUrl).build();
-        var asset = Asset.Builder.newInstance().id(assetId.toString()).build();
+        var asset = Asset.Builder.newInstance()
+        .id(assetId.toString())
+        .name(name)
+        .contentType(contentType)
+                .version(version).build();
         assetIndex.accept(asset, dataAddress);
         return assetId;
     }

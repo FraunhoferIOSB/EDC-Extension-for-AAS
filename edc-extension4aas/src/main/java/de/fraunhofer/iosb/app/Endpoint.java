@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iosb.app.controller.AasController;
 import de.fraunhofer.iosb.app.controller.ConfigurationController;
 import de.fraunhofer.iosb.app.controller.ResourceController;
+import de.fraunhofer.iosb.app.model.aas.AASElement;
 import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShellEnvironment;
 import de.fraunhofer.iosb.app.model.aas.CustomSubmodel;
 import de.fraunhofer.iosb.app.model.aas.IdsAssetElement;
@@ -376,7 +377,7 @@ public class Endpoint {
 
         newEnvironment.getSubmodels().forEach(submodel -> {
             CustomSubmodel oldSubmodel;
-            
+
             if (oldEnvironment.getSubmodels().indexOf(submodel) > -1) {
                 oldSubmodel = oldEnvironment.getSubmodels()
                         .get(oldEnvironment.getSubmodels().indexOf(submodel));
@@ -452,7 +453,9 @@ public class Endpoint {
     private void addAssetsContracts(List<? extends IdsAssetElement> elements) {
         // Add each AAS element to EDC AssetIndex, giving it a contract
         elements.forEach(element -> {
-            var assetContractPair = resourceController.createResource(element.getSourceUrl());
+            // Version unknown, MediaType is "application/json" by default
+            var assetContractPair = resourceController.createResource(element.getSourceUrl(), ((AASElement) element).getIdShort(),
+                    MediaType.APPLICATION_JSON, null);
             element.setIdsAssetId(assetContractPair.getFirst());
             element.setIdsContractId(assetContractPair.getSecond());
         });

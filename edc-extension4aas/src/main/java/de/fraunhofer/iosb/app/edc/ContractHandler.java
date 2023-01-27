@@ -177,6 +177,7 @@ public class ContractHandler {
                         AssetSelectorExpression.Builder.newInstance()
                                 .whenEquals(ASSET_PROPERTY_ID, assetId)
                                 .build())
+                .validity(Long.MAX_VALUE)
                 .build();
 
         contractDefinitionStore.save(defaultContractDefinition);

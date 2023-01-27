@@ -40,7 +40,7 @@ dependencies {
     // Data transfer (read from AAS service/write to HTTP endpoint)
     implementation("${edcGroup}:data-plane-core:${edcVersion}")
     implementation("${edcGroup}:data-plane-http:${edcVersion}")
-    implementation("${edcGroup}:data-plane-transfer-client:${edcVersion}")
+    implementation("${edcGroup}:data-plane-client:${edcVersion}")
 }
 
 application {

@@ -48,16 +48,16 @@ public class AasExtensionTest {
     @BeforeEach
     void setup(ServiceExtensionContext context, ObjectFactory factory) {
         context.registerService(AssetIndex.class, mock(AssetIndex.class));
+        context.registerService(AuthenticationService.class, mock(AuthenticationService.class));
+        context.registerService(CatalogService.class, mock(CatalogService.class));
         context.registerService(ConsumerContractNegotiationManager.class,
                 mock(ConsumerContractNegotiationManager.class));
-        context.registerService(CatalogService.class, mock(CatalogService.class));
         context.registerService(ContractDefinitionStore.class, mock(ContractDefinitionStore.class));
+        context.registerService(ContractNegotiationObservable.class, mock(ContractNegotiationObservable.class));
         context.registerService(OkHttpClient.class, mock(OkHttpClient.class));
         context.registerService(PolicyDefinitionStore.class, mock(PolicyDefinitionStore.class));
         context.registerService(TransferProcessManager.class, mock(TransferProcessManager.class));
         context.registerService(WebService.class, mock(WebService.class));
-        context.registerService(ContractNegotiationObservable.class, mock(ContractNegotiationObservable.class));
-        context.registerService(AuthenticationService.class, mock(AuthenticationService.class));
 
         Config mockConf = mock(Config.class);
 

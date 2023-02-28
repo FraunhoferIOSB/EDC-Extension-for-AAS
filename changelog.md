@@ -4,7 +4,7 @@
 
 **New Features**
 
-* Support of **Eclipse Dataspace Connection v0.0.1-Milestone 7**
+* Support of **Eclipse Dataspace Connection v0.0.1-Milestone 8**
 
 * Client Service
     * Add functionality for automatically negotiating and requesting data from a provider EDC

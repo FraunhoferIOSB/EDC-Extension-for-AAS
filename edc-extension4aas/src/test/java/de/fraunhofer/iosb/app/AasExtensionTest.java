@@ -37,6 +37,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import okhttp3.OkHttpClient;
 
 @ExtendWith(DependencyInjectionExtension.class)
@@ -48,27 +49,28 @@ public class AasExtensionTest {
     @BeforeEach
     void setup(ServiceExtensionContext context, ObjectFactory factory) {
         context.registerService(AssetIndex.class, mock(AssetIndex.class));
+        context.registerService(AuthenticationService.class, mock(AuthenticationService.class));
+        context.registerService(CatalogService.class, mock(CatalogService.class));
         context.registerService(ConsumerContractNegotiationManager.class,
                 mock(ConsumerContractNegotiationManager.class));
-        context.registerService(CatalogService.class, mock(CatalogService.class));
         context.registerService(ContractDefinitionStore.class, mock(ContractDefinitionStore.class));
+        context.registerService(ContractNegotiationObservable.class, mock(ContractNegotiationObservable.class));
         context.registerService(OkHttpClient.class, mock(OkHttpClient.class));
         context.registerService(PolicyDefinitionStore.class, mock(PolicyDefinitionStore.class));
         context.registerService(TransferProcessManager.class, mock(TransferProcessManager.class));
         context.registerService(WebService.class, mock(WebService.class));
-        context.registerService(ContractNegotiationObservable.class, mock(ContractNegotiationObservable.class));
-        context.registerService(AuthenticationService.class, mock(AuthenticationService.class));
-
         Config mockConf = mock(Config.class);
 
         this.context = spy(context); // used to inject the config
-
         when(this.context.getMonitor()).thenReturn(mock(Monitor.class));
         when(this.context.getConfig()).thenReturn(mockConf);
         when(mockConf.getString("ids.webhook.address")).thenReturn("http://localhost:8080");
         when(mockConf.getString("web.http.port")).thenReturn("1234");
         when(mockConf.getString("web.http.path")).thenReturn("api-path");
-
+        // Singleton testing is fun
+        Configuration.getInstance().setRemoteAasLocation(null);
+        Configuration.getInstance().setLocalAasModelPath(null);
+        
         extension = factory.constructInstance(AasExtension.class);
     }
 

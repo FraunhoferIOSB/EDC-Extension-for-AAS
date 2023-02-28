@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -44,14 +46,18 @@ public class ContractOfferServiceTest {
     @SuppressWarnings("unchecked")
     void getContractForAssetIdTest() throws InterruptedException, ExecutionException {
         var mockedFuture = mock(CompletableFuture.class);
-        var contractOffers = new ArrayList<ContractOffer>(List.of(ContractOffer.Builder.newInstance().policy(Policy.Builder.newInstance().build())
-                .asset(Asset.Builder.newInstance().id("test-asset-id").build()).id("mocked-contract-id").build()));
+        var contractOffers = new ArrayList<ContractOffer>(
+                List.of(ContractOffer.Builder.newInstance().policy(Policy.Builder.newInstance().build())
+                        .asset(Asset.Builder.newInstance().id("test-asset-id").build()).id("mocked-contract-id")
+                        .contractStart(ZonedDateTime.now())
+                        .contractEnd(ZonedDateTime.of(9999, 1, 1, 0, 0, 0, 1, ZoneId.systemDefault())).build()));
         when(mockedFuture.get())
                 .thenReturn(Catalog.Builder.newInstance().id("catalog-id").contractOffers(contractOffers).build());
 
         when(mockCatalogService.getByProviderUrl(any(), any())).thenReturn(mockedFuture);
 
-        assertEquals("mocked-contract-id", contractOfferService.getContractsForAssetId(testUrl, "test-asset-id").get(0).getId());
+        assertEquals("mocked-contract-id",
+                contractOfferService.getContractsForAssetId(testUrl, "test-asset-id").get(0).getId());
     }
 
     @Test

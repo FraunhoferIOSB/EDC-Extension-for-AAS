@@ -29,7 +29,7 @@ dependencies {
     implementation("io.admin-shell.aas:model:1.2.0")
 
     // EDC asset management
-    implementation("${edcGroup}:data-management-api:${edcVersion}")
+    implementation("${edcGroup}:management-api:${edcVersion}")
 
     // Send HTTP requests to AAS service
     implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")

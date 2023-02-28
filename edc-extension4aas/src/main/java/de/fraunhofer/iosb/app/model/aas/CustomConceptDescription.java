@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonAutoDetect
-public class CustomConceptDescription extends IdsAssetElement {
+public class CustomConceptDescription extends AASElement {
 
     protected Identifier identification;
     protected String idShort;

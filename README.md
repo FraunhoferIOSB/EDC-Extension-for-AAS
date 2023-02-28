@@ -6,7 +6,7 @@ This [Eclipse Dataspace Connector (EDC)](https://github.com/eclipse-dataspacecon
 ## Version compatibility
 | Specification | Version |
 |:--| -- |
-| Eclipse Dataspace Connector | v0.0.1-milestone-7
+| Eclipse Dataspace Connector | v0.0.1-milestone-8
 | AAS - Details of the Asset Administration Shell - Part 1<br />The exchange of information between partners in the value chain of Industrie 4.0 | Version 3.0RC01<br />(based on [admin-shell-io/java-model](https://github.com/admin-shell-io/java-model))
 
 ## Repo Structure

@@ -177,7 +177,7 @@ public class ContractHandler {
                         AssetSelectorExpression.Builder.newInstance()
                                 .whenEquals(ASSET_PROPERTY_ID, assetId)
                                 .build())
-                .validity(Long.MAX_VALUE)
+                .validity(31536000) // valid for a year
                 .build();
 
         contractDefinitionStore.save(defaultContractDefinition);

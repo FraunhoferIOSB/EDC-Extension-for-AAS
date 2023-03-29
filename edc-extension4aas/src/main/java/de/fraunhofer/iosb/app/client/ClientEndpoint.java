@@ -20,6 +20,7 @@ import static java.lang.String.format;
 import java.net.URI;
 import java.net.URL;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
@@ -28,6 +29,7 @@ import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.spi.catalog.CatalogService;
 import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
+import org.eclipse.edc.spi.types.domain.HttpDataAddress;
 
 import de.fraunhofer.iosb.app.Logger;
 import de.fraunhofer.iosb.app.authentication.CustomAuthenticationRequestFilter;
@@ -116,7 +118,7 @@ public class ClientEndpoint {
     @POST
     @Path(NEGOTIATE_PATH)
     public Response negotiateContract(@QueryParam("providerUrl") URL providerUrl,
-            @QueryParam("assetId") String assetId) {
+            @QueryParam("assetId") String assetId, @QueryParam("dataDestinationUrl") URL dataDestinationUrl) {
         LOGGER.debug(format("Received a %s POST request", NEGOTIATE_PATH));
         Objects.requireNonNull(providerUrl, "Provider URL must not be null");
         Objects.requireNonNull(assetId, "Asset ID must not be null");
@@ -143,16 +145,7 @@ public class ClientEndpoint {
                     .build();
         }
 
-        try {
-            var dataFuture = transferInitiator.initiateTransferProcess(providerUrl, agreement.getId(), assetId);
-            var data = transferInitiator.waitForData(dataFuture, agreement.getId());
-            return Response.ok(data).build();
-        } catch (InterruptedException | ExecutionException negotiationException) {
-            LOGGER.error(format("Getting data failed for provider %s and agreementId %s", providerUrl,
-                    agreement.getId()), negotiationException);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(negotiationException.getMessage())
-                    .build();
-        }
+        return getData(providerUrl, agreement.getId(), assetId, dataDestinationUrl);
     }
 
     /**
@@ -219,12 +212,22 @@ public class ClientEndpoint {
     @GET
     @Path(TRANSFER_PATH)
     public Response getData(@QueryParam("providerUrl") URL providerUrl,
-            @QueryParam("agreementId") String agreementId, @QueryParam("assetId") String assetId) {
+            @QueryParam("agreementId") String agreementId, @QueryParam("assetId") String assetId,
+            @QueryParam("dataDestinationUrl") URL dataDestinationUrl) {
         Objects.requireNonNull(providerUrl, "Provider URL must not be null");
         Objects.requireNonNull(agreementId, "AgreementId must not be null");
         Objects.requireNonNull(assetId, "AssetId must not be null");
+
         try {
-            var dataFuture = transferInitiator.initiateTransferProcess(providerUrl, agreementId, assetId);
+            CompletableFuture<String> dataFuture;
+            if (Objects.isNull(dataDestinationUrl)) {
+                dataFuture = transferInitiator.initiateTransferProcess(providerUrl, agreementId, assetId);
+            } else {
+                var sinkAddress = HttpDataAddress.Builder.newInstance()
+                        .baseUrl(dataDestinationUrl.toString())
+                        .build();
+                dataFuture = transferInitiator.initiateTransferProcess(providerUrl, agreementId, assetId, sinkAddress);
+            }
             var data = transferInitiator.waitForData(dataFuture, agreementId);
             return Response.ok(data).build();
         } catch (InterruptedException | ExecutionException negotiationException) {

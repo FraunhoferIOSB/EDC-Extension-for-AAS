@@ -53,10 +53,15 @@ public class TransferInitiator {
     /**
      * Class constructor
      * 
-     * @param ownUri URL of this running EDC.
-     * @param transferProcessManager Initiating a transfer process as a consumer.
-     * @param observable Status updates for waiting data transfer requestors to avoid busy waiting.
-     * @param dataEndpointAuthenticationRequestFilter Creating and passing through custom api keys for each data transfer
+     * @param ownUri                                  URL of this running EDC.
+     * @param transferProcessManager                  Initiating a transfer process
+     *                                                as a consumer.
+     * @param observable                              Status updates for waiting
+     *                                                data transfer requestors to
+     *                                                avoid busy waiting.
+     * @param dataEndpointAuthenticationRequestFilter Creating and passing through
+     *                                                custom api keys for each data
+     *                                                transfer
      */
     public TransferInitiator(URI ownUri,
             TransferProcessManager transferProcessManager, DataTransferObservable observable,
@@ -75,29 +80,43 @@ public class TransferInitiator {
      * 
      * @param providerUrl The provider from whom the data is to be fetched.
      * @param agreementId Non-null ContractAgreement of the negotiation process.
-     * @param assetId The asset to be fetched.
+     * @param assetId     The asset to be fetched.
      * 
-     * @return A completable future whose result will be the data or an error message.
+     * @return A completable future whose result will be the data or an error
+     *         message.
      */
     public CompletableFuture<String> initiateTransferProcess(URL providerUrl, String agreementId, String assetId) {
+        var apiKey = UUID.randomUUID().toString();
+        dataEndpointAuthenticationRequestFilter.addTemporaryApiKey(DATA_TRANSFER_API_KEY, apiKey);
+
+        var dataDestination = HttpDataAddress.Builder.newInstance()
+                .baseUrl(new URIBuilder(ownUri)
+                        .addParameter("agreementId", agreementId)
+                        .toString())
+                .addAdditionalHeader(DATA_TRANSFER_API_KEY, apiKey) // API key for validation on consumer side
+                .build();
+
+        return initiateTransferProcess(providerUrl, agreementId, assetId, dataDestination);
+    }
+
+    public CompletableFuture<String> initiateTransferProcess(URL providerUrl, String agreementId, String assetId,
+            HttpDataAddress dataSinkAddress) {
         // Prepare for incoming data
         var dataFuture = new CompletableFuture<String>();
         observable.register(dataFuture, agreementId);
-        var apiKey = String.valueOf(agreementId.hashCode());
-        dataEndpointAuthenticationRequestFilter.addTemporaryApiKey(DATA_TRANSFER_API_KEY, apiKey);
+
         var dataRequest = DataRequest.Builder.newInstance()
                 .id(UUID.randomUUID().toString()) // this is not relevant, thus can be random
                 .connectorAddress(providerUrl.toString()) // the address of the provider connector
                 .protocol(PROTOCOL_IDS_MULTIPART)
                 .connectorId("consumer")
                 .assetId(assetId)
-                .dataDestination(HttpDataAddress.Builder.newInstance()
-                        .baseUrl(new URIBuilder(ownUri).addParameter("agreementId", agreementId).toString())
-                        .addAdditionalHeader(DATA_TRANSFER_API_KEY, apiKey) // API key for validation on consumer side
-                        .build())
+                .dataDestination(dataSinkAddress)
                 .transferType(
-                        TransferType.Builder.transferType().contentType(MediaType.APPLICATION_JSON)
-                                .isFinite(true).build())
+                        TransferType.Builder.transferType()
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .isFinite(true)
+                                .build())
                 .managedResources(false) // we do not need any provisioning
                 .contractId(agreementId)
                 .build();
@@ -107,6 +126,7 @@ public class TransferInitiator {
             throw new EdcException(transferProcessStatus.getFailureDetail());
         }
         return dataFuture;
+
     }
 
     /**

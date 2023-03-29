@@ -20,7 +20,6 @@ import static java.lang.String.format;
 import java.net.URI;
 import java.net.URL;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
@@ -214,27 +213,29 @@ public class ClientEndpoint {
     public Response getData(@QueryParam("providerUrl") URL providerUrl,
             @QueryParam("agreementId") String agreementId, @QueryParam("assetId") String assetId,
             @QueryParam("dataDestinationUrl") URL dataDestinationUrl) {
-        Objects.requireNonNull(providerUrl, "Provider URL must not be null");
-        Objects.requireNonNull(agreementId, "AgreementId must not be null");
-        Objects.requireNonNull(assetId, "AssetId must not be null");
+        Objects.requireNonNull(providerUrl, "providerUrl must not be null");
+        Objects.requireNonNull(agreementId, "agreementId must not be null");
+        Objects.requireNonNull(assetId, "assetId must not be null");
 
-        try {
-            CompletableFuture<String> dataFuture;
-            if (Objects.isNull(dataDestinationUrl)) {
-                dataFuture = transferInitiator.initiateTransferProcess(providerUrl, agreementId, assetId);
-            } else {
-                var sinkAddress = HttpDataAddress.Builder.newInstance()
-                        .baseUrl(dataDestinationUrl.toString())
+        if (Objects.isNull(dataDestinationUrl)) {
+            try {
+                var dataFuture = transferInitiator.initiateTransferProcess(providerUrl, agreementId, assetId);
+                var data = transferInitiator.waitForData(dataFuture, agreementId);
+                return Response.ok(data).build();
+
+            } catch (InterruptedException | ExecutionException negotiationException) {
+                LOGGER.error(format("Getting data failed for provider %s and agreementId %s", providerUrl,
+                        agreementId), negotiationException);
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(negotiationException.getMessage())
                         .build();
-                dataFuture = transferInitiator.initiateTransferProcess(providerUrl, agreementId, assetId, sinkAddress);
             }
-            var data = transferInitiator.waitForData(dataFuture, agreementId);
-            return Response.ok(data).build();
-        } catch (InterruptedException | ExecutionException negotiationException) {
-            LOGGER.error(format("Getting data failed for provider %s and agreementId %s", providerUrl,
-                    agreementId), negotiationException);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(negotiationException.getMessage())
+        } else {
+            var sinkAddress = HttpDataAddress.Builder.newInstance()
+                    .baseUrl(dataDestinationUrl.toString())
                     .build();
+            // Don't need future as the EDC does not receive the data
+            transferInitiator.initiateTransferProcess(providerUrl, agreementId, assetId, sinkAddress);
+            return Response.ok(format("Data transfer request to URL %s sent.", dataDestinationUrl)).build();
         }
     }
 

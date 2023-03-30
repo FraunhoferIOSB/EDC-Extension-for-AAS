@@ -84,7 +84,12 @@ public class TransferInitiator {
      * 
      * @return A completable future whose result will be the data or an error
      *         message.
+     *
+     * @deprecated use
+     *             {@link #initiateTransferProcess(URL, String, String, HttpDataAddress)}
+     *             instead.
      */
+    @Deprecated
     public CompletableFuture<String> initiateTransferProcess(URL providerUrl, String agreementId, String assetId) {
         var apiKey = UUID.randomUUID().toString();
         dataEndpointAuthenticationRequestFilter.addTemporaryApiKey(DATA_TRANSFER_API_KEY, apiKey);
@@ -99,6 +104,20 @@ public class TransferInitiator {
         return initiateTransferProcess(providerUrl, agreementId, assetId, dataDestination);
     }
 
+    /**
+     * Initiates the transfer process defined by the arguments. The data of the
+     * transfer will be sent to {@link ClientEndpoint#RECEIVE_DATA_PATH}.
+     * 
+     * @param providerUrl     The provider from whom the data is to be fetched.
+     * @param agreementId     Non-null ContractAgreement of the negotiation process.
+     * @param assetId         The asset to be fetched.
+     * @param dataSinkAddress HTTPDataAddress the result of the transfer should be
+     *                        sent to.
+     * 
+     * @return A completable future whose result will be the data or an error
+     *         message.
+     *
+     */
     public CompletableFuture<String> initiateTransferProcess(URL providerUrl, String agreementId, String assetId,
             HttpDataAddress dataSinkAddress) {
         // Prepare for incoming data

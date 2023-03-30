@@ -52,10 +52,10 @@ Provide digital twin (AAS) data to business partners in Data Spaces like Catena-
 
 | HTTP Method | Interface (edc:1234/api/...) ((a) = only for authenticated users) | Parameters ((r) = required) | Description |
 | :----| :----| :---- | :-------------------- |
-| POST | negotiate (a) | Query Parameter "providerUrl": URL (r), Query Parameter "assetId": String (r) | Perform an automated contract negotiation with a provider and get the data stored in the specified asset.
+| POST | negotiate (a) | Query Parameter "providerUrl": URL (r), Query Parameter "assetId": String (r), Query Parameter "dataDestinationUrl" | Perform an automated contract negotiation with a provider and get the data stored in the specified asset. Optionally, a data destination URL can be specified where the data is sent to on success.
 | GET | contractOffers (a) | Query Parameter "providerUrl": URL (r), Query Parameter "assetId": String (r) | Get all offered ContractOffers from the specified provider that contain the specified asset as data.
 | POST | negotiateContract (a) | Query Parameter "providerUrl": URL (r), request body: contractOffer (r) | Using a contractOffer and a providerUrl, negotiate a contract. Returns an agreementId on success.
-| GET | transfer (a) | Query Parameter "providerUrl": URL (r), Query Parameter "agreementId": String (r), Query Parameter "assetId": String (r) | Submits a data transfer request to the providerUrl. On success, returns the data behind the specified asset.
+| GET | transfer (a) | Query Parameter "providerUrl": URL (r), Query Parameter "agreementId": String (r), Query Parameter "assetId": String (r), Query Parameter "dataDestinationUrl" | Submits a data transfer request to the providerUrl. On success, returns the data behind the specified asset. Optionally, a data destination URL can be specified where the data is then sent to.
 | POST | contractOffers (a) | request body: List of ContractOffers (JSON) (r) | Adds the given ContractOffers to the accepted ContractOffers list: On fully automated negotiation, the provider's ContractOffer is matched against the consumer's accepted ContractOffer list. If any ContractOffer's policies fit the provider's, the negotiation continues.
 | GET | agreements (a) | Query Parameter "providerUrl": URL, Query Parameter "assetId": String | Get agreements for already negotiated contracts. These agreements are stored within the extension.
 | DELETE | agreements (a) | Query Parameter "agreementId": String (r) | Remove an agremeent of an already negotiated contract.
@@ -67,9 +67,12 @@ Provide digital twin (AAS) data to business partners in Data Spaces like Catena-
 | de.fraunhofer.iosb.ilt.faaast.service:starter | [FA³ST Service](https://github.com/FraunhoferIOSB/FAAAST-Service) to start AAS services internally.
 | io.admin-shell.aas:dataformat-json | [admin-shell-io java serializer](https://github.com/admin-shell-io/java-serializer) (de-)serialize AAS models
 | io.admin-shell.aas:model | [admin-shell-io java model](https://github.com/admin-shell-io/java-model) (de-)serialize AAS models
-| org.eclipse.edc:data-management-api | EDC asset/contract management
+| org.eclipse.edc:management-api | EDC asset/contract management
 | com.squareup.okhttp3:okhttp | Send HTTP requests to AAS services
 | jakarta.ws.rs:jakarta.ws.rs-api | provides HTTP endpoints of extension
+| org.eclipse.edc:catalog-api | Client: provider catalog access
+| org.eclipse.edc:contract-core | Client: contract agreement etc. access
+
 
 ### Configurations
 
@@ -101,6 +104,6 @@ Provide digital twin (AAS) data to business partners in Data Spaces like Catena-
 
 ## Roadmap
 Features in development:
-- Graphical interface to simplify providing and requesting AAS
+- Graphical interface to simplify providing and requesting AAS (see: https://github.com/FraunhoferIOSB/EDC-Extension-for-AAS-Dashboard)
 - Built-in client to request AAS data from other EDC (automatic contract negotiation)
 - Docker Hub container deployment

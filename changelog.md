@@ -2,9 +2,27 @@
 
 ## Current development version 
 
+
 **New Features**
 
 * Support of **Eclipse Dataspace Connection v0.0.1-Milestone 8**
+
+* Client Service
+    * Add custom HTTP endpoints for data transfers
+
+**Bugfixes**
+
+* Postman collection
+    * Fix some old requests
+* ContractDefinitions created by extension
+    * Validity was set to max float value, is now set to 1 year (default)
+* Dependencies
+    * Add data flow controller dependency
+
+## V1.0.0-alpha2
+This version is compatible to **Eclipse Dataspace Connection v0.0.1-Milestone 7**
+
+**New Features**
 
 * Client Service
     * Add functionality for automatically negotiating and requesting data from a provider EDC

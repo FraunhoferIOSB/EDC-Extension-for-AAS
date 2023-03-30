@@ -16,6 +16,7 @@ import java.net.URL;
 import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.spi.types.domain.HttpDataAddress;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -43,6 +44,15 @@ public class TransferInitiatorTest {
         when(mockStatusResult.failed()).thenReturn(false);
         transferInitiator.initiateTransferProcess(new URL("http://provider-url:1234"), "test-agreement-id",
         "test-asset");
+        verify(mockTransferProcessManager, times(1)).initiateConsumerRequest(any());
+    }
+
+    @Test
+    void testInitiateTransferProcessCustomDataAddress() throws MalformedURLException {
+        when(mockStatusResult.failed()).thenReturn(false);
+        var dataSink = HttpDataAddress.Builder.newInstance().baseUrl("http://example.com").build();
+        transferInitiator.initiateTransferProcess(new URL("http://provider-url:1234"), "test-agreement-id",
+        "test-asset", dataSink);
         verify(mockTransferProcessManager, times(1)).initiateConsumerRequest(any());
     }
 

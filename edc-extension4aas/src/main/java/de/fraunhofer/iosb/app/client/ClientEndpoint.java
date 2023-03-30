@@ -124,7 +124,7 @@ public class ClientEndpoint {
 
         ContractOffer contractOffer;
         try {
-            contractOffer = contractOfferService.getContractForAssetId(providerUrl, assetId);
+            contractOffer = contractOfferService.getAcceptableContractForAssetId(providerUrl, assetId);
         } catch (InterruptedException negotiationException) {
             LOGGER.error(format("Getting contractOffers failed for provider %s and asset %s", providerUrl,
                     assetId), negotiationException);

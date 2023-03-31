@@ -13,22 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.app.model.aas.util;
+package de.fraunhofer.iosb.app.util;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+
+import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShellEnvironment;
 import de.fraunhofer.iosb.app.model.aas.CustomSubmodel;
 import de.fraunhofer.iosb.app.model.aas.CustomSubmodelElement;
 import de.fraunhofer.iosb.app.model.aas.CustomSubmodelElementCollection;
+import de.fraunhofer.iosb.app.model.aas.IdsAssetElement;
 import io.adminshell.aas.v3.model.Submodel;
 import io.adminshell.aas.v3.model.SubmodelElement;
 import io.adminshell.aas.v3.model.SubmodelElementCollection;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Objects;
+public final class AASUtil {
 
-public final class SubmodelUtil {
-
-    private SubmodelUtil() {
+    private AASUtil() {
     }
 
     /**
@@ -41,6 +44,18 @@ public final class SubmodelUtil {
             Submodel submodel) {
         Objects.requireNonNull(submodel);
         return unpackElements(submodel.getSubmodelElements());
+    }
+
+    /*
+     * Returns all AAS elements in a flattened list format.
+     */
+    public static List<? extends IdsAssetElement> getAllElements(CustomAssetAdministrationShellEnvironment env) {
+        var allElements = new ArrayList<IdsAssetElement>();
+        allElements.addAll(env.getConceptDescriptions());
+        allElements.addAll(env.getAssetAdministrationShells());
+        allElements.addAll(env.getSubmodels());
+        env.getSubmodels().forEach(submodel -> allElements.addAll(AASUtil.getAllSubmodelElements(submodel)));
+        return allElements;
     }
 
     /**

@@ -4,7 +4,6 @@ import static java.lang.String.format;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -21,8 +20,8 @@ import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShellEnvironmen
 import de.fraunhofer.iosb.app.model.aas.CustomSubmodel;
 import de.fraunhofer.iosb.app.model.aas.CustomSubmodelElement;
 import de.fraunhofer.iosb.app.model.aas.IdsAssetElement;
-import de.fraunhofer.iosb.app.model.aas.util.SubmodelUtil;
 import de.fraunhofer.iosb.app.model.ids.SelfDescription;
+import de.fraunhofer.iosb.app.util.AASUtil;
 import io.adminshell.aas.v3.dataformat.DeserializationException;
 import jakarta.ws.rs.core.MediaType;
 
@@ -85,13 +84,13 @@ public class Synchronizer {
 
         // All elements that are new are now added to the EDC
         // AssetIndex/ContractDefinitionStore
-        addAssetsContracts(getAllElements(newEnvironment).stream()
+        addAssetsContracts(AASUtil.getAllElements(newEnvironment).stream()
                 .filter(element -> Objects.isNull(element.getIdsContractId())).collect(Collectors.toList()));
 
-        var oldElements = getAllElements(oldEnvironment);
+        var oldElements = AASUtil.getAllElements(oldEnvironment);
         // Important: Equality is when identification & idShort & containing elements
         // are equal
-        oldElements.removeAll(getAllElements(newEnvironment));
+        oldElements.removeAll(AASUtil.getAllElements(newEnvironment));
         removeAssetsContracts(oldElements);
 
         // Finally, update the self description
@@ -110,8 +109,8 @@ public class Synchronizer {
     private void syncConceptDescription(CustomAssetAdministrationShellEnvironment newEnvironment,
             CustomAssetAdministrationShellEnvironment oldEnvironment) {
         var oldConceptDescriptions = oldEnvironment.getConceptDescriptions();
-        newEnvironment.getConceptDescriptions()
-                .replaceAll(conceptDescription -> oldConceptDescriptions.contains(conceptDescription)
+        newEnvironment.getConceptDescriptions().replaceAll(
+                conceptDescription -> oldConceptDescriptions.contains(conceptDescription)
                         ? oldConceptDescriptions.get(oldConceptDescriptions.indexOf(conceptDescription))
                         : conceptDescription);
     }
@@ -121,8 +120,7 @@ public class Synchronizer {
         var oldSubmodels = oldEnvironment.getSubmodels();
         newEnvironment.getSubmodels().forEach(submodel -> {
             CustomSubmodel oldSubmodel;
-
-            if (oldSubmodels.indexOf(submodel) > -1) {
+            if (oldSubmodels.contains(submodel)) {
                 oldSubmodel = oldSubmodels
                         .get(oldSubmodels.indexOf(submodel));
             } else {
@@ -137,8 +135,8 @@ public class Synchronizer {
 
             submodel.setIdsAssetId(oldSubmodel.getIdsAssetId());
             submodel.setIdsContractId(oldSubmodel.getIdsContractId());
-            var allElements = SubmodelUtil.getAllSubmodelElements(submodel);
-            var allOldElements = SubmodelUtil.getAllSubmodelElements(oldSubmodel);
+            var allElements = AASUtil.getAllSubmodelElements(submodel);
+            var allOldElements = AASUtil.getAllSubmodelElements(oldSubmodel);
             syncSubmodelElements(allElements, allOldElements);
         });
     }
@@ -157,7 +155,7 @@ public class Synchronizer {
 
     private void initSelfDescriptionAndAssetIndex(URL aasServiceUrl,
             CustomAssetAdministrationShellEnvironment newEnvironment) {
-        addAssetsContracts(getAllElements(newEnvironment));
+        addAssetsContracts(AASUtil.getAllElements(newEnvironment));
         selfDescriptionRepository.put(aasServiceUrl, new SelfDescription(newEnvironment));
     }
 
@@ -183,17 +181,4 @@ public class Synchronizer {
             resourceController.deleteContract(element.getIdsContractId());
         });
     }
-
-    /*
-     * Returns all AAS elements in a flattened list format.
-     */
-    private List<? extends IdsAssetElement> getAllElements(CustomAssetAdministrationShellEnvironment env) {
-        var allElements = new ArrayList<IdsAssetElement>();
-        allElements.addAll(env.getConceptDescriptions());
-        allElements.addAll(env.getAssetAdministrationShells());
-        allElements.addAll(env.getSubmodels());
-        env.getSubmodels().forEach(submodel -> allElements.addAll(SubmodelUtil.getAllSubmodelElements(submodel)));
-        return allElements;
-    }
-
 }

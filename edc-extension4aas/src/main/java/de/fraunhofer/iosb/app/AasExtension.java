@@ -59,7 +59,7 @@ import de.fraunhofer.iosb.app.sync.Synchronizer;
 import okhttp3.OkHttpClient;
 
 /**
- * Extension providing/connecting EDC logic to the EDC-AAS-Application.
+ * EDC Extension supporting usage of Asset Administration Shells.
  */
 public class AasExtension implements ServiceExtension {
 
@@ -115,6 +115,7 @@ public class AasExtension implements ServiceExtension {
             endpoint.postAasEnvironment(configInstance.getLocalAasModelPath(), configInstance.getAasServiceConfigPath(),
                     configInstance.getLocalAasServicePort());
         }
+
         var synchronizer = new Synchronizer(selfDescriptionRepository, aasController, resourceController);
         // Task: get all AAS service URLs, synchronize EDC and AAS
         syncExecutor.scheduleAtFixedRate(

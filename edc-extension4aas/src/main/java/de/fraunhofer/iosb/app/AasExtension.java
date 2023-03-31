@@ -19,8 +19,8 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -55,6 +55,7 @@ import de.fraunhofer.iosb.app.controller.ConfigurationController;
 import de.fraunhofer.iosb.app.controller.ResourceController;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import de.fraunhofer.iosb.app.model.ids.SelfDescription;
+import de.fraunhofer.iosb.app.sync.Synchronizer;
 import okhttp3.OkHttpClient;
 
 /**
@@ -95,11 +96,11 @@ public class AasExtension implements ServiceExtension {
         logger.setMonitor(context.getMonitor());
 
         // Distribute controllers, repositories
-        var selfDescriptionRepository = new ConcurrentHashMap<URL, SelfDescription>();
+        var selfDescriptionRepository = new HashMap<URL, SelfDescription>();
         aasController = new AasController(okHttpClient);
-
+        var resourceController = new ResourceController(assetIndex, contractStore, policyStore);
         var endpoint = new Endpoint(selfDescriptionRepository, aasController,
-                new ResourceController(assetIndex, contractStore, policyStore));
+                resourceController);
 
         loadConfig(context);
         var configInstance = Configuration.getInstance();
@@ -114,11 +115,10 @@ public class AasExtension implements ServiceExtension {
             endpoint.postAasEnvironment(configInstance.getLocalAasModelPath(), configInstance.getAasServiceConfigPath(),
                     configInstance.getLocalAasServicePort());
         }
-
+        var synchronizer = new Synchronizer(selfDescriptionRepository, aasController, resourceController);
         // Task: get all AAS service URLs, synchronize EDC and AAS
         syncExecutor.scheduleAtFixedRate(
-                () -> selfDescriptionRepository.keys().asIterator()
-                        .forEachRemaining(url -> endpoint.syncAasWithEdc(url)),
+                () -> synchronizer.synchronize(),
                 configInstance.getSyncPeriod(),
                 configInstance.getSyncPeriod(), TimeUnit.SECONDS);
 

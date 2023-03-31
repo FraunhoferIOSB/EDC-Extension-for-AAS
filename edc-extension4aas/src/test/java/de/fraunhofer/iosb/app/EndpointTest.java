@@ -19,27 +19,20 @@ import static java.lang.String.format;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
-import static org.mockserver.integration.ClientAndServer.startClientAndServer;
-import static org.mockserver.model.HttpRequest.request;
-import static org.mockserver.model.HttpResponse.response;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockserver.integration.ClientAndServer;
-import org.mockserver.matchers.Times;
 
 import de.fraunhofer.iosb.app.controller.AasController;
 import de.fraunhofer.iosb.app.controller.ConfigurationController;
@@ -53,23 +46,17 @@ import okhttp3.OkHttpClient;
 
 /**
  * Not mocking the controllers this endpoint uses, as the mocking/validation
- * process would
- * be pretty complex. Mocking the AAS service instead.
+ * process would be pretty complex. Mocking the AAS service instead.
+ * Note: Synchronization now happens outside of the endpoint, so the
+ * selfDescription will be null after requests
  */
 public class EndpointTest {
 
     private static final String CONFIG_VALUE_PREFIX = "edc.aas.";
-    private static ClientAndServer mockServer;
-
-    private String shells = FileManager.loadResource("shells.json");
-    private String submodels = FileManager.loadResource("submodels.json");
-    private String submodelsNoSubmodelElements = FileManager.loadResource("submodelsNoSubmodelElements.json");
-    private String submodelsWithUpdatedSubmodelElement = FileManager
-            .loadResource("submodelsWithUpdatedSubmodelElement.json");
-    private String conceptDescriptions = FileManager.loadResource("conceptDescriptions.json");
-    private Endpoint endpoint;
     private static int port;
     private static URL url;
+
+    private Endpoint endpoint;
 
     private Map<URL, SelfDescription> mockedSelfDescriptionRepo;
 
@@ -78,12 +65,11 @@ public class EndpointTest {
         Logger.getInstance().setMonitor(mock(Monitor.class));
         port = 8080;
         url = new URL(format("http://localhost:%s", port));
-
     }
 
     @BeforeEach
     public void setupEndpoint() {
-        mockedSelfDescriptionRepo = new ConcurrentHashMap<URL, SelfDescription>();
+        mockedSelfDescriptionRepo = new HashMap<URL, SelfDescription>();
         endpoint = new Endpoint(
                 mockedSelfDescriptionRepo,
                 new AasController(
@@ -94,13 +80,6 @@ public class EndpointTest {
                         mock(PolicyDefinitionStore.class)));
     }
 
-    @AfterEach
-    public void shutdownMockServer() {
-        if (Objects.nonNull(mockServer) && mockServer.isRunning()) {
-            mockServer.stop();
-        }
-    }
-
     @Test
     public void getSelfDescriptionWithParamTest() {
         assertEquals(Response.Status.NOT_FOUND.getStatusCode(), endpoint.getSelfDescription(url).getStatus());
@@ -108,11 +87,8 @@ public class EndpointTest {
 
     @Test
     public void getSelfDescriptionTest() throws IOException {
-        startMockServer(port);
-        prepareDefaultMockedResponse();
         endpoint.postAasService(url);
-        assertEquals(FileManager.loadResource("selfDescriptionWithIdsInList.json"),
-                endpoint.getSelfDescription(null).getEntity());
+        assertEquals("[]", endpoint.getSelfDescription(null).getEntity());
     }
 
     @Test
@@ -146,19 +122,15 @@ public class EndpointTest {
 
     @Test
     public void postAasServiceTest() throws IOException {
-        startMockServer(port);
-        prepareEmptyMockedResponse();
         endpoint.postAasService(url);
-        assertEquals("{\"assetAdministrationShells\":[],\"submodels\":[],\"conceptDescriptions\":[]}",
-                mockedSelfDescriptionRepo.get(url).toString());
+        assertEquals(null, mockedSelfDescriptionRepo.get(url));
     }
 
     @Test
     public void postAasEnvironmentTest() throws IOException {
         endpoint.postAasEnvironment("src/test/resources/aasEnvironment.json", null, port);
 
-        assertEquals(FileManager.loadResource("selfDescriptionWithIds.json"),
-                mockedSelfDescriptionRepo.get(new URL("http://localhost:8080")).toString());
+        assertEquals(null, mockedSelfDescriptionRepo.get(url));
 
         endpoint.removeAasService(url);
     }
@@ -167,115 +139,25 @@ public class EndpointTest {
     public void removeAasServiceTest() throws IOException {
         endpoint.postAasEnvironment("src/test/resources/aasEnvironment.json", null, port);
 
-        assertEquals(FileManager.loadResource("selfDescriptionWithIds.json"),
-                mockedSelfDescriptionRepo.get(url).toString());
+        assertEquals(null, mockedSelfDescriptionRepo.get(url));
 
         endpoint.removeAasService(url);
 
-        assertEquals(null, mockedSelfDescriptionRepo.get(url));
+        assertEquals(false, mockedSelfDescriptionRepo.containsKey(url));
     }
 
     @Test
     public void putAasRequestTest() throws IOException {
-        startMockServer(port);
-        prepareDefaultMockedResponse();
         endpoint.postAasService(url);
-        // prepare updated SubmodelElement mocked response
-        mockServer.when(request().withMethod("PUT"), Times.exactly(1)).respond(response().withStatusCode(200));
-
-        mockServer.when(request().withMethod("GET").withPath("/shells"), Times.exactly(1))
-                .respond(response().withBody(shells));
-        mockServer.when(request().withMethod("GET").withPath("/submodels"), Times.exactly(1))
-                .respond(response().withBody(submodelsWithUpdatedSubmodelElement));
-        mockServer.when(request().withMethod("GET").withPath("/concept-descriptions"), Times.exactly(1))
-                .respond(response().withBody(conceptDescriptions));
 
         endpoint.putAasRequest(new URL(format(url.toString(), "/submodels/",
                 Encoder.encodeBase64("https://example.com/ids/sm/4445_8090_6012_7409"),
                 "/submodel-elements/GripperUp")),
                 FileManager.loadResource("submodelElement.json"));
 
-        assertEquals(FileManager.loadResource("selfDescriptionWithUpdatedSubmodelElement.json"),
-                mockedSelfDescriptionRepo.get(url).toString());
-    }
-
-    @Test
-    public void synchronizationRemoveAllTest() throws IOException {
-        EndpointTest.startMockServer(port);
-        prepareDefaultMockedResponse();
-
-        endpoint.postAasService(url);
-        assertEquals(FileManager.loadResource("selfDescriptionWithIds.json"),
-                mockedSelfDescriptionRepo.get(url).toString());
-
-        prepareEmptyMockedResponse();
-        endpoint.syncAasWithEdc(url);
-        assertEquals("{\"assetAdministrationShells\":[],\"submodels\":[],\"conceptDescriptions\":[]}",
-                mockedSelfDescriptionRepo.get(url).toString());
-    }
-
-    /**
-     * Also tests whether a submodel/SMC is reloaded into AssetIndex/ContractStore
-     * if
-     * only its submodelElements were modified (should not happen)
-     */
-    @Test
-    public void synchronizationRemoveSubmodelElementTest() throws IOException {
-        EndpointTest.startMockServer(port);
-        prepareDefaultMockedResponse();
-
-        endpoint.postAasService(url);
-        assertEquals(FileManager.loadResource("selfDescriptionWithIds.json"),
-                mockedSelfDescriptionRepo.get(url).toString());
-
-        // prepare "removed SubmodelElement" mocked response
-        mockServer.when(request().withMethod("GET").withPath("/shells"), Times.exactly(1))
-                .respond(response().withBody(shells));
-        mockServer.when(request().withMethod("GET").withPath("/submodels"), Times.exactly(1))
-                .respond(response().withBody(submodelsNoSubmodelElements));
-        mockServer.when(request().withMethod("GET").withPath("/concept-descriptions"), Times.exactly(1))
-                .respond(response().withBody(conceptDescriptions));
-
-        endpoint.syncAasWithEdc(url);
-        assertEquals(FileManager.loadResource("selfDescriptionWithIdsNoSubmodelElements.json"),
-                mockedSelfDescriptionRepo.get(url).toString());
-    }
-
-    @Test
-    public void synchronizationAddTest() throws IOException {
-        EndpointTest.startMockServer(port);
-        prepareEmptyMockedResponse();
-
-        endpoint.postAasService(url);
-        assertEquals("{\"assetAdministrationShells\":[],\"submodels\":[],\"conceptDescriptions\":[]}",
-                mockedSelfDescriptionRepo.get(url).toString());
-        prepareDefaultMockedResponse();
-
-        endpoint.syncAasWithEdc(url);
-        assertEquals(FileManager.loadResource("selfDescriptionWithIds.json"),
-                mockedSelfDescriptionRepo.get(url).toString());
-    }
-
-    private void prepareDefaultMockedResponse() {
-        mockServer.when(request().withMethod("GET").withPath("/shells"), Times.exactly(1))
-                .respond(response().withBody(shells));
-        mockServer.when(request().withMethod("GET").withPath("/submodels"), Times.exactly(1))
-                .respond(response().withBody(submodels));
-        mockServer.when(request().withMethod("GET").withPath("/concept-descriptions"), Times.exactly(1))
-                .respond(response().withBody(conceptDescriptions));
-    }
-
-    private void prepareEmptyMockedResponse() {
-        mockServer.when(request().withMethod("GET").withPath("/shells"), Times.exactly(1))
-                .respond(response().withBody("[]"));
-        mockServer.when(request().withMethod("GET").withPath("/submodels"), Times.exactly(1))
-                .respond(response().withBody("[]"));
-        mockServer.when(request().withMethod("GET").withPath("/concept-descriptions"), Times.exactly(1))
-                .respond(response().withBody("[]"));
-    }
-
-    private static void startMockServer(int port) throws IOException {
-        mockServer = startClientAndServer(port);
+        // Still null: not synchronized by Synchronizer
+        assertEquals(null,
+                mockedSelfDescriptionRepo.get(url));
     }
 
 }

@@ -29,6 +29,7 @@ import org.apache.http.client.utils.URIBuilder;
 import org.eclipse.edc.api.auth.spi.AuthenticationService;
 import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationObservable;
+import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.connector.spi.catalog.CatalogService;
@@ -73,6 +74,8 @@ public class AasExtension implements ServiceExtension {
     private ContractDefinitionStore contractStore;
     @Inject
     private ContractNegotiationObservable contractNegotiationObservable;
+    @Inject
+    private ContractNegotiationStore contractNegotiationStore;
     @Inject
     private OkHttpClient okHttpClient;
     @Inject
@@ -141,7 +144,7 @@ public class AasExtension implements ServiceExtension {
         var observable = new DataTransferObservable();
         var dataTransferEndpoint = new DataTransferEndpoint(observable);
         webService.registerResource(
-                new ClientEndpoint(ownUri, catalogService, consumerNegotiationManager,
+                new ClientEndpoint(ownUri, catalogService, consumerNegotiationManager, contractNegotiationStore,
                         contractNegotiationObservable, transferProcessManager, observable,
                         authenticationRequestFilter));
         webService.registerResource(dataTransferEndpoint);

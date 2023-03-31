@@ -22,6 +22,7 @@ import static org.mockito.Mockito.when;
 import org.eclipse.edc.api.auth.spi.AuthenticationService;
 import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationObservable;
+import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.connector.spi.catalog.CatalogService;
@@ -54,6 +55,7 @@ public class AasExtensionTest {
         context.registerService(ConsumerContractNegotiationManager.class,
                 mock(ConsumerContractNegotiationManager.class));
         context.registerService(ContractDefinitionStore.class, mock(ContractDefinitionStore.class));
+        context.registerService(ContractNegotiationStore.class, mock(ContractNegotiationStore.class));
         context.registerService(ContractNegotiationObservable.class, mock(ContractNegotiationObservable.class));
         context.registerService(OkHttpClient.class, mock(OkHttpClient.class));
         context.registerService(PolicyDefinitionStore.class, mock(PolicyDefinitionStore.class));
@@ -70,7 +72,7 @@ public class AasExtensionTest {
         // Singleton testing is fun
         Configuration.getInstance().setRemoteAasLocation(null);
         Configuration.getInstance().setLocalAasModelPath(null);
-        
+
         extension = factory.constructInstance(AasExtension.class);
     }
 

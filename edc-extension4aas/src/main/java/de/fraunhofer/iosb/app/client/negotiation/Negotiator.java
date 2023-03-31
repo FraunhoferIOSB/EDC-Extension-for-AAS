@@ -22,14 +22,17 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
 import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationObservable;
+import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferRequest;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.query.QuerySpec;
 
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
 
@@ -42,23 +45,27 @@ public class Negotiator {
 
     private final ConsumerContractNegotiationManager consumerNegotiationManager;
     private final ClientContractNegotiationListener listener;
+    private final ContractNegotiationStore contractNegotiationStore;
 
     /**
      * Class constructor
      * 
      * @param consumerNegotiationManager Initiating a negotiation as a consumer.
-     * @param observable Status updates for waiting data transfer requestors to avoid busy waiting.
+     * @param observable                 Status updates for waiting data transfer
+     *                                   requestors to avoid busy waiting.
+     * @param contractNegotiationStore   Check for existing agreements before negotiating
      */
     public Negotiator(ConsumerContractNegotiationManager consumerNegotiationManager,
-            ContractNegotiationObservable observable) {
+            ContractNegotiationObservable observable, ContractNegotiationStore contractNegotiationStore) {
         this.consumerNegotiationManager = consumerNegotiationManager;
+        this.contractNegotiationStore = contractNegotiationStore;
 
         listener = new ClientContractNegotiationListener();
         observable.registerListener(listener);
     }
 
     /**
-     * Negotiate a contract agreement using the given contract offer.
+     * Negotiate a contract agreement using the given contract offer if no agreement exists for this constellation.
      * 
      * @param providerUrl   The provider of the data.
      * @param contractOffer The object of negotiation.
@@ -78,6 +85,15 @@ public class Negotiator {
                 .contractOffer(contractOffer)
                 .protocol(PROTOCOL_IDS_MULTIPART)
                 .build();
+
+        var previousAgreements = contractNegotiationStore.queryAgreements(QuerySpec.max());
+        var relevantAgreements = previousAgreements
+                .filter(agreement -> agreement.getAssetId().equals(contractOffer.getAsset().getId()))
+                .filter(agreement -> agreement.getProviderAgentId().equals(contractOffer.getProvider().toString()))
+                .collect(Collectors.toList());
+        if (relevantAgreements.size() > 0) { // An agreement exists for this asset & provider
+            return relevantAgreements.get(0); // Pick first agreement, hope contractNegotiationStore removes invalid agreements
+        }
 
         var result = consumerNegotiationManager.initiate(contractOfferRequest);
         if (result.succeeded()) {

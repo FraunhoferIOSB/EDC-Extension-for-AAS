@@ -16,6 +16,7 @@ import java.util.concurrent.Executors;
 import org.eclipse.edc.connector.contract.observe.ContractNegotiationObservableImpl;
 import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationObservable;
+import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
@@ -27,12 +28,14 @@ public class NegotiatorTest {
 
     private final ConsumerContractNegotiationManager consumerNegotiationManager = mock(
             ConsumerContractNegotiationManager.class);
+    private final ContractNegotiationStore contractNegotiationStore = mock(
+        ContractNegotiationStore.class);
     private final ContractNegotiationObservable observable = new ContractNegotiationObservableImpl();
     private Negotiator clientNegotiator;
 
     @BeforeEach
     void initializeClientNegotiator() throws IOException {
-        clientNegotiator = new Negotiator(consumerNegotiationManager, observable);
+        clientNegotiator = new Negotiator(consumerNegotiationManager, observable, contractNegotiationStore);
     }
 
     @Test

@@ -116,8 +116,10 @@ public class EndpointTest {
     public void postFalseAasServiceTest() throws MalformedURLException {
         endpoint.postAasService(new URL("http://example.com/aas"));
 
-        // No selfDescription has been added
-        assertEquals(0, mockedSelfDescriptionRepo.values().size());
+        // No selfDescription has been added, but the URL will still be periodically
+        // polled until the service is deleted via http request again or any AAS output
+        // is returned by the URL.
+        assertEquals(1, mockedSelfDescriptionRepo.values().size());
     }
 
     @Test

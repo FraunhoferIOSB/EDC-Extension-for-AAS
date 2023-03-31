@@ -86,6 +86,7 @@ Provide digital twin (AAS) data to business partners in Data Spaces like Catena-
 |edc.aas.exposeSelfDescription| True/False| Whether the Self Description should be exposed on {edc}/api/selfDescription. When set to False, the selfDescription is still available for authenticated requests.|
 |edc.aas.defaultAccessPolicyPath|path |Path to an access policy file (JSON). This policy will be used as the default access policy for all assets created after the configuration value has been set.|
 |edc.aas.defaultContractPolicyPath|path |Path to a contract policy file (JSON). This policy will be used as the default contract policy for all assets created after the configuration value has been set.|
+|edc.aas.defaultContractValidity|long value in seconds| "Number of seconds during which contract is valid starting from startDate." |
 
 #### **Client Configurations**
 

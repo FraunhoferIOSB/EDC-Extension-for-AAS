@@ -15,11 +15,11 @@
  */
 package de.fraunhofer.iosb.app.model.configuration;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-
 import java.net.URL;
 import java.util.Objects;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 /**
  * Singleton class.
@@ -47,6 +47,7 @@ public class Configuration {
     private int waitForAgreementTimeout = 10; // Seconds
     private boolean acceptAllProviderOffers = false;
     private String acceptedContractOffersPath;
+    private long defaultContractValidity = 31536000; // Seconds (default: 1 year)
 
     public static synchronized Configuration getInstance() {
         if (Objects.isNull(instance)) {
@@ -154,6 +155,15 @@ public class Configuration {
         this.defaultContractPolicyPath = defaultContractPolicyPath;
     }
 
+    public long getDefaultContractValidity() {
+        return defaultContractValidity;
+    }
+
+    @JsonProperty(SETTINGS_PREFIX + "defaultcontractvalidity")
+    public void setDefaultContractValidity(long defaultContractValidity) {
+        this.defaultContractValidity = defaultContractValidity;
+    }
+
     public int getWaitForAgreementTimeout() {
         return waitForAgreementTimeout;
     }
@@ -180,7 +190,7 @@ public class Configuration {
     public void setAcceptAllProviderOffers(boolean acceptAllProviderOffers) {
         this.acceptAllProviderOffers = acceptAllProviderOffers;
     }
-        
+
     public String getAcceptedContractOffersPath() {
         return acceptedContractOffersPath;
     }

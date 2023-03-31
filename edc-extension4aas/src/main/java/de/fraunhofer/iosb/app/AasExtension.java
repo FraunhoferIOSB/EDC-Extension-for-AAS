@@ -120,13 +120,13 @@ public class AasExtension implements ServiceExtension {
         // Task: get all AAS service URLs, synchronize EDC and AAS
         syncExecutor.scheduleAtFixedRate(
                 () -> synchronizer.synchronize(),
-                configInstance.getSyncPeriod(),
+                1,
                 configInstance.getSyncPeriod(), TimeUnit.SECONDS);
 
         webService.registerResource(endpoint);
+
         var authenticationRequestFilter = new CustomAuthenticationRequestFilter(authenticationService,
                 configInstance.isExposeSelfDescription() ? Endpoint.SELF_DESCRIPTION_PATH : null);
-
         webService.registerResource(authenticationRequestFilter);
 
         initializeClient(context, authenticationRequestFilter);

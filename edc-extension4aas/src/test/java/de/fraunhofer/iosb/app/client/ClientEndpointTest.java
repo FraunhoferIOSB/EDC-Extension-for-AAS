@@ -1,6 +1,7 @@
 package de.fraunhofer.iosb.app.client;
 
 import static java.lang.String.format;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -11,9 +12,12 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeoutException;
 
+import org.eclipse.edc.catalog.spi.Catalog;
 import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
@@ -24,6 +28,7 @@ import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.AfterEach;
@@ -35,6 +40,7 @@ import org.mockserver.integration.ClientAndServer;
 import de.fraunhofer.iosb.app.Logger;
 import de.fraunhofer.iosb.app.authentication.CustomAuthenticationRequestFilter;
 import de.fraunhofer.iosb.app.client.dataTransfer.DataTransferObservable;
+import jakarta.ws.rs.core.Response;
 
 public class ClientEndpointTest {
 
@@ -44,21 +50,58 @@ public class ClientEndpointTest {
 
     private ClientEndpoint clientEndpoint;
 
+    private static ContractOffer mockContractOffer;
+    private static Catalog mockCatalog;
+
     @BeforeAll
     public static void initialize() throws IOException {
         Logger.getInstance().setMonitor(mock(Monitor.class));
         port = 8080;
         url = new URL(format("http://localhost:%s", port));
         mockServer = startClientAndServer(port);
+        var mockAsset = Asset.Builder.newInstance().id("test-asset").build();
+        var mockPolicy = Policy.Builder.newInstance().build();
+        var mockedContractStart = ZonedDateTime.now();
+        var mockedContractEnd = ZonedDateTime.of(mockedContractStart.toLocalDate(),
+                mockedContractStart.toLocalTime().plusHours(1), mockedContractStart.getZone());
+        mockContractOffer = ContractOffer.Builder.newInstance()
+                .id("test-contract-offer")
+                .asset(mockAsset)
+                .policy(mockPolicy)
+                .contractStart(mockedContractStart)
+                .contractEnd(mockedContractEnd)
+                .provider(URI.create(url.toString()))
+                .build();
+        var contractOffers = new ArrayList<ContractOffer>();
+        contractOffers.add(mockContractOffer);
+
+        mockCatalog = Catalog.Builder.newInstance().id("test-catalog").contractOffers(contractOffers).build();
     }
 
     @BeforeEach
     public void setupSynchronizer() {
         clientEndpoint = new ClientEndpoint(URI.create("http://localhost:8181/api"),
-                mock(CatalogService.class), mockConsumerNegotiationManager(),
+                mockCatalogService(), mockConsumerNegotiationManager(),
                 mock(ContractNegotiationStore.class),
-                mock(ContractNegotiationObservable.class), mock(TransferProcessManager.class),
+                mock(ContractNegotiationObservable.class), mockTransferProcessManager(),
                 mock(DataTransferObservable.class), mock(CustomAuthenticationRequestFilter.class));
+    }
+
+    private TransferProcessManager mockTransferProcessManager() {
+        StatusResult<String> mockStatusResult = StatusResult.failure(ResponseStatus.FATAL_ERROR);
+
+        var mockTransferProcessManager = mock(TransferProcessManager.class);
+        when(mockTransferProcessManager.initiateConsumerRequest(any())).thenReturn(mockStatusResult);
+        return mockTransferProcessManager;
+    }
+
+    private CatalogService mockCatalogService() {
+        var catalogService = mock(CatalogService.class);
+        var completableFuture = new CompletableFuture<Catalog>();
+        completableFuture.complete(mockCatalog);
+
+        when(catalogService.getByProviderUrl(any(), any())).thenReturn(completableFuture);
+        return catalogService;
     }
 
     private ConsumerContractNegotiationManager mockConsumerNegotiationManager() {
@@ -83,21 +126,8 @@ public class ClientEndpointTest {
 
     @Test
     public void negotiateContractTest() {
-        var mockAsset = Asset.Builder.newInstance().id("test-asset").build();
-        var mockPolicy = Policy.Builder.newInstance().build();
-        var mockedContractStart = ZonedDateTime.now();
-        var mockedContractEnd = ZonedDateTime.of(mockedContractStart.toLocalDate(),
-                mockedContractStart.toLocalTime().plusHours(1), mockedContractStart.getZone());
         try {
-            clientEndpoint.negotiateContract(url,
-                    ContractOffer.Builder.newInstance()
-                            .id("test-contract-offer")
-                            .asset(mockAsset)
-                            .policy(mockPolicy)
-                            .contractStart(mockedContractStart)
-                            .contractEnd(mockedContractEnd)
-                            .provider(URI.create(url.toString()))
-                            .build());
+            clientEndpoint.negotiateContract(url, mockContractOffer);
             fail();
         } catch (EdcException expected) {
             if (!(expected.getCause().getClass().equals(TimeoutException.class)
@@ -105,5 +135,73 @@ public class ClientEndpointTest {
                 fail(); // This must fail because of agreement timeout.
             }
         }
+    }
+
+    @Test
+    public void negotiateContractAndTransferTest() {
+        try {
+            clientEndpoint.negotiateContract(url, "test-asset", null);
+            fail();
+        } catch (EdcException expected) {
+        }
+    }
+
+    @Test
+    public void getDataTest() {
+        try {
+            clientEndpoint.getData(url, "test-agreement-id", "test-asset-id", url);
+            fail();
+        } catch (EdcException expected) {
+        }
+    }
+
+    @Test
+    public void getContractOffersTest() {
+        var responseEntity = clientEndpoint.getContractOffers(url, "test-asset").getEntity().toString();
+        assertEquals(format("[%s]", mockContractOffer.toString()), responseEntity);
+    }
+
+    @Test
+    public void getAcceptedContractOffersTest() {
+        assertEquals(Response.Status.OK.getStatusCode(), clientEndpoint.getAcceptedContractOffers().getStatus());
+    }
+
+    @Test
+    public void addAcceptedContractOffersTest() {
+        var mockContractOfferAsList = new ArrayList<ContractOffer>();
+        mockContractOfferAsList.add(mockContractOffer); // ClientEndpoint creates ArrayList
+        var offers = new ContractOffer[] { mockContractOffer };
+
+        clientEndpoint.addAcceptedContractOffers(offers);
+
+        assertEquals(mockContractOfferAsList, clientEndpoint.getAcceptedContractOffers().getEntity());
+    }
+
+    @Test
+    public void updateAcceptedContractOfferTest() {
+        var offers = new ContractOffer[] { mockContractOffer };
+
+        clientEndpoint.addAcceptedContractOffers(offers);
+
+        var mockAsset = Asset.Builder.newInstance().id("test-asset2").build();
+        var mockPolicy = Policy.Builder.newInstance().build();
+        var mockedContractStart = ZonedDateTime.now();
+        var mockedContractEnd = ZonedDateTime.of(mockedContractStart.toLocalDate(),
+                mockedContractStart.toLocalTime().plusHours(1), mockedContractStart.getZone());
+        var mockUpdatedContractOffer = ContractOffer.Builder.newInstance()
+                .id("test-contract-offer") // Same id <-> same offer
+                .asset(mockAsset)
+                .policy(mockPolicy)
+                .contractStart(mockedContractStart)
+                .contractEnd(mockedContractEnd)
+                .provider(URI.create(url.toString()))
+                .build();
+
+        var mockContractOfferAsList = new ArrayList<ContractOffer>();
+        mockContractOfferAsList.add(mockUpdatedContractOffer); // ClientEndpoint creates ArrayList
+        clientEndpoint.updateAcceptedContractOffer(mockUpdatedContractOffer);
+
+        assertEquals(mockContractOfferAsList, clientEndpoint.getAcceptedContractOffers().getEntity());
+
     }
 }

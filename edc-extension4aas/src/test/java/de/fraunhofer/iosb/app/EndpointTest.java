@@ -23,12 +23,7 @@ import static org.mockito.Mockito.mock;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
 
-import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
-import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
-import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,9 +31,8 @@ import org.junit.jupiter.api.Test;
 
 import de.fraunhofer.iosb.app.controller.AasController;
 import de.fraunhofer.iosb.app.controller.ConfigurationController;
-import de.fraunhofer.iosb.app.controller.ResourceController;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
-import de.fraunhofer.iosb.app.model.ids.SelfDescription;
+import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
 import de.fraunhofer.iosb.app.testUtils.FileManager;
 import de.fraunhofer.iosb.app.util.Encoder;
 import jakarta.ws.rs.core.Response;
@@ -58,7 +52,7 @@ public class EndpointTest {
 
     private Endpoint endpoint;
 
-    private Map<URL, SelfDescription> mockedSelfDescriptionRepo;
+    private SelfDescriptionRepository selfDescriptionRepo;
 
     @BeforeAll
     public static void initialize() throws MalformedURLException {
@@ -69,15 +63,11 @@ public class EndpointTest {
 
     @BeforeEach
     public void setupEndpoint() {
-        mockedSelfDescriptionRepo = new HashMap<URL, SelfDescription>();
+        selfDescriptionRepo = new SelfDescriptionRepository();
         endpoint = new Endpoint(
-                mockedSelfDescriptionRepo,
+                selfDescriptionRepo,
                 new AasController(
-                        new OkHttpClient()),
-                new ResourceController(
-                        mock(AssetIndex.class),
-                        mock(ContractDefinitionStore.class),
-                        mock(PolicyDefinitionStore.class)));
+                        new OkHttpClient()));
     }
 
     @Test
@@ -119,20 +109,20 @@ public class EndpointTest {
         // No selfDescription has been added, but the URL will still be periodically
         // polled until the service is deleted via http request again or any AAS output
         // is returned by the URL.
-        assertEquals(1, mockedSelfDescriptionRepo.values().size());
+        assertEquals(1, selfDescriptionRepo.getAllSelfDescriptions().size());
     }
 
     @Test
     public void postAasServiceTest() throws IOException {
         endpoint.postAasService(url);
-        assertEquals(null, mockedSelfDescriptionRepo.get(url));
+        assertEquals(null, selfDescriptionRepo.getSelfDescription(url));
     }
 
     @Test
     public void postAasEnvironmentTest() throws IOException {
         endpoint.postAasEnvironment("src/test/resources/aasEnvironment.json", null, port);
 
-        assertEquals(null, mockedSelfDescriptionRepo.get(url));
+        assertEquals(null, selfDescriptionRepo.getSelfDescription(url));
 
         endpoint.removeAasService(url);
     }
@@ -141,11 +131,11 @@ public class EndpointTest {
     public void removeAasServiceTest() throws IOException {
         endpoint.postAasEnvironment("src/test/resources/aasEnvironment.json", null, port);
 
-        assertEquals(null, mockedSelfDescriptionRepo.get(url));
+        assertEquals(null, selfDescriptionRepo.getSelfDescription(url));
 
         endpoint.removeAasService(url);
 
-        assertEquals(false, mockedSelfDescriptionRepo.containsKey(url));
+        assertEquals(null, selfDescriptionRepo.getSelfDescription(url));
     }
 
     @Test
@@ -159,7 +149,7 @@ public class EndpointTest {
 
         // Still null: not synchronized by Synchronizer
         assertEquals(null,
-                mockedSelfDescriptionRepo.get(url));
+                selfDescriptionRepo.getSelfDescription(url));
     }
 
 }

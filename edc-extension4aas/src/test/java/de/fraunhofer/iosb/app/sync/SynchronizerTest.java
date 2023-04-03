@@ -10,8 +10,6 @@ import static org.mockserver.model.HttpResponse.response;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
@@ -28,7 +26,7 @@ import org.mockserver.matchers.Times;
 import de.fraunhofer.iosb.app.Logger;
 import de.fraunhofer.iosb.app.controller.AasController;
 import de.fraunhofer.iosb.app.controller.ResourceController;
-import de.fraunhofer.iosb.app.model.ids.SelfDescription;
+import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
 import de.fraunhofer.iosb.app.testUtils.FileManager;
 import okhttp3.OkHttpClient;
 
@@ -39,7 +37,7 @@ public class SynchronizerTest {
     private static ClientAndServer mockServer;
 
     private Synchronizer synchronizer;
-    private Map<URL, SelfDescription> mockedSelfDescriptionRepo;
+    private SelfDescriptionRepository mockedSelfDescriptionRepo;
 
     private String shells = FileManager.loadResource("shells.json");
     private String submodels = FileManager.loadResource("submodels.json");
@@ -55,7 +53,7 @@ public class SynchronizerTest {
 
     @BeforeEach
     public void setupSynchronizer() {
-        mockedSelfDescriptionRepo = new HashMap<URL, SelfDescription>();
+        mockedSelfDescriptionRepo = new SelfDescriptionRepository();
         synchronizer = new Synchronizer(
                 mockedSelfDescriptionRepo,
                 new AasController(
@@ -81,48 +79,48 @@ public class SynchronizerTest {
         startMockServer(port);
         prepareDefaultMockedResponse();
 
-        mockedSelfDescriptionRepo.put(url, null);
-        assertEquals(null, mockedSelfDescriptionRepo.get(url));
+        mockedSelfDescriptionRepo.updateSelfDescription(url, null);
+        assertEquals(null, mockedSelfDescriptionRepo.getSelfDescription(url));
 
         synchronizer.synchronize();
         assertEquals(FileManager.loadResource("selfDescriptionWithIds.json"),
-                mockedSelfDescriptionRepo.get(url).toString());
+                mockedSelfDescriptionRepo.getSelfDescription(url).toString());
     }
 
     @Test
     public void synchronizationRemoveSubmodelElementTest() throws IOException {
         startMockServer(port);
 
-        mockedSelfDescriptionRepo.put(url, null);
-        assertEquals(null, mockedSelfDescriptionRepo.get(url));
+        mockedSelfDescriptionRepo.updateSelfDescription(url, null);
+        assertEquals(null, mockedSelfDescriptionRepo.getSelfDescription(url));
 
         prepareDefaultMockedResponse();
         synchronizer.synchronize();
         assertEquals(FileManager.loadResource("selfDescriptionWithIds.json"),
-                mockedSelfDescriptionRepo.get(url).toString());
+                mockedSelfDescriptionRepo.getSelfDescription(url).toString());
 
         prepareRemovedSubmodelMockedResponse();
         synchronizer.synchronize();
         assertEquals(FileManager.loadResource("selfDescriptionWithIdsNoSubmodelElements.json"),
-                mockedSelfDescriptionRepo.get(url).toString());
+                mockedSelfDescriptionRepo.getSelfDescription(url).toString());
     }
 
     @Test
     public void synchronizationRemoveAllTest() throws IOException {
         startMockServer(port);
 
-        mockedSelfDescriptionRepo.put(url, null);
-        assertEquals(null, mockedSelfDescriptionRepo.get(url));
+        mockedSelfDescriptionRepo.updateSelfDescription(url, null);
+        assertEquals(null, mockedSelfDescriptionRepo.getSelfDescription(url));
 
         prepareDefaultMockedResponse();
         synchronizer.synchronize();
         assertEquals(FileManager.loadResource("selfDescriptionWithIds.json"),
-                mockedSelfDescriptionRepo.get(url).toString());
+                mockedSelfDescriptionRepo.getSelfDescription(url).toString());
 
         prepareEmptyMockedResponse();
         synchronizer.synchronize();
         assertEquals("{\"assetAdministrationShells\":[],\"submodels\":[],\"conceptDescriptions\":[]}",
-                mockedSelfDescriptionRepo.get(url).toString());
+                mockedSelfDescriptionRepo.getSelfDescription(url).toString());
     }
 
     private void prepareRemovedSubmodelMockedResponse() {

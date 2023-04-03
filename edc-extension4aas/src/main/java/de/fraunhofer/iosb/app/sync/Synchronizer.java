@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -36,6 +35,8 @@ import de.fraunhofer.iosb.app.model.aas.CustomSubmodel;
 import de.fraunhofer.iosb.app.model.aas.CustomSubmodelElement;
 import de.fraunhofer.iosb.app.model.aas.IdsAssetElement;
 import de.fraunhofer.iosb.app.model.ids.SelfDescription;
+import de.fraunhofer.iosb.app.model.ids.SelfDescriptionChangeListener;
+import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
 import de.fraunhofer.iosb.app.util.AASUtil;
 import io.adminshell.aas.v3.dataformat.DeserializationException;
 import jakarta.ws.rs.core.MediaType;
@@ -44,13 +45,13 @@ import jakarta.ws.rs.core.MediaType;
  * Synchronize registered AAS services with local self descriptions and
  * assetIndex/contractStore.
  */
-public class Synchronizer {
+public class Synchronizer implements SelfDescriptionChangeListener {
 
-    private final Map<URL, SelfDescription> selfDescriptionRepository;
+    private final SelfDescriptionRepository selfDescriptionRepository;
     private final AasController aasController;
     private final ResourceController resourceController;
 
-    public Synchronizer(Map<URL, SelfDescription> selfDescriptionRepository,
+    public Synchronizer(SelfDescriptionRepository selfDescriptionRepository,
             AasController aasController, ResourceController resourceController) {
         this.selfDescriptionRepository = selfDescriptionRepository;
         this.aasController = aasController;
@@ -62,13 +63,13 @@ public class Synchronizer {
      * AssetIndex/ContractStore
      */
     public void synchronize() {
-        for (Entry<URL, SelfDescription> selfDescription : selfDescriptionRepository.entrySet()) {
-            synchronize(selfDescription.getKey(), selfDescription.getValue());
+        for (Entry<URL, SelfDescription> selfDescription : selfDescriptionRepository.getAllSelfDescriptions()) {
+            synchronize(selfDescription.getKey());
         }
     }
 
-    private void synchronize(URL aasServiceUrl, SelfDescription selfDescriptionToUpdate) {
-        var oldSelfDescription = selfDescriptionRepository.get(aasServiceUrl);
+    private void synchronize(URL aasServiceUrl) {
+        var oldSelfDescription = selfDescriptionRepository.getSelfDescription(aasServiceUrl);
         CustomAssetAdministrationShellEnvironment newEnvironment;
 
         newEnvironment = fetchCurrentAasModel(aasServiceUrl);
@@ -91,7 +92,7 @@ public class Synchronizer {
             // Finally, update the self description
         }
         addNewElements(newEnvironment);
-        selfDescriptionRepository.put(aasServiceUrl, new SelfDescription(newEnvironment));
+        selfDescriptionRepository.updateSelfDescription(aasServiceUrl, newEnvironment);
     }
 
     private CustomAssetAdministrationShellEnvironment fetchCurrentAasModel(URL aasServiceUrl) {
@@ -199,4 +200,21 @@ public class Synchronizer {
             resourceController.deleteContract(element.getIdsContractId());
         });
     }
+
+    @Override
+    public void created(URL aasUrl) {
+        synchronize(aasUrl);
+    }
+
+    @Override
+    public void updated(URL aasUrl) {
+        synchronize(aasUrl);
+    }
+
+    @Override
+    public void removed(SelfDescription removed) {
+        var allElements = AASUtil.getAllElements(removed.getEnvironment());
+        removeAssetsContracts(allElements);
+    }
+    
 }

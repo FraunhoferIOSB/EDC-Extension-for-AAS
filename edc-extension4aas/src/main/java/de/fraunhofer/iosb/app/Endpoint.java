@@ -20,17 +20,13 @@ import static java.lang.String.format;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.InvalidPathException;
-import java.util.Map;
 import java.util.Objects;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import de.fraunhofer.iosb.app.controller.AasController;
 import de.fraunhofer.iosb.app.controller.ConfigurationController;
-import de.fraunhofer.iosb.app.controller.ResourceController;
-import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShellEnvironment;
-import de.fraunhofer.iosb.app.model.ids.SelfDescription;
-import de.fraunhofer.iosb.app.util.AASUtil;
+import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -62,9 +58,8 @@ public class Endpoint {
 
     private final ConfigurationController configurationController;
     private final AasController aasController;
-    private final ResourceController resourceController;
     private final ObjectMapper objectMapper;
-    private final Map<URL, SelfDescription> selfDescriptionRepository;
+    private final SelfDescriptionRepository selfDescriptionRepository;
 
     /**
      * Class constructor
@@ -73,10 +68,8 @@ public class Endpoint {
      * @param aasController             Communication with AAS services
      * @param resourceController        Communication with EDC
      */
-    public Endpoint(Map<URL, SelfDescription> selfDescriptionRepository, AasController aasController,
-            ResourceController resourceController) {
+    public Endpoint(SelfDescriptionRepository selfDescriptionRepository, AasController aasController) {
         this.selfDescriptionRepository = Objects.requireNonNull(selfDescriptionRepository);
-        this.resourceController = Objects.requireNonNull(resourceController);
         this.aasController = Objects.requireNonNull(aasController);
 
         this.configurationController = new ConfigurationController();
@@ -120,11 +113,11 @@ public class Endpoint {
     public Response postAasService(@QueryParam("url") URL aasServiceUrl) {
         LOGGER.log("Received a client POST request");
         Objects.requireNonNull(aasServiceUrl);
-        if (selfDescriptionRepository.containsKey(aasServiceUrl)) {
+        if (Objects.nonNull(selfDescriptionRepository.getSelfDescription(aasServiceUrl))) {
             return Response.ok("Service was already registered at EDC").build();
         }
 
-        selfDescriptionRepository.put(aasServiceUrl, null);
+        selfDescriptionRepository.createSelfDescription(aasServiceUrl);
 
         return Response.ok("Registered new client at EDC").build();
     }
@@ -166,7 +159,7 @@ public class Endpoint {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
 
-        selfDescriptionRepository.put(newAssetAdministrationShellUrl, null);
+        selfDescriptionRepository.createSelfDescription(newAssetAdministrationShellUrl);
         return Response.ok(format("%s\n%s\n%s: %s",
                 "Booted up and registered AAS service managed by extension.",
                 "Wait for next synchronization period for assetIndex and selfDescription.",
@@ -186,19 +179,14 @@ public class Endpoint {
     public Response removeAasService(@QueryParam("url") URL aasServiceUrl) {
         LOGGER.log("Received a client DELETE request");
         Objects.requireNonNull(aasServiceUrl);
-        var selfDescription = selfDescriptionRepository.get(aasServiceUrl);
 
-        if (!selfDescriptionRepository.containsKey(aasServiceUrl)) {
+        if (Objects.isNull(selfDescriptionRepository.getSelfDescription(aasServiceUrl))) {
             return Response.ok("Service was not registered to EDC").build();
-        }
-
-        if (Objects.nonNull(selfDescription)) {
-            removeAssetsContracts(selfDescription.getEnvironment());
         }
 
         // Stop AAS Service if started internally
         aasController.stopAssetAdministrationShellService(aasServiceUrl);
-        selfDescriptionRepository.remove(aasServiceUrl);
+        selfDescriptionRepository.removeSelfDescription(aasServiceUrl);
 
         return Response.ok("Unregistered client from EDC").build();
     }
@@ -267,13 +255,14 @@ public class Endpoint {
             LOGGER.debug("Received a self description GET request");
             // Build JSON object containing all self descriptions
             var selfDescriptions = objectMapper.createArrayNode();
-            selfDescriptionRepository.values().stream().filter(selfDescription -> Objects.nonNull(selfDescription))
-                    .forEach(selfDescription -> selfDescriptions.add(selfDescription.toJsonNode()));
+            selfDescriptionRepository.getAllSelfDescriptions().stream()
+                    .filter(selfDescription -> Objects.nonNull(selfDescription))
+                    .forEach(selfDescription -> selfDescriptions.add(selfDescription.getValue().toJsonNode()));
 
             return Response.ok(selfDescriptions.toString()).build();
         } else {
             LOGGER.debug(format("Received a self description GET request to %s", aasServiceUrl));
-            var selfDescription = selfDescriptionRepository.get(aasServiceUrl);
+            var selfDescription = selfDescriptionRepository.getSelfDescription(aasServiceUrl);
             if (Objects.nonNull(selfDescription)) {
                 return Response.ok(selfDescription.toString()).build();
             } else {
@@ -298,16 +287,4 @@ public class Endpoint {
 
         return Response.ok().build();
     }
-
-    /*
-     * Removes any EDC asset and EDC contract off the EDC
-     * AssetIndex/ContractDefinitionStore given a list of AAS elements.
-     */
-    private void removeAssetsContracts(CustomAssetAdministrationShellEnvironment env) {
-        AASUtil.getAllElements(env).forEach(element -> {
-            resourceController.deleteAssetAndContracts(element.getIdsAssetId());
-            resourceController.deleteContract(element.getIdsContractId());
-        });
-    }
-
 }

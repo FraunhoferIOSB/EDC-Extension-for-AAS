@@ -19,7 +19,6 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.HashMap;
 import java.util.Objects;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -54,7 +53,7 @@ import de.fraunhofer.iosb.app.controller.AasController;
 import de.fraunhofer.iosb.app.controller.ConfigurationController;
 import de.fraunhofer.iosb.app.controller.ResourceController;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
-import de.fraunhofer.iosb.app.model.ids.SelfDescription;
+import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
 import de.fraunhofer.iosb.app.sync.Synchronizer;
 import okhttp3.OkHttpClient;
 
@@ -96,11 +95,9 @@ public class AasExtension implements ServiceExtension {
         logger.setMonitor(context.getMonitor());
 
         // Distribute controllers, repositories
-        var selfDescriptionRepository = new HashMap<URL, SelfDescription>();
+        var selfDescriptionRepository = new SelfDescriptionRepository();
         aasController = new AasController(okHttpClient);
-        var resourceController = new ResourceController(assetIndex, contractStore, policyStore);
-        var endpoint = new Endpoint(selfDescriptionRepository, aasController,
-                resourceController);
+        var endpoint = new Endpoint(selfDescriptionRepository, aasController);
 
         loadConfig(context);
         var configInstance = Configuration.getInstance();
@@ -116,7 +113,8 @@ public class AasExtension implements ServiceExtension {
                     configInstance.getLocalAasServicePort());
         }
 
-        var synchronizer = new Synchronizer(selfDescriptionRepository, aasController, resourceController);
+        var synchronizer = new Synchronizer(selfDescriptionRepository, aasController,
+                new ResourceController(assetIndex, contractStore, policyStore));
         // Task: get all AAS service URLs, synchronize EDC and AAS
         syncExecutor.scheduleAtFixedRate(
                 () -> synchronizer.synchronize(),

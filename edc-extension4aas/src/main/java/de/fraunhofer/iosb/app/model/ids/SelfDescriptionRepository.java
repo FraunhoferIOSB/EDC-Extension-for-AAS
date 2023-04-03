@@ -61,7 +61,7 @@ public class SelfDescriptionRepository implements Observable<SelfDescriptionChan
     }
 
     /**
-     * Update self description and notify listeners.
+     * Update self description.
      * 
      * @param aasUrl         URL of self description to be updated
      * @param newEnvironment updated environment from which self description is
@@ -69,7 +69,6 @@ public class SelfDescriptionRepository implements Observable<SelfDescriptionChan
      */
     public void updateSelfDescription(URL aasUrl, CustomAssetAdministrationShellEnvironment newEnvironment) {
         content.put(aasUrl, new SelfDescription(newEnvironment));
-        listeners.forEach(listener -> listener.updated(aasUrl));
     }
 
     /**

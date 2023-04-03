@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -63,7 +62,7 @@ public class Synchronizer implements SelfDescriptionChangeListener {
      * AssetIndex/ContractStore
      */
     public void synchronize() {
-        for (Entry<URL, SelfDescription> selfDescription : selfDescriptionRepository.getAllSelfDescriptions()) {
+        for (var selfDescription : selfDescriptionRepository.getAllSelfDescriptions()) {
             synchronize(selfDescription.getKey());
         }
     }
@@ -205,12 +204,7 @@ public class Synchronizer implements SelfDescriptionChangeListener {
     public void created(URL aasUrl) {
         synchronize(aasUrl);
     }
-
-    @Override
-    public void updated(URL aasUrl) {
-        synchronize(aasUrl);
-    }
-
+    
     @Override
     public void removed(SelfDescription removed) {
         var allElements = AASUtil.getAllElements(removed.getEnvironment());

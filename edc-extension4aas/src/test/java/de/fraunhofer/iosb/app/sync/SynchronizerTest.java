@@ -37,7 +37,7 @@ public class SynchronizerTest {
     private static ClientAndServer mockServer;
 
     private Synchronizer synchronizer;
-    private SelfDescriptionRepository mockedSelfDescriptionRepo;
+    private SelfDescriptionRepository selfDescriptionRepo;
 
     private String shells = FileManager.loadResource("shells.json");
     private String submodels = FileManager.loadResource("submodels.json");
@@ -53,15 +53,16 @@ public class SynchronizerTest {
 
     @BeforeEach
     public void setupSynchronizer() {
-        mockedSelfDescriptionRepo = new SelfDescriptionRepository();
+        selfDescriptionRepo = new SelfDescriptionRepository();
         synchronizer = new Synchronizer(
-                mockedSelfDescriptionRepo,
+                selfDescriptionRepo,
                 new AasController(
                         new OkHttpClient()),
                 new ResourceController(
                         mock(AssetIndex.class),
                         mock(ContractDefinitionStore.class),
                         mock(PolicyDefinitionStore.class)));
+        selfDescriptionRepo.registerListener(synchronizer);
     }
 
     @AfterEach
@@ -79,48 +80,39 @@ public class SynchronizerTest {
         startMockServer(port);
         prepareDefaultMockedResponse();
 
-        mockedSelfDescriptionRepo.updateSelfDescription(url, null);
-        assertEquals(null, mockedSelfDescriptionRepo.getSelfDescription(url));
-
-        synchronizer.synchronize();
+        selfDescriptionRepo.createSelfDescription(url);
         assertEquals(FileManager.loadResource("selfDescriptionWithIds.json"),
-                mockedSelfDescriptionRepo.getSelfDescription(url).toString());
+                selfDescriptionRepo.getSelfDescription(url).toString());
     }
 
     @Test
     public void synchronizationRemoveSubmodelElementTest() throws IOException {
         startMockServer(port);
 
-        mockedSelfDescriptionRepo.updateSelfDescription(url, null);
-        assertEquals(null, mockedSelfDescriptionRepo.getSelfDescription(url));
-
         prepareDefaultMockedResponse();
-        synchronizer.synchronize();
+        selfDescriptionRepo.createSelfDescription(url);
         assertEquals(FileManager.loadResource("selfDescriptionWithIds.json"),
-                mockedSelfDescriptionRepo.getSelfDescription(url).toString());
+                selfDescriptionRepo.getSelfDescription(url).toString());
 
         prepareRemovedSubmodelMockedResponse();
         synchronizer.synchronize();
         assertEquals(FileManager.loadResource("selfDescriptionWithIdsNoSubmodelElements.json"),
-                mockedSelfDescriptionRepo.getSelfDescription(url).toString());
+                selfDescriptionRepo.getSelfDescription(url).toString());
     }
 
     @Test
     public void synchronizationRemoveAllTest() throws IOException {
         startMockServer(port);
 
-        mockedSelfDescriptionRepo.updateSelfDescription(url, null);
-        assertEquals(null, mockedSelfDescriptionRepo.getSelfDescription(url));
-
         prepareDefaultMockedResponse();
-        synchronizer.synchronize();
+        selfDescriptionRepo.updateSelfDescription(url, null);
         assertEquals(FileManager.loadResource("selfDescriptionWithIds.json"),
-                mockedSelfDescriptionRepo.getSelfDescription(url).toString());
+                selfDescriptionRepo.getSelfDescription(url).toString());
 
         prepareEmptyMockedResponse();
         synchronizer.synchronize();
         assertEquals("{\"assetAdministrationShells\":[],\"submodels\":[],\"conceptDescriptions\":[]}",
-                mockedSelfDescriptionRepo.getSelfDescription(url).toString());
+                selfDescriptionRepo.getSelfDescription(url).toString());
     }
 
     private void prepareRemovedSubmodelMockedResponse() {

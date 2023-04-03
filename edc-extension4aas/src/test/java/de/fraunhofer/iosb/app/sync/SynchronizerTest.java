@@ -2,6 +2,7 @@ package de.fraunhofer.iosb.app.sync;
 
 import static java.lang.String.format;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.model.HttpRequest.request;
@@ -14,6 +15,7 @@ import java.util.Objects;
 
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.junit.jupiter.api.AfterEach;
@@ -42,6 +44,8 @@ public class SynchronizerTest {
     private String shells = FileManager.loadResource("shells.json");
     private String submodels = FileManager.loadResource("submodels.json");
     private String submodelsNoSubmodelElements = FileManager.loadResource("submodelsNoSubmodelElements.json");
+    private String oneSubmodelOneSubmodelElementLess = FileManager
+            .loadResource("oneSubmodelOneSubmodelElementLess.json");
     private String conceptDescriptions = FileManager.loadResource("conceptDescriptions.json");
 
     @BeforeAll
@@ -101,11 +105,26 @@ public class SynchronizerTest {
     }
 
     @Test
+    public void synchronizationRemoveOneSubmodelElementTest() throws IOException {
+        startMockServer(port);
+
+        prepareDefaultMockedResponse();
+        selfDescriptionRepo.createSelfDescription(url);
+        assertEquals(FileManager.loadResource("selfDescriptionWithIds.json"),
+                selfDescriptionRepo.getSelfDescription(url).toString());
+
+        prepareRemovedSubmodelElementMockedResponse();
+        synchronizer.synchronize();
+        assertEquals(FileManager.loadResource("selfDescriptionWithIdsOneSubmodelOneSubmodelElementLess.json"),
+                selfDescriptionRepo.getSelfDescription(url).toString());
+    }
+
+    @Test
     public void synchronizationRemoveAllTest() throws IOException {
         startMockServer(port);
 
         prepareDefaultMockedResponse();
-        selfDescriptionRepo.updateSelfDescription(url, null);
+        selfDescriptionRepo.createSelfDescription(url);
         assertEquals(FileManager.loadResource("selfDescriptionWithIds.json"),
                 selfDescriptionRepo.getSelfDescription(url).toString());
 
@@ -115,11 +134,42 @@ public class SynchronizerTest {
                 selfDescriptionRepo.getSelfDescription(url).toString());
     }
 
+    @Test
+    public void synchronizationRemoveAasTest() throws IOException {
+        startMockServer(port);
+
+        prepareDefaultMockedResponse();
+        selfDescriptionRepo.createSelfDescription(url);
+        assertEquals(FileManager.loadResource("selfDescriptionWithIds.json"),
+                selfDescriptionRepo.getSelfDescription(url).toString());
+
+        selfDescriptionRepo.removeSelfDescription(url);
+        assertEquals(null, selfDescriptionRepo.getSelfDescription(url));
+    }
+
+    @Test
+    public void aasServiceNotAvailableTest() throws IOException {
+        try {
+            selfDescriptionRepo.createSelfDescription(url);
+            fail("AAS service not available, self description should not be created");
+        } catch (EdcException expected) {
+        }
+    }
+
     private void prepareRemovedSubmodelMockedResponse() {
         mockServer.when(request().withMethod("GET").withPath("/shells"), Times.exactly(1))
                 .respond(response().withBody(shells));
         mockServer.when(request().withMethod("GET").withPath("/submodels"), Times.exactly(1))
                 .respond(response().withBody(submodelsNoSubmodelElements));
+        mockServer.when(request().withMethod("GET").withPath("/concept-descriptions"), Times.exactly(1))
+                .respond(response().withBody(conceptDescriptions));
+    }
+
+    private void prepareRemovedSubmodelElementMockedResponse() {
+        mockServer.when(request().withMethod("GET").withPath("/shells"), Times.exactly(1))
+                .respond(response().withBody(shells));
+        mockServer.when(request().withMethod("GET").withPath("/submodels"), Times.exactly(1))
+                .respond(response().withBody(oneSubmodelOneSubmodelElementLess));
         mockServer.when(request().withMethod("GET").withPath("/concept-descriptions"), Times.exactly(1))
                 .respond(response().withBody(conceptDescriptions));
     }

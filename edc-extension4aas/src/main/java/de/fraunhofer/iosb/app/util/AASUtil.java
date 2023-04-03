@@ -46,8 +46,12 @@ public final class AASUtil {
         return unpackElements(submodel.getSubmodelElements());
     }
 
-    /*
+    /**
      * Returns all AAS elements in a flattened list format.
+     * 
+     * @param env AAS environment with elements in structure
+     * 
+     * @return Flat list of IdsAssetElements from given environment
      */
     public static List<? extends IdsAssetElement> getAllElements(CustomAssetAdministrationShellEnvironment env) {
         var allElements = new ArrayList<IdsAssetElement>();

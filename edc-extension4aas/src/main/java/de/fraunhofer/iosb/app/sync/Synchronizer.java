@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
+ * Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
+ * Forschung e.V.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package de.fraunhofer.iosb.app.sync;
 
 import static java.lang.String.format;
@@ -25,6 +40,10 @@ import de.fraunhofer.iosb.app.util.AASUtil;
 import io.adminshell.aas.v3.dataformat.DeserializationException;
 import jakarta.ws.rs.core.MediaType;
 
+/**
+ * Synchronize registered AAS services with local self descriptions and
+ * assetIndex/contractStore.
+ */
 public class Synchronizer {
 
     private final Map<URL, SelfDescription> selfDescriptionRepository;
@@ -39,9 +58,8 @@ public class Synchronizer {
     }
 
     /**
-     * Synchronize AAS element structure with EDC AssetIndex
-     * 
-     * @param aasServiceUrl AAS service URL
+     * Synchronize AAS services with self description and EDC
+     * AssetIndex/ContractStore
      */
     public void synchronize() {
         for (Entry<URL, SelfDescription> selfDescription : selfDescriptionRepository.entrySet()) {
@@ -53,6 +71,32 @@ public class Synchronizer {
         var oldSelfDescription = selfDescriptionRepository.get(aasServiceUrl);
         CustomAssetAdministrationShellEnvironment newEnvironment;
 
+        newEnvironment = fetchCurrentAasModel(aasServiceUrl);
+
+        if (Objects.nonNull(oldSelfDescription)) {
+            var oldEnvironment = oldSelfDescription.getEnvironment();
+
+            // For all shells, conceptDescriptions, submodels, submodelElements:
+            // Check whether any element was added or removed.
+            // If a new element was added: This element is now in newEnvironment without
+            // idsContractId/idsAssetId field.
+            // If the element exists in oldEnvironment, copy the old elements into
+            // newEnvironment, already having an idsContractId/idsAssetId
+            syncShell(newEnvironment, oldEnvironment);
+            syncSubmodel(newEnvironment, oldEnvironment);
+            syncConceptDescription(newEnvironment, oldEnvironment);
+
+            removeOldElements(newEnvironment, oldEnvironment);
+
+            // Finally, update the self description
+        }
+        addNewElements(newEnvironment);
+        selfDescriptionRepository.put(aasServiceUrl, new SelfDescription(newEnvironment));
+    }
+
+    private CustomAssetAdministrationShellEnvironment fetchCurrentAasModel(URL aasServiceUrl) {
+        CustomAssetAdministrationShellEnvironment newEnvironment;
+
         try { // Fetch current AAS model from AAS service
             newEnvironment = aasController.getAasModelWithUrls(aasServiceUrl);
         } catch (IOException aasServiceUnreachableException) {
@@ -62,39 +106,23 @@ public class Synchronizer {
             throw new EdcException(format("Could not deserialize AAS model (%s): %s", aasServiceUrl,
                     aasModelDeserializationException.getMessage()));
         }
+        return newEnvironment;
+    }
 
-        if (Objects.isNull(oldSelfDescription)) {
-            initSelfDescriptionAndAssetIndex(aasServiceUrl, newEnvironment);
-            return;
-        }
+    private void addNewElements(CustomAssetAdministrationShellEnvironment newEnvironment) {
+        var envElements = AASUtil.getAllElements(newEnvironment);
+        addAssetsContracts(envElements.stream().filter(element -> Objects.isNull(element.getIdsContractId()))
+                .collect(Collectors.toList()));
+    }
 
-        var oldEnvironment = oldSelfDescription.getEnvironment();
-
-        // For all shells, conceptDescriptions, submodels, submodelElements:
-        // Check whether any were added or removed.
-        // If a new element was added: This element is now in newEnvironment without
-        // idsContractId/idsAssetId
-        // If the element exists in oldEnvironment, copy the old elements into
-        // newEnvironment, already having an idsContractId/idsAssetId
-        syncShell(newEnvironment, oldEnvironment);
-
-        syncSubmodel(newEnvironment, oldEnvironment);
-
-        syncConceptDescription(newEnvironment, oldEnvironment);
-
-        // All elements that are new are now added to the EDC
-        // AssetIndex/ContractDefinitionStore
-        addAssetsContracts(AASUtil.getAllElements(newEnvironment).stream()
-                .filter(element -> Objects.isNull(element.getIdsContractId())).collect(Collectors.toList()));
-
-        var oldElements = AASUtil.getAllElements(oldEnvironment);
-        // Important: Equality is when identification & idShort & containing elements
-        // are equal
-        oldElements.removeAll(AASUtil.getAllElements(newEnvironment));
-        removeAssetsContracts(oldElements);
-
-        // Finally, update the self description
-        selfDescriptionRepository.put(aasServiceUrl, new SelfDescription(newEnvironment));
+    /*
+     * Removes elements that were deleted on AAS service
+     */
+    private void removeOldElements(CustomAssetAdministrationShellEnvironment newEnvironment,
+            CustomAssetAdministrationShellEnvironment oldEnvironment) {
+        var elementsToRemove = AASUtil.getAllElements(oldEnvironment);
+        elementsToRemove.removeAll(AASUtil.getAllElements(newEnvironment));
+        removeAssetsContracts(elementsToRemove);
     }
 
     private void syncShell(CustomAssetAdministrationShellEnvironment newEnvironment,
@@ -153,12 +181,6 @@ public class Synchronizer {
                 });
     }
 
-    private void initSelfDescriptionAndAssetIndex(URL aasServiceUrl,
-            CustomAssetAdministrationShellEnvironment newEnvironment) {
-        addAssetsContracts(AASUtil.getAllElements(newEnvironment));
-        selfDescriptionRepository.put(aasServiceUrl, new SelfDescription(newEnvironment));
-    }
-
     private void addAssetsContracts(List<? extends IdsAssetElement> elements) {
         // Add each AAS element to EDC AssetIndex, giving it a contract
         elements.forEach(element -> {
@@ -171,10 +193,6 @@ public class Synchronizer {
         });
     }
 
-    /*
-     * Removes any EDC asset and EDC contract off the EDC
-     * AssetIndex/ContractDefinitionStore given a list of AAS elements.
-     */
     private void removeAssetsContracts(List<? extends IdsAssetElement> elements) {
         elements.forEach(element -> {
             resourceController.deleteAssetAndContracts(element.getIdsAssetId());

@@ -100,8 +100,9 @@ public class ContractHandler {
     }
 
     /**
-     * Deletes the contract definition with the given id. (wrapping
-     * org.eclipse.edc.spi.types.domain.contract.offer.ContractDefinition.deleteById)
+     * Deletes the contract definition with the given id. Wraps
+     * {@link org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore#deleteById(String)
+     * ContractDefinitionStore.deleteById()}
      * 
      * @param contractId Contract to be deleted
      * @return The removed contract definition or null if the contract definition

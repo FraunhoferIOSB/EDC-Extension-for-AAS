@@ -256,8 +256,9 @@ public class Endpoint {
             // Build JSON object containing all self descriptions
             var selfDescriptions = objectMapper.createArrayNode();
             selfDescriptionRepository.getAllSelfDescriptions().stream()
-                    .filter(selfDescription -> Objects.nonNull(selfDescription))
-                    .forEach(selfDescription -> selfDescriptions.add(selfDescription.getValue().toJsonNode()));
+                    .map(selfDescriptionEntry -> selfDescriptionEntry.getValue())
+                    .filter(Objects::nonNull)
+                    .forEach(selfDescription -> selfDescriptions.add(selfDescription.toJsonNode()));
 
             return Response.ok(selfDescriptions.toString()).build();
         } else {

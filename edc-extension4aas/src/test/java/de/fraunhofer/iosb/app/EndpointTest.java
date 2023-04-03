@@ -25,6 +25,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -53,6 +54,7 @@ public class EndpointTest {
     private Endpoint endpoint;
 
     private SelfDescriptionRepository selfDescriptionRepo;
+    private AasController aasController;
 
     @BeforeAll
     public static void initialize() throws MalformedURLException {
@@ -64,10 +66,15 @@ public class EndpointTest {
     @BeforeEach
     public void setupEndpoint() {
         selfDescriptionRepo = new SelfDescriptionRepository();
+        aasController = new AasController(new OkHttpClient());
         endpoint = new Endpoint(
                 selfDescriptionRepo,
-                new AasController(
-                        new OkHttpClient()));
+                aasController);
+    }
+
+    @AfterEach
+    public void shutdown() {
+        aasController.stopServices();
     }
 
     @Test

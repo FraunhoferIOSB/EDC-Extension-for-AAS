@@ -98,6 +98,9 @@ public class AasExtension implements ServiceExtension {
         var selfDescriptionRepository = new SelfDescriptionRepository();
         aasController = new AasController(okHttpClient);
         var endpoint = new Endpoint(selfDescriptionRepository, aasController);
+        var synchronizer = new Synchronizer(selfDescriptionRepository, aasController,
+                new ResourceController(assetIndex, contractStore, policyStore));
+        selfDescriptionRepository.registerListener(synchronizer);
 
         loadConfig(context);
         var configInstance = Configuration.getInstance();
@@ -113,8 +116,6 @@ public class AasExtension implements ServiceExtension {
                     configInstance.getLocalAasServicePort());
         }
 
-        var synchronizer = new Synchronizer(selfDescriptionRepository, aasController,
-                new ResourceController(assetIndex, contractStore, policyStore));
         // Task: get all AAS service URLs, synchronize EDC and AAS
         syncExecutor.scheduleAtFixedRate(
                 () -> synchronizer.synchronize(),

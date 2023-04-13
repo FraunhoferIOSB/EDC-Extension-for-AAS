@@ -67,7 +67,7 @@ tasks.jacocoTestReport {
 configurations.all {
     resolutionStrategy.eachDependency {
         if (requested.module.toString() == "com.google.inject:guice") {
-            artifactSelection{
+            artifactSelection {
                 selectArtifact(DependencyArtifact.DEFAULT_TYPE, null, null)
             }
         }

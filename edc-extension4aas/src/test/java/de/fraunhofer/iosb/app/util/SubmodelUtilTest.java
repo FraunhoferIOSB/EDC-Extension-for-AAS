@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.app.model.aas.util;
+package de.fraunhofer.iosb.app.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -48,7 +48,7 @@ public class SubmodelUtilTest {
 
     @Test
     public void getAllSubmodelElementsTest() {
-        assertEquals(101, SubmodelUtil.getAllSubmodelElements(testCustomSubmodel).size());
+        assertEquals(101, AASUtil.getAllSubmodelElements(testCustomSubmodel).size());
     }
 
     @Test
@@ -70,7 +70,7 @@ public class SubmodelUtilTest {
         // Cast to use equals method
         assertEquals(
                 (CustomSubmodelElement) testCustomSubmodel.getSubmodelElements().stream().findFirst().orElseThrow(),
-                (CustomSubmodelElement) SubmodelUtil.getCustomSubmodelElementStructureFromSubmodel(testSubmodel)
+                (CustomSubmodelElement) AASUtil.getCustomSubmodelElementStructureFromSubmodel(testSubmodel)
                         .stream().findFirst().orElseThrow());
     }
 }

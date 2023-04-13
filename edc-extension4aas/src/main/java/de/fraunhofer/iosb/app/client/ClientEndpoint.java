@@ -24,6 +24,7 @@ import java.util.concurrent.ExecutionException;
 
 import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationObservable;
+import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.spi.catalog.CatalogService;
@@ -36,7 +37,6 @@ import de.fraunhofer.iosb.app.client.contract.ContractOfferService;
 import de.fraunhofer.iosb.app.client.dataTransfer.DataTransferObservable;
 import de.fraunhofer.iosb.app.client.dataTransfer.TransferInitiator;
 import de.fraunhofer.iosb.app.client.negotiation.Negotiator;
-import de.fraunhofer.iosb.app.client.storage.AgreementStore;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -72,7 +72,6 @@ public class ClientEndpoint {
     private final Negotiator negotiator;
     private final TransferInitiator transferInitiator;
     private final ContractOfferService contractOfferService;
-    private final AgreementStore agreementStore;
 
     /**
      * Initialize a client endpoint.
@@ -83,6 +82,7 @@ public class ClientEndpoint {
      *                                      connector.
      * @param consumerNegotiationManager    Initiate a contract negotiation as a
      *                                      consumer.
+     * @param contractNegotiationStore
      * @param contractNegotiationObservable Listen for contract negotiation changes
      *                                      (confirmed, failed, ...).
      * @param transferProcessManager        Initiate a data transfer.
@@ -93,16 +93,16 @@ public class ClientEndpoint {
      */
     public ClientEndpoint(URI ownUri, CatalogService catalogService,
             ConsumerContractNegotiationManager consumerNegotiationManager,
+            ContractNegotiationStore contractNegotiationStore,
             ContractNegotiationObservable contractNegotiationObservable,
             TransferProcessManager transferProcessManager,
             DataTransferObservable observable,
             CustomAuthenticationRequestFilter dataEndpointAuthRequestFilter) {
-        this.negotiator = new Negotiator(consumerNegotiationManager, contractNegotiationObservable);
+        this.negotiator = new Negotiator(consumerNegotiationManager, contractNegotiationObservable,
+                contractNegotiationStore);
         this.contractOfferService = new ContractOfferService(catalogService);
         this.transferInitiator = new TransferInitiator(ownUri, transferProcessManager, observable,
                 dataEndpointAuthRequestFilter);
-
-        this.agreementStore = new AgreementStore();
     }
 
     /**
@@ -135,8 +135,6 @@ public class ClientEndpoint {
         ContractAgreement agreement;
         try {
             agreement = negotiator.negotiate(providerUrl, contractOffer);
-            // Store agreement in agrementStore
-            agreementStore.addAgreement(providerUrl, assetId, agreement);
         } catch (InterruptedException | ExecutionException negotiationException) {
             LOGGER.error(format("Negotiation failed for provider %s and contractOffer %s", providerUrl,
                     contractOffer.getId()), negotiationException);
@@ -188,8 +186,6 @@ public class ClientEndpoint {
         Objects.requireNonNull(contractOffer, "ContractOffer must not be null");
         try {
             var agreement = negotiator.negotiate(providerUrl, contractOffer);
-            // Store agreement in agrementStore
-            agreementStore.addAgreement(providerUrl, contractOffer.getAsset().getId(), agreement);
             return Response.ok(agreement).build();
         } catch (InterruptedException | ExecutionException negotiationException) {
             LOGGER.error(format("Negotiation failed for provider %s and contractOffer %s", providerUrl,
@@ -298,47 +294,5 @@ public class ClientEndpoint {
         Objects.requireNonNull(contractOffer, "contractOffer is null");
         contractOfferService.updateAccepted(contractOffer.getId(), contractOffer);
         return Response.ok().build();
-    }
-
-    /**
-     * Return agreements of already negotiated contracts.
-     * 
-     * @param providerUrl Provider whose contractAgreements are to be fetched
-     *                    (Optional)
-     * @param assetId     Asset ID for single agremeent (Optional)
-     * @return Response containing agreements in a list (Provider, AssetId,
-     *         AgreementId)
-     */
-    @GET
-    @Path("agreements")
-    public Response getAgreements(@QueryParam("providerUrl") URL providerUrl, @QueryParam("assetId") String assetId) {
-        if (Objects.nonNull(assetId) && Objects.nonNull(providerUrl)) {
-            LOGGER.log(format("Returning agreements for provider %s and asset %s", providerUrl, assetId));
-            return Response.ok(agreementStore.getAgreement(providerUrl, assetId)).build();
-        } else if (Objects.nonNull(providerUrl)) {
-
-            LOGGER.log(format("Returning agreements for provider %s", providerUrl));
-            return Response.ok(agreementStore.getAllProviderAgreements(providerUrl)).build();
-        } else {
-            LOGGER.log("Returning agreements");
-            return Response.ok(agreementStore.getAllAgreements()).build();
-        }
-    }
-
-    /**
-     * Remove an agreement from the extension's agreementStore
-     * 
-     * @param agreementId AgreementId of agreement to be removed (non null)
-     * @return Status of the remove operation
-     */
-    @DELETE
-    @Path("agreements")
-    public Response deleteAgreement(@QueryParam("agremeentId") String agreementId) {
-        Objects.requireNonNull(agreementId, "agreementId cannot be null");
-        LOGGER.log(format("Removing agreement with id %s", agreementId));
-        if (agreementStore.removeAgreement(agreementId)) {
-            return Response.ok().build();
-        }
-        return Response.status(Response.Status.NOT_FOUND).build();
     }
 }

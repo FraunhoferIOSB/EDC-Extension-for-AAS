@@ -57,8 +57,6 @@ Provide digital twin (AAS) data to business partners in Data Spaces like Catena-
 | POST | negotiateContract (a) | Query Parameter "providerUrl": URL (r), request body: contractOffer (r) | Using a contractOffer and a providerUrl, negotiate a contract. Returns an agreementId on success.
 | GET | transfer (a) | Query Parameter "providerUrl": URL (r), Query Parameter "agreementId": String (r), Query Parameter "assetId": String (r), Query Parameter "dataDestinationUrl" | Submits a data transfer request to the providerUrl. On success, returns the data behind the specified asset. Optionally, a data destination URL can be specified where the data is then sent to.
 | POST | contractOffers (a) | request body: List of ContractOffers (JSON) (r) | Adds the given ContractOffers to the accepted ContractOffers list: On fully automated negotiation, the provider's ContractOffer is matched against the consumer's accepted ContractOffer list. If any ContractOffer's policies fit the provider's, the negotiation continues.
-| GET | agreements (a) | Query Parameter "providerUrl": URL, Query Parameter "assetId": String | Get agreements for already negotiated contracts. These agreements are stored within the extension.
-| DELETE | agreements (a) | Query Parameter "agreementId": String (r) | Remove an agremeent of an already negotiated contract.
 
 ### Dependencies
 
@@ -86,6 +84,7 @@ Provide digital twin (AAS) data to business partners in Data Spaces like Catena-
 |edc.aas.exposeSelfDescription| True/False| Whether the Self Description should be exposed on {edc}/api/selfDescription. When set to False, the selfDescription is still available for authenticated requests.|
 |edc.aas.defaultAccessPolicyPath|path |Path to an access policy file (JSON). This policy will be used as the default access policy for all assets created after the configuration value has been set.|
 |edc.aas.defaultContractPolicyPath|path |Path to a contract policy file (JSON). This policy will be used as the default contract policy for all assets created after the configuration value has been set.|
+|edc.aas.defaultContractValidity|long value in seconds| "Number of seconds during which contract is valid starting from startDate." |
 
 #### **Client Configurations**
 

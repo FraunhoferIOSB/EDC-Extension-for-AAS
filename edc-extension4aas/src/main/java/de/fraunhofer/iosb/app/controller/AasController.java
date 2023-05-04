@@ -103,7 +103,7 @@ public class AasController implements Controllable {
         logger.log(format(
                 "Booting up AAS service given AAS model path (%s)\n and service config path (%s)...",
                 aasModelPath, aasConfigPath));
-        return aasServiceManager.startService(aasModelPath, aasConfigPath);
+        return aasServiceManager.startService(aasModelPath, aasConfigPath, aasServicePort);
     }
 
     /**

@@ -2,7 +2,7 @@
  * Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
  * Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
  * Forschung e.V.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -68,6 +68,14 @@ public class FaaastServiceManagerTest {
     }
 
     @Test
+    public void startServiceOverwritePortTest() throws IOException {
+        Path testPath = Path.of("./src/test/resources/aasEnvironment.json");
+        // Fa³st config path irrelevant, configHelper creates new config with port 8080
+        var response = faaastServiceManager.startService(testPath, testPath, 12345);
+        assertEquals(12345, response.getPort());
+    }
+
+    @Test
     public void startServiceFalsePortTest() throws IOException {
         try {
             faaastServiceManager.startService(Path.of("./src/test/resources/aasEnvironment.json"), -800);
@@ -77,17 +85,7 @@ public class FaaastServiceManagerTest {
     }
 
     @Test
-    public void startServiceFalsePortConfigPathTest() throws IOException {
-        try {
-            faaastServiceManager.startService(Path.of("./src/test/resources/aasEnvironment.json"),
-                    Path.of("./src/test/resources/aasEnvironment.json"));
-            fail("EdcException should have been thrown");
-        } catch (EdcException expected) {
-        }
-    }
-
-    @Test
-    public void stopServicesEmptyRepositoryTest() throws IOException {
+    public void stopServicesEmptyRepositoryTest() {
         try {
             faaastServiceManager.stopServices();
         } catch (Exception failed) {
@@ -96,7 +94,7 @@ public class FaaastServiceManagerTest {
     }
 
     @Test
-    public void stopServiceEmptyRepositoryTest() throws IOException {
+    public void stopServiceEmptyRepositoryTest() {
         try {
             faaastServiceManager.stopService(new URL("http://does-not-exist.com:1234/aas"));
             fail("This operation should fail");

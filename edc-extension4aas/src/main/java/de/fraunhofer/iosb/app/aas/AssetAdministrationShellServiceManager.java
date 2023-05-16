@@ -2,7 +2,7 @@
  * Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
  * Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
  * Forschung e.V.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,7 +26,7 @@ public interface AssetAdministrationShellServiceManager {
 
     /**
      * Boot up an AAS service by environment and port
-
+     *
      * @param aasModelPath AAS Environment for the AAS service
      * @param port         AAS service's exposed HTTP port for communication
      *                     with this extension
@@ -37,7 +37,7 @@ public interface AssetAdministrationShellServiceManager {
 
     /**
      * Boot up an AAS service by environment and config
-
+     *
      * @param aasModelPath AAS Environment for the AAS service
      * @param configPath   AAS service config
      * @return The URL of the new service
@@ -46,13 +46,25 @@ public interface AssetAdministrationShellServiceManager {
     URL startService(Path aasModelPath, Path configPath) throws IOException;
 
     /**
+     * Boot up an AAS service by environment and config
+     *
+     * @param aasModelPath AAS Environment for the AAS service
+     * @param configPath   AAS service config
+     * @param port         AAS service's exposed HTTP port for communication
+     *                     with this extension
+     * @return The URL of the new service
+     * @throws IOException If the URL creation fails
+     */
+    URL startService(Path aasModelPath, Path configPath, int port) throws IOException;
+
+    /**
      * Stop all running AAS services that were started by this manager
      */
     void stopServices();
 
     /**
      * Stop an AAS service by URL
-
+     *
      * @param aasServiceUrl AAS service to be stopped
      */
     void stopService(URL aasServiceUrl);

@@ -24,10 +24,12 @@ import java.util.concurrent.ExecutionException;
 
 import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationObservable;
+import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.spi.catalog.CatalogService;
 import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
+import org.eclipse.edc.spi.types.domain.HttpDataAddress;
 
 import de.fraunhofer.iosb.app.Logger;
 import de.fraunhofer.iosb.app.authentication.CustomAuthenticationRequestFilter;
@@ -74,33 +76,33 @@ public class ClientEndpoint {
     /**
      * Initialize a client endpoint.
      * 
-     * @param ownUri                                  Needed for providing this
-     *                                                connector's
-     *                                                address in a data transfer
-     *                                                process.
-     * @param catalogService                          Fetch catalogs from a provider
-     *                                                connector.
-     * @param consumerNegotiationManager              Initiate a contract
-     *                                                negotiation as a
-     *                                                consumer.
-     * @param contractNegotiationObservable           Listen for contract
-     *                                                negotiation changes
-     *                                                (confirmed, failed, ...).
-     * @param transferProcessManager                  Initiate a data transfer.
-     * @param dataEndpointAuthenticationRequestFilter
+     * @param ownUri                        Needed for providing this connector's
+     *                                      address in a data transfer process.
+     * @param catalogService                Fetch catalogs from a provider
+     *                                      connector.
+     * @param consumerNegotiationManager    Initiate a contract negotiation as a
+     *                                      consumer.
+     * @param contractNegotiationStore
+     * @param contractNegotiationObservable Listen for contract negotiation changes
+     *                                      (confirmed, failed, ...).
+     * @param transferProcessManager        Initiate a data transfer.
+     * @param observable                    Status updates for waiting data transfer
+     *                                      requestors to avoid busy waiting.
+     * @param dataEndpointAuthRequestFilter Creating and passing through custom api
+     *                                      keys for each data transfer.
      */
     public ClientEndpoint(URI ownUri, CatalogService catalogService,
             ConsumerContractNegotiationManager consumerNegotiationManager,
+            ContractNegotiationStore contractNegotiationStore,
             ContractNegotiationObservable contractNegotiationObservable,
             TransferProcessManager transferProcessManager,
             DataTransferObservable observable,
-            CustomAuthenticationRequestFilter dataEndpointAuthenticationRequestFilter) {
-        this.negotiator = new Negotiator(consumerNegotiationManager, contractNegotiationObservable);
+            CustomAuthenticationRequestFilter dataEndpointAuthRequestFilter) {
+        this.negotiator = new Negotiator(consumerNegotiationManager, contractNegotiationObservable,
+                contractNegotiationStore);
         this.contractOfferService = new ContractOfferService(catalogService);
-
         this.transferInitiator = new TransferInitiator(ownUri, transferProcessManager, observable,
-                dataEndpointAuthenticationRequestFilter);
-        // new ProviderAssetDataStore(transferInitiator);
+                dataEndpointAuthRequestFilter);
     }
 
     /**
@@ -111,20 +113,18 @@ public class ClientEndpoint {
      * @param providerUrl Provider EDC's URL (IDS endpoint)
      * @param assetId     ID of the asset to be retrieved
      * @return Asset data
-     * @throws ExecutionException
-     * @throws InterruptedException
      */
     @POST
     @Path(NEGOTIATE_PATH)
     public Response negotiateContract(@QueryParam("providerUrl") URL providerUrl,
-            @QueryParam("assetId") String assetId) {
+            @QueryParam("assetId") String assetId, @QueryParam("dataDestinationUrl") URL dataDestinationUrl) {
         LOGGER.debug(format("Received a %s POST request", NEGOTIATE_PATH));
         Objects.requireNonNull(providerUrl, "Provider URL must not be null");
         Objects.requireNonNull(assetId, "Asset ID must not be null");
 
         ContractOffer contractOffer;
         try {
-            contractOffer = contractOfferService.getContractForAssetId(providerUrl, assetId);
+            contractOffer = contractOfferService.getAcceptableContractForAssetId(providerUrl, assetId);
         } catch (InterruptedException negotiationException) {
             LOGGER.error(format("Getting contractOffers failed for provider %s and asset %s", providerUrl,
                     assetId), negotiationException);
@@ -142,16 +142,7 @@ public class ClientEndpoint {
                     .build();
         }
 
-        try {
-            var dataFuture = transferInitiator.initiateTransferProcess(providerUrl, agreement.getId(), assetId);
-            var data = transferInitiator.waitForData(dataFuture, agreement.getId());
-            return Response.ok(data).build();
-        } catch (InterruptedException | ExecutionException negotiationException) {
-            LOGGER.error(format("Getting data failed for provider %s and agreementId %s", providerUrl,
-                    agreement.getId()), negotiationException);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(negotiationException.getMessage())
-                    .build();
-        }
+        return getData(providerUrl, agreement.getId(), assetId, dataDestinationUrl);
     }
 
     /**
@@ -194,8 +185,8 @@ public class ClientEndpoint {
         Objects.requireNonNull(providerUrl, "Provider URL must not be null");
         Objects.requireNonNull(contractOffer, "ContractOffer must not be null");
         try {
-            var agreementId = negotiator.negotiate(providerUrl, contractOffer);
-            return Response.ok(agreementId).build();
+            var agreement = negotiator.negotiate(providerUrl, contractOffer);
+            return Response.ok(agreement).build();
         } catch (InterruptedException | ExecutionException negotiationException) {
             LOGGER.error(format("Negotiation failed for provider %s and contractOffer %s", providerUrl,
                     contractOffer.getId()), negotiationException);
@@ -216,19 +207,31 @@ public class ClientEndpoint {
     @GET
     @Path(TRANSFER_PATH)
     public Response getData(@QueryParam("providerUrl") URL providerUrl,
-            @QueryParam("agreementId") String agreementId, @QueryParam("assetId") String assetId) {
-        Objects.requireNonNull(providerUrl, "Provider URL must not be null");
-        Objects.requireNonNull(agreementId, "AgreementId must not be null");
-        Objects.requireNonNull(assetId, "AssetId must not be null");
-        try {
-            var dataFuture = transferInitiator.initiateTransferProcess(providerUrl, agreementId, assetId);
-            var data = transferInitiator.waitForData(dataFuture, agreementId);
-            return Response.ok(data).build();
-        } catch (InterruptedException | ExecutionException negotiationException) {
-            LOGGER.error(format("Getting data failed for provider %s and agreementId %s", providerUrl,
-                    agreementId), negotiationException);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(negotiationException.getMessage())
+            @QueryParam("agreementId") String agreementId, @QueryParam("assetId") String assetId,
+            @QueryParam("dataDestinationUrl") URL dataDestinationUrl) {
+        Objects.requireNonNull(providerUrl, "providerUrl must not be null");
+        Objects.requireNonNull(agreementId, "agreementId must not be null");
+        Objects.requireNonNull(assetId, "assetId must not be null");
+
+        if (Objects.isNull(dataDestinationUrl)) {
+            try {
+                var dataFuture = transferInitiator.initiateTransferProcess(providerUrl, agreementId, assetId);
+                var data = transferInitiator.waitForData(dataFuture, agreementId);
+                return Response.ok(data).build();
+
+            } catch (InterruptedException | ExecutionException negotiationException) {
+                LOGGER.error(format("Getting data failed for provider %s and agreementId %s", providerUrl,
+                        agreementId), negotiationException);
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(negotiationException.getMessage())
+                        .build();
+            }
+        } else {
+            var sinkAddress = HttpDataAddress.Builder.newInstance()
+                    .baseUrl(dataDestinationUrl.toString())
                     .build();
+            // Don't need future as the EDC does not receive the data
+            transferInitiator.initiateTransferProcess(providerUrl, agreementId, assetId, sinkAddress);
+            return Response.ok(format("Data transfer request to URL %s sent.", dataDestinationUrl)).build();
         }
     }
 
@@ -238,7 +241,8 @@ public class ClientEndpoint {
      * be matched on automated contract negotiation. This means, any contract offer
      * by a provider must have the same rules as any of the stored contract offers.
      * 
-     * @param contractOffer The contractOffer to add (Only its rules are relevant)
+     * @param contractOffers The contractOffer to add (Only its rules are relevant)
+     * 
      * @return OK as response.
      */
     @POST

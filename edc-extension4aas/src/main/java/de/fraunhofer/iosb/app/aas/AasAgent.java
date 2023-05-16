@@ -25,7 +25,7 @@ import de.fraunhofer.iosb.app.model.aas.CustomSubmodel;
 import de.fraunhofer.iosb.app.model.aas.CustomSubmodelElement;
 import de.fraunhofer.iosb.app.model.aas.CustomSubmodelElementCollection;
 import de.fraunhofer.iosb.app.model.aas.Identifier;
-import de.fraunhofer.iosb.app.model.aas.util.SubmodelUtil;
+import de.fraunhofer.iosb.app.util.AASUtil;
 import de.fraunhofer.iosb.app.util.Encoder;
 import de.fraunhofer.iosb.app.util.HttpRestClient;
 import de.fraunhofer.iosb.app.util.Transformer;
@@ -203,7 +203,7 @@ public class AasAgent {
             customSubmodel.setIdShort(submodel.getIdShort());
 
             // Recursively add submodelElements
-            var customElements = SubmodelUtil.getCustomSubmodelElementStructureFromSubmodel(submodel);
+            var customElements = AASUtil.getCustomSubmodelElementStructureFromSubmodel(submodel);
             customSubmodel.setSubmodelElements((List<CustomSubmodelElement>) customElements);
 
             customSubmodels.add(customSubmodel);

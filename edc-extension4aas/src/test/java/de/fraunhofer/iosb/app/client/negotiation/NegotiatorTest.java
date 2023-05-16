@@ -1,3 +1,18 @@
+/*
+* Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
+* Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
+* Forschung e.V.
+* 
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*     http://www.apache.org/licenses/LICENSE-2.0
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
 package de.fraunhofer.iosb.app.client.negotiation;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -16,6 +31,7 @@ import java.util.concurrent.Executors;
 import org.eclipse.edc.connector.contract.observe.ContractNegotiationObservableImpl;
 import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationObservable;
+import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
@@ -27,12 +43,14 @@ public class NegotiatorTest {
 
     private final ConsumerContractNegotiationManager consumerNegotiationManager = mock(
             ConsumerContractNegotiationManager.class);
+    private final ContractNegotiationStore contractNegotiationStore = mock(
+        ContractNegotiationStore.class);
     private final ContractNegotiationObservable observable = new ContractNegotiationObservableImpl();
     private Negotiator clientNegotiator;
 
     @BeforeEach
     void initializeClientNegotiator() throws IOException {
-        clientNegotiator = new Negotiator(consumerNegotiationManager, observable);
+        clientNegotiator = new Negotiator(consumerNegotiationManager, observable, contractNegotiationStore);
     }
 
     @Test

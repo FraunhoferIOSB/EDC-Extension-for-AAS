@@ -42,10 +42,14 @@ public class ResourceController {
      * asset
 
      * @param linkToResource Link to resource to be registered
+     * @param name        The name of the asset (e.g., idShort)
+     * @param contentType Content behind the sourceUrl
+     * @param version     For versioning of assets
+
      * @return contract id
      */
-    public Pair<String, String> createResource(String linkToResource) {
-        var assetId = resourceAgent.createAsset(linkToResource);
+    public Pair<String, String> createResource(String linkToResource, String name, String contentType, String version) {
+        var assetId = resourceAgent.createAsset(linkToResource, name, contentType, version);
         var contractId = contractHandler.registerAssetToDefaultContract(assetId);
         return new Pair<>(assetId, contractId);
     }

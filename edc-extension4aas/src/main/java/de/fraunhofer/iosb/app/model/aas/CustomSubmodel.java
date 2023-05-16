@@ -23,7 +23,7 @@ import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonAutoDetect
-public class CustomSubmodel extends IdsAssetElement {
+public class CustomSubmodel extends AASElement {
 
     protected Identifier identification;
     protected String idShort;

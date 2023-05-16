@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "c029e30f-4822-4d2b-884f-3ef8f5962ba8",
+		"_postman_id": "dbc56a75-0ec5-4aed-ab74-d5f23c551530",
 		"name": "EDC Extension",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -81,7 +81,13 @@
 					"name": "1. Get contract offers for asset",
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "X-Api-Key",
+								"value": "password",
+								"type": "text"
+							}
+						],
 						"url": {
 							"raw": "{{consumer}}/api/automated/contractOffers?providerUrl={{provider-ids}}&assetId={{asset-id}}",
 							"host": [
@@ -110,7 +116,13 @@
 					"name": "2. Initiate negotiation with contractOffer",
 					"request": {
 						"method": "POST",
-						"header": [],
+						"header": [
+							{
+								"key": "X-Api-Key",
+								"value": "password",
+								"type": "text"
+							}
+						],
 						"body": {
 							"mode": "raw",
 							"raw": "{\r\n        \"id\": \"DEFAULT_CONTRACT2:be592d75-a2df-4e39-a374-8d5728ce1b2b\",\r\n        \"policy\": {\r\n            \"permissions\": [\r\n                {\r\n                    \"edctype\": \"dataspaceconnector:permission\",\r\n                    \"uid\": null,\r\n                    \"target\": \"-1379397334\",\r\n                    \"action\": {\r\n                        \"type\": \"USE\",\r\n                        \"includedIn\": null,\r\n                        \"constraint\": null\r\n                    },\r\n                    \"assignee\": null,\r\n                    \"assigner\": null,\r\n                    \"constraints\": [],\r\n                    \"duties\": []\r\n                }\r\n            ],\r\n            \"prohibitions\": [],\r\n            \"obligations\": [],\r\n            \"extensibleProperties\": {},\r\n            \"inheritsFrom\": null,\r\n            \"assigner\": null,\r\n            \"assignee\": null,\r\n            \"target\": \"-1379397334\",\r\n            \"@type\": {\r\n                \"@policytype\": \"set\"\r\n            }\r\n        },\r\n        \"asset\": {\r\n            \"id\": \"-1379397334\",\r\n            \"createdAt\": 1668680740459,\r\n            \"properties\": {\r\n                \"asset:prop:byteSize\": null,\r\n                \"asset:prop:id\": \"-1379397334\",\r\n                \"asset:prop:fileName\": null\r\n            }\r\n        },\r\n        \"provider\": \"urn:connector:provider\",\r\n        \"consumer\": \"urn:connector:consumer\",\r\n        \"offerStart\": null,\r\n        \"offerEnd\": null,\r\n        \"contractStart\": null,\r\n        \"contractEnd\": null\r\n    }",
@@ -144,7 +156,13 @@
 					"name": "3. Get data for agreement id and asset id",
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "X-Api-Key",
+								"value": "password",
+								"type": "text"
+							}
+						],
 						"url": {
 							"raw": "{{consumer}}/api/automated/transfer?providerUrl={{provider-ids}}&agreementId={{agreement-id}}&assetId={{asset-id}}",
 							"host": [
@@ -509,7 +527,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"connectorId\": \"provider\",\r\n    \"connectorAddress\": \"{{docker-provider-ids}}\",\r\n    \"protocol\": \"ids-multipart\",\r\n    \"offer\": {\r\n        \"offerId\": \"{{contract-id}}:3a75736e-001d-4364-8bd4-9888490edb57\",\r\n        \"assetId\": \"{{asset-id}}\",\r\n        \"policy\": {\r\n            \"permissions\": [\r\n                {\r\n                    \"edctype\": \"dataspaceconnector:permission\",\r\n                    \"uid\": null,\r\n                    \"target\": \"{{asset-id}}\",\r\n                    \"action\": {\r\n                        \"type\": \"USE\",\r\n                        \"includedIn\": null,\r\n                        \"constraint\": null\r\n                    },\r\n                    \"assignee\": null,\r\n                    \"assigner\": null,\r\n                    \"constraints\": [\r\n                        {\r\n                            \"edctype\": \"AtomicConstraint\",\r\n                            \"leftExpression\": {\r\n                                \"edctype\": \"dataspaceconnector:literalexpression\",\r\n                                \"value\": \"region\"\r\n                            },\r\n                            \"rightExpression\": {\r\n                                \"edctype\": \"dataspaceconnector:literalexpression\",\r\n                                \"value\": \"eu\"\r\n                            },\r\n                            \"operator\": \"EQ\"\r\n                        }\r\n                    ],\r\n                    \"duties\": []\r\n                }\r\n            ],\r\n            \"prohibitions\": [],\r\n            \"obligations\": [],\r\n            \"extensibleProperties\": {},\r\n            \"inheritsFrom\": null,\r\n            \"assigner\": null,\r\n            \"assignee\": null,\r\n            \"target\": \"{{asset-id}}\",\r\n            \"@type\": {\r\n                \"@policytype\": \"set\"\r\n            }\r\n        },\r\n        \"asset\": {\r\n            \"properties\": {\r\n                \"ids:byteSize\": null,\r\n                \"asset:prop:id\": \"{{asset-id}}\",\r\n                \"ids:fileName\": null\r\n            }\r\n        }\r\n    }\r\n}",
+							"raw": "{\r\n    \"connectorId\": \"provider\",\r\n    \"connectorAddress\": \"{{docker-provider-ids}}\",\r\n    \"protocol\": \"ids-multipart\",\r\n    \"offer\": {\r\n        \"offerId\": \"{{contract-id}}:3a75736e-001d-4364-8bd4-9888490edb57\",\r\n        \"assetId\": \"{{asset-id}}\",\r\n        \"policy\": {\r\n            \"permissions\": [\r\n                {\r\n                    \"edctype\": \"dataspaceconnector:permission\",\r\n                    \"uid\": null,\r\n                    \"target\": \"{{asset-id}}\",\r\n                    \"action\": {\r\n                        \"type\": \"USE\",\r\n                        \"includedIn\": null,\r\n                        \"constraint\": null\r\n                    },\r\n                    \"assignee\": null,\r\n                    \"assigner\": null,\r\n                    \"constraints\": [],\r\n                    \"duties\": []\r\n                }\r\n            ],\r\n            \"prohibitions\": [],\r\n            \"obligations\": [],\r\n            \"extensibleProperties\": {},\r\n            \"inheritsFrom\": null,\r\n            \"assigner\": null,\r\n            \"assignee\": null,\r\n            \"target\": \"{{asset-id}}\",\r\n            \"@type\": {\r\n                \"@policytype\": \"set\"\r\n            }\r\n        },\r\n        \"asset\": {\r\n            \"properties\": {\r\n                \"ids:byteSize\": null,\r\n                \"asset:prop:id\": \"{{asset-id}}\",\r\n                \"ids:fileName\": null\r\n            }\r\n        }\r\n    }\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -517,9 +535,9 @@
 							}
 						},
 						"url": {
-							"raw": "{{consumer}}/api/v1/data/contractnegotiations",
+							"raw": "{{consumer-data-api}}/api/v1/data/contractnegotiations",
 							"host": [
-								"{{consumer}}"
+								"{{consumer-data-api}}"
 							],
 							"path": [
 								"api",
@@ -543,9 +561,9 @@
 							}
 						],
 						"url": {
-							"raw": "{{consumer}}/api/v1/data/contractnegotiations/{{negotiation-id}}",
+							"raw": "{{consumer-data-api}}/api/v1/data/contractnegotiations/{{negotiation-id}}",
 							"host": [
-								"{{consumer}}"
+								"{{consumer-data-api}}"
 							],
 							"path": [
 								"api",
@@ -587,9 +605,9 @@
 							}
 						},
 						"url": {
-							"raw": "{{consumer}}/api/v1/data/transferprocess",
+							"raw": "{{consumer-data-api}}/api/v1/data/transferprocess",
 							"host": [
-								"{{consumer}}"
+								"{{consumer-data-api}}"
 							],
 							"path": [
 								"api",

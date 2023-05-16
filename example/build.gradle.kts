@@ -11,7 +11,7 @@
 plugins {
     `java-library`
     id("application")
-    id("com.github.johnrengelman.shadow") version "7.1.2"
+    id("com.github.johnrengelman.shadow") version "8.1.0"
 }
 
 val jupiterVersion: String by project
@@ -36,11 +36,13 @@ dependencies {
     // Read configuration values
     implementation("${edcGroup}:configuration-filesystem:${edcVersion}")
 
-
     // Data transfer (read from AAS service/write to HTTP endpoint)
     implementation("${edcGroup}:data-plane-core:${edcVersion}")
     implementation("${edcGroup}:data-plane-http:${edcVersion}")
-    implementation("${edcGroup}:data-plane-transfer-client:${edcVersion}")
+    implementation("${edcGroup}:data-plane-client:${edcVersion}")
+    implementation("${edcGroup}:data-plane-selector-client:$edcVersion")
+    implementation("${edcGroup}:data-plane-selector-core:$edcVersion")
+    implementation("${edcGroup}:transfer-data-plane:${edcVersion}")
 }
 
 application {

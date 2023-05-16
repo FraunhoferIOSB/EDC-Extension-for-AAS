@@ -123,9 +123,10 @@ public class ContractOfferService {
     }
 
     /**
-     * Removes an accepted contractOffer.
+     * Updates an accepted contractOffer.
      * 
-     * @param contractOfferID Contract offer id of contract offer to be removed
+     * @param contractOfferID Contract offer id of contract offer to be updated
+     * @param contractOffer Updated ContractOffer
      */
     public void updateAccepted(String contractOfferId, ContractOffer contractOffer) {
         contractOfferStore.updateOffer(contractOfferId, contractOffer);
@@ -142,7 +143,7 @@ public class ContractOfferService {
      * @return One contractOffer offered by the provider for the given assetId.
      * @throws InterruptedException
      */
-    public ContractOffer getContractForAssetId(URL providerUrl, String assetId)
+    public ContractOffer getAcceptableContractForAssetId(URL providerUrl, String assetId)
             throws InterruptedException {
         var contractOffers = getContractsForAssetId(providerUrl, assetId);
 

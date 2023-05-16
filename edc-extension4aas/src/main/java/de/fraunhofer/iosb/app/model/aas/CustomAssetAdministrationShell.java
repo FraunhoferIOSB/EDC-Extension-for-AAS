@@ -23,7 +23,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonAutoDetect
-public class CustomAssetAdministrationShell extends IdsAssetElement {
+public class CustomAssetAdministrationShell extends AASElement {
 
     protected Identifier identification;
     protected String idShort;

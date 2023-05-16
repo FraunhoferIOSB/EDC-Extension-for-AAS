@@ -2,11 +2,42 @@
 
 ## Current development version 
 
+
 **New Features**
 
-* Support of **Eclipse Dataspace Connection v0.0.1-Milestone 7**
+* Support of **Eclipse Dataspace Connection v0.0.1-Milestone 8**
+
+* Client Service
+    * Add custom HTTP endpoints for data transfers
 
 **Bugfixes**
+
+* Postman collection
+    * Fix some old requests
+* ContractDefinitions created by extension
+    * Validity was set to max float value, is now set to 1 year (default)
+* Dependencies
+    * Add data flow controller dependency
+
+## V1.0.0-alpha2
+This version is compatible to **Eclipse Dataspace Connection v0.0.1-Milestone 7**
+
+**New Features**
+
+* Client Service
+    * Add functionality for automatically negotiating and requesting data from a provider EDC
+        * On automatic negotiation, provider contractOffers are matched against a set of own contractOffers (acceptedContractOffers)
+        * Provider data is sent to a specific client HTTP endpoint using a new authentication key for each transaction (derived from the agreementId)
+    * Add functionality for manually
+        * fetching a set of provider contractOffers for a provider asset,
+        * negotiating a contract with a provider using a contractOffer, returning an agreementId or an error message,
+        * getting data of a negotiated contract from a provider.
+
+**Bugfixes**
+
+* CustomAuthenticationRequestFilter
+    * No requests were filtered when self description was exposed by config
+
 
 ## V1.0.0-alpha
 This version is compatible to **Eclipse Dataspace Connection v0.0.1-Milestone 6**

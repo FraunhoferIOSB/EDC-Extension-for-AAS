@@ -20,7 +20,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -29,6 +28,7 @@ import org.apache.http.client.utils.URIBuilder;
 import org.eclipse.edc.api.auth.spi.AuthenticationService;
 import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationObservable;
+import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.connector.spi.catalog.CatalogService;
@@ -53,11 +53,12 @@ import de.fraunhofer.iosb.app.controller.AasController;
 import de.fraunhofer.iosb.app.controller.ConfigurationController;
 import de.fraunhofer.iosb.app.controller.ResourceController;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
-import de.fraunhofer.iosb.app.model.ids.SelfDescription;
+import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
+import de.fraunhofer.iosb.app.sync.Synchronizer;
 import okhttp3.OkHttpClient;
 
 /**
- * Extension providing/connecting EDC logic to the EDC-AAS-Application.
+ * EDC Extension supporting usage of Asset Administration Shells.
  */
 public class AasExtension implements ServiceExtension {
 
@@ -73,6 +74,8 @@ public class AasExtension implements ServiceExtension {
     private ContractDefinitionStore contractStore;
     @Inject
     private ContractNegotiationObservable contractNegotiationObservable;
+    @Inject
+    private ContractNegotiationStore contractNegotiationStore;
     @Inject
     private OkHttpClient okHttpClient;
     @Inject
@@ -92,11 +95,12 @@ public class AasExtension implements ServiceExtension {
         logger.setMonitor(context.getMonitor());
 
         // Distribute controllers, repositories
-        var selfDescriptionRepository = new ConcurrentHashMap<URL, SelfDescription>();
+        var selfDescriptionRepository = new SelfDescriptionRepository();
         aasController = new AasController(okHttpClient);
-
-        var endpoint = new Endpoint(selfDescriptionRepository, aasController,
+        var endpoint = new Endpoint(selfDescriptionRepository, aasController);
+        var synchronizer = new Synchronizer(selfDescriptionRepository, aasController,
                 new ResourceController(assetIndex, contractStore, policyStore));
+        selfDescriptionRepository.registerListener(synchronizer);
 
         loadConfig(context);
         var configInstance = Configuration.getInstance();
@@ -114,15 +118,14 @@ public class AasExtension implements ServiceExtension {
 
         // Task: get all AAS service URLs, synchronize EDC and AAS
         syncExecutor.scheduleAtFixedRate(
-                () -> selfDescriptionRepository.keys().asIterator()
-                        .forEachRemaining(url -> endpoint.syncAasWithEdc(url)),
-                configInstance.getSyncPeriod(),
+                () -> synchronizer.synchronize(),
+                1,
                 configInstance.getSyncPeriod(), TimeUnit.SECONDS);
 
         webService.registerResource(endpoint);
+
         var authenticationRequestFilter = new CustomAuthenticationRequestFilter(authenticationService,
                 configInstance.isExposeSelfDescription() ? Endpoint.SELF_DESCRIPTION_PATH : null);
-
         webService.registerResource(authenticationRequestFilter);
 
         initializeClient(context, authenticationRequestFilter);
@@ -141,7 +144,7 @@ public class AasExtension implements ServiceExtension {
         var observable = new DataTransferObservable();
         var dataTransferEndpoint = new DataTransferEndpoint(observable);
         webService.registerResource(
-                new ClientEndpoint(ownUri, catalogService, consumerNegotiationManager,
+                new ClientEndpoint(ownUri, catalogService, consumerNegotiationManager, contractNegotiationStore,
                         contractNegotiationObservable, transferProcessManager, observable,
                         authenticationRequestFilter));
         webService.registerResource(dataTransferEndpoint);

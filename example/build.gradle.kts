@@ -11,7 +11,7 @@
 plugins {
     `java-library`
     id("application")
-    id("com.github.johnrengelman.shadow") version "8.1.0"
+    id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
 val jupiterVersion: String by project

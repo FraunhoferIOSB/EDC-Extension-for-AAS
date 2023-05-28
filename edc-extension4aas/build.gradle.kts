@@ -20,7 +20,7 @@ java {
 }
 
 dependencies {
-    api("${edcGroup}:runtime-metamodel:${metaModelVersion}")
+    api("${edcGroup}:runtime-metamodel:${edcVersion}")
     // FA³ST
     implementation ("de.fraunhofer.iosb.ilt.faaast.service:starter:${faaastVersion}")
     // AAS serializer

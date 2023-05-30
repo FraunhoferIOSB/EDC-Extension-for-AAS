@@ -94,7 +94,7 @@ public class SynchronizerTest {
      * Tests initialization of selfDescription
      */
     @Test
-    public void synchronizationInitializeTest() throws IOException {
+    public void synchronizationInitializeTest() {
         startMockServer(port);
         prepareDefaultMockedResponse();
 
@@ -104,7 +104,7 @@ public class SynchronizerTest {
     }
 
     @Test
-    public void synchronizationRemoveSubmodelElementTest() throws IOException {
+    public void synchronizationRemoveSubmodelElementTest() {
         startMockServer(port);
 
         prepareDefaultMockedResponse();
@@ -119,7 +119,7 @@ public class SynchronizerTest {
     }
 
     @Test
-    public void synchronizationRemoveOneSubmodelElementTest() throws IOException {
+    public void synchronizationRemoveOneSubmodelElementTest() {
         startMockServer(port);
 
         prepareDefaultMockedResponse();
@@ -134,7 +134,7 @@ public class SynchronizerTest {
     }
 
     @Test
-    public void synchronizationRemoveAllTest() throws IOException {
+    public void synchronizationRemoveAllTest() {
         startMockServer(port);
 
         prepareDefaultMockedResponse();
@@ -149,7 +149,7 @@ public class SynchronizerTest {
     }
 
     @Test
-    public void synchronizationRemoveAasTest() throws IOException {
+    public void synchronizationRemoveAasTest() {
         startMockServer(port);
 
         prepareDefaultMockedResponse();

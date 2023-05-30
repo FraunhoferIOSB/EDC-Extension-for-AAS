@@ -23,7 +23,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import de.fraunhofer.iosb.app.model.aas.CustomSubmodel;
-import de.fraunhofer.iosb.app.model.aas.CustomSubmodelElement;
 import de.fraunhofer.iosb.app.model.aas.CustomSubmodelElementCollection;
 import io.adminshell.aas.v3.model.impl.DefaultSubmodel;
 import io.adminshell.aas.v3.model.impl.DefaultSubmodelElementCollection;

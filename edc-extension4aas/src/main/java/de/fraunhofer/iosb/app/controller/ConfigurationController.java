@@ -16,6 +16,7 @@
 package de.fraunhofer.iosb.app.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import de.fraunhofer.iosb.app.Logger;
@@ -39,6 +40,8 @@ public class ConfigurationController implements Controllable {
         logger = Logger.getInstance();
         configuration = Configuration.getInstance();
         objectMapper = new ObjectMapper();
+        // TODO case insensitive object mapper without deprecated configuration?
+        objectMapper.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
         objectReader = objectMapper.readerForUpdating(configuration);
     }
 

@@ -61,7 +61,7 @@ public class CustomAuthenticationRequestFilterTest {
         verify(authService, times(0)).isAuthenticated(any());
 
         var mockedContext = createSemiAuthenticRequestContext(Endpoint.SELF_DESCRIPTION_PATH, false,
-                new MultivaluedHashMap<>(Map.of("test-key", "test-passord")));
+                new MultivaluedHashMap<>(Map.of("test-key", "test-password")));
         authRequestFilter.filter(mockedContext);
 
     }

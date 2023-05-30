@@ -20,9 +20,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.concurrent.ExecutionException;
@@ -55,7 +52,7 @@ public class NegotiatorTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void testNegotiate() throws InterruptedException, ExecutionException, URISyntaxException {
+    void testNegotiate() throws InterruptedException, ExecutionException {
         var negotiationStatusResult = mock(StatusResult.class);
         when(negotiationStatusResult.succeeded()).thenReturn(true);
         var contractNegotiation = mock(ContractNegotiation.class);

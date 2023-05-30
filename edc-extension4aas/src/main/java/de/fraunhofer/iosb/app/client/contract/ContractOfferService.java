@@ -78,14 +78,22 @@ public class ContractOfferService {
                                 .newInstance()
                                 // .filter(List.of(new Criterion(ASSET_PROPERTY_ID, "=", assetId)))
                                 .build());
-        Catalog catalog;
+        byte[] catalogSerialized;
         try {
-            // Nothing to see here, move on
-            // When getting the futures result (byte[]), it is automatically converted into Catalog.class object)
-            catalog = (Catalog) ((Object) catalogFuture.get());
+            catalogSerialized = catalogFuture.get(configuration.getWaitForCatalogTimeout(), TimeUnit.SECONDS);
         } catch (ExecutionException futureExecutionException) {
             throw new EdcException(format("Failed fetching a catalog by provider %s.", providerUrl),
                     futureExecutionException);
+        } catch (TimeoutException timeoutCatalogFutureGetException) {
+            throw new EdcException(format("Timeout while waiting for catalog by provider %s.", providerUrl),
+                    timeoutCatalogFutureGetException);
+        }
+
+        Catalog catalog;
+        try {
+            catalog = new ObjectMapper().readValue(catalogSerialized, Catalog.class);
+        } catch (IOException e) {
+            throw new EdcException(format("Failed reading catalog of provider %s", providerUrl));
         }
 
         if (Objects.isNull(catalog)) {
@@ -96,9 +104,7 @@ public class ContractOfferService {
         // filter locally
         catalog.getContractOffers().removeIf(contractOffer -> !assetId.equals(contractOffer.getAssetId()));
 
-        var contractOffers = catalog.getContractOffers();
-
-        return contractOffers;
+        return catalog.getContractOffers();
     }
 
     /**

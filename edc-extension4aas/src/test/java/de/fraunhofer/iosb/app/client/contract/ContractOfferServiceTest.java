@@ -23,7 +23,6 @@ import static org.mockito.Mockito.when;
 
 import java.io.NotActiveException;
 import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +31,6 @@ import java.util.concurrent.ExecutionException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.ws.rs.NotFoundException;
 import org.eclipse.edc.catalog.spi.Catalog;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.spi.catalog.CatalogService;
@@ -58,16 +56,15 @@ public class ContractOfferServiceTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     void getContractForAssetIdTest() throws InterruptedException, ExecutionException, JsonProcessingException {
-        var mockedFuture = mock(CompletableFuture.class);
+        var mockedFuture = new CompletableFuture<byte[]>();
         var contractOffers = new ArrayList<>(
                 List.of(ContractOffer.Builder.newInstance().policy(Policy.Builder.newInstance().build())
                         .assetId("test-asset-id")
                         .id("mocked-contract-id")
                         .build()));
-        when(mockedFuture.get())
-                .thenReturn(new ObjectMapper().writeValueAsBytes(Catalog.Builder.newInstance().id("catalog-id").contractOffers(contractOffers).build()));
+
+        mockedFuture.complete(new ObjectMapper().writeValueAsBytes(Catalog.Builder.newInstance().id("catalog-id").contractOffers(contractOffers).build()));
 
         when(mockCatalogService.request(any(), any(), any())).thenReturn(mockedFuture);
 
@@ -76,11 +73,11 @@ public class ContractOfferServiceTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     void getContractUnreachableProviderTest() throws MalformedURLException, InterruptedException {
-        var mockedFuture = mock(CompletableFuture.class);
+        var mockedFuture = new CompletableFuture<byte[]>();
         when(mockCatalogService.request(any(), any(), any())).thenReturn(mockedFuture);
-        mockedFuture.completeExceptionally(new NotActiveException());
+        // mockedFuture.completeExceptionally(new NotActiveException());
+
         try {
             contractOfferService.getContractsForAssetId(new URL("http://fakeUrl:4321/not/working"), "test-asset-id");
             fail("This should not complete without throwing an exception");

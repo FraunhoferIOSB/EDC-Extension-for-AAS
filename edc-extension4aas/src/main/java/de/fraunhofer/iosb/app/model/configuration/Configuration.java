@@ -64,6 +64,9 @@ public class Configuration {
     @JsonProperty(SETTINGS_PREFIX + "client.waitForAgreementTimeout")
     private int waitForAgreementTimeout = 10; // Seconds
 
+    @JsonProperty(SETTINGS_PREFIX + "client.waitForCatalogTimeout")
+    private int waitForCatalogTimeout = 10; // Seconds
+
     @JsonProperty(SETTINGS_PREFIX + "client.acceptAllProviderOffers")
     private boolean acceptAllProviderOffers = false;
 
@@ -155,6 +158,14 @@ public class Configuration {
 
     public void setWaitForTransferTimeout(int waitForTransferTimeout) {
         this.waitForTransferTimeout = waitForTransferTimeout;
+    }
+
+    public int getWaitForCatalogTimeout() {
+        return waitForCatalogTimeout;
+    }
+
+    public void setWaitForCatalogTimeout(int waitForCatalogTimeout) {
+        this.waitForCatalogTimeout = waitForCatalogTimeout;
     }
 
     public boolean isAcceptAllProviderOffers() {

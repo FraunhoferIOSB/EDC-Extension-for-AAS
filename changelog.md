@@ -5,7 +5,7 @@
 
 **New Features**
 
-* Support of **Eclipse Dataspace Connection v0.0.1-Milestone 8**
+* Support of **Eclipse Dataspace Connector v0.0.1-Milestone 8**
 
 * Client Service
     * Add custom HTTP endpoints for data transfers

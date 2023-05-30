@@ -26,7 +26,7 @@ dependencies {
 
     // IDS stuff such as IDS messages
     implementation("${edcGroup}:ids:${edcVersion}") {
-        exclude("${edcGroup}","ids-token-validation")
+        exclude(edcGroup,"ids-token-validation")
     }
 
     // Identity and access management MOCK -> only for testing

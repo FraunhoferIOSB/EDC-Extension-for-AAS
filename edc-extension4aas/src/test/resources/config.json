@@ -1,5 +1,5 @@
 {
-    "edc.aas.remoteaaslocation": "https://example.com/remoteAAS",
+    "edc.aas.remoteAASLocation": "https://example.com/remoteAAS",
     "edc.aas.localaasmodelpath": "/test/path/to/localAasModelPath",
     "edc.aas.localaasserviceport": 12345,
     "edc.aas.localaasserviceconfigpath": "/test/path/to/setAasServiceConfigPath",

@@ -15,20 +15,6 @@
  */
 package de.fraunhofer.iosb.app.client.contract;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.io.NotActiveException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.catalog.spi.Catalog;
@@ -38,6 +24,18 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.EdcException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class ContractOfferServiceTest {
 
@@ -56,7 +54,7 @@ public class ContractOfferServiceTest {
     }
 
     @Test
-    void getContractForAssetIdTest() throws InterruptedException, ExecutionException, JsonProcessingException {
+    void getContractForAssetIdTest() throws InterruptedException, JsonProcessingException {
         var mockedFuture = new CompletableFuture<byte[]>();
         var contractOffers = new ArrayList<>(
                 List.of(ContractOffer.Builder.newInstance().policy(Policy.Builder.newInstance().build())

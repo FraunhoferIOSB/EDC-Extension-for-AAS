@@ -2,10 +2,10 @@
 
 The example use case starts two connectors with the edc-extension4aas. The first connector is a provider of an AAS model and the second connector is an example consumer which wants to retrieve data from the provider.
 
-The example has following structure:
+The example has the following structure:
 - `configurations`: contains configuration files for the provider and consumer connector
 - `resources`: contains two example AAS files and an example config file for the used AAS service. Additionally, there is a postman collection which can be used for requesting the consumer connector.
-- `build.gradle.kts`: build file for an EDC with the edc-extension4aas. Can be used as a launcher for an ready to use EDC. _Connectors can be started using the concept of "launchers", which are essentially compositions of Java modules defined as gradle build files._ - [EDC readme](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector#run-your-first-connector).
+- `build.gradle.kts`: build file for an EDC with the edc-extension4aas. Can be used as a launcher for a ready to use EDC. _Connectors can be started using the concept of "launchers", which are essentially compositions of Java modules defined as gradle build files._ - [EDC readme](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector#run-your-first-connector).
 
 ## Getting Started
 
@@ -60,7 +60,7 @@ A few basic EDC config values:
 * `edc.api.auth.key`: Value of the header used for authentication when calling 
   endpoints of the data management API.
 
-An example configuration for an ready to use EDC with the _edc-extension4AAS_ and _ids_:
+An example configuration for a ready to use EDC with the _edc-extension4AAS_ and _ids_:
 ```
 # extension4AAS
 edc.aas.logPrefix = EDC-AAS-Extension

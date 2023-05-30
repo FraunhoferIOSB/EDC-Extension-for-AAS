@@ -29,7 +29,7 @@ dependencies {
     implementation("io.admin-shell.aas:model:1.2.0")
 
     // Adding accepted contracts via file requires this
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.0")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.1")
     // EDC asset management
     implementation("${edcGroup}:management-api:${edcVersion}")
 

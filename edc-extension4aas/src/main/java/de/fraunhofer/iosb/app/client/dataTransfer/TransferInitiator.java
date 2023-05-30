@@ -2,7 +2,7 @@
  * Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
  * Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
  * Forschung e.V.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,7 +15,15 @@
  */
 package de.fraunhofer.iosb.app.client.dataTransfer;
 
-import static java.lang.String.format;
+import de.fraunhofer.iosb.app.authentication.CustomAuthenticationRequestFilter;
+import de.fraunhofer.iosb.app.client.ClientEndpoint;
+import de.fraunhofer.iosb.app.model.configuration.Configuration;
+import org.apache.http.client.utils.URIBuilder;
+import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
+import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
+import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
+import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.types.domain.HttpDataAddress;
 
 import java.net.URI;
 import java.net.URL;
@@ -25,17 +33,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import org.apache.http.client.utils.URIBuilder;
-import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
-import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
-import org.eclipse.edc.connector.transfer.spi.types.TransferType;
-import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.types.domain.HttpDataAddress;
-
-import de.fraunhofer.iosb.app.authentication.CustomAuthenticationRequestFilter;
-import de.fraunhofer.iosb.app.client.ClientEndpoint;
-import de.fraunhofer.iosb.app.model.configuration.Configuration;
-import jakarta.ws.rs.core.MediaType;
+import static java.lang.String.format;
 
 /**
  * Initiate transfer requests
@@ -52,20 +50,20 @@ public class TransferInitiator {
 
     /**
      * Class constructor
-     * 
+     *
      * @param ownUri                                  URL of this running EDC.
      * @param transferProcessManager                  Initiating a transfer process
      *                                                as a consumer.
      * @param observable                              Status updates for waiting
-     *                                                data transfer requestors to
+     *                                                data transfer requesters to
      *                                                avoid busy waiting.
      * @param dataEndpointAuthenticationRequestFilter Creating and passing through
      *                                                custom api keys for each data
      *                                                transfer
      */
     public TransferInitiator(URI ownUri,
-            TransferProcessManager transferProcessManager, DataTransferObservable observable,
-            CustomAuthenticationRequestFilter dataEndpointAuthenticationRequestFilter) {
+                             TransferProcessManager transferProcessManager, DataTransferObservable observable,
+                             CustomAuthenticationRequestFilter dataEndpointAuthenticationRequestFilter) {
         this.ownUri = ownUri
                 .resolve(format("./%s/%s/%s", ownUri.getPath(), ClientEndpoint.AUTOMATED_PATH,
                         DataTransferEndpoint.RECEIVE_DATA_PATH));
@@ -76,14 +74,13 @@ public class TransferInitiator {
 
     /**
      * Initiates the transfer process defined by the arguments. The data of the
-     * transfer will be sent to {@link ClientEndpoint#RECEIVE_DATA_PATH}.
-     * 
+     * transfer will be sent to {@link DataTransferEndpoint#RECEIVE_DATA_PATH}.
+     *
      * @param providerUrl The provider from whom the data is to be fetched.
      * @param agreementId Non-null ContractAgreement of the negotiation process.
      * @param assetId     The asset to be fetched.
-     * 
      * @return A completable future whose result will be the data or an error
-     *         message.
+     * message.
      */
     public CompletableFuture<String> initiateTransferProcess(URL providerUrl, String agreementId, String assetId) {
         var apiKey = UUID.randomUUID().toString();
@@ -101,19 +98,18 @@ public class TransferInitiator {
 
     /**
      * Initiates the transfer process defined by the arguments. The data of the
-     * transfer will be sent to {@link ClientEndpoint#RECEIVE_DATA_PATH}.
-     * 
+     * transfer will be sent to {@link DataTransferEndpoint#RECEIVE_DATA_PATH}.
+     *
      * @param providerUrl     The provider from whom the data is to be fetched.
      * @param agreementId     Non-null ContractAgreement of the negotiation process.
      * @param assetId         The asset to be fetched.
      * @param dataSinkAddress HTTPDataAddress the result of the transfer should be
      *                        sent to.
-     * 
      * @return A completable future whose result will be the data or an error
-     *         message.
+     * message.
      */
     public CompletableFuture<String> initiateTransferProcess(URL providerUrl, String agreementId, String assetId,
-            HttpDataAddress dataSinkAddress) {
+                                                             HttpDataAddress dataSinkAddress) {
         // Prepare for incoming data
         var dataFuture = new CompletableFuture<String>();
         observable.register(dataFuture, agreementId);
@@ -125,16 +121,15 @@ public class TransferInitiator {
                 .connectorId("consumer")
                 .assetId(assetId)
                 .dataDestination(dataSinkAddress)
-                .transferType(
-                        TransferType.Builder.transferType()
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .isFinite(true)
-                                .build())
                 .managedResources(false) // we do not need any provisioning
                 .contractId(agreementId)
                 .build();
 
-        var transferProcessStatus = transferProcessManager.initiateConsumerRequest(dataRequest);
+        var transferRequest = TransferRequest.Builder.newInstance()
+                .dataRequest(dataRequest)
+                .build();
+
+        var transferProcessStatus = transferProcessManager.initiateConsumerRequest(transferRequest);
         if (transferProcessStatus.failed()) {
             throw new EdcException(transferProcessStatus.getFailureDetail());
         }
@@ -144,12 +139,10 @@ public class TransferInitiator {
 
     /**
      * Call this with a future received by initiateTransferProcess()
-     * 
+     *
      * @param dataFuture  Data future created by initiateTransferProcess method
      * @param agreementId AgreementId corresponding to this transfer
-     * 
      * @return The data
-     * 
      * @throws InterruptedException If the future was interrupted
      * @throws ExecutionException   If the data transfer process failed
      */

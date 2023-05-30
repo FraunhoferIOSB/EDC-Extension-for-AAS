@@ -49,13 +49,13 @@ public class NegotiatorTest {
     private Negotiator clientNegotiator;
 
     @BeforeEach
-    void initializeClientNegotiator() throws IOException {
+    void initializeClientNegotiator() {
         clientNegotiator = new Negotiator(consumerNegotiationManager, observable, contractNegotiationStore);
     }
 
     @Test
     @SuppressWarnings("unchecked")
-    void testNegotiate() throws MalformedURLException, InterruptedException, ExecutionException, URISyntaxException {
+    void testNegotiate() throws InterruptedException, ExecutionException, URISyntaxException {
         var negotiationStatusResult = mock(StatusResult.class);
         when(negotiationStatusResult.succeeded()).thenReturn(true);
         var contractNegotiation = mock(ContractNegotiation.class);
@@ -65,20 +65,18 @@ public class NegotiatorTest {
         when(consumerNegotiationManager.initiate(any())).thenReturn(negotiationStatusResult);
 
         var contractOffer = mock(ContractOffer.class);
-        when(contractOffer.getProvider()).thenReturn(new URI("test"));
+        when(contractOffer.getProviderId()).thenReturn("test");
 
         var agreement = mock(ContractAgreement.class);
         when(contractNegotiation.getContractAgreement()).thenReturn(agreement);
         when(agreement.getId()).thenReturn("agreementId");
 
-        var future = Executors.newSingleThreadExecutor().submit(() -> {
-            return clientNegotiator.negotiate(new URL("http://testurl:12345"), contractOffer);
-        });
+        var future = Executors.newSingleThreadExecutor().submit(() -> clientNegotiator.negotiate(new URL("http://testurl:12345"), contractOffer));
         // Let the negotiator think we need time to process
         // If not, the "confirmed" signal will be sent too soon, and the negotiator will
         // never complete
         Thread.sleep(1000);
-        observable.invokeForEach(l -> l.confirmed(contractNegotiation));
+        observable.invokeForEach(l -> l.accepted(contractNegotiation));
 
         assertEquals(agreement, future.get());
     }

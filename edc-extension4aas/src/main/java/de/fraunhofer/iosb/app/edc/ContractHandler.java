@@ -38,11 +38,12 @@ import com.fasterxml.jackson.databind.ObjectReader;
 
 import de.fraunhofer.iosb.app.Logger;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
+import org.eclipse.edc.spi.result.StoreResult;
 
 /**
  * Handle interactions with the ContractDefinitionStore, PolicyDefinitionStore.
  * Assigns EDC assets to EDC contracts.
- * 
+ * <p>
  * There are two types of policies: AccessPolicies and ContractPolicies. Both
  * can be passed as files via the configuration. If no policies are passed,
  * USE permissions are used as default policies. For more info regarding
@@ -108,7 +109,7 @@ public class ContractHandler {
      * @return The removed contract definition or null if the contract definition
      *         was not found
      */
-    public ContractDefinition deleteContractDefinition(String contractId) {
+    public StoreResult<ContractDefinition> deleteContractDefinition(String contractId) {
         return contractDefinitionStore.deleteById(contractId);
     }
 
@@ -152,7 +153,7 @@ public class ContractHandler {
                         ioException);
             }
         }
-        policyDefinitionStore.save(defaultAccessPolicyDefinition);
+        policyDefinitionStore.create(defaultAccessPolicyDefinition);
 
         if (Objects.nonNull(defaultContractPolicyPath)) {
             try {
@@ -168,7 +169,7 @@ public class ContractHandler {
                         ioException);
             }
         }
-        policyDefinitionStore.save(defaultContractPolicyDefinition);
+        policyDefinitionStore.create(defaultContractPolicyDefinition);
 
         var defaultContractDefinition = ContractDefinition.Builder.newInstance()
                 .id(contractDefinitionId)
@@ -178,7 +179,6 @@ public class ContractHandler {
                         AssetSelectorExpression.Builder.newInstance()
                                 .whenEquals(ASSET_PROPERTY_ID, assetId)
                                 .build())
-                .validity(configuration.getDefaultContractValidity())
                 .build();
 
         contractDefinitionStore.save(defaultContractDefinition);

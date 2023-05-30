@@ -57,8 +57,7 @@ public class CustomSubmodelElement extends AASElement {
             if (!(other instanceof CustomSubmodelElementCollection)) {
                 return false;
             }
-            return ((CustomSubmodelElementCollection) this).getValue().stream()
-                    .allMatch(element -> ((CustomSubmodelElementCollection) other).getValue().contains(element));
+            return ((CustomSubmodelElementCollection) other).getValue().containsAll(((CustomSubmodelElementCollection) this).getValue());
         }
 
         return true;

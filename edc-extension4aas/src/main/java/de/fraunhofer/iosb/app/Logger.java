@@ -18,8 +18,6 @@ package de.fraunhofer.iosb.app;
 import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.util.Objects;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Singleton class.
@@ -30,7 +28,7 @@ import java.util.stream.Stream;
 public class Logger {
     private static final String PREFIX_SEPARATOR = " :: ";
     private static Logger instance;
-    private String prefix = "";
+    private final String prefix = "EDC4AAS";
     private Monitor monitor;
 
     private Logger() {
@@ -47,24 +45,6 @@ public class Logger {
             instance = new Logger();
         }
         return instance;
-    }
-
-    /**
-     * Set a new prefix for this logger.
-
-     * @param prefix The new prefix
-     */
-    public void setPrefix(String prefix) {
-        this.prefix = prefix;
-    }
-
-    /**
-     * Get the prefix of this logger.
-
-     * @return The prefix of this logger
-     */
-    public String getPrefix() {
-        return prefix;
     }
 
     /**
@@ -91,7 +71,7 @@ public class Logger {
      * @param message Message to be logged
      */
     public void log(String... message) {
-        monitor.info(prefix + PREFIX_SEPARATOR + Stream.of(message).collect(Collectors.joining(" ")));
+        monitor.info(prefix + PREFIX_SEPARATOR + String.join(" ", message));
     }
 
     /**

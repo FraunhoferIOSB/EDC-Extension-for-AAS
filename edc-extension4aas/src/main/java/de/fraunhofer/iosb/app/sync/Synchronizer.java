@@ -172,7 +172,7 @@ public class Synchronizer implements SelfDescriptionChangeListener {
     private void syncSubmodelElements(Collection<CustomSubmodelElement> allElements,
             Collection<CustomSubmodelElement> allOldElements) {
         allElements.stream()
-                .filter(element -> allOldElements.contains(element))
+                .filter(allOldElements::contains)
                 .forEach(element -> {
                     var oldElement = allOldElements.stream()
                             .filter(oldElementTest -> oldElementTest.equals(element)).findFirst().orElse(element);

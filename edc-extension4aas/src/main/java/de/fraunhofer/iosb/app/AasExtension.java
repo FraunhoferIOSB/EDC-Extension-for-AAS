@@ -118,7 +118,7 @@ public class AasExtension implements ServiceExtension {
 
         // Task: get all AAS service URLs, synchronize EDC and AAS
         syncExecutor.scheduleAtFixedRate(
-                () -> synchronizer.synchronize(),
+                synchronizer::synchronize,
                 1,
                 configInstance.getSyncPeriod(), TimeUnit.SECONDS);
 
@@ -186,13 +186,11 @@ public class AasExtension implements ServiceExtension {
 
         var config = context.getConfig();
 
-        logger.setPrefix(config.getString(SETTINGS_PREFIX + "logPrefix", "AAS Extension"));
-
         String configAsString;
         try {
             configAsString = objectMapper.writeValueAsString(config.getRelativeEntries(SETTINGS_PREFIX));
         } catch (JsonProcessingException e) {
-            // This should not be reached, unless there is an error inside EDC's Config.java
+            // This should not be reached, unless there is an error inside EDCs Config.java
             logger.error("Could not load AAS extension configuration, using default values", e);
             configAsString = "";
         }

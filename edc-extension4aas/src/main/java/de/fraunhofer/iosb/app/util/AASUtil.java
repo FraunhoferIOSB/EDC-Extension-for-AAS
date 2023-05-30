@@ -71,7 +71,7 @@ public final class AASUtil {
      */
     public static Collection<CustomSubmodelElement> getAllSubmodelElements(CustomSubmodel submodel) {
         Objects.requireNonNull(submodel);
-        return flattenElements(new ArrayList<CustomSubmodelElement>(), submodel.getSubmodelElements());
+        return flattenElements(new ArrayList<>(), submodel.getSubmodelElements());
     }
 
     /**
@@ -106,9 +106,8 @@ public final class AASUtil {
         for (CustomSubmodelElement submodelElement : submodelElements) {
 
             if (submodelElement instanceof CustomSubmodelElementCollection) {
-                flattenElements(new ArrayList<CustomSubmodelElement>(),
-                        ((CustomSubmodelElementCollection) submodelElement).getValue())
-                        .forEach(flatList::add);
+                flatList.addAll(flattenElements(new ArrayList<>(),
+                        ((CustomSubmodelElementCollection) submodelElement).getValue()));
             }
 
             flatList.add(submodelElement);

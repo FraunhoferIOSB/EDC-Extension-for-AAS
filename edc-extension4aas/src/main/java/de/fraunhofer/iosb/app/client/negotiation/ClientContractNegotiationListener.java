@@ -39,9 +39,6 @@ public class ClientContractNegotiationListener implements ContractNegotiationLis
      * Make this listener listen to contract negotiation events containing the given
      * negotiationId in the Map, completing the given future on the predefined
      * events "Confirmed", "Declined", "Failed".
-     * 
-     * @param negotiationId Non-null valid Negotiation ID (will not be checked)
-     * @param future        Uncompleted Future
      */
     ClientContractNegotiationListener() {
         this.subscribers = new ConcurrentHashMap<>();
@@ -52,10 +49,10 @@ public class ClientContractNegotiationListener implements ContractNegotiationLis
      *
      * @param negotiation the contract negotiation that has been confirmed.
      */
-    public void confirmed(ContractNegotiation negotiation) {
+    public void accepted(ContractNegotiation negotiation) {
         var negotiationId = negotiation.getId();
 
-        if (subscribers.keySet().contains(negotiationId)) {
+        if (subscribers.containsKey(negotiationId)) {
             subscribers.get(negotiationId).complete(negotiation);
         }
     }
@@ -65,27 +62,13 @@ public class ClientContractNegotiationListener implements ContractNegotiationLis
      *
      * @param negotiation the contract negotiation that has been declined.
      */
-    public void declined(ContractNegotiation negotiation) {
+    public void terminated(ContractNegotiation negotiation) {
 
         var negotiationId = negotiation.getId();
 
-        if (subscribers.keySet().contains(negotiationId)) {
+        if (subscribers.containsKey(negotiationId)) {
             subscribers.get(negotiationId).completeExceptionally(
-                    new Throwable(format("Negotiation with ID %s was declined.", negotiationId)));
-        }
-    }
-
-    /**
-     * Called after a {@link ContractNegotiation} failed.
-     *
-     * @param negotiation the contract negotiation that failed.
-     */
-    public void failed(ContractNegotiation negotiation) {
-        var negotiationId = negotiation.getId();
-
-        if (subscribers.keySet().contains(negotiationId)) {
-            subscribers.get(negotiationId).completeExceptionally(
-                    new Throwable(format("Negotiation with ID %s failed.", negotiationId)));
+                    new Throwable(format("Negotiation with ID %s was terminated.", negotiationId)));
         }
     }
 

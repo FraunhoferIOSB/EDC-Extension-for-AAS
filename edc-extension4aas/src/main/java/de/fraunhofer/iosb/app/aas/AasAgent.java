@@ -139,18 +139,16 @@ public class AasAgent {
 
         var model = readModel(aasServiceUrl);
         // Add urls to all shells
-        model.getAssetAdministrationShells().forEach(shell -> {
-            shell.setSourceUrl(
-                    format("%s/shells/%s", aasServiceUrlString,
-                            Encoder.encodeBase64(shell.getIdentification().getId())));
-        });
+        model.getAssetAdministrationShells().forEach(shell -> shell.setSourceUrl(
+                format("%s/shells/%s", aasServiceUrlString,
+                        Encoder.encodeBase64(shell.getIdentification().getId()))));
         // Add urls to all submodels, submodelElements
         model.getSubmodels().forEach(submodel -> {
             submodel.setSourceUrl(
                     format("%s/submodels/%s", aasServiceUrlString,
                             Encoder.encodeBase64(submodel.getIdentification().getId())));
             submodel.getSubmodelElements()
-                    .forEach(elem -> elem = putUrlRec(
+                    .forEach(elem -> putUrlRec(
                             format("%s/submodels/%s/submodel/submodel-elements", aasServiceUrlString,
                                     Encoder.encodeBase64(submodel.getIdentification().getId())),
                             elem));
@@ -172,9 +170,9 @@ public class AasAgent {
         String conceptResponse;
         String submodelResponse;
         try {
-            shellResponse = httpRestClient.get(aasServiceUrl.toURI().resolve("/shells").toURL()).body().string();
-            submodelResponse = httpRestClient.get(aasServiceUrl.toURI().resolve("/submodels").toURL()).body().string();
-            conceptResponse = httpRestClient.get(aasServiceUrl.toURI().resolve("/concept-descriptions").toURL()).body()
+            shellResponse = Objects.requireNonNull(httpRestClient.get(aasServiceUrl.toURI().resolve("/shells").toURL()).body()).string();
+            submodelResponse = Objects.requireNonNull(httpRestClient.get(aasServiceUrl.toURI().resolve("/submodels").toURL()).body()).string();
+            conceptResponse = Objects.requireNonNull(httpRestClient.get(aasServiceUrl.toURI().resolve("/concept-descriptions").toURL()).body())
                     .string();
         } catch (URISyntaxException e) {
             throw new EdcException(e.getMessage());
@@ -185,7 +183,7 @@ public class AasAgent {
         CustomConceptDescription[] conceptDescriptions = objectMapper.readValue(conceptResponse,
                 CustomConceptDescription[].class);
 
-        // Because of SMC's "value" field, submodels have to be parsed manually
+        // Because of SMCs "value" field, submodels have to be parsed manually
 
         // First, parse into full admin-shell.io submodels:
         JsonDeserializer jsonDeserializer = new JsonDeserializer();

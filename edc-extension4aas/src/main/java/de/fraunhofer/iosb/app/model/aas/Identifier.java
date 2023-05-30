@@ -60,11 +60,7 @@ public class Identifier {
         if (!this.getId().equals(other.getId())) {
             return false;
         }
-        if (!this.getIdType().equals(other.getIdType())) {
-            return false;
-        }
-
-        return true;
+        return this.getIdType().equals(other.getIdType());
     }
 
 }

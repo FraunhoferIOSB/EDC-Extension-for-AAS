@@ -33,8 +33,8 @@ import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShellEnvironmen
  */
 public class SelfDescriptionRepository implements Observable<SelfDescriptionChangeListener> {
 
-    private Collection<SelfDescriptionChangeListener> listeners;
-    private Map<URL, SelfDescription> content;
+    private final Collection<SelfDescriptionChangeListener> listeners;
+    private final Map<URL, SelfDescription> content;
 
     public SelfDescriptionRepository() {
         content = new HashMap<>();
@@ -75,8 +75,6 @@ public class SelfDescriptionRepository implements Observable<SelfDescriptionChan
      * Remove self description and notify listeners.
      * 
      * @param aasUrl         URL of self description to be updated
-     * @param newEnvironment updated environment from which self description is
-     *                       created
      */
     public void removeSelfDescription(URL aasUrl) {
         var toBeRemoved = content.remove(aasUrl);

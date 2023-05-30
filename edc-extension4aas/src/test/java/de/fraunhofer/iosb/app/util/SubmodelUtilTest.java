@@ -39,7 +39,7 @@ public class SubmodelUtilTest {
         customCollObj.setIdShort("0");
         for (int i = 0; i < 100; i++) {
             var newCustomColl = new CustomSubmodelElementCollection();
-            newCustomColl.setIdShort("" + i);
+            newCustomColl.setIdShort(String.valueOf(i));
             customCollObj.setValues(List.of(newCustomColl));
             customCollObj = newCustomColl;
         }
@@ -60,7 +60,7 @@ public class SubmodelUtilTest {
 
         for (int i = 0; i < 100; i++) {
             var newColl = new DefaultSubmodelElementCollection();
-            newColl.setIdShort("" + i);
+            newColl.setIdShort(String.valueOf(i));
             collObj.setValues(List.of(newColl));
             collObj = newColl;
         }
@@ -69,8 +69,8 @@ public class SubmodelUtilTest {
 
         // Cast to use equals method
         assertEquals(
-                (CustomSubmodelElement) testCustomSubmodel.getSubmodelElements().stream().findFirst().orElseThrow(),
-                (CustomSubmodelElement) AASUtil.getCustomSubmodelElementStructureFromSubmodel(testSubmodel)
+                testCustomSubmodel.getSubmodelElements().stream().findFirst().orElseThrow(),
+                AASUtil.getCustomSubmodelElementStructureFromSubmodel(testSubmodel)
                         .stream().findFirst().orElseThrow());
     }
 }

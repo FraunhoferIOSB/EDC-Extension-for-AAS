@@ -16,8 +16,7 @@
 package de.fraunhofer.iosb.app;
 
 import static java.lang.String.format;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
@@ -42,7 +41,7 @@ import okhttp3.OkHttpClient;
 /**
  * Not mocking the controllers this endpoint uses, as the mocking/validation
  * process would be pretty complex. Mocking the AAS service instead.
- * Note: Synchronization now happens outside of the endpoint, so the
+ * Note: Synchronization now happens outside the endpoint, so the
  * selfDescription will be null after requests
  */
 public class EndpointTest {
@@ -83,7 +82,7 @@ public class EndpointTest {
     }
 
     @Test
-    public void getSelfDescriptionTest() throws IOException {
+    public void getSelfDescriptionTest() {
         endpoint.postAasService(url);
         assertEquals("[]", endpoint.getSelfDescription(null).getEntity());
     }
@@ -120,29 +119,29 @@ public class EndpointTest {
     }
 
     @Test
-    public void postAasServiceTest() throws IOException {
+    public void postAasServiceTest() {
         endpoint.postAasService(url);
-        assertEquals(null, selfDescriptionRepo.getSelfDescription(url));
+        assertNull(selfDescriptionRepo.getSelfDescription(url));
     }
 
     @Test
-    public void postAasEnvironmentTest() throws IOException {
+    public void postAasEnvironmentTest() {
         endpoint.postAasEnvironment("src/test/resources/aasEnvironment.json", null, port);
 
-        assertEquals(null, selfDescriptionRepo.getSelfDescription(url));
+        assertNull(selfDescriptionRepo.getSelfDescription(url));
 
         endpoint.removeAasService(url);
     }
 
     @Test
-    public void removeAasServiceTest() throws IOException {
+    public void removeAasServiceTest() {
         endpoint.postAasEnvironment("src/test/resources/aasEnvironment.json", null, port);
 
-        assertEquals(null, selfDescriptionRepo.getSelfDescription(url));
+        assertNull(selfDescriptionRepo.getSelfDescription(url));
 
         endpoint.removeAasService(url);
 
-        assertEquals(null, selfDescriptionRepo.getSelfDescription(url));
+        assertNull(selfDescriptionRepo.getSelfDescription(url));
     }
 
     @Test
@@ -155,8 +154,7 @@ public class EndpointTest {
                 FileManager.loadResource("submodelElement.json"));
 
         // Still null: not synchronized by Synchronizer
-        assertEquals(null,
-                selfDescriptionRepo.getSelfDescription(url));
+        assertNull(selfDescriptionRepo.getSelfDescription(url));
     }
 
 }

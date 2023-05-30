@@ -20,6 +20,7 @@ import static java.lang.String.format;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.InvalidPathException;
+import java.util.Map;
 import java.util.Objects;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -66,7 +67,6 @@ public class Endpoint {
      * 
      * @param selfDescriptionRepository Manage self descriptions
      * @param aasController             Communication with AAS services
-     * @param resourceController        Communication with EDC
      */
     public Endpoint(SelfDescriptionRepository selfDescriptionRepository, AasController aasController) {
         this.selfDescriptionRepository = Objects.requireNonNull(selfDescriptionRepository);
@@ -212,7 +212,7 @@ public class Endpoint {
     /**
      * Forward DELETE request to provided host in requestUrl. If requestUrl is an
      * AAS service that is registered at this EDC, synchronize assets and self
-     * description aswell.
+     * description as well.
      * 
      * @param requestUrl URL of AAS service to be deleted
      * @return Response status
@@ -222,7 +222,7 @@ public class Endpoint {
     public Response deleteAasRequest(@QueryParam("requestUrl") URL requestUrl) {
         LOGGER.log("Received an AAS DELETE request");
         Objects.requireNonNull(requestUrl);
-        return handleAasRequest(RequestType.DELETE, requestUrl, new String());
+        return handleAasRequest(RequestType.DELETE, requestUrl, "");
     }
 
     /**
@@ -256,7 +256,7 @@ public class Endpoint {
             // Build JSON object containing all self descriptions
             var selfDescriptions = objectMapper.createArrayNode();
             selfDescriptionRepository.getAllSelfDescriptions().stream()
-                    .map(selfDescriptionEntry -> selfDescriptionEntry.getValue())
+                    .map(Map.Entry::getValue)
                     .filter(Objects::nonNull)
                     .forEach(selfDescription -> selfDescriptions.add(selfDescription.toJsonNode()));
 
@@ -267,7 +267,7 @@ public class Endpoint {
             if (Objects.nonNull(selfDescription)) {
                 return Response.ok(selfDescription.toString()).build();
             } else {
-                LOGGER.error(format("Self description with URL %s not found.", aasServiceUrl.toString()));
+                LOGGER.error(format("Self description with URL %s not found.", aasServiceUrl));
                 return Response.status(Status.NOT_FOUND).build();
             }
         }
@@ -278,14 +278,14 @@ public class Endpoint {
      * via Synchronizer
      */
     private Response handleAasRequest(RequestType requestType, URL requestUrl, String body) {
-        var response = aasController.handleRequest(requestType, requestUrl, body);
+        try(var response = aasController.handleRequest(requestType, requestUrl, body)) {
 
-        if (!response.getStatusInfo().getFamily().equals(Family.SUCCESSFUL)) {
-            LOGGER.error("AAS request failed. Response from URL: " + response.getStatusInfo());
-            return Response.status(response.getStatus()).build();
+            if (!response.getStatusInfo().getFamily().equals(Family.SUCCESSFUL)) {
+                LOGGER.error("AAS request failed. Response from URL: " + response.getStatusInfo());
+                return Response.status(response.getStatus()).build();
+            }
+            LOGGER.log("AAS request succeeded.");
         }
-        LOGGER.log("AAS request succeeded.");
-
         return Response.ok().build();
     }
 }

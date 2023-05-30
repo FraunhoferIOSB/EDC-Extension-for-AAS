@@ -40,7 +40,7 @@ public class DataTransferObservable {
      * Register a future that should complete if a data transfer is finished.
      * 
      * @param observer    The future to complete if data transfer is finished.
-     * @param agreementId The agrement ID this future is dependent on.
+     * @param agreementId The agreement ID this future is dependent on.
      */
     public void register(CompletableFuture<String> observer, String agreementId) {
         observers.put(agreementId, observer);

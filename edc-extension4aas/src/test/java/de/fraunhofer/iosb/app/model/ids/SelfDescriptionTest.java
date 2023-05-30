@@ -23,11 +23,9 @@ import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShellEnvironmen
 
 public class SelfDescriptionTest {
 
-    private SelfDescription selfDescription;
-
     @Test
     public void emptyEnvironmentTest() {
-        selfDescription = new SelfDescription(new CustomAssetAdministrationShellEnvironment());
+        SelfDescription selfDescription = new SelfDescription(new CustomAssetAdministrationShellEnvironment());
         assertEquals("{\"assetAdministrationShells\":null,\"submodels\":null,\"conceptDescriptions\":null}",
                 selfDescription.toString());
     }

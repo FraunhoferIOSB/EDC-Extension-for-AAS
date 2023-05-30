@@ -58,7 +58,7 @@ public class AasAgentTest {
     }
 
     @BeforeAll
-    public static void startMockServer() throws IOException {
+    public static void startMockServer() {
         mockServer = startClientAndServer(8080);
     }
 
@@ -69,7 +69,7 @@ public class AasAgentTest {
 
     @Test // Can't really test this anymore with new variable "sourceUrl" that is not
           // serialized
-    public void testGetAasEnvWithUrls() throws MalformedURLException, IOException, DeserializationException {
+    public void testGetAasEnvWithUrls() throws IOException, DeserializationException {
         var shells = FileManager.loadResource("shells.json");
         var submodels = FileManager.loadResource("submodels.json");
         var conceptDescriptions = FileManager.loadResource("conceptDescriptions.json");

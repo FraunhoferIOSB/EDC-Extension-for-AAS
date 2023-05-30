@@ -58,10 +58,6 @@ public class CustomConceptDescription extends AASElement {
             return false;
         }
 
-        if (!this.getIdShort().equals(other.getIdShort())) {
-            return false;
-        }
-
-        return true;
+        return this.getIdShort().equals(other.getIdShort());
     }
 }

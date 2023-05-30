@@ -39,12 +39,6 @@ public class CustomAuthenticationRequestFilter extends AuthenticationRequestFilt
     private final Map<String, String> tempKeys;
     private final String[] endpoints;
 
-    public CustomAuthenticationRequestFilter(AuthenticationService authenticationService) {
-        super(authenticationService);
-        tempKeys = new ConcurrentHashMap<>();
-        endpoints = new String[0];
-    }
-
     public CustomAuthenticationRequestFilter(AuthenticationService authenticationService, String... acceptedEndpoints) {
         super(authenticationService);
         tempKeys = new ConcurrentHashMap<>();
@@ -74,13 +68,11 @@ public class CustomAuthenticationRequestFilter extends AuthenticationRequestFilt
         Objects.requireNonNull(requestContext);
         var requestPath = requestContext.getUriInfo().getPath();
 
-        if (endpoints.length != 0) {
-            for (String endpoint : endpoints) {
-                if (Objects.nonNull(endpoint) && endpoint.equalsIgnoreCase(requestPath)) {
-                    LOGGER.debug(
-                            "CustomAuthenticationRequestFilter: Not intercepting this request to an open endpoint");
-                    return;
-                }
+        for (String endpoint : endpoints) {
+            if (Objects.nonNull(endpoint) && endpoint.equalsIgnoreCase(requestPath)) {
+                LOGGER.debug(
+                        "CustomAuthenticationRequestFilter: Not intercepting this request to an open endpoint");
+                return;
             }
         }
 

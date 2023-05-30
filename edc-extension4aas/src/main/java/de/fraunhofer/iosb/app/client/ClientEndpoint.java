@@ -2,7 +2,7 @@
  * Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
  * Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
  * Forschung e.V.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,13 +15,15 @@
  */
 package de.fraunhofer.iosb.app.client;
 
-import static java.lang.String.format;
-
-import java.net.URI;
-import java.net.URL;
-import java.util.Objects;
-import java.util.concurrent.ExecutionException;
-
+import de.fraunhofer.iosb.app.Logger;
+import de.fraunhofer.iosb.app.authentication.CustomAuthenticationRequestFilter;
+import de.fraunhofer.iosb.app.client.contract.ContractOfferService;
+import de.fraunhofer.iosb.app.client.dataTransfer.DataTransferObservable;
+import de.fraunhofer.iosb.app.client.dataTransfer.TransferInitiator;
+import de.fraunhofer.iosb.app.client.negotiation.Negotiator;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
@@ -31,28 +33,18 @@ import org.eclipse.edc.connector.spi.catalog.CatalogService;
 import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.spi.types.domain.HttpDataAddress;
 
-import de.fraunhofer.iosb.app.Logger;
-import de.fraunhofer.iosb.app.authentication.CustomAuthenticationRequestFilter;
-import de.fraunhofer.iosb.app.client.contract.ContractOfferService;
-import de.fraunhofer.iosb.app.client.dataTransfer.DataTransferObservable;
-import de.fraunhofer.iosb.app.client.dataTransfer.TransferInitiator;
-import de.fraunhofer.iosb.app.client.negotiation.Negotiator;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.DELETE;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.PUT;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.QueryParam;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
+import java.net.URI;
+import java.net.URL;
+import java.util.Objects;
+import java.util.concurrent.ExecutionException;
+
+import static java.lang.String.format;
 
 /**
  * Automated contract negotiation
  */
-@Consumes({ MediaType.APPLICATION_JSON, MediaType.WILDCARD })
-@Produces({ MediaType.APPLICATION_JSON })
+@Consumes({MediaType.APPLICATION_JSON, MediaType.WILDCARD})
+@Produces({MediaType.APPLICATION_JSON})
 @Path(ClientEndpoint.AUTOMATED_PATH)
 public class ClientEndpoint {
 
@@ -75,29 +67,29 @@ public class ClientEndpoint {
 
     /**
      * Initialize a client endpoint.
-     * 
+     *
      * @param ownUri                        Needed for providing this connector's
      *                                      address in a data transfer process.
      * @param catalogService                Fetch catalogs from a provider
      *                                      connector.
      * @param consumerNegotiationManager    Initiate a contract negotiation as a
      *                                      consumer.
-     * @param contractNegotiationStore
+     * @param contractNegotiationStore      Check negotiation status.
      * @param contractNegotiationObservable Listen for contract negotiation changes
      *                                      (confirmed, failed, ...).
      * @param transferProcessManager        Initiate a data transfer.
      * @param observable                    Status updates for waiting data transfer
-     *                                      requestors to avoid busy waiting.
+     *                                      requesters to avoid busy waiting.
      * @param dataEndpointAuthRequestFilter Creating and passing through custom api
      *                                      keys for each data transfer.
      */
     public ClientEndpoint(URI ownUri, CatalogService catalogService,
-            ConsumerContractNegotiationManager consumerNegotiationManager,
-            ContractNegotiationStore contractNegotiationStore,
-            ContractNegotiationObservable contractNegotiationObservable,
-            TransferProcessManager transferProcessManager,
-            DataTransferObservable observable,
-            CustomAuthenticationRequestFilter dataEndpointAuthRequestFilter) {
+                          ConsumerContractNegotiationManager consumerNegotiationManager,
+                          ContractNegotiationStore contractNegotiationStore,
+                          ContractNegotiationObservable contractNegotiationObservable,
+                          TransferProcessManager transferProcessManager,
+                          DataTransferObservable observable,
+                          CustomAuthenticationRequestFilter dataEndpointAuthRequestFilter) {
         this.negotiator = new Negotiator(consumerNegotiationManager, contractNegotiationObservable,
                 contractNegotiationStore);
         this.contractOfferService = new ContractOfferService(catalogService);
@@ -109,15 +101,15 @@ public class ClientEndpoint {
      * Negotiate a contract with a provider edc.
      * WARNING: By initiating this request, any contract provided by the provider
      * for the specified asset will be sent as a contract offer unmodified.
-     * 
-     * @param providerUrl Provider EDC's URL (IDS endpoint)
+     *
+     * @param providerUrl Provider EDCs URL (IDS endpoint)
      * @param assetId     ID of the asset to be retrieved
      * @return Asset data
      */
     @POST
     @Path(NEGOTIATE_PATH)
     public Response negotiateContract(@QueryParam("providerUrl") URL providerUrl,
-            @QueryParam("assetId") String assetId, @QueryParam("dataDestinationUrl") URL dataDestinationUrl) {
+                                      @QueryParam("assetId") String assetId, @QueryParam("dataDestinationUrl") URL dataDestinationUrl) {
         LOGGER.debug(format("Received a %s POST request", NEGOTIATE_PATH));
         Objects.requireNonNull(providerUrl, "Provider URL must not be null");
         Objects.requireNonNull(assetId, "Asset ID must not be null");
@@ -146,9 +138,9 @@ public class ClientEndpoint {
     }
 
     /**
-     * Returns all contract offers offered by the given provider for the given
+     * Returns all contractOffers offered by the given provider for the given
      * assetID.
-     * 
+     *
      * @param providerUrl Provider whose contracts should be fetched (non null).
      * @param assetId     Asset ID for which contractOffers should be fetched.
      * @return A list of contract offers or an error message.
@@ -156,7 +148,7 @@ public class ClientEndpoint {
     @GET
     @Path(CONTRACT_OFFERS_PATH)
     public Response getContractOffers(@QueryParam("providerUrl") URL providerUrl,
-            @QueryParam("assetId") String assetId) {
+                                      @QueryParam("assetId") String assetId) {
         Objects.requireNonNull(providerUrl, "Provider URL must not be null");
 
         try {
@@ -173,7 +165,7 @@ public class ClientEndpoint {
     /**
      * Initiate a contract negotiation, acting as a consumer, with a provider
      * connector.
-     * 
+     *
      * @param providerUrl   The provider's url.
      * @param contractOffer A contract offer to be negotiated with.
      * @return An agreementID on success or an error message on error.
@@ -181,7 +173,7 @@ public class ClientEndpoint {
     @POST
     @Path(NEGOTIATE_CONTRACT_PATH)
     public Response negotiateContract(@QueryParam("providerUrl") URL providerUrl,
-            ContractOffer contractOffer) {
+                                      ContractOffer contractOffer) {
         Objects.requireNonNull(providerUrl, "Provider URL must not be null");
         Objects.requireNonNull(contractOffer, "ContractOffer must not be null");
         try {
@@ -197,18 +189,18 @@ public class ClientEndpoint {
 
     /**
      * Submits a data transfer request to the providerUrl.
-     * 
+     *
      * @param providerUrl The data provider's url
      * @param agreementId The basis of the data transfer.
      * @param assetId     The asset of which the data should be transferred
      * @return On success, the data of the desired asset. Else, returns an error
-     *         message.
+     * message.
      */
     @GET
     @Path(TRANSFER_PATH)
     public Response getData(@QueryParam("providerUrl") URL providerUrl,
-            @QueryParam("agreementId") String agreementId, @QueryParam("assetId") String assetId,
-            @QueryParam("dataDestinationUrl") URL dataDestinationUrl) {
+                            @QueryParam("agreementId") String agreementId, @QueryParam("assetId") String assetId,
+                            @QueryParam("dataDestinationUrl") URL dataDestinationUrl) {
         Objects.requireNonNull(providerUrl, "providerUrl must not be null");
         Objects.requireNonNull(agreementId, "agreementId must not be null");
         Objects.requireNonNull(assetId, "assetId must not be null");
@@ -240,9 +232,8 @@ public class ClientEndpoint {
      * rules or the rules of any other stored contract offer's policies' rules must
      * be matched on automated contract negotiation. This means, any contract offer
      * by a provider must have the same rules as any of the stored contract offers.
-     * 
+     *
      * @param contractOffers The contractOffer to add (Only its rules are relevant)
-     * 
      * @return OK as response.
      */
     @POST
@@ -256,7 +247,7 @@ public class ClientEndpoint {
 
     /**
      * Returns all contract offers in the 'accepted list'.
-     * 
+     *
      * @return A list of accepted contract offers
      */
     @GET
@@ -268,8 +259,8 @@ public class ClientEndpoint {
 
     /**
      * Removes a contract offer from the 'accepted list'.
-     * 
-     * @param contractOffer The id of the contractOffer to remove
+     *
+     * @param contractOfferId The id of the contractOffer to remove
      * @return OK as response.
      */
     @DELETE
@@ -283,7 +274,7 @@ public class ClientEndpoint {
 
     /**
      * Updates a contract offer of the 'accepted list'.
-     * 
+     *
      * @param contractOffer The contractOffer to update
      * @return OK as response.
      */

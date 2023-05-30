@@ -2,7 +2,7 @@
  * Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
  * Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
  * Forschung e.V.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,12 +15,12 @@
  */
 package de.fraunhofer.iosb.app.model.configuration;
 
-import java.net.URL;
-import java.util.Objects;
-
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
+import java.net.URL;
+import java.util.Objects;
 
 /**
  * Singleton class.
@@ -34,61 +34,47 @@ public class Configuration {
 
     private static Configuration instance;
 
-    @JsonProperty(SETTINGS_PREFIX + "logprefix")
-    private String logPrefix = "AAS Extension";
-
-    @JsonProperty(SETTINGS_PREFIX + "remoteaaslocation")
+    @JsonProperty(SETTINGS_PREFIX + "remoteAASLocation")
     private URL remoteAasLocation;
 
-    @JsonProperty(SETTINGS_PREFIX + "localaasmodelpath")
+    @JsonProperty(SETTINGS_PREFIX + "localAASModelPath")
     private String localAasModelPath;
 
-    @JsonProperty(SETTINGS_PREFIX + "localaasserviceport")
+    @JsonProperty(SETTINGS_PREFIX + "localAASServicePort")
     private int localAasServicePort;
 
-    @JsonProperty(SETTINGS_PREFIX + "localaasserviceconfigpath")
+    @JsonProperty(SETTINGS_PREFIX + "localAASServiceConfigPath")
     private String aasServiceConfigPath;
 
-    @JsonProperty(SETTINGS_PREFIX + "syncperiod")
+    @JsonProperty(SETTINGS_PREFIX + "syncPeriod")
     private int syncPeriod = 5; // Seconds
 
-    @JsonProperty(SETTINGS_PREFIX + "exposeselfdescription")
+    @JsonProperty(SETTINGS_PREFIX + "exposeSelfDescription")
     private boolean exposeSelfDescription = true;
 
-    @JsonProperty(SETTINGS_PREFIX + "defaultaccesspolicypath")
+    @JsonProperty(SETTINGS_PREFIX + "defaultAccessPolicyPath")
     private String defaultAccessPolicyPath;
 
-    @JsonProperty(SETTINGS_PREFIX + "defaultcontractpolicypath")
+    @JsonProperty(SETTINGS_PREFIX + "defaultContractPolicyPath")
     private String defaultContractPolicyPath;
 
-    @JsonProperty(SETTINGS_PREFIX + "client.waitfortransfertimeout")
+    @JsonProperty(SETTINGS_PREFIX + "client.waitForTransferTimeout")
     private int waitForTransferTimeout = 10; // Seconds
 
-    @JsonProperty(SETTINGS_PREFIX + "client.waitforagreementtimeout")
+    @JsonProperty(SETTINGS_PREFIX + "client.waitForAgreementTimeout")
     private int waitForAgreementTimeout = 10; // Seconds
 
-    @JsonProperty(SETTINGS_PREFIX + "client.acceptallprovideroffers")
+    @JsonProperty(SETTINGS_PREFIX + "client.acceptAllProviderOffers")
     private boolean acceptAllProviderOffers = false;
 
-    @JsonProperty(SETTINGS_PREFIX + "client.acceptedcontractofferspath")
+    @JsonProperty(SETTINGS_PREFIX + "client.acceptedContractOffersPath")
     private String acceptedContractOffersPath;
-
-    @JsonProperty(SETTINGS_PREFIX + "defaultcontractvalidity")
-    private long defaultContractValidity = 31536000; // Seconds (default: 1 year)
 
     public static synchronized Configuration getInstance() {
         if (Objects.isNull(instance)) {
             instance = new Configuration();
         }
         return instance;
-    }
-
-    public String getLogPrefix() {
-        return logPrefix;
-    }
-
-    public void setLogPrefix(String logPrefix) {
-        this.logPrefix = logPrefix;
     }
 
     public URL getRemoteAasLocation() {
@@ -153,14 +139,6 @@ public class Configuration {
 
     public void setDefaultContractPolicyPath(String defaultContractPolicyPath) {
         this.defaultContractPolicyPath = defaultContractPolicyPath;
-    }
-
-    public long getDefaultContractValidity() {
-        return defaultContractValidity;
-    }
-
-    public void setDefaultContractValidity(long defaultContractValidity) {
-        this.defaultContractValidity = defaultContractValidity;
     }
 
     public int getWaitForAgreementTimeout() {

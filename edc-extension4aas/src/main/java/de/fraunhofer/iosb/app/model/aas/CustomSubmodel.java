@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -79,6 +80,6 @@ public class CustomSubmodel extends AASElement {
             return false;
         }
 
-        return this.getSubmodelElements().stream().allMatch(element -> other.getSubmodelElements().contains(element));
+        return new HashSet<>(other.getSubmodelElements()).containsAll(this.getSubmodelElements());
     }
 }

@@ -63,7 +63,7 @@ public class Pair<T, U> {
         }
 
         public Pair<T, U> build() {
-            return new Pair<T, U>(this.first, this.second);
+            return new Pair<>(this.first, this.second);
         }
 
     }

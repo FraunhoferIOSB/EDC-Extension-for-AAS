@@ -41,7 +41,7 @@ import jakarta.ws.rs.core.UriInfo;
 
 public class CustomAuthenticationRequestFilterTest {
 
-    AuthenticationService authService = mock(AuthenticationService.class);
+    final AuthenticationService authService = mock(AuthenticationService.class);
     CustomAuthenticationRequestFilter authRequestFilter;
 
     @BeforeAll
@@ -54,6 +54,7 @@ public class CustomAuthenticationRequestFilterTest {
         authRequestFilter = new CustomAuthenticationRequestFilter(authService, "selfDescription");
     }
 
+    @Test
     void filterDataTransferTest() {
         authRequestFilter.addTemporaryApiKey("test-key", "test-password");
 

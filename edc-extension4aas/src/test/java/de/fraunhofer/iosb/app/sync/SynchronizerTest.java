@@ -16,8 +16,7 @@
 package de.fraunhofer.iosb.app.sync;
 
 import static java.lang.String.format;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.model.HttpRequest.request;
@@ -56,12 +55,12 @@ public class SynchronizerTest {
     private Synchronizer synchronizer;
     private SelfDescriptionRepository selfDescriptionRepo;
 
-    private String shells = FileManager.loadResource("shells.json");
-    private String submodels = FileManager.loadResource("submodels.json");
-    private String submodelsNoSubmodelElements = FileManager.loadResource("submodelsNoSubmodelElements.json");
-    private String oneSubmodelOneSubmodelElementLess = FileManager
+    private final String shells = FileManager.loadResource("shells.json");
+    private final String submodels = FileManager.loadResource("submodels.json");
+    private final String submodelsNoSubmodelElements = FileManager.loadResource("submodelsNoSubmodelElements.json");
+    private final String oneSubmodelOneSubmodelElementLess = FileManager
             .loadResource("oneSubmodelOneSubmodelElementLess.json");
-    private String conceptDescriptions = FileManager.loadResource("conceptDescriptions.json");
+    private final String conceptDescriptions = FileManager.loadResource("conceptDescriptions.json");
 
     @BeforeAll
     public static void initialize() throws MalformedURLException {
@@ -159,11 +158,11 @@ public class SynchronizerTest {
                 selfDescriptionRepo.getSelfDescription(url).toString());
 
         selfDescriptionRepo.removeSelfDescription(url);
-        assertEquals(null, selfDescriptionRepo.getSelfDescription(url));
+        assertNull(selfDescriptionRepo.getSelfDescription(url));
     }
 
     @Test
-    public void aasServiceNotAvailableTest() throws IOException {
+    public void aasServiceNotAvailableTest() {
         try {
             selfDescriptionRepo.createSelfDescription(url);
             fail("AAS service not available, self description should not be created");
@@ -207,7 +206,7 @@ public class SynchronizerTest {
                 .respond(response().withBody("[]"));
     }
 
-    private static void startMockServer(int port) throws IOException {
+    private static void startMockServer(int port) {
         mockServer = startClientAndServer(port);
     }
 

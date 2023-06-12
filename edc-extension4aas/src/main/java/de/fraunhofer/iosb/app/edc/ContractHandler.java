@@ -2,7 +2,7 @@
  * Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
  * Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
  * Forschung e.V.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,13 +15,10 @@
  */
 package de.fraunhofer.iosb.app.edc;
 
-import static java.lang.String.format;
-
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.List;
-import java.util.Objects;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
+import de.fraunhofer.iosb.app.Logger;
+import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
@@ -32,13 +29,15 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.asset.AssetSelectorExpression;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
-
-import de.fraunhofer.iosb.app.Logger;
-import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import org.eclipse.edc.spi.result.StoreResult;
+import org.eclipse.edc.spi.types.domain.asset.Asset;
+
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Objects;
+
+import static java.lang.String.format;
 
 /**
  * Handle interactions with the ContractDefinitionStore, PolicyDefinitionStore.
@@ -78,7 +77,7 @@ public class ContractHandler {
 
     /**
      * Registers the given assetId to the default contract.
-     * 
+     *
      * @param assetId The asset ID
      * @return Contract id of contract this assetId was registered to
      */
@@ -89,7 +88,7 @@ public class ContractHandler {
 
     /**
      * Deletes any contract linked to a given assetId.
-     * 
+     *
      * @param assetId Asset ID
      */
     public void deleteContractsWithAssetId(String assetId) {
@@ -104,10 +103,10 @@ public class ContractHandler {
      * Deletes the contract definition with the given id. Wraps
      * {@link org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore#deleteById(String)
      * ContractDefinitionStore.deleteById()}
-     * 
+     *
      * @param contractId Contract to be deleted
      * @return The removed contract definition or null if the contract definition
-     *         was not found
+     * was not found
      */
     public StoreResult<ContractDefinition> deleteContractDefinition(String contractId) {
         return contractDefinitionStore.deleteById(contractId);
@@ -125,9 +124,10 @@ public class ContractHandler {
         var usePermissionPolicy = Policy.Builder.newInstance()
                 .permission(Permission.Builder.newInstance()
                         .action(Action.Builder.newInstance().type("USE").build())
-                        .target(assetId)
+                        //.target(assetId)
                         .build())
-                .target(assetId)
+                //.type(PolicyType.CONTRACT)
+                //.target(assetId)
                 .build();
 
         var defaultAccessPolicyDefinition = PolicyDefinition.Builder.newInstance()
@@ -177,7 +177,7 @@ public class ContractHandler {
                 .contractPolicyId(contractPolicyId)
                 .selectorExpression(
                         AssetSelectorExpression.Builder.newInstance()
-                                .whenEquals(ASSET_PROPERTY_ID, assetId)
+                                .whenEquals(Asset.PROPERTY_ID, assetId)
                                 .build())
                 .build();
 

@@ -29,6 +29,7 @@ import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegoti
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
+import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.spi.catalog.CatalogService;
 import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.spi.types.domain.HttpDataAddress;
@@ -138,7 +139,7 @@ public class ClientEndpoint {
     }
 
     /**
-     * Returns all contractOffers offered by the given provider for the given
+     * Returns Datasets offered by the given provider for the given
      * assetID.
      *
      * @param providerUrl Provider whose contracts should be fetched (non null).
@@ -152,8 +153,8 @@ public class ClientEndpoint {
         Objects.requireNonNull(providerUrl, "Provider URL must not be null");
 
         try {
-            var contractOffers = contractOfferService.getContractsForAssetId(providerUrl, assetId);
-            return Response.ok(contractOffers).build();
+            var datasets = contractOfferService.getDatasetsForAssetId(providerUrl, assetId);
+            return Response.ok(datasets).build();
         } catch (InterruptedException interruptedException) {
             LOGGER.error(format("Getting contractOffers failed for provider %s and asset %s", providerUrl,
                     assetId), interruptedException);
@@ -228,62 +229,62 @@ public class ClientEndpoint {
     }
 
     /**
-     * Add a contract offer to the 'accepted list'. This contract offer's policies'
-     * rules or the rules of any other stored contract offer's policies' rules must
-     * be matched on automated contract negotiation. This means, any contract offer
-     * by a provider must have the same rules as any of the stored contract offers.
+     * Add policyDefinitions to the 'accepted list'. These policies or any other stored
+     * policy must be matched on automated contract negotiation.
+     * This means, any policyDefinition by a provider must have the same rules
+     * as any of the stored policyDefinitions.
      *
-     * @param contractOffers The contractOffer to add (Only its rules are relevant)
+     * @param policyDefinitions The policyDefinitions to add (Only their rules are relevant)
      * @return OK as response.
      */
     @POST
     @Path(ACCEPTED_CONTRACT_OFFERS_PATH)
-    public Response addAcceptedContractOffers(ContractOffer[] contractOffers) {
-        LOGGER.log(format("Adding %s accepted contract offers", contractOffers.length));
-        Objects.requireNonNull(contractOffers, "ContractOffer is null");
-        contractOfferService.addAccepted(contractOffers);
+    public Response addAcceptedContractOffers(PolicyDefinition[] policyDefinitions) {
+        LOGGER.log(format("Adding %s accepted contract offers", policyDefinitions.length));
+        Objects.requireNonNull(policyDefinitions, "ContractOffer is null");
+        contractOfferService.addAccepted(policyDefinitions);
         return Response.ok().build();
     }
 
     /**
-     * Returns all contract offers in the 'accepted list'.
+     * Returns all policyDefinitions in the 'accepted list'.
      *
-     * @return A list of accepted contract offers
+     * @return A list of accepted policyDefinitions
      */
     @GET
     @Path(ACCEPTED_CONTRACT_OFFERS_PATH)
-    public Response getAcceptedContractOffers() {
-        LOGGER.log("Returning accepted contract offers");
+    public Response getAcceptedPolicyDefinitions() {
+        LOGGER.log("Returning accepted policyDefinitions");
         return Response.ok(contractOfferService.getAccepted()).build();
     }
 
     /**
-     * Removes a contract offer from the 'accepted list'.
+     * Removes a policyDefinition from the 'accepted list'.
      *
-     * @param contractOfferId The id of the contractOffer to remove
+     * @param policyDefinitionId The id of the policyDefinition to remove
      * @return OK as response.
      */
     @DELETE
     @Path(ACCEPTED_CONTRACT_OFFERS_PATH)
-    public Response deleteAcceptedContractOffer(@QueryParam("contractOfferId") String contractOfferId) {
-        LOGGER.log(format("Removing contract offer with id %s", contractOfferId));
-        Objects.requireNonNull(contractOfferId, "ContractOffer is null");
-        contractOfferService.removeAccepted(contractOfferId);
+    public Response deleteAcceptedContractOffer(@QueryParam("contractOfferId") String policyDefinitionId) {
+        LOGGER.log(format("Removing policyDefinition with id %s", policyDefinitionId));
+        Objects.requireNonNull(policyDefinitionId, "PolicyDefinition ID is null");
+        contractOfferService.removeAccepted(policyDefinitionId);
         return Response.ok().build();
     }
 
     /**
-     * Updates a contract offer of the 'accepted list'.
+     * Updates a policyDefinition of the 'accepted list'.
      *
-     * @param contractOffer The contractOffer to update
+     * @param policyDefinition The policyDefinition to update
      * @return OK as response.
      */
     @PUT
     @Path(ACCEPTED_CONTRACT_OFFERS_PATH)
-    public Response updateAcceptedContractOffer(ContractOffer contractOffer) {
-        LOGGER.log(format("Updating contract offer with id %s", contractOffer.getId()));
-        Objects.requireNonNull(contractOffer, "contractOffer is null");
-        contractOfferService.updateAccepted(contractOffer.getId(), contractOffer);
+    public Response updateAcceptedContractOffer(PolicyDefinition policyDefinition) {
+        LOGGER.log(format("Updating policyDefinition with id %s", policyDefinition.getId()));
+        Objects.requireNonNull(policyDefinition, "policyDefinition is null");
+        contractOfferService.updateAccepted(policyDefinition.getId(), policyDefinition);
         return Response.ok().build();
     }
 }

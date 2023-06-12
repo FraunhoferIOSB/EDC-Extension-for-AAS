@@ -70,8 +70,8 @@ public class Configuration {
     @JsonProperty(SETTINGS_PREFIX + "client.acceptAllProviderOffers")
     private boolean acceptAllProviderOffers = false;
 
-    @JsonProperty(SETTINGS_PREFIX + "client.acceptedContractOffersPath")
-    private String acceptedContractOffersPath;
+    @JsonProperty(SETTINGS_PREFIX + "client.acceptedPolicyDefinitionsPath")
+    private String acceptedPolicyDefinitionsPath;
 
     public static synchronized Configuration getInstance() {
         if (Objects.isNull(instance)) {
@@ -176,11 +176,11 @@ public class Configuration {
         this.acceptAllProviderOffers = acceptAllProviderOffers;
     }
 
-    public String getAcceptedContractOffersPath() {
-        return acceptedContractOffersPath;
+    public String getAcceptedPolicyDefinitionsPath() {
+        return acceptedPolicyDefinitionsPath;
     }
 
-    public void setAcceptedContractOffersPath(String acceptedContractOffersPath) {
-        this.acceptedContractOffersPath = acceptedContractOffersPath;
+    public void setAcceptedPolicyDefinitionsPath(String acceptedPolicyDefinitionsPath) {
+        this.acceptedPolicyDefinitionsPath = acceptedPolicyDefinitionsPath;
     }
 }

@@ -32,6 +32,7 @@ import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.spi.catalog.CatalogService;
 import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
+import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.types.domain.HttpDataAddress;
 
 import java.net.URI;
@@ -115,9 +116,9 @@ public class ClientEndpoint {
         Objects.requireNonNull(providerUrl, "Provider URL must not be null");
         Objects.requireNonNull(assetId, "Asset ID must not be null");
 
-        ContractOffer contractOffer;
+        Policy policy;
         try {
-            contractOffer = contractOfferService.getAcceptableContractForAssetId(providerUrl, assetId);
+            policy = contractOfferService.getAcceptablePolicyForAssetId(providerUrl, assetId);
         } catch (InterruptedException negotiationException) {
             LOGGER.error(format("Getting contractOffers failed for provider %s and asset %s", providerUrl,
                     assetId), negotiationException);
@@ -125,12 +126,19 @@ public class ClientEndpoint {
                     .build();
         }
 
+        ContractOffer offer = ContractOffer.Builder.newInstance()
+                .id("contract-offer-" + assetId + "-" + policy.hashCode())
+                .policy(policy)
+                .assetId(assetId)
+                .providerId(providerUrl.toString())
+                .build();
         ContractAgreement agreement;
+
         try {
-            agreement = negotiator.negotiate(providerUrl, contractOffer);
+            agreement = negotiator.negotiate(providerUrl, offer);
         } catch (InterruptedException | ExecutionException negotiationException) {
             LOGGER.error(format("Negotiation failed for provider %s and contractOffer %s", providerUrl,
-                    contractOffer.getId()), negotiationException);
+                    offer.getId()), negotiationException);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(negotiationException.getMessage())
                     .build();
         }

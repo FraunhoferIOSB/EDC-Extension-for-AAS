@@ -19,11 +19,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iosb.app.client.exception.AmbiguousOrNullException;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import org.eclipse.edc.catalog.spi.Catalog;
-import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
+import org.eclipse.edc.catalog.spi.Dataset;
+import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.spi.catalog.CatalogService;
+import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.Rule;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.types.domain.asset.Asset;
 
 import java.io.IOException;
 import java.net.URL;
@@ -37,15 +41,14 @@ import java.util.concurrent.TimeoutException;
 import static java.lang.String.format;
 
 /**
- * Finds out contract offer for a given asset id and provider EDC url
+ * Finds out policy for a given asset id and provider EDC url
  */
 public class ContractOfferService {
 
-    // private static final String ASSET_PROPERTY_ID = "asset:prop:id";
     private static final Configuration configuration = Configuration.getInstance();
 
     private final CatalogService catalogService;
-    private final ContractOfferStore contractOfferStore;
+    private final PolicyDefinitionStore policyDefinitionStore;
 
     /**
      * Class constructor
@@ -54,29 +57,27 @@ public class ContractOfferService {
      */
     public ContractOfferService(CatalogService catalogService) {
         this.catalogService = catalogService;
-        this.contractOfferStore = new ContractOfferStore();
+        this.policyDefinitionStore = new PolicyDefinitionStore();
     }
 
     /**
-     * Returns an offered contractOffer for this asset by this provider. If zero or
-     * multiple contractOffers are found, an {@link AmbiguousOrNullException} is
-     * thrown
+     * Returns datasets for this asset by this provider.
      *
      * @param providerUrl Provider of the asset.
      * @param assetId     Asset ID of the asset whose contract should be fetched.
-     * @return A list of contractOffers offered by the provider for the given
+     * @return A list of datasets offered by the provider for the given
      * assetId.
      * @throws InterruptedException Thread for agreementId was waiting, sleeping, or
      *                              otherwise occupied, and was interrupted.
      */
-    public List<ContractOffer> getContractsForAssetId(URL providerUrl, String assetId)
+    public List<Dataset> getDatasetsForAssetId(URL providerUrl, String assetId)
             throws InterruptedException {
         var catalogFuture = catalogService
                 .request(providerUrl.toString(),
                         "ids-multipart",
                         QuerySpec.Builder
                                 .newInstance()
-                                // .filter(List.of(new Criterion(ASSET_PROPERTY_ID, "=", assetId)))
+                                .filter(List.of(new Criterion(Asset.PROPERTY_ID, "=", assetId)))
                                 .build());
         byte[] catalogSerialized;
         try {
@@ -100,96 +101,91 @@ public class ContractOfferService {
             throw new EdcException(format("Catalog by provider %s couldn't be retrieved", providerUrl));
         }
 
-        // Somehow EDC cannot filter contractOffers by assetId, so fetch all offers and
-        // filter locally
-        catalog.getContractOffers().removeIf(contractOffer -> !assetId.equals(contractOffer.getAssetId()));
-
-        return catalog.getContractOffers();
+        return new ArrayList<>(catalog.getDatasets());
     }
+
+    /**
+     * Return policyDefinition for assetId that match any policyDefinitions' policy of
+     * the services' policyDefinitionStore instance containing user added policyDefinitions.
+     * If more than one policyDefinitions are provided by the provider
+     * connector, an AmbiguousOrNullException will be thrown.
+     *
+     * @param providerUrl Provider of the asset.
+     * @param assetId     Asset ID of the asset whose contract should be fetched.
+     * @return One policyDefinition offered by the provider for the given assetId.
+     * @throws InterruptedException Thread for agreementId was waiting, sleeping, or otherwise occupied, and was interrupted.
+     */
+    public Policy getAcceptablePolicyForAssetId(URL providerUrl, String assetId)
+            throws InterruptedException {
+        var datasets = getDatasetsForAssetId(providerUrl, assetId);
+
+        if (datasets.size() != 1) {
+            throw new AmbiguousOrNullException(
+                    format("Multiple or no policyDefinitions were found for assetId %s! (amount of policyDefinitions: %s)",
+                            assetId, datasets.size()));
+        }
+
+        if (configuration.isAcceptAllProviderOffers() || datasets.get(0).getOffers().values().stream().anyMatch(this::matchesOwnPolicyDefinitions)) {
+            return datasets.get(0).getOffers().values().stream().filter(this::matchesOwnPolicyDefinitions).findAny().orElse(null);
+        } else {
+            throw new EdcException("Could not find any contract policyDefinition matching this connector's accepted policyDefinitions");
+        }
+    }
+
 
     /**
      * Adds an accepted contractOffer to match when checking a provider
      * contractOffer. Only the policies' rules are relevant.
      *
-     * @param contractOffers Contract offers whose policies' rules are acceptable
-     *                       for an automated contract negotiation
+     * @param policyDefinitions policies' rules that are acceptable for an automated contract negotiation
      */
-    public void addAccepted(ContractOffer[] contractOffers) {
-        contractOfferStore.putOffers(contractOffers);
+    public void addAccepted(PolicyDefinition[] policyDefinitions) {
+        policyDefinitionStore.putPolicyDefinitions(policyDefinitions);
     }
 
     /**
-     * Return accepted contract offers
+     * Return accepted policyDefinitions
      *
-     * @return Accepted contract offer list
+     * @return Accepted policyDefinitions list
      */
-    public List<ContractOffer> getAccepted() {
-        return contractOfferStore.getOffers();
+    public List<PolicyDefinition> getAccepted() {
+        return policyDefinitionStore.getPolicyDefinitions();
     }
 
     /**
-     * Removes an accepted contractOffer.
+     * Removes an accepted policyDefinitions.
      *
-     * @param contractOfferId Contract offer id of contract offer to be removed
+     * @param policyDefinitions policyDefinition id of policyDefinition to be removed
      */
-    public void removeAccepted(String contractOfferId) {
-        contractOfferStore.removeOffer(contractOfferId);
+    public void removeAccepted(String policyDefinitions) {
+        policyDefinitionStore.removePolicyDefinition(policyDefinitions);
     }
 
     /**
-     * Updates an accepted contractOffer.
+     * Updates an accepted policyDefinition.
      *
-     * @param contractOfferId Contract offer id of contract offer to be updated
-     * @param contractOffer   Updated ContractOffer
+     * @param policyDefinitionId PolicyDefinition id of policyDefinition to be updated
+     * @param policyDefinition   Updated PolicyDefinition
      */
-    public void updateAccepted(String contractOfferId, ContractOffer contractOffer) {
-        contractOfferStore.updateOffer(contractOfferId, contractOffer);
+    public void updateAccepted(String policyDefinitionId, PolicyDefinition policyDefinition) {
+        policyDefinitionStore.updatePolicyDefinitions(policyDefinitionId, policyDefinition);
     }
 
-    /**
-     * Return contract offers for assetId that match any contractOffers' policy of
-     * the services' ContractOfferStore instance containing user added contract
-     * offers. If more than one contractOffers are provided by the provider
-     * connector, an AmbiguousOrNullException will be thrown.
-     *
-     * @param providerUrl Provider of the asset.
-     * @param assetId     Asset ID of the asset whose contract should be fetched.
-     * @return One contractOffer offered by the provider for the given assetId.
-     * @throws InterruptedException Thread for agreementId was waiting, sleeping, or otherwise occupied, and was interrupted.
-     */
-    public ContractOffer getAcceptableContractForAssetId(URL providerUrl, String assetId)
-            throws InterruptedException {
-        var contractOffers = getContractsForAssetId(providerUrl, assetId);
 
-        if (contractOffers.size() != 1) {
-            throw new AmbiguousOrNullException(
-                    format("Multiple or no contracts were found for assetId %s! (amount of offers: %s)",
-                            assetId, contractOffers.size()));
-        }
-        ContractOffer contractOffer;
-        if (configuration.isAcceptAllProviderOffers() || matchesOwnContractOffers(contractOffers.get(0))) {
-            contractOffer = contractOffers.get(0);
-        } else {
-            throw new EdcException(
-                    "Could not find any contract offer matching this connector's accepted contract offers");
-        }
-        return contractOffer;
+    private boolean matchesOwnPolicyDefinitions(Policy policy) {
+        return policyDefinitionStore.getPolicyDefinitions().stream().anyMatch(acceptedPolicyDefinition -> policyDefinitionRulesEquality(acceptedPolicyDefinition.getPolicy(), policy));
     }
 
-    private boolean matchesOwnContractOffers(ContractOffer contractOffer) {
-        return contractOfferStore.getOffers().stream().anyMatch(acceptedOffer -> contractOfferRulesEquality(acceptedOffer, contractOffer));
-    }
-
-    private boolean contractOfferRulesEquality(ContractOffer first, ContractOffer second) {
+    private boolean policyDefinitionRulesEquality(Policy first, Policy second) {
         List<Rule> firstRules = new ArrayList<>();
-        firstRules.addAll(first.getPolicy().getPermissions());
-        firstRules.addAll(first.getPolicy().getProhibitions());
-        firstRules.addAll(first.getPolicy().getObligations());
+        firstRules.addAll(first.getPermissions());
+        firstRules.addAll(first.getProhibitions());
+        firstRules.addAll(first.getObligations());
 
         List<Rule> secondRules = new ArrayList<>();
-        secondRules.addAll(second.getPolicy().getPermissions());
-        secondRules.addAll(second.getPolicy().getProhibitions());
-        secondRules.addAll(second.getPolicy().getObligations());
+        secondRules.addAll(second.getPermissions());
+        secondRules.addAll(second.getProhibitions());
+        secondRules.addAll(second.getObligations());
 
         return firstRules.stream().anyMatch(firstRule -> secondRules.stream()
                 .anyMatch(secondRule -> !ruleEquality(firstRule, secondRule)));

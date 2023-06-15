@@ -26,7 +26,6 @@ import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.asset.AssetSelectorExpression;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
@@ -175,10 +174,7 @@ public class ContractHandler {
                 .id(contractDefinitionId)
                 .accessPolicyId(accessPolicyId)
                 .contractPolicyId(contractPolicyId)
-                .selectorExpression(
-                        AssetSelectorExpression.Builder.newInstance()
-                                .whenEquals(Asset.PROPERTY_ID, assetId)
-                                .build())
+                .assetsSelectorCriterion(Criterion.criterion(Asset.PROPERTY_ID, "=", assetId))
                 .build();
 
         contractDefinitionStore.save(defaultContractDefinition);

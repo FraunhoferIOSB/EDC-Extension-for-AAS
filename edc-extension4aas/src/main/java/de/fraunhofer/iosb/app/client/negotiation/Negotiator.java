@@ -35,13 +35,12 @@ import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
+import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 
 /**
  * Send contract offer, negotiation status watch
  */
 public class Negotiator {
-
-    private static final String PROTOCOL_IDS_MULTIPART = "ids-multipart";
 
     private final ConsumerContractNegotiationManager consumerNegotiationManager;
     private final ClientContractNegotiationListener listener;
@@ -80,9 +79,10 @@ public class Negotiator {
     public ContractAgreement negotiate(URL providerUrl, ContractOffer contractOffer)
             throws InterruptedException, ExecutionException {
         var contractRequestData = ContractRequestData.Builder.newInstance()
+                .connectorId("anonymous")
                 .counterPartyAddress(providerUrl.toString())
                 .contractOffer(contractOffer)
-                .protocol(PROTOCOL_IDS_MULTIPART)
+                .protocol(DATASPACE_PROTOCOL_HTTP)
                 .build();
 
         var contractRequest = ContractRequest.Builder.newInstance()

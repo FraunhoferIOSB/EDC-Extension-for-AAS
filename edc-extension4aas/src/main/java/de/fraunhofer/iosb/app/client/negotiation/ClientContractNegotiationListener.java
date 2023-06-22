@@ -45,11 +45,11 @@ public class ClientContractNegotiationListener implements ContractNegotiationLis
     }
 
     /**
-     * Called after a {@link ContractNegotiation} was confirmed.
+     * Called after a {@link ContractNegotiation} was finalized.
      *
      * @param negotiation the contract negotiation that has been confirmed.
      */
-    public void accepted(ContractNegotiation negotiation) {
+    public void finalized(ContractNegotiation negotiation) {
         var negotiationId = negotiation.getId();
 
         if (subscribers.containsKey(negotiationId)) {

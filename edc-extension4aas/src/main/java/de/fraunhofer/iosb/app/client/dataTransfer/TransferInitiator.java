@@ -18,12 +18,11 @@ package de.fraunhofer.iosb.app.client.dataTransfer;
 import de.fraunhofer.iosb.app.authentication.CustomAuthenticationRequestFilter;
 import de.fraunhofer.iosb.app.client.ClientEndpoint;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
-import org.apache.http.client.utils.URIBuilder;
 import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.types.domain.HttpDataAddress;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 
 import java.net.URI;
 import java.net.URL;
@@ -34,6 +33,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import static java.lang.String.format;
+import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
 /**
  * Initiate transfer requests
@@ -41,7 +42,6 @@ import static java.lang.String.format;
 public class TransferInitiator {
 
     private static final String DATA_TRANSFER_API_KEY = "data-transfer-api-key";
-    private static final String PROTOCOL_IDS_MULTIPART = "ids-multipart";
 
     private final DataTransferObservable observable;
     private final TransferProcessManager transferProcessManager;
@@ -86,11 +86,11 @@ public class TransferInitiator {
         var apiKey = UUID.randomUUID().toString();
         dataEndpointAuthenticationRequestFilter.addTemporaryApiKey(DATA_TRANSFER_API_KEY, apiKey);
 
-        var dataDestination = HttpDataAddress.Builder.newInstance()
-                .baseUrl(new URIBuilder(ownUri)
-                        .addParameter("agreementId", agreementId)
-                        .toString())
-                .addAdditionalHeader(DATA_TRANSFER_API_KEY, apiKey) // API key for validation on consumer side
+        var dataDestination = DataAddress.Builder.newInstance()
+                .type("HttpData")
+                .property(EDC_NAMESPACE + "baseUrl", ownUri.toString())
+                .property(EDC_NAMESPACE + "path", agreementId)
+                .property("header:" + DATA_TRANSFER_API_KEY, apiKey) // API key for validation on consumer side
                 .build();
 
         return initiateTransferProcess(providerUrl, agreementId, assetId, dataDestination);
@@ -109,7 +109,7 @@ public class TransferInitiator {
      * message.
      */
     public CompletableFuture<String> initiateTransferProcess(URL providerUrl, String agreementId, String assetId,
-                                                             HttpDataAddress dataSinkAddress) {
+                                                             DataAddress dataSinkAddress) {
         // Prepare for incoming data
         var dataFuture = new CompletableFuture<String>();
         observable.register(dataFuture, agreementId);
@@ -117,7 +117,7 @@ public class TransferInitiator {
         var dataRequest = DataRequest.Builder.newInstance()
                 .id(UUID.randomUUID().toString()) // this is not relevant, thus can be random
                 .connectorAddress(providerUrl.toString()) // the address of the provider connector
-                .protocol(PROTOCOL_IDS_MULTIPART)
+                .protocol(DATASPACE_PROTOCOL_HTTP)
                 .connectorId("consumer")
                 .assetId(assetId)
                 .dataDestination(dataSinkAddress)

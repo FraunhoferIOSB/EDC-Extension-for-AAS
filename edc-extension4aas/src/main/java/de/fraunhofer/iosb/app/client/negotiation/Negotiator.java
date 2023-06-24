@@ -28,6 +28,8 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.query.QuerySpec;
 
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -35,6 +37,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
+import static java.util.stream.Collectors.toList;
 import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 
 /**
@@ -93,9 +96,11 @@ public class Negotiator {
         var relevantAgreements = previousAgreements
                 .filter(agreement -> agreement.getAssetId().equals(contractOffer.getAssetId()))
                 .filter(agreement -> agreement.getProviderId().equals(contractOffer.getProviderId()))
-                .collect(Collectors.toList());
+                .collect(toList());
+
         if (relevantAgreements.size() > 0) { // An agreement exists for this asset & provider
-            return relevantAgreements.get(0); // Pick first agreement, hope contractNegotiationStore removes invalid agreements
+            return relevantAgreements.get(0); // Pick first agreement, hope contractNegotiationStore removes invalid
+            // agreements
         }
 
         var result = consumerNegotiationManager.initiate(contractRequest);

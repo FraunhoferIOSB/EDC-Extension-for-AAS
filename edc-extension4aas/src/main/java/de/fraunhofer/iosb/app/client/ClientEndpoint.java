@@ -16,26 +16,19 @@
 package de.fraunhofer.iosb.app.client;
 
 import de.fraunhofer.iosb.app.Logger;
-import de.fraunhofer.iosb.app.authentication.CustomAuthenticationRequestFilter;
-import de.fraunhofer.iosb.app.client.contract.ContractOfferService;
-import de.fraunhofer.iosb.app.client.dataTransfer.DataTransferObservable;
+import de.fraunhofer.iosb.app.client.contract.PolicyService;
 import de.fraunhofer.iosb.app.client.dataTransfer.TransferInitiator;
 import de.fraunhofer.iosb.app.client.negotiation.Negotiator;
+import de.fraunhofer.iosb.app.util.Pair;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
-import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationObservable;
-import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
-import org.eclipse.edc.connector.spi.catalog.CatalogService;
-import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.types.domain.HttpDataAddress;
 
-import java.net.URI;
 import java.net.URL;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
@@ -65,44 +58,27 @@ public class ClientEndpoint {
 
     private final Negotiator negotiator;
     private final TransferInitiator transferInitiator;
-    private final ContractOfferService contractOfferService;
+    private final PolicyService policyService;
 
     /**
      * Initialize a client endpoint.
      *
-     * @param ownUri                        Needed for providing this connector's
-     *                                      address in a data transfer process.
-     * @param catalogService                Fetch catalogs from a provider
-     *                                      connector.
-     * @param consumerNegotiationManager    Initiate a contract negotiation as a
-     *                                      consumer.
-     * @param contractNegotiationStore      Check negotiation status.
-     * @param contractNegotiationObservable Listen for contract negotiation changes
-     *                                      (confirmed, failed, ...).
-     * @param transferProcessManager        Initiate a data transfer.
-     * @param observable                    Status updates for waiting data transfer
-     *                                      requesters to avoid busy waiting.
-     * @param dataEndpointAuthRequestFilter Creating and passing through custom api
-     *                                      keys for each data transfer.
+     * @param policyService Finds out policy for a given asset id and provider EDC url.
+     * @param negotiator           Send contract offer, negotiation status watch.
+     * @param transferInitiator    Initiate transfer requests.
      */
-    public ClientEndpoint(URI ownUri, CatalogService catalogService,
-                          ConsumerContractNegotiationManager consumerNegotiationManager,
-                          ContractNegotiationStore contractNegotiationStore,
-                          ContractNegotiationObservable contractNegotiationObservable,
-                          TransferProcessManager transferProcessManager,
-                          DataTransferObservable observable,
-                          CustomAuthenticationRequestFilter dataEndpointAuthRequestFilter) {
-        this.negotiator = new Negotiator(consumerNegotiationManager, contractNegotiationObservable,
-                contractNegotiationStore);
-        this.contractOfferService = new ContractOfferService(catalogService);
-        this.transferInitiator = new TransferInitiator(ownUri, transferProcessManager, observable,
-                dataEndpointAuthRequestFilter);
+    public ClientEndpoint(PolicyService policyService,
+                          Negotiator negotiator,
+                          TransferInitiator transferInitiator) {
+        this.policyService = policyService;
+        this.negotiator = negotiator;
+        this.transferInitiator = transferInitiator;
     }
 
     /**
      * Negotiate a contract with a provider edc.
-     * WARNING: By initiating this request, any contract provided by the provider
-     * for the specified asset will be sent as a contract offer unmodified.
+     * WARNING: By initiating this request, any policy provided by the provider for the specified asset will be sent
+     * as a contract offer unmodified if edc.aas.client.acceptAllProviderOffers is set to true.
      *
      * @param providerUrl Provider EDCs URL (IDS endpoint)
      * @param assetId     ID of the asset to be retrieved
@@ -111,14 +87,15 @@ public class ClientEndpoint {
     @POST
     @Path(NEGOTIATE_PATH)
     public Response negotiateContract(@QueryParam("providerUrl") URL providerUrl,
-                                      @QueryParam("assetId") String assetId, @QueryParam("dataDestinationUrl") URL dataDestinationUrl) {
+                                      @QueryParam("assetId") String assetId,
+                                      @QueryParam("dataDestinationUrl") URL dataDestinationUrl) {
         LOGGER.debug(format("Received a %s POST request", NEGOTIATE_PATH));
         Objects.requireNonNull(providerUrl, "Provider URL must not be null");
         Objects.requireNonNull(assetId, "Asset ID must not be null");
 
-        Policy policy;
+        Pair<String, Policy> idPolicyPair; // id means contractOfferId
         try {
-            policy = contractOfferService.getAcceptablePolicyForAssetId(providerUrl, assetId);
+            idPolicyPair = policyService.getAcceptablePolicyForAssetId(providerUrl, assetId);
         } catch (InterruptedException negotiationException) {
             LOGGER.error(format("Getting contractOffers failed for provider %s and asset %s", providerUrl,
                     assetId), negotiationException);
@@ -127,8 +104,8 @@ public class ClientEndpoint {
         }
 
         ContractOffer offer = ContractOffer.Builder.newInstance()
-                .id("contract-offer-" + assetId + "-" + policy.hashCode())
-                .policy(policy)
+                .id(idPolicyPair.getFirst())
+                .policy(idPolicyPair.getSecond())
                 .assetId(assetId)
                 .providerId(providerUrl.toString())
                 .build();
@@ -161,7 +138,7 @@ public class ClientEndpoint {
         Objects.requireNonNull(providerUrl, "Provider URL must not be null");
 
         try {
-            var datasets = contractOfferService.getDatasetsForAssetId(providerUrl, assetId);
+            var datasets = policyService.getDatasetsForAssetId(providerUrl, assetId);
             return Response.ok(datasets).build();
         } catch (InterruptedException interruptedException) {
             LOGGER.error(format("Getting contractOffers failed for provider %s and asset %s", providerUrl,
@@ -250,7 +227,7 @@ public class ClientEndpoint {
     public Response addAcceptedContractOffers(PolicyDefinition[] policyDefinitions) {
         LOGGER.log(format("Adding %s accepted contract offers", policyDefinitions.length));
         Objects.requireNonNull(policyDefinitions, "ContractOffer is null");
-        contractOfferService.addAccepted(policyDefinitions);
+        policyService.addAccepted(policyDefinitions);
         return Response.ok().build();
     }
 
@@ -263,7 +240,7 @@ public class ClientEndpoint {
     @Path(ACCEPTED_CONTRACT_OFFERS_PATH)
     public Response getAcceptedPolicyDefinitions() {
         LOGGER.log("Returning accepted policyDefinitions");
-        return Response.ok(contractOfferService.getAccepted()).build();
+        return Response.ok(policyService.getAccepted()).build();
     }
 
     /**
@@ -277,7 +254,7 @@ public class ClientEndpoint {
     public Response deleteAcceptedContractOffer(@QueryParam("contractOfferId") String policyDefinitionId) {
         LOGGER.log(format("Removing policyDefinition with id %s", policyDefinitionId));
         Objects.requireNonNull(policyDefinitionId, "PolicyDefinition ID is null");
-        contractOfferService.removeAccepted(policyDefinitionId);
+        policyService.removeAccepted(policyDefinitionId);
         return Response.ok().build();
     }
 
@@ -292,7 +269,7 @@ public class ClientEndpoint {
     public Response updateAcceptedContractOffer(PolicyDefinition policyDefinition) {
         LOGGER.log(format("Updating policyDefinition with id %s", policyDefinition.getId()));
         Objects.requireNonNull(policyDefinition, "policyDefinition is null");
-        contractOfferService.updateAccepted(policyDefinition.getId(), policyDefinition);
+        policyService.updateAccepted(policyDefinition.getId(), policyDefinition);
         return Response.ok().build();
     }
 }

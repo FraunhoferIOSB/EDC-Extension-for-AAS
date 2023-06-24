@@ -15,39 +15,56 @@
  */
 package de.fraunhofer.iosb.app.client.contract;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import de.fraunhofer.iosb.app.client.exception.AmbiguousOrNullException;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
+import de.fraunhofer.iosb.app.util.Pair;
+import jakarta.json.Json;
 import org.eclipse.edc.catalog.spi.Catalog;
+import org.eclipse.edc.catalog.spi.DataService;
 import org.eclipse.edc.catalog.spi.Dataset;
+import org.eclipse.edc.catalog.spi.Distribution;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.spi.catalog.CatalogService;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.Rule;
 import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import static java.lang.String.format;
+import static org.eclipse.edc.jsonld.spi.Namespaces.*;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_ACCESS_SERVICE_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCT_FORMAT_ATTRIBUTE;
+import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_PREFIX;
+import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
+import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
+import static org.eclipse.edc.spi.query.Criterion.criterion;
 
 /**
  * Finds out policy for a given asset id and provider EDC url
  */
-public class ContractOfferService {
+public class PolicyService {
 
     private static final Configuration configuration = Configuration.getInstance();
 
     private final CatalogService catalogService;
+    private final TypeTransformerRegistry transformer;
+
     private final PolicyDefinitionStore policyDefinitionStore;
 
     /**
@@ -55,8 +72,9 @@ public class ContractOfferService {
      *
      * @param catalogService Fetching the catalog of a provider.
      */
-    public ContractOfferService(CatalogService catalogService) {
+    public PolicyService(CatalogService catalogService, TypeTransformerRegistry transformer) {
         this.catalogService = catalogService;
+        this.transformer = transformer;
         this.policyDefinitionStore = new PolicyDefinitionStore();
     }
 
@@ -70,18 +88,16 @@ public class ContractOfferService {
      * @throws InterruptedException Thread for agreementId was waiting, sleeping, or
      *                              otherwise occupied, and was interrupted.
      */
-    public List<Dataset> getDatasetsForAssetId(URL providerUrl, String assetId)
-            throws InterruptedException {
-        var catalogFuture = catalogService
-                .request(providerUrl.toString(),
-                        "ids-multipart",
-                        QuerySpec.Builder
-                                .newInstance()
-                                .filter(List.of(new Criterion(Asset.PROPERTY_ID, "=", assetId)))
-                                .build());
-        byte[] catalogSerialized;
+    public List<Dataset> getDatasetsForAssetId(URL providerUrl, String assetId) throws InterruptedException {
+        var catalogFuture = catalogService.request(providerUrl.toString(),
+                DATASPACE_PROTOCOL_HTTP,
+                QuerySpec.Builder.newInstance()
+                        .filter(List.of(criterion(Asset.PROPERTY_ID, "=", assetId)))
+                        .build());
+
+        byte[] catalogBytes;
         try {
-            catalogSerialized = catalogFuture.get(configuration.getWaitForCatalogTimeout(), TimeUnit.SECONDS);
+            catalogBytes = catalogFuture.get(configuration.getWaitForCatalogTimeout(), TimeUnit.SECONDS).getContent();
         } catch (ExecutionException futureExecutionException) {
             throw new EdcException(format("Failed fetching a catalog by provider %s.", providerUrl),
                     futureExecutionException);
@@ -90,18 +106,51 @@ public class ContractOfferService {
                     timeoutCatalogFutureGetException);
         }
 
-        Catalog catalog;
+        // Bytes to string. Replace "dcat:" etc. by schema. String to bytes again
+        catalogBytes = new String(catalogBytes)
+                .replace(DCAT_PREFIX + ":", DCAT_SCHEMA)
+                .replace(ODRL_PREFIX + ":", ODRL_SCHEMA)
+                .replace(DCT_PREFIX + ":", DCT_SCHEMA)
+                .replace(DSPACE_PREFIX + ":", DSPACE_SCHEMA)
+                .getBytes();
+        // Alarming... looking into it though
+        Distribution distribution = Distribution.Builder.newInstance()
+                .format("JSON")
+                .dataService(DataService.Builder.newInstance().build())
+                .build();
+
+        JsonNode jsonNode;
+        var om = new ObjectMapper();
+
         try {
-            catalog = new ObjectMapper().readValue(catalogSerialized, Catalog.class);
-        } catch (IOException e) {
-            throw new EdcException(format("Failed reading catalog of provider %s", providerUrl));
+            var distributionString = om.writeValueAsString(distribution);
+            var distributionNode = om.readTree(distributionString.replace("format",
+                    DCT_FORMAT_ATTRIBUTE).replace("dataService", DCAT_ACCESS_SERVICE_ATTRIBUTE));
+
+            jsonNode = om.readTree(catalogBytes);
+            ((ArrayNode) jsonNode.get(DCAT_SCHEMA + "dataset").get(DCAT_SCHEMA + "distribution")).add(distributionNode);
+            catalogBytes = om.writeValueAsBytes(jsonNode);
+
+        } catch (IOException except) {
+            throw new EdcException(format("Catalog by provider %s couldn't be retrieved: %s", providerUrl, except));
         }
 
-        if (Objects.isNull(catalog)) {
-            throw new EdcException(format("Catalog by provider %s couldn't be retrieved", providerUrl));
+        var jsonReader = Json.createReader(new ByteArrayInputStream(catalogBytes));
+        var catalogJson = jsonReader.readObject();
+
+        // TODO catalog does not have distributions
+        var catalog = transformer.transform(catalogJson, Catalog.class);
+
+        if (catalog.failed()) {
+            throw new EdcException(format("Catalog by provider %s couldn't be retrieved: %s", providerUrl,
+                    catalog.getFailureMessages()));
         }
 
-        return new ArrayList<>(catalog.getDatasets());
+        var filteredDatasets = catalog.getContent().getDatasets();
+        filteredDatasets.forEach(dataset -> dataset.getDistributions().remove(0)); // Remove distributions added to
+        // deserialize catalog
+
+        return filteredDatasets;
     }
 
     /**
@@ -113,23 +162,37 @@ public class ContractOfferService {
      * @param providerUrl Provider of the asset.
      * @param assetId     Asset ID of the asset whose contract should be fetched.
      * @return One policyDefinition offered by the provider for the given assetId.
-     * @throws InterruptedException Thread for agreementId was waiting, sleeping, or otherwise occupied, and was interrupted.
+     * @throws InterruptedException Thread for agreementId was waiting, sleeping, or otherwise occupied, and was
+     *                              interrupted.
      */
-    public Policy getAcceptablePolicyForAssetId(URL providerUrl, String assetId)
-            throws InterruptedException {
+    public Pair<String, Policy> getAcceptablePolicyForAssetId(URL providerUrl, String assetId) throws InterruptedException {
         var datasets = getDatasetsForAssetId(providerUrl, assetId);
 
         if (datasets.size() != 1) {
-            throw new AmbiguousOrNullException(
-                    format("Multiple or no policyDefinitions were found for assetId %s! (amount of policyDefinitions: %s)",
-                            assetId, datasets.size()));
+            throw new AmbiguousOrNullException(format("Multiple or no policyDefinitions were found for assetId %s! " +
+                    "(amount of policyDefinitions: %s)", assetId, datasets.size()));
         }
 
-        if (configuration.isAcceptAllProviderOffers() || datasets.get(0).getOffers().values().stream().anyMatch(this::matchesOwnPolicyDefinitions)) {
-            return datasets.get(0).getOffers().values().stream().filter(this::matchesOwnPolicyDefinitions).findAny().orElse(null);
+        Map.Entry<String, Policy> acceptablePolicy;
+        if (configuration.isAcceptAllProviderOffers()) {
+            acceptablePolicy = datasets.get(0).getOffers().entrySet().stream()
+                    .findAny()
+                    .orElseThrow();
+
+        } else if (datasets.get(0).getOffers().values().stream().anyMatch(this::matchesOwnPolicyDefinitions)) {
+            acceptablePolicy = datasets.get(0).getOffers().entrySet().stream()
+                    .filter(entry -> matchesOwnPolicyDefinitions(entry.getValue()))
+                    .findAny()
+                    .orElseThrow();
+
         } else {
-            throw new EdcException("Could not find any contract policyDefinition matching this connector's accepted policyDefinitions");
+            throw new EdcException("Could not find any contract policyDefinition matching this connector's accepted " +
+                    "policyDefinitions");
         }
+
+        return new Pair.PairBuilder<String, Policy>()
+                .first(acceptablePolicy.getKey()).second(acceptablePolicy.getValue()).build();
+
     }
 
 
@@ -187,12 +250,11 @@ public class ContractOfferService {
         secondRules.addAll(second.getProhibitions());
         secondRules.addAll(second.getObligations());
 
-        return firstRules.stream().anyMatch(firstRule -> secondRules.stream()
-                .anyMatch(secondRule -> !ruleEquality(firstRule, secondRule)));
+        return firstRules.stream().anyMatch(firstRule -> secondRules.stream().anyMatch(secondRule -> !ruleEquality(firstRule, secondRule)));
     }
 
     private <T extends Rule> boolean ruleEquality(T first, T second) {
-        return Objects.equals(first.getAction(), second.getAction())
-                && Objects.equals(first.getConstraints(), second.getConstraints());
+        return Objects.equals(first.getAction(), second.getAction()) && Objects.equals(first.getConstraints(),
+                second.getConstraints());
     }
 }

@@ -50,8 +50,6 @@ import static java.lang.String.format;
 import static org.eclipse.edc.jsonld.spi.Namespaces.*;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_ACCESS_SERVICE_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCT_FORMAT_ATTRIBUTE;
-import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_PREFIX;
-import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
 import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
 
@@ -97,7 +95,7 @@ public class PolicyService {
 
         byte[] catalogBytes;
         try {
-            catalogBytes = catalogFuture.get(configuration.getWaitForCatalogTimeout(), TimeUnit.SECONDS).getContent();
+            catalogBytes = catalogFuture.get(configuration.getWaitForCatalogTimeout(), TimeUnit.SECONDS);
         } catch (ExecutionException futureExecutionException) {
             throw new EdcException(format("Failed fetching a catalog by provider %s.", providerUrl),
                     futureExecutionException);

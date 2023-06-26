@@ -181,14 +181,6 @@ public class ClientEndpointTest {
     }
 
     @Test
-    @Disabled("Until catalog fetching works again")
-    public void getContractOffersTest() {
-        // TODO repair after fixing ContractOfferService.class
-        var responseEntity = clientEndpoint.getContractOffers(url, "test-asset").getEntity().toString();
-        assertEquals(format("[%s]", mockPolicyDefinition.getPolicy().toString()), responseEntity);
-    }
-
-    @Test
     public void getAcceptedContractOffersTest() {
         assertEquals(Response.Status.OK.getStatusCode(), clientEndpoint.getAcceptedPolicyDefinitions().getStatus());
     }

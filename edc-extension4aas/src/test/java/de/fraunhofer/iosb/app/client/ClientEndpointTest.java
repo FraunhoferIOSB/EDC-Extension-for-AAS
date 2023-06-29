@@ -47,7 +47,6 @@ import org.mockserver.integration.ClientAndServer;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.UUID;
@@ -165,7 +164,7 @@ public class ClientEndpointTest {
     @Disabled("Until catalog fetching works again")
     public void negotiateContractAndTransferTest() {
         // TODO repair after fixing ContractOfferService.class
-        try (var negotiation = clientEndpoint.negotiateContract(url, "test-asset", null)) {
+        try (var ignored = clientEndpoint.negotiateContract(url, "test-asset", null)) {
             fail();
         } catch (EdcException expected) {
         }
@@ -202,9 +201,7 @@ public class ClientEndpointTest {
 
         clientEndpoint.addAcceptedContractOffers(offers);
 
-        var mockAsset = Asset.Builder.newInstance().id("test-asset2").build();
         var mockPolicy = Policy.Builder.newInstance().build();
-        var mockedContractStart = ZonedDateTime.now();
         var mockUpdatedContractOffer = PolicyDefinition.Builder.newInstance()
                 .id(mockPolicyDefinition.getId()) // Same id <-> same offer
                 .policy(mockPolicy)

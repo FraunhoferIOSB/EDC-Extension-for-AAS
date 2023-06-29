@@ -23,10 +23,7 @@ import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -68,10 +65,11 @@ public class PolicyDefinitionStore {
      * Remove a policy definition
      *
      * @param policyDefinitionId policyDefinition ID (non null)
+     * @return Optional containing removed policy definition or null
      */
-    public void removePolicyDefinition(String policyDefinitionId) {
+    public Optional<PolicyDefinition> removePolicyDefinition(String policyDefinitionId) {
         Objects.requireNonNull(policyDefinitionId, "policyDefinitionId is null");
-        policyDefinitions.remove(policyDefinitionId);
+        return Optional.ofNullable(policyDefinitions.remove(policyDefinitionId));
     }
 
     /**
@@ -79,13 +77,15 @@ public class PolicyDefinitionStore {
      *
      * @param policyDefinitionId PolicyDefinition ID (non null)
      * @param policyDefinition   The updated policyDefinition
+     * @return Optional containing updated policy definition or null
      */
-    public void updatePolicyDefinitions(String policyDefinitionId, PolicyDefinition policyDefinition) {
+    public Optional<PolicyDefinition> updatePolicyDefinitions(String policyDefinitionId, PolicyDefinition policyDefinition) {
         Objects.requireNonNull(policyDefinitionId, "contractOfferId is null");
         Objects.requireNonNull(policyDefinition, "contractOffer is null");
         if (policyDefinitions.containsKey(policyDefinitionId)) {
-            policyDefinitions.put(policyDefinitionId, policyDefinition);
+            return Optional.ofNullable(policyDefinitions.put(policyDefinitionId, policyDefinition));
         }
+        return Optional.empty();
     }
 
     private void loadPolicyDefinitions(Configuration config) {

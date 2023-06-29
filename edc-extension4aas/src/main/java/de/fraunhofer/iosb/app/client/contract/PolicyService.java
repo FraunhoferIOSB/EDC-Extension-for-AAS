@@ -39,10 +39,7 @@ import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -226,9 +223,10 @@ public class PolicyService {
      * Removes an accepted policyDefinitions.
      *
      * @param policyDefinitions policyDefinition id of policyDefinition to be removed
+     * @return Optional containing removed policy definition or null
      */
-    public void removeAccepted(String policyDefinitions) {
-        policyDefinitionStore.removePolicyDefinition(policyDefinitions);
+    public Optional<PolicyDefinition> removeAccepted(String policyDefinitions) {
+        return policyDefinitionStore.removePolicyDefinition(policyDefinitions);
     }
 
     /**
@@ -237,8 +235,8 @@ public class PolicyService {
      * @param policyDefinitionId PolicyDefinition id of policyDefinition to be updated
      * @param policyDefinition   Updated PolicyDefinition
      */
-    public void updateAccepted(String policyDefinitionId, PolicyDefinition policyDefinition) {
-        policyDefinitionStore.updatePolicyDefinitions(policyDefinitionId, policyDefinition);
+    public Optional<PolicyDefinition> updateAccepted(String policyDefinitionId, PolicyDefinition policyDefinition) {
+        return policyDefinitionStore.updatePolicyDefinitions(policyDefinitionId, policyDefinition);
     }
 
 

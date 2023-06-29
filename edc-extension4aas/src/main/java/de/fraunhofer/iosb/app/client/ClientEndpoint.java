@@ -225,8 +225,8 @@ public class ClientEndpoint {
     @POST
     @Path(ACCEPTED_POLICIES_PATH)
     public Response addAcceptedPolicies(PolicyDefinition[] policyDefinitions) {
-        if(Objects.isNull(policyDefinitions)){
-            return Response.status(Response.Status.BAD_REQUEST).build();
+        if (Objects.isNull(policyDefinitions)) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("Missing policyDefinitions array").build();
         }
         LOGGER.log(format("Adding %s accepted contract offers", policyDefinitions.length));
 
@@ -257,10 +257,14 @@ public class ClientEndpoint {
     public Response deleteAcceptedPolicyDefinition(@QueryParam("policyDefinitionId") String policyDefinitionId) {
         LOGGER.log(format("Removing policyDefinition with id %s", policyDefinitionId));
         if (Objects.isNull(policyDefinitionId)) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            return Response.status(Response.Status.BAD_REQUEST).entity("Missing policyDefinitionId parameter").build();
         }
-        policyService.removeAccepted(policyDefinitionId);
-        return Response.ok().build();
+        var removed = policyService.removeAccepted(policyDefinitionId);
+
+        if (removed.isPresent()) {
+            return Response.ok(removed).build();
+        }
+        return Response.status(Response.Status.NOT_FOUND).entity("Unknown policyDefinitionId.").build();
     }
 
     /**
@@ -273,11 +277,14 @@ public class ClientEndpoint {
     @Path(ACCEPTED_POLICIES_PATH)
     public Response updateAcceptedPolicyDefinition(PolicyDefinition policyDefinition) {
         if (Objects.isNull(policyDefinition)) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            return Response.status(Response.Status.BAD_REQUEST).entity("Missing policyDefinition").build();
         }
         LOGGER.log(format("Updating policyDefinition with id %s", policyDefinition.getId()));
 
-        policyService.updateAccepted(policyDefinition.getId(), policyDefinition);
-        return Response.ok().build();
+        var updated = policyService.updateAccepted(policyDefinition.getId(), policyDefinition);
+        if (updated.isPresent()) {
+            return Response.ok(updated).build();
+        }
+        return Response.status(Response.Status.NOT_FOUND).entity("Unknown policyDefinitionId.").build();
     }
 }

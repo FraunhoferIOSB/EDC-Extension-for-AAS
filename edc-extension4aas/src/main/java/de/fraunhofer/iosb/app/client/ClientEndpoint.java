@@ -48,7 +48,7 @@ public class ClientEndpoint {
      */
     public static final String AUTOMATED_PATH = "automated";
 
-    private static final String ACCEPTED_CONTRACT_OFFERS_PATH = "acceptedContractOffers";
+    private static final String ACCEPTED_POLICIES_PATH = "acceptedPolicies";
     private static final String CONTRACT_OFFERS_PATH = "contractOffers";
     private static final String NEGOTIATE_CONTRACT_PATH = "negotiateContract";
     private static final String NEGOTIATE_PATH = "negotiate";
@@ -63,9 +63,9 @@ public class ClientEndpoint {
     /**
      * Initialize a client endpoint.
      *
-     * @param policyService Finds out policy for a given asset id and provider EDC url.
-     * @param negotiator           Send contract offer, negotiation status watch.
-     * @param transferInitiator    Initiate transfer requests.
+     * @param policyService     Finds out policy for a given asset id and provider EDC url.
+     * @param negotiator        Send contract offer, negotiation status watch.
+     * @param transferInitiator Initiate transfer requests.
      */
     public ClientEndpoint(PolicyService policyService,
                           Negotiator negotiator,
@@ -97,7 +97,7 @@ public class ClientEndpoint {
         try {
             idPolicyPair = policyService.getAcceptablePolicyForAssetId(providerUrl, assetId);
         } catch (InterruptedException negotiationException) {
-            LOGGER.error(format("Getting contractOffers failed for provider %s and asset %s", providerUrl,
+            LOGGER.error(format("Getting policies failed for provider %s and asset %s", providerUrl,
                     assetId), negotiationException);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(negotiationException.getMessage())
                     .build();
@@ -128,20 +128,20 @@ public class ClientEndpoint {
      * assetID.
      *
      * @param providerUrl Provider whose contracts should be fetched (non null).
-     * @param assetId     Asset ID for which contractOffers should be fetched.
-     * @return A list of contract offers or an error message.
+     * @param assetId     Asset ID for which datasets should be fetched.
+     * @return A list of datasets or an error message.
      */
     @GET
     @Path(CONTRACT_OFFERS_PATH)
-    public Response getContractOffers(@QueryParam("providerUrl") URL providerUrl,
-                                      @QueryParam("assetId") String assetId) {
+    public Response getDatasets(@QueryParam("providerUrl") URL providerUrl,
+                                @QueryParam("assetId") String assetId) {
         Objects.requireNonNull(providerUrl, "Provider URL must not be null");
 
         try {
             var datasets = policyService.getDatasetsForAssetId(providerUrl, assetId);
             return Response.ok(datasets).build();
         } catch (InterruptedException interruptedException) {
-            LOGGER.error(format("Getting contractOffers failed for provider %s and asset %s", providerUrl,
+            LOGGER.error(format("Getting datasets failed for provider %s and asset %s", providerUrl,
                     assetId), interruptedException);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(interruptedException.getMessage())
                     .build();
@@ -223,10 +223,13 @@ public class ClientEndpoint {
      * @return OK as response.
      */
     @POST
-    @Path(ACCEPTED_CONTRACT_OFFERS_PATH)
-    public Response addAcceptedContractOffers(PolicyDefinition[] policyDefinitions) {
+    @Path(ACCEPTED_POLICIES_PATH)
+    public Response addAcceptedPolicies(PolicyDefinition[] policyDefinitions) {
+        if(Objects.isNull(policyDefinitions)){
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
         LOGGER.log(format("Adding %s accepted contract offers", policyDefinitions.length));
-        Objects.requireNonNull(policyDefinitions, "ContractOffer is null");
+
         policyService.addAccepted(policyDefinitions);
         return Response.ok().build();
     }
@@ -237,7 +240,7 @@ public class ClientEndpoint {
      * @return A list of accepted policyDefinitions
      */
     @GET
-    @Path(ACCEPTED_CONTRACT_OFFERS_PATH)
+    @Path(ACCEPTED_POLICIES_PATH)
     public Response getAcceptedPolicyDefinitions() {
         LOGGER.log("Returning accepted policyDefinitions");
         return Response.ok(policyService.getAccepted()).build();
@@ -250,10 +253,12 @@ public class ClientEndpoint {
      * @return OK as response.
      */
     @DELETE
-    @Path(ACCEPTED_CONTRACT_OFFERS_PATH)
-    public Response deleteAcceptedContractOffer(@QueryParam("contractOfferId") String policyDefinitionId) {
+    @Path(ACCEPTED_POLICIES_PATH)
+    public Response deleteAcceptedPolicyDefinition(@QueryParam("policyDefinitionId") String policyDefinitionId) {
         LOGGER.log(format("Removing policyDefinition with id %s", policyDefinitionId));
-        Objects.requireNonNull(policyDefinitionId, "PolicyDefinition ID is null");
+        if (Objects.isNull(policyDefinitionId)) {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
         policyService.removeAccepted(policyDefinitionId);
         return Response.ok().build();
     }
@@ -265,10 +270,13 @@ public class ClientEndpoint {
      * @return OK as response.
      */
     @PUT
-    @Path(ACCEPTED_CONTRACT_OFFERS_PATH)
-    public Response updateAcceptedContractOffer(PolicyDefinition policyDefinition) {
+    @Path(ACCEPTED_POLICIES_PATH)
+    public Response updateAcceptedPolicyDefinition(PolicyDefinition policyDefinition) {
+        if (Objects.isNull(policyDefinition)) {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
         LOGGER.log(format("Updating policyDefinition with id %s", policyDefinition.getId()));
-        Objects.requireNonNull(policyDefinition, "policyDefinition is null");
+
         policyService.updateAccepted(policyDefinition.getId(), policyDefinition);
         return Response.ok().build();
     }

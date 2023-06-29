@@ -23,6 +23,7 @@ import org.eclipse.edc.catalog.spi.Distribution;
 import org.eclipse.edc.connector.spi.catalog.CatalogService;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.BeforeEach;
@@ -59,11 +60,11 @@ public class PolicyServiceTest {
 
     @Test
     void getPolicyForAssetIdTest() throws InterruptedException {
-        var mockedFuture = new CompletableFuture<byte[]>();
+        var mockedFuture = new CompletableFuture<StatusResult<byte[]>>();
         var datasetId = "ef4d028f-70d7-404a-b22e-c5b0ffa3aa0b";
         var catalogString = FileManager.loadResource("catalog.json");
         assert catalogString != null;
-        mockedFuture.complete(catalogString.getBytes(StandardCharsets.UTF_8));
+        mockedFuture.complete(StatusResult.success(catalogString.getBytes(StandardCharsets.UTF_8)));
 
         when(mockCatalogService.request(any(), any(), any())).thenReturn(mockedFuture);
 
@@ -84,7 +85,7 @@ public class PolicyServiceTest {
 
     @Test
     void getContractUnreachableProviderTest() throws MalformedURLException, InterruptedException {
-        var mockedFuture = new CompletableFuture<byte[]>();
+        var mockedFuture = new CompletableFuture<StatusResult<byte[]>>();
         when(mockCatalogService.request(any(), any(), any())).thenReturn(mockedFuture);
 
         try {

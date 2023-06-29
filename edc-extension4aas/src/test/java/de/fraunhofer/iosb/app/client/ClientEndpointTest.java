@@ -117,8 +117,8 @@ public class ClientEndpointTest {
 
     private CatalogService mockCatalogService() throws IOException {
         var catalogService = mock(CatalogService.class);
-        var completableFuture = new CompletableFuture<byte[]>();
-        completableFuture.complete(new ObjectMapper().writeValueAsBytes(mockCatalog));
+        var completableFuture = new CompletableFuture<StatusResult<byte[]>>();
+        completableFuture.complete(StatusResult.success(new ObjectMapper().writeValueAsBytes(mockCatalog)));
 
         when(catalogService.request(any(), any(), any())).thenReturn(completableFuture);
         return catalogService;

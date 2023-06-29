@@ -32,6 +32,7 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.Rule;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
@@ -50,6 +51,8 @@ import static java.lang.String.format;
 import static org.eclipse.edc.jsonld.spi.Namespaces.*;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_ACCESS_SERVICE_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCT_FORMAT_ATTRIBUTE;
+import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_PREFIX;
+import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
 import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
 
@@ -92,10 +95,9 @@ public class PolicyService {
                 QuerySpec.Builder.newInstance()
                         .filter(List.of(criterion(Asset.PROPERTY_ID, "=", assetId)))
                         .build());
-
-        byte[] catalogBytes;
+        StatusResult<byte[]> catalogResponse;
         try {
-            catalogBytes = catalogFuture.get(configuration.getWaitForCatalogTimeout(), TimeUnit.SECONDS);
+            catalogResponse = catalogFuture.get(configuration.getWaitForCatalogTimeout(), TimeUnit.SECONDS);
         } catch (ExecutionException futureExecutionException) {
             throw new EdcException(format("Failed fetching a catalog by provider %s.", providerUrl),
                     futureExecutionException);
@@ -104,6 +106,12 @@ public class PolicyService {
                     timeoutCatalogFutureGetException);
         }
 
+        if (catalogResponse.failed()) {
+            throw new EdcException(format("Catalog by provider %s couldn't be retrieved: %s", providerUrl,
+                    catalogResponse.getFailureMessages()));
+        }
+        byte[] catalogBytes = catalogResponse.getContent();
+
         // Bytes to string. Replace "dcat:" etc. by schema. String to bytes again
         catalogBytes = new String(catalogBytes)
                 .replace(DCAT_PREFIX + ":", DCAT_SCHEMA)
@@ -111,6 +119,7 @@ public class PolicyService {
                 .replace(DCT_PREFIX + ":", DCT_SCHEMA)
                 .replace(DSPACE_PREFIX + ":", DSPACE_SCHEMA)
                 .getBytes();
+
         // Alarming... looking into it though
         Distribution distribution = Distribution.Builder.newInstance()
                 .format("JSON")

@@ -142,7 +142,6 @@ public class PolicyService {
         var jsonReader = Json.createReader(new ByteArrayInputStream(catalogBytes));
         var catalogJson = jsonReader.readObject();
 
-        // TODO catalog does not have distributions
         var catalog = transformer.transform(catalogJson, Catalog.class);
 
         if (catalog.failed()) {

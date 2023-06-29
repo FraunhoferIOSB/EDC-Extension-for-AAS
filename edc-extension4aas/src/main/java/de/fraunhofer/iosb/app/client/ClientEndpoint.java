@@ -49,7 +49,7 @@ public class ClientEndpoint {
     public static final String AUTOMATED_PATH = "automated";
 
     private static final String ACCEPTED_POLICIES_PATH = "acceptedPolicies";
-    private static final String CONTRACT_OFFERS_PATH = "contractOffers";
+    private static final String DATASETS_PATH = "datasets";
     private static final String NEGOTIATE_CONTRACT_PATH = "negotiateContract";
     private static final String NEGOTIATE_PATH = "negotiate";
     private static final String TRANSFER_PATH = "transfer";
@@ -124,18 +124,20 @@ public class ClientEndpoint {
     }
 
     /**
-     * Returns Datasets offered by the given provider for the given
+     * Returns datasets offered by the given provider for the given
      * assetID.
      *
-     * @param providerUrl Provider whose contracts should be fetched (non null).
+     * @param providerUrl Provider whose datasets should be fetched (non null).
      * @param assetId     Asset ID for which datasets should be fetched.
      * @return A list of datasets or an error message.
      */
     @GET
-    @Path(CONTRACT_OFFERS_PATH)
+    @Path(DATASETS_PATH)
     public Response getDatasets(@QueryParam("providerUrl") URL providerUrl,
                                 @QueryParam("assetId") String assetId) {
-        Objects.requireNonNull(providerUrl, "Provider URL must not be null");
+        if (Objects.isNull(providerUrl)) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("Provider URL must not be null").build();
+        }
 
         try {
             var datasets = policyService.getDatasetsForAssetId(providerUrl, assetId);

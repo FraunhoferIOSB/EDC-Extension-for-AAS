@@ -60,36 +60,20 @@ A few basic EDC config values:
 * `edc.api.auth.key`: Value of the header used for authentication when calling 
   endpoints of the data management API.
 
-An example configuration for a ready to use EDC with the _edc-extension4AAS_ and _ids_:
+An example configuration for a ready to use EDC with the _edc-extension4AAS_ and _dsp_:
 ```
-# extension4AAS
-edc.aas.logPrefix = EDC-AAS-Extension
-edc.aas.localAASModelPath = ./example/resources/FestoDemoAAS.json
-edc.aas.localAASServicePort = 8080
-edc.aas.syncPeriod = 100
+edc.aas.exposeSelfDescription = true
 
-# EDC 
-web.http.port=8181
+web.http.port=9191
 web.http.path=/api
-web.http.data.port=8182
-web.http.data.path=/api/v1/data
-web.http.ids.port = 8282
-web.http.ids.path = /api/v1/ids
-edc.transfer.functions.enabled.protocols = http
-edc.hostname = localhost
+web.http.management.port=9192
+web.http.management.path=/management
+web.http.protocol.port = 9292
+web.http.protocol.path = /dsp
+edc.dsp.callback.address=http://localhost:9292/dsp
+
+# x-api-key
 edc.api.auth.key=password
-
-# IDS specific (see EDC/data-protocols/ids/ids-core/README.md)
-edc.ids.id = urn:connector:provider
-edc.ids.title = "Eclipse Dataspace Connector with AAS support"
-edc.ids.description = "EDC with extension IDS-AAS-App enabled"
-edc.ids.maintainer = iosb
-edc.ids.curator = https://example.com
-edc.ids.endpoint = https://example.com
-edc.ids.security.profile = base
-edc.ids.catalog.id = urn:catalog:default
-
-ids.webhook.address=http://localhost:8282
 ```
 
 ## Usage of the client's automated contract negotiation and data transfer interfaces
@@ -123,20 +107,20 @@ __Important__:
 
 - If the (consumer's) config value `edc.aas.client.acceptAllProviderOffers` is set to `false` (default): This command will request the provider's offered contractOffer and check it against its own accepted contractOffers by comparing the permissions, prohibitions and obligations of both the provider's contractOffer and the ones in the contractOfferStore. The assetID or other IDs must not be equal for the contractOffers to match.  Initially, this store is empty and can be filled up by the request `Client/Add accepted contractOffer` (tip: with the request `EDC API/GET catalog`, contractOffers for all assets of the provider can be viewed and added to the consumer connector).
 
-2. Execute the request `Client/Automated Negotiation`. The consumer connector will now try to negotiate a contract with the provider to get the data of the selected asset.
+1. Execute the request `Client/Automated Negotiation`. The consumer connector will now try to negotiate a contract with the provider to get the data of the selected asset.
 
-3. If everything went right, the response should already be the data behind the `asset id` you selected.
+2. If everything went right, the response should already be the data behind the `asset id` you selected.
 
 ### Separate requests
 
-2. Execute the request `Client/1. Get contract offers for asset`
+1. Execute the request `Client/1. Get contract offers for asset`
 Choose a contract offer of the response body.
 
-3. Put the contract offer inside of request `Client/2. Initiate negotiation with contractOffer`'s body and execute said request.
+2. Put the contract offer inside of request `Client/2. Initiate negotiation with contractOffer`'s body and execute said request.
 
-4. If everything went right, request `2` returns an agreementID. Update the postman collection's agreementID variable with the response value.
+3. If everything went right, request `2` returns an agreementID. Update the postman collection's agreementID variable with the response value.
 
-5. Execute request `3. Get data for agreement id and asset id`. If everything went right, the response should be the data behind the previously selected asset.
+4. Execute request `3. Get data for agreement id and asset id`. If everything went right, the response should be the data behind the previously selected asset.
 
 ## Running the Example (manual)
 
@@ -158,7 +142,7 @@ Open another console and start the consumer connector:
 java -Dedc.fs.config=./example/configurations/consumer.properties -jar ./example/build/libs/dataspace-connector.jar
 ```
 
-Starting the data transfer from provider to consumer. There is a `postman collection` containing all necessary http request for data transfer in this extensions repository located in `/examples/resources`. Do the following steps:
+Starting the data transfer from provider to consumer. There is a `postman collection` containing all necessary http requests for data transfer in this extensions repository located in `/examples/resources`. Do the following steps:
 
 1. Call the provider's self description on `http://localhost:8181/api/selfDescription`, and choose an element you want to fetch. Put its `asset id` and `contract id` as variables in the postman collection.
    

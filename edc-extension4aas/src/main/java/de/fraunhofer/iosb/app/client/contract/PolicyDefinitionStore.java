@@ -58,7 +58,9 @@ public class PolicyDefinitionStore {
     public void putPolicyDefinitions(PolicyDefinition... newPolicyDefinitions) {
         Objects.requireNonNull(newPolicyDefinitions, "newPolicyDefinitions is null");
         for (PolicyDefinition newPolicyDefinition : newPolicyDefinitions) {
-            policyDefinitions.put(newPolicyDefinition.getId(), newPolicyDefinition);
+            if (!policyDefinitions.containsKey(newPolicyDefinition.getId())) {
+                policyDefinitions.put(newPolicyDefinition.getId(), newPolicyDefinition);
+            }
         }
     }
 
@@ -81,7 +83,9 @@ public class PolicyDefinitionStore {
     public void updatePolicyDefinitions(String policyDefinitionId, PolicyDefinition policyDefinition) {
         Objects.requireNonNull(policyDefinitionId, "contractOfferId is null");
         Objects.requireNonNull(policyDefinition, "contractOffer is null");
-        policyDefinitions.put(policyDefinitionId, policyDefinition);
+        if (policyDefinitions.containsKey(policyDefinitionId)) {
+            policyDefinitions.put(policyDefinitionId, policyDefinition);
+        }
     }
 
     private void loadPolicyDefinitions(Configuration config) {

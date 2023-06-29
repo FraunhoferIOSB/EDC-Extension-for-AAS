@@ -190,7 +190,7 @@ public class ClientEndpointTest {
         mockPolicyDefinitionsAsList.add(mockPolicyDefinition); // ClientEndpoint creates ArrayList
         var offers = new PolicyDefinition[]{mockPolicyDefinition};
 
-        clientEndpoint.addAcceptedContractOffers(offers);
+        clientEndpoint.addAcceptedPolicies(offers);
 
         assertEquals(mockPolicyDefinitionsAsList, clientEndpoint.getAcceptedPolicyDefinitions().getEntity());
     }
@@ -199,7 +199,7 @@ public class ClientEndpointTest {
     public void updateAcceptedContractOfferTest() {
         var offers = new PolicyDefinition[]{mockPolicyDefinition};
 
-        clientEndpoint.addAcceptedContractOffers(offers);
+        clientEndpoint.addAcceptedPolicies(offers);
 
         var mockPolicy = Policy.Builder.newInstance().build();
         var mockUpdatedContractOffer = PolicyDefinition.Builder.newInstance()
@@ -209,7 +209,7 @@ public class ClientEndpointTest {
 
         var mockContractOfferAsList = new ArrayList<PolicyDefinition>();
         mockContractOfferAsList.add(mockUpdatedContractOffer); // ClientEndpoint creates ArrayList
-        clientEndpoint.updateAcceptedContractOffer(mockUpdatedContractOffer);
+        clientEndpoint.updateAcceptedPolicyDefinition(mockUpdatedContractOffer);
 
         assertEquals(mockContractOfferAsList, clientEndpoint.getAcceptedPolicyDefinitions().getEntity());
 

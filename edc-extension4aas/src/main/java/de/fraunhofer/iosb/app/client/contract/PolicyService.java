@@ -22,6 +22,7 @@ import de.fraunhofer.iosb.app.client.exception.AmbiguousOrNullException;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import de.fraunhofer.iosb.app.util.Pair;
 import jakarta.json.Json;
+import jakarta.json.JsonObject;
 import org.eclipse.edc.catalog.spi.Catalog;
 import org.eclipse.edc.catalog.spi.DataService;
 import org.eclipse.edc.catalog.spi.Dataset;
@@ -77,21 +78,22 @@ public class PolicyService {
     }
 
     /**
-     * Returns datasets for this asset by this provider.
+     * Returns dataset for this asset by this provider.
      *
      * @param providerUrl Provider of the asset.
      * @param assetId     Asset ID of the asset whose contract should be fetched.
-     * @return A list of datasets offered by the provider for the given
+     * @return A list of dataset offered by the provider for the given
      * assetId.
      * @throws InterruptedException Thread for agreementId was waiting, sleeping, or
      *                              otherwise occupied, and was interrupted.
      */
-    public List<Dataset> getDatasetsForAssetId(URL providerUrl, String assetId) throws InterruptedException {
+    public Dataset getDatasetForAssetId(URL providerUrl, String assetId) throws InterruptedException {
         var catalogFuture = catalogService.request(providerUrl.toString(),
                 DATASPACE_PROTOCOL_HTTP,
                 QuerySpec.Builder.newInstance()
                         .filter(List.of(criterion(Asset.PROPERTY_ID, "=", assetId)))
                         .build());
+
         StatusResult<byte[]> catalogResponse;
         try {
             catalogResponse = catalogFuture.get(configuration.getWaitForCatalogTimeout(), TimeUnit.SECONDS);
@@ -107,53 +109,30 @@ public class PolicyService {
             throw new EdcException(format("Catalog by provider %s couldn't be retrieved: %s", providerUrl,
                     catalogResponse.getFailureMessages()));
         }
-        byte[] catalogBytes = catalogResponse.getContent();
 
-        // Bytes to string. Replace "dcat:" etc. by schema. String to bytes again
-        catalogBytes = new String(catalogBytes)
-                .replace(DCAT_PREFIX + ":", DCAT_SCHEMA)
-                .replace(ODRL_PREFIX + ":", ODRL_SCHEMA)
-                .replace(DCT_PREFIX + ":", DCT_SCHEMA)
-                .replace(DSPACE_PREFIX + ":", DSPACE_SCHEMA)
-                .getBytes();
-
-        // Alarming... looking into it though
-        Distribution distribution = Distribution.Builder.newInstance()
-                .format("JSON")
-                .dataService(DataService.Builder.newInstance().build())
-                .build();
-
-        JsonNode jsonNode;
-        var om = new ObjectMapper();
-
+        JsonObject modifiedCatalogJson;
         try {
-            var distributionString = om.writeValueAsString(distribution);
-            var distributionNode = om.readTree(distributionString.replace("format",
-                    DCT_FORMAT_ATTRIBUTE).replace("dataService", DCAT_ACCESS_SERVICE_ATTRIBUTE));
-
-            jsonNode = om.readTree(catalogBytes);
-            ((ArrayNode) jsonNode.get(DCAT_SCHEMA + "dataset").get(DCAT_SCHEMA + "distribution")).add(distributionNode);
-            catalogBytes = om.writeValueAsBytes(jsonNode);
-
+            modifiedCatalogJson = modifyCatalogJson(catalogResponse.getContent());
         } catch (IOException except) {
             throw new EdcException(format("Catalog by provider %s couldn't be retrieved: %s", providerUrl, except));
         }
 
-        var jsonReader = Json.createReader(new ByteArrayInputStream(catalogBytes));
-        var catalogJson = jsonReader.readObject();
-
-        var catalog = transformer.transform(catalogJson, Catalog.class);
+        var catalog = transformer.transform(modifiedCatalogJson, Catalog.class);
 
         if (catalog.failed()) {
             throw new EdcException(format("Catalog by provider %s couldn't be retrieved: %s", providerUrl,
                     catalog.getFailureMessages()));
         }
 
-        var filteredDatasets = catalog.getContent().getDatasets();
-        filteredDatasets.forEach(dataset -> dataset.getDistributions().remove(0)); // Remove distributions added to
-        // deserialize catalog
+        if (Objects.isNull(catalog.getContent().getDatasets()) || catalog.getContent().getDatasets().size() != 1) {
+            throw new AmbiguousOrNullException(format("Multiple or no policyDefinitions were found for assetId %s!",
+                    assetId));
+        }
 
-        return filteredDatasets;
+        var dataset = catalog.getContent().getDatasets().get(0);
+        dataset.getDistributions().remove(0); // Remove distribution added to deserialize catalog
+
+        return dataset;
     }
 
     /**
@@ -169,21 +148,16 @@ public class PolicyService {
      *                              interrupted.
      */
     public Pair<String, Policy> getAcceptablePolicyForAssetId(URL providerUrl, String assetId) throws InterruptedException {
-        var datasets = getDatasetsForAssetId(providerUrl, assetId);
-
-        if (datasets.size() != 1) {
-            throw new AmbiguousOrNullException(format("Multiple or no policyDefinitions were found for assetId %s! " +
-                    "(amount of policyDefinitions: %s)", assetId, datasets.size()));
-        }
+        var dataset = getDatasetForAssetId(providerUrl, assetId);
 
         Map.Entry<String, Policy> acceptablePolicy;
         if (configuration.isAcceptAllProviderOffers()) {
-            acceptablePolicy = datasets.get(0).getOffers().entrySet().stream()
+            acceptablePolicy = dataset.getOffers().entrySet().stream()
                     .findAny()
                     .orElseThrow();
 
-        } else if (datasets.get(0).getOffers().values().stream().anyMatch(this::matchesOwnPolicyDefinitions)) {
-            acceptablePolicy = datasets.get(0).getOffers().entrySet().stream()
+        } else if (dataset.getOffers().values().stream().anyMatch(this::matchesOwnPolicyDefinitions)) {
+            acceptablePolicy = dataset.getOffers().entrySet().stream()
                     .filter(entry -> matchesOwnPolicyDefinitions(entry.getValue()))
                     .findAny()
                     .orElseThrow();
@@ -195,7 +169,6 @@ public class PolicyService {
 
         return new Pair.PairBuilder<String, Policy>()
                 .first(acceptablePolicy.getKey()).second(acceptablePolicy.getValue()).build();
-
     }
 
 
@@ -261,4 +234,40 @@ public class PolicyService {
         return Objects.equals(first.getAction(), second.getAction()) && Objects.equals(first.getConstraints(),
                 second.getConstraints());
     }
+
+
+    /*
+     * Since EDC api does not return Catalog object directly, resort to a hacky solution for now.
+     */
+    private JsonObject modifyCatalogJson(byte[] catalogBytes) throws IOException {
+
+        // Bytes to string. Replace "dcat:" etc. by schema. String to bytes again
+        catalogBytes = new String(catalogBytes)
+                .replace(DCAT_PREFIX + ":", DCAT_SCHEMA)
+                .replace(ODRL_PREFIX + ":", ODRL_SCHEMA)
+                .replace(DCT_PREFIX + ":", DCT_SCHEMA)
+                .replace(DSPACE_PREFIX + ":", DSPACE_SCHEMA)
+                .getBytes();
+
+        // Alarming... looking into it though
+        Distribution distribution = Distribution.Builder.newInstance()
+                .format("JSON")
+                .dataService(DataService.Builder.newInstance().build())
+                .build();
+
+        JsonNode jsonNode;
+        var om = new ObjectMapper();
+
+        var distributionString = om.writeValueAsString(distribution);
+        var distributionNode = om.readTree(distributionString.replace("format",
+                DCT_FORMAT_ATTRIBUTE).replace("dataService", DCAT_ACCESS_SERVICE_ATTRIBUTE));
+
+        jsonNode = om.readTree(catalogBytes);
+        ((ArrayNode) jsonNode.get(DCAT_SCHEMA + "dataset").get(DCAT_SCHEMA + "distribution")).add(distributionNode);
+        catalogBytes = om.writeValueAsBytes(jsonNode);
+
+        var jsonReader = Json.createReader(new ByteArrayInputStream(catalogBytes));
+        return jsonReader.readObject();
+    }
+
 }

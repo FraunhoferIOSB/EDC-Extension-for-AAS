@@ -49,7 +49,7 @@ public class ClientEndpoint {
     public static final String AUTOMATED_PATH = "automated";
 
     private static final String ACCEPTED_POLICIES_PATH = "acceptedPolicies";
-    private static final String DATASETS_PATH = "datasets";
+    private static final String DATASET_PATH = "dataset";
     private static final String NEGOTIATE_CONTRACT_PATH = "negotiateContract";
     private static final String NEGOTIATE_PATH = "negotiate";
     private static final String TRANSFER_PATH = "transfer";
@@ -124,23 +124,22 @@ public class ClientEndpoint {
     }
 
     /**
-     * Returns datasets offered by the given provider for the given
-     * assetID.
+     * Returns dataset offered by the given provider for the given asset.
      *
-     * @param providerUrl Provider whose datasets should be fetched (non null).
-     * @param assetId     Asset ID for which datasets should be fetched.
-     * @return A list of datasets or an error message.
+     * @param providerUrl Provider whose dataset should be fetched (non null).
+     * @param assetId     Asset ID for which dataset should be fetched.
+     * @return A dataset or an error message.
      */
     @GET
-    @Path(DATASETS_PATH)
-    public Response getDatasets(@QueryParam("providerUrl") URL providerUrl,
+    @Path(DATASET_PATH)
+    public Response getDataset(@QueryParam("providerUrl") URL providerUrl,
                                 @QueryParam("assetId") String assetId) {
         if (Objects.isNull(providerUrl)) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Provider URL must not be null").build();
         }
 
         try {
-            var datasets = policyService.getDatasetsForAssetId(providerUrl, assetId);
+            var datasets = policyService.getDatasetForAssetId(providerUrl, assetId);
             return Response.ok(datasets).build();
         } catch (InterruptedException interruptedException) {
             LOGGER.error(format("Getting datasets failed for provider %s and asset %s", providerUrl,

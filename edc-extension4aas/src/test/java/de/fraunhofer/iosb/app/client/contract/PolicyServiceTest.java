@@ -80,7 +80,7 @@ public class PolicyServiceTest {
                         .build())
                 .build()));
 
-        assertEquals(datasetId, policyService.getDatasetsForAssetId(testUrl, "test-asset-id").get(0).getId());
+        assertEquals(datasetId, policyService.getDatasetForAssetId(testUrl, "test-asset-id").getId());
     }
 
     @Test
@@ -89,7 +89,7 @@ public class PolicyServiceTest {
         when(mockCatalogService.request(any(), any(), any())).thenReturn(mockedFuture);
 
         try {
-            policyService.getDatasetsForAssetId(new URL("http://fakeUrl:4321/not/working"), "test-asset-id");
+            policyService.getDatasetForAssetId(new URL("http://fakeUrl:4321/not/working"), "test-asset-id");
             fail("This should not complete without throwing an exception");
         } catch (EdcException expected) {
 

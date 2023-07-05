@@ -34,7 +34,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import static java.lang.String.format;
-import static java.util.stream.Collectors.toList;
 import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 
 /**
@@ -93,7 +92,7 @@ public class Negotiator {
         var relevantAgreements = previousAgreements
                 .filter(agreement -> agreement.getAssetId().equals(contractOffer.getAssetId()))
                 .filter(agreement -> agreement.getProviderId().equals(contractOffer.getProviderId()))
-                .collect(toList());
+                .toList();
 
         if (relevantAgreements.size() > 0) { // An agreement exists for this asset & provider
             return relevantAgreements.get(0); // Pick first agreement, hope contractNegotiationStore removes invalid

@@ -2,7 +2,7 @@
  * Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
  * Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
  * Forschung e.V.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,20 +15,6 @@
  */
 package de.fraunhofer.iosb.app;
 
-import static java.lang.String.format;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.mock;
-
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-
-import org.eclipse.edc.spi.monitor.Monitor;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
 import de.fraunhofer.iosb.app.controller.AasController;
 import de.fraunhofer.iosb.app.controller.ConfigurationController;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
@@ -37,6 +23,19 @@ import de.fraunhofer.iosb.app.testUtils.FileManager;
 import de.fraunhofer.iosb.app.util.Encoder;
 import jakarta.ws.rs.core.Response;
 import okhttp3.OkHttpClient;
+import org.eclipse.edc.spi.monitor.Monitor;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+
+import static java.lang.String.format;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
 
 /**
  * Not mocking the controllers this endpoint uses, as the mocking/validation
@@ -149,8 +148,8 @@ public class EndpointTest {
         endpoint.postAasService(url);
 
         endpoint.putAasRequest(new URL(format(url.toString(), "/submodels/",
-                Encoder.encodeBase64("https://example.com/ids/sm/4445_8090_6012_7409"),
-                "/submodel-elements/GripperUp")),
+                        Encoder.encodeBase64("https://example.com/ids/sm/4445_8090_6012_7409"),
+                        "/submodel-elements/GripperUp")),
                 FileManager.loadResource("submodelElement.json"));
 
         // Still null: not synchronized by Synchronizer

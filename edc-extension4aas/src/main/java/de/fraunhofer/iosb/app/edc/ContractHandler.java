@@ -50,7 +50,6 @@ import static java.lang.String.format;
  */
 public class ContractHandler {
 
-    private static final String ASSET_PROPERTY_ID = "asset:prop:id";
     private static final String DEFAULT_ACCESS_POLICY_UID = "DEFAULT_ACCESS_POLICY";
     private static final String DEFAULT_CONTRACT_POLICY_UID = "DEFAULT_CONTRACT_POLICY";
     private static final String DEFAULT_CONTRACT_DEFINITION_UID = "DEFAULT_CONTRACT";
@@ -91,7 +90,7 @@ public class ContractHandler {
      * @param assetId Asset ID
      */
     public void deleteContractsWithAssetId(String assetId) {
-        var assetFilterExpression = new Criterion(ASSET_PROPERTY_ID, "=", assetId);
+        var assetFilterExpression = new Criterion(Asset.PROPERTY_ID, "=", assetId);
         var queryAssetFilter = QuerySpec.Builder.newInstance().filter(List.of(assetFilterExpression)).build();
 
         contractDefinitionStore.findAll(queryAssetFilter)

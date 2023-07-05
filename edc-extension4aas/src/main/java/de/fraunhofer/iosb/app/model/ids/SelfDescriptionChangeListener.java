@@ -2,7 +2,7 @@
  * Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
  * Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
  * Forschung e.V.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,14 +21,14 @@ public interface SelfDescriptionChangeListener {
 
     /**
      * Called when a self description was created
-     * 
+     *
      * @param aasUrl The URL of the newly registered AAS service
      */
     void created(URL aasUrl);
 
     /**
      * Called when a self description was removed
-     * 
+     *
      * @param removed The SelfDescription of the unregistered AAS service
      */
     void removed(SelfDescription removed);

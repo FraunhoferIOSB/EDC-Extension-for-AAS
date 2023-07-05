@@ -79,7 +79,8 @@ public class PolicyDefinitionStore {
      * @param policyDefinition   The updated policyDefinition
      * @return Optional containing updated policy definition or null
      */
-    public Optional<PolicyDefinition> updatePolicyDefinitions(String policyDefinitionId, PolicyDefinition policyDefinition) {
+    public Optional<PolicyDefinition> updatePolicyDefinitions(String policyDefinitionId,
+                                                              PolicyDefinition policyDefinition) {
         Objects.requireNonNull(policyDefinitionId, "contractOfferId is null");
         Objects.requireNonNull(policyDefinition, "contractOffer is null");
         if (policyDefinitions.containsKey(policyDefinitionId)) {

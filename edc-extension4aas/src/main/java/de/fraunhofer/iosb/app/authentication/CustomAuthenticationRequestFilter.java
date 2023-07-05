@@ -2,7 +2,7 @@
  * Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
  * Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
  * Forschung e.V.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,19 +15,18 @@
  */
 package de.fraunhofer.iosb.app.authentication;
 
-import static java.lang.String.format;
+import de.fraunhofer.iosb.app.Logger;
+import de.fraunhofer.iosb.app.client.ClientEndpoint;
+import de.fraunhofer.iosb.app.client.dataTransfer.DataTransferEndpoint;
+import jakarta.ws.rs.container.ContainerRequestContext;
+import org.eclipse.edc.api.auth.spi.AuthenticationRequestFilter;
+import org.eclipse.edc.api.auth.spi.AuthenticationService;
 
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.eclipse.edc.api.auth.spi.AuthenticationRequestFilter;
-import org.eclipse.edc.api.auth.spi.AuthenticationService;
-
-import de.fraunhofer.iosb.app.Logger;
-import de.fraunhofer.iosb.app.client.ClientEndpoint;
-import de.fraunhofer.iosb.app.client.dataTransfer.DataTransferEndpoint;
-import jakarta.ws.rs.container.ContainerRequestContext;
+import static java.lang.String.format;
 
 /**
  * Custom AuthenticationRequestFilter filtering requests that go directly to an
@@ -51,8 +50,8 @@ public class CustomAuthenticationRequestFilter extends AuthenticationRequestFilt
 
     /**
      * Add key,value pair for a request. This key will only be available for one request.
-     * 
-     * @param key The key name
+     *
+     * @param key   The key name
      * @param value The actual key
      */
     public void addTemporaryApiKey(String key, String value) {
@@ -80,7 +79,7 @@ public class CustomAuthenticationRequestFilter extends AuthenticationRequestFilt
             if (requestContext.getHeaders().containsKey(key)
                     && requestContext.getHeaderString(key).equals(tempKeys.get(key))
                     && requestPath.startsWith(
-                            format("%s/%s", ClientEndpoint.AUTOMATED_PATH, DataTransferEndpoint.RECEIVE_DATA_PATH))) {
+                    format("%s/%s", ClientEndpoint.AUTOMATED_PATH, DataTransferEndpoint.RECEIVE_DATA_PATH))) {
                 LOGGER.debug(
                         format("CustomAuthenticationRequestFilter: Data Transfer request with custom api key %s", key));
                 tempKeys.remove(key);

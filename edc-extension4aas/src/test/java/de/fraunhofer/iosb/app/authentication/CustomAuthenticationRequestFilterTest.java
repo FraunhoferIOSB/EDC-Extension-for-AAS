@@ -1,36 +1,19 @@
 /*
-* Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
-* Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
-* Forschung e.V.
-* 
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*     http://www.apache.org/licenses/LICENSE-2.0
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
+ * Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
+ * Forschung e.V.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package de.fraunhofer.iosb.app.authentication;
-
-import static org.junit.jupiter.api.Assertions.fail;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.Map;
-import java.util.Objects;
-
-import org.eclipse.edc.api.auth.spi.AuthenticationService;
-import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.web.spi.exception.AuthenticationFailedException;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 
 import de.fraunhofer.iosb.app.Endpoint;
 import de.fraunhofer.iosb.app.Logger;
@@ -38,6 +21,19 @@ import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.UriInfo;
+import org.eclipse.edc.api.auth.spi.AuthenticationService;
+import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.web.spi.exception.AuthenticationFailedException;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import java.util.Map;
+import java.util.Objects;
+
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 public class CustomAuthenticationRequestFilterTest {
 
@@ -92,7 +88,7 @@ public class CustomAuthenticationRequestFilterTest {
     }
 
     private ContainerRequestContext createSemiAuthenticRequestContext(String returnedPath,
-            boolean isAuthenticatedMockResponse) {
+                                                                      boolean isAuthenticatedMockResponse) {
         return createSemiAuthenticRequestContext(returnedPath, isAuthenticatedMockResponse, null);
     }
 
@@ -101,7 +97,8 @@ public class CustomAuthenticationRequestFilterTest {
      * not crash
      */
     private ContainerRequestContext createSemiAuthenticRequestContext(String returnedPath,
-            boolean isAuthenticatedMockResponse, MultivaluedMap<String, String> additionalHeaders) {
+                                                                      boolean isAuthenticatedMockResponse,
+                                                                      MultivaluedMap<String, String> additionalHeaders) {
         ContainerRequestContext mockedContainerRequestContext = mock(ContainerRequestContext.class);
         UriInfo mockedUriInfo = mock(UriInfo.class);
         when(mockedUriInfo.getPath()).thenReturn(returnedPath);

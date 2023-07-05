@@ -171,7 +171,8 @@ public class AasExtension implements ServiceExtension {
         try {
             protocolAddress = new URL(protocolAddressString);
         } catch (MalformedURLException idsWebhookAddressException) {
-            throw new EdcException(format("Configuration value edc.dsp.callback.address is a malformed URL: %s", protocolAddressString),
+            throw new EdcException(format("Configuration value edc.dsp.callback.address is a malformed URL: %s",
+                    protocolAddressString),
                     idsWebhookAddressException);
         }
 

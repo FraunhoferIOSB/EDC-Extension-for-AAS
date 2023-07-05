@@ -1,11 +1,17 @@
 # Example Use Case
 
-The example use case starts two connectors with the edc-extension4aas. The first connector is a provider of an AAS model and the second connector is an example consumer which wants to retrieve data from the provider.
+The example use case starts two connectors with the edc-extension4aas. The first connector is a provider of an AAS model
+and the second connector is an example consumer which wants to retrieve data from the provider.
 
 The example has the following structure:
+
 - `configurations`: contains configuration files for the provider and consumer connector
-- `resources`: contains two example AAS files and an example config file for the used AAS service. Additionally, there is a postman collection which can be used for requesting the consumer connector.
-- `build.gradle.kts`: build file for an EDC with the edc-extension4aas. Can be used as a launcher for a ready to use EDC. _Connectors can be started using the concept of "launchers", which are essentially compositions of Java modules defined as gradle build files._ - [EDC readme](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector#run-your-first-connector).
+- `resources`: contains two example AAS files and an example config file for the used AAS service. Additionally, there
+  is a postman collection which can be used for requesting the consumer connector.
+- `build.gradle.kts`: build file for an EDC with the edc-extension4aas. Can be used as a launcher for a ready to use
+  EDC. _Connectors can be started using the concept of "launchers", which are essentially compositions of Java modules
+  defined as gradle build
+  files._ - [EDC readme](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector#run-your-first-connector).
 
 ## Getting Started
 
@@ -22,7 +28,8 @@ The following command starts an EDC connector with the _EDC AAS Extension_ with 
 java -Dedc.fs.config=./example/configurations/provider.properties -jar ./example/build/libs/dataspace-connector.jar
 ```
 
-In case using **PowerShell** the `-D` parameter needs to be encapsulated with `"`: 
+In case using **PowerShell** the `-D` parameter needs to be encapsulated with `"`:
+
 ```sh
 java "-Dedc.fs.config=./example/configurations/provider.properties" -jar ./example/build/libs/dataspace-connector.jar
 ```
@@ -44,9 +51,10 @@ docker-compose up
 
 ## Configuration
 
-The EDC and its extensions can be configured with a `.properties` file. In `example/resources/configurations` there are few examples of configurations. 
+The EDC and its extensions can be configured with a `.properties` file. In `example/resources/configurations` there are
+few examples of configurations.
 
-For a list of config values provided by the extension, check the [Extension's README](../README.md#configurations). 
+For a list of config values provided by the extension, check the [Extension's README](../README.md#configurations).
 
 A few basic EDC config values:
 
@@ -54,13 +62,14 @@ A few basic EDC config values:
 * `web.http.path`: The default path prefix under which endpoints are available.
 * `web.http.ids.port`: The port on which IDS endpoints (currently only the Multipart endpoint) are available.
 * `web.http.ids.path`: The path prefix under which IDS endpoints (currently only the Multipart endpoint) are available.
-* `ids.webhook.address`: Set this to the address at which another connector can reach your connector, 
-  as it is used as a callback address during the contract negotiation, where messages are exchanged 
+* `ids.webhook.address`: Set this to the address at which another connector can reach your connector,
+  as it is used as a callback address during the contract negotiation, where messages are exchanged
   asynchronously. If you change the IDS API port, make sure to adjust the webhook address accordingly.
-* `edc.api.auth.key`: Value of the header used for authentication when calling 
+* `edc.api.auth.key`: Value of the header used for authentication when calling
   endpoints of the data management API.
 
 An example configuration for a ready to use EDC with the _edc-extension4AAS_ and _dsp_:
+
 ```
 edc.aas.exposeSelfDescription = true
 
@@ -79,6 +88,7 @@ edc.api.auth.key=password
 ## Usage of the client's automated contract negotiation and data transfer interfaces
 
 Build the EDC with the extensions.
+
 ```sh
 cd /EDC-Extension-for-AAS
 ./gradlew clean build
@@ -96,35 +106,51 @@ Start the consumer connector:
 java -Dedc.fs.config=./example/configurations/consumer.properties -jar ./example/build/libs/dataspace-connector.jar
 ```
 
-Starting the data transfer from provider to consumer. There is a `postman collection` containing the necessary http request located in `/examples/resources`. Do the following steps:
+Starting the data transfer from provider to consumer. There is a `postman collection` containing the necessary http
+request located in `/examples/resources`. Do the following steps:
 
-1. Call the provider's self description on `http://localhost:8181/api/selfDescription`, and choose an element you want to fetch. Put its `asset id` as a variable in the postman collection's variables section.
+1. Call the provider's self description on `http://localhost:8181/api/selfDescription`, and choose an element you want
+   to fetch. Put its `asset id` as a variable in the postman collection's variables section.
 
 ### Fully automated
-__Important__: 
 
-- If the (consumer's) config value `edc.aas.client.acceptAllProviderOffers` is set to `true`: This command will fetch the provider's contract offer for the selected asset and accept all terms on this offer. If multiple or no offers exist for this asset, no negotiation will take place.
+__Important__:
 
-- If the (consumer's) config value `edc.aas.client.acceptAllProviderOffers` is set to `false` (default): This command will request the provider's offered contractOffer and check it against its own accepted contractOffers by comparing the permissions, prohibitions and obligations of both the provider's contractOffer and the ones in the contractOfferStore. The assetID or other IDs must not be equal for the contractOffers to match.  Initially, this store is empty and can be filled up by the request `Client/Add accepted contractOffer` (tip: with the request `EDC API/GET catalog`, contractOffers for all assets of the provider can be viewed and added to the consumer connector).
+- If the (consumer's) config value `edc.aas.client.acceptAllProviderOffers` is set to `true`: This command will fetch
+  the provider's contract offer for the selected asset and accept all terms on this offer. If multiple or no offers
+  exist for this asset, no negotiation will take place.
 
-1. Execute the request `Client/Automated Negotiation`. The consumer connector will now try to negotiate a contract with the provider to get the data of the selected asset.
+- If the (consumer's) config value `edc.aas.client.acceptAllProviderOffers` is set to `false` (default): This command
+  will request the provider's offered contractOffer and check it against its own accepted contractOffers by comparing
+  the permissions, prohibitions and obligations of both the provider's contractOffer and the ones in the
+  contractOfferStore. The assetID or other IDs must not be equal for the contractOffers to match. Initially, this store
+  is empty and can be filled up by the request `Client/Add accepted contractOffer` (tip: with the
+  request `EDC API/GET catalog`, contractOffers for all assets of the provider can be viewed and added to the consumer
+  connector).
+
+1. Execute the request `Client/Automated Negotiation`. The consumer connector will now try to negotiate a contract with
+   the provider to get the data of the selected asset.
 
 2. If everything went right, the response should already be the data behind the `asset id` you selected.
 
 ### Separate requests
 
 1. Execute the request `Client/1. Get contract offers for asset`
-Choose a contract offer of the response body.
+   Choose a contract offer of the response body.
 
-2. Put the contract offer inside of request `Client/2. Initiate negotiation with contractOffer`'s body and execute said request.
+2. Put the contract offer inside of request `Client/2. Initiate negotiation with contractOffer`'s body and execute said
+   request.
 
-3. If everything went right, request `2` returns an agreementID. Update the postman collection's agreementID variable with the response value.
+3. If everything went right, request `2` returns an agreementID. Update the postman collection's agreementID variable
+   with the response value.
 
-4. Execute request `3. Get data for agreement id and asset id`. If everything went right, the response should be the data behind the previously selected asset.
+4. Execute request `3. Get data for agreement id and asset id`. If everything went right, the response should be the
+   data behind the previously selected asset.
 
 ## Running the Example (manual)
 
 Build the EDC with the extensions.
+
 ```sh
 cd /EDC-Extension-for-AAS
 ./gradlew clean build
@@ -142,15 +168,19 @@ Open another console and start the consumer connector:
 java -Dedc.fs.config=./example/configurations/consumer.properties -jar ./example/build/libs/dataspace-connector.jar
 ```
 
-Starting the data transfer from provider to consumer. There is a `postman collection` containing all necessary http requests for data transfer in this extensions repository located in `/examples/resources`. Do the following steps:
+Starting the data transfer from provider to consumer. There is a `postman collection` containing all necessary http
+requests for data transfer in this extensions repository located in `/examples/resources`. Do the following steps:
 
-1. Call the provider's self description on `http://localhost:8181/api/selfDescription`, and choose an element you want to fetch. Put its `asset id` and `contract id` as variables in the postman collection.
-   
+1. Call the provider's self description on `http://localhost:8181/api/selfDescription`, and choose an element you want
+   to fetch. Put its `asset id` and `contract id` as variables in the postman collection.
+
 2. Send the contract offer to the EDC Provider. Execute request 1 of the data transfer folder.
-You should get a contract negotiation ID (consumer's negotiation ID) like this: `"id":"<negotiation-id>"}`. Put this `<negotiation-id>` as negotiation id variable in the postman collection.
+   You should get a contract negotiation ID (consumer's negotiation ID) like this: `"id":"<negotiation-id>"}`. Put
+   this `<negotiation-id>` as negotiation id variable in the postman collection.
 
-3. With this `<negotiation-id>`, query the consumer connector about the state of the negotiation. Execute request 2 of the data transfer folder.
-It should return:
+3. With this `<negotiation-id>`, query the consumer connector about the state of the negotiation. Execute request 2 of
+   the data transfer folder.
+   It should return:
 
 ```json
 {
@@ -165,11 +195,18 @@ It should return:
 ```
 
 4. Put the `<agreement-id>` in the postman collection's agreement-id variable.
-Execute request 3 of the Data Transfer folder. The provider connector should now send the data, and in the consumer edc's logs there should be confirmation of the transfer. The consumer prints as console output the fetched AAS element.
+   Execute request 3 of the Data Transfer folder. The provider connector should now send the data, and in the consumer
+   edc's logs there should be confirmation of the transfer. The consumer prints as console output the fetched AAS
+   element.
 
 ## Debugging the extension
 
-With the gradle goal `run` and the additional flag `--debug-jvm`, the extension can be debugged while running within the example launcher (or any other launcher). A configuration file can be provided by creating a file named _dataspaceconnector-configuration.properties_ in the same folder as the _build.gradle.kts_ file of the launcher (e.g., _./example/dataspaceconnector-configuration.properties_). After executing the gradle run goal, attach to the debugger with your IDE. The following snippet is an example _launch.json_ file to attach to a debugger in vscode running on port 5005:
+With the gradle goal `run` and the additional flag `--debug-jvm`, the extension can be debugged while running within the
+example launcher (or any other launcher). A configuration file can be provided by creating a file named
+_dataspaceconnector-configuration.properties_ in the same folder as the _build.gradle.kts_ file of the launcher (e.g.,
+_./example/dataspaceconnector-configuration.properties_). After executing the gradle run goal, attach to the debugger
+with your IDE. The following snippet is an example _launch.json_ file to attach to a debugger in vscode running on port
+5005:
 
 ```json
 {

@@ -2,7 +2,7 @@
  * Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
  * Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
  * Forschung e.V.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,19 +15,15 @@
  */
 package de.fraunhofer.iosb.app.util;
 
+import de.fraunhofer.iosb.app.model.aas.*;
+import io.adminshell.aas.v3.model.Submodel;
+import io.adminshell.aas.v3.model.SubmodelElement;
+import io.adminshell.aas.v3.model.SubmodelElementCollection;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-
-import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShellEnvironment;
-import de.fraunhofer.iosb.app.model.aas.CustomSubmodel;
-import de.fraunhofer.iosb.app.model.aas.CustomSubmodelElement;
-import de.fraunhofer.iosb.app.model.aas.CustomSubmodelElementCollection;
-import de.fraunhofer.iosb.app.model.aas.IdsAssetElement;
-import io.adminshell.aas.v3.model.Submodel;
-import io.adminshell.aas.v3.model.SubmodelElement;
-import io.adminshell.aas.v3.model.SubmodelElementCollection;
 
 public final class AASUtil {
 
@@ -36,7 +32,7 @@ public final class AASUtil {
 
     /**
      * Get Custom Submodel Elements with Structure From Submodel
-     * 
+     *
      * @param submodel Submodel whose elements are to be returned in a flat list
      * @return flat list of submodels elements
      */
@@ -48,9 +44,8 @@ public final class AASUtil {
 
     /**
      * Returns all AAS elements in a flattened list format.
-     * 
+     *
      * @param env AAS environment with elements in structure
-     * 
      * @return Flat list of IdsAssetElements from given environment
      */
     public static List<? extends IdsAssetElement> getAllElements(CustomAssetAdministrationShellEnvironment env) {
@@ -65,7 +60,7 @@ public final class AASUtil {
     /**
      * Make structure of submodelElements inside this submodel flat and return list
      * of them
-     * 
+     *
      * @param submodel Submodel whose elements are to be returned in a flat list
      * @return flat list of submodels elements
      */
@@ -101,7 +96,7 @@ public final class AASUtil {
      * flat structure.
      */
     private static Collection<CustomSubmodelElement> flattenElements(Collection<CustomSubmodelElement> flatList,
-            Collection<CustomSubmodelElement> submodelElements) {
+                                                                     Collection<CustomSubmodelElement> submodelElements) {
 
         for (CustomSubmodelElement submodelElement : submodelElements) {
 

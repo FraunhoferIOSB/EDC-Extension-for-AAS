@@ -107,7 +107,8 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
 
         try {
             var serviceConfig = ServiceConfigHelper.load(configPath.toFile());
-            var isEndpointsNull = Objects.isNull(serviceConfig.getEndpoints()); // Remove auto generated httpEndpoint later...
+            var isEndpointsNull = Objects.isNull(serviceConfig.getEndpoints()); // Remove auto generated httpEndpoint
+            // later...
             ServiceConfigHelper.autoComplete(serviceConfig);
 
             if (localFaaastServicePort != 0) {
@@ -119,8 +120,9 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
                     serviceConfig.setEndpoints(endpoints);
                 }
             } else {
-                var httpEndpointConfig = serviceConfig.getEndpoints().stream().filter(ep -> ep instanceof HttpEndpointConfig).findAny().orElseThrow();
-                localFaaastServicePort = ((HttpEndpointConfig)httpEndpointConfig).getPort();
+                var httpEndpointConfig =
+                        serviceConfig.getEndpoints().stream().filter(ep -> ep instanceof HttpEndpointConfig).findAny().orElseThrow();
+                localFaaastServicePort = ((HttpEndpointConfig) httpEndpointConfig).getPort();
             }
 
             serviceConfig.setPersistence(PersistenceInMemoryConfig.builder().initialModelFile(aasModelPath.toFile()).build());

@@ -2,7 +2,7 @@
  * Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
  * Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
  * Forschung e.V.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,12 +16,7 @@
 package de.fraunhofer.iosb.app.util;
 
 import de.fraunhofer.iosb.app.Logger;
-import okhttp3.HttpUrl;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
+import okhttp3.*;
 
 import java.io.IOException;
 import java.net.URL;
@@ -39,7 +34,7 @@ public class HttpRestClient {
 
     /**
      * Issue a get request to a given url
-
+     *
      * @param url the url to where the get request goes
      * @return Response by the service behind the url
      */
@@ -54,7 +49,7 @@ public class HttpRestClient {
 
     /**
      * Issue a put request to a given url
-
+     *
      * @param url     the url to where the put request goes
      * @param payload payload of this operation
      * @return Response by the service behind the url
@@ -70,7 +65,7 @@ public class HttpRestClient {
 
     /**
      * Issue a post request to a given url
-
+     *
      * @param url     the url to where the post request goes
      * @param payload payload of this operation
      * @return Response by the service behind the url
@@ -86,7 +81,7 @@ public class HttpRestClient {
 
     /**
      * Issue a delete request to a given url
-
+     *
      * @param url     the url to where the post request goes
      * @param payload payload of this operation
      * @return Response by the service behind the url

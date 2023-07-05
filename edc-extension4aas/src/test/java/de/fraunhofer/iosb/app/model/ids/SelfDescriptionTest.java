@@ -2,7 +2,7 @@
  * Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
  * Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
  * Forschung e.V.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,11 +15,10 @@
  */
 package de.fraunhofer.iosb.app.model.ids;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
+import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShellEnvironment;
 import org.junit.jupiter.api.Test;
 
-import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShellEnvironment;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class SelfDescriptionTest {
 

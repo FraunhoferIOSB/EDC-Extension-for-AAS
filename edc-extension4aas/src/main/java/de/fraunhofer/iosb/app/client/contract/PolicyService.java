@@ -220,8 +220,7 @@ public class PolicyService {
     }
 
     private boolean policyDefinitionRulesEquality(Policy first, Policy second) {
-        List<Rule> firstRules;
-        firstRules = Stream.of(
+        List<Rule> firstRules = Stream.of(
                         first.getPermissions(),
                         first.getProhibitions(),
                         first.getObligations()

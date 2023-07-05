@@ -2,7 +2,7 @@
  * Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
  * Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
  * Forschung e.V.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,13 +15,13 @@
  */
 package de.fraunhofer.iosb.app.client.dataTransfer;
 
-import static java.lang.String.format;
+import de.fraunhofer.iosb.app.Logger;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
-import de.fraunhofer.iosb.app.Logger;
+import static java.lang.String.format;
 
 /**
  * Gets notified about incoming data by a provider connector.
@@ -38,7 +38,7 @@ public class DataTransferObservable {
 
     /**
      * Register a future that should complete if a data transfer is finished.
-     * 
+     *
      * @param observer    The future to complete if data transfer is finished.
      * @param agreementId The agreement ID this future is dependent on.
      */
@@ -48,7 +48,7 @@ public class DataTransferObservable {
 
     /**
      * Unregister an observer.
-     * 
+     *
      * @param agreementId Identifier of the observer.
      */
     public void unregister(String agreementId) {
@@ -58,14 +58,15 @@ public class DataTransferObservable {
     /**
      * Notifies an observer if the agreementID matches any of the observer's
      * agreementID.
-     * 
+     *
      * @param agreementId The agreementId coming with a provider's data transfer
      * @param data        Any data by a provider connector
      */
     public void update(String agreementId, String data) {
         if (!observers.containsKey(agreementId)) {
             LOGGER.warn(format(
-                    "A POST request to the client's data transfer endpoint with an unknown agreementID was caught. AgreementID: %s",
+                    "A POST request to the client's data transfer endpoint with an unknown agreementID was caught. " +
+                            "AgreementID: %s",
                     agreementId));
             return;
         }

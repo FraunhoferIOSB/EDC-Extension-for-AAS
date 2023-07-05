@@ -2,7 +2,7 @@
  * Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
  * Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
  * Forschung e.V.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,7 +15,15 @@
  */
 package de.fraunhofer.iosb.app;
 
-import static java.lang.String.format;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import de.fraunhofer.iosb.app.controller.AasController;
+import de.fraunhofer.iosb.app.controller.ConfigurationController;
+import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status.Family;
 
 import java.io.IOException;
 import java.net.URL;
@@ -23,29 +31,13 @@ import java.nio.file.InvalidPathException;
 import java.util.Map;
 import java.util.Objects;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import de.fraunhofer.iosb.app.controller.AasController;
-import de.fraunhofer.iosb.app.controller.ConfigurationController;
-import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.DELETE;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.PUT;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.QueryParam;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.Response.Status;
-import jakarta.ws.rs.core.Response.Status.Family;
+import static java.lang.String.format;
 
 /**
  * Delegates (HTTP) Requests to controllers.
  */
-@Consumes({ MediaType.APPLICATION_JSON, MediaType.WILDCARD })
-@Produces({ MediaType.APPLICATION_JSON })
+@Consumes({MediaType.APPLICATION_JSON, MediaType.WILDCARD})
+@Produces({MediaType.APPLICATION_JSON})
 @Path("/")
 public class Endpoint {
 
@@ -64,7 +56,7 @@ public class Endpoint {
 
     /**
      * Class constructor
-     * 
+     *
      * @param selfDescriptionRepository Manage self descriptions
      * @param aasController             Communication with AAS services
      */
@@ -78,7 +70,7 @@ public class Endpoint {
 
     /**
      * Return the current configuration values of this extension.
-     * 
+     *
      * @return Current configuration values
      */
     @GET
@@ -90,7 +82,7 @@ public class Endpoint {
 
     /**
      * Update the current configuration.
-     * 
+     *
      * @param newConfigurationJson New configuration values as JSON string
      * @return Response with status code
      */
@@ -104,7 +96,7 @@ public class Endpoint {
 
     /**
      * Register a remote AAS service (e.g., FA³ST) to this extension
-     * 
+     *
      * @param aasServiceUrl The URL of the new AAS client
      * @return Response
      */
@@ -125,7 +117,7 @@ public class Endpoint {
     /**
      * Create a new AAS service. Either (http) port or AAS config path must be given
      * to ensure communication with the AAS service.
-     * 
+     *
      * @param pathToEnvironment                    Path to new AAS environment
      *                                             (required)
      * @param port                                 Port of service to be created
@@ -137,7 +129,8 @@ public class Endpoint {
     @POST
     @Path(ENVIRONMENT_PATH)
     public Response postAasEnvironment(@QueryParam("environment") String pathToEnvironment,
-            @QueryParam(CONFIG_PATH) String pathToAssetAdministrationShellConfig, @QueryParam("port") int port) {
+                                       @QueryParam(CONFIG_PATH) String pathToAssetAdministrationShellConfig,
+                                       @QueryParam("port") int port) {
         LOGGER.log("Received an environment POST request");
         Objects.requireNonNull(pathToEnvironment);
         URL newAssetAdministrationShellUrl;
@@ -161,16 +154,16 @@ public class Endpoint {
 
         selfDescriptionRepository.createSelfDescription(newAssetAdministrationShellUrl);
         return Response.ok(format("%s\n%s\n%s: %s",
-                "Booted up and registered AAS service managed by extension.",
-                "Wait for next synchronization period for assetIndex and selfDescription.",
-                "URL of new AAS service", newAssetAdministrationShellUrl))
+                        "Booted up and registered AAS service managed by extension.",
+                        "Wait for next synchronization period for assetIndex and selfDescription.",
+                        "URL of new AAS service", newAssetAdministrationShellUrl))
                 .build();
 
     }
 
     /**
      * Unregister an AAS service (e.g., FA³ST) from this extension
-     * 
+     *
      * @param aasServiceUrl The URL of the new AAS client
      * @return Response "ok" containing status message
      */
@@ -195,7 +188,7 @@ public class Endpoint {
      * Forward POST request to provided host in requestUrl. If requestUrl is an AAS
      * service that is registered at this EDC, synchronize assets and self
      * description as well.
-     * 
+     *
      * @param requestUrl  URL of AAS service to be updated
      * @param requestBody AAS element
      * @return Response status
@@ -213,7 +206,7 @@ public class Endpoint {
      * Forward DELETE request to provided host in requestUrl. If requestUrl is an
      * AAS service that is registered at this EDC, synchronize assets and self
      * description as well.
-     * 
+     *
      * @param requestUrl URL of AAS service to be deleted
      * @return Response status
      */
@@ -227,7 +220,7 @@ public class Endpoint {
 
     /**
      * Forward PUT request to provided host in requestUrl.
-     * 
+     *
      * @param requestUrl  URL of AAS service to be updated
      * @param requestBody AAS element
      * @return Response status
@@ -244,7 +237,7 @@ public class Endpoint {
     /**
      * Print self descriptions of AAS environments registered at this EDC. If no
      * query parameter is given, print all self descriptions available.
-     * 
+     *
      * @param aasServiceUrl Specify an AAS environment by its service
      * @return Self description(s)
      */
@@ -278,7 +271,7 @@ public class Endpoint {
      * via Synchronizer
      */
     private Response handleAasRequest(RequestType requestType, URL requestUrl, String body) {
-        try(var response = aasController.handleRequest(requestType, requestUrl, body)) {
+        try (var response = aasController.handleRequest(requestType, requestUrl, body)) {
 
             if (!response.getStatusInfo().getFamily().equals(Family.SUCCESSFUL)) {
                 LOGGER.error("AAS request failed. Response from URL: " + response.getStatusInfo());

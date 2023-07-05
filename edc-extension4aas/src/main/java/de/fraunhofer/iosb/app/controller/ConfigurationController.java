@@ -2,7 +2,7 @@
  * Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
  * Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
  * Forschung e.V.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -47,14 +47,11 @@ public class ConfigurationController implements Controllable {
 
     @Override
     public Response handleRequest(RequestType requestType, URL url, String... requestData) {
-        switch (requestType) {
-            case GET:
-                return readConfiguration();
-            case PUT:
-                return updateConfiguration(requestData[0]);
-            default:
-                return Response.status(Response.Status.NOT_IMPLEMENTED).build();
-        }
+        return switch (requestType) {
+            case GET -> readConfiguration();
+            case PUT -> updateConfiguration(requestData[0]);
+            default -> Response.status(Response.Status.NOT_IMPLEMENTED).build();
+        };
     }
 
     private Response readConfiguration() {

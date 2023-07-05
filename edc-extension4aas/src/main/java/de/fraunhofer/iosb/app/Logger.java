@@ -2,7 +2,7 @@
  * Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
  * Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
  * Forschung e.V.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,7 +23,6 @@ import java.util.Objects;
  * Singleton class.
  * Wrapper for prefix logging using
  * org.eclipse.edc.spi.monitor.Monitor.
- * 
  */
 public class Logger {
     private static final String PREFIX_SEPARATOR = " :: ";
@@ -37,7 +36,7 @@ public class Logger {
     /**
      * Get the instance of this singleton. If no instance is available, one will be
      * created.
-
+     *
      * @return Instance of this class.
      */
     public static Logger getInstance() {
@@ -49,7 +48,7 @@ public class Logger {
 
     /**
      * Only to be called by the extension itself.
-
+     *
      * @param monitor The monitor used to log stuff from
      */
     public void setMonitor(Monitor monitor) {
@@ -58,7 +57,7 @@ public class Logger {
 
     /**
      * Log a message with severity "info"
-
+     *
      * @param message Message to be logged
      */
     public void log(String message) {
@@ -67,7 +66,7 @@ public class Logger {
 
     /**
      * Log a message with severity "info"
-
+     *
      * @param message Message to be logged
      */
     public void log(String... message) {
@@ -76,7 +75,7 @@ public class Logger {
 
     /**
      * Log a message with severity "debug"
-
+     *
      * @param message Message to be logged
      */
     public void debug(String message) {
@@ -85,16 +84,16 @@ public class Logger {
 
     /**
      * Log a message with severity "debug"
-
+     *
      * @param message Message to be logged
      */
     public void warn(String message, Throwable... errors) {
         monitor.warning(prefix + PREFIX_SEPARATOR + message, errors);
     }
-    
+
     /**
      * Log a message with severity "severe"
-
+     *
      * @param message Message to be logged
      */
     public void error(String message, Throwable... errors) {

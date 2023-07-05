@@ -95,7 +95,7 @@
     }
   ],
   "submodels": [
-     {
+    {
       "semanticId": {
         "keys": [
           {
@@ -653,7 +653,6 @@
             }
           ]
         },
-
         {
           "value": "0",
           "semanticId": {

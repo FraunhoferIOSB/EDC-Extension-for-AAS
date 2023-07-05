@@ -133,7 +133,7 @@ public class ClientEndpoint {
     @GET
     @Path(DATASET_PATH)
     public Response getDataset(@QueryParam("providerUrl") URL providerUrl,
-                                @QueryParam("assetId") String assetId) {
+                               @QueryParam("assetId") String assetId) {
         if (Objects.isNull(providerUrl)) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Provider URL must not be null").build();
         }

@@ -44,6 +44,8 @@ import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.lang.String.format;
 import static org.eclipse.edc.jsonld.spi.Namespaces.*;
@@ -70,6 +72,7 @@ public class PolicyService {
      * Class constructor
      *
      * @param catalogService Fetching the catalog of a provider.
+     * @param transformer    Transform json-ld byte-array catalog to catalog class
      */
     public PolicyService(CatalogService catalogService, TypeTransformerRegistry transformer) {
         this.catalogService = catalogService;
@@ -217,15 +220,23 @@ public class PolicyService {
     }
 
     private boolean policyDefinitionRulesEquality(Policy first, Policy second) {
-        List<Rule> firstRules = new ArrayList<>();
-        firstRules.addAll(first.getPermissions());
-        firstRules.addAll(first.getProhibitions());
-        firstRules.addAll(first.getObligations());
+        List<Rule> firstRules;
+        firstRules = Stream.of(
+                        first.getPermissions(),
+                        first.getProhibitions(),
+                        first.getObligations()
+                )
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList());
 
-        List<Rule> secondRules = new ArrayList<>();
-        secondRules.addAll(second.getPermissions());
-        secondRules.addAll(second.getProhibitions());
-        secondRules.addAll(second.getObligations());
+        List<Rule> secondRules = Stream.of(
+                        second.getPermissions(),
+                        second.getProhibitions(),
+                        second.getObligations()
+                )
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList());
+
 
         return firstRules.stream().anyMatch(firstRule -> secondRules.stream().anyMatch(secondRule -> !ruleEquality(firstRule, secondRule)));
     }
@@ -259,11 +270,16 @@ public class PolicyService {
         var om = new ObjectMapper();
 
         var distributionString = om.writeValueAsString(distribution);
-        var distributionNode = om.readTree(distributionString.replace("format",
-                DCT_FORMAT_ATTRIBUTE).replace("dataService", DCAT_ACCESS_SERVICE_ATTRIBUTE));
+        var distributionNode = om.readTree(distributionString
+                .replace("format", DCT_FORMAT_ATTRIBUTE)
+                .replace("dataService", DCAT_ACCESS_SERVICE_ATTRIBUTE));
 
         jsonNode = om.readTree(catalogBytes);
-        ((ArrayNode) jsonNode.get(DCAT_SCHEMA + "dataset").get(DCAT_SCHEMA + "distribution")).add(distributionNode);
+        ((ArrayNode) jsonNode
+                .get(DCAT_SCHEMA + "dataset")
+                .get(DCAT_SCHEMA + "distribution"))
+                .add(distributionNode);
+
         catalogBytes = om.writeValueAsBytes(jsonNode);
 
         var jsonReader = Json.createReader(new ByteArrayInputStream(catalogBytes));

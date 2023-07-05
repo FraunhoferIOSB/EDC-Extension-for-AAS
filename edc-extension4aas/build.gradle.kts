@@ -49,6 +49,7 @@ dependencies {
     // Tests
     testImplementation("org.mockito:mockito-core:${mockitoVersion}")
     testImplementation("$group:junit:$edcVersion")
+    testImplementation("org.glassfish.jersey.core:jersey-common:3.1.2")
 
     testImplementation("org.mock-server:mockserver-junit-jupiter:${mockserverVersion}")
     testImplementation("org.mock-server:mockserver-netty:${mockserverVersion}")

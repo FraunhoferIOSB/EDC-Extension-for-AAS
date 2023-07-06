@@ -18,12 +18,9 @@ val jupiterVersion: String by project
 val edcVersion: String by project
 
 dependencies {
-    implementation("$group:control-plane-core:$edcVersion")
-
-    // IDS AAS App:
     implementation(project(":edc-extension4aas"))
 
-    // DSP Protocol
+    implementation("$group:control-plane-core:$edcVersion")
     implementation("$group:dsp:$edcVersion")
 
     // Identity and access management MOCK -> only for testing
@@ -39,7 +36,7 @@ dependencies {
     implementation("$group:data-plane-client:$edcVersion")
     implementation("$group:data-plane-selector-client:$edcVersion")
     implementation("$group:data-plane-selector-core:$edcVersion")
-    implementation("$group:data-plane-selector-api:$edcVersion") // TODO remove?
+    implementation("$group:data-plane-selector-api:$edcVersion")
     implementation("$group:transfer-data-plane:$edcVersion")
 }
 

@@ -32,6 +32,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class PolicyDefinitionStore {
     private final Map<String, PolicyDefinition> policyDefinitions;
     private static final Logger LOGGER = Logger.getInstance();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public PolicyDefinitionStore() {
         this.policyDefinitions = new ConcurrentHashMap<>();
@@ -95,13 +96,11 @@ public class PolicyDefinitionStore {
         }
         var acceptedPolicyDefinitionsPath = Path.of(config.getAcceptedPolicyDefinitionsPath());
         try {
-            var mapper = new ObjectMapper();
-            mapper.registerModule(new JavaTimeModule());
-            var acceptedPolicyDefinitions = mapper.readValue(acceptedPolicyDefinitionsPath.toFile(),
+            var acceptedPolicyDefinitions = objectMapper.readValue(acceptedPolicyDefinitionsPath.toFile(),
                     PolicyDefinition[].class);
             putPolicyDefinitions(acceptedPolicyDefinitions);
         } catch (IOException e) {
-            LOGGER.warn("[Client] Could not load accepted ContractOffers (edc.ids.client.acceptedContractOfferPaths)",
+            LOGGER.warn("[Client] Could not load accepted ContractOffers (edc.aas.client.acceptedContractOfferPaths)",
                     e);
         }
     }

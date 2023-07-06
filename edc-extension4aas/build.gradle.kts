@@ -19,38 +19,20 @@ java {
 }
 
 dependencies {
-    implementation("$group:runtime-metamodel:$edcVersion")
-    // FA³ST
-    implementation("de.fraunhofer.iosb.ilt.faaast.service:starter:${faaastVersion}")
-    // AAS serializer
-    implementation("io.admin-shell.aas:dataformat-json:1.2.1")
-    // AAS model by admin-shell.io, used for parsing submodelElementCollections
-    implementation("io.admin-shell.aas:model:1.2.0")
-
-    // Adding accepted contracts via file requires this
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.0")
-
-    // Parse catalogs needs this since milestone-10
+    // See this project's README.MD for explanations
+    implementation("$group:contract-core:$edcVersion")
     implementation("$group:dsp-catalog-http-dispatcher:$edcVersion")
-
-    // EDC asset management
     implementation("$group:management-api:$edcVersion")
-
-    // Send HTTP requests to AAS service
+    implementation("$group:runtime-metamodel:$edcVersion")
     implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
-
-    // HTTP endpoint of extension
+    implementation("de.fraunhofer.iosb.ilt.faaast.service:starter:${faaastVersion}")
+    implementation("io.admin-shell.aas:dataformat-json:1.2.1")
+    implementation("io.admin-shell.aas:model:1.2.0")
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 
-    // Client Service dependencies:
-    implementation("$group:catalog-api:$edcVersion")
-    implementation("$group:contract-core:$edcVersion")
-
-    // Tests
-    testImplementation("org.mockito:mockito-core:${mockitoVersion}")
     testImplementation("$group:junit:$edcVersion")
     testImplementation("org.glassfish.jersey.core:jersey-common:3.1.2")
-
+    testImplementation("org.mockito:mockito-core:${mockitoVersion}")
     testImplementation("org.mock-server:mockserver-junit-jupiter:${mockserverVersion}")
     testImplementation("org.mock-server:mockserver-netty:${mockserverVersion}")
 }
@@ -67,6 +49,7 @@ tasks.jacocoTestReport {
     dependsOn(tasks.test) // tests are required to run before generating the report
 }
 
+// FA³ST dependency needs the following
 configurations.all {
     resolutionStrategy.eachDependency {
         if (requested.module.toString() == "com.google.inject:guice") {

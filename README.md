@@ -9,7 +9,7 @@ model via the EDC.
 
 | Specification                                                                                                                                  | Version                                                                                                   |
 |:-----------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------|
-| Eclipse Dataspace Connector                                                                                                                    | v0.1.2                                                                                                    |
+| Eclipse Dataspace Connector                                                                                                                    | v0.1.3                                                                                                    |
 | AAS - Details of the Asset Administration Shell - Part 1<br />The exchange of information between partners in the value chain of Industrie 4.0 | Version 3.0RC01<br />(based on [admin-shell-io/java-model](https://github.com/admin-shell-io/java-model)) |
 
 ## Repo Structure
@@ -24,7 +24,7 @@ The repository contains several material:
 
 ## Example Usage
 
-For a data transfer example using two connectors communicating with the IDS protocol, check
+For a data transfer example using two connectors communicating with the DSP protocol, check
 the [Example's README](example/README.md).
 
 ## Functionality
@@ -35,10 +35,12 @@ In order to minimize configuration effort and prevent errors, this extension is 
 Assets. Furthermore, this extension can also start AAS by reading an AAS model. A default contract can be chosen to be
 applied for all elements. For critical elements, additional contracts can be placed.
 External changes to the model of an AAS are automatically synchronized by the Extension.
+Additionally, a client providing API calls for aggregations of processes such as contract negotiation and data transfer
+is available.
 
 ### Use Cases
 
-Provide digital twin (AAS) data to business partners in Data Spaces like Catena-X or Manufacturing-X
+Provide digital twin (AAS) data to business partners in Data Spaces like Catena-X or Manufacturing-X.
 
 ## Technical Details
 
@@ -75,25 +77,25 @@ Provide digital twin (AAS) data to business partners in Data Spaces like Catena-
 | de.fraunhofer.iosb.ilt.faaast.service:starter | [FA³ST Service](https://github.com/FraunhoferIOSB/FAAAST-Service) to start AAS services internally.           |
 | io.admin-shell.aas:dataformat-json            | [admin-shell-io java serializer](https://github.com/admin-shell-io/java-serializer) (de-)serialize AAS models |
 | io.admin-shell.aas:model                      | [admin-shell-io java model](https://github.com/admin-shell-io/java-model) (de-)serialize AAS models           |
-| org.eclipse.edc:management-api                | EDC asset/contract management                                                                                 |
 | com.squareup.okhttp3:okhttp                   | Send HTTP requests to AAS services                                                                            |
 | jakarta.ws.rs:jakarta.ws.rs-api               | provides HTTP endpoints of extension                                                                          |
-| org.eclipse.edc:catalog-api                   | Client: provider catalog access                                                                               |
-| org.eclipse.edc:contract-core                 | Client: contract agreement etc. access                                                                        |
+| org.eclipse.edc:contract-core                 | Client: Observe contract negotiation state                                                                    |
+| org.eclipse.edc:management-api                | EDC asset/contract management                                                                                 |
+| org.eclipse.edc:runtime-metamodel             | EDC metamodel                                                                                                 |
+| org.eclipse.edc:dsp-catalog-http-dispatcher   | EDC constants                                                                                                 |
 
 ### Configurations
 
-| Key                               | Value Type              | Description                                                                                                                                                                                                                                             |
-|:----------------------------------|:------------------------|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| edc.aas.remoteAasLocation         | URL                     | A URL of an AAS service (such as FA³ST service) that is already running and is conformant to official AAS API specification                                                                                                                             |
-| edc.aas.localAASModelPath         | path                    | A path to a serialized AAS environment compatible to specification version 3.0RC01 (see: https://github.com/FraunhoferIOSB/FAAAST-Service/blob/main/README.md)                                                                                          |
-| edc.aas.localAASServicePort       | (1-65535)               | Port to locally created AAS service. Required, if localAASModelPath is defined and localAASServiceConfigPath is not defined.                                                                                                                            |
-| edc.aas.localAASServiceConfigPath | path                    | Path to AAS config for locally started AAS service. Required, if localAASServicePort is not defined, but localAASModelPath is defined.                                                                                                                  |
-| edc.aas.syncPeriod                | whole number in seconds | Time period in which AAS services should be polled for structural changes (added/deleted elements etc.). Default value is 5 (seconds). Note: This configuration value is only read on startup, the synchronization period cannot be changed at runtime. |
-| edc.aas.exposeSelfDescription     | True/False              | Whether the Self Description should be exposed on {edc}/api/selfDescription. When set to False, the selfDescription is still available for authenticated requests.                                                                                      |
-| edc.aas.defaultAccessPolicyPath   | path                    | Path to an access policy file (JSON). This policy will be used as the default access policy for all assets created after the configuration value has been set.                                                                                          |
-| edc.aas.defaultContractPolicyPath | path                    | Path to a contract policy file (JSON). This policy will be used as the default contract policy for all assets created after the configuration value has been set.                                                                                       |
-| edc.aas.defaultContractValidity   | long value in seconds   | "Number of seconds during which contract is valid starting from startDate."                                                                                                                                                                             |
+| Key                               | Value Type                | Description                                                                                                                                                                                                                                             |
+|:----------------------------------|:--------------------------|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| edc.aas.remoteAasLocation         | URL                       | A URL of an AAS service (such as FA³ST) that is already running and is conformant with official AAS API specification                                                                                                                                   |
+| edc.aas.localAASModelPath         | path                      | A path to a serialized AAS environment compatible to specification version 3.0RC01 (see: https://github.com/FraunhoferIOSB/FAAAST-Service/blob/main/README.md)                                                                                          |
+| edc.aas.localAASServicePort       | Open port from 1 to 65535 | Port to locally created AAS service. Required, if localAASModelPath is defined and localAASServiceConfigPath is not defined.                                                                                                                            |
+| edc.aas.localAASServiceConfigPath | path                      | Path to AAS config for locally started AAS service. Required, if localAASServicePort is not defined, but localAASModelPath is defined.                                                                                                                  |
+| edc.aas.syncPeriod                | whole number in seconds   | Time period in which AAS services should be polled for structural changes (added/deleted elements etc.). Default value is 5 (seconds). Note: This configuration value is only read on startup, the synchronization period cannot be changed at runtime. |
+| edc.aas.exposeSelfDescription     | true/false                | Whether the Self Description should be exposed on {edc}/api/selfDescription. When set to False, the selfDescription is still available for authenticated requests.                                                                                      |
+| edc.aas.defaultAccessPolicyPath   | path                      | Path to an access policy file (JSON). This policy will be used as the default access policy for all assets created after the configuration value has been set.                                                                                          |
+| edc.aas.defaultContractPolicyPath | path                      | Path to a contract policy file (JSON). This policy will be used as the default contract policy for all assets created after the configuration value has been set.                                                                                       |
 
 #### **Client Configurations**
 

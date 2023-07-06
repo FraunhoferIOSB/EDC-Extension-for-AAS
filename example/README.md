@@ -1,17 +1,21 @@
 # Example Use Case
 
-The example use case starts two connectors with the edc-extension4aas. The first connector is a provider of an AAS model
+The example use case starts two connectors with the edc4aas extension. The first connector is a provider of an AAS model
 and the second connector is an example consumer which wants to retrieve data from the provider.
 
 The example has the following structure:
 
 - `configurations`: contains configuration files for the provider and consumer connector
-- `resources`: contains two example AAS files and an example config file for the used AAS service. Additionally, there
-  is a postman collection which can be used for requesting the consumer connector.
+- `resources`: contains two example AAS files ('demoAAS.json' and 'FestoDemoAAS.json') and an example config file
+  ('exampleConfig.json') for the used AAS service. Additionally, there is a postman collection which can be used for
+  requesting the consumer connector.
 - `build.gradle.kts`: build file for an EDC with the edc-extension4aas. Can be used as a launcher for a ready to use
   EDC. _Connectors can be started using the concept of "launchers", which are essentially compositions of Java modules
   defined as gradle build
   files._ - [EDC readme](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector#run-your-first-connector).
+- `dataspaceconnector-configuration.properties`: Debugging and quick testing of changes via `./gradlew run --debug-jvm`
+  command
+- `docker-compose.yml`, `Dockerfile`: Docker files
 
 ## Getting Started
 
@@ -22,7 +26,7 @@ cd /EDC-Extension-for-AAS
 ./gradlew clean build
 ```
 
-The following command starts an EDC connector with the _EDC AAS Extension_ with a configration file:
+The following command starts an EDC connector with the _EDC AAS Extension_ with a configuration file:
 
 ```sh
 java -Dedc.fs.config=./example/configurations/provider.properties -jar ./example/build/libs/dataspace-connector.jar
@@ -52,21 +56,20 @@ docker-compose up
 ## Configuration
 
 The EDC and its extensions can be configured with a `.properties` file. In `example/resources/configurations` there are
-few examples of configurations.
+a few examples of configurations.
 
 For a list of config values provided by the extension, check the [Extension's README](../README.md#configurations).
 
 A few basic EDC config values:
 
-* `web.http.port`: The EDC's port defaults to 8181. Adjust this property to run it on a different port.
+* `web.http.port`: Port and path for e.g., this extension's SelfDescription or Client API.
 * `web.http.path`: The default path prefix under which endpoints are available.
-* `web.http.ids.port`: The port on which IDS endpoints (currently only the Multipart endpoint) are available.
-* `web.http.ids.path`: The path prefix under which IDS endpoints (currently only the Multipart endpoint) are available.
-* `ids.webhook.address`: Set this to the address at which another connector can reach your connector,
+* `web.http.protocol.port`: The port on which DSP endpoints are available.
+* `web.http.protocol.path`: The path prefix under which DSP endpoints are available.
+* `edc.dsp.callback.address`: Set this to the address at which another connector can reach your connector,
   as it is used as a callback address during the contract negotiation, where messages are exchanged
-  asynchronously. If you change the IDS API port, make sure to adjust the webhook address accordingly.
-* `edc.api.auth.key`: Value of the header used for authentication when calling
-  endpoints of the data management API.
+  asynchronously. If you change the protocol port/path, make sure to adjust the webhook address accordingly.
+* `edc.api.auth.key`: Value of the header used for authentication when calling endpoints of the data management API.
 
 An example configuration for a ready to use EDC with the _edc-extension4AAS_ and _dsp_:
 
@@ -117,16 +120,16 @@ request located in `/examples/resources`. Do the following steps:
 __Important__:
 
 - If the (consumer's) config value `edc.aas.client.acceptAllProviderOffers` is set to `true`: This command will fetch
-  the provider's contract offer for the selected asset and accept all terms on this offer. If multiple or no offers
-  exist for this asset, no negotiation will take place.
+  a provider policy for the selected asset and accept it as is. If no policies exist for this asset, no negotiation will
+  take place.
 
 - If the (consumer's) config value `edc.aas.client.acceptAllProviderOffers` is set to `false` (default): This command
-  will request the provider's offered contractOffer and check it against its own accepted contractOffers by comparing
-  the permissions, prohibitions and obligations of both the provider's contractOffer and the ones in the
-  contractOfferStore. The assetID or other IDs must not be equal for the contractOffers to match. Initially, this store
-  is empty and can be filled up by the request `Client/Add accepted contractOffer` (tip: with the
-  request `EDC API/GET catalog`, contractOffers for all assets of the provider can be viewed and added to the consumer
-  connector).
+  will request the provider's offered policy for the asset and check it against its own accepted policyDefinitions by
+  comparing the permissions, prohibitions and obligations of both the provider's policyDefinition and the ones in the
+  policyDefinitionStore. The assetID or other IDs must not be equal for the policyDefinitions to match. Initially, this
+  store is empty and can be filled up by the request `Client/Add accepted policyDefinition` (tip: with the
+  request `EDC API/GET catalog`, policyDefinitions for all assets of the provider can be viewed and added to the
+  consumer connector).
 
 1. Execute the request `Client/Automated Negotiation`. The consumer connector will now try to negotiate a contract with
    the provider to get the data of the selected asset.
@@ -135,11 +138,11 @@ __Important__:
 
 ### Separate requests
 
-1. Execute the request `Client/1. Get contract offers for asset`
-   Choose a contract offer of the response body.
+1. Execute the request `Client/1. Get dataset for asset`
+   Choose a policy of the response body.
 
-2. Put the contract offer inside of request `Client/2. Initiate negotiation with contractOffer`'s body and execute said
-   request.
+2. Put the policy inside of request `Client/2. Initiate negotiation with contractOffer`'s body (policy field) and
+   execute said request.
 
 3. If everything went right, request `2` returns an agreementID. Update the postman collection's agreementID variable
    with the response value.
@@ -148,6 +151,9 @@ __Important__:
    data behind the previously selected asset.
 
 ## Running the Example (manual)
+
+
+### Info: Manual data transfer example is outdated! Please refer to the edc samples repository 
 
 Build the EDC with the extensions.
 
@@ -210,16 +216,16 @@ with your IDE. The following snippet is an example _launch.json_ file to attach 
 
 ```json
 {
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "type": "java",
-            "name": "Attach to debugger at port 5005",
-            "request": "attach",
-            "hostName": "localhost",
-            "port": "5005"
-        }
-    ]
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Attach to debugger at port 5005",
+      "request": "attach",
+      "hostName": "localhost",
+      "port": "5005"
+    }
+  ]
 }
 ```
 

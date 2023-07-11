@@ -2,7 +2,7 @@
  * Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
  * Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
  * Forschung e.V.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,16 +15,11 @@
  */
 package de.fraunhofer.iosb.app.aas;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockserver.integration.ClientAndServer.startClientAndServer;
-import static org.mockserver.model.HttpRequest.request;
-import static org.mockserver.model.HttpResponse.response;
-
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import de.fraunhofer.iosb.app.Logger;
+import de.fraunhofer.iosb.app.testUtils.FileManager;
+import io.adminshell.aas.v3.dataformat.DeserializationException;
+import okhttp3.OkHttpClient;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -32,12 +27,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockserver.integration.ClientAndServer;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 
-import de.fraunhofer.iosb.app.Logger;
-import de.fraunhofer.iosb.app.testUtils.FileManager;
-import io.adminshell.aas.v3.dataformat.DeserializationException;
-import okhttp3.OkHttpClient;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockserver.integration.ClientAndServer.startClientAndServer;
+import static org.mockserver.model.HttpRequest.request;
+import static org.mockserver.model.HttpResponse.response;
 
 /**
  * Testing AAS Agent. Using mocked AAS service (HTTP endpoints)
@@ -58,7 +56,7 @@ public class AasAgentTest {
     }
 
     @BeforeAll
-    public static void startMockServer() throws IOException {
+    public static void startMockServer() {
         mockServer = startClientAndServer(8080);
     }
 
@@ -68,8 +66,8 @@ public class AasAgentTest {
     }
 
     @Test // Can't really test this anymore with new variable "sourceUrl" that is not
-          // serialized
-    public void testGetAasEnvWithUrls() throws MalformedURLException, IOException, DeserializationException {
+    // serialized
+    public void testGetAasEnvWithUrls() throws IOException, DeserializationException {
         var shells = FileManager.loadResource("shells.json");
         var submodels = FileManager.loadResource("submodels.json");
         var conceptDescriptions = FileManager.loadResource("conceptDescriptions.json");
@@ -82,7 +80,7 @@ public class AasAgentTest {
         var shouldBeResult = FileManager.loadResource("selfDescriptionWithAccessURLS.json");
 
         var result = new ObjectMapper().writeValueAsString(
-            aasAgent.getAasEnvWithUrls(new URL(HTTP_LOCALHOST_8080)));
+                aasAgent.getAasEnvWithUrls(new URL(HTTP_LOCALHOST_8080)));
         result = result.replace("\n", "").replace(" ", "");
 
         assertEquals(shouldBeResult, result);
@@ -91,7 +89,7 @@ public class AasAgentTest {
     @Test
     public void testPutAasShell() throws MalformedURLException {
         mockServer.when(request().withMethod("PUT").withPath("/shells").withBody("raw_data_forwarded"))
-        .respond(response().withStatusCode(200));
+                .respond(response().withStatusCode(200));
 
         var response = aasAgent.putModel(new URL(HTTP_LOCALHOST_8080 + "/shells"),
                 "raw_data_forwarded");
@@ -103,7 +101,7 @@ public class AasAgentTest {
     @Test
     public void testPostAasSubmodel() throws MalformedURLException {
         mockServer.when(request().withMethod("POST").withPath("/submodels").withBody("raw_data_forwarded"))
-        .respond(response().withStatusCode(200));
+                .respond(response().withStatusCode(200));
 
         var response = aasAgent.postModel(new URL(HTTP_LOCALHOST_8080 + "/submodels"),
                 "raw_data_forwarded");
@@ -115,9 +113,9 @@ public class AasAgentTest {
     @Test
     public void testDeleteAasConceptDescription() throws MalformedURLException {
         mockServer.when(request().withMethod("DELETE").withPath("/concept-descriptions"))
-        .respond(response().withStatusCode(200));
+                .respond(response().withStatusCode(200));
 
-        var response = aasAgent.deleteModel(new URL(HTTP_LOCALHOST_8080+"/concept-descriptions"),null);
+        var response = aasAgent.deleteModel(new URL(HTTP_LOCALHOST_8080 + "/concept-descriptions"), null);
 
         // Check whether AAS agent forwards the raw data of a request
         assertEquals(200, response.getStatus());

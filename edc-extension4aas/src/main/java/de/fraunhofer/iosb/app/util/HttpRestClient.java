@@ -2,7 +2,7 @@
  * Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
  * Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
  * Forschung e.V.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,12 +16,7 @@
 package de.fraunhofer.iosb.app.util;
 
 import de.fraunhofer.iosb.app.Logger;
-import okhttp3.HttpUrl;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
+import okhttp3.*;
 
 import java.io.IOException;
 import java.net.URL;
@@ -39,14 +34,14 @@ public class HttpRestClient {
 
     /**
      * Issue a get request to a given url
-
+     *
      * @param url the url to where the get request goes
      * @return Response by the service behind the url
      */
     public Response get(URL url) throws IOException {
         logger.debug("GET " + url);
         var request = new Request.Builder()
-                .url(HttpUrl.get(url))
+                .url(Objects.requireNonNull(HttpUrl.get(url)))
                 .get()
                 .build();
         return client.newCall(request).execute();
@@ -54,7 +49,7 @@ public class HttpRestClient {
 
     /**
      * Issue a put request to a given url
-
+     *
      * @param url     the url to where the put request goes
      * @param payload payload of this operation
      * @return Response by the service behind the url
@@ -62,7 +57,7 @@ public class HttpRestClient {
     public Response put(URL url, String payload) throws IOException {
         logger.debug("PUT " + url);
         var request = new Request.Builder()
-                .url(HttpUrl.get(url))
+                .url(Objects.requireNonNull(HttpUrl.get(url)))
                 .put(RequestBody.create(payload, MediaType.parse("application/json")))
                 .build();
         return client.newCall(request).execute();
@@ -70,7 +65,7 @@ public class HttpRestClient {
 
     /**
      * Issue a post request to a given url
-
+     *
      * @param url     the url to where the post request goes
      * @param payload payload of this operation
      * @return Response by the service behind the url
@@ -78,7 +73,7 @@ public class HttpRestClient {
     public Response post(URL url, String payload) throws IOException {
         logger.debug("POST " + url);
         var request = new Request.Builder()
-                .url(HttpUrl.get(url))
+                .url(Objects.requireNonNull(HttpUrl.get(url)))
                 .post(RequestBody.create(payload, MediaType.parse("application/json")))
                 .build();
         return client.newCall(request).execute();
@@ -86,7 +81,7 @@ public class HttpRestClient {
 
     /**
      * Issue a delete request to a given url
-
+     *
      * @param url     the url to where the post request goes
      * @param payload payload of this operation
      * @return Response by the service behind the url
@@ -98,12 +93,12 @@ public class HttpRestClient {
         if (Objects.nonNull(payload)) {
             RequestBody requestBody = RequestBody.create(payload, MediaType.parse("application/json"));
             request = new Request.Builder()
-                    .url(HttpUrl.get(url))
+                    .url(Objects.requireNonNull(HttpUrl.get(url)))
                     .delete(requestBody)
                     .build();
         } else {
             request = new Request.Builder()
-                    .url(HttpUrl.get(url))
+                    .url(Objects.requireNonNull(HttpUrl.get(url)))
                     .delete()
                     .build();
         }

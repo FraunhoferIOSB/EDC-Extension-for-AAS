@@ -15,34 +15,29 @@ plugins {
 }
 
 val jupiterVersion: String by project
-val edcGroup: String by project
 val edcVersion: String by project
 
 dependencies {
-    implementation("${edcGroup}:control-plane-core:${edcVersion}")
-
-    // IDS AAS App:
     implementation(project(":edc-extension4aas"))
 
-    // IDS stuff such as IDS messages
-    implementation("${edcGroup}:ids:${edcVersion}") {
-        exclude("${edcGroup}","ids-token-validation")
-    }
+    implementation("$group:control-plane-core:$edcVersion")
+    implementation("$group:dsp:$edcVersion")
 
     // Identity and access management MOCK -> only for testing
-    implementation("${edcGroup}:iam-mock:${edcVersion}")
-    implementation("${edcGroup}:auth-tokenbased:${edcVersion}")
-    
+    implementation("$group:iam-mock:$edcVersion")
+    implementation("$group:auth-tokenbased:$edcVersion")
+
     // Read configuration values
-    implementation("${edcGroup}:configuration-filesystem:${edcVersion}")
+    implementation("$group:configuration-filesystem:$edcVersion")
 
     // Data transfer (read from AAS service/write to HTTP endpoint)
-    implementation("${edcGroup}:data-plane-core:${edcVersion}")
-    implementation("${edcGroup}:data-plane-http:${edcVersion}")
-    implementation("${edcGroup}:data-plane-client:${edcVersion}")
-    implementation("${edcGroup}:data-plane-selector-client:$edcVersion")
-    implementation("${edcGroup}:data-plane-selector-core:$edcVersion")
-    implementation("${edcGroup}:transfer-data-plane:${edcVersion}")
+    implementation("$group:data-plane-core:$edcVersion")
+    implementation("$group:data-plane-http:$edcVersion")
+    implementation("$group:data-plane-client:$edcVersion")
+    implementation("$group:data-plane-selector-client:$edcVersion")
+    implementation("$group:data-plane-selector-core:$edcVersion")
+    implementation("$group:data-plane-selector-api:$edcVersion")
+    implementation("$group:transfer-data-plane:$edcVersion")
 }
 
 application {
@@ -57,24 +52,17 @@ tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
 }
 
 repositories {
-    mavenLocal()
     mavenCentral()
-    maven {
-        url = uri("https://maven.iais.fraunhofer.de/artifactory/eis-ids-public/")
-    }
-    maven {// while runtime-metamodel dependency is still a snapshot
-        url = uri("https://oss.sonatype.org/content/repositories/snapshots/")
-    }
 }
 
 configurations.all {
     resolutionStrategy.eachDependency {
         if (requested.module.toString() == "com.google.inject:guice") {
-            artifactSelection{
+            artifactSelection {
                 selectArtifact(DependencyArtifact.DEFAULT_TYPE, null, null)
             }
         }
-        if(requested.module.toString() == "org.yaml:snakeyaml") {
+        if (requested.module.toString() == "org.yaml:snakeyaml") {
             artifactSelection {
                 selectArtifact(DependencyArtifact.DEFAULT_TYPE, null, null)
             }

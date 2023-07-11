@@ -2,7 +2,7 @@
  * Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
  * Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
  * Forschung e.V.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,25 +15,21 @@
  */
 package de.fraunhofer.iosb.app.client.dataTransfer;
 
-import static java.lang.String.format;
+import de.fraunhofer.iosb.app.Logger;
+import de.fraunhofer.iosb.app.client.ClientEndpoint;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 
 import java.util.Objects;
 
-import de.fraunhofer.iosb.app.Logger;
-import de.fraunhofer.iosb.app.client.ClientEndpoint;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.QueryParam;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
+import static java.lang.String.format;
 
 /**
  * Endpoint for automated data transfer
  */
-@Consumes({ MediaType.APPLICATION_JSON, MediaType.WILDCARD })
-@Produces({ MediaType.APPLICATION_JSON })
+@Consumes({MediaType.APPLICATION_JSON, MediaType.WILDCARD})
+@Produces({MediaType.APPLICATION_JSON})
 @Path(ClientEndpoint.AUTOMATED_PATH)
 public class DataTransferEndpoint {
 
@@ -51,15 +47,15 @@ public class DataTransferEndpoint {
 
     /**
      * Receive data of an agreement.
-     * 
+     *
      * @param agreementId The agreement ID corresponding to the data in the request
      *                    body.
      * @param requestBody The asset data of a transfer request.
      * @return OK as response.
      */
     @POST
-    @Path(RECEIVE_DATA_PATH)
-    public Response receiveData(@QueryParam("agreementId") String agreementId, String requestBody) {
+    @Path("receiveData/{agreement}")
+    public Response receiveData(@PathParam("agreement") String agreementId, String requestBody) {
         LOGGER.log(format("Receiving data for agreement %s...", agreementId));
         Objects.requireNonNull(agreementId);
         Objects.requireNonNull(requestBody);

@@ -15,15 +15,10 @@
  */
 package de.fraunhofer.iosb.app.aas;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
-import static org.mockito.Mockito.mock;
-
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.Path;
-
+import de.fraunhofer.iosb.app.Logger;
+import de.fraunhofer.iosb.app.util.HttpRestClient;
+import jakarta.ws.rs.core.Response;
+import okhttp3.OkHttpClient;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.junit.jupiter.api.AfterEach;
@@ -31,10 +26,14 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import de.fraunhofer.iosb.app.Logger;
-import de.fraunhofer.iosb.app.util.HttpRestClient;
-import jakarta.ws.rs.core.Response;
-import okhttp3.OkHttpClient;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Path;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.Mockito.mock;
 
 public class FaaastServiceManagerTest {
 

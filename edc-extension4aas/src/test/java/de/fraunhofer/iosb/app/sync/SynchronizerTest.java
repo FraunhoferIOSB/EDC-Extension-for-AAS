@@ -1,33 +1,26 @@
 /*
-* Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
-* Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
-* Forschung e.V.
-* 
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*     http://www.apache.org/licenses/LICENSE-2.0
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
+ * Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
+ * Forschung e.V.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package de.fraunhofer.iosb.app.sync;
 
-import static java.lang.String.format;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
-import static org.mockito.Mockito.mock;
-import static org.mockserver.integration.ClientAndServer.startClientAndServer;
-import static org.mockserver.model.HttpRequest.request;
-import static org.mockserver.model.HttpResponse.response;
-
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.Objects;
-
+import de.fraunhofer.iosb.app.Logger;
+import de.fraunhofer.iosb.app.controller.AasController;
+import de.fraunhofer.iosb.app.controller.ResourceController;
+import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
+import de.fraunhofer.iosb.app.testUtils.FileManager;
+import okhttp3.OkHttpClient;
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.spi.EdcException;
@@ -40,12 +33,16 @@ import org.junit.jupiter.api.Test;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.matchers.Times;
 
-import de.fraunhofer.iosb.app.Logger;
-import de.fraunhofer.iosb.app.controller.AasController;
-import de.fraunhofer.iosb.app.controller.ResourceController;
-import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
-import de.fraunhofer.iosb.app.testUtils.FileManager;
-import okhttp3.OkHttpClient;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Objects;
+
+import static java.lang.String.format;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
+import static org.mockserver.integration.ClientAndServer.startClientAndServer;
+import static org.mockserver.model.HttpRequest.request;
+import static org.mockserver.model.HttpResponse.response;
 
 public class SynchronizerTest {
 
@@ -56,12 +53,12 @@ public class SynchronizerTest {
     private Synchronizer synchronizer;
     private SelfDescriptionRepository selfDescriptionRepo;
 
-    private String shells = FileManager.loadResource("shells.json");
-    private String submodels = FileManager.loadResource("submodels.json");
-    private String submodelsNoSubmodelElements = FileManager.loadResource("submodelsNoSubmodelElements.json");
-    private String oneSubmodelOneSubmodelElementLess = FileManager
+    private final String shells = FileManager.loadResource("shells.json");
+    private final String submodels = FileManager.loadResource("submodels.json");
+    private final String submodelsNoSubmodelElements = FileManager.loadResource("submodelsNoSubmodelElements.json");
+    private final String oneSubmodelOneSubmodelElementLess = FileManager
             .loadResource("oneSubmodelOneSubmodelElementLess.json");
-    private String conceptDescriptions = FileManager.loadResource("conceptDescriptions.json");
+    private final String conceptDescriptions = FileManager.loadResource("conceptDescriptions.json");
 
     @BeforeAll
     public static void initialize() throws MalformedURLException {
@@ -95,7 +92,7 @@ public class SynchronizerTest {
      * Tests initialization of selfDescription
      */
     @Test
-    public void synchronizationInitializeTest() throws IOException {
+    public void synchronizationInitializeTest() {
         startMockServer(port);
         prepareDefaultMockedResponse();
 
@@ -105,7 +102,7 @@ public class SynchronizerTest {
     }
 
     @Test
-    public void synchronizationRemoveSubmodelElementTest() throws IOException {
+    public void synchronizationRemoveSubmodelElementTest() {
         startMockServer(port);
 
         prepareDefaultMockedResponse();
@@ -120,7 +117,7 @@ public class SynchronizerTest {
     }
 
     @Test
-    public void synchronizationRemoveOneSubmodelElementTest() throws IOException {
+    public void synchronizationRemoveOneSubmodelElementTest() {
         startMockServer(port);
 
         prepareDefaultMockedResponse();
@@ -135,7 +132,7 @@ public class SynchronizerTest {
     }
 
     @Test
-    public void synchronizationRemoveAllTest() throws IOException {
+    public void synchronizationRemoveAllTest() {
         startMockServer(port);
 
         prepareDefaultMockedResponse();
@@ -150,7 +147,7 @@ public class SynchronizerTest {
     }
 
     @Test
-    public void synchronizationRemoveAasTest() throws IOException {
+    public void synchronizationRemoveAasTest() {
         startMockServer(port);
 
         prepareDefaultMockedResponse();
@@ -159,11 +156,11 @@ public class SynchronizerTest {
                 selfDescriptionRepo.getSelfDescription(url).toString());
 
         selfDescriptionRepo.removeSelfDescription(url);
-        assertEquals(null, selfDescriptionRepo.getSelfDescription(url));
+        assertNull(selfDescriptionRepo.getSelfDescription(url));
     }
 
     @Test
-    public void aasServiceNotAvailableTest() throws IOException {
+    public void aasServiceNotAvailableTest() {
         try {
             selfDescriptionRepo.createSelfDescription(url);
             fail("AAS service not available, self description should not be created");
@@ -207,7 +204,7 @@ public class SynchronizerTest {
                 .respond(response().withBody("[]"));
     }
 
-    private static void startMockServer(int port) throws IOException {
+    private static void startMockServer(int port) {
         mockServer = startClientAndServer(port);
     }
 

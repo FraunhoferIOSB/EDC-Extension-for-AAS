@@ -2,7 +2,7 @@
  * Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
  * Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
  * Forschung e.V.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,30 +15,25 @@
  */
 package de.fraunhofer.iosb.app.edc;
 
-import static java.lang.String.format;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-
+import de.fraunhofer.iosb.app.Logger;
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
-import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
-import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import de.fraunhofer.iosb.app.Logger;
+import static java.lang.String.format;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 public class ContractHandlerTest {
 
     private static final String DEFAULT_CONTRACT_NAME = "DEFAULT_CONTRACT";
     private ContractHandler contractHandler;
-    private ContractDefinitionStore mockedContractDefinitionStore = mock(ContractDefinitionStore.class);
-    private PolicyDefinitionStore mockedPolicyDefinitionStore = mock(PolicyDefinitionStore.class);
+    private final ContractDefinitionStore mockedContractDefinitionStore = mock(ContractDefinitionStore.class);
+    private final PolicyDefinitionStore mockedPolicyDefinitionStore = mock(PolicyDefinitionStore.class);
 
     @BeforeAll
     public static void initializeLogger() {
@@ -54,8 +49,8 @@ public class ContractHandlerTest {
     public void registerAssetToDefaultContractTest() {
         assertEquals(format("%s1", DEFAULT_CONTRACT_NAME),
                 contractHandler.registerAssetToDefaultContract("test-asset"));
-        verify(mockedContractDefinitionStore, times(1)).save((ContractDefinition) any());
-        verify(mockedPolicyDefinitionStore, times(2)).save((PolicyDefinition) any());
+        verify(mockedContractDefinitionStore, times(1)).save(any());
+        verify(mockedPolicyDefinitionStore, times(2)).create(any());
     }
 
 }

@@ -2,7 +2,7 @@
  * Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
  * Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
  * Forschung e.V.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,6 +15,9 @@
  */
 package de.fraunhofer.iosb.app.model.ids;
 
+import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShellEnvironment;
+import org.eclipse.edc.spi.observe.Observable;
+
 import java.net.URL;
 import java.util.Collection;
 import java.util.HashMap;
@@ -23,18 +26,14 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import org.eclipse.edc.spi.observe.Observable;
-
-import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShellEnvironment;
-
 /**
  * Self description repository, also an observable so that on removal of self
  * description, AssetIndex / ContractStore can be synchronized
  */
 public class SelfDescriptionRepository implements Observable<SelfDescriptionChangeListener> {
 
-    private Collection<SelfDescriptionChangeListener> listeners;
-    private Map<URL, SelfDescription> content;
+    private final Collection<SelfDescriptionChangeListener> listeners;
+    private final Map<URL, SelfDescription> content;
 
     public SelfDescriptionRepository() {
         content = new HashMap<>();
@@ -47,7 +46,7 @@ public class SelfDescriptionRepository implements Observable<SelfDescriptionChan
 
     /**
      * Return self description associated with this URL
-     * 
+     *
      * @param aasUrl URL determining self description to be returned
      * @return self description associated with AAS URL
      */
@@ -62,7 +61,7 @@ public class SelfDescriptionRepository implements Observable<SelfDescriptionChan
 
     /**
      * Update self description.
-     * 
+     *
      * @param aasUrl         URL of self description to be updated
      * @param newEnvironment updated environment from which self description is
      *                       created
@@ -73,10 +72,8 @@ public class SelfDescriptionRepository implements Observable<SelfDescriptionChan
 
     /**
      * Remove self description and notify listeners.
-     * 
-     * @param aasUrl         URL of self description to be updated
-     * @param newEnvironment updated environment from which self description is
-     *                       created
+     *
+     * @param aasUrl URL of self description to be updated
      */
     public void removeSelfDescription(URL aasUrl) {
         var toBeRemoved = content.remove(aasUrl);

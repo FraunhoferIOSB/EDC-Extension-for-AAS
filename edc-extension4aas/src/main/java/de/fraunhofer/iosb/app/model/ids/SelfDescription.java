@@ -2,7 +2,7 @@
  * Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
  * Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
  * Forschung e.V.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,14 +15,13 @@
  */
 package de.fraunhofer.iosb.app.model.ids;
 
-import java.util.Objects;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import de.fraunhofer.iosb.app.Logger;
 import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShellEnvironment;
+
+import java.util.Objects;
 
 /**
  * Self description holding the structure of an AAS model
@@ -69,7 +68,7 @@ public class SelfDescription {
 
     /**
      * Returns the underlying environment.
-     * 
+     *
      * @return The underlying environment
      */
     public CustomAssetAdministrationShellEnvironment getEnvironment() {

@@ -1,32 +1,19 @@
 /*
-* Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
-* Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
-* Forschung e.V.
-* 
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*     http://www.apache.org/licenses/LICENSE-2.0
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
+ * Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
+ * Forschung e.V.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package de.fraunhofer.iosb.app.client.negotiation;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
 
 import org.eclipse.edc.connector.contract.observe.ContractNegotiationObservableImpl;
 import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
@@ -35,51 +22,104 @@ import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiat
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
+import org.eclipse.edc.policy.model.Action;
+import org.eclipse.edc.policy.model.Permission;
+import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.UUID;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.stream.Stream;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 public class NegotiatorTest {
 
-    private final ConsumerContractNegotiationManager consumerNegotiationManager = mock(
-            ConsumerContractNegotiationManager.class);
-    private final ContractNegotiationStore contractNegotiationStore = mock(
-        ContractNegotiationStore.class);
-    private final ContractNegotiationObservable observable = new ContractNegotiationObservableImpl();
+    private final ConsumerContractNegotiationManager ccnmMock = mock(ConsumerContractNegotiationManager.class);
+    private final ContractNegotiationStore cnsMock = mock(ContractNegotiationStore.class);
+    private final ContractNegotiationObservable contractNegotiationObservable = new ContractNegotiationObservableImpl();
+    private final String assetId = "test-asset-id";
+    private final Policy mockPolicy = buildPolicy();
+    private final ContractNegotiation negotiation = getContractNegotiation();
+
     private Negotiator clientNegotiator;
 
+
     @BeforeEach
-    void initializeClientNegotiator() throws IOException {
-        clientNegotiator = new Negotiator(consumerNegotiationManager, observable, contractNegotiationStore);
+    void initializeClientNegotiator() {
+        defineMockBehaviour();
+        clientNegotiator = new Negotiator(ccnmMock, contractNegotiationObservable, cnsMock);
+    }
+
+    void defineMockBehaviour() {
+        when(cnsMock.queryAgreements(any())).thenReturn(Stream.of());
+        when(ccnmMock.initiate(any()))
+                .thenReturn(StatusResult.success(negotiation));
     }
 
     @Test
-    @SuppressWarnings("unchecked")
-    void testNegotiate() throws MalformedURLException, InterruptedException, ExecutionException, URISyntaxException {
-        var negotiationStatusResult = mock(StatusResult.class);
-        when(negotiationStatusResult.succeeded()).thenReturn(true);
-        var contractNegotiation = mock(ContractNegotiation.class);
-        when(contractNegotiation.getId()).thenReturn("test-negotiation-id");
-        when(negotiationStatusResult.getContent()).thenReturn(contractNegotiation);
+    void testNegotiate() throws MalformedURLException, ExecutionException, InterruptedException {
+        // Mocked EDC negotiation manager returns future which completes to a successful negotiation (agreement)
+        // Input is providerUrl (unimportant), contractOffer. The resulting contractAgreement should have the same
+        // policy as our contractOffer (not the same object reference) and the same asset ID
+        var fakeUrl = new URL("https://example.com/fakeurl");
+        var contractOffer = ContractOffer.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .assetId(assetId)
+                .policy(mockPolicy)
+                .build();
 
-        when(consumerNegotiationManager.initiate(any())).thenReturn(negotiationStatusResult);
-
-        var contractOffer = mock(ContractOffer.class);
-        when(contractOffer.getProvider()).thenReturn(new URI("test"));
-
-        var agreement = mock(ContractAgreement.class);
-        when(contractNegotiation.getContractAgreement()).thenReturn(agreement);
-        when(agreement.getId()).thenReturn("agreementId");
-
-        var future = Executors.newSingleThreadExecutor().submit(() -> {
-            return clientNegotiator.negotiate(new URL("http://testurl:12345"), contractOffer);
-        });
+        var future = Executors.newSingleThreadExecutor().submit(() -> clientNegotiator.negotiate(fakeUrl,
+                contractOffer));
         // Let the negotiator think we need time to process
         // If not, the "confirmed" signal will be sent too soon, and the negotiator will
         // never complete
         Thread.sleep(1000);
-        observable.invokeForEach(l -> l.confirmed(contractNegotiation));
+        contractNegotiationObservable.invokeForEach(listener -> listener.finalized(negotiation));
 
-        assertEquals(agreement, future.get());
+        assertNotNull(future);
+        var agreement = future.get();
+        assertNotNull(agreement);
+        assertEquals(mockPolicy, agreement.getPolicy());
+        assertEquals(assetId, agreement.getAssetId());
     }
+
+    /*
+    Policy containing MOCK as permitted action
+     */
+    private Policy buildPolicy() {
+        return Policy.Builder.newInstance()
+                .permission(Permission.Builder.newInstance()
+                        .action(Action.Builder.newInstance()
+                                .type("MOCK")
+                                .build())
+                        .build())
+                .build();
+    }
+
+    private ContractNegotiation getContractNegotiation() {
+        return ContractNegotiation.Builder.newInstance()
+                .counterPartyId("")
+                .counterPartyAddress("")
+                .protocol("")
+                .id("mocked-negotiation-id")
+                .contractAgreement(ContractAgreement.Builder.newInstance()
+                        .id(UUID.randomUUID().toString())
+                        .providerId("provider")
+                        .consumerId("consumer")
+                        .assetId(assetId)
+                        .policy(mockPolicy)
+                        .build())
+                .build();
+    }
+
 }

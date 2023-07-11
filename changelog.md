@@ -1,14 +1,25 @@
 # Changelog
 
-## Current development version 
+## Current development version
 
+Compatibility: **Eclipse Dataspace Connector v0.1.?**
 
 **New Features**
 
-* Support of **Eclipse Dataspace Connection v0.0.1-Milestone 8**
+**Bugfixes**
+
+## V1.0.0-alpha3
+
+This version is compatible to **Eclipse Dataspace Connection v0.0.1-Milestone 8**
+
+**New Features**
+
+* Support of **Eclipse Dataspace Connector v0.0.1-Milestone 8**
 
 * Client Service
     * Add custom HTTP endpoints for data transfers
+* Add TLS/SSL config files
+    * Allows HTTPS communication between EDCs with non-self-signed certificates
 
 **Bugfixes**
 
@@ -18,16 +29,38 @@
     * Validity was set to max float value, is now set to 1 year (default)
 * Dependencies
     * Add data flow controller dependency
+* Remove waiting for dataTransfer when specifying a custom data transfer target address
+* Remove initial AAS service synchronization delay on connector startup
+* Config
+    * Allow communication with DataDashboard (added to all configs except debug config)
+* Synchronizer
+    * Extract AAS-EDC synchronizer to new class
+* AAS service
+    * Prefer explicit service port to port inside AAS service configuration file
+* Uploading accepted contracts required another dependency
+* Update metamodel version
+
+**Miscellaneous**
+
+* Add missing license headers
+* Client
+    * Reuse contractAgreements when available
+* Clean up configuration class
+* Improve test coverage
+* Add missing license headers
 
 ## V1.0.0-alpha2
+
 This version is compatible to **Eclipse Dataspace Connection v0.0.1-Milestone 7**
 
 **New Features**
 
 * Client Service
     * Add functionality for automatically negotiating and requesting data from a provider EDC
-        * On automatic negotiation, provider contractOffers are matched against a set of own contractOffers (acceptedContractOffers)
-        * Provider data is sent to a specific client HTTP endpoint using a new authentication key for each transaction (derived from the agreementId)
+        * On automatic negotiation, provider contractOffers are matched against a set of own contractOffers (
+          acceptedContractOffers)
+        * Provider data is sent to a specific client HTTP endpoint using a new authentication key for each transaction (
+          derived from the agreementId)
     * Add functionality for manually
         * fetching a set of provider contractOffers for a provider asset,
         * negotiating a contract with a provider using a contractOffer, returning an agreementId or an error message,
@@ -38,8 +71,8 @@ This version is compatible to **Eclipse Dataspace Connection v0.0.1-Milestone 7*
 * CustomAuthenticationRequestFilter
     * No requests were filtered when self description was exposed by config
 
-
 ## V1.0.0-alpha
+
 This version is compatible to **Eclipse Dataspace Connection v0.0.1-Milestone 6**
 
 **New Features**
@@ -47,8 +80,10 @@ This version is compatible to **Eclipse Dataspace Connection v0.0.1-Milestone 6*
 * Custom AuthenticationRequestFilter
     * Requests to the extension are now intercepted by a request filter
     * Requests to all endpoints except `/api/selfDescription` require authentication
-    * The authentication method is defined within the launcher's build file. In the example launcher, a mocked identity and access management service is used: `_org.eclipse.edc:iam-mock_`
-    * Available authentication methods are defined by the EDC. For further information see the EDC's AuthenticationServices and AuthenticationRequestFilters.
+    * The authentication method is defined within the launcher's build file. In the example launcher, a mocked identity
+      and access management service is used: `_org.eclipse.edc:iam-mock_`
+    * Available authentication methods are defined by the EDC. For further information see the EDCs
+      AuthenticationServices and AuthenticationRequestFilters.
 
 * Configuration value "exposeSelfDescription"
     * Set to _False_ to not expose the extension's self descriptions

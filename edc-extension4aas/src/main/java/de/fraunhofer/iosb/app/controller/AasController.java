@@ -2,7 +2,7 @@
  * Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
  * Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
  * Forschung e.V.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -52,24 +52,19 @@ public class AasController implements Controllable {
 
     @Override
     public Response handleRequest(RequestType requestType, URL url, String... requestData) {
-        switch (requestType) {
-            case POST:
-                return aasAgent.postModel(url, requestData[0]);
-            case PUT:
-                return aasAgent.putModel(url, requestData[0]);
-            case DELETE:
-                return aasAgent.deleteModel(url, requestData[0]);
-
-            default:
-                return Response.status(Response.Status.NOT_IMPLEMENTED).build();
-        }
+        return switch (requestType) {
+            case POST -> aasAgent.postModel(url, requestData[0]);
+            case PUT -> aasAgent.putModel(url, requestData[0]);
+            case DELETE -> aasAgent.deleteModel(url, requestData[0]);
+            default -> Response.status(Response.Status.NOT_IMPLEMENTED).build();
+        };
     }
 
     /**
      * Returns the AAS model of the AAS service behind the aasServiceUrl, as a self
      * description (see model/aas/*). This model has the access URL of each AAS
      * element in the sourceUrl field.
-
+     *
      * @param aasServiceUrl url of the service
      * @return aasServiceUrl's model, in self description form
      * @throws DeserializationException AAS from service could not be deserialized
@@ -83,7 +78,7 @@ public class AasController implements Controllable {
 
     /**
      * Starts an AAS service internally
-
+     *
      * @param aasModelPath   AAS Environment for the AAS service
      * @param aasServicePort AAS service's exposed HTTP port for communication
      *                       with this extension
@@ -108,7 +103,7 @@ public class AasController implements Controllable {
 
     /**
      * Stops an AAS service given its URL if internally started
-
+     *
      * @param aasServiceUrl URL of service to be stopped
      */
     public void stopAssetAdministrationShellService(URL aasServiceUrl) {

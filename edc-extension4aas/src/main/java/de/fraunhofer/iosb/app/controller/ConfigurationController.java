@@ -2,7 +2,7 @@
  * Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
  * Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
  * Forschung e.V.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,16 +15,16 @@
  */
 package de.fraunhofer.iosb.app.controller;
 
-import java.net.URL;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
-
 import de.fraunhofer.iosb.app.Logger;
 import de.fraunhofer.iosb.app.RequestType;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import jakarta.ws.rs.core.Response;
+
+import java.net.URL;
 
 /**
  * Handles requests regarding the application's configuration.
@@ -40,19 +40,18 @@ public class ConfigurationController implements Controllable {
         logger = Logger.getInstance();
         configuration = Configuration.getInstance();
         objectMapper = new ObjectMapper();
+        // TODO case insensitive object mapper without deprecated configuration?
+        objectMapper.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
         objectReader = objectMapper.readerForUpdating(configuration);
     }
 
     @Override
     public Response handleRequest(RequestType requestType, URL url, String... requestData) {
-        switch (requestType) {
-            case GET:
-                return readConfiguration();
-            case PUT:
-                return updateConfiguration(requestData[0]);
-            default:
-                return Response.status(Response.Status.NOT_IMPLEMENTED).build();
-        }
+        return switch (requestType) {
+            case GET -> readConfiguration();
+            case PUT -> updateConfiguration(requestData[0]);
+            default -> Response.status(Response.Status.NOT_IMPLEMENTED).build();
+        };
     }
 
     private Response readConfiguration() {

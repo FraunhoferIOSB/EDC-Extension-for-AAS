@@ -2,7 +2,7 @@
  * Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
  * Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
  * Forschung e.V.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,15 +15,23 @@
  */
 package de.fraunhofer.iosb.app;
 
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.Objects;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import de.fraunhofer.iosb.app.authentication.CustomAuthenticationRequestFilter;
+import de.fraunhofer.iosb.app.client.ClientEndpoint;
+import de.fraunhofer.iosb.app.client.contract.PolicyService;
+import de.fraunhofer.iosb.app.client.dataTransfer.DataTransferEndpoint;
+import de.fraunhofer.iosb.app.client.dataTransfer.DataTransferObservable;
+import de.fraunhofer.iosb.app.client.dataTransfer.TransferInitiator;
+import de.fraunhofer.iosb.app.client.negotiation.Negotiator;
+import de.fraunhofer.iosb.app.controller.AasController;
+import de.fraunhofer.iosb.app.controller.ConfigurationController;
+import de.fraunhofer.iosb.app.controller.ResourceController;
+import de.fraunhofer.iosb.app.model.configuration.Configuration;
+import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
+import de.fraunhofer.iosb.app.sync.Synchronizer;
+import okhttp3.OkHttpClient;
 import org.apache.http.client.utils.URIBuilder;
 import org.eclipse.edc.api.auth.spi.AuthenticationService;
 import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
@@ -39,23 +47,19 @@ import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.Config;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.spi.WebService;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.Objects;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
-import de.fraunhofer.iosb.app.authentication.CustomAuthenticationRequestFilter;
-import de.fraunhofer.iosb.app.client.ClientEndpoint;
-import de.fraunhofer.iosb.app.client.dataTransfer.DataTransferEndpoint;
-import de.fraunhofer.iosb.app.client.dataTransfer.DataTransferObservable;
-import de.fraunhofer.iosb.app.controller.AasController;
-import de.fraunhofer.iosb.app.controller.ConfigurationController;
-import de.fraunhofer.iosb.app.controller.ResourceController;
-import de.fraunhofer.iosb.app.model.configuration.Configuration;
-import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
-import de.fraunhofer.iosb.app.sync.Synchronizer;
-import okhttp3.OkHttpClient;
+import static java.lang.String.format;
 
 /**
  * EDC Extension supporting usage of Asset Administration Shells.
@@ -68,6 +72,8 @@ public class AasExtension implements ServiceExtension {
     private AuthenticationService authenticationService;
     @Inject
     private CatalogService catalogService;
+    @Inject
+    private TypeTransformerRegistry transformer;
     @Inject
     private ConsumerContractNegotiationManager consumerNegotiationManager;
     @Inject
@@ -118,7 +124,7 @@ public class AasExtension implements ServiceExtension {
 
         // Task: get all AAS service URLs, synchronize EDC and AAS
         syncExecutor.scheduleAtFixedRate(
-                () -> synchronizer.synchronize(),
+                synchronizer::synchronize,
                 1,
                 configInstance.getSyncPeriod(), TimeUnit.SECONDS);
 
@@ -132,7 +138,7 @@ public class AasExtension implements ServiceExtension {
     }
 
     private void initializeClient(ServiceExtensionContext context,
-            CustomAuthenticationRequestFilter authenticationRequestFilter) {
+                                  CustomAuthenticationRequestFilter authenticationRequestFilter) {
         URI ownUri;
         try {
             ownUri = createOwnUriFromConfigurationValues(context.getConfig());
@@ -141,30 +147,41 @@ public class AasExtension implements ServiceExtension {
             logger.warn("Client Endpoint will not be exposed and its functionality will not be available");
             return;
         }
+
         var observable = new DataTransferObservable();
-        var dataTransferEndpoint = new DataTransferEndpoint(observable);
-        webService.registerResource(
-                new ClientEndpoint(ownUri, catalogService, consumerNegotiationManager, contractNegotiationStore,
-                        contractNegotiationObservable, transferProcessManager, observable,
+
+        var clientEndpoint = new ClientEndpoint(new PolicyService(catalogService, transformer),
+                new Negotiator(consumerNegotiationManager, contractNegotiationObservable,
+                        contractNegotiationStore),
+                new TransferInitiator(ownUri, transferProcessManager, observable,
                         authenticationRequestFilter));
+        webService.registerResource(clientEndpoint);
+
+        var dataTransferEndpoint = new DataTransferEndpoint(observable);
         webService.registerResource(dataTransferEndpoint);
     }
 
+    /*
+    Maybe there is another way to retrieve these values?
+     */
     private URI createOwnUriFromConfigurationValues(Config config) {
-        URL idsAddress;
+        URL protocolAddress;
+        var protocolAddressString = config.getString("edc.dsp.callback.address");
+
         try {
-            idsAddress = new URL(config.getString("ids.webhook.address"));
+            protocolAddress = new URL(protocolAddressString);
         } catch (MalformedURLException idsWebhookAddressException) {
-            throw new EdcException("Configuration value ids.webhook.address is a malformed URL:",
+            throw new EdcException(format("Configuration value edc.dsp.callback.address is a malformed URL: %s",
+                    protocolAddressString),
                     idsWebhookAddressException);
         }
 
         int ownPort = Integer.parseInt(config.getString("web.http.port"));
         String ownPath = config.getString("web.http.path");
 
-        var ownUriBuilder = new URIBuilder();
-        ownUriBuilder.setScheme(idsAddress.getProtocol())
-                .setHost(idsAddress.getHost())
+        var ownUriBuilder = new URIBuilder()
+                .setScheme(protocolAddress.getProtocol())
+                .setHost(protocolAddress.getHost())
                 .setPort(ownPort)
                 .setPath(ownPath);
 
@@ -177,7 +194,7 @@ public class AasExtension implements ServiceExtension {
 
     /**
      * Get extension specific configuration from EDC config object
-     * 
+     *
      * @param context EDC config reference provider
      */
     private void loadConfig(ServiceExtensionContext context) {
@@ -186,13 +203,11 @@ public class AasExtension implements ServiceExtension {
 
         var config = context.getConfig();
 
-        logger.setPrefix(config.getString(SETTINGS_PREFIX + "logPrefix", "AAS Extension"));
-
         String configAsString;
         try {
             configAsString = objectMapper.writeValueAsString(config.getRelativeEntries(SETTINGS_PREFIX));
         } catch (JsonProcessingException e) {
-            // This should not be reached, unless there is an error inside EDC's Config.java
+            // This should not be reached, unless there is an error inside EDCs Config.java
             logger.error("Could not load AAS extension configuration, using default values", e);
             configAsString = "";
         }
@@ -201,6 +216,7 @@ public class AasExtension implements ServiceExtension {
 
     @Override
     public void shutdown() {
+        logger.log("Shutting down EDC4AAS extension...");
         syncExecutor.shutdown();
         aasController.stopServices();
     }

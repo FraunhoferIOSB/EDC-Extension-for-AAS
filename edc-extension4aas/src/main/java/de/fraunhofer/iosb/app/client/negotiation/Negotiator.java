@@ -2,7 +2,7 @@
  * Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
  * Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
  * Forschung e.V.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,33 +15,31 @@
  */
 package de.fraunhofer.iosb.app.client.negotiation;
 
-import static java.lang.String.format;
+import de.fraunhofer.iosb.app.model.configuration.Configuration;
+import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
+import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationObservable;
+import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
+import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestData;
+import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
+import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.query.QuerySpec;
 
 import java.net.URL;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.stream.Collectors;
 
-import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
-import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationObservable;
-import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
-import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractOfferRequest;
-import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
-import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.query.QuerySpec;
-
-import de.fraunhofer.iosb.app.model.configuration.Configuration;
+import static java.lang.String.format;
+import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 
 /**
  * Send contract offer, negotiation status watch
  */
 public class Negotiator {
-
-    private static final String PROTOCOL_IDS_MULTIPART = "ids-multipart";
 
     private final ConsumerContractNegotiationManager consumerNegotiationManager;
     private final ClientContractNegotiationListener listener;
@@ -49,14 +47,14 @@ public class Negotiator {
 
     /**
      * Class constructor
-     * 
+     *
      * @param consumerNegotiationManager Initiating a negotiation as a consumer.
      * @param observable                 Status updates for waiting data transfer
-     *                                   requestors to avoid busy waiting.
+     *                                   requesters to avoid busy waiting.
      * @param contractNegotiationStore   Check for existing agreements before negotiating
      */
     public Negotiator(ConsumerContractNegotiationManager consumerNegotiationManager,
-            ContractNegotiationObservable observable, ContractNegotiationStore contractNegotiationStore) {
+                      ContractNegotiationObservable observable, ContractNegotiationStore contractNegotiationStore) {
         this.consumerNegotiationManager = consumerNegotiationManager;
         this.contractNegotiationStore = contractNegotiationStore;
 
@@ -66,7 +64,7 @@ public class Negotiator {
 
     /**
      * Negotiate a contract agreement using the given contract offer if no agreement exists for this constellation.
-     * 
+     *
      * @param providerUrl   The provider of the data.
      * @param contractOffer The object of negotiation.
      * @return contractAgreement of the completed negotiation.
@@ -79,23 +77,29 @@ public class Negotiator {
      */
     public ContractAgreement negotiate(URL providerUrl, ContractOffer contractOffer)
             throws InterruptedException, ExecutionException {
-        var contractOfferRequest = ContractOfferRequest.Builder.newInstance()
-                .connectorAddress(providerUrl.toString())
-                .connectorId(contractOffer.getProvider().toString())
+        var contractRequestData = ContractRequestData.Builder.newInstance()
+                .connectorId("anonymous")
+                .counterPartyAddress(providerUrl.toString())
                 .contractOffer(contractOffer)
-                .protocol(PROTOCOL_IDS_MULTIPART)
+                .protocol(DATASPACE_PROTOCOL_HTTP)
+                .build();
+
+        var contractRequest = ContractRequest.Builder.newInstance()
+                .requestData(contractRequestData)
                 .build();
 
         var previousAgreements = contractNegotiationStore.queryAgreements(QuerySpec.max());
         var relevantAgreements = previousAgreements
-                .filter(agreement -> agreement.getAssetId().equals(contractOffer.getAsset().getId()))
-                .filter(agreement -> agreement.getProviderAgentId().equals(contractOffer.getProvider().toString()))
-                .collect(Collectors.toList());
+                .filter(agreement -> agreement.getAssetId().equals(contractOffer.getAssetId()))
+                .filter(agreement -> agreement.getProviderId().equals(contractOffer.getProviderId()))
+                .toList();
+
         if (relevantAgreements.size() > 0) { // An agreement exists for this asset & provider
-            return relevantAgreements.get(0); // Pick first agreement, hope contractNegotiationStore removes invalid agreements
+            return relevantAgreements.get(0); // Pick first agreement, hope contractNegotiationStore removes invalid
+            // agreements
         }
 
-        var result = consumerNegotiationManager.initiate(contractOfferRequest);
+        var result = consumerNegotiationManager.initiate(contractRequest);
         if (result.succeeded()) {
             return waitForAgreement(result.getContent().getId());
         } else {

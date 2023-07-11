@@ -2,7 +2,7 @@
  * Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
  * Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
  * Forschung e.V.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -40,7 +40,7 @@ public class CustomConceptDescription extends AASElement {
     public void setIdShort(String idShort) {
         this.idShort = idShort;
     }
-    
+
     @Override
     public boolean equals(Object obj) {
         if (obj == null) {
@@ -58,10 +58,6 @@ public class CustomConceptDescription extends AASElement {
             return false;
         }
 
-        if (!this.getIdShort().equals(other.getIdShort())) {
-            return false;
-        }
-
-        return true;
+        return this.getIdShort().equals(other.getIdShort());
     }
 }

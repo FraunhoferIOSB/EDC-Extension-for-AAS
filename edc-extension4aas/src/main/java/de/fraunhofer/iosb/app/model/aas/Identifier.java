@@ -2,7 +2,7 @@
  * Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
  * Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
  * Forschung e.V.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -60,11 +60,7 @@ public class Identifier {
         if (!this.getId().equals(other.getId())) {
             return false;
         }
-        if (!this.getIdType().equals(other.getIdType())) {
-            return false;
-        }
-
-        return true;
+        return this.getIdType().equals(other.getIdType());
     }
 
 }

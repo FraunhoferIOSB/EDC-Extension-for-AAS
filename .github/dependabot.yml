@@ -9,7 +9,7 @@ updates:
     directory: "/edc-extension4aas"
     schedule:
       interval: "daily"
-      
+
   - package-ecosystem: "gradle"
     directory: "/example"
     schedule:

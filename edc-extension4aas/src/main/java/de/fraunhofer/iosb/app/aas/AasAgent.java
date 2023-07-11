@@ -2,7 +2,7 @@
  * Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
  * Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
  * Forschung e.V.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,13 +18,7 @@ package de.fraunhofer.iosb.app.aas;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iosb.app.Logger;
-import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShell;
-import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShellEnvironment;
-import de.fraunhofer.iosb.app.model.aas.CustomConceptDescription;
-import de.fraunhofer.iosb.app.model.aas.CustomSubmodel;
-import de.fraunhofer.iosb.app.model.aas.CustomSubmodelElement;
-import de.fraunhofer.iosb.app.model.aas.CustomSubmodelElementCollection;
-import de.fraunhofer.iosb.app.model.aas.Identifier;
+import de.fraunhofer.iosb.app.model.aas.*;
 import de.fraunhofer.iosb.app.util.AASUtil;
 import de.fraunhofer.iosb.app.util.Encoder;
 import de.fraunhofer.iosb.app.util.HttpRestClient;
@@ -40,11 +34,7 @@ import org.eclipse.edc.spi.EdcException;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import static java.lang.String.format;
 
@@ -68,7 +58,7 @@ public class AasAgent {
 
     /**
      * Overwrite aas model element.
-
+     *
      * @param aasServiceUrl AAS service to be updated with the path to the updated
      *                      element
      * @param element       Updated AAS model element.
@@ -88,7 +78,7 @@ public class AasAgent {
 
     /**
      * Create aas model element.
-
+     *
      * @param aasServiceUrl AAS service to be updated with path to the new element
      * @param element       New AAS model element.
      * @return String containing response of AAS service.
@@ -107,7 +97,7 @@ public class AasAgent {
 
     /**
      * Create aas model element.
-
+     *
      * @param aasServiceUrl AAS service to be updated with the path to the element
      *                      to be removed
      * @param element       New AAS model element.
@@ -128,10 +118,10 @@ public class AasAgent {
     /**
      * Returns AAS model enriched with each elements access URL as string in
      * sourceUrl field.
-
+     *
      * @param aasServiceUrl AAS service to be updated
      * @return AAS model enriched with each elements access URL as string in assetId
-     *         field.
+     * field.
      */
     public CustomAssetAdministrationShellEnvironment getAasEnvWithUrls(URL aasServiceUrl)
             throws IOException, DeserializationException {
@@ -139,18 +129,16 @@ public class AasAgent {
 
         var model = readModel(aasServiceUrl);
         // Add urls to all shells
-        model.getAssetAdministrationShells().forEach(shell -> {
-            shell.setSourceUrl(
-                    format("%s/shells/%s", aasServiceUrlString,
-                            Encoder.encodeBase64(shell.getIdentification().getId())));
-        });
+        model.getAssetAdministrationShells().forEach(shell -> shell.setSourceUrl(
+                format("%s/shells/%s", aasServiceUrlString,
+                        Encoder.encodeBase64(shell.getIdentification().getId()))));
         // Add urls to all submodels, submodelElements
         model.getSubmodels().forEach(submodel -> {
             submodel.setSourceUrl(
                     format("%s/submodels/%s", aasServiceUrlString,
                             Encoder.encodeBase64(submodel.getIdentification().getId())));
             submodel.getSubmodelElements()
-                    .forEach(elem -> elem = putUrlRec(
+                    .forEach(elem -> putUrlRec(
                             format("%s/submodels/%s/submodel/submodel-elements", aasServiceUrlString,
                                     Encoder.encodeBase64(submodel.getIdentification().getId())),
                             elem));
@@ -172,9 +160,12 @@ public class AasAgent {
         String conceptResponse;
         String submodelResponse;
         try {
-            shellResponse = httpRestClient.get(aasServiceUrl.toURI().resolve("/shells").toURL()).body().string();
-            submodelResponse = httpRestClient.get(aasServiceUrl.toURI().resolve("/submodels").toURL()).body().string();
-            conceptResponse = httpRestClient.get(aasServiceUrl.toURI().resolve("/concept-descriptions").toURL()).body()
+            shellResponse =
+                    Objects.requireNonNull(httpRestClient.get(aasServiceUrl.toURI().resolve("/shells").toURL()).body()).string();
+            submodelResponse =
+                    Objects.requireNonNull(httpRestClient.get(aasServiceUrl.toURI().resolve("/submodels").toURL()).body()).string();
+            conceptResponse = Objects.requireNonNull(httpRestClient.get(aasServiceUrl.toURI().resolve("/concept" +
+                            "-descriptions").toURL()).body())
                     .string();
         } catch (URISyntaxException e) {
             throw new EdcException(e.getMessage());
@@ -185,7 +176,7 @@ public class AasAgent {
         CustomConceptDescription[] conceptDescriptions = objectMapper.readValue(conceptResponse,
                 CustomConceptDescription[].class);
 
-        // Because of SMC's "value" field, submodels have to be parsed manually
+        // Because of SMCs "value" field, submodels have to be parsed manually
 
         // First, parse into full admin-shell.io submodels:
         JsonDeserializer jsonDeserializer = new JsonDeserializer();

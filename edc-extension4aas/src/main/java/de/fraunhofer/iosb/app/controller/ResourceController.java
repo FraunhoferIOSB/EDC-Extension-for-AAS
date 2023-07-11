@@ -2,7 +2,7 @@
  * Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
  * Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
  * Forschung e.V.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,13 +15,12 @@
  */
 package de.fraunhofer.iosb.app.controller;
 
-import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
-import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
-import org.eclipse.edc.spi.asset.AssetIndex;
-
 import de.fraunhofer.iosb.app.edc.ContractHandler;
 import de.fraunhofer.iosb.app.edc.ResourceHandler;
 import de.fraunhofer.iosb.app.util.Pair;
+import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
+import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
+import org.eclipse.edc.spi.asset.AssetIndex;
 
 /**
  * Controls communication with EDC (EDC contracts and EDC assets)
@@ -32,7 +31,7 @@ public class ResourceController {
     private final ContractHandler contractHandler;
 
     public ResourceController(AssetIndex assetIndex, ContractDefinitionStore contractStore,
-            PolicyDefinitionStore policyStore) {
+                              PolicyDefinitionStore policyStore) {
         resourceAgent = new ResourceHandler(assetIndex);
         contractHandler = new ContractHandler(contractStore, policyStore);
     }
@@ -40,12 +39,11 @@ public class ResourceController {
     /**
      * Registers resource at EDC with default contract, return contract id of new
      * asset
-
+     *
      * @param linkToResource Link to resource to be registered
-     * @param name        The name of the asset (e.g., idShort)
-     * @param contentType Content behind the sourceUrl
-     * @param version     For versioning of assets
-
+     * @param name           The name of the asset (e.g., idShort)
+     * @param contentType    Content behind the sourceUrl
+     * @param version        For versioning of assets
      * @return contract id
      */
     public Pair<String, String> createResource(String linkToResource, String name, String contentType, String version) {
@@ -56,7 +54,7 @@ public class ResourceController {
 
     /**
      * Disassociates asset from all contracts, then delete it from EDC AssetIndex.
-
+     *
      * @param assetId Asset ID of asset to be deleted
      */
     public void deleteAssetAndContracts(String assetId) {
@@ -66,7 +64,7 @@ public class ResourceController {
 
     /**
      * Removes a contract
-
+     *
      * @param contractId The contract id
      */
     public void deleteContract(String contractId) {

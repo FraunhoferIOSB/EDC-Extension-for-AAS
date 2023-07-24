@@ -17,13 +17,17 @@ package de.fraunhofer.iosb.app.model.aas;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 
-import java.util.ArrayList;
 import java.util.Collection;
 
 @JsonAutoDetect
 public class CustomSubmodelElementCollection extends CustomSubmodelElement {
 
-    private Collection<CustomSubmodelElement> value = new ArrayList<>();
+    public CustomSubmodelElementCollection(String idShort, Collection<CustomSubmodelElement> value) {
+        this.idShort = idShort;
+        this.value = value;
+    }
+
+    private Collection<CustomSubmodelElement> value;
 
     public Collection<CustomSubmodelElement> getValue() {
         return value;
@@ -32,5 +36,6 @@ public class CustomSubmodelElementCollection extends CustomSubmodelElement {
     public void setValues(Collection<CustomSubmodelElement> value) {
         this.value = value;
     }
+
 
 }

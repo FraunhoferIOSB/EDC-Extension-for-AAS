@@ -16,9 +16,9 @@
 package de.fraunhofer.iosb.app.util;
 
 import de.fraunhofer.iosb.app.model.aas.*;
-import io.adminshell.aas.v3.model.Submodel;
-import io.adminshell.aas.v3.model.SubmodelElement;
-import io.adminshell.aas.v3.model.SubmodelElementCollection;
+import org.eclipse.digitaltwin.aas4j.v3.model.Submodel;
+import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElement;
+import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElementCollection;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -77,11 +77,10 @@ public final class AASUtil {
         Collection<CustomSubmodelElement> customSubmodelElements = new ArrayList<>();
         for (SubmodelElement submodelElement : submodelElements) {
             if (submodelElement instanceof SubmodelElementCollection) {
-                var customSubmodelElementCollection = new CustomSubmodelElementCollection();
-                customSubmodelElementCollection.setIdShort(submodelElement.getIdShort());
-                customSubmodelElementCollection
-                        .setValues(unpackElements(((SubmodelElementCollection) submodelElement).getValues()));
-                customSubmodelElements.add(customSubmodelElementCollection);
+                customSubmodelElements.add(
+                        new CustomSubmodelElementCollection(
+                                submodelElement.getIdShort(),
+                                unpackElements(((SubmodelElementCollection) submodelElement).getValue())));
             } else {
                 var customSubmodelElement = new CustomSubmodelElement();
                 customSubmodelElement.setIdShort(submodelElement.getIdShort());

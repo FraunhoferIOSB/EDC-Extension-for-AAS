@@ -22,8 +22,8 @@ import de.fraunhofer.iosb.app.model.ids.SelfDescription;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionChangeListener;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
 import de.fraunhofer.iosb.app.util.AASUtil;
-import io.adminshell.aas.v3.dataformat.DeserializationException;
 import jakarta.ws.rs.core.MediaType;
+import org.eclipse.digitaltwin.aas4j.v3.dataformat.DeserializationException;
 import org.eclipse.edc.spi.EdcException;
 
 import java.io.IOException;

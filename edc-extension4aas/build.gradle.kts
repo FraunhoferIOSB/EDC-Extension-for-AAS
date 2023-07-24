@@ -26,8 +26,8 @@ dependencies {
     implementation("$group:runtime-metamodel:$edcVersion")
     implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
     implementation("de.fraunhofer.iosb.ilt.faaast.service:starter:${faaastVersion}")
-    implementation("io.admin-shell.aas:dataformat-json:1.2.1")
-    implementation("io.admin-shell.aas:model:1.2.0")
+    implementation("org.eclipse.digitaltwin.aas4j:dataformat-json:1.0.0-milestone-03.1")
+    implementation("org.eclipse.digitaltwin.aas4j:model:1.0.0-milestone-03.1")
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 
     testImplementation("$group:junit:$edcVersion")

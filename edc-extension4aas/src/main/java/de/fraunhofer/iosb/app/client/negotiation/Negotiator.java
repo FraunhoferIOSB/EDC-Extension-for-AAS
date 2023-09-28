@@ -22,7 +22,6 @@ import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiat
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequestData;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -77,21 +76,17 @@ public class Negotiator {
      */
     public ContractAgreement negotiate(URL providerUrl, ContractOffer contractOffer)
             throws InterruptedException, ExecutionException {
-        var contractRequestData = ContractRequestData.Builder.newInstance()
-                .connectorId("anonymous")
+
+        var contractRequest = ContractRequest.Builder.newInstance()
                 .counterPartyAddress(providerUrl.toString())
                 .contractOffer(contractOffer)
                 .protocol(DATASPACE_PROTOCOL_HTTP)
                 .build();
 
-        var contractRequest = ContractRequest.Builder.newInstance()
-                .requestData(contractRequestData)
-                .build();
-
         var previousAgreements = contractNegotiationStore.queryAgreements(QuerySpec.max());
         var relevantAgreements = previousAgreements
                 .filter(agreement -> agreement.getAssetId().equals(contractOffer.getAssetId()))
-                .filter(agreement -> agreement.getProviderId().equals(contractOffer.getProviderId()))
+                .filter(agreement -> agreement.getProviderId().equals(providerUrl.toString()))
                 .toList();
 
         if (relevantAgreements.size() > 0) { // An agreement exists for this asset & provider

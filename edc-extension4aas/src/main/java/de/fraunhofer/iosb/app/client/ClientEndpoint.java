@@ -107,7 +107,6 @@ public class ClientEndpoint {
                 .id(idPolicyPair.getFirst())
                 .policy(idPolicyPair.getSecond())
                 .assetId(assetId)
-                .providerId(providerUrl.toString())
                 .build();
         ContractAgreement agreement;
 

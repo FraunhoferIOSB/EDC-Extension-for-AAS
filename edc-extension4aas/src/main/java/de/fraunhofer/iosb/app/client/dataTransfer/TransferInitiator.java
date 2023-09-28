@@ -114,19 +114,14 @@ public class TransferInitiator {
         var dataFuture = new CompletableFuture<String>();
         observable.register(dataFuture, agreementId);
 
-        var dataRequest = DataRequest.Builder.newInstance()
+        var transferRequest = TransferRequest.Builder.newInstance()
                 .id(UUID.randomUUID().toString()) // this is not relevant, thus can be random
                 .connectorAddress(providerUrl.toString()) // the address of the provider connector
                 .protocol(DATASPACE_PROTOCOL_HTTP)
                 .connectorId("consumer")
                 .assetId(assetId)
                 .dataDestination(dataSinkAddress)
-                .managedResources(false) // we do not need any provisioning
                 .contractId(agreementId)
-                .build();
-
-        var transferRequest = TransferRequest.Builder.newInstance()
-                .dataRequest(dataRequest)
                 .build();
 
         var transferProcessStatus = transferProcessManager.initiateConsumerRequest(transferRequest);

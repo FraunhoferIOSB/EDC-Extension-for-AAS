@@ -119,7 +119,7 @@ public class ClientEndpointTest {
         var completableFuture = new CompletableFuture<StatusResult<byte[]>>();
         completableFuture.complete(StatusResult.success(new ObjectMapper().writeValueAsBytes(mockCatalog)));
 
-        when(catalogService.request(any(), any(), any())).thenReturn(completableFuture);
+        when(catalogService.requestCatalog(any(), any(), any())).thenReturn(completableFuture);
         return catalogService;
     }
 

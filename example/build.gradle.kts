@@ -30,14 +30,10 @@ dependencies {
     // Read configuration values
     implementation("$group:configuration-filesystem:$edcVersion")
 
-    // Data transfer (read from AAS service/write to HTTP endpoint)
-    implementation("$group:data-plane-core:$edcVersion")
-    implementation("$group:data-plane-http:$edcVersion")
+    // Data transfer (read/write from/to AAS service, write to HTTP endpoint)
     implementation("$group:data-plane-client:$edcVersion")
     implementation("$group:data-plane-selector-client:$edcVersion")
     implementation("$group:data-plane-selector-core:$edcVersion")
-    implementation("$group:data-plane-selector-api:$edcVersion")
-    implementation("$group:transfer-data-plane:$edcVersion")
 }
 
 application {

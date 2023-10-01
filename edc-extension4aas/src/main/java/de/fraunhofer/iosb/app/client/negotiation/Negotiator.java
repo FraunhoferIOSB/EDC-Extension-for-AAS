@@ -22,18 +22,15 @@ import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiat
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
-import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.query.QuerySpec;
 
-import java.net.URL;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import static java.lang.String.format;
-import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 
 /**
  * Send contract offer, negotiation status watch
@@ -64,8 +61,7 @@ public class Negotiator {
     /**
      * Negotiate a contract agreement using the given contract offer if no agreement exists for this constellation.
      *
-     * @param providerUrl   The provider of the data.
-     * @param contractOffer The object of negotiation.
+     * @param contractRequest The contract request to be sent.
      * @return contractAgreement of the completed negotiation.
      * @throws ExecutionException   Attempted to retrieve the agreementId but the
      *                              task aborted by throwing an exception. This
@@ -74,26 +70,18 @@ public class Negotiator {
      * @throws InterruptedException Thread for agreementId was waiting, sleeping, or
      *                              otherwise occupied, and was interrupted.
      */
-    public ContractAgreement negotiate(URL providerUrl, ContractOffer contractOffer)
+    public ContractAgreement negotiate(ContractRequest contractRequest)
             throws InterruptedException, ExecutionException {
-
-        var contractRequest = ContractRequest.Builder.newInstance()
-                .counterPartyAddress(providerUrl.toString())
-                .contractOffer(contractOffer)
-                .protocol(DATASPACE_PROTOCOL_HTTP)
-                .build();
-
         var previousAgreements = contractNegotiationStore.queryAgreements(QuerySpec.max());
         var relevantAgreements = previousAgreements
-                .filter(agreement -> agreement.getAssetId().equals(contractOffer.getAssetId()))
-                .filter(agreement -> agreement.getProviderId().equals(providerUrl.toString()))
+                .filter(agreement -> agreement.getAssetId().equals(contractRequest.getContractOffer().getAssetId()))
+                .filter(agreement -> agreement.getProviderId().equals(contractRequest.getProviderId()))
                 .toList();
 
-        if (relevantAgreements.size() > 0) { // An agreement exists for this asset & provider
-            return relevantAgreements.get(0); // Pick first agreement, hope contractNegotiationStore removes invalid
-            // agreements
+        if (relevantAgreements.size() > 0) {
+            return relevantAgreements.get(0); // assuming contractNegotiationStore removes invalid agreements
         }
-
+        // TODO fix Invalid Counter-Party Id error on negotiation
         var result = consumerNegotiationManager.initiate(contractRequest);
         if (result.succeeded()) {
             return waitForAgreement(result.getContent().getId());

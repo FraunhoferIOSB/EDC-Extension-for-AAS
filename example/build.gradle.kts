@@ -25,6 +25,7 @@ dependencies {
 
     // Identity and access management MOCK -> only for testing
     implementation("$group:iam-mock:$edcVersion")
+    // Enables X-Api-Key feature
     implementation("$group:auth-tokenbased:$edcVersion")
 
     // Read configuration values

@@ -19,7 +19,6 @@ import de.fraunhofer.iosb.app.authentication.CustomAuthenticationRequestFilter;
 import de.fraunhofer.iosb.app.client.ClientEndpoint;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
-import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.types.domain.DataAddress;

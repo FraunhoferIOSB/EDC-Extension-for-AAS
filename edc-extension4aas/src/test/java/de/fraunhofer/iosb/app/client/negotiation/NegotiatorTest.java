@@ -21,6 +21,7 @@ import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegoti
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.Permission;
@@ -78,8 +79,13 @@ public class NegotiatorTest {
                 .policy(mockPolicy)
                 .build();
 
-        var future = Executors.newSingleThreadExecutor().submit(() -> clientNegotiator.negotiate(fakeUrl,
-                contractOffer));
+        var contractRequest = ContractRequest.Builder.newInstance()
+                .contractOffer(contractOffer)
+                .counterPartyAddress(fakeUrl.toString())
+                .protocol("dataspace-protocol-http")
+                .build();
+
+        var future = Executors.newSingleThreadExecutor().submit(() -> clientNegotiator.negotiate(contractRequest));
         // Let the negotiator think we need time to process
         // If not, the "confirmed" signal will be sent too soon, and the negotiator will
         // never complete

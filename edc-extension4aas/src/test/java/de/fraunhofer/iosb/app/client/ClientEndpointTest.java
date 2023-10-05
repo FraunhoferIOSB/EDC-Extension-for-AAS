@@ -29,6 +29,7 @@ import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegoti
 import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.spi.catalog.CatalogService;
@@ -145,11 +146,16 @@ public class ClientEndpointTest {
 
     @Test
     public void negotiateContractTest() {
-        try (var ignored = clientEndpoint.negotiateContract(url,
-                ContractOffer.Builder.newInstance()
-                        .id(UUID.randomUUID().toString())
-                        .policy(mockPolicyDefinition.getPolicy())
-                        .assetId(UUID.randomUUID().toString())
+        try (var ignored = clientEndpoint.negotiateContract(
+                ContractRequest.Builder.newInstance()
+                        .counterPartyAddress(url.toString())
+                        .contractOffer(
+                                ContractOffer.Builder.newInstance()
+                                        .id(UUID.randomUUID().toString())
+                                        .policy(mockPolicyDefinition.getPolicy())
+                                        .assetId(UUID.randomUUID().toString())
+                                        .build())
+                        .protocol("dataspace-protocol-http")
                         .build())) {
             fail();
         } catch (EdcException expected) {
@@ -164,7 +170,7 @@ public class ClientEndpointTest {
     @Disabled("Until catalog fetching works again")
     public void negotiateContractAndTransferTest() {
         // TODO repair after fixing ContractOfferService.class
-        try (var ignored = clientEndpoint.negotiateContract(url, "test-asset", null)) {
+        try (var ignored = clientEndpoint.negotiateContract(url, "test-id", "test-asset-id", null)) {
             fail();
         } catch (EdcException expected) {
         }

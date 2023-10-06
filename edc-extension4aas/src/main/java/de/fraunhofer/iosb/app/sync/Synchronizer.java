@@ -188,10 +188,7 @@ public class Synchronizer implements SelfDescriptionChangeListener {
     }
 
     private void removeAssetsContracts(List<? extends IdsAssetElement> elements) {
-        elements.forEach(element -> {
-            resourceController.deleteAssetAndContracts(element.getIdsAssetId());
-            resourceController.deleteContract(element.getIdsContractId());
-        });
+        elements.forEach(element -> resourceController.deleteAssetAndContracts(element.getIdsAssetId()));
     }
 
     @Override

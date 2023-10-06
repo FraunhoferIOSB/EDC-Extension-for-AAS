@@ -28,13 +28,13 @@ import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
-import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import static java.lang.String.format;
 
@@ -62,22 +62,32 @@ public class ContractHandler {
     private final Logger logger;
     private final ObjectReader objectReader;
 
+    private final Policy defaultPolicy;
+
+    /**
+     * Creates an instance of the ContractHandler class.
+     *
+     * @param contractStore Needed to manage EDC contracts.
+     * @param policyStore   Needed to manage EDC policies.
+     */
     public ContractHandler(ContractDefinitionStore contractStore, PolicyDefinitionStore policyStore) {
-        Objects.requireNonNull(contractStore);
-        Objects.requireNonNull(policyStore);
+        Objects.requireNonNull(contractStore, "ContractDefinitionStore");
+        Objects.requireNonNull(policyStore, "PolicyDefinitionStore");
         this.contractDefinitionStore = contractStore;
         this.policyDefinitionStore = policyStore;
+
+        defaultPolicy = initializeDefaultPolicy();
+
         configuration = Configuration.getInstance();
         logger = Logger.getInstance();
-        var objectMapper = new ObjectMapper();
-        objectReader = objectMapper.readerFor(Policy.class);
+        objectReader = new ObjectMapper().readerFor(Policy.class);
     }
 
     /**
-     * Registers the given assetId to the default contract.
+     * Registers the given assetId to the default contract with the default access and contract policies.
      *
      * @param assetId The asset ID
-     * @return Contract id of contract this assetId was registered to
+     * @return Contract id of contract this assetId was registered to.
      */
     public String registerAssetToDefaultContract(String assetId) {
         Objects.requireNonNull(assetId);
@@ -97,18 +107,15 @@ public class ContractHandler {
                 .forEach(contract -> contractDefinitionStore.deleteById(contract.getId()));
     }
 
-    /**
-     * Deletes the contract definition with the given id. Wraps
-     * {@link org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore#deleteById(String)
-     * ContractDefinitionStore.deleteById()}
-     *
-     * @param contractId Contract to be deleted
-     * @return The removed contract definition or null if the contract definition
-     * was not found
-     */
-    public StoreResult<ContractDefinition> deleteContractDefinition(String contractId) {
-        return contractDefinitionStore.deleteById(contractId);
+
+    private Policy initializeDefaultPolicy() {
+        return Policy.Builder.newInstance()
+                .permission(Permission.Builder.newInstance()
+                        .action(Action.Builder.newInstance().type("USE").build())
+                        .build())
+                .build();
     }
+
 
     private String createDefaultContract(String assetId) {
         contractNumber++;
@@ -119,54 +126,19 @@ public class ContractHandler {
         var defaultAccessPolicyPath = configuration.getDefaultAccessPolicyPath();
         var defaultContractPolicyPath = configuration.getDefaultContractPolicyPath();
 
-        var usePermissionPolicy = Policy.Builder.newInstance()
-                .permission(Permission.Builder.newInstance()
-                        .action(Action.Builder.newInstance().type("USE").build())
-                        //.target(assetId)
-                        .build())
-                //.type(PolicyType.CONTRACT)
-                //.target(assetId)
-                .build();
+        var defaultAccessPolicy = getPolicyDefinitionFromFile(defaultAccessPolicyPath).orElse(defaultPolicy);
+        var defaultContractPolicy = getPolicyDefinitionFromFile(defaultContractPolicyPath).orElse(defaultPolicy);
 
         var defaultAccessPolicyDefinition = PolicyDefinition.Builder.newInstance()
                 .id(accessPolicyId)
-                .policy(usePermissionPolicy)
+                .policy(defaultAccessPolicy.withTarget(assetId))
                 .build();
         var defaultContractPolicyDefinition = PolicyDefinition.Builder.newInstance()
                 .id(contractPolicyId)
-                .policy(usePermissionPolicy)
+                .policy(defaultContractPolicy.withTarget(assetId))
                 .build();
 
-        if (Objects.nonNull(defaultAccessPolicyPath)) {
-            try {
-                Policy defaultAccessPolicy = objectReader.readValue(Path.of(defaultAccessPolicyPath).toFile());
-                defaultAccessPolicyDefinition = PolicyDefinition.Builder.newInstance()
-                        .id(accessPolicyId)
-                        .policy(defaultAccessPolicy.withTarget(assetId))
-                        .build();
-            } catch (IOException ioException) {
-                logger.error(
-                        format("Could not find a correct access policy at path %s. Using internal default policy.",
-                                defaultAccessPolicyPath),
-                        ioException);
-            }
-        }
         policyDefinitionStore.create(defaultAccessPolicyDefinition);
-
-        if (Objects.nonNull(defaultContractPolicyPath)) {
-            try {
-                Policy defaultContractPolicy = objectReader.readValue(Path.of(defaultContractPolicyPath).toFile());
-                defaultContractPolicyDefinition = PolicyDefinition.Builder.newInstance()
-                        .id(contractPolicyId)
-                        .policy(defaultContractPolicy.withTarget(assetId))
-                        .build();
-            } catch (IOException ioException) {
-                logger.error(
-                        format("Could not find a correct contract policy at path %s. Using internal default policy.",
-                                defaultContractPolicyPath),
-                        ioException);
-            }
-        }
         policyDefinitionStore.create(defaultContractPolicyDefinition);
 
         var defaultContractDefinition = ContractDefinition.Builder.newInstance()
@@ -179,5 +151,18 @@ public class ContractHandler {
         contractDefinitionStore.save(defaultContractDefinition);
 
         return contractDefinitionId;
+    }
+
+    private Optional<Policy> getPolicyDefinitionFromFile(String filePath) {
+        try {
+            Policy filePolicy = objectReader.readValue(Path.of(filePath).toFile());
+            return Optional.of(filePolicy);
+        } catch (IOException ioException) {
+            logger.error(
+                    format("Could not find a valid policy at path %s. Using internal default policy.",
+                            filePath),
+                    ioException);
+            return Optional.empty();
+        }
     }
 }

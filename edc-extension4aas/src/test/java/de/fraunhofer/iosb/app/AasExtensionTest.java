@@ -15,7 +15,6 @@
  */
 package de.fraunhofer.iosb.app;
 
-import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import okhttp3.OkHttpClient;
 import org.eclipse.edc.api.auth.spi.AuthenticationService;
 import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
@@ -66,9 +65,6 @@ public class AasExtensionTest {
         when(mockConf.getString("ids.webhook.address")).thenReturn("http://localhost:8080");
         when(mockConf.getString("web.http.port")).thenReturn("1234");
         when(mockConf.getString("web.http.path")).thenReturn("api-path");
-        // Singleton testing is fun
-        Configuration.getInstance().setRemoteAasLocation(null);
-        Configuration.getInstance().setLocalAasModelPath(null);
 
         extension = factory.constructInstance(AasExtension.class);
     }

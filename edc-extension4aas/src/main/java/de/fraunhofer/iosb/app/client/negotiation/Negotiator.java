@@ -78,10 +78,10 @@ public class Negotiator {
                 .filter(agreement -> agreement.getProviderId().equals(contractRequest.getProviderId()))
                 .toList();
 
-        if (relevantAgreements.size() > 0) {
+        if (!relevantAgreements.isEmpty()) {
             return relevantAgreements.get(0); // assuming contractNegotiationStore removes invalid agreements
         }
-        // TODO fix Invalid Counter-Party Id error on negotiation
+        // TODO fix Invalid contractOfferId error (not found or no access) on negotiation. Also: why are not all policies stored in edc? E.g., DEFAULT_CONTRACT_POLICY2 missing
         var result = consumerNegotiationManager.initiate(contractRequest);
         if (result.succeeded()) {
             return waitForAgreement(result.getContent().getId());

@@ -187,7 +187,6 @@ public class AasAgent {
         for (Submodel submodel : submodels) {
             var customSubmodel = new CustomSubmodel();
             var customIdentification = new Identifier();
-            customIdentification.setIdType(submodel.getId());
             customIdentification.setId(submodel.getId());
             customSubmodel.setIdentification(customIdentification);
 

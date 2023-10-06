@@ -23,19 +23,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @JsonAutoDetect
 public class Identifier {
 
-    @JsonProperty("idType")
-    private String idType;
-
     @JsonProperty("id")
     private String id;
-
-    public String getIdType() {
-        return idType;
-    }
-
-    public void setIdType(String idType) {
-        this.idType = idType;
-    }
 
     public String getId() {
         return id;
@@ -57,10 +46,7 @@ public class Identifier {
 
         final Identifier other = (Identifier) obj;
 
-        if (!this.getId().equals(other.getId())) {
-            return false;
-        }
-        return this.getIdType().equals(other.getIdType());
+        return this.getId().equals(other.getId());
     }
 
 }

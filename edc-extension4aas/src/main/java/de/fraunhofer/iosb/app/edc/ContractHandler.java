@@ -154,6 +154,10 @@ public class ContractHandler {
     }
 
     private Optional<Policy> getPolicyDefinitionFromFile(String filePath) {
+        if (Objects.isNull(filePath)) {
+            return Optional.empty();
+        }
+
         try {
             Policy filePolicy = objectReader.readValue(Path.of(filePath).toFile());
             return Optional.of(filePolicy);

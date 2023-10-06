@@ -15,9 +15,7 @@
  */
 package de.fraunhofer.iosb.app.model.configuration;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import java.net.URL;
 import java.util.Objects;
@@ -26,12 +24,9 @@ import java.util.Objects;
  * Singleton class.
  * The configuration of the application.
  */
-@JsonSerialize
-@JsonAutoDetect
 public class Configuration {
 
     private static final String SETTINGS_PREFIX = "edc.aas.";
-
     private static Configuration instance;
 
     @JsonProperty(SETTINGS_PREFIX + "remoteAASLocation")
@@ -73,6 +68,7 @@ public class Configuration {
     @JsonProperty(SETTINGS_PREFIX + "client.acceptedPolicyDefinitionsPath")
     private String acceptedPolicyDefinitionsPath;
 
+
     public static synchronized Configuration getInstance() {
         if (Objects.isNull(instance)) {
             instance = new Configuration();
@@ -80,107 +76,68 @@ public class Configuration {
         return instance;
     }
 
+
     public URL getRemoteAasLocation() {
         return remoteAasLocation;
     }
 
-    public void setRemoteAasLocation(URL remoteAasLocation) {
-        this.remoteAasLocation = remoteAasLocation;
-    }
 
     public String getLocalAasModelPath() {
         return localAasModelPath;
     }
 
-    public void setLocalAasModelPath(String localAasModelPath) {
-        this.localAasModelPath = localAasModelPath;
-    }
 
     public int getLocalAasServicePort() {
         return localAasServicePort;
     }
 
-    public void setLocalAasServicePort(int localAasServicePort) {
-        this.localAasServicePort = localAasServicePort;
-    }
 
     public String getAasServiceConfigPath() {
         return aasServiceConfigPath;
     }
 
-    public void setAasServiceConfigPath(String aasServiceConfigPath) {
-        this.aasServiceConfigPath = aasServiceConfigPath;
-    }
 
     public int getSyncPeriod() {
         return syncPeriod;
     }
 
-    public void setSyncPeriod(int syncPeriod) {
-        this.syncPeriod = syncPeriod;
-    }
 
     public boolean isExposeSelfDescription() {
         return exposeSelfDescription;
     }
 
-    public void setExposeSelfDescription(boolean exposeSelfDescription) {
-        this.exposeSelfDescription = exposeSelfDescription;
-    }
 
     public String getDefaultAccessPolicyPath() {
         return defaultAccessPolicyPath;
     }
 
-    public void setDefaultAccessPolicyPath(String defaultAccessPolicyPath) {
-        this.defaultAccessPolicyPath = defaultAccessPolicyPath;
-    }
 
     public String getDefaultContractPolicyPath() {
         return defaultContractPolicyPath;
     }
 
-    public void setDefaultContractPolicyPath(String defaultContractPolicyPath) {
-        this.defaultContractPolicyPath = defaultContractPolicyPath;
-    }
 
     public int getWaitForAgreementTimeout() {
         return waitForAgreementTimeout;
     }
 
-    public void setWaitForAgreementTimeout(int waitForAgreementTimeout) {
-        this.waitForAgreementTimeout = waitForAgreementTimeout;
-    }
 
     public int getWaitForTransferTimeout() {
         return waitForTransferTimeout;
     }
 
-    public void setWaitForTransferTimeout(int waitForTransferTimeout) {
-        this.waitForTransferTimeout = waitForTransferTimeout;
-    }
 
     public int getWaitForCatalogTimeout() {
         return waitForCatalogTimeout;
     }
 
-    public void setWaitForCatalogTimeout(int waitForCatalogTimeout) {
-        this.waitForCatalogTimeout = waitForCatalogTimeout;
-    }
 
     public boolean isAcceptAllProviderOffers() {
         return acceptAllProviderOffers;
     }
 
-    public void setAcceptAllProviderOffers(boolean acceptAllProviderOffers) {
-        this.acceptAllProviderOffers = acceptAllProviderOffers;
-    }
 
     public String getAcceptedPolicyDefinitionsPath() {
         return acceptedPolicyDefinitionsPath;
-    }
-
-    public void setAcceptedPolicyDefinitionsPath(String acceptedPolicyDefinitionsPath) {
-        this.acceptedPolicyDefinitionsPath = acceptedPolicyDefinitionsPath;
     }
 }

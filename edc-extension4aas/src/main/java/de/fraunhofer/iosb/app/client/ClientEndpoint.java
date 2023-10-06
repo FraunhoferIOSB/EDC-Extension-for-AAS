@@ -24,6 +24,7 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.policy.model.Policy;
@@ -34,6 +35,7 @@ import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
 import static java.lang.String.format;
+import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 
 /**
  * Automated contract negotiation
@@ -87,6 +89,7 @@ public class ClientEndpoint {
     @POST
     @Path(NEGOTIATE_PATH)
     public Response negotiateContract(@QueryParam("providerUrl") URL providerUrl,
+                                      @QueryParam("providerId") String providerId,
                                       @QueryParam("assetId") String assetId,
                                       @QueryParam("dataDestinationUrl") URL dataDestinationUrl) {
         LOGGER.debug(format("Received a %s POST request", NEGOTIATE_PATH));
@@ -103,16 +106,22 @@ public class ClientEndpoint {
                     .build();
         }
 
-        ContractOffer offer = ContractOffer.Builder.newInstance()
+        var offer = ContractOffer.Builder.newInstance()
                 .id(idPolicyPair.getFirst())
                 .policy(idPolicyPair.getSecond())
                 .assetId(assetId)
-                .providerId(providerUrl.toString())
+                .build();
+
+        var contractRequest = ContractRequest.Builder.newInstance()
+                .contractOffer(offer)
+                .counterPartyAddress(providerUrl.toString())
+                .providerId(providerId)
+                .protocol(DATASPACE_PROTOCOL_HTTP)
                 .build();
         ContractAgreement agreement;
 
         try {
-            agreement = negotiator.negotiate(providerUrl, offer);
+            agreement = negotiator.negotiate(contractRequest);
         } catch (InterruptedException | ExecutionException negotiationException) {
             LOGGER.error(format("Negotiation failed for provider %s and contractOffer %s", providerUrl,
                     offer.getId()), negotiationException);
@@ -153,22 +162,19 @@ public class ClientEndpoint {
      * Initiate a contract negotiation, acting as a consumer, with a provider
      * connector.
      *
-     * @param providerUrl   The provider's url.
-     * @param contractOffer A contract offer to be negotiated with.
+     * @param contractRequest The contract request to be sent.
      * @return An agreementID on success or an error message on error.
      */
     @POST
     @Path(NEGOTIATE_CONTRACT_PATH)
-    public Response negotiateContract(@QueryParam("providerUrl") URL providerUrl,
-                                      ContractOffer contractOffer) {
-        Objects.requireNonNull(providerUrl, "Provider URL must not be null");
-        Objects.requireNonNull(contractOffer, "ContractOffer must not be null");
+    public Response negotiateContract(ContractRequest contractRequest) {
+        Objects.requireNonNull(contractRequest, "ContractOffer must not be null");
         try {
-            var agreement = negotiator.negotiate(providerUrl, contractOffer);
-            return Response.ok(agreement).build();
+            var agreement = negotiator.negotiate(contractRequest);
+            return Response.ok(agreement).build(); // TODO contract request instead of contractoffer: do whole change
         } catch (InterruptedException | ExecutionException negotiationException) {
-            LOGGER.error(format("Negotiation failed for provider %s and contractOffer %s", providerUrl,
-                    contractOffer.getId()), negotiationException);
+            LOGGER.error(format("Negotiation failed for provider %s and contractOffer %s", contractRequest.getProviderId(),
+                    contractRequest.getContractOffer().getId()), negotiationException);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(negotiationException.getMessage())
                     .build();
         }

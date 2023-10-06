@@ -46,8 +46,10 @@ public class ResourceHandler {
                 .id(assetId)
                 .name(name)
                 .contentType(contentType)
-                .version(version).build();
-        assetIndex.create(asset, dataAddress);
+                .version(version)
+                .dataAddress(dataAddress)
+                .build();
+        assetIndex.create(asset);
         return assetId;
     }
 

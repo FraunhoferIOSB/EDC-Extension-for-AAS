@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "582d7e09-588e-4635-8aec-eadfb21c0069",
+		"_postman_id": "11d46791-636f-49a5-8bb9-d040c8285963",
 		"name": "EDC Extension",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -217,8 +217,7 @@
 								},
 								{
 									"key": "assetId",
-									"value": "{{asset-id}}",
-									"description": "May be null"
+									"value": "{{asset-id}}"
 								}
 							]
 						}
@@ -232,7 +231,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"id\": \"{{contract-offer-id}}\",\r\n    \"policy\": {\r\n        \"permissions\": [\r\n            {\r\n                \"edctype\": \"dataspaceconnector:permission\",\r\n                \"target\": \"{{asset-id}}\",\r\n                \"action\": {\r\n                    \"type\": \"USE\"\r\n                }\r\n            }\r\n        ],\r\n        \"target\": \"{{asset-id}}\"\r\n    },\r\n    \"assetId\": \"{{asset-id}}\",\r\n    \"providerId\": \"urn:connector:provider\"\r\n}",
+							"raw": "{  \r\n    \"@context\": {\r\n    \"edc\": \"https://w3id.org/edc/v0.0.1/ns/\",\r\n    \"odrl\": \"http://www.w3.org/ns/odrl/2/\"\r\n  },\r\n    \"providerId\": \"provider\",\r\n    \"consumerId\": \"consumer\",\r\n    \"connectorAddress\": \"{{provider}}\",\r\n    \"protocol\": \"dataspace-protocol-http\",\r\n    \"counterPartyId\": \"provider\",\r\n    \"counterPartyAddress\": \"{{provider-dsp}}\",\r\n    \"contractOffer\": {\r\n        \"id\": \"DEFAULT_CONTRACT24:-1268910060:3886d894-3955-4b06-83c6-e86fdeb5e65a\",\r\n        \"policy\": {\r\n            \"permissions\": [\r\n                {\r\n                    \"edctype\": \"dataspaceconnector:permission\",\r\n                    \"target\": \"{{asset-id}}\",\r\n                    \"action\": {\r\n                        \"type\": \"USE\"\r\n                    }\r\n                }\r\n            ],\r\n            \"target\": \"{{asset-id}}\"\r\n        },\r\n        \"assetId\": \"{{asset-id}}\"\r\n    }\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -240,7 +239,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{consumer}}/api/automated/negotiateContract?providerUrl={{provider-dsp}}",
+							"raw": "{{consumer}}/api/automated/negotiateContract",
 							"host": [
 								"{{consumer}}"
 							],
@@ -248,12 +247,6 @@
 								"api",
 								"automated",
 								"negotiateContract"
-							],
-							"query": [
-								{
-									"key": "providerUrl",
-									"value": "{{provider-dsp}}"
-								}
 							]
 						}
 					},
@@ -811,6 +804,13 @@
 								"v2",
 								"contractdefinitions",
 								"request"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
 							]
 						}
 					},
@@ -964,12 +964,12 @@
 		},
 		{
 			"key": "asset-id",
-			"value": "-1379397334",
+			"value": "",
 			"type": "default"
 		},
 		{
 			"key": "contract-offer-id",
-			"value": "DEFAULT_CONTRACT2:-1379397334:cf2a9414-b759-4f62-b947-327e59585ab5",
+			"value": "",
 			"type": "default"
 		},
 		{

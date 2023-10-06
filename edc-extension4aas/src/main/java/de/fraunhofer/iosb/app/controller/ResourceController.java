@@ -62,12 +62,4 @@ public class ResourceController {
         resourceAgent.deleteAsset(assetId);
     }
 
-    /**
-     * Removes a contract
-     *
-     * @param contractId The contract id
-     */
-    public void deleteContract(String contractId) {
-        contractHandler.deleteContractDefinition(contractId);
-    }
 }

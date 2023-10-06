@@ -66,7 +66,7 @@ public class PolicyServiceTest {
         assert catalogString != null;
         mockedFuture.complete(StatusResult.success(catalogString.getBytes(StandardCharsets.UTF_8)));
 
-        when(mockCatalogService.request(any(), any(), any())).thenReturn(mockedFuture);
+        when(mockCatalogService.requestCatalog(any(), any(), any())).thenReturn(mockedFuture);
 
         when(mockTransformer.transform(any(), any())).thenReturn(Result.success(Catalog.Builder.newInstance()
                 .dataset(Dataset.Builder.newInstance()
@@ -86,7 +86,7 @@ public class PolicyServiceTest {
     @Test
     void getContractUnreachableProviderTest() throws MalformedURLException, InterruptedException {
         var mockedFuture = new CompletableFuture<StatusResult<byte[]>>();
-        when(mockCatalogService.request(any(), any(), any())).thenReturn(mockedFuture);
+        when(mockCatalogService.requestCatalog(any(), any(), any())).thenReturn(mockedFuture);
 
         try {
             policyService.getDatasetForAssetId(new URL("http://fakeUrl:4321/not/working"), "test-asset-id");

@@ -19,7 +19,6 @@ import de.fraunhofer.iosb.app.authentication.CustomAuthenticationRequestFilter;
 import de.fraunhofer.iosb.app.client.ClientEndpoint;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
-import org.eclipse.edc.connector.transfer.spi.types.DataRequest;
 import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -114,19 +113,14 @@ public class TransferInitiator {
         var dataFuture = new CompletableFuture<String>();
         observable.register(dataFuture, agreementId);
 
-        var dataRequest = DataRequest.Builder.newInstance()
+        var transferRequest = TransferRequest.Builder.newInstance()
                 .id(UUID.randomUUID().toString()) // this is not relevant, thus can be random
                 .connectorAddress(providerUrl.toString()) // the address of the provider connector
                 .protocol(DATASPACE_PROTOCOL_HTTP)
                 .connectorId("consumer")
                 .assetId(assetId)
                 .dataDestination(dataSinkAddress)
-                .managedResources(false) // we do not need any provisioning
                 .contractId(agreementId)
-                .build();
-
-        var transferRequest = TransferRequest.Builder.newInstance()
-                .dataRequest(dataRequest)
                 .build();
 
         var transferProcessStatus = transferProcessManager.initiateConsumerRequest(transferRequest);

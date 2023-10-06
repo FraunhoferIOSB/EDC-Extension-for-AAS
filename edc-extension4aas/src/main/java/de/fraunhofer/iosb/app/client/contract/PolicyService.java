@@ -91,7 +91,8 @@ public class PolicyService {
      *                              otherwise occupied, and was interrupted.
      */
     public Dataset getDatasetForAssetId(URL providerUrl, String assetId) throws InterruptedException {
-        var catalogFuture = catalogService.request(providerUrl.toString(),
+        var catalogFuture = catalogService.requestCatalog(
+                providerUrl.toString(),
                 DATASPACE_PROTOCOL_HTTP,
                 QuerySpec.Builder.newInstance()
                         .filter(List.of(criterion(Asset.PROPERTY_ID, "=", assetId)))

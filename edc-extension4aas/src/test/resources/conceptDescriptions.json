@@ -1,39 +1,32 @@
-[{
-    "modelType":
-            {
-                "name": "ConceptDescription"
-            },
-    "administration":
-            {
-                "revision": "0",
-                "version": "0.9"
-            },
-    "identification":
-            {
-                "idType": "Iri",
-                "id": "https://acplt.org/Test_ConceptDescription"
-            },
+[
+  {
+    "modelType": "ConceptDescription",
+    "administration": {
+      "revision": "0",
+      "version": "0.9"
+    },
+    "id": "https://acplt.org/Test_ConceptDescription",
     "idShort": "TestConceptDescription",
     "isCaseOf": [
-        {
-            "keys": [
-                {
-                    "idType": "Iri",
-                    "type": "GlobalReference",
-                    "value": "http://acplt.org/DataSpecifications/ConceptDescriptions/TestConceptDescription"
-                }
-            ]
-        }
+      {
+        "type": "ExternalReference",
+        "keys": [
+          {
+            "type": "GlobalReference",
+            "value": "http://acplt.org/DataSpecifications/ConceptDescriptions/TestConceptDescription"
+          }
+        ]
+      }
     ],
     "description": [
-        {
-            "language": "en-us",
-            "text": "An example concept description for the test application"
-        },
-        {
-            "language": "de",
-            "text": "Ein Beispiel-ConceptDescription für eine Test-Anwendung"
-        }
+      {
+        "language": "en-us",
+        "text": "An example concept description for the test application"
+      },
+      {
+        "language": "de",
+        "text": "Ein Beispiel-ConceptDescription für eine Test-Anwendung"
+      }
     ]
-}
+  }
 ]

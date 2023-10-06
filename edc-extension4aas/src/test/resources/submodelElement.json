@@ -1,25 +1,23 @@
 {
-    "value": "",
-    "semanticId": {
-        "keys": [              
-            {
-                "idType": "Iri",
-                "type": "GlobalReference",
-                "value": "0173-1#02-AAO677#002"
-            }
-        ]
-    },
-    "idShort": "GripperDown",
-    "category": "Variable",
-    "modelType": {
-        "name": "Property"
-    },
-    "valueType": "boolean",
-    "kind": "Instance",
-    "descriptions": [
-        {
-            "language": "en",
-            "text": "Shows it the gripper is currently pulled up"
-        }
+  "value": "",
+  "semanticId": {
+    "type": "ExternalReference",
+    "keys": [
+      {
+        "type": "GlobalReference",
+        "value": "0173-1#02-AAO677#002"
+      }
     ]
+  },
+  "idShort": "GripperDown",
+  "category": "Variable",
+  "modelType": "Property",
+  "valueType": "boolean",
+  "kind": "Instance",
+  "descriptions": [
+    {
+      "language": "en",
+      "text": "Shows it the gripper is currently pulled up"
+    }
+  ]
 }

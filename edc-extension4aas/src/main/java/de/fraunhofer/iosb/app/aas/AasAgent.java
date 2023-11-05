@@ -121,7 +121,7 @@ public class AasAgent {
      *
      * @param aasServiceUrl AAS service to be updated
      * @return AAS model enriched with each elements access URL as string in assetId
-     * field.
+     *         field.
      */
     public CustomAssetAdministrationShellEnvironment getAasEnvWithUrls(URL aasServiceUrl)
             throws IOException, DeserializationException {
@@ -139,10 +139,15 @@ public class AasAgent {
                             Encoder.encodeBase64(submodel.getIdentification().getId())));
             submodel.getSubmodelElements()
                     .forEach(elem -> putUrlRec(
-                            format("%s/submodels/%s/submodel/submodel-elements", aasServiceUrlString,
-                                    Encoder.encodeBase64(submodel.getIdentification().getId())),
-                            elem));
+                                format("%s/submodels/%s/submodel/submodel-elements", aasServiceUrlString,
+                                        Encoder.encodeBase64(submodel.getIdentification().getId())),
+                                elem));
         });
+        model.getSubmodels().forEach(submodel -> AASUtil.getAllSubmodelElements(submodel)
+                .forEach(element -> element.setSourceUrl(
+                        element.getSourceUrl()
+                                .replaceFirst("\\.", "/"))));
+
         // Add urls to all concept descriptions
         model.getConceptDescriptions().forEach(
                 conceptDesc -> conceptDesc.setSourceUrl(format("%s/concept-descriptions/%s", aasServiceUrlString,
@@ -160,12 +165,12 @@ public class AasAgent {
         String conceptResponse;
         String submodelResponse;
         try {
-            shellResponse =
+            shellResponse = 
                     Objects.requireNonNull(httpRestClient.get(aasServiceUrl.toURI().resolve("/shells").toURL()).body()).string();
-            submodelResponse =
+            submodelResponse = 
                     Objects.requireNonNull(httpRestClient.get(aasServiceUrl.toURI().resolve("/submodels").toURL()).body()).string();
             conceptResponse = Objects.requireNonNull(httpRestClient.get(aasServiceUrl.toURI().resolve("/concept" +
-                            "-descriptions").toURL()).body())
+                    "-descriptions").toURL()).body())
                     .string();
         } catch (URISyntaxException e) {
             throw new EdcException(e.getMessage());
@@ -219,11 +224,11 @@ public class AasAgent {
         if (element instanceof CustomSubmodelElementCollection) {
             Collection<CustomSubmodelElement> newCollectionElements = new ArrayList<>();
             for (var collectionElement : ((CustomSubmodelElementCollection) element).getValue()) {
-                newCollectionElements.add(putUrlRec(format("%s/%s", url, element.getIdShort()), collectionElement));
+                newCollectionElements.add(putUrlRec(format("%s.%s", url, element.getIdShort()), collectionElement));
             }
             ((CustomSubmodelElementCollection) element).setValues(newCollectionElements);
         }
-        element.setSourceUrl(format("%s/%s", url, element.getIdShort()));
+        element.setSourceUrl(format("%s.%s", url, element.getIdShort()));
         return element;
     }
 }

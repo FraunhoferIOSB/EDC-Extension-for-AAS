@@ -248,7 +248,7 @@ public class PolicyService {
 
 
     /*
-     * Since EDC api does not return Catalog object directly, resort to a hacky solution for now.
+     * Since EDC api does not return Catalog object directly, resort to another solution for now.
      */
     private JsonObject modifyCatalogJson(byte[] catalogBytes) throws IOException {
 
@@ -260,7 +260,6 @@ public class PolicyService {
                 .replace(DSPACE_PREFIX + ":", DSPACE_SCHEMA)
                 .getBytes();
 
-        // Alarming... looking into it though
         Distribution distribution = Distribution.Builder.newInstance()
                 .format("JSON")
                 .dataService(DataService.Builder.newInstance().build())

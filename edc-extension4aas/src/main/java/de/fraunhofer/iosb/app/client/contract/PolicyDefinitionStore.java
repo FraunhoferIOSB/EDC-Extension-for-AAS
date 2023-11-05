@@ -16,7 +16,6 @@
 package de.fraunhofer.iosb.app.client.contract;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import de.fraunhofer.iosb.app.Logger;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;

@@ -269,7 +269,7 @@ public class ClientEndpoint {
         var removed = policyService.removeAccepted(policyDefinitionId);
 
         if (removed.isPresent()) {
-            return Response.ok(removed).build();
+            return Response.ok(policyDefinitionId).build();
         }
         return Response.status(Response.Status.NOT_FOUND).entity("Unknown policyDefinitionId.").build();
     }
@@ -290,7 +290,7 @@ public class ClientEndpoint {
 
         var updated = policyService.updateAccepted(policyDefinition.getId(), policyDefinition);
         if (updated.isPresent()) {
-            return Response.ok(updated).build();
+            return Response.ok(policyDefinition.getId()).build();
         }
         return Response.status(Response.Status.NOT_FOUND).entity("Unknown policyDefinitionId.").build();
     }

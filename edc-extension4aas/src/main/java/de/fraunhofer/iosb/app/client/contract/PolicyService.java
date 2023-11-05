@@ -280,7 +280,8 @@ public class PolicyService {
 
         jsonNode = om.readTree(catalogBytes);
 
-        if (!jsonNode.has(DCAT_SCHEMA + "dataset")) {
+        if (!jsonNode.has(DCAT_SCHEMA + "dataset") || jsonNode.get(DCAT_SCHEMA + "dataset") == null
+                || jsonNode.get(DCAT_SCHEMA + "dataset").isEmpty()) {
             throw new EdcException("No dataset provided in catalog.");
         }
 

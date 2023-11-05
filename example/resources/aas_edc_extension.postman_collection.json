@@ -853,7 +853,7 @@
 					"response": []
 				},
 				{
-					"name": "Post policydefinitions",
+					"name": "Get assets",
 					"request": {
 						"method": "POST",
 						"header": [
@@ -865,7 +865,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"@type\": \"PolicyDefinition\",\r\n    \"id\": \"random-policy-definition-id\",\r\n    \"https://w3id.org/edc/v0.0.1/ns/policy\": {\r\n        \"permissions\": [\r\n            {\r\n                \"edctype\": \"dataspaceconnector:permission\",\r\n                \"target\": \"{{asset-id}}\",\r\n                \"action\": {\r\n                    \"type\": \"USE\"\r\n                },\r\n                \"constraints\": [\r\n                    {\r\n                        \"edctype\": \"AtomicConstraint\",\r\n                        \"leftExpression\": {\r\n                            \"edctype\": \"dataspaceconnector:literalexpression\",\r\n                            \"value\": \"region\"\r\n                        },\r\n                        \"rightExpression\": {\r\n                            \"edctype\": \"dataspaceconnector:literalexpression\",\r\n                            \"value\": \"eu\"\r\n                        },\r\n                        \"operator\": \"EQ\"\r\n                    }\r\n                ]\r\n            }\r\n        ],\r\n        \"target\": \"{{asset-id}}\"\r\n    }\r\n}",
+							"raw": "",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -873,13 +873,14 @@
 							}
 						},
 						"url": {
-							"raw": "{{provider-management}}/v2/policydefinitions",
+							"raw": "{{consumer-management}}/v3/assets/request",
 							"host": [
-								"{{provider-management}}"
+								"{{consumer-management}}"
 							],
 							"path": [
-								"v2",
-								"policydefinitions"
+								"v3",
+								"assets",
+								"request"
 							]
 						}
 					},
@@ -975,7 +976,7 @@
 		},
 		{
 			"key": "asset-id",
-			"value": "866424462",
+			"value": "",
 			"type": "default"
 		},
 		{

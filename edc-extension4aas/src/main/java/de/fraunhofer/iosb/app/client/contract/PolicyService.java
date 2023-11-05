@@ -86,7 +86,7 @@ public class PolicyService {
      * @param providerUrl Provider of the asset.
      * @param assetId     Asset ID of the asset whose contract should be fetched.
      * @return A list of dataset offered by the provider for the given
-     * assetId.
+     *         assetId.
      * @throws InterruptedException Thread for agreementId was waiting, sleeping, or
      *                              otherwise occupied, and was interrupted.
      */
@@ -140,18 +140,22 @@ public class PolicyService {
     }
 
     /**
-     * Return policyDefinition for assetId that match any policyDefinitions' policy of
-     * the services' policyDefinitionStore instance containing user added policyDefinitions.
+     * Return policyDefinition for assetId that match any policyDefinitions' policy
+     * of
+     * the services' policyDefinitionStore instance containing user added
+     * policyDefinitions.
      * If more than one policyDefinitions are provided by the provider
      * connector, an AmbiguousOrNullException will be thrown.
      *
      * @param providerUrl Provider of the asset.
      * @param assetId     Asset ID of the asset whose contract should be fetched.
      * @return One policyDefinition offered by the provider for the given assetId.
-     * @throws InterruptedException Thread for agreementId was waiting, sleeping, or otherwise occupied, and was
+     * @throws InterruptedException Thread for agreementId was waiting, sleeping, or
+     *                              otherwise occupied, and was
      *                              interrupted.
      */
-    public Pair<String, Policy> getAcceptablePolicyForAssetId(URL providerUrl, String assetId) throws InterruptedException {
+    public Pair<String, Policy> getAcceptablePolicyForAssetId(URL providerUrl, String assetId)
+            throws InterruptedException {
         var dataset = getDatasetForAssetId(providerUrl, assetId);
 
         Map.Entry<String, Policy> acceptablePolicy;
@@ -175,12 +179,12 @@ public class PolicyService {
                 .first(acceptablePolicy.getKey()).second(acceptablePolicy.getValue()).build();
     }
 
-
     /**
      * Adds an accepted contractOffer to match when checking a provider
      * contractOffer. Only the policies' rules are relevant.
      *
-     * @param policyDefinitions policies' rules that are acceptable for an automated contract negotiation
+     * @param policyDefinitions policies' rules that are acceptable for an automated
+     *                          contract negotiation
      */
     public void addAccepted(PolicyDefinition[] policyDefinitions) {
         policyDefinitionStore.putPolicyDefinitions(policyDefinitions);
@@ -198,7 +202,8 @@ public class PolicyService {
     /**
      * Removes an accepted policyDefinitions.
      *
-     * @param policyDefinitions policyDefinition id of policyDefinition to be removed
+     * @param policyDefinitions policyDefinition id of policyDefinition to be
+     *                          removed
      * @return Optional containing removed policy definition or null
      */
     public Optional<PolicyDefinition> removeAccepted(String policyDefinitions) {
@@ -208,37 +213,37 @@ public class PolicyService {
     /**
      * Updates an accepted policyDefinition.
      *
-     * @param policyDefinitionId PolicyDefinition id of policyDefinition to be updated
+     * @param policyDefinitionId PolicyDefinition id of policyDefinition to be
+     *                           updated
      * @param policyDefinition   Updated PolicyDefinition
      */
     public Optional<PolicyDefinition> updateAccepted(String policyDefinitionId, PolicyDefinition policyDefinition) {
         return policyDefinitionStore.updatePolicyDefinitions(policyDefinitionId, policyDefinition);
     }
 
-
     private boolean matchesOwnPolicyDefinitions(Policy policy) {
-        return policyDefinitionStore.getPolicyDefinitions().stream().anyMatch(acceptedPolicyDefinition -> policyDefinitionRulesEquality(acceptedPolicyDefinition.getPolicy(), policy));
+        return policyDefinitionStore.getPolicyDefinitions().stream().anyMatch(
+                acceptedPolicyDefinition -> policyDefinitionRulesEquality(acceptedPolicyDefinition.getPolicy(),
+                        policy));
     }
 
     private boolean policyDefinitionRulesEquality(Policy first, Policy second) {
         List<Rule> firstRules = Stream.of(
-                        first.getPermissions(),
-                        first.getProhibitions(),
-                        first.getObligations()
-                )
+                first.getPermissions(),
+                first.getProhibitions(),
+                first.getObligations())
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList());
 
         List<Rule> secondRules = Stream.of(
-                        second.getPermissions(),
-                        second.getProhibitions(),
-                        second.getObligations()
-                )
+                second.getPermissions(),
+                second.getProhibitions(),
+                second.getObligations())
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList());
 
-
-        return firstRules.stream().anyMatch(firstRule -> secondRules.stream().anyMatch(secondRule -> !ruleEquality(firstRule, secondRule)));
+        return firstRules.stream().anyMatch(
+                firstRule -> secondRules.stream().anyMatch(secondRule -> !ruleEquality(firstRule, secondRule)));
     }
 
     private <T extends Rule> boolean ruleEquality(T first, T second) {
@@ -246,9 +251,9 @@ public class PolicyService {
                 second.getConstraints());
     }
 
-
     /*
-     * Since EDC api does not return Catalog object directly, resort to another solution for now.
+     * Since EDC api does not return Catalog object directly, resort to another
+     * solution for now.
      */
     private JsonObject modifyCatalogJson(byte[] catalogBytes) throws IOException {
 
@@ -274,11 +279,15 @@ public class PolicyService {
                 .replace("dataService", DCAT_ACCESS_SERVICE_ATTRIBUTE));
 
         jsonNode = om.readTree(catalogBytes);
+
+        if (!jsonNode.has(DCAT_SCHEMA + "dataset")) {
+            throw new EdcException("No dataset provided in catalog.");
+        }
+
         ((ArrayNode) jsonNode
                 .get(DCAT_SCHEMA + "dataset")
                 .get(DCAT_SCHEMA + "distribution"))
                 .add(distributionNode);
-
         catalogBytes = om.writeValueAsBytes(jsonNode);
 
         var jsonReader = Json.createReader(new ByteArrayInputStream(catalogBytes));

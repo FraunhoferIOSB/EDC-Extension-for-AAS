@@ -168,12 +168,12 @@ public class ClientEndpoint {
     @POST
     @Path(NEGOTIATE_CONTRACT_PATH)
     public Response negotiateContract(ContractRequest contractRequest) {
-        Objects.requireNonNull(contractRequest, "ContractOffer must not be null");
+        Objects.requireNonNull(contractRequest, "ContractRequest must not be null");
         try {
             var agreement = negotiator.negotiate(contractRequest);
-            return Response.ok(agreement).build(); // TODO contract request instead of contractoffer: do whole change
+            return Response.ok(agreement).build();
         } catch (InterruptedException | ExecutionException negotiationException) {
-            LOGGER.error(format("Negotiation failed for provider %s and contractOffer %s", contractRequest.getProviderId(),
+            LOGGER.error(format("Negotiation failed for provider %s and contractRequest %s", contractRequest.getProviderId(),
                     contractRequest.getContractOffer().getId()), negotiationException);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(negotiationException.getMessage())
                     .build();

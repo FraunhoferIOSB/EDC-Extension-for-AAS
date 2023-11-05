@@ -1,8 +1,9 @@
 {
 	"info": {
-		"_postman_id": "11d46791-636f-49a5-8bb9-d040c8285963",
+		"_postman_id": "8953f55e-787b-4b76-9c0b-7c1b15731185",
 		"name": "EDC Extension",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "20511334"
 	},
 	"item": [
 		{
@@ -91,7 +92,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{consumer}}/api/automated/acceptedPolicies",
+									"raw": "{{consumer}}/api/automated/acceptedPolicies?policyDefinitionId=my-custom-policy-definition",
 									"host": [
 										"{{consumer}}"
 									],
@@ -99,6 +100,12 @@
 										"api",
 										"automated",
 										"acceptedPolicies"
+									],
+									"query": [
+										{
+											"key": "policyDefinitionId",
+											"value": "my-custom-policy-definition"
+										}
 									]
 								}
 							},
@@ -166,7 +173,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{consumer}}/api/automated/negotiate?providerUrl={{provider-dsp}}&assetId={{asset-id}}",
+							"raw": "{{consumer}}/api/automated/negotiate?providerUrl={{provider-dsp}}&providerId=provider&assetId={{asset-id}}",
 							"host": [
 								"{{consumer}}"
 							],
@@ -179,6 +186,10 @@
 								{
 									"key": "providerUrl",
 									"value": "{{provider-dsp}}"
+								},
+								{
+									"key": "providerId",
+									"value": "provider"
 								},
 								{
 									"key": "assetId",
@@ -964,7 +975,7 @@
 		},
 		{
 			"key": "asset-id",
-			"value": "",
+			"value": "866424462",
 			"type": "default"
 		},
 		{

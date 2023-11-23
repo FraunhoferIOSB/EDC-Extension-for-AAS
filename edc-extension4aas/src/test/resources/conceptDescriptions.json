@@ -1,17 +1,22 @@
 [
   {
-    "modelType": "ConceptDescription",
+    "modelType": {
+      "name": "ConceptDescription"
+    },
     "administration": {
       "revision": "0",
       "version": "0.9"
     },
-    "id": "https://acplt.org/Test_ConceptDescription",
+    "identification": {
+      "idType": "Iri",
+      "id": "https://acplt.org/Test_ConceptDescription"
+    },
     "idShort": "TestConceptDescription",
     "isCaseOf": [
       {
-        "type": "ExternalReference",
         "keys": [
           {
+            "idType": "Iri",
             "type": "GlobalReference",
             "value": "http://acplt.org/DataSpecifications/ConceptDescriptions/TestConceptDescription"
           }

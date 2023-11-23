@@ -62,7 +62,7 @@ public class AasExtensionTest {
         this.context = spy(context); // used to inject the config
         when(this.context.getMonitor()).thenReturn(mock(Monitor.class));
         when(this.context.getConfig()).thenReturn(mockConf);
-        when(mockConf.getString("ids.webhook.address")).thenReturn("http://localhost:8080");
+        when(mockConf.getString("edc.dsp.callback.address")).thenReturn("http://localhost:8080");
         when(mockConf.getString("web.http.port")).thenReturn("1234");
         when(mockConf.getString("web.http.path")).thenReturn("api-path");
 

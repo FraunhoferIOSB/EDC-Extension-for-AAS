@@ -15,15 +15,19 @@
  */
 package de.fraunhofer.iosb.app.util;
 
-import de.fraunhofer.iosb.app.model.aas.*;
-import org.eclipse.digitaltwin.aas4j.v3.model.Submodel;
-import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElement;
-import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElementCollection;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+
+import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShellEnvironment;
+import de.fraunhofer.iosb.app.model.aas.CustomSubmodel;
+import de.fraunhofer.iosb.app.model.aas.CustomSubmodelElement;
+import de.fraunhofer.iosb.app.model.aas.CustomSubmodelElementCollection;
+import de.fraunhofer.iosb.app.model.aas.IdsAssetElement;
+import io.adminshell.aas.v3.model.Submodel;
+import io.adminshell.aas.v3.model.SubmodelElement;
+import io.adminshell.aas.v3.model.SubmodelElementCollection;
 
 public final class AASUtil {
 
@@ -80,7 +84,7 @@ public final class AASUtil {
                 customSubmodelElements.add(
                         new CustomSubmodelElementCollection(
                                 submodelElement.getIdShort(),
-                                unpackElements(((SubmodelElementCollection) submodelElement).getValue())));
+                                unpackElements(((SubmodelElementCollection) submodelElement).getValues())));
             } else {
                 var customSubmodelElement = new CustomSubmodelElement();
                 customSubmodelElement.setIdShort(submodelElement.getIdShort());
@@ -95,8 +99,10 @@ public final class AASUtil {
      * flat structure.
      */
     private static Collection<CustomSubmodelElement> flattenElements(Collection<CustomSubmodelElement> flatList,
-                                                                     Collection<CustomSubmodelElement> submodelElements) {
-
+            Collection<CustomSubmodelElement> submodelElements) {
+        if (Objects.isNull(submodelElements)) {
+            return flatList;
+        }
         for (CustomSubmodelElement submodelElement : submodelElements) {
 
             if (submodelElement instanceof CustomSubmodelElementCollection) {

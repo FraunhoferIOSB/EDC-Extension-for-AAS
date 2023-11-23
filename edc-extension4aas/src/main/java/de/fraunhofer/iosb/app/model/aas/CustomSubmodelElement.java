@@ -15,6 +15,8 @@
  */
 package de.fraunhofer.iosb.app.model.aas;
 
+import java.util.Objects;
+
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -57,9 +59,20 @@ public class CustomSubmodelElement extends AASElement {
             if (!(other instanceof CustomSubmodelElementCollection)) {
                 return false;
             }
-            return ((CustomSubmodelElementCollection) other).getValue().containsAll(((CustomSubmodelElementCollection) this).getValue());
+
+            if (Objects.isNull(((CustomSubmodelElementCollection) other).getValue())) {
+                return Objects.isNull(((CustomSubmodelElementCollection) this).getValue());
+            }
+
+            if (Objects.isNull(((CustomSubmodelElementCollection) this).getValue())) {
+                return false;
+            }
+
+            return ((CustomSubmodelElementCollection) other).getValue()
+                    .containsAll(((CustomSubmodelElementCollection) this).getValue());
         }
 
         return true;
     }
+
 }

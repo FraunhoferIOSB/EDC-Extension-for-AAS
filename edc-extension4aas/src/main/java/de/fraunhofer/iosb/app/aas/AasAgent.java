@@ -23,12 +23,12 @@ import de.fraunhofer.iosb.app.util.AASUtil;
 import de.fraunhofer.iosb.app.util.Encoder;
 import de.fraunhofer.iosb.app.util.HttpRestClient;
 import de.fraunhofer.iosb.app.util.Transformer;
+import io.adminshell.aas.v3.dataformat.DeserializationException;
+import io.adminshell.aas.v3.dataformat.json.JsonDeserializer;
+import io.adminshell.aas.v3.model.Submodel;
+import io.adminshell.aas.v3.model.impl.DefaultSubmodel;
 import jakarta.ws.rs.core.Response;
 import okhttp3.OkHttpClient;
-import org.eclipse.digitaltwin.aas4j.v3.dataformat.DeserializationException;
-import org.eclipse.digitaltwin.aas4j.v3.dataformat.json.JsonDeserializer;
-import org.eclipse.digitaltwin.aas4j.v3.model.Submodel;
-import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultSubmodel;
 import org.eclipse.edc.spi.EdcException;
 
 import java.io.IOException;
@@ -187,7 +187,7 @@ public class AasAgent {
         for (Submodel submodel : submodels) {
             var customSubmodel = new CustomSubmodel();
             var customIdentification = new Identifier();
-            customIdentification.setId(submodel.getId());
+            customIdentification.setId(submodel.getIdentification().getIdentifier());
             customSubmodel.setIdentification(customIdentification);
 
             customSubmodel.setIdShort(submodel.getIdShort());

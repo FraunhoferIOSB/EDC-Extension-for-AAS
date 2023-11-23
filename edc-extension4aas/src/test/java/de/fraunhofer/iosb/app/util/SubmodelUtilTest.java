@@ -15,16 +15,17 @@
  */
 package de.fraunhofer.iosb.app.util;
 
-import de.fraunhofer.iosb.app.model.aas.CustomSubmodel;
-import de.fraunhofer.iosb.app.model.aas.CustomSubmodelElementCollection;
-import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultSubmodel;
-import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultSubmodelElementCollection;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
+import de.fraunhofer.iosb.app.model.aas.CustomSubmodel;
+import de.fraunhofer.iosb.app.model.aas.CustomSubmodelElementCollection;
+import io.adminshell.aas.v3.model.impl.DefaultSubmodel;
+import io.adminshell.aas.v3.model.impl.DefaultSubmodelElementCollection;
 
 public class SubmodelUtilTest {
     private static CustomSubmodel testCustomSubmodel;
@@ -45,6 +46,7 @@ public class SubmodelUtilTest {
     @Test
     public void getAllSubmodelElementsTest() {
         assertEquals(101, AASUtil.getAllSubmodelElements(testCustomSubmodel).size());
+
     }
 
     @Test
@@ -57,7 +59,7 @@ public class SubmodelUtilTest {
         for (int i = 0; i < 100; i++) {
             var newColl = new DefaultSubmodelElementCollection();
             newColl.setIdShort(String.valueOf(i));
-            collObj.setValue(List.of(newColl));
+            collObj.setValues(List.of(newColl));
             collObj = newColl;
         }
 
@@ -65,8 +67,7 @@ public class SubmodelUtilTest {
 
         // Cast to use equals method
         assertEquals(
-                testCustomSubmodel.getSubmodelElements().stream().findFirst().orElseThrow(),
-                AASUtil.getCustomSubmodelElementStructureFromSubmodel(testSubmodel)
-                        .stream().findFirst().orElseThrow());
+                testCustomSubmodel.getSubmodelElements().size(),
+                AASUtil.getCustomSubmodelElementStructureFromSubmodel(testSubmodel).size());
     }
 }

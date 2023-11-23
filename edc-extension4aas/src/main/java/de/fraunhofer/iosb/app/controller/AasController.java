@@ -23,7 +23,7 @@ import de.fraunhofer.iosb.app.aas.FaaastServiceManager;
 import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShellEnvironment;
 import jakarta.ws.rs.core.Response;
 import okhttp3.OkHttpClient;
-import org.eclipse.digitaltwin.aas4j.v3.dataformat.DeserializationException;
+import io.adminshell.aas.v3.dataformat.DeserializationException;
 
 import java.io.IOException;
 import java.net.URL;

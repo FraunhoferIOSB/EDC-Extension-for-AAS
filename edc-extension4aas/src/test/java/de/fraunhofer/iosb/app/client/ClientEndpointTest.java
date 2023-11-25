@@ -167,9 +167,7 @@ public class ClientEndpointTest {
     }
 
     @Test
-    @Disabled("Until catalog fetching works again")
     public void negotiateContractAndTransferTest() {
-        // TODO repair after fixing ContractOfferService.class
         try (var ignored = clientEndpoint.negotiateContract(url, "test-id", "test-asset-id", null)) {
             fail();
         } catch (EdcException expected) {

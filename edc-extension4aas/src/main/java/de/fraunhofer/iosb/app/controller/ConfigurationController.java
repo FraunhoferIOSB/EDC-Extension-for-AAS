@@ -19,6 +19,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+
 import de.fraunhofer.iosb.app.Logger;
 import de.fraunhofer.iosb.app.RequestType;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
@@ -39,9 +41,7 @@ public class ConfigurationController implements Controllable {
     public ConfigurationController() {
         logger = Logger.getInstance();
         configuration = Configuration.getInstance();
-        objectMapper = new ObjectMapper();
-        // TODO case insensitive object mapper without deprecated configuration?
-        objectMapper.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
+        objectMapper = JsonMapper.builder().configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true).build();
         objectReader = objectMapper.readerForUpdating(configuration);
     }
 

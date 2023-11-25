@@ -33,7 +33,7 @@ import java.util.concurrent.TimeoutException;
 import static java.lang.String.format;
 
 /**
- * Send contract offer, negotiation status watch
+ * Send contractrequest, negotiation status watch
  */
 public class Negotiator {
 

@@ -1,8 +1,9 @@
 {
 	"info": {
-		"_postman_id": "11d46791-636f-49a5-8bb9-d040c8285963",
+		"_postman_id": "8953f55e-787b-4b76-9c0b-7c1b15731185",
 		"name": "EDC Extension",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "20511334"
 	},
 	"item": [
 		{
@@ -91,7 +92,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{consumer}}/api/automated/acceptedPolicies",
+									"raw": "{{consumer}}/api/automated/acceptedPolicies?policyDefinitionId=my-custom-policy-definition",
 									"host": [
 										"{{consumer}}"
 									],
@@ -99,6 +100,12 @@
 										"api",
 										"automated",
 										"acceptedPolicies"
+									],
+									"query": [
+										{
+											"key": "policyDefinitionId",
+											"value": "my-custom-policy-definition"
+										}
 									]
 								}
 							},
@@ -166,7 +173,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{consumer}}/api/automated/negotiate?providerUrl={{provider-dsp}}&assetId={{asset-id}}",
+							"raw": "{{consumer}}/api/automated/negotiate?providerUrl={{provider-dsp}}&providerId=provider&assetId={{asset-id}}",
 							"host": [
 								"{{consumer}}"
 							],
@@ -179,6 +186,10 @@
 								{
 									"key": "providerUrl",
 									"value": "{{provider-dsp}}"
+								},
+								{
+									"key": "providerId",
+									"value": "provider"
 								},
 								{
 									"key": "assetId",
@@ -842,7 +853,7 @@
 					"response": []
 				},
 				{
-					"name": "Post policydefinitions",
+					"name": "Get assets",
 					"request": {
 						"method": "POST",
 						"header": [
@@ -854,7 +865,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"@type\": \"PolicyDefinition\",\r\n    \"id\": \"random-policy-definition-id\",\r\n    \"https://w3id.org/edc/v0.0.1/ns/policy\": {\r\n        \"permissions\": [\r\n            {\r\n                \"edctype\": \"dataspaceconnector:permission\",\r\n                \"target\": \"{{asset-id}}\",\r\n                \"action\": {\r\n                    \"type\": \"USE\"\r\n                },\r\n                \"constraints\": [\r\n                    {\r\n                        \"edctype\": \"AtomicConstraint\",\r\n                        \"leftExpression\": {\r\n                            \"edctype\": \"dataspaceconnector:literalexpression\",\r\n                            \"value\": \"region\"\r\n                        },\r\n                        \"rightExpression\": {\r\n                            \"edctype\": \"dataspaceconnector:literalexpression\",\r\n                            \"value\": \"eu\"\r\n                        },\r\n                        \"operator\": \"EQ\"\r\n                    }\r\n                ]\r\n            }\r\n        ],\r\n        \"target\": \"{{asset-id}}\"\r\n    }\r\n}",
+							"raw": "",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -862,13 +873,14 @@
 							}
 						},
 						"url": {
-							"raw": "{{provider-management}}/v2/policydefinitions",
+							"raw": "{{consumer-management}}/v3/assets/request",
 							"host": [
-								"{{provider-management}}"
+								"{{consumer-management}}"
 							],
 							"path": [
-								"v2",
-								"policydefinitions"
+								"v3",
+								"assets",
+								"request"
 							]
 						}
 					},

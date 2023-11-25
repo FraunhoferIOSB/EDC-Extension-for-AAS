@@ -45,7 +45,7 @@ public class Synchronizer implements SelfDescriptionChangeListener {
     private final ResourceController resourceController;
 
     public Synchronizer(SelfDescriptionRepository selfDescriptionRepository,
-                        AasController aasController, ResourceController resourceController) {
+            AasController aasController, ResourceController resourceController) {
         this.selfDescriptionRepository = selfDescriptionRepository;
         this.aasController = aasController;
         this.resourceController = resourceController;
@@ -105,7 +105,7 @@ public class Synchronizer implements SelfDescriptionChangeListener {
 
     private void addNewElements(CustomAssetAdministrationShellEnvironment newEnvironment) {
         var envElements = AASUtil.getAllElements(newEnvironment);
-        addAssetsContracts(envElements.stream().filter(element -> Objects.isNull(element.getIdsContractId()))
+        addAssetsContracts(envElements.stream().filter(element -> Objects.isNull(element.getIdsAssetId()) || Objects.isNull(element.getIdsContractId()))
                 .toList());
     }
 
@@ -113,14 +113,14 @@ public class Synchronizer implements SelfDescriptionChangeListener {
      * Removes elements that were deleted on AAS service
      */
     private void removeOldElements(CustomAssetAdministrationShellEnvironment newEnvironment,
-                                   CustomAssetAdministrationShellEnvironment oldEnvironment) {
+            CustomAssetAdministrationShellEnvironment oldEnvironment) {
         var elementsToRemove = AASUtil.getAllElements(oldEnvironment);
         elementsToRemove.removeAll(AASUtil.getAllElements(newEnvironment));
         removeAssetsContracts(elementsToRemove);
     }
 
     private void syncShell(CustomAssetAdministrationShellEnvironment newEnvironment,
-                           CustomAssetAdministrationShellEnvironment oldEnvironment) {
+            CustomAssetAdministrationShellEnvironment oldEnvironment) {
         var oldShells = oldEnvironment.getAssetAdministrationShells();
         newEnvironment.getAssetAdministrationShells().replaceAll(
                 shell -> oldShells.contains(shell)
@@ -129,7 +129,7 @@ public class Synchronizer implements SelfDescriptionChangeListener {
     }
 
     private void syncConceptDescription(CustomAssetAdministrationShellEnvironment newEnvironment,
-                                        CustomAssetAdministrationShellEnvironment oldEnvironment) {
+            CustomAssetAdministrationShellEnvironment oldEnvironment) {
         var oldConceptDescriptions = oldEnvironment.getConceptDescriptions();
         newEnvironment.getConceptDescriptions().replaceAll(
                 conceptDescription -> oldConceptDescriptions.contains(conceptDescription)
@@ -138,17 +138,15 @@ public class Synchronizer implements SelfDescriptionChangeListener {
     }
 
     private void syncSubmodel(CustomAssetAdministrationShellEnvironment newEnvironment,
-                              CustomAssetAdministrationShellEnvironment oldEnvironment) {
+            CustomAssetAdministrationShellEnvironment oldEnvironment) {
         var oldSubmodels = oldEnvironment.getSubmodels();
         newEnvironment.getSubmodels().forEach(submodel -> {
             CustomSubmodel oldSubmodel;
             if (oldSubmodels.contains(submodel)) {
-                oldSubmodel = oldSubmodels
-                        .get(oldSubmodels.indexOf(submodel));
+                oldSubmodel = oldSubmodels.get(oldSubmodels.indexOf(submodel));
             } else {
                 oldSubmodel = oldSubmodels.stream().filter(
-                                oldSubmodelTest -> oldSubmodelTest.getIdentification().equals(submodel.getIdentification())
-                                        && oldSubmodelTest.getIdShort().equals(submodel.getIdShort()))
+                        oldSubmodelTest -> submodel.equals(oldSubmodelTest))
                         .findFirst().orElse(null);
                 if (Objects.isNull(oldSubmodel)) {
                     return;
@@ -164,7 +162,7 @@ public class Synchronizer implements SelfDescriptionChangeListener {
     }
 
     private void syncSubmodelElements(Collection<CustomSubmodelElement> allElements,
-                                      Collection<CustomSubmodelElement> allOldElements) {
+            Collection<CustomSubmodelElement> allOldElements) {
         allElements.stream()
                 .filter(allOldElements::contains)
                 .forEach(element -> {

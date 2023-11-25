@@ -24,6 +24,9 @@ dependencies {
     implementation("$group:dsp-catalog-http-dispatcher:$edcVersion")
     implementation("$group:management-api:$edcVersion")
     implementation("$group:runtime-metamodel:$edcVersion")
+    implementation("$group:data-plane-http-spi:$edcVersion") // HttpDataAddress
+
+
     implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
     implementation("de.fraunhofer.iosb.ilt.faaast.service:starter:${faaastVersion}")
     implementation("io.admin-shell.aas:dataformat-json:1.2.1")

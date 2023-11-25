@@ -115,7 +115,7 @@ public class TransferInitiator {
 
         var transferRequest = TransferRequest.Builder.newInstance()
                 .id(UUID.randomUUID().toString()) // this is not relevant, thus can be random
-                .connectorAddress(providerUrl.toString()) // the address of the provider connector
+                .connectorId(providerUrl.toString()) // the address of the provider connector
                 .protocol(DATASPACE_PROTOCOL_HTTP)
                 .connectorId("consumer")
                 .assetId(assetId)

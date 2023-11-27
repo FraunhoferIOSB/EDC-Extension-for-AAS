@@ -15,33 +15,41 @@
  */
 package de.fraunhofer.iosb.app.client;
 
-import de.fraunhofer.iosb.app.Logger;
-import de.fraunhofer.iosb.app.client.contract.PolicyService;
-import de.fraunhofer.iosb.app.client.dataTransfer.TransferInitiator;
-import de.fraunhofer.iosb.app.client.negotiation.Negotiator;
-import de.fraunhofer.iosb.app.util.Pair;
-import jakarta.ws.rs.*;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
-import org.eclipse.edc.connector.contract.spi.types.agreement.ContractAgreement;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
-import org.eclipse.edc.connector.contract.spi.types.offer.ContractOffer;
-import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
-import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.types.domain.HttpDataAddress;
+import static java.lang.String.format;
+import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 
 import java.net.URL;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
-import static java.lang.String.format;
-import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
+import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
+import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
+import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
+import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
+import org.eclipse.edc.spi.types.domain.offer.ContractOffer;
+
+import de.fraunhofer.iosb.app.Logger;
+import de.fraunhofer.iosb.app.client.contract.PolicyService;
+import de.fraunhofer.iosb.app.client.dataTransfer.TransferInitiator;
+import de.fraunhofer.iosb.app.client.negotiation.Negotiator;
+import de.fraunhofer.iosb.app.util.Pair;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 
 /**
  * Automated contract negotiation
  */
-@Consumes({MediaType.APPLICATION_JSON, MediaType.WILDCARD})
-@Produces({MediaType.APPLICATION_JSON})
+@Consumes({ MediaType.APPLICATION_JSON, MediaType.WILDCARD })
+@Produces({ MediaType.APPLICATION_JSON })
 @Path(ClientEndpoint.AUTOMATED_PATH)
 public class ClientEndpoint {
 
@@ -65,13 +73,14 @@ public class ClientEndpoint {
     /**
      * Initialize a client endpoint.
      *
-     * @param policyService     Finds out policy for a given asset id and provider EDC url.
+     * @param policyService     Finds out policy for a given asset id and provider
+     *                          EDC url.
      * @param negotiator        Send contract offer, negotiation status watch.
      * @param transferInitiator Initiate transfer requests.
      */
     public ClientEndpoint(PolicyService policyService,
-                          Negotiator negotiator,
-                          TransferInitiator transferInitiator) {
+            Negotiator negotiator,
+            TransferInitiator transferInitiator) {
         this.policyService = policyService;
         this.negotiator = negotiator;
         this.transferInitiator = transferInitiator;
@@ -79,8 +88,10 @@ public class ClientEndpoint {
 
     /**
      * Negotiate a contract with a provider edc.
-     * WARNING: By initiating this request, any policy provided by the provider for the specified asset will be sent
-     * as a contract offer unmodified if edc.aas.client.acceptAllProviderOffers is set to true.
+     * WARNING: By initiating this request, any policy provided by the provider for
+     * the specified asset will be sent
+     * as a contract offer unmodified if edc.aas.client.acceptAllProviderOffers is
+     * set to true.
      *
      * @param providerUrl Provider EDCs URL (IDS endpoint)
      * @param assetId     ID of the asset to be retrieved
@@ -89,9 +100,9 @@ public class ClientEndpoint {
     @POST
     @Path(NEGOTIATE_PATH)
     public Response negotiateContract(@QueryParam("providerUrl") URL providerUrl,
-                                      @QueryParam("providerId") String providerId,
-                                      @QueryParam("assetId") String assetId,
-                                      @QueryParam("dataDestinationUrl") URL dataDestinationUrl) {
+            @QueryParam("providerId") String providerId,
+            @QueryParam("assetId") String assetId,
+            @QueryParam("dataDestinationUrl") URL dataDestinationUrl) {
         LOGGER.debug(format("Received a %s POST request", NEGOTIATE_PATH));
         Objects.requireNonNull(providerUrl, "Provider URL must not be null");
         Objects.requireNonNull(assetId, "Asset ID must not be null");
@@ -142,7 +153,7 @@ public class ClientEndpoint {
     @GET
     @Path(DATASET_PATH)
     public Response getDataset(@QueryParam("providerUrl") URL providerUrl,
-                               @QueryParam("assetId") String assetId) {
+            @QueryParam("assetId") String assetId) {
         if (Objects.isNull(providerUrl)) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Provider URL must not be null").build();
         }
@@ -173,8 +184,10 @@ public class ClientEndpoint {
             var agreement = negotiator.negotiate(contractRequest);
             return Response.ok(agreement).build();
         } catch (InterruptedException | ExecutionException negotiationException) {
-            LOGGER.error(format("Negotiation failed for provider %s and contractRequest %s", contractRequest.getProviderId(),
-                    contractRequest.getContractOffer().getId()), negotiationException);
+            LOGGER.error(
+                    format("Negotiation failed for provider %s and contractRequest %s", contractRequest.getProviderId(),
+                            contractRequest.getContractOffer().getId()),
+                    negotiationException);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(negotiationException.getMessage())
                     .build();
         }
@@ -187,13 +200,13 @@ public class ClientEndpoint {
      * @param agreementId The basis of the data transfer.
      * @param assetId     The asset of which the data should be transferred
      * @return On success, the data of the desired asset. Else, returns an error
-     * message.
+     *         message.
      */
     @GET
     @Path(TRANSFER_PATH)
     public Response getData(@QueryParam("providerUrl") URL providerUrl,
-                            @QueryParam("agreementId") String agreementId, @QueryParam("assetId") String assetId,
-                            @QueryParam("dataDestinationUrl") URL dataDestinationUrl) {
+            @QueryParam("agreementId") String agreementId, @QueryParam("assetId") String assetId,
+            @QueryParam("dataDestinationUrl") URL dataDestinationUrl) {
         Objects.requireNonNull(providerUrl, "providerUrl must not be null");
         Objects.requireNonNull(agreementId, "agreementId must not be null");
         Objects.requireNonNull(assetId, "assetId must not be null");
@@ -221,12 +234,14 @@ public class ClientEndpoint {
     }
 
     /**
-     * Add policyDefinitions to the 'accepted list'. These policies or any other stored
+     * Add policyDefinitions to the 'accepted list'. These policies or any other
+     * stored
      * policy must be matched on automated contract negotiation.
      * This means, any policyDefinition by a provider must have the same rules
      * as any of the stored policyDefinitions.
      *
-     * @param policyDefinitions The policyDefinitions to add (Only their rules are relevant)
+     * @param policyDefinitions The policyDefinitions to add (Only their rules are
+     *                          relevant)
      * @return OK as response.
      */
     @POST

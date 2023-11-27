@@ -16,7 +16,7 @@
 package de.fraunhofer.iosb.app.edc;
 
 import org.eclipse.edc.spi.asset.AssetIndex;
-import org.eclipse.edc.spi.types.domain.HttpDataAddress;
+import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 
 /**

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.app.client.exception;
+package de.fraunhofer.iosb.client.exception;
 
 import org.eclipse.edc.spi.EdcException;
 

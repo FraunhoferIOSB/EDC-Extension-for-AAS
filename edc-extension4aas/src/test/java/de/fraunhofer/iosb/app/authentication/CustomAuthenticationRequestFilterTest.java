@@ -52,7 +52,6 @@ public class CustomAuthenticationRequestFilterTest {
 
     @Test
     void filterDataTransferTest() {
-        authRequestFilter.addTemporaryApiKey("test-key", "test-password");
 
         verify(authService, times(0)).isAuthenticated(any());
 

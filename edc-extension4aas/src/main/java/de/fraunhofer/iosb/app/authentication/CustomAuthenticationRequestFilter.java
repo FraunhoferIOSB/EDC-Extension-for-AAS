@@ -15,18 +15,13 @@
  */
 package de.fraunhofer.iosb.app.authentication;
 
-import de.fraunhofer.iosb.app.Logger;
-import de.fraunhofer.iosb.app.client.ClientEndpoint;
-import de.fraunhofer.iosb.app.client.dataTransfer.DataTransferEndpoint;
-import jakarta.ws.rs.container.ContainerRequestContext;
+import java.util.Objects;
+
 import org.eclipse.edc.api.auth.spi.AuthenticationRequestFilter;
 import org.eclipse.edc.api.auth.spi.AuthenticationService;
 
-import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
-
-import static java.lang.String.format;
+import de.fraunhofer.iosb.app.Logger;
+import jakarta.ws.rs.container.ContainerRequestContext;
 
 /**
  * Custom AuthenticationRequestFilter filtering requests that go directly to an
@@ -35,27 +30,15 @@ import static java.lang.String.format;
 public class CustomAuthenticationRequestFilter extends AuthenticationRequestFilter {
 
     private static final Logger LOGGER = Logger.getInstance();
-    private final Map<String, String> tempKeys;
     private final String[] endpoints;
 
     public CustomAuthenticationRequestFilter(AuthenticationService authenticationService, String... acceptedEndpoints) {
         super(authenticationService);
-        tempKeys = new ConcurrentHashMap<>();
         if (Objects.nonNull(acceptedEndpoints)) {
             endpoints = acceptedEndpoints;
         } else {
             endpoints = new String[0];
         }
-    }
-
-    /**
-     * Add key,value pair for a request. This key will only be available for one request.
-     *
-     * @param key   The key name
-     * @param value The actual key
-     */
-    public void addTemporaryApiKey(String key, String value) {
-        tempKeys.put(key, value);
     }
 
     /**
@@ -71,18 +54,6 @@ public class CustomAuthenticationRequestFilter extends AuthenticationRequestFilt
             if (Objects.nonNull(endpoint) && endpoint.equalsIgnoreCase(requestPath)) {
                 LOGGER.debug(
                         "CustomAuthenticationRequestFilter: Not intercepting this request to an open endpoint");
-                return;
-            }
-        }
-
-        for (String key : tempKeys.keySet()) {
-            if (requestContext.getHeaders().containsKey(key)
-                    && requestContext.getHeaderString(key).equals(tempKeys.get(key))
-                    && requestPath.startsWith(
-                    format("%s/%s", ClientEndpoint.AUTOMATED_PATH, DataTransferEndpoint.RECEIVE_DATA_PATH))) {
-                LOGGER.debug(
-                        format("CustomAuthenticationRequestFilter: Data Transfer request with custom api key %s", key));
-                tempKeys.remove(key);
                 return;
             }
         }

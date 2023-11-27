@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.app.client.dataTransfer;
+package de.fraunhofer.iosb.client.dataTransfer;
 
-import de.fraunhofer.iosb.app.authentication.CustomAuthenticationRequestFilter;
+import de.fraunhofer.iosb.client.authentication.CustomAuthenticationRequestFilter;
 import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.spi.EdcException;
@@ -43,7 +43,7 @@ public class TransferInitiatorTest {
     void initializeContractOfferService() throws URISyntaxException {
         URI ownUri = new URI("http://localhost:4321/api/ids");
         transferInitiator = new TransferInitiator(ownUri, mockTransferProcessManager,
-                mock(DataTransferObservable.class), mock(CustomAuthenticationRequestFilter.class));
+                mock(DataTransferObservable.class), mock(CustomAuthenticationRequestFilter.class), 10);
         mockStatusResult = (StatusResult<TransferProcess>) mock(StatusResult.class);
         when(mockTransferProcessManager.initiateConsumerRequest(any())).thenReturn(mockStatusResult);
     }

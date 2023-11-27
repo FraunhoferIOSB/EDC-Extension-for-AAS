@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.app.client.negotiation;
+package de.fraunhofer.iosb.client.negotiation;
 
 import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationListener;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;

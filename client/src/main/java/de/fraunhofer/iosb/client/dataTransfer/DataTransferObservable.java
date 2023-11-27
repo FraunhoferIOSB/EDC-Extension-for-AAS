@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.app.client.dataTransfer;
-
-import de.fraunhofer.iosb.app.Logger;
+package de.fraunhofer.iosb.client.dataTransfer;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+
+import org.eclipse.edc.spi.monitor.Monitor;
 
 import static java.lang.String.format;
 
@@ -28,11 +28,12 @@ import static java.lang.String.format;
  */
 public class DataTransferObservable {
 
-    private static final Logger LOGGER = Logger.getInstance();
+    private final Monitor monitor;
 
     private final Map<String, CompletableFuture<String>> observers;
 
-    public DataTransferObservable() {
+    public DataTransferObservable(Monitor monitor) {
+        this.monitor = monitor;
         observers = new ConcurrentHashMap<>();
     }
 
@@ -64,7 +65,7 @@ public class DataTransferObservable {
      */
     public void update(String agreementId, String data) {
         if (!observers.containsKey(agreementId)) {
-            LOGGER.warn(format(
+            monitor.warning(format(
                     "A POST request to the client's data transfer endpoint with an unknown agreementID was caught. " +
                             "AgreementID: %s",
                     agreementId));

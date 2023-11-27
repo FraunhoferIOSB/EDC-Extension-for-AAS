@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.app.client;
+package de.fraunhofer.iosb.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.fraunhofer.iosb.app.Logger;
-import de.fraunhofer.iosb.app.authentication.CustomAuthenticationRequestFilter;
-import de.fraunhofer.iosb.app.client.contract.PolicyService;
-import de.fraunhofer.iosb.app.client.dataTransfer.DataTransferObservable;
-import de.fraunhofer.iosb.app.client.dataTransfer.TransferInitiator;
-import de.fraunhofer.iosb.app.client.negotiation.Negotiator;
+import de.fraunhofer.iosb.client.authentication.CustomAuthenticationRequestFilter;
+import de.fraunhofer.iosb.client.dataTransfer.DataTransferObservable;
+import de.fraunhofer.iosb.client.dataTransfer.TransferInitiator;
+import de.fraunhofer.iosb.client.negotiation.Negotiator;
+import de.fraunhofer.iosb.client.policy.PolicyService;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.catalog.spi.Catalog;
 import org.eclipse.edc.catalog.spi.Dataset;
@@ -64,6 +63,8 @@ import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 
 public class ClientEndpointTest {
 
+    private static Monitor monitor;
+
     private static URL url;
     private static ClientAndServer mockServer;
 
@@ -74,7 +75,7 @@ public class ClientEndpointTest {
 
     @BeforeAll
     public static void initialize() throws IOException {
-        Logger.getInstance().setMonitor(mock(Monitor.class));
+        monitor = mock(Monitor.class);
         int port = 8080;
         url = new URL(format("http://localhost:%s", port));
         mockServer = startClientAndServer(port);
@@ -92,13 +93,13 @@ public class ClientEndpointTest {
     }
 
     @BeforeEach
-    public void setupSynchronizer() throws IOException {
-        clientEndpoint = new ClientEndpoint(
-                new PolicyService(mockCatalogService(), mockTransformer()),
+    public void setup() throws IOException {
+        clientEndpoint = new ClientEndpoint(monitor,
                 new Negotiator(mockConsumerNegotiationManager(), mock(ContractNegotiationObservable.class),
-                        mock(ContractNegotiationStore.class)),
+                        mock(ContractNegotiationStore.class), 10),
+                new PolicyService(monitor, mockCatalogService(), mockTransformer(), false, 10, null),
                 new TransferInitiator(URI.create("http://localhost:8181/api"), mockTransferProcessManager(),
-                        mock(DataTransferObservable.class), mock(CustomAuthenticationRequestFilter.class)));
+                        mock(DataTransferObservable.class), mock(CustomAuthenticationRequestFilter.class), 10));
     }
 
     private TypeTransformerRegistry mockTransformer() {
@@ -192,7 +193,7 @@ public class ClientEndpointTest {
     public void addAcceptedContractOffersTest() {
         var mockPolicyDefinitionsAsList = new ArrayList<PolicyDefinition>();
         mockPolicyDefinitionsAsList.add(mockPolicyDefinition); // ClientEndpoint creates ArrayList
-        var offers = new PolicyDefinition[]{mockPolicyDefinition};
+        var offers = new PolicyDefinition[] { mockPolicyDefinition };
 
         clientEndpoint.addAcceptedPolicies(offers);
 
@@ -201,7 +202,7 @@ public class ClientEndpointTest {
 
     @Test
     public void updateAcceptedContractOfferTest() {
-        var offers = new PolicyDefinition[]{mockPolicyDefinition};
+        var offers = new PolicyDefinition[] { mockPolicyDefinition };
 
         clientEndpoint.addAcceptedPolicies(offers);
 

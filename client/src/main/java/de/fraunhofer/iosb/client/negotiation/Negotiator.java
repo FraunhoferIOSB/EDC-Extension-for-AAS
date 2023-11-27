@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.app.client.negotiation;
+package de.fraunhofer.iosb.client.negotiation;
 
-import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
@@ -41,6 +40,8 @@ public class Negotiator {
     private final ClientContractNegotiationListener listener;
     private final ContractNegotiationStore contractNegotiationStore;
 
+    private final int waitForAgreementTimeout;
+
     /**
      * Class constructor
      *
@@ -50,10 +51,11 @@ public class Negotiator {
      * @param contractNegotiationStore   Check for existing agreements before negotiating
      */
     public Negotiator(ConsumerContractNegotiationManager consumerNegotiationManager,
-                      ContractNegotiationObservable observable, ContractNegotiationStore contractNegotiationStore) {
+                      ContractNegotiationObservable observable, ContractNegotiationStore contractNegotiationStore,
+                      int waitForAgreementTimeout) {
         this.consumerNegotiationManager = consumerNegotiationManager;
         this.contractNegotiationStore = contractNegotiationStore;
-
+        this.waitForAgreementTimeout=waitForAgreementTimeout;
         listener = new ClientContractNegotiationListener();
         observable.registerListener(listener);
     }
@@ -95,7 +97,7 @@ public class Negotiator {
         listener.addListener(negotiationId, agreementFuture);
 
         try {
-            var negotiation = agreementFuture.get(Configuration.getInstance().getWaitForAgreementTimeout(),
+            var negotiation = agreementFuture.get(waitForAgreementTimeout,
                     TimeUnit.SECONDS);
             listener.removeListener(negotiationId);
 

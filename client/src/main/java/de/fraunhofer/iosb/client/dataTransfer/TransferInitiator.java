@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.app.client.dataTransfer;
+package de.fraunhofer.iosb.client.dataTransfer;
 
-import de.fraunhofer.iosb.app.authentication.CustomAuthenticationRequestFilter;
-import de.fraunhofer.iosb.app.client.ClientEndpoint;
-import de.fraunhofer.iosb.app.model.configuration.Configuration;
+import de.fraunhofer.iosb.client.authentication.CustomAuthenticationRequestFilter;
+import de.fraunhofer.iosb.client.ClientEndpoint;
 import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.spi.EdcException;
@@ -46,7 +45,7 @@ public class TransferInitiator {
     private final TransferProcessManager transferProcessManager;
     private final URI ownUri;
     private final CustomAuthenticationRequestFilter dataEndpointAuthenticationRequestFilter;
-
+    private final int waitForTransferTimeout;
     /**
      * Class constructor
      *
@@ -62,13 +61,15 @@ public class TransferInitiator {
      */
     public TransferInitiator(URI ownUri,
                              TransferProcessManager transferProcessManager, DataTransferObservable observable,
-                             CustomAuthenticationRequestFilter dataEndpointAuthenticationRequestFilter) {
+                             CustomAuthenticationRequestFilter dataEndpointAuthenticationRequestFilter,
+                             int waitForTransferTimeout) {
         this.ownUri = ownUri
                 .resolve(format("./%s/%s/%s", ownUri.getPath(), ClientEndpoint.AUTOMATED_PATH,
                         DataTransferEndpoint.RECEIVE_DATA_PATH));
         this.transferProcessManager = transferProcessManager;
         this.observable = observable;
         this.dataEndpointAuthenticationRequestFilter = dataEndpointAuthenticationRequestFilter;
+        this.waitForTransferTimeout=waitForTransferTimeout;
     }
 
     /**
@@ -144,7 +145,7 @@ public class TransferInitiator {
             throws InterruptedException, ExecutionException {
         try {
             // Fetch TransferTimeout everytime to adapt to runtime config changes
-            var data = dataFuture.get(Configuration.getInstance().getWaitForTransferTimeout(), TimeUnit.SECONDS);
+            var data = dataFuture.get(waitForTransferTimeout, TimeUnit.SECONDS);
             observable.unregister(agreementId);
             return data;
         } catch (TimeoutException transferTimeoutExceededException) {

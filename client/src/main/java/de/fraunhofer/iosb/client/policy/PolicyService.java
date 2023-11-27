@@ -13,16 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.app.client.contract;
+package de.fraunhofer.iosb.client.policy;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import de.fraunhofer.iosb.app.client.exception.AmbiguousOrNullException;
-import de.fraunhofer.iosb.app.model.configuration.Configuration;
-import de.fraunhofer.iosb.app.util.Pair;
-import jakarta.json.Json;
-import jakarta.json.JsonObject;
+import static java.lang.String.format;
+import static org.eclipse.edc.jsonld.spi.Namespaces.DCAT_PREFIX;
+import static org.eclipse.edc.jsonld.spi.Namespaces.DCAT_SCHEMA;
+import static org.eclipse.edc.jsonld.spi.Namespaces.DCT_PREFIX;
+import static org.eclipse.edc.jsonld.spi.Namespaces.DCT_SCHEMA;
+import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_PREFIX;
+import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_ACCESS_SERVICE_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCT_FORMAT_ATTRIBUTE;
+import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_PREFIX;
+import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
+import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
+import static org.eclipse.edc.spi.query.Criterion.criterion;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.net.URL;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.eclipse.edc.catalog.spi.Catalog;
 import org.eclipse.edc.catalog.spi.DataService;
 import org.eclipse.edc.catalog.spi.Dataset;
@@ -32,41 +52,32 @@ import org.eclipse.edc.connector.spi.catalog.CatalogService;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.Rule;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.net.URL;
-import java.util.*;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 
-import static java.lang.String.format;
-import static org.eclipse.edc.jsonld.spi.Namespaces.*;
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_ACCESS_SERVICE_ATTRIBUTE;
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCT_FORMAT_ATTRIBUTE;
-import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_PREFIX;
-import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
-import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
-import static org.eclipse.edc.spi.query.Criterion.criterion;
+import de.fraunhofer.iosb.client.exception.AmbiguousOrNullException;
+import de.fraunhofer.iosb.client.util.Pair;
+import jakarta.json.Json;
+import jakarta.json.JsonObject;
 
 /**
  * Finds out policy for a given asset id and provider EDC url
  */
 public class PolicyService {
 
-    private static final Configuration configuration = Configuration.getInstance();
-
     private final CatalogService catalogService;
     private final TypeTransformerRegistry transformer;
 
     private final PolicyDefinitionStore policyDefinitionStore;
+    private final boolean acceptAllProviderOffers;
+    private final int waitForCatalogTimeout;
 
     /**
      * Class constructor
@@ -74,10 +85,14 @@ public class PolicyService {
      * @param catalogService Fetching the catalog of a provider.
      * @param transformer    Transform json-ld byte-array catalog to catalog class
      */
-    public PolicyService(CatalogService catalogService, TypeTransformerRegistry transformer) {
+    public PolicyService(Monitor monitor, CatalogService catalogService, TypeTransformerRegistry transformer,
+            boolean isAcceptAllProviderOffers, int getWaitForCatalogTimeout, String acceptedPolicyDefinitionsPath) {
         this.catalogService = catalogService;
         this.transformer = transformer;
-        this.policyDefinitionStore = new PolicyDefinitionStore();
+        this.policyDefinitionStore = new PolicyDefinitionStore(monitor, acceptedPolicyDefinitionsPath);
+
+        this.acceptAllProviderOffers = isAcceptAllProviderOffers;
+        this.waitForCatalogTimeout = getWaitForCatalogTimeout;
     }
 
     /**
@@ -100,7 +115,7 @@ public class PolicyService {
 
         StatusResult<byte[]> catalogResponse;
         try {
-            catalogResponse = catalogFuture.get(configuration.getWaitForCatalogTimeout(), TimeUnit.SECONDS);
+            catalogResponse = catalogFuture.get(waitForCatalogTimeout, TimeUnit.SECONDS);
         } catch (ExecutionException futureExecutionException) {
             throw new EdcException(format("Failed fetching a catalog by provider %s.", providerUrl),
                     futureExecutionException);
@@ -159,7 +174,7 @@ public class PolicyService {
         var dataset = getDatasetForAssetId(providerUrl, assetId);
 
         Map.Entry<String, Policy> acceptablePolicy;
-        if (configuration.isAcceptAllProviderOffers()) {
+        if (acceptAllProviderOffers) {
             acceptablePolicy = dataset.getOffers().entrySet().stream()
                     .findAny()
                     .orElseThrow();

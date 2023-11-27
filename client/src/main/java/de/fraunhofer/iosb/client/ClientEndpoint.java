@@ -1,19 +1,4 @@
-/*
- * Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
- * Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
- * Forschung e.V.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *     http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-package de.fraunhofer.iosb.app.client;
+package de.fraunhofer.iosb.client;
 
 import static java.lang.String.format;
 import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
@@ -26,14 +11,14 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
 import org.eclipse.edc.spi.types.domain.offer.ContractOffer;
 
-import de.fraunhofer.iosb.app.Logger;
-import de.fraunhofer.iosb.app.client.contract.PolicyService;
-import de.fraunhofer.iosb.app.client.dataTransfer.TransferInitiator;
-import de.fraunhofer.iosb.app.client.negotiation.Negotiator;
-import de.fraunhofer.iosb.app.util.Pair;
+import de.fraunhofer.iosb.client.dataTransfer.TransferInitiator;
+import de.fraunhofer.iosb.client.negotiation.Negotiator;
+import de.fraunhofer.iosb.client.policy.PolicyService;
+import de.fraunhofer.iosb.client.util.Pair;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -52,7 +37,6 @@ import jakarta.ws.rs.core.Response;
 @Produces({ MediaType.APPLICATION_JSON })
 @Path(ClientEndpoint.AUTOMATED_PATH)
 public class ClientEndpoint {
-
     /*
      * Root path for the client
      */
@@ -64,11 +48,11 @@ public class ClientEndpoint {
     private static final String NEGOTIATE_PATH = "negotiate";
     private static final String TRANSFER_PATH = "transfer";
 
-    private static final Logger LOGGER = Logger.getInstance();
+    private final Monitor monitor;
 
     private final Negotiator negotiator;
-    private final TransferInitiator transferInitiator;
     private final PolicyService policyService;
+    private final TransferInitiator transferInitiator;
 
     /**
      * Initialize a client endpoint.
@@ -78,11 +62,12 @@ public class ClientEndpoint {
      * @param negotiator        Send contract offer, negotiation status watch.
      * @param transferInitiator Initiate transfer requests.
      */
-    public ClientEndpoint(PolicyService policyService,
-            Negotiator negotiator,
+    public ClientEndpoint(Monitor monitor, Negotiator negotiator, PolicyService policyService,
             TransferInitiator transferInitiator) {
-        this.policyService = policyService;
+        this.monitor = monitor;
+
         this.negotiator = negotiator;
+        this.policyService = policyService;
         this.transferInitiator = transferInitiator;
     }
 
@@ -103,7 +88,7 @@ public class ClientEndpoint {
             @QueryParam("providerId") String providerId,
             @QueryParam("assetId") String assetId,
             @QueryParam("dataDestinationUrl") URL dataDestinationUrl) {
-        LOGGER.debug(format("Received a %s POST request", NEGOTIATE_PATH));
+        monitor.debug(format("[Client] Received a %s POST request", NEGOTIATE_PATH));
         Objects.requireNonNull(providerUrl, "Provider URL must not be null");
         Objects.requireNonNull(assetId, "Asset ID must not be null");
 
@@ -111,7 +96,7 @@ public class ClientEndpoint {
         try {
             idPolicyPair = policyService.getAcceptablePolicyForAssetId(providerUrl, assetId);
         } catch (InterruptedException negotiationException) {
-            LOGGER.error(format("Getting policies failed for provider %s and asset %s", providerUrl,
+            monitor.severe(format("[Client] Getting policies failed for provider %s and asset %s", providerUrl,
                     assetId), negotiationException);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(negotiationException.getMessage())
                     .build();
@@ -134,7 +119,7 @@ public class ClientEndpoint {
         try {
             agreement = negotiator.negotiate(contractRequest);
         } catch (InterruptedException | ExecutionException negotiationException) {
-            LOGGER.error(format("Negotiation failed for provider %s and contractOffer %s", providerUrl,
+            monitor.severe(format("[Client] Negotiation failed for provider %s and contractOffer %s", providerUrl,
                     offer.getId()), negotiationException);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(negotiationException.getMessage())
                     .build();
@@ -162,7 +147,7 @@ public class ClientEndpoint {
             var datasets = policyService.getDatasetForAssetId(providerUrl, assetId);
             return Response.ok(datasets).build();
         } catch (InterruptedException interruptedException) {
-            LOGGER.error(format("Getting datasets failed for provider %s and asset %s", providerUrl,
+            monitor.severe(format("[Client] Getting datasets failed for provider %s and asset %s", providerUrl,
                     assetId), interruptedException);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(interruptedException.getMessage())
                     .build();
@@ -184,8 +169,8 @@ public class ClientEndpoint {
             var agreement = negotiator.negotiate(contractRequest);
             return Response.ok(agreement).build();
         } catch (InterruptedException | ExecutionException negotiationException) {
-            LOGGER.error(
-                    format("Negotiation failed for provider %s and contractRequest %s", contractRequest.getProviderId(),
+            monitor.severe(
+                    format("[Client] Negotiation failed for provider %s and contractRequest %s", contractRequest.getProviderId(),
                             contractRequest.getContractOffer().getId()),
                     negotiationException);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(negotiationException.getMessage())
@@ -218,7 +203,7 @@ public class ClientEndpoint {
                 return Response.ok(data).build();
 
             } catch (InterruptedException | ExecutionException negotiationException) {
-                LOGGER.error(format("Getting data failed for provider %s and agreementId %s", providerUrl,
+                monitor.severe(format("[Client] Getting data failed for provider %s and agreementId %s", providerUrl,
                         agreementId), negotiationException);
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(negotiationException.getMessage())
                         .build();
@@ -250,7 +235,7 @@ public class ClientEndpoint {
         if (Objects.isNull(policyDefinitions)) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Missing policyDefinitions array").build();
         }
-        LOGGER.log(format("Adding %s accepted contract offers", policyDefinitions.length));
+        monitor.info(format("[Client] Adding %s accepted contract offers", policyDefinitions.length));
 
         policyService.addAccepted(policyDefinitions);
         return Response.ok().build();
@@ -264,7 +249,7 @@ public class ClientEndpoint {
     @GET
     @Path(ACCEPTED_POLICIES_PATH)
     public Response getAcceptedPolicyDefinitions() {
-        LOGGER.log("Returning accepted policyDefinitions");
+        monitor.info("[Client] Returning accepted policyDefinitions");
         return Response.ok(policyService.getAccepted()).build();
     }
 
@@ -277,7 +262,7 @@ public class ClientEndpoint {
     @DELETE
     @Path(ACCEPTED_POLICIES_PATH)
     public Response deleteAcceptedPolicyDefinition(@QueryParam("policyDefinitionId") String policyDefinitionId) {
-        LOGGER.log(format("Removing policyDefinition with id %s", policyDefinitionId));
+        monitor.info(format("[Client] Removing policyDefinition with id %s", policyDefinitionId));
         if (Objects.isNull(policyDefinitionId)) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Missing policyDefinitionId parameter").build();
         }
@@ -301,7 +286,7 @@ public class ClientEndpoint {
         if (Objects.isNull(policyDefinition)) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Missing policyDefinition").build();
         }
-        LOGGER.log(format("Updating policyDefinition with id %s", policyDefinition.getId()));
+        monitor.info(format("[Client] Updating policyDefinition with id %s", policyDefinition.getId()));
 
         var updated = policyService.updateAccepted(policyDefinition.getId(), policyDefinition);
         if (updated.isPresent()) {
@@ -309,4 +294,5 @@ public class ClientEndpoint {
         }
         return Response.status(Response.Status.NOT_FOUND).entity("Unknown policyDefinitionId.").build();
     }
+
 }

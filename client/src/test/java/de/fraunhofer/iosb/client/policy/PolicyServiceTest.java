@@ -13,27 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.app.client.contract;
-
-import de.fraunhofer.iosb.app.testUtils.FileManager;
-import org.eclipse.edc.catalog.spi.Catalog;
-import org.eclipse.edc.catalog.spi.DataService;
-import org.eclipse.edc.catalog.spi.Dataset;
-import org.eclipse.edc.catalog.spi.Distribution;
-import org.eclipse.edc.connector.spi.catalog.CatalogService;
-import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.response.StatusResult;
-import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
+package de.fraunhofer.iosb.client.policy;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -41,9 +21,32 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+
+import org.eclipse.edc.catalog.spi.Catalog;
+import org.eclipse.edc.catalog.spi.DataService;
+import org.eclipse.edc.catalog.spi.Dataset;
+import org.eclipse.edc.catalog.spi.Distribution;
+import org.eclipse.edc.connector.spi.catalog.CatalogService;
+import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import de.fraunhofer.iosb.client.testUtils.FileManager;
+
 public class PolicyServiceTest {
 
     private final int providerPort = 54321;
+    private final Monitor mockMonitor = mock(Monitor.class);
     private final CatalogService mockCatalogService = mock(CatalogService.class);
     private final TypeTransformerRegistry mockTransformer = mock(TypeTransformerRegistry.class);
 
@@ -55,7 +58,7 @@ public class PolicyServiceTest {
 
     @BeforeEach
     void initializeContractOfferService() {
-        policyService = new PolicyService(mockCatalogService, mockTransformer);
+        policyService = new PolicyService(mockMonitor, mockCatalogService, mockTransformer, false, 10, null);
     }
 
     @Test

@@ -13,23 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.app.client.dataTransfer;
+package de.fraunhofer.iosb.client.dataTransfer;
 
-import de.fraunhofer.iosb.app.Logger;
-import de.fraunhofer.iosb.app.client.ClientEndpoint;
+import de.fraunhofer.iosb.client.ClientEndpoint;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
 import java.util.Objects;
 
+import org.eclipse.edc.spi.monitor.Monitor;
+
 import static java.lang.String.format;
 
 /**
  * Endpoint for automated data transfer
  */
-@Consumes({MediaType.APPLICATION_JSON, MediaType.WILDCARD})
-@Produces({MediaType.APPLICATION_JSON})
+@Consumes({ MediaType.APPLICATION_JSON, MediaType.WILDCARD })
+@Produces({ MediaType.APPLICATION_JSON })
 @Path(ClientEndpoint.AUTOMATED_PATH)
 public class DataTransferEndpoint {
 
@@ -38,10 +39,11 @@ public class DataTransferEndpoint {
      */
     public static final String RECEIVE_DATA_PATH = "receiveData";
 
-    private static final Logger LOGGER = Logger.getInstance();
+    private final Monitor monitor;
     private final DataTransferObservable observable;
 
-    public DataTransferEndpoint(DataTransferObservable observable) {
+    public DataTransferEndpoint(Monitor monitor, DataTransferObservable observable) {
+        this.monitor = monitor;
         this.observable = observable;
     }
 
@@ -56,7 +58,7 @@ public class DataTransferEndpoint {
     @POST
     @Path("receiveData/{agreement}")
     public Response receiveData(@PathParam("agreement") String agreementId, String requestBody) {
-        LOGGER.log(format("Receiving data for agreement %s...", agreementId));
+        monitor.info(format("Receiving data for agreement %s...", agreementId));
         Objects.requireNonNull(agreementId);
         Objects.requireNonNull(requestBody);
         observable.update(agreementId, requestBody);

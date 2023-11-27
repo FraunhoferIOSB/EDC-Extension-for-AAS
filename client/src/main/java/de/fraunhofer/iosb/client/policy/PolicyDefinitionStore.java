@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.app.client.contract;
+package de.fraunhofer.iosb.client.policy;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.fraunhofer.iosb.app.Logger;
-import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
+import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -30,12 +29,13 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class PolicyDefinitionStore {
     private final Map<String, PolicyDefinition> policyDefinitions;
-    private static final Logger LOGGER = Logger.getInstance();
+    private final Monitor monitor;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public PolicyDefinitionStore() {
+    public PolicyDefinitionStore(Monitor monitor, String acceptedPolicyDefinitionsPath) {
+        this.monitor = monitor;
         this.policyDefinitions = new ConcurrentHashMap<>();
-        loadPolicyDefinitions(Configuration.getInstance());
+        loadPolicyDefinitions(acceptedPolicyDefinitionsPath);
     }
 
     /**
@@ -80,7 +80,7 @@ public class PolicyDefinitionStore {
      * @return Optional containing updated policy definition or null
      */
     public Optional<PolicyDefinition> updatePolicyDefinitions(String policyDefinitionId,
-                                                              PolicyDefinition policyDefinition) {
+            PolicyDefinition policyDefinition) {
         Objects.requireNonNull(policyDefinitionId, "contractOfferId is null");
         Objects.requireNonNull(policyDefinition, "contractOffer is null");
         if (policyDefinitions.containsKey(policyDefinitionId)) {
@@ -89,18 +89,19 @@ public class PolicyDefinitionStore {
         return Optional.empty();
     }
 
-    private void loadPolicyDefinitions(Configuration config) {
-        if (Objects.isNull(config.getAcceptedPolicyDefinitionsPath())) {
-            return;
-        }
-        var acceptedPolicyDefinitionsPath = Path.of(config.getAcceptedPolicyDefinitionsPath());
-        try {
-            var acceptedPolicyDefinitions = objectMapper.readValue(acceptedPolicyDefinitionsPath.toFile(),
-                    PolicyDefinition[].class);
-            putPolicyDefinitions(acceptedPolicyDefinitions);
-        } catch (IOException e) {
-            LOGGER.warn("[Client] Could not load accepted ContractOffers (edc.aas.client.acceptedContractOfferPaths)",
-                    e);
+    private void loadPolicyDefinitions(String acceptedPolicyDefinitionsPath) {
+        Path path;
+        if (Objects.nonNull(acceptedPolicyDefinitionsPath)) {
+            path = Path.of(acceptedPolicyDefinitionsPath);
+            try {
+                var acceptedPolicyDefinitions = objectMapper.readValue(path.toFile(),
+                        PolicyDefinition[].class);
+                putPolicyDefinitions(acceptedPolicyDefinitions);
+            } catch (IOException e) {
+                monitor.warning(
+                        "[Client] Could not load accepted ContractOffers (edc.aas.client.acceptedContractOfferPaths)",
+                        e);
+            }
         }
     }
 }

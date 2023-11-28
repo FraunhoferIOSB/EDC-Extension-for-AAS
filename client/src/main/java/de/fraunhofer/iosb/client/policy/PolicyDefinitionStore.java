@@ -19,6 +19,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.spi.monitor.Monitor;
 
+import static java.lang.String.format;
+
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
@@ -27,12 +29,12 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Contains user added PolicyDefinitions.
  */
-public class PolicyDefinitionStore {
+class PolicyDefinitionStore {
     private final Map<String, PolicyDefinition> policyDefinitions;
     private final Monitor monitor;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public PolicyDefinitionStore(Monitor monitor, String acceptedPolicyDefinitionsPath) {
+    PolicyDefinitionStore(Monitor monitor, String acceptedPolicyDefinitionsPath) {
         this.monitor = monitor;
         this.policyDefinitions = new ConcurrentHashMap<>();
         loadPolicyDefinitions(acceptedPolicyDefinitionsPath);
@@ -43,7 +45,7 @@ public class PolicyDefinitionStore {
      *
      * @return Stored PolicyDefinitions (non-null but possibly empty)
      */
-    public List<PolicyDefinition> getPolicyDefinitions() {
+    List<PolicyDefinition> getPolicyDefinitions() {
         return new ArrayList<>(policyDefinitions.values());
     }
 
@@ -52,7 +54,7 @@ public class PolicyDefinitionStore {
      *
      * @param newPolicyDefinitions PolicyDefinitions to be stored (non-null)
      */
-    public void putPolicyDefinitions(PolicyDefinition... newPolicyDefinitions) {
+    void putPolicyDefinitions(PolicyDefinition... newPolicyDefinitions) {
         Objects.requireNonNull(newPolicyDefinitions, "newPolicyDefinitions is null");
         for (PolicyDefinition newPolicyDefinition : newPolicyDefinitions) {
             if (!policyDefinitions.containsKey(newPolicyDefinition.getId())) {
@@ -67,7 +69,7 @@ public class PolicyDefinitionStore {
      * @param policyDefinitionId policyDefinition ID (non null)
      * @return Optional containing removed policy definition or null
      */
-    public Optional<PolicyDefinition> removePolicyDefinition(String policyDefinitionId) {
+    Optional<PolicyDefinition> removePolicyDefinition(String policyDefinitionId) {
         Objects.requireNonNull(policyDefinitionId, "policyDefinitionId is null");
         return Optional.ofNullable(policyDefinitions.remove(policyDefinitionId));
     }
@@ -79,8 +81,8 @@ public class PolicyDefinitionStore {
      * @param policyDefinition   The updated policyDefinition
      * @return Optional containing updated policy definition or null
      */
-    public Optional<PolicyDefinition> updatePolicyDefinitions(String policyDefinitionId,
-            PolicyDefinition policyDefinition) {
+    Optional<PolicyDefinition> updatePolicyDefinitions(PolicyDefinition policyDefinition) {
+        var policyDefinitionId = policyDefinition.getId();
         Objects.requireNonNull(policyDefinitionId, "contractOfferId is null");
         Objects.requireNonNull(policyDefinition, "contractOffer is null");
         if (policyDefinitions.containsKey(policyDefinitionId)) {
@@ -89,7 +91,7 @@ public class PolicyDefinitionStore {
         return Optional.empty();
     }
 
-    private void loadPolicyDefinitions(String acceptedPolicyDefinitionsPath) {
+    void loadPolicyDefinitions(String acceptedPolicyDefinitionsPath) {
         Path path;
         if (Objects.nonNull(acceptedPolicyDefinitionsPath)) {
             path = Path.of(acceptedPolicyDefinitionsPath);
@@ -97,10 +99,11 @@ public class PolicyDefinitionStore {
                 var acceptedPolicyDefinitions = objectMapper.readValue(path.toFile(),
                         PolicyDefinition[].class);
                 putPolicyDefinitions(acceptedPolicyDefinitions);
-            } catch (IOException e) {
+            } catch (IOException loadAcceptedPolicyException) {
                 monitor.warning(
-                        "[Client] Could not load accepted ContractOffers (edc.aas.client.acceptedContractOfferPaths)",
-                        e);
+                        format("[Client] Could not load accepted ContractOffers from %s",
+                                acceptedPolicyDefinitionsPath),
+                        loadAcceptedPolicyException);
             }
         }
     }

@@ -23,16 +23,15 @@ import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
-import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
 import org.eclipse.edc.spi.types.domain.offer.ContractOffer;
 
-import de.fraunhofer.iosb.client.dataTransfer.TransferInitiator;
-import de.fraunhofer.iosb.client.negotiation.Negotiator;
-import de.fraunhofer.iosb.client.policy.PolicyService;
+import de.fraunhofer.iosb.client.dataTransfer.DataTransferController;
+import de.fraunhofer.iosb.client.negotiation.NegotiationController;
+import de.fraunhofer.iosb.client.policy.PolicyController;
 import de.fraunhofer.iosb.client.util.Pair;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
@@ -56,7 +55,6 @@ public class ClientEndpoint {
      * Root path for the client
      */
     public static final String AUTOMATED_PATH = "automated";
-
     private static final String ACCEPTED_POLICIES_PATH = "acceptedPolicies";
     private static final String DATASET_PATH = "dataset";
     private static final String NEGOTIATE_CONTRACT_PATH = "negotiateContract";
@@ -65,9 +63,9 @@ public class ClientEndpoint {
 
     private final Monitor monitor;
 
-    private final Negotiator negotiator;
-    private final PolicyService policyService;
-    private final TransferInitiator transferInitiator;
+    private final NegotiationController negotiationController;
+    private final PolicyController policyController;
+    private final DataTransferController transferController;
 
     /**
      * Initialize a client endpoint.
@@ -77,23 +75,56 @@ public class ClientEndpoint {
      * @param negotiator        Send contract offer, negotiation status watch.
      * @param transferInitiator Initiate transfer requests.
      */
-    public ClientEndpoint(Monitor monitor, Negotiator negotiator, PolicyService policyService,
-            TransferInitiator transferInitiator) {
+    public ClientEndpoint(Monitor monitor,
+            NegotiationController negotiationController,
+            PolicyController policyController,
+            DataTransferController transferController) {
         this.monitor = monitor;
 
-        this.negotiator = negotiator;
-        this.policyService = policyService;
-        this.transferInitiator = transferInitiator;
+        this.policyController = policyController;
+        this.negotiationController = negotiationController;
+        this.transferController = transferController;
     }
 
     /**
-     * Negotiate a contract with a provider edc.
-     * WARNING: By initiating this request, any policy provided by the provider for
-     * the specified asset will be sent
-     * as a contract offer unmodified if edc.aas.client.acceptAllProviderOffers is
-     * set to true.
+     * Return policyDefinition for assetId that match any policyDefinitions' policy
+     * of the services' policyDefinitionStore instance containing user added
+     * policyDefinitions. If more than one policyDefinitions are provided by the
+     * provider connector, an AmbiguousOrNullException will be thrown.
+     * 
+     * @param providerUrl Provider of the asset.
+     * @param assetId     Asset ID of the asset whose contract should be fetched.
+     * @return One policyDefinition offered by the provider for the given assetId.
+     * @throws InterruptedException Thread for agreementId was waiting, sleeping, or
+     *                              otherwise occupied, and was
+     *                              interrupted.
+     */
+    @GET
+    @Path(DATASET_PATH)
+    public Response getDataset(@QueryParam("providerUrl") URL providerUrl,
+            @QueryParam("assetId") String assetId) {
+        monitor.debug(format("[Client] Received a %s GET request", DATASET_PATH));
+
+        if (Objects.isNull(providerUrl)) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("Provider URL must not be null").build();
+        }
+
+        try {
+            var dataset = policyController.getDataset(providerUrl, assetId);
+            return Response.ok(dataset).build();
+        } catch (InterruptedException interruptedException) {
+            monitor.severe(format("[Client] Getting dataset failed for provider %s and asset %s", providerUrl,
+                    assetId), interruptedException);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(interruptedException.getMessage())
+                    .build();
+        }
+    }
+
+    /**
+     * Negotiate a contract agreement using the given contract offer if no agreement
+     * exists for this constellation.
      *
-     * @param providerUrl Provider EDCs URL (IDS endpoint)
+     * @param providerUrl Provider EDCs URL (DSP endpoint)
      * @param assetId     ID of the asset to be retrieved
      * @return Asset data
      */
@@ -109,7 +140,7 @@ public class ClientEndpoint {
 
         Pair<String, Policy> idPolicyPair; // id means contractOfferId
         try {
-            idPolicyPair = policyService.getAcceptablePolicyForAssetId(providerUrl, assetId);
+            idPolicyPair = policyController.getAcceptablePolicyForAssetId(providerUrl, assetId);
         } catch (InterruptedException negotiationException) {
             monitor.severe(format("[Client] Getting policies failed for provider %s and asset %s", providerUrl,
                     assetId), negotiationException);
@@ -132,7 +163,7 @@ public class ClientEndpoint {
         ContractAgreement agreement;
 
         try {
-            agreement = negotiator.negotiate(contractRequest);
+            agreement = negotiationController.negotiateContract(contractRequest);
         } catch (InterruptedException | ExecutionException negotiationException) {
             monitor.severe(format("[Client] Negotiation failed for provider %s and contractOffer %s", providerUrl,
                     offer.getId()), negotiationException);
@@ -144,48 +175,24 @@ public class ClientEndpoint {
     }
 
     /**
-     * Returns dataset offered by the given provider for the given asset.
-     *
-     * @param providerUrl Provider whose dataset should be fetched (non null).
-     * @param assetId     Asset ID for which dataset should be fetched.
-     * @return A dataset or an error message.
-     */
-    @GET
-    @Path(DATASET_PATH)
-    public Response getDataset(@QueryParam("providerUrl") URL providerUrl,
-            @QueryParam("assetId") String assetId) {
-        if (Objects.isNull(providerUrl)) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Provider URL must not be null").build();
-        }
-
-        try {
-            var datasets = policyService.getDatasetForAssetId(providerUrl, assetId);
-            return Response.ok(datasets).build();
-        } catch (InterruptedException interruptedException) {
-            monitor.severe(format("[Client] Getting datasets failed for provider %s and asset %s", providerUrl,
-                    assetId), interruptedException);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(interruptedException.getMessage())
-                    .build();
-        }
-    }
-
-    /**
-     * Initiate a contract negotiation, acting as a consumer, with a provider
-     * connector.
+     * Negotiate a contract agreement using the given contract offer if no agreement
+     * exists for this constellation.
      *
      * @param contractRequest The contract request to be sent.
-     * @return An agreementID on success or an error message on error.
+     * @return contractAgreement of the completed negotiation.
      */
     @POST
     @Path(NEGOTIATE_CONTRACT_PATH)
     public Response negotiateContract(ContractRequest contractRequest) {
+        monitor.debug(format("[Client] Received a %s POST request", NEGOTIATE_CONTRACT_PATH));
         Objects.requireNonNull(contractRequest, "ContractRequest must not be null");
         try {
-            var agreement = negotiator.negotiate(contractRequest);
+            var agreement = negotiationController.negotiateContract(contractRequest);
             return Response.ok(agreement).build();
         } catch (InterruptedException | ExecutionException negotiationException) {
             monitor.severe(
-                    format("[Client] Negotiation failed for provider %s and contractRequest %s", contractRequest.getProviderId(),
+                    format("[Client] Negotiation failed for provider %s and contractRequest %s",
+                            contractRequest.getProviderId(),
                             contractRequest.getContractOffer().getId()),
                     negotiationException);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(negotiationException.getMessage())
@@ -207,81 +214,75 @@ public class ClientEndpoint {
     public Response getData(@QueryParam("providerUrl") URL providerUrl,
             @QueryParam("agreementId") String agreementId, @QueryParam("assetId") String assetId,
             @QueryParam("dataDestinationUrl") URL dataDestinationUrl) {
+        monitor.debug(format("[Client] Received a %s GET request", TRANSFER_PATH));
         Objects.requireNonNull(providerUrl, "providerUrl must not be null");
         Objects.requireNonNull(agreementId, "agreementId must not be null");
         Objects.requireNonNull(assetId, "assetId must not be null");
 
-        if (Objects.isNull(dataDestinationUrl)) {
-            try {
-                var dataFuture = transferInitiator.initiateTransferProcess(providerUrl, agreementId, assetId);
-                var data = transferInitiator.waitForData(dataFuture, agreementId);
+        try {
+            var data = transferController.initiateTransferProcess(providerUrl, agreementId, assetId, dataDestinationUrl);
+            if (Objects.isNull(dataDestinationUrl)) {
                 return Response.ok(data).build();
-
-            } catch (InterruptedException | ExecutionException negotiationException) {
-                monitor.severe(format("[Client] Getting data failed for provider %s and agreementId %s", providerUrl,
-                        agreementId), negotiationException);
-                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(negotiationException.getMessage())
-                        .build();
+            } else {
+                return Response.ok(format("Data transfer request to URL %s sent.", dataDestinationUrl)).build();
             }
-        } else {
-            var sinkAddress = HttpDataAddress.Builder.newInstance()
-                    .baseUrl(dataDestinationUrl.toString())
+        } catch (InterruptedException | ExecutionException negotiationException) {
+            monitor.severe(format("[Client] Data transfer failed for provider %s and agreementId %s", providerUrl,
+                    agreementId), negotiationException);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(negotiationException.getMessage())
                     .build();
-            // Don't need future as the EDC does not receive the data
-            transferInitiator.initiateTransferProcess(providerUrl, agreementId, assetId, sinkAddress);
-            return Response.ok(format("Data transfer request to URL %s sent.", dataDestinationUrl)).build();
         }
     }
 
     /**
-     * Add policyDefinitions to the 'accepted list'. These policies or any other
-     * stored
-     * policy must be matched on automated contract negotiation.
-     * This means, any policyDefinition by a provider must have the same rules
-     * as any of the stored policyDefinitions.
+     * Adds an accepted contractOffer to match when checking a provider
+     * contractOffer. Only the policies' rules are relevant.
      *
-     * @param policyDefinitions The policyDefinitions to add (Only their rules are
-     *                          relevant)
-     * @return OK as response.
+     * @param policyDefinitions policies' rules that are acceptable for an automated
+     *                          contract negotiation
      */
     @POST
     @Path(ACCEPTED_POLICIES_PATH)
-    public Response addAcceptedPolicies(PolicyDefinition[] policyDefinitions) {
+    public Response addAcceptedPolicyDefinitions(PolicyDefinition[] policyDefinitions) {
+        monitor.debug(format("[Client] Received a %s POST request", ACCEPTED_POLICIES_PATH));
+
         if (Objects.isNull(policyDefinitions)) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Missing policyDefinitions array").build();
         }
         monitor.info(format("[Client] Adding %s accepted contract offers", policyDefinitions.length));
 
-        policyService.addAccepted(policyDefinitions);
+        policyController.addAcceptedPolicyDefinitions(policyDefinitions);
         return Response.ok().build();
     }
 
     /**
-     * Returns all policyDefinitions in the 'accepted list'.
+     * Return accepted policyDefinitions
      *
-     * @return A list of accepted policyDefinitions
+     * @return Accepted policyDefinitions list
      */
     @GET
     @Path(ACCEPTED_POLICIES_PATH)
     public Response getAcceptedPolicyDefinitions() {
-        monitor.info("[Client] Returning accepted policyDefinitions");
-        return Response.ok(policyService.getAccepted()).build();
+        monitor.debug(format("[Client] Received a %s GET request", ACCEPTED_POLICIES_PATH));
+        return Response.ok(policyController.getAcceptedPolicyDefinitions()).build();
     }
 
     /**
-     * Removes a policyDefinition from the 'accepted list'.
+     * Removes an accepted policyDefinitions.
      *
-     * @param policyDefinitionId The id of the policyDefinition to remove
-     * @return OK as response.
+     * @param policyDefinitions policyDefinition id of policyDefinition to be
+     *                          removed
+     * @return Optional containing removed policy definition or null
      */
     @DELETE
     @Path(ACCEPTED_POLICIES_PATH)
     public Response deleteAcceptedPolicyDefinition(@QueryParam("policyDefinitionId") String policyDefinitionId) {
-        monitor.info(format("[Client] Removing policyDefinition with id %s", policyDefinitionId));
+        monitor.debug(
+                format("[Client] Received a %s DELETE request for %s", ACCEPTED_POLICIES_PATH, policyDefinitionId));
         if (Objects.isNull(policyDefinitionId)) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Missing policyDefinitionId parameter").build();
         }
-        var removed = policyService.removeAccepted(policyDefinitionId);
+        var removed = policyController.deleteAcceptedPolicyDefinition(policyDefinitionId);
 
         if (removed.isPresent()) {
             return Response.ok(policyDefinitionId).build();
@@ -290,24 +291,24 @@ public class ClientEndpoint {
     }
 
     /**
-     * Updates a policyDefinition of the 'accepted list'.
+     * Updates an accepted policyDefinition.
      *
-     * @param policyDefinition The policyDefinition to update
-     * @return OK as response.
+     * @param policyDefinitionId PolicyDefinition id of policyDefinition to be
+     *                           updated
+     * @param policyDefinition   Updated PolicyDefinition
      */
     @PUT
     @Path(ACCEPTED_POLICIES_PATH)
     public Response updateAcceptedPolicyDefinition(PolicyDefinition policyDefinition) {
+        monitor.debug(format("[Client] Received a %s PUT request", ACCEPTED_POLICIES_PATH));
         if (Objects.isNull(policyDefinition)) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Missing policyDefinition").build();
         }
-        monitor.info(format("[Client] Updating policyDefinition with id %s", policyDefinition.getId()));
 
-        var updated = policyService.updateAccepted(policyDefinition.getId(), policyDefinition);
+        var updated = policyController.updateAcceptedPolicyDefinition(policyDefinition);
         if (updated.isPresent()) {
             return Response.ok(policyDefinition.getId()).build();
         }
         return Response.status(Response.Status.NOT_FOUND).entity("Unknown policyDefinitionId.").build();
     }
-
 }

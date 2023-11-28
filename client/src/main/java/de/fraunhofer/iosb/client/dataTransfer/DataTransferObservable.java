@@ -26,13 +26,13 @@ import static java.lang.String.format;
 /**
  * Gets notified about incoming data by a provider connector.
  */
-public class DataTransferObservable {
+class DataTransferObservable {
 
     private final Monitor monitor;
 
     private final Map<String, CompletableFuture<String>> observers;
 
-    public DataTransferObservable(Monitor monitor) {
+    DataTransferObservable(Monitor monitor) {
         this.monitor = monitor;
         observers = new ConcurrentHashMap<>();
     }
@@ -43,7 +43,7 @@ public class DataTransferObservable {
      * @param observer    The future to complete if data transfer is finished.
      * @param agreementId The agreement ID this future is dependent on.
      */
-    public void register(CompletableFuture<String> observer, String agreementId) {
+    void register(CompletableFuture<String> observer, String agreementId) {
         observers.put(agreementId, observer);
     }
 
@@ -52,7 +52,7 @@ public class DataTransferObservable {
      *
      * @param agreementId Identifier of the observer.
      */
-    public void unregister(String agreementId) {
+    void unregister(String agreementId) {
         observers.remove(agreementId);
     }
 
@@ -63,7 +63,7 @@ public class DataTransferObservable {
      * @param agreementId The agreementId coming with a provider's data transfer
      * @param data        Any data by a provider connector
      */
-    public void update(String agreementId, String data) {
+    void update(String agreementId, String data) {
         if (!observers.containsKey(agreementId)) {
             monitor.warning(format(
                     "A POST request to the client's data transfer endpoint with an unknown agreementID was caught. " +

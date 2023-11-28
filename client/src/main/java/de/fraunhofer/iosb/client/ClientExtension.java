@@ -15,12 +15,6 @@
  */
 package de.fraunhofer.iosb.client;
 
-import static java.lang.String.format;
-
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URL;
-
 import org.eclipse.edc.api.auth.spi.AuthenticationService;
 import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationObservable;
@@ -28,96 +22,55 @@ import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiat
 import org.eclipse.edc.connector.spi.catalog.CatalogService;
 import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.spi.WebService;
 
-import de.fraunhofer.iosb.client.authentication.CustomAuthenticationRequestFilter;
-import de.fraunhofer.iosb.client.dataTransfer.DataTransferObservable;
-import de.fraunhofer.iosb.client.dataTransfer.TransferInitiator;
-import de.fraunhofer.iosb.client.negotiation.Negotiator;
-import de.fraunhofer.iosb.client.policy.PolicyService;
-import jakarta.ws.rs.core.UriBuilder;
+import de.fraunhofer.iosb.client.dataTransfer.DataTransferController;
+import de.fraunhofer.iosb.client.negotiation.NegotiationController;
+import de.fraunhofer.iosb.client.policy.PolicyController;
 
 public class ClientExtension implements ServiceExtension {
 
-    @Inject
-    private AuthenticationService authenticationService;
-    @Inject
-    private CatalogService catalogService;
-    @Inject
-    private TypeTransformerRegistry transformer;
-    @Inject
-    private ConsumerContractNegotiationManager consumerNegotiationManager;
-    @Inject
-    private ContractNegotiationObservable contractNegotiationObservable;
-    @Inject
-    private ContractNegotiationStore contractNegotiationStore;
-    @Inject
-    private TransferProcessManager transferProcessManager;
-    @Inject
-    private WebService webService;
+        @Inject
+        private AuthenticationService authenticationService;
+        @Inject
+        private CatalogService catalogService;
+        @Inject
+        private TypeTransformerRegistry transformer;
+        @Inject
+        private ConsumerContractNegotiationManager consumerNegotiationManager;
+        @Inject
+        private ContractNegotiationObservable contractNegotiationObservable;
+        @Inject
+        private ContractNegotiationStore contractNegotiationStore;
+        @Inject
+        private TransferProcessManager transferProcessManager;
+        @Inject
+        private WebService webService;
 
-    public static final String SETTINGS_PREFIX = "edc.client.";
+        public static final String SETTINGS_PREFIX = "edc.client.";
 
-    private Monitor monitor;
+        private Monitor monitor;
 
-    @Override
-    public void initialize(ServiceExtensionContext context) {
-        monitor = context.getMonitor();
-        var config = context.getConfig();
+        @Override
+        public void initialize(ServiceExtensionContext context) {
+                monitor = context.getMonitor();
+                var config = context.getConfig();
 
-        var observable = new DataTransferObservable(monitor);
-        var authenticationRequestFilter = new CustomAuthenticationRequestFilter(monitor,
-                authenticationService);
+                var policyController = new PolicyController(monitor, catalogService, transformer, config);
 
-        var policyService = new PolicyService(monitor, catalogService, transformer, config);
+                var negotiationController = new NegotiationController(consumerNegotiationManager,
+                                contractNegotiationObservable, contractNegotiationStore, config);
 
-        var negotiator = new Negotiator(consumerNegotiationManager, contractNegotiationObservable,
-                contractNegotiationStore, config);
+                var dataTransferController = new DataTransferController(monitor, config, webService,
+                                authenticationService, transferProcessManager);
 
-        var uri = createOwnUriFromConfigurationValues(config);
-        var transferInitiator = new TransferInitiator(config, authenticationRequestFilter, observable, uri,
-                transferProcessManager);
+                webService.registerResource(new ClientEndpoint(monitor, negotiationController, policyController,
+                                dataTransferController));
 
-        // TODO split up client Endpoint functionality?
-        var endpoint = new ClientEndpoint(monitor, negotiator, policyService, transferInitiator);
-
-        webService.registerResource(endpoint);
-
-    }
-
-    /*
-     * TODO Maybe there is another way to retrieve these values?
-     */
-    private URI createOwnUriFromConfigurationValues(Config config) {
-        URL protocolAddress;
-        var protocolAddressString = config.getString("edc.dsp.callback.address");
-
-        try {
-            protocolAddress = new URL(protocolAddressString);
-        } catch (MalformedURLException idsWebhookAddressException) {
-            throw new EdcException(
-                    format("[Client] Configuration value edc.dsp.callback.address is a malformed URL: %s",
-                            protocolAddressString),
-                    idsWebhookAddressException);
         }
-
-        int ownPort = Integer.parseInt(config.getString("web.http.port"));
-        String ownPath = config.getString("web.http.path");
-
-        var ownUriBuilder = UriBuilder.newInstance()
-                .scheme(protocolAddress.getProtocol())
-                .host(protocolAddress.getHost())
-                .port(ownPort)
-                .path(ownPath);
-
-        return ownUriBuilder.build();
-
-    }
 
 }

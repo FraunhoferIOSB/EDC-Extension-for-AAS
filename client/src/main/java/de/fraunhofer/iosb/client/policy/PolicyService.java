@@ -36,7 +36,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -47,15 +46,12 @@ import org.eclipse.edc.catalog.spi.Catalog;
 import org.eclipse.edc.catalog.spi.DataService;
 import org.eclipse.edc.catalog.spi.Dataset;
 import org.eclipse.edc.catalog.spi.Distribution;
-import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.spi.catalog.CatalogService;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.Rule;
 import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.response.StatusResult;
-import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
@@ -71,12 +67,12 @@ import jakarta.json.JsonObject;
 /**
  * Finds out policy for a given asset id and provider EDC url
  */
-public class PolicyService {
-
-    private final PolicyServiceConfig config;
+class PolicyService {
 
     private final CatalogService catalogService;
     private final TypeTransformerRegistry transformer;
+    
+    private final PolicyServiceConfig config;
     private final PolicyDefinitionStore policyDefinitionStore;
 
     /**
@@ -85,27 +81,16 @@ public class PolicyService {
      * @param catalogService Fetching the catalog of a provider.
      * @param transformer    Transform json-ld byte-array catalog to catalog class
      */
-    public PolicyService(Monitor monitor, CatalogService catalogService, TypeTransformerRegistry transformer,
-            Config systemConfig) {
-        this.config = new PolicyServiceConfig(systemConfig);
-        this.policyDefinitionStore = new PolicyDefinitionStore(monitor, this.config.getAcceptedPolicyDefinitionsPath());
-
+    public PolicyService(CatalogService catalogService, TypeTransformerRegistry transformer,
+            PolicyServiceConfig config, PolicyDefinitionStore policyDefinitionStore) {
         this.catalogService = catalogService;
         this.transformer = transformer;
 
+        this.config = config;
+        this.policyDefinitionStore = policyDefinitionStore;
     }
 
-    /**
-     * Returns dataset for this asset by this provider.
-     *
-     * @param providerUrl Provider of the asset.
-     * @param assetId     Asset ID of the asset whose contract should be fetched.
-     * @return A list of dataset offered by the provider for the given
-     *         assetId.
-     * @throws InterruptedException Thread for agreementId was waiting, sleeping, or
-     *                              otherwise occupied, and was interrupted.
-     */
-    public Dataset getDatasetForAssetId(URL providerUrl, String assetId) throws InterruptedException {
+    Dataset getDatasetForAssetId(URL providerUrl, String assetId) throws InterruptedException {
         var catalogFuture = catalogService.requestCatalog(
                 providerUrl.toString(),
                 DATASPACE_PROTOCOL_HTTP,
@@ -154,22 +139,7 @@ public class PolicyService {
         return dataset;
     }
 
-    /**
-     * Return policyDefinition for assetId that match any policyDefinitions' policy
-     * of
-     * the services' policyDefinitionStore instance containing user added
-     * policyDefinitions.
-     * If more than one policyDefinitions are provided by the provider
-     * connector, an AmbiguousOrNullException will be thrown.
-     *
-     * @param providerUrl Provider of the asset.
-     * @param assetId     Asset ID of the asset whose contract should be fetched.
-     * @return One policyDefinition offered by the provider for the given assetId.
-     * @throws InterruptedException Thread for agreementId was waiting, sleeping, or
-     *                              otherwise occupied, and was
-     *                              interrupted.
-     */
-    public Pair<String, Policy> getAcceptablePolicyForAssetId(URL providerUrl, String assetId)
+    Pair<String, Policy> getAcceptablePolicyForAssetId(URL providerUrl, String assetId)
             throws InterruptedException {
         var dataset = getDatasetForAssetId(providerUrl, assetId);
 
@@ -192,48 +162,6 @@ public class PolicyService {
 
         return new Pair.PairBuilder<String, Policy>()
                 .first(acceptablePolicy.getKey()).second(acceptablePolicy.getValue()).build();
-    }
-
-    /**
-     * Adds an accepted contractOffer to match when checking a provider
-     * contractOffer. Only the policies' rules are relevant.
-     *
-     * @param policyDefinitions policies' rules that are acceptable for an automated
-     *                          contract negotiation
-     */
-    public void addAccepted(PolicyDefinition[] policyDefinitions) {
-        policyDefinitionStore.putPolicyDefinitions(policyDefinitions);
-    }
-
-    /**
-     * Return accepted policyDefinitions
-     *
-     * @return Accepted policyDefinitions list
-     */
-    public List<PolicyDefinition> getAccepted() {
-        return policyDefinitionStore.getPolicyDefinitions();
-    }
-
-    /**
-     * Removes an accepted policyDefinitions.
-     *
-     * @param policyDefinitions policyDefinition id of policyDefinition to be
-     *                          removed
-     * @return Optional containing removed policy definition or null
-     */
-    public Optional<PolicyDefinition> removeAccepted(String policyDefinitions) {
-        return policyDefinitionStore.removePolicyDefinition(policyDefinitions);
-    }
-
-    /**
-     * Updates an accepted policyDefinition.
-     *
-     * @param policyDefinitionId PolicyDefinition id of policyDefinition to be
-     *                           updated
-     * @param policyDefinition   Updated PolicyDefinition
-     */
-    public Optional<PolicyDefinition> updateAccepted(String policyDefinitionId, PolicyDefinition policyDefinition) {
-        return policyDefinitionStore.updatePolicyDefinitions(policyDefinitionId, policyDefinition);
     }
 
     private boolean matchesOwnPolicyDefinitions(Policy policy) {

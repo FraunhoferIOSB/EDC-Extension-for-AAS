@@ -15,36 +15,23 @@
  */
 package de.fraunhofer.iosb.client.negotiation;
 
+import java.util.concurrent.ExecutionException;
+
 import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
-import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.system.configuration.Config;
-import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
-
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
-import static de.fraunhofer.iosb.client.ClientExtension.SETTINGS_PREFIX;
-import static java.lang.String.format;
 
 /**
  * Send contractrequest, negotiation status watch
  */
 public class Negotiator {
 
-    // How long the client waits for a negotiation to finish (seconds)
-    private static final int WAIT_FOR_AGREEMENT_TIMEOUT_DEFAULT = 10;
-
     private final ConsumerContractNegotiationManager consumerNegotiationManager;
-    private final ClientContractNegotiationListener listener;
     private final ContractNegotiationStore contractNegotiationStore;
-    private final Config config;
 
     /**
      * Class constructor
@@ -56,30 +43,20 @@ public class Negotiator {
      *                                   negotiating
      */
     public Negotiator(ConsumerContractNegotiationManager consumerNegotiationManager,
-            ContractNegotiationObservable observable, ContractNegotiationStore contractNegotiationStore,
-            Config config) {
+            ContractNegotiationStore contractNegotiationStore, Config config) {
         this.consumerNegotiationManager = consumerNegotiationManager;
         this.contractNegotiationStore = contractNegotiationStore;
-        this.config = config;
-
-        listener = new ClientContractNegotiationListener();
-        observable.registerListener(listener);
     }
 
-    /**
-     * Negotiate a contract agreement using the given contract offer if no agreement
-     * exists for this constellation.
-     *
-     * @param contractRequest The contract request to be sent.
-     * @return contractAgreement of the completed negotiation.
-     * @throws ExecutionException   Attempted to retrieve the agreementId but the
-     *                              task aborted by throwing an exception. This
-     *                              exception can be inspected using the getCause()
-     *                              method.
-     * @throws InterruptedException Thread for agreementId was waiting, sleeping, or
-     *                              otherwise occupied, and was interrupted.
+    /*
+     * InterruptedException: Thread for agreementId was waiting, sleeping, or
+     * otherwise occupied, and was interrupted.
+     * 
+     * ExecutionException: Attempted to retrieve the agreementId but the task
+     * aborted by throwing an exception. This exception can be inspected using the
+     * getCause() method.
      */
-    public ContractAgreement negotiate(ContractRequest contractRequest)
+    StatusResult<ContractNegotiation> negotiate(ContractRequest contractRequest)
             throws InterruptedException, ExecutionException {
         var previousAgreements = contractNegotiationStore.queryAgreements(QuerySpec.max());
         var relevantAgreements = previousAgreements
@@ -88,33 +65,12 @@ public class Negotiator {
                 .toList();
 
         if (!relevantAgreements.isEmpty()) {
-            return relevantAgreements.get(0); // assuming contractNegotiationStore removes invalid agreements
+            // assuming contractNegotiationStore removes invalid agreements
+            return StatusResult.success(
+                    ContractNegotiation.Builder.newInstance().contractAgreement(relevantAgreements.get(0)).build());
         }
 
-        var result = consumerNegotiationManager.initiate(contractRequest);
-        if (result.succeeded()) {
-            return waitForAgreement(result.getContent().getId());
-        } else {
-            throw new EdcException(result.getFailureDetail());
-        }
+        return consumerNegotiationManager.initiate(contractRequest);
     }
 
-    private ContractAgreement waitForAgreement(String negotiationId) throws InterruptedException, ExecutionException {
-        var agreementFuture = new CompletableFuture<ContractNegotiation>();
-        var timeout = config.getInteger(SETTINGS_PREFIX + "waitForAgreementTimeout",
-                WAIT_FOR_AGREEMENT_TIMEOUT_DEFAULT);
-
-        listener.addListener(negotiationId, agreementFuture);
-
-        try {
-            var negotiation = agreementFuture.get(timeout, TimeUnit.SECONDS);
-            listener.removeListener(negotiationId);
-
-            return negotiation.getContractAgreement();
-        } catch (TimeoutException agreementTimeout) {
-            throw new EdcException(
-                    format("[Client] Agreement negotiation timed out for negotiation id: %s", negotiationId),
-                    agreementTimeout);
-        }
-    }
 }

@@ -15,78 +15,40 @@
  */
 package de.fraunhofer.iosb.client.dataTransfer;
 
-import de.fraunhofer.iosb.client.authentication.CustomAuthenticationRequestFilter;
-import de.fraunhofer.iosb.client.ClientEndpoint;
+import static de.fraunhofer.iosb.client.dataTransfer.DataTransferController.DATA_TRANSFER_API_KEY;
+import static java.lang.String.format;
+import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+
+import java.net.URI;
+import java.net.URL;
+import java.util.UUID;
+
 import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 
-import java.net.URI;
-import java.net.URL;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
-import static de.fraunhofer.iosb.client.ClientExtension.SETTINGS_PREFIX;
-import static java.lang.String.format;
-import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
-import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+import de.fraunhofer.iosb.client.ClientEndpoint;
+import jakarta.ws.rs.core.UriBuilder;
 
 /**
  * Initiate transfer requests
  */
-public class TransferInitiator {
+class TransferInitiator {
 
-    private static final String DATA_TRANSFER_API_KEY = "data-transfer-api-key";
-    private static final int WAIT_FOR_TRANSFER_TIMEOUT_DEFAULT = 10;
-
-    private final DataTransferObservable observable;
     private final TransferProcessManager transferProcessManager;
     private final URI ownUri;
-    private final CustomAuthenticationRequestFilter dataEndpointAuthenticationRequestFilter;
-    private final Config config;
 
-    /**
-     * Class constructor
-     *
-     * @param ownUri                                  URL of this running EDC.
-     * @param transferProcessManager                  Initiating a transfer process
-     *                                                as a consumer.
-     * @param observable                              Status updates for waiting
-     *                                                data transfer requesters to
-     *                                                avoid busy waiting.
-     * @param dataEndpointAuthenticationRequestFilter Creating and passing through
-     *                                                custom api keys for each data
-     *                                                transfer
-     */
-    public TransferInitiator(Config config, CustomAuthenticationRequestFilter dataEndpointAuthenticationRequestFilter,
-            DataTransferObservable observable, URI ownUri, TransferProcessManager transferProcessManager) {
-        this.config = config;
-        this.dataEndpointAuthenticationRequestFilter = dataEndpointAuthenticationRequestFilter;
-        this.ownUri = ownUri.resolve(format("./%s/%s/%s", ownUri.getPath(), ClientEndpoint.AUTOMATED_PATH,
-        DataTransferEndpoint.RECEIVE_DATA_PATH));
-        this.observable = observable;
+    TransferInitiator(Config config,
+            TransferProcessManager transferProcessManager) {
+
+        this.ownUri = createOwnUriFromConfigurationValues(config);
         this.transferProcessManager = transferProcessManager;
     }
 
-    /**
-     * Initiates the transfer process defined by the arguments. The data of the
-     * transfer will be sent to {@link DataTransferEndpoint#RECEIVE_DATA_PATH}.
-     *
-     * @param providerUrl The provider from whom the data is to be fetched.
-     * @param agreementId Non-null ContractAgreement of the negotiation process.
-     * @param assetId     The asset to be fetched.
-     * @return A completable future whose result will be the data or an error
-     *         message.
-     */
-    public CompletableFuture<String> initiateTransferProcess(URL providerUrl, String agreementId, String assetId) {
-        var apiKey = UUID.randomUUID().toString();
-        dataEndpointAuthenticationRequestFilter.addTemporaryApiKey(DATA_TRANSFER_API_KEY, apiKey);
-
+    void initiateTransferProcess(URL providerUrl, String agreementId, String assetId, String apiKey) {
         var dataDestination = DataAddress.Builder.newInstance()
                 .type("HttpData")
                 .property(EDC_NAMESPACE + "baseUrl", ownUri.toString())
@@ -94,26 +56,10 @@ public class TransferInitiator {
                 .property("header:" + DATA_TRANSFER_API_KEY, apiKey) // API key for validation on consumer side
                 .build();
 
-        return initiateTransferProcess(providerUrl, agreementId, assetId, dataDestination);
+        initiateTransferProcess(providerUrl, agreementId, assetId, dataDestination);
     }
 
-    /**
-     * Initiates the transfer process defined by the arguments. The data of the
-     * transfer will be sent to {@link DataTransferEndpoint#RECEIVE_DATA_PATH}.
-     *
-     * @param providerUrl     The provider from whom the data is to be fetched.
-     * @param agreementId     Non-null ContractAgreement of the negotiation process.
-     * @param assetId         The asset to be fetched.
-     * @param dataSinkAddress HTTPDataAddress the result of the transfer should be
-     *                        sent to.
-     * @return A completable future whose result will be the data or an error
-     *         message.
-     */
-    public CompletableFuture<String> initiateTransferProcess(URL providerUrl, String agreementId, String assetId,
-            DataAddress dataSinkAddress) {
-        // Prepare for incoming data
-        var dataFuture = new CompletableFuture<String>();
-        observable.register(dataFuture, agreementId);
+    void initiateTransferProcess(URL providerUrl, String agreementId, String assetId, DataAddress dataSinkAddress) {
 
         var transferRequest = TransferRequest.Builder.newInstance()
                 .id(UUID.randomUUID().toString()) // this is not relevant, thus can be random
@@ -129,32 +75,22 @@ public class TransferInitiator {
         if (transferProcessStatus.failed()) {
             throw new EdcException(transferProcessStatus.getFailureDetail());
         }
-        return dataFuture;
-
     }
 
-    /**
-     * Call this with a future received by initiateTransferProcess()
-     *
-     * @param dataFuture  Data future created by initiateTransferProcess method
-     * @param agreementId AgreementId corresponding to this transfer
-     * @return The data
-     * @throws InterruptedException If the future was interrupted
-     * @throws ExecutionException   If the data transfer process failed
-     */
-    public String waitForData(CompletableFuture<String> dataFuture, String agreementId)
-            throws InterruptedException, ExecutionException {
-        try {
-            // Fetch TransferTimeout everytime to adapt to runtime config changes
-            var data = dataFuture.get(
-                    config.getInteger(SETTINGS_PREFIX + "getWaitForTransferTimeout", WAIT_FOR_TRANSFER_TIMEOUT_DEFAULT),
-                    TimeUnit.SECONDS);
-            observable.unregister(agreementId);
-            return data;
-        } catch (TimeoutException transferTimeoutExceededException) {
-            observable.unregister(agreementId);
-            throw new EdcException(format("Waiting for an transfer failed for agreementId: %s", agreementId),
-                    transferTimeoutExceededException);
-        }
+    private URI createOwnUriFromConfigurationValues(Config config) {
+        var protocolAddressString = config.getString("edc.dsp.callback.address");
+        var ownPort = config.getInteger("web.http.port");
+        var ownPath = config.getString("web.http.path");
+
+        return UriBuilder
+                .fromUri(protocolAddressString)
+                .port(ownPort)
+                .path(format(
+                        "%s/%s/%s",
+                        ownPath,
+                        ClientEndpoint.AUTOMATED_PATH,
+                        DataTransferEndpoint.RECEIVE_DATA_PATH))
+                .build();
     }
+
 }

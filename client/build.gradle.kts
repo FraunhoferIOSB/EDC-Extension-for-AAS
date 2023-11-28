@@ -8,7 +8,6 @@ val edcVersion: String by project
 val rsApi: String by project
 val mockitoVersion: String by project
 val mockserverVersion: String by project
-val metaModelVersion: String by project
 
 java {
     toolchain {

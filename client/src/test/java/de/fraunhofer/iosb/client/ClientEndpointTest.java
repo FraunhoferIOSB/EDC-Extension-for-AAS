@@ -15,13 +15,24 @@
  */
 package de.fraunhofer.iosb.client;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import de.fraunhofer.iosb.client.authentication.CustomAuthenticationRequestFilter;
-import de.fraunhofer.iosb.client.dataTransfer.DataTransferObservable;
-import de.fraunhofer.iosb.client.dataTransfer.TransferInitiator;
-import de.fraunhofer.iosb.client.negotiation.Negotiator;
-import de.fraunhofer.iosb.client.policy.PolicyService;
-import jakarta.ws.rs.core.Response;
+import static java.lang.String.format;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.mockserver.integration.ClientAndServer.startClientAndServer;
+
+import java.io.IOException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeoutException;
+
+import org.eclipse.edc.api.auth.spi.AuthenticationService;
 import org.eclipse.edc.catalog.spi.Catalog;
 import org.eclipse.edc.catalog.spi.Dataset;
 import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
@@ -39,28 +50,23 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.system.configuration.Config;
+import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.spi.types.domain.offer.ContractOffer;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
-import org.junit.jupiter.api.*;
+import org.eclipse.edc.web.spi.WebService;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockserver.integration.ClientAndServer;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Objects;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeoutException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-import static java.lang.String.format;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.mockserver.integration.ClientAndServer.startClientAndServer;
+import de.fraunhofer.iosb.client.dataTransfer.DataTransferController;
+import de.fraunhofer.iosb.client.negotiation.NegotiationController;
+import de.fraunhofer.iosb.client.policy.PolicyController;
+import jakarta.ws.rs.core.Response;
 
 public class ClientEndpointTest {
 
@@ -96,22 +102,27 @@ public class ClientEndpointTest {
     @BeforeEach
     public void setup() throws IOException {
         clientEndpoint = new ClientEndpoint(monitor,
-                new Negotiator(
+                new NegotiationController(
                         mockConsumerNegotiationManager(),
                         mock(ContractNegotiationObservable.class),
                         mock(ContractNegotiationStore.class),
-                        mock(Config.class)),
-                new PolicyService(
+                        mockConfig()),
+                new PolicyController(
                         monitor,
                         mockCatalogService(),
                         mockTransformer(),
                         mock(Config.class)),
-                new TransferInitiator(
-                        mock(Config.class),
-                        mock(CustomAuthenticationRequestFilter.class),
-                        mock(DataTransferObservable.class),
-                        URI.create("http://localhost:8181/api"),
+                new DataTransferController(
+                        mock(Monitor.class),
+                        mockConfig(),
+                        mock(WebService.class),
+                        mock(AuthenticationService.class),
                         mockTransferProcessManager()));
+    }
+
+    private Config mockConfig() {
+        return ConfigFactory.fromMap(Map.of("edc.dsp.callback.address", "http://localhost:4321/dsp",
+                "web.http.port", "8080", "web.http.path", "/api"));
     }
 
     private TypeTransformerRegistry mockTransformer() {
@@ -207,7 +218,7 @@ public class ClientEndpointTest {
         mockPolicyDefinitionsAsList.add(mockPolicyDefinition); // ClientEndpoint creates ArrayList
         var offers = new PolicyDefinition[] { mockPolicyDefinition };
 
-        clientEndpoint.addAcceptedPolicies(offers);
+        clientEndpoint.addAcceptedPolicyDefinitions(offers);
 
         assertEquals(mockPolicyDefinitionsAsList, clientEndpoint.getAcceptedPolicyDefinitions().getEntity());
     }
@@ -216,7 +227,7 @@ public class ClientEndpointTest {
     public void updateAcceptedContractOfferTest() {
         var offers = new PolicyDefinition[] { mockPolicyDefinition };
 
-        clientEndpoint.addAcceptedPolicies(offers);
+        clientEndpoint.addAcceptedPolicyDefinitions(offers);
 
         var mockPolicy = Policy.Builder.newInstance().build();
         var mockUpdatedContractOffer = PolicyDefinition.Builder.newInstance()

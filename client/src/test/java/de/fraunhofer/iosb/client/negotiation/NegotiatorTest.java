@@ -62,7 +62,7 @@ public class NegotiatorTest {
         @BeforeEach
         void initializeClientNegotiator() {
                 defineMockBehaviour();
-                clientNegotiator = new Negotiator(ccnmMock, contractNegotiationObservable, cnsMock, configMock);
+                clientNegotiator = new Negotiator(ccnmMock, cnsMock, configMock);
         }
 
     void defineMockBehaviour() {
@@ -106,10 +106,10 @@ public class NegotiatorTest {
                 contractNegotiationObservable.invokeForEach(listener -> listener.finalized(negotiation));
 
                 assertNotNull(future);
-                var agreement = future.get();
-                assertNotNull(agreement);
-                assertEquals(mockPolicy, agreement.getPolicy());
-                assertEquals(assetId, agreement.getAssetId());
+                var contractNegotiation = future.get();
+                assertNotNull(contractNegotiation);
+                assertEquals(mockPolicy, contractNegotiation.getContent().getContractAgreement().getPolicy());
+                assertEquals(assetId, contractNegotiation.getContent().getContractAgreement().getAssetId());
         }
 
         /*

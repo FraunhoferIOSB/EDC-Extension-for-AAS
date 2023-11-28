@@ -15,47 +15,57 @@
  */
 package de.fraunhofer.iosb.client.dataTransfer;
 
-import de.fraunhofer.iosb.client.authentication.CustomAuthenticationRequestFilter;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.Map;
+import java.util.UUID;
+
+import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
 import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.system.configuration.Config;
-import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
+import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-
-import static org.junit.jupiter.api.Assertions.fail;
-import static org.mockito.Mockito.*;
 
 public class TransferInitiatorTest {
 
     private final TransferProcessManager mockTransferProcessManager = mock(TransferProcessManager.class);
+    private Config configMock;
+
     private TransferInitiator transferInitiator;
     private StatusResult<TransferProcess> mockStatusResult;
 
     @BeforeEach
     @SuppressWarnings("unchecked")
     void initializeContractOfferService() throws URISyntaxException {
-        URI ownUri = new URI("http://localhost:4321/api/ids");
-        transferInitiator = new TransferInitiator(mock(Config.class), mock(CustomAuthenticationRequestFilter.class),
-                mock(DataTransferObservable.class), ownUri, mockTransferProcessManager);
+        configMock = ConfigFactory.fromMap(Map.of("edc.dsp.callback.address", "http://localhost:4321/dsp",
+                "web.http.port", "8080", "web.http.path", "/api"));
+
+        transferInitiator = new TransferInitiator(configMock, mock(Monitor.class), mockTransferProcessManager);
 
         mockStatusResult = (StatusResult<TransferProcess>) mock(StatusResult.class);
-        
+
         when(mockTransferProcessManager.initiateConsumerRequest(any())).thenReturn(mockStatusResult);
     }
 
     @Test
     void testInitiateTransferProcess() throws MalformedURLException {
         when(mockStatusResult.failed()).thenReturn(false);
+
         transferInitiator.initiateTransferProcess(new URL("http://provider-url:1234"), "test-agreement-id",
-                "test-asset");
+                "test-asset", UUID.randomUUID().toString());
         verify(mockTransferProcessManager, times(1)).initiateConsumerRequest(any());
     }
 
@@ -73,7 +83,7 @@ public class TransferInitiatorTest {
         when(mockStatusResult.failed()).thenReturn(true);
         try {
             transferInitiator.initiateTransferProcess(new URL("http://provider-url:1234"), "test-agreement-id",
-                    "test-asset");
+                    "test-asset", UUID.randomUUID().toString());
             fail();
         } catch (EdcException expected) {
         }

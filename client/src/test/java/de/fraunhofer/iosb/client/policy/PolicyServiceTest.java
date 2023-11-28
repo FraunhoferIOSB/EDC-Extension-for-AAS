@@ -24,6 +24,7 @@ import static org.mockito.Mockito.when;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -34,10 +35,9 @@ import org.eclipse.edc.catalog.spi.Distribution;
 import org.eclipse.edc.connector.spi.catalog.CatalogService;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.system.configuration.Config;
+import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -47,7 +47,6 @@ import de.fraunhofer.iosb.client.testUtils.FileManager;
 public class PolicyServiceTest {
 
     private final int providerPort = 54321;
-    private final Monitor mockMonitor = mock(Monitor.class);
     private final CatalogService mockCatalogService = mock(CatalogService.class);
     private final TypeTransformerRegistry mockTransformer = mock(TypeTransformerRegistry.class);
 
@@ -59,7 +58,8 @@ public class PolicyServiceTest {
 
     @BeforeEach
     void initializeContractOfferService() {
-        policyService = new PolicyService(mockMonitor, mockCatalogService, mockTransformer, mock(Config.class));
+        policyService = new PolicyService(mockCatalogService, mockTransformer, mockConfig(),
+                mock(PolicyDefinitionStore.class));
     }
 
     @Test
@@ -100,4 +100,10 @@ public class PolicyServiceTest {
         }
     }
 
+    private PolicyServiceConfig mockConfig() {
+        return new PolicyServiceConfig(
+                ConfigFactory.fromMap(Map.of("edc.dsp.callback.address", "http://localhost:4321/dsp",
+                        "web.http.port", "8080", "web.http.path", "/api")));
+
+    }
 }

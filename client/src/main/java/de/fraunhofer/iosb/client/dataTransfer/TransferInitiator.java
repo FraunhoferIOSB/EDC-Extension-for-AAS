@@ -103,8 +103,8 @@ class TransferInitiator {
 
         } catch (IllegalArgumentException | UriBuilderException ownUriBuilderException) {
             monitor.severe(
-                    "[Client] Could not build own URI, thus cannot transfer data to this EDC. Only data transfers to external endpoints are supported. Exception thrown:",
-                    ownUriBuilderException);
+                    format("[Client] Could not build own URI, thus cannot transfer data to this EDC. Only data transfers to external endpoints are supported. Exception message: %s",
+                    ownUriBuilderException.getMessage()));
         }
         return null;
     }

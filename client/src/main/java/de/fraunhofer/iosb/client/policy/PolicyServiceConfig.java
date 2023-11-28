@@ -15,8 +15,6 @@
  */
 package de.fraunhofer.iosb.client.policy;
 
-import static de.fraunhofer.iosb.client.ClientExtension.SETTINGS_PREFIX;
-
 import org.eclipse.edc.spi.system.configuration.Config;
 
 /**
@@ -35,15 +33,15 @@ public class PolicyServiceConfig {
     }
 
     boolean isAcceptAllProviderOffers() {
-        return config.getBoolean(SETTINGS_PREFIX + "acceptAllProviderOffers", ACCEPT_ALL_PROVIDER_OFFERS_DEFAULT);
+        return config.getBoolean("acceptAllProviderOffers", ACCEPT_ALL_PROVIDER_OFFERS_DEFAULT);
     }
 
     int getWaitForCatalogTimeout() {
-        return config.getInteger(SETTINGS_PREFIX + "waitForCatalogTimeout", WAIT_FOR_CATALOG_TIMEOUT_DEFAULT);
+        return config.getInteger("waitForCatalogTimeout", WAIT_FOR_CATALOG_TIMEOUT_DEFAULT);
     }
 
     String getAcceptedPolicyDefinitionsPath() {
-        return config.getString(SETTINGS_PREFIX + "acceptedPolicyDefinitionsPath",
+        return config.getString("acceptedPolicyDefinitionsPath",
                 ACCEPTED_POLICY_DEFINITIONS_PATH_DEFAULT);
     }
 

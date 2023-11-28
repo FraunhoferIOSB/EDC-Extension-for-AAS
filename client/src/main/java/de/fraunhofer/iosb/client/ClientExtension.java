@@ -51,14 +51,14 @@ public class ClientExtension implements ServiceExtension {
         @Inject
         private WebService webService;
 
-        public static final String SETTINGS_PREFIX = "edc.client.";
+        private static final String SETTINGS_PREFIX = "edc.client.";
 
         private Monitor monitor;
 
         @Override
         public void initialize(ServiceExtensionContext context) {
                 monitor = context.getMonitor();
-                var config = context.getConfig();
+                var config = context.getConfig(SETTINGS_PREFIX);
 
                 var policyController = new PolicyController(monitor, catalogService, transformer, config);
 

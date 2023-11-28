@@ -15,7 +15,6 @@
  */
 package de.fraunhofer.iosb.client.negotiation;
 
-import static de.fraunhofer.iosb.client.ClientExtension.SETTINGS_PREFIX;
 import static java.lang.String.format;
 
 import java.util.concurrent.CompletableFuture;
@@ -71,7 +70,7 @@ public class NegotiationController {
 
     private ContractAgreement waitForAgreement(String negotiationId) throws InterruptedException, ExecutionException {
         var agreementFuture = new CompletableFuture<ContractNegotiation>();
-        var timeout = config.getInteger(SETTINGS_PREFIX + "waitForAgreementTimeout",
+        var timeout = config.getInteger("waitForAgreementTimeout",
                 WAIT_FOR_AGREEMENT_TIMEOUT_DEFAULT);
 
         listener.addListener(negotiationId, agreementFuture);

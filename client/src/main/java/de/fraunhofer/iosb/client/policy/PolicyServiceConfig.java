@@ -26,6 +26,7 @@ public class PolicyServiceConfig {
 
     private static final boolean ACCEPT_ALL_PROVIDER_OFFERS_DEFAULT = false;
     private static final int WAIT_FOR_CATALOG_TIMEOUT_DEFAULT = 10;
+    private static final String ACCEPTED_POLICY_DEFINITIONS_PATH_DEFAULT = null;
 
     private final Config config;
 
@@ -42,7 +43,8 @@ public class PolicyServiceConfig {
     }
 
     String getAcceptedPolicyDefinitionsPath() {
-        return config.getString(SETTINGS_PREFIX + "acceptedPolicyDefinitionsPath");
+        return config.getString(SETTINGS_PREFIX + "acceptedPolicyDefinitionsPath",
+                ACCEPTED_POLICY_DEFINITIONS_PATH_DEFAULT);
     }
 
 }

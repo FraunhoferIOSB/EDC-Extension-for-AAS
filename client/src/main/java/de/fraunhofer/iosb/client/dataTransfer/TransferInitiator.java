@@ -87,9 +87,9 @@ class TransferInitiator {
     }
 
     private URI createOwnUriFromConfigurationValues(Config config) {
-        var protocolAddressString = config.getString("edc.dsp.callback.address");
-        var ownPort = config.getInteger("web.http.port");
-        var ownPath = config.getString("web.http.path");
+        var protocolAddressString = config.getString("edc.dsp.callback.address", null);
+        var ownPort = config.getInteger("web.http.port", -1);
+        var ownPath = config.getString("web.http.path", null);
         try {
             return UriBuilder
                     .fromUri(protocolAddressString)
@@ -101,9 +101,9 @@ class TransferInitiator {
                             DataTransferEndpoint.RECEIVE_DATA_PATH))
                     .build();
 
-        } catch (UriBuilderException ownUriBuilderException) {
+        } catch (IllegalArgumentException | UriBuilderException ownUriBuilderException) {
             monitor.severe(
-                    "Could not build own URI, thus cannot transfer data to this EDC. Only data transfers to external endpoints are supported. Exception thrown:",
+                    "[Client] Could not build own URI, thus cannot transfer data to this EDC. Only data transfers to external endpoints are supported. Exception thrown:",
                     ownUriBuilderException);
         }
         return null;

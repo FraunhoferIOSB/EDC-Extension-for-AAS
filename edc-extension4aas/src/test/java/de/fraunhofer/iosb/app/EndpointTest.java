@@ -19,13 +19,11 @@ import static java.lang.String.format;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -71,7 +69,7 @@ public class EndpointTest {
         endpoint = new Endpoint(
                 selfDescriptionRepo,
                 aasController,
-                new ConfigurationController(mock(Config.class)));
+                new ConfigurationController(ConfigFactory.empty()));
     }
 
     @AfterEach

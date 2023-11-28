@@ -22,6 +22,7 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiat
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
 
 import java.util.concurrent.CompletableFuture;
@@ -29,6 +30,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import static de.fraunhofer.iosb.client.ClientExtension.SETTINGS_PREFIX;
 import static java.lang.String.format;
 
 /**
@@ -36,11 +38,13 @@ import static java.lang.String.format;
  */
 public class Negotiator {
 
+    // How long the client waits for a negotiation to finish (seconds)
+    private static final int WAIT_FOR_AGREEMENT_TIMEOUT_DEFAULT = 10;
+
     private final ConsumerContractNegotiationManager consumerNegotiationManager;
     private final ClientContractNegotiationListener listener;
     private final ContractNegotiationStore contractNegotiationStore;
-
-    private final int waitForAgreementTimeout;
+    private final Config config;
 
     /**
      * Class constructor
@@ -48,20 +52,23 @@ public class Negotiator {
      * @param consumerNegotiationManager Initiating a negotiation as a consumer.
      * @param observable                 Status updates for waiting data transfer
      *                                   requesters to avoid busy waiting.
-     * @param contractNegotiationStore   Check for existing agreements before negotiating
+     * @param contractNegotiationStore   Check for existing agreements before
+     *                                   negotiating
      */
     public Negotiator(ConsumerContractNegotiationManager consumerNegotiationManager,
-                      ContractNegotiationObservable observable, ContractNegotiationStore contractNegotiationStore,
-                      int waitForAgreementTimeout) {
+            ContractNegotiationObservable observable, ContractNegotiationStore contractNegotiationStore,
+            Config config) {
         this.consumerNegotiationManager = consumerNegotiationManager;
         this.contractNegotiationStore = contractNegotiationStore;
-        this.waitForAgreementTimeout=waitForAgreementTimeout;
+        this.config = config;
+
         listener = new ClientContractNegotiationListener();
         observable.registerListener(listener);
     }
 
     /**
-     * Negotiate a contract agreement using the given contract offer if no agreement exists for this constellation.
+     * Negotiate a contract agreement using the given contract offer if no agreement
+     * exists for this constellation.
      *
      * @param contractRequest The contract request to be sent.
      * @return contractAgreement of the completed negotiation.
@@ -94,17 +101,20 @@ public class Negotiator {
 
     private ContractAgreement waitForAgreement(String negotiationId) throws InterruptedException, ExecutionException {
         var agreementFuture = new CompletableFuture<ContractNegotiation>();
+        var timeout = config.getInteger(SETTINGS_PREFIX + "waitForAgreementTimeout",
+                WAIT_FOR_AGREEMENT_TIMEOUT_DEFAULT);
+
         listener.addListener(negotiationId, agreementFuture);
 
         try {
-            var negotiation = agreementFuture.get(waitForAgreementTimeout,
-                    TimeUnit.SECONDS);
+            var negotiation = agreementFuture.get(timeout, TimeUnit.SECONDS);
             listener.removeListener(negotiationId);
 
             return negotiation.getContractAgreement();
-        } catch (TimeoutException agreementTimeoutExceededException) {
-            throw new EdcException(format("Waiting for an agreement failed for negotiationId: %s", negotiationId),
-                    agreementTimeoutExceededException);
+        } catch (TimeoutException agreementTimeout) {
+            throw new EdcException(
+                    format("[Client] Agreement negotiation timed out for negotiation id: %s", negotiationId),
+                    agreementTimeout);
         }
     }
 }

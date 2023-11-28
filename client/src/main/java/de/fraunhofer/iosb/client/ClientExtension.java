@@ -62,7 +62,7 @@ public class ClientExtension implements ServiceExtension {
     @Inject
     private WebService webService;
 
-    private static final String SETTINGS_PREFIX = "edc.client.";
+    public static final String SETTINGS_PREFIX = "edc.client.";
 
     private Monitor monitor;
 
@@ -75,19 +75,14 @@ public class ClientExtension implements ServiceExtension {
         var authenticationRequestFilter = new CustomAuthenticationRequestFilter(monitor,
                 authenticationService);
 
-        // TODO better way to deal with config values
-        var policyService = new PolicyService(monitor, catalogService, transformer,
-                config.getBoolean(SETTINGS_PREFIX + "isAcceptAllProviderOffers"),
-                config.getInteger(SETTINGS_PREFIX + "getWaitForCatalogTimeout", 10),
-                config.getString(SETTINGS_PREFIX + "acceptedPolicyDefinitionsPath"));
+        var policyService = new PolicyService(monitor, catalogService, transformer, config);
+
         var negotiator = new Negotiator(consumerNegotiationManager, contractNegotiationObservable,
-                contractNegotiationStore, config.getInteger(SETTINGS_PREFIX + "waitForAgreementTimeout", 5));
+                contractNegotiationStore, config);
+
         var uri = createOwnUriFromConfigurationValues(config);
-        var transferInitiator = new TransferInitiator(uri,
-                transferProcessManager,
-                observable,
-                authenticationRequestFilter,
-                config.getInteger(SETTINGS_PREFIX + "getWaitForTransferTimeout", 10));
+        var transferInitiator = new TransferInitiator(config, authenticationRequestFilter, observable, uri,
+                transferProcessManager);
 
         // TODO split up client Endpoint functionality?
         var endpoint = new ClientEndpoint(monitor, negotiator, policyService, transferInitiator);

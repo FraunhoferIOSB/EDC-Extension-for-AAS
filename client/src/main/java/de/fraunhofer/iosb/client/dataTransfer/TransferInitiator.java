@@ -20,6 +20,7 @@ import de.fraunhofer.iosb.client.ClientEndpoint;
 import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 
 import java.net.URI;
@@ -30,6 +31,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import static de.fraunhofer.iosb.client.ClientExtension.SETTINGS_PREFIX;
 import static java.lang.String.format;
 import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
@@ -40,12 +42,14 @@ import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 public class TransferInitiator {
 
     private static final String DATA_TRANSFER_API_KEY = "data-transfer-api-key";
+    private static final int WAIT_FOR_TRANSFER_TIMEOUT_DEFAULT = 10;
 
     private final DataTransferObservable observable;
     private final TransferProcessManager transferProcessManager;
     private final URI ownUri;
     private final CustomAuthenticationRequestFilter dataEndpointAuthenticationRequestFilter;
-    private final int waitForTransferTimeout;
+    private final Config config;
+
     /**
      * Class constructor
      *
@@ -59,17 +63,14 @@ public class TransferInitiator {
      *                                                custom api keys for each data
      *                                                transfer
      */
-    public TransferInitiator(URI ownUri,
-                             TransferProcessManager transferProcessManager, DataTransferObservable observable,
-                             CustomAuthenticationRequestFilter dataEndpointAuthenticationRequestFilter,
-                             int waitForTransferTimeout) {
-        this.ownUri = ownUri
-                .resolve(format("./%s/%s/%s", ownUri.getPath(), ClientEndpoint.AUTOMATED_PATH,
-                        DataTransferEndpoint.RECEIVE_DATA_PATH));
-        this.transferProcessManager = transferProcessManager;
-        this.observable = observable;
+    public TransferInitiator(Config config, CustomAuthenticationRequestFilter dataEndpointAuthenticationRequestFilter,
+            DataTransferObservable observable, URI ownUri, TransferProcessManager transferProcessManager) {
+        this.config = config;
         this.dataEndpointAuthenticationRequestFilter = dataEndpointAuthenticationRequestFilter;
-        this.waitForTransferTimeout=waitForTransferTimeout;
+        this.ownUri = ownUri.resolve(format("./%s/%s/%s", ownUri.getPath(), ClientEndpoint.AUTOMATED_PATH,
+        DataTransferEndpoint.RECEIVE_DATA_PATH));
+        this.observable = observable;
+        this.transferProcessManager = transferProcessManager;
     }
 
     /**
@@ -80,7 +81,7 @@ public class TransferInitiator {
      * @param agreementId Non-null ContractAgreement of the negotiation process.
      * @param assetId     The asset to be fetched.
      * @return A completable future whose result will be the data or an error
-     * message.
+     *         message.
      */
     public CompletableFuture<String> initiateTransferProcess(URL providerUrl, String agreementId, String assetId) {
         var apiKey = UUID.randomUUID().toString();
@@ -106,10 +107,10 @@ public class TransferInitiator {
      * @param dataSinkAddress HTTPDataAddress the result of the transfer should be
      *                        sent to.
      * @return A completable future whose result will be the data or an error
-     * message.
+     *         message.
      */
     public CompletableFuture<String> initiateTransferProcess(URL providerUrl, String agreementId, String assetId,
-                                                             DataAddress dataSinkAddress) {
+            DataAddress dataSinkAddress) {
         // Prepare for incoming data
         var dataFuture = new CompletableFuture<String>();
         observable.register(dataFuture, agreementId);
@@ -145,7 +146,9 @@ public class TransferInitiator {
             throws InterruptedException, ExecutionException {
         try {
             // Fetch TransferTimeout everytime to adapt to runtime config changes
-            var data = dataFuture.get(waitForTransferTimeout, TimeUnit.SECONDS);
+            var data = dataFuture.get(
+                    config.getInteger(SETTINGS_PREFIX + "getWaitForTransferTimeout", WAIT_FOR_TRANSFER_TIMEOUT_DEFAULT),
+                    TimeUnit.SECONDS);
             observable.unregister(agreementId);
             return data;
         } catch (TimeoutException transferTimeoutExceededException) {

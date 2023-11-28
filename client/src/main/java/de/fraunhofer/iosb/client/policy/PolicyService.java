@@ -55,6 +55,7 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
@@ -72,12 +73,11 @@ import jakarta.json.JsonObject;
  */
 public class PolicyService {
 
+    private final PolicyServiceConfig config;
+
     private final CatalogService catalogService;
     private final TypeTransformerRegistry transformer;
-
     private final PolicyDefinitionStore policyDefinitionStore;
-    private final boolean acceptAllProviderOffers;
-    private final int waitForCatalogTimeout;
 
     /**
      * Class constructor
@@ -86,13 +86,13 @@ public class PolicyService {
      * @param transformer    Transform json-ld byte-array catalog to catalog class
      */
     public PolicyService(Monitor monitor, CatalogService catalogService, TypeTransformerRegistry transformer,
-            boolean isAcceptAllProviderOffers, int getWaitForCatalogTimeout, String acceptedPolicyDefinitionsPath) {
+            Config systemConfig) {
+        this.config = new PolicyServiceConfig(systemConfig);
+        this.policyDefinitionStore = new PolicyDefinitionStore(monitor, this.config.getAcceptedPolicyDefinitionsPath());
+
         this.catalogService = catalogService;
         this.transformer = transformer;
-        this.policyDefinitionStore = new PolicyDefinitionStore(monitor, acceptedPolicyDefinitionsPath);
 
-        this.acceptAllProviderOffers = isAcceptAllProviderOffers;
-        this.waitForCatalogTimeout = getWaitForCatalogTimeout;
     }
 
     /**
@@ -115,7 +115,7 @@ public class PolicyService {
 
         StatusResult<byte[]> catalogResponse;
         try {
-            catalogResponse = catalogFuture.get(waitForCatalogTimeout, TimeUnit.SECONDS);
+            catalogResponse = catalogFuture.get(config.getWaitForCatalogTimeout(), TimeUnit.SECONDS);
         } catch (ExecutionException futureExecutionException) {
             throw new EdcException(format("Failed fetching a catalog by provider %s.", providerUrl),
                     futureExecutionException);
@@ -174,7 +174,7 @@ public class PolicyService {
         var dataset = getDatasetForAssetId(providerUrl, assetId);
 
         Map.Entry<String, Policy> acceptablePolicy;
-        if (acceptAllProviderOffers) {
+        if (config.isAcceptAllProviderOffers()) {
             acceptablePolicy = dataset.getOffers().entrySet().stream()
                     .findAny()
                     .orElseThrow();

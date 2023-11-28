@@ -39,7 +39,8 @@ public class DataTransferController {
      * Class constructor
      *
      * @param monitor                       Logging.
-     * @param config                        Read config value transfer timeout and own URI
+     * @param config                        Read config value transfer timeout and
+     *                                      own URI
      * @param webService                    Register data transfer endpoint.
      * @param dataEndpointAuthRequestFilter Creating and passing through custom api
      *                                      keys for each data transfer.
@@ -49,7 +50,7 @@ public class DataTransferController {
     public DataTransferController(Monitor monitor, Config config, WebService webService,
             AuthenticationService authenticationService, TransferProcessManager transferProcessManager) {
         this.config = config;
-        this.transferInitiator = new TransferInitiator(config, transferProcessManager);
+        this.transferInitiator = new TransferInitiator(config, monitor, transferProcessManager);
         this.dataEndpointAuthenticationRequestFilter = new CustomAuthenticationRequestFilter(monitor,
                 authenticationService);
 

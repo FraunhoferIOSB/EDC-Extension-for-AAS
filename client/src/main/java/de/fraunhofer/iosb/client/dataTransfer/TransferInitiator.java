@@ -22,16 +22,19 @@ import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
 import java.net.URI;
 import java.net.URL;
+import java.util.Objects;
 import java.util.UUID;
 
 import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 
 import de.fraunhofer.iosb.client.ClientEndpoint;
 import jakarta.ws.rs.core.UriBuilder;
+import jakarta.ws.rs.core.UriBuilderException;
 
 /**
  * Initiate transfer requests
@@ -39,16 +42,22 @@ import jakarta.ws.rs.core.UriBuilder;
 class TransferInitiator {
 
     private final TransferProcessManager transferProcessManager;
+    private final Monitor monitor;
     private final URI ownUri;
 
-    TransferInitiator(Config config,
+    TransferInitiator(Config config, Monitor monitor,
             TransferProcessManager transferProcessManager) {
-
+        this.monitor = monitor;
         this.ownUri = createOwnUriFromConfigurationValues(config);
         this.transferProcessManager = transferProcessManager;
     }
 
     void initiateTransferProcess(URL providerUrl, String agreementId, String assetId, String apiKey) {
+        if (Objects.isNull(ownUri)) {
+            monitor.warning(
+                    "Cannot transfer to own EDC since own URI could not be built while initializing client extension. Not continuing...");
+            return;
+        }
         var dataDestination = DataAddress.Builder.newInstance()
                 .type("HttpData")
                 .property(EDC_NAMESPACE + "baseUrl", ownUri.toString())
@@ -81,16 +90,23 @@ class TransferInitiator {
         var protocolAddressString = config.getString("edc.dsp.callback.address");
         var ownPort = config.getInteger("web.http.port");
         var ownPath = config.getString("web.http.path");
+        try {
+            return UriBuilder
+                    .fromUri(protocolAddressString)
+                    .port(ownPort)
+                    .path(format(
+                            "%s/%s/%s",
+                            ownPath,
+                            ClientEndpoint.AUTOMATED_PATH,
+                            DataTransferEndpoint.RECEIVE_DATA_PATH))
+                    .build();
 
-        return UriBuilder
-                .fromUri(protocolAddressString)
-                .port(ownPort)
-                .path(format(
-                        "%s/%s/%s",
-                        ownPath,
-                        ClientEndpoint.AUTOMATED_PATH,
-                        DataTransferEndpoint.RECEIVE_DATA_PATH))
-                .build();
+        } catch (UriBuilderException ownUriBuilderException) {
+            monitor.severe(
+                    "Could not build own URI, thus cannot transfer data to this EDC. Only data transfers to external endpoints are supported. Exception thrown:",
+                    ownUriBuilderException);
+        }
+        return null;
     }
 
 }

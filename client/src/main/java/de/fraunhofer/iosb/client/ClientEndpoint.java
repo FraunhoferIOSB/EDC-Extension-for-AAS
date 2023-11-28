@@ -247,9 +247,8 @@ public class ClientEndpoint {
         monitor.debug(format("[Client] Received a %s POST request", ACCEPTED_POLICIES_PATH));
 
         if (Objects.isNull(policyDefinitions)) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Missing policyDefinitions array").build();
+            return Response.status(Response.Status.BAD_REQUEST).entity("Missing request body").build();
         }
-        monitor.info(format("[Client] Adding %s accepted contract offers", policyDefinitions.length));
 
         policyController.addAcceptedPolicyDefinitions(policyDefinitions);
         return Response.ok().build();
@@ -302,7 +301,7 @@ public class ClientEndpoint {
     public Response updateAcceptedPolicyDefinition(PolicyDefinition policyDefinition) {
         monitor.debug(format("[Client] Received a %s PUT request", ACCEPTED_POLICIES_PATH));
         if (Objects.isNull(policyDefinition)) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Missing policyDefinition").build();
+            return Response.status(Response.Status.BAD_REQUEST).entity("Missing policyDefinition as request body").build();
         }
 
         var updated = policyController.updateAcceptedPolicyDefinition(policyDefinition);

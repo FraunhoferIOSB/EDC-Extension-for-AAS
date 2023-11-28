@@ -58,7 +58,6 @@ public class CustomAuthenticationRequestFilter extends AuthenticationRequestFilt
             }
         }
 
-        LOGGER.debug("CustomAuthenticationRequestFilter: Intercepting this request");
         super.filter(requestContext);
     }
 }

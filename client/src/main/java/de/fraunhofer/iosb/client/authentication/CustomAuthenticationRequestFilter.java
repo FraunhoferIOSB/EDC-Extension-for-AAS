@@ -34,12 +34,12 @@ import static java.lang.String.format;
  */
 public class CustomAuthenticationRequestFilter extends AuthenticationRequestFilter {
 
-    private final Monitor logger;
+    private final Monitor monitor;
     private final Map<String, String> tempKeys;
 
-    public CustomAuthenticationRequestFilter(Monitor logger, AuthenticationService authenticationService) {
+    public CustomAuthenticationRequestFilter(Monitor monitor, AuthenticationService authenticationService) {
         super(authenticationService);
-        this.logger = logger;
+        this.monitor = monitor;
         tempKeys = new ConcurrentHashMap<>();
     }
 
@@ -68,14 +68,13 @@ public class CustomAuthenticationRequestFilter extends AuthenticationRequestFilt
                     && requestContext.getHeaderString(key).equals(tempKeys.get(key))
                     && requestPath.startsWith(
                             format("%s/%s", ClientEndpoint.AUTOMATED_PATH, DataTransferEndpoint.RECEIVE_DATA_PATH))) {
-                logger.debug(
-                        format("CustomAuthenticationRequestFilter: Data Transfer request with custom api key %s", key));
+                monitor.debug(
+                        format("[Client] Data Transfer request with custom api key %s", key));
                 tempKeys.remove(key);
                 return;
             }
         }
 
-        logger.debug("CustomAuthenticationRequestFilter: Intercepting this request");
         super.filter(requestContext);
     }
 }

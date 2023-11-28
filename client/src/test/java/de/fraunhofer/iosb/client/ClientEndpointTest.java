@@ -38,6 +38,7 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.spi.types.domain.offer.ContractOffer;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
@@ -95,11 +96,22 @@ public class ClientEndpointTest {
     @BeforeEach
     public void setup() throws IOException {
         clientEndpoint = new ClientEndpoint(monitor,
-                new Negotiator(mockConsumerNegotiationManager(), mock(ContractNegotiationObservable.class),
-                        mock(ContractNegotiationStore.class), 10),
-                new PolicyService(monitor, mockCatalogService(), mockTransformer(), false, 10, null),
-                new TransferInitiator(URI.create("http://localhost:8181/api"), mockTransferProcessManager(),
-                        mock(DataTransferObservable.class), mock(CustomAuthenticationRequestFilter.class), 10));
+                new Negotiator(
+                        mockConsumerNegotiationManager(),
+                        mock(ContractNegotiationObservable.class),
+                        mock(ContractNegotiationStore.class),
+                        mock(Config.class)),
+                new PolicyService(
+                        monitor,
+                        mockCatalogService(),
+                        mockTransformer(),
+                        mock(Config.class)),
+                new TransferInitiator(
+                        mock(Config.class),
+                        mock(CustomAuthenticationRequestFilter.class),
+                        mock(DataTransferObservable.class),
+                        URI.create("http://localhost:8181/api"),
+                        mockTransferProcessManager()));
     }
 
     private TypeTransformerRegistry mockTransformer() {
@@ -161,7 +173,7 @@ public class ClientEndpointTest {
             fail();
         } catch (EdcException expected) {
             if (!(expected.getCause().getClass().equals(TimeoutException.class)
-                    && expected.getMessage().contains("agreement"))) {
+                    && expected.getMessage().contains("Agreement"))) {
                 fail(); // This must fail because of agreement timeout.
             }
         }

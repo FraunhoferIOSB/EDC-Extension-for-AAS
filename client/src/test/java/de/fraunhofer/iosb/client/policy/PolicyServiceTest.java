@@ -37,6 +37,7 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -58,7 +59,7 @@ public class PolicyServiceTest {
 
     @BeforeEach
     void initializeContractOfferService() {
-        policyService = new PolicyService(mockMonitor, mockCatalogService, mockTransformer, false, 10, null);
+        policyService = new PolicyService(mockMonitor, mockCatalogService, mockTransformer, mock(Config.class));
     }
 
     @Test

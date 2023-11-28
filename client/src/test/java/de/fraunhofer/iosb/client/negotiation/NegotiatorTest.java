@@ -15,6 +15,20 @@
  */
 package de.fraunhofer.iosb.client.negotiation;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.UUID;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.stream.Stream;
+
 import org.eclipse.edc.connector.contract.observe.ContractNegotiationObservableImpl;
 import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationObservable;
@@ -25,29 +39,20 @@ import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.spi.system.configuration.Config;
+import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
 import org.eclipse.edc.spi.types.domain.offer.ContractOffer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.UUID;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
-import java.util.stream.Stream;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class NegotiatorTest {
 
         private final ConsumerContractNegotiationManager ccnmMock = mock(ConsumerContractNegotiationManager.class);
         private final ContractNegotiationStore cnsMock = mock(ContractNegotiationStore.class);
         private final ContractNegotiationObservable contractNegotiationObservable = new ContractNegotiationObservableImpl();
+        private final Config configMock = ConfigFactory.empty();
+
         private final String assetId = "test-asset-id";
         private final Policy mockPolicy = buildPolicy();
         private final ContractNegotiation negotiation = getContractNegotiation();
@@ -57,7 +62,7 @@ public class NegotiatorTest {
         @BeforeEach
         void initializeClientNegotiator() {
                 defineMockBehaviour();
-                clientNegotiator = new Negotiator(ccnmMock, contractNegotiationObservable, cnsMock, 10);
+                clientNegotiator = new Negotiator(ccnmMock, contractNegotiationObservable, cnsMock, configMock);
         }
 
     void defineMockBehaviour() {
@@ -68,8 +73,8 @@ public class NegotiatorTest {
 
         @Test
         void testNegotiate() throws MalformedURLException, ExecutionException, InterruptedException {
-                // Mocked EDC negotiation manager returns future which completes to a successful
-                // negotiation (agreement)
+                // Mocked EDC negotiation manager returns a future which completes to a
+                // successful negotiation (agreement)
                 // Input is providerUrl (unimportant), contractOffer. The resulting
                 // contractAgreement should have the same
                 // policy as our contractOffer (not the same object reference) and the same
@@ -89,10 +94,15 @@ public class NegotiatorTest {
 
                 var future = Executors.newSingleThreadExecutor()
                                 .submit(() -> clientNegotiator.negotiate(contractRequest));
-                // Let the negotiator think we need time to process
-                // If not, the "confirmed" signal will be sent too soon, and the negotiator will
-                // never complete
-                Thread.sleep(1000);
+
+                // Let the negotiator add a listener to this negotiation.
+                // If we don't, the "confirmed" signal will be sent too soon, and the negotiator
+                // will never see it
+                try {
+                        Thread.sleep(3000);
+                } catch (InterruptedException e) {
+                        fail();
+                }
                 contractNegotiationObservable.invokeForEach(listener -> listener.finalized(negotiation));
 
                 assertNotNull(future);
@@ -117,9 +127,9 @@ public class NegotiatorTest {
 
         private ContractNegotiation getContractNegotiation() {
                 return ContractNegotiation.Builder.newInstance()
-                                .counterPartyId("")
-                                .counterPartyAddress("")
-                                .protocol("")
+                                .counterPartyId("mock-counter-party-id")
+                                .counterPartyAddress("mock-counter-party-address")
+                                .protocol("mock-protocol")
                                 .id("mocked-negotiation-id")
                                 .contractAgreement(ContractAgreement.Builder.newInstance()
                                                 .id(UUID.randomUUID().toString())

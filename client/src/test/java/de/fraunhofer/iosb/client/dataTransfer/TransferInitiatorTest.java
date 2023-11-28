@@ -20,6 +20,7 @@ import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,9 +43,11 @@ public class TransferInitiatorTest {
     @SuppressWarnings("unchecked")
     void initializeContractOfferService() throws URISyntaxException {
         URI ownUri = new URI("http://localhost:4321/api/ids");
-        transferInitiator = new TransferInitiator(ownUri, mockTransferProcessManager,
-                mock(DataTransferObservable.class), mock(CustomAuthenticationRequestFilter.class), 10);
+        transferInitiator = new TransferInitiator(mock(Config.class), mock(CustomAuthenticationRequestFilter.class),
+                mock(DataTransferObservable.class), ownUri, mockTransferProcessManager);
+
         mockStatusResult = (StatusResult<TransferProcess>) mock(StatusResult.class);
+        
         when(mockTransferProcessManager.initiateConsumerRequest(any())).thenReturn(mockStatusResult);
     }
 

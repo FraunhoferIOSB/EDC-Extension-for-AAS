@@ -119,11 +119,11 @@ request located in `/examples/resources`. Do the following steps:
 
 __Important__:
 
-- If the (consumer's) config value `edc.aas.client.acceptAllProviderOffers` is set to `true`: This command will fetch
+- If the (consumer's) config value `edc.client.acceptAllProviderOffers` is set to `true`: This command will fetch
   a provider policy for the selected asset and accept it as is. If no policies exist for this asset, no negotiation will
   take place.
 
-- If the (consumer's) config value `edc.aas.client.acceptAllProviderOffers` is set to `false` (default): This command
+- If the (consumer's) config value `edc.client.acceptAllProviderOffers` is set to `false` (default): This command
   will request the provider's offered policy for the asset and check it against its own accepted policyDefinitions by
   comparing the permissions, prohibitions and obligations of both the provider's policyDefinition and the ones in the
   policyDefinitionStore. The assetID or other IDs must not be equal for the policyDefinitions to match. Initially, this

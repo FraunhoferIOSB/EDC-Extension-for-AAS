@@ -69,7 +69,7 @@ public class AasAgent {
         try {
             response = Transformer.okHttpResponseToJakartaResponse(httpRestClient.put(aasServiceUrl, element));
         } catch (IOException io) {
-            logger.error("Could not fetch AAS env from AAS service", io);
+            logger.severe("Could not fetch AAS env from AAS service", io);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
 
@@ -88,7 +88,7 @@ public class AasAgent {
         try {
             response = Transformer.okHttpResponseToJakartaResponse(httpRestClient.post(aasServiceUrl, element));
         } catch (IOException io) {
-            logger.error("Could not fetch AAS env from AAS service", io);
+            logger.severe("Could not fetch AAS env from AAS service", io);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
 
@@ -108,7 +108,7 @@ public class AasAgent {
         try {
             response = Transformer.okHttpResponseToJakartaResponse(httpRestClient.delete(aasServiceUrl, element));
         } catch (IOException io) {
-            logger.error("Could not fetch AAS env from AAS service", io);
+            logger.severe("Could not fetch AAS env from AAS service", io);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
 

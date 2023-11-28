@@ -40,7 +40,7 @@ public final class Transformer {
         try {
             body = Objects.requireNonNull(response.body()).string();
         } catch (IOException e) {
-            LOGGER.error("Failed transforming HTTP Response", e);
+            LOGGER.severe("Failed transforming HTTP Response", e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
         return Response.status(statusCode).entity(body).build();

@@ -36,8 +36,8 @@ import static java.lang.String.format;
 /**
  * Delegates (HTTP) Requests to controllers.
  */
-@Consumes({MediaType.APPLICATION_JSON, MediaType.WILDCARD})
-@Produces({MediaType.APPLICATION_JSON})
+@Consumes({ MediaType.APPLICATION_JSON, MediaType.WILDCARD })
+@Produces({ MediaType.APPLICATION_JSON })
 @Path("/")
 public class Endpoint {
 
@@ -60,11 +60,12 @@ public class Endpoint {
      * @param selfDescriptionRepository Manage self descriptions
      * @param aasController             Communication with AAS services
      */
-    public Endpoint(SelfDescriptionRepository selfDescriptionRepository, AasController aasController) {
+    public Endpoint(SelfDescriptionRepository selfDescriptionRepository, AasController aasController,
+            ConfigurationController configurationController) {
         this.selfDescriptionRepository = Objects.requireNonNull(selfDescriptionRepository);
         this.aasController = Objects.requireNonNull(aasController);
 
-        this.configurationController = new ConfigurationController();
+        this.configurationController = configurationController;
         objectMapper = new ObjectMapper();
     }
 
@@ -103,7 +104,7 @@ public class Endpoint {
     @POST
     @Path(CLIENT_PATH)
     public Response postAasService(@QueryParam("url") URL aasServiceUrl) {
-        LOGGER.log("Received a client POST request");
+        LOGGER.info("Received a client POST request");
         Objects.requireNonNull(aasServiceUrl);
         if (Objects.nonNull(selfDescriptionRepository.getSelfDescription(aasServiceUrl))) {
             return Response.ok("Service was already registered at EDC").build();
@@ -129,9 +130,9 @@ public class Endpoint {
     @POST
     @Path(ENVIRONMENT_PATH)
     public Response postAasEnvironment(@QueryParam("environment") String pathToEnvironment,
-                                       @QueryParam(CONFIG_PATH) String pathToAssetAdministrationShellConfig,
-                                       @QueryParam("port") int port) {
-        LOGGER.log("Received an environment POST request");
+            @QueryParam(CONFIG_PATH) String pathToAssetAdministrationShellConfig,
+            @QueryParam("port") int port) {
+        LOGGER.info("Received an environment POST request");
         Objects.requireNonNull(pathToEnvironment);
         URL newAssetAdministrationShellUrl;
         try {
@@ -143,20 +144,20 @@ public class Endpoint {
             newAssetAdministrationShellUrl = aasController.startService(environmentPath, port, aasConfigPath);
 
         } catch (IOException aasServiceException) {
-            LOGGER.error(format("Could not start/read from AAS service. Message from AAS Service: %s",
+            LOGGER.severe(format("Could not start/read from AAS service. Message from AAS Service: %s",
                     aasServiceException.getMessage()));
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),
                     "Could not start AAS service. Check logs for details").build();
         } catch (InvalidPathException invalidPathException) {
-            LOGGER.error("Could not resolve paths", invalidPathException);
+            LOGGER.severe("Could not resolve paths", invalidPathException);
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
 
         selfDescriptionRepository.createSelfDescription(newAssetAdministrationShellUrl);
         return Response.ok(format("%s\n%s\n%s: %s",
-                        "Booted up and registered AAS service managed by extension.",
-                        "Wait for next synchronization period for assetIndex and selfDescription.",
-                        "URL of new AAS service", newAssetAdministrationShellUrl))
+                "Booted up and registered AAS service managed by extension.",
+                "Wait for next synchronization period for assetIndex and selfDescription.",
+                "URL of new AAS service", newAssetAdministrationShellUrl))
                 .build();
 
     }
@@ -170,7 +171,7 @@ public class Endpoint {
     @DELETE
     @Path(CLIENT_PATH)
     public Response removeAasService(@QueryParam("url") URL aasServiceUrl) {
-        LOGGER.log("Received a client DELETE request");
+        LOGGER.info("Received a client DELETE request");
         Objects.requireNonNull(aasServiceUrl);
 
         if (Objects.isNull(selfDescriptionRepository.getSelfDescription(aasServiceUrl))) {
@@ -196,7 +197,7 @@ public class Endpoint {
     @POST
     @Path(AAS_REQUEST_PATH)
     public Response postAasRequest(@QueryParam("requestUrl") URL requestUrl, String requestBody) {
-        LOGGER.log("Received an AAS POST request");
+        LOGGER.info("Received an AAS POST request");
         Objects.requireNonNull(requestUrl);
         Objects.requireNonNull(requestBody);
         return handleAasRequest(RequestType.POST, requestUrl, requestBody);
@@ -213,7 +214,7 @@ public class Endpoint {
     @DELETE
     @Path(AAS_REQUEST_PATH)
     public Response deleteAasRequest(@QueryParam("requestUrl") URL requestUrl) {
-        LOGGER.log("Received an AAS DELETE request");
+        LOGGER.info("Received an AAS DELETE request");
         Objects.requireNonNull(requestUrl);
         return handleAasRequest(RequestType.DELETE, requestUrl, "");
     }
@@ -228,7 +229,7 @@ public class Endpoint {
     @PUT
     @Path(AAS_REQUEST_PATH)
     public Response putAasRequest(@QueryParam("requestUrl") URL requestUrl, String requestBody) {
-        LOGGER.log("Received an AAS PUT request");
+        LOGGER.info("Received an AAS PUT request");
         Objects.requireNonNull(requestUrl);
         Objects.requireNonNull(requestBody);
         return handleAasRequest(RequestType.PUT, requestUrl, requestBody);
@@ -260,7 +261,7 @@ public class Endpoint {
             if (Objects.nonNull(selfDescription)) {
                 return Response.ok(selfDescription.toString()).build();
             } else {
-                LOGGER.error(format("Self description with URL %s not found.", aasServiceUrl));
+                LOGGER.severe(format("Self description with URL %s not found.", aasServiceUrl));
                 return Response.status(Status.NOT_FOUND).build();
             }
         }
@@ -274,10 +275,10 @@ public class Endpoint {
         try (var response = aasController.handleRequest(requestType, requestUrl, body)) {
 
             if (!response.getStatusInfo().getFamily().equals(Family.SUCCESSFUL)) {
-                LOGGER.error("AAS request failed. Response from URL: " + response.getStatusInfo());
+                LOGGER.severe("AAS request failed. Response from URL: " + response.getStatusInfo());
                 return Response.status(response.getStatus()).build();
             }
-            LOGGER.log("AAS request succeeded.");
+            LOGGER.info("AAS request succeeded.");
         }
         return Response.ok().build();
     }

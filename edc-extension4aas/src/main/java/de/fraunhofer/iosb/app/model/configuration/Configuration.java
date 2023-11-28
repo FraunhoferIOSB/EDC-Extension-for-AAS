@@ -15,10 +15,10 @@
  */
 package de.fraunhofer.iosb.app.model.configuration;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.net.URL;
 import java.util.Objects;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Singleton class.
@@ -53,22 +53,6 @@ public class Configuration {
     @JsonProperty(SETTINGS_PREFIX + "defaultContractPolicyPath")
     private String defaultContractPolicyPath;
 
-    @JsonProperty(SETTINGS_PREFIX + "client.waitForTransferTimeout")
-    private int waitForTransferTimeout = 10; // Seconds
-
-    @JsonProperty(SETTINGS_PREFIX + "client.waitForAgreementTimeout")
-    private int waitForAgreementTimeout = 10; // Seconds
-
-    @JsonProperty(SETTINGS_PREFIX + "client.waitForCatalogTimeout")
-    private int waitForCatalogTimeout = 10; // Seconds
-
-    @JsonProperty(SETTINGS_PREFIX + "client.acceptAllProviderOffers")
-    private boolean acceptAllProviderOffers = false;
-
-    @JsonProperty(SETTINGS_PREFIX + "client.acceptedPolicyDefinitionsPath")
-    private String acceptedPolicyDefinitionsPath;
-
-
     public static synchronized Configuration getInstance() {
         if (Objects.isNull(instance)) {
             instance = new Configuration();
@@ -76,68 +60,36 @@ public class Configuration {
         return instance;
     }
 
-
     public URL getRemoteAasLocation() {
         return remoteAasLocation;
     }
-
 
     public String getLocalAasModelPath() {
         return localAasModelPath;
     }
 
-
     public int getLocalAasServicePort() {
         return localAasServicePort;
     }
-
 
     public String getAasServiceConfigPath() {
         return aasServiceConfigPath;
     }
 
-
     public int getSyncPeriod() {
         return syncPeriod;
     }
-
 
     public boolean isExposeSelfDescription() {
         return exposeSelfDescription;
     }
 
-
     public String getDefaultAccessPolicyPath() {
         return defaultAccessPolicyPath;
     }
-
 
     public String getDefaultContractPolicyPath() {
         return defaultContractPolicyPath;
     }
 
-
-    public int getWaitForAgreementTimeout() {
-        return waitForAgreementTimeout;
-    }
-
-
-    public int getWaitForTransferTimeout() {
-        return waitForTransferTimeout;
-    }
-
-
-    public int getWaitForCatalogTimeout() {
-        return waitForCatalogTimeout;
-    }
-
-
-    public boolean isAcceptAllProviderOffers() {
-        return acceptAllProviderOffers;
-    }
-
-
-    public String getAcceptedPolicyDefinitionsPath() {
-        return acceptedPolicyDefinitionsPath;
-    }
 }

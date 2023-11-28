@@ -15,6 +15,8 @@
  */
 package de.fraunhofer.iosb.app;
 
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Objects;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -28,10 +30,6 @@ import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.web.spi.WebService;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import de.fraunhofer.iosb.app.authentication.CustomAuthenticationRequestFilter;
 import de.fraunhofer.iosb.app.controller.AasController;
@@ -64,72 +62,67 @@ public class AasExtension implements ServiceExtension {
     private static final Logger logger = Logger.getInstance();
     private final ScheduledExecutorService syncExecutor = new ScheduledThreadPoolExecutor(1);
     private AasController aasController;
+    private ConfigurationController configurationController;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        logger.setMonitor(context.getMonitor());
+        this.configurationController = new ConfigurationController(context.getConfig(SETTINGS_PREFIX));
 
-        // Distribute controllers, repositories
+        // Distribute controllers, repository
         var selfDescriptionRepository = new SelfDescriptionRepository();
-        aasController = new AasController(okHttpClient);
-        var endpoint = new Endpoint(selfDescriptionRepository, aasController);
+        this.aasController = new AasController(okHttpClient);
+        var endpoint = new Endpoint(selfDescriptionRepository, this.aasController, this.configurationController);
+
+        // Initialize/Start synchronizer, start AAS services defined in configuration
+        initializeSynchronizer(selfDescriptionRepository);
+        registerServicesByConfig(selfDescriptionRepository);
+
+        var authenticationRequestFilter = new CustomAuthenticationRequestFilter(authenticationService,
+                Configuration.getInstance().isExposeSelfDescription() ? Endpoint.SELF_DESCRIPTION_PATH : null);
+
+        webService.registerResource(authenticationRequestFilter);
+        webService.registerResource(endpoint);
+    }
+
+    private void registerServicesByConfig(SelfDescriptionRepository selfDescriptionRepository) {
+        var configInstance = Configuration.getInstance();
+
+        if (Objects.nonNull(configInstance.getRemoteAasLocation())) {
+            selfDescriptionRepository.createSelfDescription(configInstance.getRemoteAasLocation());
+        }
+
+        if (Objects.nonNull(configInstance.getLocalAasModelPath())) {
+            try {
+                Path aasConfigPath = null;
+                if (Objects.nonNull(configInstance.getAasServiceConfigPath())) {
+                    aasConfigPath = Path.of(configInstance.getAasServiceConfigPath());
+                }
+                var serviceUrl = aasController.startService(
+                        Path.of(configInstance.getLocalAasModelPath()),
+                        configInstance.getLocalAasServicePort(),
+                        aasConfigPath);
+
+                selfDescriptionRepository.createSelfDescription(serviceUrl);
+            } catch (IOException startAASException) {
+                logger.warning("Could not start AAS service provided by configuration", startAASException);
+            }
+        }
+
+    }
+
+    private void initializeSynchronizer(SelfDescriptionRepository selfDescriptionRepository) {
         var synchronizer = new Synchronizer(selfDescriptionRepository, aasController,
                 new ResourceController(assetIndex, contractStore, policyStore));
         selfDescriptionRepository.registerListener(synchronizer);
 
-        loadConfig(context);
-        var configInstance = Configuration.getInstance();
-
-        // Remote AAS service URL supplied?
-        if (Objects.nonNull(configInstance.getRemoteAasLocation())) {
-            endpoint.postAasService(configInstance.getRemoteAasLocation());
-        }
-
-        // AAS model supplied?
-        if (Objects.nonNull(configInstance.getLocalAasModelPath())) {
-            endpoint.postAasEnvironment(configInstance.getLocalAasModelPath(), configInstance.getAasServiceConfigPath(),
-                    configInstance.getLocalAasServicePort());
-        }
-
         // Task: get all AAS service URLs, synchronize EDC and AAS
-        syncExecutor.scheduleAtFixedRate(
-                synchronizer::synchronize,
-                1,
-                configInstance.getSyncPeriod(), TimeUnit.SECONDS);
-
-        webService.registerResource(endpoint);
-
-        var authenticationRequestFilter = new CustomAuthenticationRequestFilter(authenticationService,
-                configInstance.isExposeSelfDescription() ? Endpoint.SELF_DESCRIPTION_PATH : null);
-        webService.registerResource(authenticationRequestFilter);
-
-    }
-
-    /**
-     * Get extension specific configuration from EDC config object
-     *
-     * @param context EDC config reference provider
-     */
-    private void loadConfig(ServiceExtensionContext context) {
-        var objectMapper = new ObjectMapper();
-        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-
-        var config = context.getConfig();
-
-        String configAsString;
-        try {
-            configAsString = objectMapper.writeValueAsString(config.getRelativeEntries(SETTINGS_PREFIX));
-        } catch (JsonProcessingException e) {
-            // This should not be reached, unless there is an error inside EDCs Config.java
-            logger.error("Could not load AAS extension configuration, using default values", e);
-            configAsString = "";
-        }
-        new ConfigurationController().handleRequest(RequestType.PUT, null, configAsString);
+        syncExecutor.scheduleAtFixedRate(synchronizer::synchronize, 1,
+                Configuration.getInstance().getSyncPeriod(), TimeUnit.SECONDS);
     }
 
     @Override
     public void shutdown() {
-        logger.log("Shutting down EDC4AAS extension...");
+        logger.info("Shutting down EDC4AAS extension...");
         syncExecutor.shutdown();
         aasController.stopServices();
     }

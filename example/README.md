@@ -1,7 +1,6 @@
 # Example Use Case
 
-The example use case starts two connectors with the edc4aas extension. The first connector is a provider of an AAS model
-and the second connector is an example consumer which wants to retrieve data from the provider.
+The example use case starts two connectors with the edc4aas extension and the client extension. The first connector is a provider of an AAS model and the second connector is an example consumer which wants to retrieve data from the provider.
 
 The example has the following structure:
 
@@ -16,6 +15,7 @@ The example has the following structure:
 - `dataspaceconnector-configuration.properties`: Debugging and quick testing of changes via `./gradlew run --debug-jvm`
   command
 - `docker-compose.yml`, `Dockerfile`: Docker files
+- `README.md`: This README file
 
 ## Getting Started
 
@@ -153,7 +153,7 @@ __Important__:
 ## Running the Example (manual)
 
 
-### Info: Manual data transfer example is outdated! Please refer to the edc samples repository 
+### Warning: Manual data transfer example is outdated! Please refer to the official EDC documentation! 
 
 Build the EDC with the extensions.
 

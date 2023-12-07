@@ -96,14 +96,14 @@ public class PolicyServiceTest {
             policyService.getDatasetForAssetId(new URL("http://fakeUrl:4321/not/working"), "test-asset-id");
             fail("This should not complete without throwing an exception");
         } catch (EdcException expected) {
-
         }
     }
 
     private PolicyServiceConfig mockConfig() {
-        return new PolicyServiceConfig(
-                ConfigFactory.fromMap(Map.of("edc.dsp.callback.address", "http://localhost:4321/dsp",
-                        "web.http.port", "8080", "web.http.path", "/api")));
+        return new PolicyServiceConfig(ConfigFactory.fromMap(Map.of(
+                "edc.dsp.callback.address", "http://localhost:4321/dsp",
+                "web.http.port", "8080",
+                "web.http.path", "/api")));
 
     }
 }

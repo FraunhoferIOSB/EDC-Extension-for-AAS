@@ -121,8 +121,11 @@ public class ClientEndpointTest {
     }
 
     private Config mockConfig() {
-        return ConfigFactory.fromMap(Map.of("edc.dsp.callback.address", "http://localhost:4321/dsp",
-                "web.http.port", "8080", "web.http.path", "/api"));
+        return ConfigFactory.fromMap(
+                Map.of(
+                        "edc.dsp.callback.address", "http://localhost:4321/dsp",
+                        "web.http.port", "8080",
+                        "web.http.path", "/api"));
     }
 
     private TypeTransformerRegistry mockTransformer() {

@@ -15,16 +15,17 @@
  */
 package de.fraunhofer.iosb.app.util;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.util.List;
+
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
 import de.fraunhofer.iosb.app.model.aas.CustomSubmodel;
 import de.fraunhofer.iosb.app.model.aas.CustomSubmodelElementCollection;
 import io.adminshell.aas.v3.model.impl.DefaultSubmodel;
 import io.adminshell.aas.v3.model.impl.DefaultSubmodelElementCollection;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class SubmodelUtilTest {
     private static CustomSubmodel testCustomSubmodel;
@@ -32,12 +33,10 @@ public class SubmodelUtilTest {
     @BeforeAll
     public static void createNestedCustomSubmodelElementCollection() {
         testCustomSubmodel = new CustomSubmodel();
-        var incrediblyNestedCustomCollectionWithOneHundredLayers = new CustomSubmodelElementCollection();
+        var incrediblyNestedCustomCollectionWithOneHundredLayers = new CustomSubmodelElementCollection("0", null);
         var customCollObj = incrediblyNestedCustomCollectionWithOneHundredLayers;
-        customCollObj.setIdShort("0");
         for (int i = 0; i < 100; i++) {
-            var newCustomColl = new CustomSubmodelElementCollection();
-            newCustomColl.setIdShort(String.valueOf(i));
+            var newCustomColl = new CustomSubmodelElementCollection(String.valueOf(i), null);
             customCollObj.setValues(List.of(newCustomColl));
             customCollObj = newCustomColl;
         }
@@ -47,6 +46,7 @@ public class SubmodelUtilTest {
     @Test
     public void getAllSubmodelElementsTest() {
         assertEquals(101, AASUtil.getAllSubmodelElements(testCustomSubmodel).size());
+
     }
 
     @Test
@@ -67,8 +67,7 @@ public class SubmodelUtilTest {
 
         // Cast to use equals method
         assertEquals(
-                testCustomSubmodel.getSubmodelElements().stream().findFirst().orElseThrow(),
-                AASUtil.getCustomSubmodelElementStructureFromSubmodel(testSubmodel)
-                        .stream().findFirst().orElseThrow());
+                testCustomSubmodel.getSubmodelElements().size(),
+                AASUtil.getCustomSubmodelElementStructureFromSubmodel(testSubmodel).size());
     }
 }

@@ -2,15 +2,52 @@
 
 ## Current development version
 
-Compatibility: **Eclipse Dataspace Connector v0.1.?**
+Compatibility: **Eclipse Dataspace Connector v0.4.1**
 
 **New Features**
 
 **Bugfixes**
 
+## V1.0.0-alpha5
+
+This version is compatible to **Eclipse Dataspace Connector v0.4.1**
+
+**New Features**
+
+* Support of **Eclipse Dataspace Connector v0.4.1**
+* Extracted automated client negotiation into own extension (/client)
+ 
+**Bugfixes**
+
+* Fix: Case where submodels not offered by provider
+* Fix: Wrong nested submodelCollectionElement URLs
+* Fix: Empty catalog response handling
+
+**Miscellaneous**
+
+* Update postman requests
+* Cleanup and fix response values
+* Update docker example's java version
+
+## V1.0.0-alpha4
+
+This version is compatible to **Eclipse Dataspace Connector v0.3.0**
+
+**New Features**
+  
+* Support of **Eclipse Dataspace Connector v0.3.0**
+
+**Bugfixes**
+
+* Fix typo in postman request
+
+**Miscellaneous**
+
+* Update changelog.md, README.md
+
 ## V1.0.0-alpha3
 
-This version is compatible to **Eclipse Dataspace Connection v0.0.1-Milestone 8**
+This version is compatible to **Eclipse Dataspace Connector v0.0.1-Milestone 8**
 
 **New Features**
 
@@ -51,7 +88,7 @@ This version is compatible to **Eclipse Dataspace Connection v0.0.1-Milestone 8*
 
 ## V1.0.0-alpha2
 
-This version is compatible to **Eclipse Dataspace Connection v0.0.1-Milestone 7**
+This version is compatible to **Eclipse Dataspace Connector v0.0.1-Milestone 7**
 
 **New Features**
 
@@ -73,7 +110,7 @@ This version is compatible to **Eclipse Dataspace Connection v0.0.1-Milestone 7*
 
 ## V1.0.0-alpha
 
-This version is compatible to **Eclipse Dataspace Connection v0.0.1-Milestone 6**
+This version is compatible to **Eclipse Dataspace Connector v0.0.1-Milestone 6**
 
 **New Features**
 

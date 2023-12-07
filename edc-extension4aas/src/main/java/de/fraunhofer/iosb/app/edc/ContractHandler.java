@@ -162,7 +162,7 @@ public class ContractHandler {
             Policy filePolicy = objectReader.readValue(Path.of(filePath).toFile());
             return Optional.of(filePolicy);
         } catch (IOException ioException) {
-            logger.error(
+            logger.severe(
                     format("Could not find a valid policy at path %s. Using internal default policy.",
                             filePath),
                     ioException);

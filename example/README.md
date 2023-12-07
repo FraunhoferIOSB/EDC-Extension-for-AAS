@@ -1,7 +1,6 @@
 # Example Use Case
 
-The example use case starts two connectors with the edc4aas extension. The first connector is a provider of an AAS model
-and the second connector is an example consumer which wants to retrieve data from the provider.
+The example use case starts two connectors with the edc4aas extension and the client extension. The first connector is a provider of an AAS model and the second connector is an example consumer which wants to retrieve data from the provider.
 
 The example has the following structure:
 
@@ -16,6 +15,7 @@ The example has the following structure:
 - `dataspaceconnector-configuration.properties`: Debugging and quick testing of changes via `./gradlew run --debug-jvm`
   command
 - `docker-compose.yml`, `Dockerfile`: Docker files
+- `README.md`: This README file
 
 ## Getting Started
 
@@ -119,11 +119,11 @@ request located in `/examples/resources`. Do the following steps:
 
 __Important__:
 
-- If the (consumer's) config value `edc.aas.client.acceptAllProviderOffers` is set to `true`: This command will fetch
+- If the (consumer's) config value `edc.client.acceptAllProviderOffers` is set to `true`: This command will fetch
   a provider policy for the selected asset and accept it as is. If no policies exist for this asset, no negotiation will
   take place.
 
-- If the (consumer's) config value `edc.aas.client.acceptAllProviderOffers` is set to `false` (default): This command
+- If the (consumer's) config value `edc.client.acceptAllProviderOffers` is set to `false` (default): This command
   will request the provider's offered policy for the asset and check it against its own accepted policyDefinitions by
   comparing the permissions, prohibitions and obligations of both the provider's policyDefinition and the ones in the
   policyDefinitionStore. The assetID or other IDs must not be equal for the policyDefinitions to match. Initially, this
@@ -153,7 +153,7 @@ __Important__:
 ## Running the Example (manual)
 
 
-### Info: Manual data transfer example is outdated! Please refer to the edc samples repository 
+### Warning: Manual data transfer example is outdated! Please refer to the official EDC documentation! 
 
 Build the EDC with the extensions.
 

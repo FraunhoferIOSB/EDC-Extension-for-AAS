@@ -15,27 +15,26 @@
  */
 package de.fraunhofer.iosb.app.aas;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import de.fraunhofer.iosb.app.Logger;
-import de.fraunhofer.iosb.app.testUtils.FileManager;
-import io.adminshell.aas.v3.dataformat.DeserializationException;
-import okhttp3.OkHttpClient;
-import org.eclipse.edc.spi.monitor.Monitor;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockserver.integration.ClientAndServer.startClientAndServer;
+import static org.mockserver.model.HttpRequest.request;
+import static org.mockserver.model.HttpResponse.response;
+
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockserver.integration.ClientAndServer;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockserver.integration.ClientAndServer.startClientAndServer;
-import static org.mockserver.model.HttpRequest.request;
-import static org.mockserver.model.HttpResponse.response;
+import de.fraunhofer.iosb.app.testUtils.FileManager;
+import io.adminshell.aas.v3.dataformat.DeserializationException;
+import okhttp3.OkHttpClient;
 
 /**
  * Testing AAS Agent. Using mocked AAS service (HTTP endpoints)
@@ -49,11 +48,6 @@ public class AasAgentTest {
 
     private AasAgent aasAgent;
     private static ClientAndServer mockServer;
-
-    @BeforeAll
-    public static void initializeLogger() {
-        Logger.getInstance().setMonitor(mock(Monitor.class));
-    }
 
     @BeforeAll
     public static void startMockServer() {

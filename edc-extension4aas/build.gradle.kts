@@ -10,7 +10,6 @@ val okHttpVersion: String by project
 val rsApi: String by project
 val mockitoVersion: String by project
 val mockserverVersion: String by project
-val metaModelVersion: String by project
 
 java {
     toolchain {
@@ -21,11 +20,9 @@ java {
 dependencies {
     // See this project's README.MD for explanations
     implementation("$group:contract-core:$edcVersion")
-    implementation("$group:dsp-catalog-http-dispatcher:$edcVersion")
     implementation("$group:management-api:$edcVersion")
     implementation("$group:runtime-metamodel:$edcVersion")
     implementation("$group:data-plane-http-spi:$edcVersion") // HttpDataAddress
-
 
     implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
     implementation("de.fraunhofer.iosb.ilt.faaast.service:starter:${faaastVersion}")

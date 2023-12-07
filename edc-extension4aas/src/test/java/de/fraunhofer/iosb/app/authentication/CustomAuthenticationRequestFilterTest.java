@@ -15,35 +15,31 @@
  */
 package de.fraunhofer.iosb.app.authentication;
 
-import de.fraunhofer.iosb.app.Endpoint;
-import de.fraunhofer.iosb.app.Logger;
-import jakarta.ws.rs.container.ContainerRequestContext;
-import jakarta.ws.rs.core.MultivaluedHashMap;
-import jakarta.ws.rs.core.MultivaluedMap;
-import jakarta.ws.rs.core.UriInfo;
-import org.eclipse.edc.api.auth.spi.AuthenticationService;
-import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.web.spi.exception.AuthenticationFailedException;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.Map;
 import java.util.Objects;
 
-import static org.junit.jupiter.api.Assertions.fail;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import org.eclipse.edc.api.auth.spi.AuthenticationService;
+import org.eclipse.edc.web.spi.exception.AuthenticationFailedException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import de.fraunhofer.iosb.app.Endpoint;
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.UriInfo;
 
 public class CustomAuthenticationRequestFilterTest {
 
     final AuthenticationService authService = mock(AuthenticationService.class);
     CustomAuthenticationRequestFilter authRequestFilter;
-
-    @BeforeAll
-    public static void initializeLogger() {
-        Logger.getInstance().setMonitor(mock(Monitor.class));
-    }
 
     @BeforeEach
     public void initializeTestObject() {
@@ -52,7 +48,6 @@ public class CustomAuthenticationRequestFilterTest {
 
     @Test
     void filterDataTransferTest() {
-        authRequestFilter.addTemporaryApiKey("test-key", "test-password");
 
         verify(authService, times(0)).isAuthenticated(any());
 

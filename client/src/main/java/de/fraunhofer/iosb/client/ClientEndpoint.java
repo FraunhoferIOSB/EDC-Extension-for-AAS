@@ -87,7 +87,7 @@ public class ClientEndpoint {
     }
 
     /**
-     * Return policyDefinition for assetId that match any policyDefinitions' policy
+     * Return dataset for assetId that match any policyDefinitions' policy
      * of the services' policyDefinitionStore instance containing user added
      * policyDefinitions. If more than one policyDefinitions are provided by the
      * provider connector, an AmbiguousOrNullException will be thrown.
@@ -101,8 +101,7 @@ public class ClientEndpoint {
      */
     @GET
     @Path(DATASET_PATH)
-    public Response getDataset(@QueryParam("providerUrl") URL providerUrl,
-            @QueryParam("assetId") String assetId) {
+    public Response getDataset(@QueryParam("providerUrl") URL providerUrl, @QueryParam("assetId") String assetId) {
         monitor.debug(format("[Client] Received a %s GET request", DATASET_PATH));
 
         if (Objects.isNull(providerUrl)) {
@@ -125,7 +124,9 @@ public class ClientEndpoint {
      * exists for this constellation.
      *
      * @param providerUrl Provider EDCs URL (DSP endpoint)
+     * @param providerId  Provider EDCs ID
      * @param assetId     ID of the asset to be retrieved
+     * @param dataDestinationUrl URL of destination data sink.
      * @return Asset data
      */
     @POST
@@ -136,6 +137,7 @@ public class ClientEndpoint {
             @QueryParam("dataDestinationUrl") URL dataDestinationUrl) {
         monitor.debug(format("[Client] Received a %s POST request", NEGOTIATE_PATH));
         Objects.requireNonNull(providerUrl, "Provider URL must not be null");
+        Objects.requireNonNull(providerId, "Provider ID must not be null");
         Objects.requireNonNull(assetId, "Asset ID must not be null");
 
         Pair<String, Policy> idPolicyPair; // id means contractOfferId
@@ -175,7 +177,7 @@ public class ClientEndpoint {
     }
 
     /**
-     * Negotiate a contract agreement using the given contract offer if no agreement
+     * Negotiates a contract agreement using the given contract offer if no agreement
      * exists for this constellation.
      *
      * @param contractRequest The contract request to be sent.
@@ -206,8 +208,8 @@ public class ClientEndpoint {
      * @param providerUrl The data provider's url
      * @param agreementId The basis of the data transfer.
      * @param assetId     The asset of which the data should be transferred
-     * @return On success, the data of the desired asset. Else, returns an error
-     *         message.
+     * @param dataDestinationUrl URL of destination data sink.
+     * @return On success, the data of the desired asset. Else, returns an error message.
      */
     @GET
     @Path(TRANSFER_PATH)
@@ -220,7 +222,8 @@ public class ClientEndpoint {
         Objects.requireNonNull(assetId, "assetId must not be null");
 
         try {
-            var data = transferController.initiateTransferProcess(providerUrl, agreementId, assetId, dataDestinationUrl);
+            var data = transferController.initiateTransferProcess(providerUrl, agreementId, assetId,
+                    dataDestinationUrl);
             if (Objects.isNull(dataDestinationUrl)) {
                 return Response.ok(data).build();
             } else {
@@ -238,24 +241,21 @@ public class ClientEndpoint {
      * Adds an accepted contractOffer to match when checking a provider
      * contractOffer. Only the policies' rules are relevant.
      *
-     * @param policyDefinitions policies' rules that are acceptable for an automated
-     *                          contract negotiation
+     * @param policyDefinitions accepted policyDefinitions
+     * @return "OK"-response if requestBody is not empty
      */
     @POST
     @Path(ACCEPTED_POLICIES_PATH)
     public Response addAcceptedPolicyDefinitions(PolicyDefinition[] policyDefinitions) {
         monitor.debug(format("[Client] Received a %s POST request", ACCEPTED_POLICIES_PATH));
-
-        if (Objects.isNull(policyDefinitions)) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Missing request body").build();
-        }
+        Objects.requireNonNull(policyDefinitions, "policyDefinitions (request body) must not be null");
 
         policyController.addAcceptedPolicyDefinitions(policyDefinitions);
         return Response.ok().build();
     }
 
     /**
-     * Return accepted policyDefinitions
+     * Returns accepted policyDefinitions as list
      *
      * @return Accepted policyDefinitions list
      */
@@ -269,21 +269,18 @@ public class ClientEndpoint {
     /**
      * Removes an accepted policyDefinitions.
      *
-     * @param policyDefinitions policyDefinition id of policyDefinition to be
-     *                          removed
-     * @return Optional containing removed policy definition or null
+     * @param policyDefinitionId ID of policyDefinition to be removed
+     * @return PolicyDefinitionId of removed policyDefinition or 404
      */
     @DELETE
     @Path(ACCEPTED_POLICIES_PATH)
     public Response deleteAcceptedPolicyDefinition(@QueryParam("policyDefinitionId") String policyDefinitionId) {
         monitor.debug(
                 format("[Client] Received a %s DELETE request for %s", ACCEPTED_POLICIES_PATH, policyDefinitionId));
-        if (Objects.isNull(policyDefinitionId)) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Missing policyDefinitionId parameter").build();
-        }
-        var removed = policyController.deleteAcceptedPolicyDefinition(policyDefinitionId);
+        Objects.requireNonNull(policyDefinitionId, "policyDefinitionId must not be null");
 
-        if (removed.isPresent()) {
+        if (policyController.deleteAcceptedPolicyDefinition(policyDefinitionId).isPresent()) {
+            // Found policyDefinition with same ID
             return Response.ok(policyDefinitionId).build();
         }
         return Response.status(Response.Status.NOT_FOUND).entity("Unknown policyDefinitionId.").build();
@@ -291,21 +288,19 @@ public class ClientEndpoint {
 
     /**
      * Updates an accepted policyDefinition.
+     * The policyDefinitionId must match with a stored policyDefinition.
      *
-     * @param policyDefinitionId PolicyDefinition id of policyDefinition to be
-     *                           updated
-     * @param policyDefinition   Updated PolicyDefinition
+     * @param policyDefinition Updated policyDefinition
+     * @return PolicyDefinitionId of updated policyDefinition or 404
      */
     @PUT
     @Path(ACCEPTED_POLICIES_PATH)
     public Response updateAcceptedPolicyDefinition(PolicyDefinition policyDefinition) {
         monitor.debug(format("[Client] Received a %s PUT request", ACCEPTED_POLICIES_PATH));
-        if (Objects.isNull(policyDefinition)) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Missing policyDefinition as request body").build();
-        }
+        Objects.requireNonNull(policyDefinition, "policyDefinition (request body) must not be null");
 
-        var updated = policyController.updateAcceptedPolicyDefinition(policyDefinition);
-        if (updated.isPresent()) {
+        if (policyController.updateAcceptedPolicyDefinition(policyDefinition).isPresent()) {
+            // Found policyDefinition with same ID
             return Response.ok(policyDefinition.getId()).build();
         }
         return Response.status(Response.Status.NOT_FOUND).entity("Unknown policyDefinitionId.").build();

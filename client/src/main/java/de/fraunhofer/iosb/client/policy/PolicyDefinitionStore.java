@@ -83,8 +83,8 @@ class PolicyDefinitionStore {
      */
     Optional<PolicyDefinition> updatePolicyDefinitions(PolicyDefinition policyDefinition) {
         var policyDefinitionId = policyDefinition.getId();
-        Objects.requireNonNull(policyDefinitionId, "contractOfferId is null");
-        Objects.requireNonNull(policyDefinition, "contractOffer is null");
+        Objects.requireNonNull(policyDefinitionId, "policyDefinitionId is null");
+        Objects.requireNonNull(policyDefinition, "policyDefinition is null");
         if (policyDefinitions.containsKey(policyDefinitionId)) {
             return Optional.ofNullable(policyDefinitions.put(policyDefinitionId, policyDefinition));
         }
@@ -101,7 +101,7 @@ class PolicyDefinitionStore {
                 putPolicyDefinitions(acceptedPolicyDefinitions);
             } catch (IOException loadAcceptedPolicyException) {
                 monitor.warning(
-                        format("[Client] Could not load accepted ContractOffers from %s",
+                        format("[Client] Could not load accepted PolicyDefinitions from %s",
                                 acceptedPolicyDefinitionsPath),
                         loadAcceptedPolicyException);
             }

@@ -22,7 +22,6 @@ import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiat
 import org.eclipse.edc.connector.spi.catalog.CatalogService;
 import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
@@ -39,8 +38,6 @@ public class ClientExtension implements ServiceExtension {
         @Inject
         private CatalogService catalogService;
         @Inject
-        private TypeTransformerRegistry transformer;
-        @Inject
         private ConsumerContractNegotiationManager consumerNegotiationManager;
         @Inject
         private ContractNegotiationObservable contractNegotiationObservable;
@@ -49,15 +46,15 @@ public class ClientExtension implements ServiceExtension {
         @Inject
         private TransferProcessManager transferProcessManager;
         @Inject
+        private TypeTransformerRegistry transformer;
+        @Inject
         private WebService webService;
 
         private static final String SETTINGS_PREFIX = "edc.client.";
 
-        private Monitor monitor;
-
         @Override
         public void initialize(ServiceExtensionContext context) {
-                monitor = context.getMonitor();
+                var monitor = context.getMonitor();
                 var config = context.getConfig(SETTINGS_PREFIX);
 
                 var policyController = new PolicyController(monitor, catalogService, transformer, config);

@@ -58,7 +58,7 @@ public class AasExtension implements ServiceExtension {
     @Inject
     private WebService webService;
 
-    private static final String SETTINGS_PREFIX = "edc.aas.";
+    private static final String SETTINGS_PREFIX = "edc.aas";
     private static final Logger logger = Logger.getInstance();
     private final ScheduledExecutorService syncExecutor = new ScheduledThreadPoolExecutor(1);
     private AasController aasController;

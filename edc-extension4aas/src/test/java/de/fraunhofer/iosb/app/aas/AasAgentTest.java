@@ -74,7 +74,7 @@ public class AasAgentTest {
         var shouldBeResult = FileManager.loadResource("selfDescriptionWithAccessURLS.json");
 
         var result = new ObjectMapper().writeValueAsString(
-                aasAgent.getAasEnvWithUrls(new URL(HTTP_LOCALHOST_8080)));
+                aasAgent.getAasEnvWithUrls(new URL(HTTP_LOCALHOST_8080), true));
         result = result.replace("\n", "").replace(" ", "");
 
         assertEquals(shouldBeResult, result);

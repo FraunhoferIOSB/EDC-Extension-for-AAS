@@ -18,6 +18,7 @@ package de.fraunhofer.iosb.app.sync;
 import de.fraunhofer.iosb.app.controller.AasController;
 import de.fraunhofer.iosb.app.controller.ResourceController;
 import de.fraunhofer.iosb.app.model.aas.*;
+import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import de.fraunhofer.iosb.app.model.ids.SelfDescription;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionChangeListener;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
@@ -43,12 +44,14 @@ public class Synchronizer implements SelfDescriptionChangeListener {
     private final SelfDescriptionRepository selfDescriptionRepository;
     private final AasController aasController;
     private final ResourceController resourceController;
+    private final Configuration configuration;
 
     public Synchronizer(SelfDescriptionRepository selfDescriptionRepository,
             AasController aasController, ResourceController resourceController) {
         this.selfDescriptionRepository = selfDescriptionRepository;
         this.aasController = aasController;
         this.resourceController = resourceController;
+        this.configuration = Configuration.getInstance();
     }
 
     /**
@@ -62,10 +65,12 @@ public class Synchronizer implements SelfDescriptionChangeListener {
     }
 
     private void synchronize(URL aasServiceUrl) {
-        var oldSelfDescription = selfDescriptionRepository.getSelfDescription(aasServiceUrl);
-        CustomAssetAdministrationShellEnvironment newEnvironment;
+        var onlySubmodels = this.configuration.isOnlySubmodels();
 
-        newEnvironment = fetchCurrentAasModel(aasServiceUrl);
+        var oldSelfDescription = selfDescriptionRepository.getSelfDescription(aasServiceUrl);
+        var newEnvironment = fetchCurrentAasModel(aasServiceUrl, onlySubmodels);
+
+        // Only load submodels or shells, conceptDescriptions, submodelElements as well?
 
         if (Objects.nonNull(oldSelfDescription)) {
             var oldEnvironment = oldSelfDescription.getEnvironment();
@@ -77,8 +82,9 @@ public class Synchronizer implements SelfDescriptionChangeListener {
             // If the element exists in oldEnvironment, copy the old elements into
             // newEnvironment, already having an idsContractId/idsAssetId
             syncShell(newEnvironment, oldEnvironment);
-            syncSubmodel(newEnvironment, oldEnvironment);
             syncConceptDescription(newEnvironment, oldEnvironment);
+
+            syncSubmodel(newEnvironment, oldEnvironment);
 
             removeOldElements(newEnvironment, oldEnvironment);
 
@@ -88,11 +94,11 @@ public class Synchronizer implements SelfDescriptionChangeListener {
         selfDescriptionRepository.updateSelfDescription(aasServiceUrl, newEnvironment);
     }
 
-    private CustomAssetAdministrationShellEnvironment fetchCurrentAasModel(URL aasServiceUrl) {
+    private CustomAssetAdministrationShellEnvironment fetchCurrentAasModel(URL aasServiceUrl, boolean onlySubmodels) {
         CustomAssetAdministrationShellEnvironment newEnvironment;
 
         try { // Fetch current AAS model from AAS service
-            newEnvironment = aasController.getAasModelWithUrls(aasServiceUrl);
+            newEnvironment = aasController.getAasModelWithUrls(aasServiceUrl, onlySubmodels);
         } catch (IOException aasServiceUnreachableException) {
             throw new EdcException(format("Could not reach AAS service (%s): %s", aasServiceUrl,
                     aasServiceUnreachableException.getMessage()));
@@ -105,7 +111,8 @@ public class Synchronizer implements SelfDescriptionChangeListener {
 
     private void addNewElements(CustomAssetAdministrationShellEnvironment newEnvironment) {
         var envElements = AASUtil.getAllElements(newEnvironment);
-        addAssetsContracts(envElements.stream().filter(element -> Objects.isNull(element.getIdsAssetId()) || Objects.isNull(element.getIdsContractId()))
+        addAssetsContracts(envElements.stream().filter(
+                element -> Objects.isNull(element.getIdsAssetId()) || Objects.isNull(element.getIdsContractId()))
                 .toList());
     }
 

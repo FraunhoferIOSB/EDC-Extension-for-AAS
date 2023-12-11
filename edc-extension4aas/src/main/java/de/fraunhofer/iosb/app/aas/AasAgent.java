@@ -15,10 +15,30 @@
  */
 package de.fraunhofer.iosb.app.aas;
 
+import static java.lang.String.format;
+
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+
+import org.eclipse.edc.spi.EdcException;
+
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import de.fraunhofer.iosb.app.Logger;
-import de.fraunhofer.iosb.app.model.aas.*;
+import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShell;
+import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShellEnvironment;
+import de.fraunhofer.iosb.app.model.aas.CustomConceptDescription;
+import de.fraunhofer.iosb.app.model.aas.CustomSubmodel;
+import de.fraunhofer.iosb.app.model.aas.CustomSubmodelElement;
+import de.fraunhofer.iosb.app.model.aas.CustomSubmodelElementCollection;
+import de.fraunhofer.iosb.app.model.aas.Identifier;
 import de.fraunhofer.iosb.app.util.AASUtil;
 import de.fraunhofer.iosb.app.util.Encoder;
 import de.fraunhofer.iosb.app.util.HttpRestClient;
@@ -29,14 +49,6 @@ import io.adminshell.aas.v3.model.Submodel;
 import io.adminshell.aas.v3.model.impl.DefaultSubmodel;
 import jakarta.ws.rs.core.Response;
 import okhttp3.OkHttpClient;
-import org.eclipse.edc.spi.EdcException;
-
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.*;
-
-import static java.lang.String.format;
 
 /**
  * Communicating with AAS service
@@ -123,11 +135,11 @@ public class AasAgent {
      * @return AAS model enriched with each elements access URL as string in assetId
      *         field.
      */
-    public CustomAssetAdministrationShellEnvironment getAasEnvWithUrls(URL aasServiceUrl)
+    public CustomAssetAdministrationShellEnvironment getAasEnvWithUrls(URL aasServiceUrl, boolean onlySubmodels)
             throws IOException, DeserializationException {
         var aasServiceUrlString = aasServiceUrl.toString();
 
-        var model = readModel(aasServiceUrl);
+        var model = readModel(aasServiceUrl, onlySubmodels);
         // Add urls to all shells
         model.getAssetAdministrationShells().forEach(shell -> shell.setSourceUrl(
                 format("%s/shells/%s", aasServiceUrlString,
@@ -139,9 +151,9 @@ public class AasAgent {
                             Encoder.encodeBase64(submodel.getIdentification().getId())));
             submodel.getSubmodelElements()
                     .forEach(elem -> putUrlRec(
-                                format("%s/submodels/%s/submodel/submodel-elements", aasServiceUrlString,
-                                        Encoder.encodeBase64(submodel.getIdentification().getId())),
-                                elem));
+                            format("%s/submodels/%s/submodel/submodel-elements", aasServiceUrlString,
+                                    Encoder.encodeBase64(submodel.getIdentification().getId())),
+                            elem));
         });
         model.getSubmodels().forEach(submodel -> AASUtil.getAllSubmodelElements(submodel)
                 .forEach(element -> element.setSourceUrl(
@@ -158,36 +170,53 @@ public class AasAgent {
     /**
      * Returns the AAS model.
      */
-    private CustomAssetAdministrationShellEnvironment readModel(URL aasServiceUrl)
+    private CustomAssetAdministrationShellEnvironment readModel(URL aasServiceUrl, boolean onlySubmodels)
             throws IOException, DeserializationException {
+        var aasEnv = new CustomAssetAdministrationShellEnvironment();
 
-        String shellResponse;
-        String conceptResponse;
-        String submodelResponse;
+        URL shellsUrl;
+        URL conceptDescriptionsUrl;
+        URL submodelUrl;
         try {
-            shellResponse = 
-                    Objects.requireNonNull(httpRestClient.get(aasServiceUrl.toURI().resolve("/shells").toURL()).body()).string();
-            submodelResponse = 
-                    Objects.requireNonNull(httpRestClient.get(aasServiceUrl.toURI().resolve("/submodels").toURL()).body()).string();
-            conceptResponse = Objects.requireNonNull(httpRestClient.get(aasServiceUrl.toURI().resolve("/concept" +
-                    "-descriptions").toURL()).body())
-                    .string();
-        } catch (URISyntaxException e) {
-            throw new EdcException(e.getMessage());
+            submodelUrl = aasServiceUrl.toURI().resolve("/submodels").toURL();
+            shellsUrl = aasServiceUrl.toURI().resolve("/shells").toURL();
+            conceptDescriptionsUrl = aasServiceUrl.toURI().resolve("/concept-descriptions").toURL();
+        } catch (URISyntaxException resolveUriException) {
+            throw new EdcException(
+                    format("Error while building URLs for reading from the AAS Service at %s", aasServiceUrl),
+                    resolveUriException);
         }
 
-        CustomAssetAdministrationShell[] shells = objectMapper.readValue(shellResponse,
-                CustomAssetAdministrationShell[].class);
-        CustomConceptDescription[] conceptDescriptions = objectMapper.readValue(conceptResponse,
-                CustomConceptDescription[].class);
+        aasEnv.setSubmodels(readSubmodels(submodelUrl, onlySubmodels));
+        if (!onlySubmodels) {
+            aasEnv.setAssetAdministrationShells(readShells(shellsUrl));
+            aasEnv.setConceptDescriptions(readConceptDescriptions(conceptDescriptionsUrl));
+        }
+        return aasEnv;
+    }
 
-        // Because of SMCs "value" field, submodels have to be parsed manually
+    private List<CustomConceptDescription> readConceptDescriptions(URL conceptDescriptionsUrl) throws IOException {
 
-        // First, parse into full admin-shell.io submodels:
+        var conceptResponse = Objects.requireNonNull(httpRestClient.get(conceptDescriptionsUrl).body()).string();
+
+        return Arrays.asList(objectMapper.readValue(conceptResponse, CustomConceptDescription[].class));
+    }
+
+    private List<CustomAssetAdministrationShell> readShells(URL shellsUrl) throws IOException {
+        var shellHttpResponse = Objects.requireNonNull(httpRestClient.get(shellsUrl).body()).string();
+
+        return Arrays.asList(objectMapper.readValue(shellHttpResponse, CustomAssetAdministrationShell[].class));
+    }
+
+    private List<CustomSubmodel> readSubmodels(URL submodelUrl, boolean onlySubmodels)
+            throws IOException, DeserializationException {
+        var submodelHttpResponse = Objects.requireNonNull(httpRestClient.get(submodelUrl).body()).string();
+
+        // First, parse into "full" admin-shell.io submodels:
         JsonDeserializer jsonDeserializer = new JsonDeserializer();
-        List<DefaultSubmodel> submodels = jsonDeserializer.readReferables(submodelResponse, DefaultSubmodel.class);
+        List<DefaultSubmodel> submodels = jsonDeserializer.readReferables(submodelHttpResponse, DefaultSubmodel.class);
 
-        // Now, create custom submodels from the data of the full submodels
+        // Now, create customSubmodels from the "full" submodels
         List<CustomSubmodel> customSubmodels = new ArrayList<>();
         for (Submodel submodel : submodels) {
             var customSubmodel = new CustomSubmodel();
@@ -197,20 +226,14 @@ public class AasAgent {
             customSubmodel.setIdentification(customIdentification);
 
             customSubmodel.setIdShort(submodel.getIdShort());
-
-            // Recursively add submodelElements
-            var customElements = AASUtil.getCustomSubmodelElementStructureFromSubmodel(submodel);
-            customSubmodel.setSubmodelElements((List<CustomSubmodelElement>) customElements);
-
+            if (!onlySubmodels) {
+                // Recursively add submodelElements
+                var customElements = AASUtil.getCustomSubmodelElementStructureFromSubmodel(submodel);
+                customSubmodel.setSubmodelElements((List<CustomSubmodelElement>) customElements);
+            }
             customSubmodels.add(customSubmodel);
         }
-        var aasEnv = new CustomAssetAdministrationShellEnvironment();
-
-        aasEnv.setAssetAdministrationShells(Arrays.asList(shells));
-        aasEnv.setSubmodels(customSubmodels);
-        aasEnv.setConceptDescriptions(Arrays.asList(conceptDescriptions));
-
-        return aasEnv;
+        return customSubmodels;
     }
 
     /**

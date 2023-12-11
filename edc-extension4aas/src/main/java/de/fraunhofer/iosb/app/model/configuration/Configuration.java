@@ -43,6 +43,9 @@ public class Configuration {
 
     @JsonProperty(SETTINGS_PREFIX + "syncPeriod")
     private int syncPeriod = 5; // Seconds
+    
+    @JsonProperty(SETTINGS_PREFIX + "onlySubmodels")
+    private boolean onlySubmodels = false;
 
     @JsonProperty(SETTINGS_PREFIX + "exposeSelfDescription")
     private boolean exposeSelfDescription = true;
@@ -78,6 +81,14 @@ public class Configuration {
 
     public int getSyncPeriod() {
         return syncPeriod;
+    }
+
+    public boolean isOnlySubmodels() {
+        return onlySubmodels;
+    }
+
+    public void setOnlySubmodels(boolean onlySubmodels) {
+        this.onlySubmodels = onlySubmodels;
     }
 
     public boolean isExposeSelfDescription() {

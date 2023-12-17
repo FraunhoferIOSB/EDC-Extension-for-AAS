@@ -85,6 +85,12 @@ public final class AASUtil {
             } else {
                 var customSubmodelElement = new CustomSubmodelElement();
                 customSubmodelElement.setIdShort(submodelElement.getIdShort());
+
+                if (Objects.nonNull(submodelElement.getSemanticId().getKeys())) {
+                    customSubmodelElement
+                            .setSemanticId(new CustomSemanticId(submodelElement.getSemanticId().getKeys()));
+                }
+                
                 customSubmodelElements.add(customSubmodelElement);
             }
         }
@@ -96,7 +102,7 @@ public final class AASUtil {
      * flat structure.
      */
     private static Collection<CustomSubmodelElement> flattenElements(Collection<CustomSubmodelElement> flatList,
-                                                                     Collection<CustomSubmodelElement> submodelElements) {
+            Collection<CustomSubmodelElement> submodelElements) {
 
         for (CustomSubmodelElement submodelElement : submodelElements) {
 

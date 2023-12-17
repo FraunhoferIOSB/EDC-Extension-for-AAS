@@ -139,9 +139,9 @@ public class AasAgent {
                             Encoder.encodeBase64(submodel.getIdentification().getId())));
             submodel.getSubmodelElements()
                     .forEach(elem -> putUrlRec(
-                                format("%s/submodels/%s/submodel/submodel-elements", aasServiceUrlString,
-                                        Encoder.encodeBase64(submodel.getIdentification().getId())),
-                                elem));
+                            format("%s/submodels/%s/submodel/submodel-elements", aasServiceUrlString,
+                                    Encoder.encodeBase64(submodel.getIdentification().getId())),
+                            elem));
         });
         model.getSubmodels().forEach(submodel -> AASUtil.getAllSubmodelElements(submodel)
                 .forEach(element -> element.setSourceUrl(
@@ -165,10 +165,12 @@ public class AasAgent {
         String conceptResponse;
         String submodelResponse;
         try {
-            shellResponse = 
-                    Objects.requireNonNull(httpRestClient.get(aasServiceUrl.toURI().resolve("/shells").toURL()).body()).string();
-            submodelResponse = 
-                    Objects.requireNonNull(httpRestClient.get(aasServiceUrl.toURI().resolve("/submodels").toURL()).body()).string();
+            shellResponse = Objects
+                    .requireNonNull(httpRestClient.get(aasServiceUrl.toURI().resolve("/shells").toURL()).body())
+                    .string();
+            submodelResponse = Objects
+                    .requireNonNull(httpRestClient.get(aasServiceUrl.toURI().resolve("/submodels").toURL()).body())
+                    .string();
             conceptResponse = Objects.requireNonNull(httpRestClient.get(aasServiceUrl.toURI().resolve("/concept" +
                     "-descriptions").toURL()).body())
                     .string();
@@ -195,8 +197,10 @@ public class AasAgent {
             customIdentification.setIdType(submodel.getIdentification().getIdType().toString());
             customIdentification.setId(submodel.getIdentification().getIdentifier());
             customSubmodel.setIdentification(customIdentification);
-
             customSubmodel.setIdShort(submodel.getIdShort());
+            if (Objects.nonNull(submodel.getSemanticId().getKeys())) {
+                customSubmodel.setSemanticId(new CustomSemanticId(submodel.getSemanticId().getKeys()));
+            }
 
             // Recursively add submodelElements
             var customElements = AASUtil.getCustomSubmodelElementStructureFromSubmodel(submodel);

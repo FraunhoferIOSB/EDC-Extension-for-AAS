@@ -102,7 +102,7 @@ public class SynchronizerTest {
     }
 
     @Test
-    public void synchronizationRemoveSubmodelElementTest() {
+    public void synchronizationRemoveAllSubmodelElementsTest() {
         startMockServer(port);
 
         prepareDefaultMockedResponse();
@@ -142,7 +142,7 @@ public class SynchronizerTest {
 
         prepareEmptyMockedResponse();
         synchronizer.synchronize();
-        assertEquals("{\"assetAdministrationShells\":[],\"submodels\":[],\"conceptDescriptions\":[]}",
+        assertEquals("{}",
                 selfDescriptionRepo.getSelfDescription(url).toString());
     }
 

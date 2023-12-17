@@ -31,7 +31,7 @@ dependencies {
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 
     testImplementation("$group:junit:$edcVersion")
-    testImplementation("org.glassfish.jersey.core:jersey-common:3.1.4")
+    testImplementation("org.glassfish.jersey.core:jersey-common:3.1.5")
     testImplementation("org.mockito:mockito-core:${mockitoVersion}")
     testImplementation("org.mock-server:mockserver-junit-jupiter:${mockserverVersion}")
     testImplementation("org.mock-server:mockserver-netty:${mockserverVersion}")
@@ -40,14 +40,10 @@ dependencies {
 repositories {
     mavenCentral()
 }
-
-tasks.test {
-    useJUnitPlatform()
-}
-
-tasks.jacocoTestReport {
-    dependsOn(tasks.test) // tests are required to run before generating the report
-}
+tasks.compileJava {options.encoding = "UTF-8"}
+tasks.compileTestJava {options.encoding = "UTF-8"}
+tasks.test {useJUnitPlatform()}
+tasks.jacocoTestReport {dependsOn(tasks.test)}
 
 // FA³ST dependency needs the following
 configurations.all {

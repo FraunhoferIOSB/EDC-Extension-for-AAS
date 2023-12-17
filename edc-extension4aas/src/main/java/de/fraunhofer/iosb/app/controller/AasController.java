@@ -70,10 +70,10 @@ public class AasController implements Controllable {
      * @throws DeserializationException AAS from service could not be deserialized
      * @throws IOException              Communication with AAS service failed
      */
-    public CustomAssetAdministrationShellEnvironment getAasModelWithUrls(URL aasServiceUrl)
+    public CustomAssetAdministrationShellEnvironment getAasModelWithUrls(URL aasServiceUrl, boolean onlySubmodels)
             throws IOException, DeserializationException {
         Objects.requireNonNull(aasServiceUrl);
-        return aasAgent.getAasEnvWithUrls(aasServiceUrl);
+        return aasAgent.getAasEnvWithUrls(aasServiceUrl, onlySubmodels);
     }
 
     /**

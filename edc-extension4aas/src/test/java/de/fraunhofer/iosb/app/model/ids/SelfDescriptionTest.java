@@ -25,7 +25,7 @@ public class SelfDescriptionTest {
     @Test
     public void emptyEnvironmentTest() {
         SelfDescription selfDescription = new SelfDescription(new CustomAssetAdministrationShellEnvironment());
-        assertEquals("{\"assetAdministrationShells\":null,\"submodels\":null,\"conceptDescriptions\":null}",
+        assertEquals("{}",
                 selfDescription.toString());
     }
 }

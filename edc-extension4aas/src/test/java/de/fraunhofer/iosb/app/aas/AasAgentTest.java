@@ -73,7 +73,27 @@ public class AasAgentTest {
         var shouldBeResult = FileManager.loadResource("selfDescriptionWithAccessURLS.json");
 
         var result = new ObjectMapper().writeValueAsString(
-                aasAgent.getAasEnvWithUrls(new URL(HTTP_LOCALHOST_8080)));
+                aasAgent.getAasEnvWithUrls(new URL(HTTP_LOCALHOST_8080), false));
+        result = result.replace("\n", "").replace(" ", "");
+
+        assertEquals(shouldBeResult, result);
+    }
+
+    @Test
+    public void testGetAasEnvWithUrlsOnlySubmodels() throws IOException, DeserializationException {
+        var shells = FileManager.loadResource("shells.json");
+        var submodels = FileManager.loadResource("submodels.json");
+        var conceptDescriptions = FileManager.loadResource("conceptDescriptions.json");
+
+        mockServer.when(request().withMethod("GET").withPath("/shells")).respond(response().withBody(shells));
+        mockServer.when(request().withMethod("GET").withPath("/submodels")).respond(response().withBody(submodels));
+        mockServer.when(request().withMethod("GET").withPath("/concept-descriptions"))
+                .respond(response().withBody(conceptDescriptions));
+
+        var shouldBeResult = FileManager.loadResource("selfDescriptionWithAccessURLsSubmodelsOnly.json");
+
+        var result = new ObjectMapper().writeValueAsString(
+                aasAgent.getAasEnvWithUrls(new URL(HTTP_LOCALHOST_8080), true));
         result = result.replace("\n", "").replace(" ", "");
 
         assertEquals(shouldBeResult, result);

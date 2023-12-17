@@ -40,14 +40,10 @@ dependencies {
 repositories {
     mavenCentral()
 }
-
-tasks.test {
-    useJUnitPlatform()
-}
-
-tasks.jacocoTestReport {
-    dependsOn(tasks.test) // tests are required to run before generating the report
-}
+tasks.compileJava {options.encoding = "UTF-8"}
+tasks.compileTestJava {options.encoding = "UTF-8"}
+tasks.test {useJUnitPlatform()}
+tasks.jacocoTestReport {dependsOn(tasks.test)}
 
 // FA³ST dependency needs the following
 configurations.all {

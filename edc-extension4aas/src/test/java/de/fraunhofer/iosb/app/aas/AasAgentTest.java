@@ -59,8 +59,7 @@ public class AasAgentTest {
         aasAgent = new AasAgent(new OkHttpClient());
     }
 
-    @Test // Can't really test this anymore with new variable "sourceUrl" that is not
-    // serialized
+    @Test
     public void testGetAasEnvWithUrls() throws IOException, DeserializationException {
         var shells = FileManager.loadResource("shells.json");
         var submodels = FileManager.loadResource("submodels.json");

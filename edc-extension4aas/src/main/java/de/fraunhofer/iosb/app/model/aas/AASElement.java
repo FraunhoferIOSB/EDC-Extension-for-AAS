@@ -15,7 +15,11 @@
  */
 package de.fraunhofer.iosb.app.model.aas;
 
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import io.adminshell.aas.v3.model.EmbeddedDataSpecification;
 
 /*
  * Collect common attributes of every AAS element.
@@ -27,6 +31,8 @@ public class AASElement extends IdsAssetElement {
     @JsonProperty("semanticId")
     protected CustomSemanticId customSemanticId;
 
+    protected List<EmbeddedDataSpecification> embeddedDataSpecifications;
+    
     public String getIdShort() {
         return idShort;
     }
@@ -41,5 +47,13 @@ public class AASElement extends IdsAssetElement {
 
     public void setSemanticId(CustomSemanticId semanticId) {
         this.customSemanticId = semanticId;
+    }
+
+    public List<EmbeddedDataSpecification> getEmbeddedDataSpecifications() {
+        return embeddedDataSpecifications;
+    }
+
+    public void setEmbeddedDataSpecifications(List<EmbeddedDataSpecification> embeddedDataSpecifications) {
+        this.embeddedDataSpecifications = embeddedDataSpecifications;
     }
 }

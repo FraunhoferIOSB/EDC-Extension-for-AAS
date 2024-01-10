@@ -29,7 +29,10 @@ import java.util.Objects;
 import org.eclipse.edc.spi.EdcException;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 
 import de.fraunhofer.iosb.app.Logger;
 import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShell;
@@ -46,7 +49,11 @@ import de.fraunhofer.iosb.app.util.HttpRestClient;
 import de.fraunhofer.iosb.app.util.Transformer;
 import io.adminshell.aas.v3.dataformat.DeserializationException;
 import io.adminshell.aas.v3.dataformat.json.JsonDeserializer;
+import io.adminshell.aas.v3.model.Key;
+import io.adminshell.aas.v3.model.Reference;
 import io.adminshell.aas.v3.model.Submodel;
+import io.adminshell.aas.v3.model.impl.DefaultKey;
+import io.adminshell.aas.v3.model.impl.DefaultReference;
 import io.adminshell.aas.v3.model.impl.DefaultSubmodel;
 import jakarta.ws.rs.core.Response;
 import okhttp3.OkHttpClient;
@@ -65,8 +72,17 @@ public class AasAgent {
         Objects.requireNonNull(client);
         this.httpRestClient = new HttpRestClient(client);
         logger = Logger.getInstance();
-        objectMapper = new ObjectMapper();
-        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        // Make objectMapper recognize DefaultReference as implementation of Reference
+        final var simpleModule = new SimpleModule()
+                .addAbstractTypeMapping(Reference.class, DefaultReference.class)
+                .addAbstractTypeMapping(Key.class, DefaultKey.class);
+
+        objectMapper = JsonMapper
+                .builder()
+                .enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS)
+                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                .build();
+        objectMapper.registerModule(simpleModule);
     }
 
     /**

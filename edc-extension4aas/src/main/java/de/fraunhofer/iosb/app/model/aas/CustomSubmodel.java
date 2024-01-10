@@ -19,6 +19,8 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
+import io.adminshell.aas.v3.model.Constraint;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,6 +30,7 @@ import java.util.List;
 public class CustomSubmodel extends AASElement {
 
     protected Identifier identification;
+    protected List<Constraint> qualifiers;
     protected String idShort;
     protected List<CustomSubmodelElement> submodelElements = new ArrayList<>();
 
@@ -37,6 +40,14 @@ public class CustomSubmodel extends AASElement {
 
     public void setIdentification(Identifier identification) {
         this.identification = identification;
+    }
+
+    public List<Constraint> getQualifiers() {
+        return qualifiers;
+    }
+
+    public void setQualifiers(List<Constraint> qualifiers) {
+        this.qualifiers = qualifiers;
     }
 
     public String getIdShort() {

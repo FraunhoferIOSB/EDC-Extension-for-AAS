@@ -17,6 +17,7 @@ package de.fraunhofer.iosb.app.model.aas;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 import io.adminshell.aas.v3.model.AssetInformation;
 import io.adminshell.aas.v3.model.impl.DefaultAssetInformation;
@@ -25,6 +26,7 @@ import io.adminshell.aas.v3.model.impl.DefaultAssetInformation;
  * AAS Model for the self description of the edc
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 @JsonAutoDetect
 public class CustomAssetAdministrationShell extends AASElement {
 

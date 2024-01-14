@@ -47,7 +47,7 @@ public class PolicyController {
 
         this.policyDefinitionStore = new PolicyDefinitionStore(monitor, this.config.getAcceptedPolicyDefinitionsPath());
         this.policyService = new PolicyService(catalogService, typeTransformerRegistry, this.config,
-                this.policyDefinitionStore);
+                this.policyDefinitionStore, monitor);
     }
 
     public Dataset getDataset(URL providerUrl, String assetId) throws InterruptedException {

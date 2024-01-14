@@ -122,7 +122,7 @@ public class DataTransferController {
             return data;
         } catch (TimeoutException transferTimeoutExceededException) {
             dataTransferObservable.unregister(agreementId);
-            throw new EdcException(format("Waiting for an transfer failed for agreementId: %s", agreementId),
+            throw new EdcException(format("Waiting for a transfer failed for agreementId: %s", agreementId),
                     transferTimeoutExceededException);
         }
     }

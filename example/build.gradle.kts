@@ -40,7 +40,6 @@ dependencies {
     implementation("$group:data-plane-client:$edcVersion")
     implementation("$group:data-plane-selector-client:$edcVersion")
     implementation("$group:data-plane-selector-core:$edcVersion")
-    implementation("$group:data-plane-selector-api:$edcVersion")
     implementation("$group:transfer-data-plane:$edcVersion")
 
 }

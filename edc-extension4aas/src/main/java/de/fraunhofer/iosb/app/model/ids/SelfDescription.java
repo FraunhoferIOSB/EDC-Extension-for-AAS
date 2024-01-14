@@ -15,6 +15,7 @@
  */
 package de.fraunhofer.iosb.app.model.ids;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -37,6 +38,7 @@ public class SelfDescription {
         Objects.requireNonNull(newSelfDescription);
         this.aasEnv = newSelfDescription;
         this.objectMapper = new ObjectMapper();
+        objectMapper.setSerializationInclusion(Include.NON_NULL);
     }
 
     /**

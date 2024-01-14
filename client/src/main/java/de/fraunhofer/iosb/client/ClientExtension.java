@@ -53,7 +53,7 @@ public class ClientExtension implements ServiceExtension {
         @Override
         public void initialize(ServiceExtensionContext context) {
                 var monitor = context.getMonitor();
-                var config = context.getConfig();
+                var config = context.getConfig("edc.client");
 
                 var policyController = new PolicyController(monitor, catalogService, transformer, config);
 

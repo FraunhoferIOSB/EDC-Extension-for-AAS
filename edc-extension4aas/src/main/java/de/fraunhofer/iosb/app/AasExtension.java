@@ -62,16 +62,15 @@ public class AasExtension implements ServiceExtension {
     private static final Logger logger = Logger.getInstance();
     private final ScheduledExecutorService syncExecutor = new ScheduledThreadPoolExecutor(1);
     private AasController aasController;
-    private ConfigurationController configurationController;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        this.configurationController = new ConfigurationController(context.getConfig(SETTINGS_PREFIX));
+        var configurationController = new ConfigurationController(context.getConfig(SETTINGS_PREFIX));
 
         // Distribute controllers, repository
         var selfDescriptionRepository = new SelfDescriptionRepository();
         this.aasController = new AasController(okHttpClient);
-        var endpoint = new Endpoint(selfDescriptionRepository, this.aasController, this.configurationController);
+        var endpoint = new Endpoint(selfDescriptionRepository, this.aasController, configurationController);
 
         // Initialize/Start synchronizer, start AAS services defined in configuration
         initializeSynchronizer(selfDescriptionRepository);

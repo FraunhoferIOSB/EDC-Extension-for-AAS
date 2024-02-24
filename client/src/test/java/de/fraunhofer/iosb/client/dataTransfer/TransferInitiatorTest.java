@@ -42,15 +42,14 @@ import org.junit.jupiter.api.Test;
 public class TransferInitiatorTest {
 
     private final TransferProcessManager mockTransferProcessManager = mock(TransferProcessManager.class);
-    private Config configMock;
 
     private TransferInitiator transferInitiator;
     private StatusResult<TransferProcess> mockStatusResult;
 
     @BeforeEach
     @SuppressWarnings("unchecked")
-    void initializeContractOfferService() throws URISyntaxException {
-        configMock = ConfigFactory.fromMap(Map.of("edc.dsp.callback.address", "http://localhost:4321/dsp",
+    void initializeContractOfferService() {
+        var configMock = ConfigFactory.fromMap(Map.of("edc.dsp.callback.address", "http://localhost:4321/dsp",
                 "web.http.port", "8080", "web.http.path", "/api"));
 
         transferInitiator = new TransferInitiator(configMock, mock(Monitor.class), mockTransferProcessManager);

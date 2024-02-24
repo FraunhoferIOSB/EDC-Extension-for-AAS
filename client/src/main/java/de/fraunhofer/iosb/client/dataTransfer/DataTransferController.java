@@ -43,7 +43,6 @@ public class DataTransferController {
 
     private final Config config;
 
-    private final DataTransferEndpoint dataTransferEndpoint;
     private final DataTransferObservable dataTransferObservable;
     private final TransferInitiator transferInitiator;
 
@@ -56,7 +55,7 @@ public class DataTransferController {
      * @param config                        Read config value transfer timeout and
      *                                      own URI
      * @param webService                    Register data transfer endpoint.
-     * @param dataEndpointAuthRequestFilter Creating and passing through custom api
+     * @param authenticationService Creating and passing through custom api
      *                                      keys for each data transfer.
      * @param transferProcessManager        Initiating a transfer process as a
      *                                      consumer.
@@ -69,7 +68,7 @@ public class DataTransferController {
                 authenticationService);
 
         this.dataTransferObservable = new DataTransferObservable(monitor);
-        this.dataTransferEndpoint = new DataTransferEndpoint(monitor, dataTransferObservable);
+        var dataTransferEndpoint = new DataTransferEndpoint(monitor, dataTransferObservable);
         webService.registerResource(dataTransferEndpoint);
     }
 

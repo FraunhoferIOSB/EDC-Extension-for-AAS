@@ -49,7 +49,6 @@ public class NegotiatorTest {
     private final ConsumerContractNegotiationManager ccnmMock = mock(ConsumerContractNegotiationManager.class);
     private final ContractNegotiationStore cnsMock = mock(ContractNegotiationStore.class);
     private final ContractNegotiationObservable contractNegotiationObservable = new ContractNegotiationObservableImpl();
-    private final Config configMock = ConfigFactory.empty();
 
     private final String assetId = "test-asset-id";
     private final Policy mockPolicy = buildPolicy();

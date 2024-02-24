@@ -21,9 +21,6 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiat
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.response.StatusResult;
-import org.eclipse.edc.spi.system.configuration.Config;
-
-import java.util.concurrent.ExecutionException;
 
 /**
  * Send contractrequest, negotiation status watch

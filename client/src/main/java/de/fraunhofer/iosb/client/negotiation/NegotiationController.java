@@ -51,7 +51,7 @@ public class NegotiationController {
                                  ContractNegotiationObservable observable, ContractNegotiationStore contractNegotiationStore,
                                  Config config) {
         this.config = config;
-        this.negotiator = new Negotiator(consumerNegotiationManager, contractNegotiationStore, config);
+        this.negotiator = new Negotiator(consumerNegotiationManager, contractNegotiationStore);
         this.listener = new ClientContractNegotiationListener();
         observable.registerListener(listener);
     }

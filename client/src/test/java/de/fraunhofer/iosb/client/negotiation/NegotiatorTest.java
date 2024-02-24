@@ -60,7 +60,7 @@ public class NegotiatorTest {
     @BeforeEach
     void initializeClientNegotiator() {
         defineMockBehaviour();
-        clientNegotiator = new Negotiator(ccnmMock, cnsMock, configMock);
+        clientNegotiator = new Negotiator(ccnmMock, cnsMock);
     }
 
     void defineMockBehaviour() {

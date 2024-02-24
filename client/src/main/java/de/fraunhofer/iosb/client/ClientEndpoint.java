@@ -200,7 +200,8 @@ public class ClientEndpoint {
     @GET
     @Path(TRANSFER_PATH)
     public Response getData(@QueryParam("providerUrl") URL providerUrl,
-                            @QueryParam("agreementId") String agreementId, @QueryParam("assetId") String assetId,
+                            @QueryParam("agreementId") String agreementId,
+                            @QueryParam("assetId") String assetId,
                             @QueryParam("dataDestinationUrl") URL dataDestinationUrl) {
         monitor.debug(format("[Client] Received a %s GET request", TRANSFER_PATH));
         Objects.requireNonNull(providerUrl, "providerUrl must not be null");

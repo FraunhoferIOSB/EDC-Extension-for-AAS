@@ -2,9 +2,12 @@
 
 ## Current development version
 
-Compatibility: **Eclipse Dataspace Connector v0.4.1**
+Compatibility: **Eclipse Dataspace Connector v0.5.1**
 
 **New Features**
+
+- counterPartyId now needed when using client extension
+
 
 **Bugfixes**
 

@@ -56,8 +56,7 @@ public class Negotiator {
      * aborted by throwing an exception. This exception can be inspected using the
      * getCause() method.
      */
-    StatusResult<ContractNegotiation> negotiate(ContractRequest contractRequest)
-            throws InterruptedException, ExecutionException {
+    StatusResult<ContractNegotiation> negotiate(ContractRequest contractRequest) {
         var previousAgreements = contractNegotiationStore.queryAgreements(QuerySpec.max());
         var relevantAgreements = previousAgreements
                 .filter(agreement -> agreement.getAssetId().equals(contractRequest.getContractOffer().getAssetId()))

@@ -36,18 +36,16 @@ import de.fraunhofer.iosb.client.util.Pair;
 public class PolicyController {
 
 
-    private final PolicyServiceConfig config;
-
     private final PolicyDefinitionStore policyDefinitionStore;
     private final PolicyService policyService;
 
     public PolicyController(Monitor monitor, CatalogService catalogService,
             TypeTransformerRegistry typeTransformerRegistry, Config systemConfig) {
-        this.config = new PolicyServiceConfig(systemConfig);
+        var config = new PolicyServiceConfig(systemConfig);
 
-        this.policyDefinitionStore = new PolicyDefinitionStore(monitor, this.config.getAcceptedPolicyDefinitionsPath());
-        this.policyService = new PolicyService(catalogService, typeTransformerRegistry, this.config,
-                this.policyDefinitionStore);
+        this.policyDefinitionStore = new PolicyDefinitionStore(monitor, config.getAcceptedPolicyDefinitionsPath());
+        this.policyService = new PolicyService(catalogService, typeTransformerRegistry, config,
+                this.policyDefinitionStore, monitor);
     }
 
     public Dataset getDataset(URL providerUrl, String assetId) throws InterruptedException {

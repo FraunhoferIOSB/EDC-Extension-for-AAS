@@ -35,6 +35,7 @@ import org.eclipse.edc.catalog.spi.Distribution;
 import org.eclipse.edc.connector.spi.catalog.CatalogService;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
@@ -59,7 +60,7 @@ public class PolicyServiceTest {
     @BeforeEach
     void initializeContractOfferService() {
         policyService = new PolicyService(mockCatalogService, mockTransformer, mockConfig(),
-                mock(PolicyDefinitionStore.class));
+                mock(PolicyDefinitionStore.class), mock(Monitor.class));
     }
 
     @Test

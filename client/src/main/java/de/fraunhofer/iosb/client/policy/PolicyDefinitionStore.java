@@ -77,7 +77,6 @@ class PolicyDefinitionStore {
     /**
      * Update a policyDefinition
      *
-     * @param policyDefinitionId PolicyDefinition ID (non null)
      * @param policyDefinition   The updated policyDefinition
      * @return Optional containing updated policy definition or null
      */

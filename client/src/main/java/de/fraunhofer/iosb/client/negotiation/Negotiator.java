@@ -37,13 +37,11 @@ public class Negotiator {
      * Class constructor
      *
      * @param consumerNegotiationManager Initiating a negotiation as a consumer.
-     * @param observable                 Status updates for waiting data transfer
-     *                                   requesters to avoid busy waiting.
      * @param contractNegotiationStore   Check for existing agreements before
      *                                   negotiating
      */
     public Negotiator(ConsumerContractNegotiationManager consumerNegotiationManager,
-                      ContractNegotiationStore contractNegotiationStore, Config config) {
+                      ContractNegotiationStore contractNegotiationStore) {
         this.consumerNegotiationManager = consumerNegotiationManager;
         this.contractNegotiationStore = contractNegotiationStore;
     }
@@ -56,8 +54,7 @@ public class Negotiator {
      * aborted by throwing an exception. This exception can be inspected using the
      * getCause() method.
      */
-    StatusResult<ContractNegotiation> negotiate(ContractRequest contractRequest)
-            throws InterruptedException, ExecutionException {
+    StatusResult<ContractNegotiation> negotiate(ContractRequest contractRequest) {
         var previousAgreements = contractNegotiationStore.queryAgreements(QuerySpec.max());
         var relevantAgreements = previousAgreements
                 .filter(agreement -> agreement.getAssetId().equals(contractRequest.getContractOffer().getAssetId()))

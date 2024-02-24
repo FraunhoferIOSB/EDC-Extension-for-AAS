@@ -42,7 +42,6 @@ public class DataTransferController {
 
     private final Config config;
 
-    private final DataTransferEndpoint dataTransferEndpoint;
     private final DataTransferObservable dataTransferObservable;
     private final TransferInitiator transferInitiator;
 
@@ -51,14 +50,14 @@ public class DataTransferController {
     /**
      * Class constructor
      *
-     * @param monitor                       Logging.
-     * @param config                        Read config value transfer timeout and
-     *                                      own URI
-     * @param webService                    Register data transfer endpoint.
-     * @param dataEndpointAuthRequestFilter Creating and passing through custom api
-     *                                      keys for each data transfer.
-     * @param transferProcessManager        Initiating a transfer process as a
-     *                                      consumer.
+     * @param monitor                Logging.
+     * @param config                 Read config value transfer timeout and
+     *                               own URI
+     * @param webService             Register data transfer endpoint.
+     * @param authenticationService  Creating and passing through custom api
+     *                               keys for each data transfer.
+     * @param transferProcessManager Initiating a transfer process as a
+     *                               consumer.
      */
     public DataTransferController(Monitor monitor, Config config, WebService webService,
                                   AuthenticationService authenticationService, TransferProcessManager transferProcessManager) {
@@ -68,7 +67,7 @@ public class DataTransferController {
                 authenticationService);
 
         this.dataTransferObservable = new DataTransferObservable(monitor);
-        this.dataTransferEndpoint = new DataTransferEndpoint(monitor, dataTransferObservable);
+        var dataTransferEndpoint = new DataTransferEndpoint(monitor, dataTransferObservable);
         webService.registerResource(dataTransferEndpoint);
     }
 
@@ -76,11 +75,11 @@ public class DataTransferController {
      * Initiates the transfer process defined by the arguments. The data of the
      * transfer will be sent to {@link DataTransferEndpoint#RECEIVE_DATA_PATH}.
      *
-     * @param providerUrl     The provider from whom the data is to be fetched.
-     * @param agreementId     Non-null ContractAgreement of the negotiation process.
-     * @param assetId         The asset to be fetched.
-     * @param dataSinkAddress HTTPDataAddress the result of the transfer should be
-     *                        sent to. (If null, send to extension and print in log)
+     * @param providerUrl        The provider from whom the data is to be fetched.
+     * @param agreementId        Non-null ContractAgreement of the negotiation process.
+     * @param assetId            The asset to be fetched.
+     * @param dataDestinationUrl HTTPDataAddress the result of the transfer should be
+     *                           sent to. (If null, send to extension and print in log)
      * @return A completable future whose result will be the data or an error
      * message.
      * @throws InterruptedException If the data transfer was interrupted

@@ -15,19 +15,7 @@
  */
 package de.fraunhofer.iosb.client.policy;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-
+import de.fraunhofer.iosb.client.testUtils.FileManager;
 import org.eclipse.edc.catalog.spi.Catalog;
 import org.eclipse.edc.catalog.spi.DataService;
 import org.eclipse.edc.catalog.spi.Dataset;
@@ -42,7 +30,18 @@ import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import de.fraunhofer.iosb.client.testUtils.FileManager;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class PolicyServiceTest {
 
@@ -70,7 +69,7 @@ public class PolicyServiceTest {
         assert catalogString != null;
         mockedFuture.complete(StatusResult.success(catalogString.getBytes(StandardCharsets.UTF_8)));
 
-        when(mockCatalogService.requestCatalog(any(), any(), any())).thenReturn(mockedFuture);
+        when(mockCatalogService.requestCatalog(any(), any(), any(), any())).thenReturn(mockedFuture);
 
         when(mockTransformer.transform(any(), any())).thenReturn(Result.success(Catalog.Builder.newInstance()
                 .dataset(Dataset.Builder.newInstance()
@@ -84,16 +83,16 @@ public class PolicyServiceTest {
                         .build())
                 .build()));
 
-        assertEquals(datasetId, policyService.getDatasetForAssetId(testUrl, "test-asset-id").getId());
+        assertEquals(datasetId, policyService.getDatasetForAssetId("provider", testUrl, "test-asset-id").getId());
     }
 
     @Test
     void getContractUnreachableProviderTest() throws MalformedURLException, InterruptedException {
         var mockedFuture = new CompletableFuture<StatusResult<byte[]>>();
-        when(mockCatalogService.requestCatalog(any(), any(), any())).thenReturn(mockedFuture);
+        when(mockCatalogService.requestCatalog(any(), any(), any(), any())).thenReturn(mockedFuture);
 
         try {
-            policyService.getDatasetForAssetId(new URL("http://fakeUrl:4321/not/working"), "test-asset-id");
+            policyService.getDatasetForAssetId("provider", new URL("http://fakeUrl:4321/not/working"), "test-asset-id");
             fail("This should not complete without throwing an exception");
         } catch (EdcException expected) {
         }

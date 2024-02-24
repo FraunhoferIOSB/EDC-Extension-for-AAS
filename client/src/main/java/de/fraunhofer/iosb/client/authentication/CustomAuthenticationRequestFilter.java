@@ -67,7 +67,7 @@ public class CustomAuthenticationRequestFilter extends AuthenticationRequestFilt
             if (requestContext.getHeaders().containsKey(key)
                     && requestContext.getHeaderString(key).equals(tempKeys.get(key))
                     && requestPath.startsWith(
-                            format("%s/%s", ClientEndpoint.AUTOMATED_PATH, DataTransferEndpoint.RECEIVE_DATA_PATH))) {
+                    format("%s/%s", ClientEndpoint.AUTOMATED_PATH, DataTransferEndpoint.RECEIVE_DATA_PATH))) {
                 monitor.debug(
                         format("[Client] Data Transfer request with custom api key %s", key));
                 tempKeys.remove(key);

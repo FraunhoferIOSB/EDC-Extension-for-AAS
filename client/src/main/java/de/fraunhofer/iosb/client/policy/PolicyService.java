@@ -15,19 +15,25 @@
  */
 package de.fraunhofer.iosb.client.policy;
 
-import static java.lang.String.format;
-import static org.eclipse.edc.jsonld.spi.Namespaces.DCAT_PREFIX;
-import static org.eclipse.edc.jsonld.spi.Namespaces.DCAT_SCHEMA;
-import static org.eclipse.edc.jsonld.spi.Namespaces.DCT_PREFIX;
-import static org.eclipse.edc.jsonld.spi.Namespaces.DCT_SCHEMA;
-import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_PREFIX;
-import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_ACCESS_SERVICE_ATTRIBUTE;
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCT_FORMAT_ATTRIBUTE;
-import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_PREFIX;
-import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
-import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
-import static org.eclipse.edc.spi.query.Criterion.criterion;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import de.fraunhofer.iosb.client.exception.AmbiguousOrNullException;
+import de.fraunhofer.iosb.client.util.Pair;
+import jakarta.json.Json;
+import jakarta.json.JsonObject;
+import org.eclipse.edc.catalog.spi.Catalog;
+import org.eclipse.edc.catalog.spi.DataService;
+import org.eclipse.edc.catalog.spi.Dataset;
+import org.eclipse.edc.catalog.spi.Distribution;
+import org.eclipse.edc.connector.spi.catalog.CatalogService;
+import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.policy.model.Rule;
+import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.spi.types.domain.asset.Asset;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -42,27 +48,14 @@ import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.eclipse.edc.catalog.spi.Catalog;
-import org.eclipse.edc.catalog.spi.DataService;
-import org.eclipse.edc.catalog.spi.Dataset;
-import org.eclipse.edc.catalog.spi.Distribution;
-import org.eclipse.edc.connector.spi.catalog.CatalogService;
-import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.policy.model.Rule;
-import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.query.QuerySpec;
-import org.eclipse.edc.spi.response.StatusResult;
-import org.eclipse.edc.spi.types.domain.asset.Asset;
-import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-
-import de.fraunhofer.iosb.client.exception.AmbiguousOrNullException;
-import de.fraunhofer.iosb.client.util.Pair;
-import jakarta.json.Json;
-import jakarta.json.JsonObject;
+import static java.lang.String.format;
+import static org.eclipse.edc.jsonld.spi.Namespaces.*;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_ACCESS_SERVICE_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCT_FORMAT_ATTRIBUTE;
+import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_PREFIX;
+import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
+import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
+import static org.eclipse.edc.spi.query.Criterion.criterion;
 
 /**
  * Finds out policy for a given asset id and provider EDC url
@@ -71,7 +64,7 @@ class PolicyService {
 
     private final CatalogService catalogService;
     private final TypeTransformerRegistry transformer;
-    
+
     private final PolicyServiceConfig config;
     private final PolicyDefinitionStore policyDefinitionStore;
 
@@ -82,7 +75,7 @@ class PolicyService {
      * @param transformer    Transform json-ld byte-array catalog to catalog class
      */
     public PolicyService(CatalogService catalogService, TypeTransformerRegistry transformer,
-            PolicyServiceConfig config, PolicyDefinitionStore policyDefinitionStore) {
+                         PolicyServiceConfig config, PolicyDefinitionStore policyDefinitionStore) {
         this.catalogService = catalogService;
         this.transformer = transformer;
 
@@ -90,9 +83,10 @@ class PolicyService {
         this.policyDefinitionStore = policyDefinitionStore;
     }
 
-    Dataset getDatasetForAssetId(URL providerUrl, String assetId) throws InterruptedException {
+    Dataset getDatasetForAssetId(String counterPartyId, URL counterPartyUrl, String assetId) throws InterruptedException {
         var catalogFuture = catalogService.requestCatalog(
-                providerUrl.toString(),
+                counterPartyId, // why do we even need a provider id when we have the url...
+                counterPartyUrl.toString(),
                 DATASPACE_PROTOCOL_HTTP,
                 QuerySpec.Builder.newInstance()
                         .filter(List.of(criterion(Asset.PROPERTY_ID, "=", assetId)))
@@ -102,15 +96,15 @@ class PolicyService {
         try {
             catalogResponse = catalogFuture.get(config.getWaitForCatalogTimeout(), TimeUnit.SECONDS);
         } catch (ExecutionException futureExecutionException) {
-            throw new EdcException(format("Failed fetching a catalog by provider %s.", providerUrl),
+            throw new EdcException(format("Failed fetching a catalog by provider %s.", counterPartyUrl),
                     futureExecutionException);
         } catch (TimeoutException timeoutCatalogFutureGetException) {
-            throw new EdcException(format("Timeout while waiting for catalog by provider %s.", providerUrl),
+            throw new EdcException(format("Timeout while waiting for catalog by provider %s.", counterPartyUrl),
                     timeoutCatalogFutureGetException);
         }
 
         if (catalogResponse.failed()) {
-            throw new EdcException(format("Catalog by provider %s couldn't be retrieved: %s", providerUrl,
+            throw new EdcException(format("Catalog by provider %s couldn't be retrieved: %s", counterPartyUrl,
                     catalogResponse.getFailureMessages()));
         }
 
@@ -118,13 +112,13 @@ class PolicyService {
         try {
             modifiedCatalogJson = modifyCatalogJson(catalogResponse.getContent());
         } catch (IOException except) {
-            throw new EdcException(format("Catalog by provider %s couldn't be retrieved: %s", providerUrl, except));
+            throw new EdcException(format("Catalog by provider %s couldn't be retrieved: %s", counterPartyUrl, except));
         }
 
         var catalog = transformer.transform(modifiedCatalogJson, Catalog.class);
 
         if (catalog.failed()) {
-            throw new EdcException(format("Catalog by provider %s couldn't be retrieved: %s", providerUrl,
+            throw new EdcException(format("Catalog by provider %s couldn't be retrieved: %s", counterPartyUrl,
                     catalog.getFailureMessages()));
         }
 
@@ -139,9 +133,9 @@ class PolicyService {
         return dataset;
     }
 
-    Pair<String, Policy> getAcceptablePolicyForAssetId(URL providerUrl, String assetId)
+    Pair<String, Policy> getAcceptablePolicyForAssetId(String counterPartyId, URL providerUrl, String assetId)
             throws InterruptedException {
-        var dataset = getDatasetForAssetId(providerUrl, assetId);
+        var dataset = getDatasetForAssetId(counterPartyId, providerUrl, assetId);
 
         Map.Entry<String, Policy> acceptablePolicy;
         if (config.isAcceptAllProviderOffers()) {
@@ -172,16 +166,16 @@ class PolicyService {
 
     private boolean policyDefinitionRulesEquality(Policy first, Policy second) {
         List<Rule> firstRules = Stream.of(
-                first.getPermissions(),
-                first.getProhibitions(),
-                first.getObligations())
+                        first.getPermissions(),
+                        first.getProhibitions(),
+                        first.getObligations())
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList());
 
         List<Rule> secondRules = Stream.of(
-                second.getPermissions(),
-                second.getProhibitions(),
-                second.getObligations())
+                        second.getPermissions(),
+                        second.getProhibitions(),
+                        second.getObligations())
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList());
 

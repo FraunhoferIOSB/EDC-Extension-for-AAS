@@ -15,13 +15,13 @@
  */
 package de.fraunhofer.iosb.client;
 
-import static java.lang.String.format;
-import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
-
-import java.net.URL;
-import java.util.Objects;
-import java.util.concurrent.ExecutionException;
-
+import de.fraunhofer.iosb.client.dataTransfer.DataTransferController;
+import de.fraunhofer.iosb.client.negotiation.NegotiationController;
+import de.fraunhofer.iosb.client.policy.PolicyController;
+import de.fraunhofer.iosb.client.util.Pair;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.policy.model.Policy;
@@ -29,31 +29,21 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
 import org.eclipse.edc.spi.types.domain.offer.ContractOffer;
 
-import de.fraunhofer.iosb.client.dataTransfer.DataTransferController;
-import de.fraunhofer.iosb.client.negotiation.NegotiationController;
-import de.fraunhofer.iosb.client.policy.PolicyController;
-import de.fraunhofer.iosb.client.util.Pair;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.DELETE;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.PUT;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.QueryParam;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
+import java.net.URL;
+import java.util.Objects;
+import java.util.concurrent.ExecutionException;
+
+import static java.lang.String.format;
+import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 
 /**
  * Automated contract negotiation
  */
-@Consumes({ MediaType.APPLICATION_JSON, MediaType.WILDCARD })
-@Produces({ MediaType.APPLICATION_JSON })
+@Consumes({MediaType.APPLICATION_JSON, MediaType.WILDCARD})
+@Produces({MediaType.APPLICATION_JSON})
 @Path(ClientEndpoint.AUTOMATED_PATH)
 public class ClientEndpoint {
-    /*
-     * Root path for the client
-     */
+
     public static final String AUTOMATED_PATH = "automated";
     private static final String ACCEPTED_POLICIES_PATH = "acceptedPolicies";
     private static final String DATASET_PATH = "dataset";
@@ -70,15 +60,14 @@ public class ClientEndpoint {
     /**
      * Initialize a client endpoint.
      *
-     * @param policyService     Finds out policy for a given asset id and provider
-     *                          EDC url.
-     * @param negotiator        Send contract offer, negotiation status watch.
-     * @param transferInitiator Initiate transfer requests.
+     * @param policyController      Finds out policy for a given asset id and provider EDC url.
+     * @param negotiationController Send contract offer, negotiation status watch.
+     * @param transferController    Initiate transfer requests.
      */
     public ClientEndpoint(Monitor monitor,
-            NegotiationController negotiationController,
-            PolicyController policyController,
-            DataTransferController transferController) {
+                          NegotiationController negotiationController,
+                          PolicyController policyController,
+                          DataTransferController transferController) {
         this.monitor = monitor;
 
         this.policyController = policyController;
@@ -91,17 +80,14 @@ public class ClientEndpoint {
      * of the services' policyDefinitionStore instance containing user added
      * policyDefinitions. If more than one policyDefinitions are provided by the
      * provider connector, an AmbiguousOrNullException will be thrown.
-     * 
+     *
      * @param providerUrl Provider of the asset.
      * @param assetId     Asset ID of the asset whose contract should be fetched.
      * @return One policyDefinition offered by the provider for the given assetId.
-     * @throws InterruptedException Thread for agreementId was waiting, sleeping, or
-     *                              otherwise occupied, and was
-     *                              interrupted.
      */
     @GET
     @Path(DATASET_PATH)
-    public Response getDataset(@QueryParam("providerUrl") URL providerUrl, @QueryParam("assetId") String assetId) {
+    public Response getDataset(@QueryParam("providerUrl") URL providerUrl, @QueryParam("assetId") String assetId, @QueryParam("providerId") String counterPartyId) {
         monitor.debug(format("[Client] Received a %s GET request", DATASET_PATH));
 
         if (Objects.isNull(providerUrl)) {
@@ -109,7 +95,7 @@ public class ClientEndpoint {
         }
 
         try {
-            var dataset = policyController.getDataset(providerUrl, assetId);
+            var dataset = policyController.getDataset(counterPartyId, providerUrl, assetId);
             return Response.ok(dataset).build();
         } catch (InterruptedException interruptedException) {
             monitor.severe(format("[Client] Getting dataset failed for provider %s and asset %s", providerUrl,
@@ -123,28 +109,28 @@ public class ClientEndpoint {
      * Negotiate a contract agreement using the given contract offer if no agreement
      * exists for this constellation.
      *
-     * @param providerUrl Provider EDCs URL (DSP endpoint)
-     * @param providerId  Provider EDCs ID
-     * @param assetId     ID of the asset to be retrieved
+     * @param counterPartyUrl    Provider EDCs URL (DSP endpoint)
+     * @param counterPartyId     Provider EDCs ID
+     * @param assetId            ID of the asset to be retrieved
      * @param dataDestinationUrl URL of destination data sink.
      * @return Asset data
      */
     @POST
     @Path(NEGOTIATE_PATH)
-    public Response negotiateContract(@QueryParam("providerUrl") URL providerUrl,
-            @QueryParam("providerId") String providerId,
-            @QueryParam("assetId") String assetId,
-            @QueryParam("dataDestinationUrl") URL dataDestinationUrl) {
+    public Response negotiateContract(@QueryParam("providerUrl") URL counterPartyUrl,
+                                      @QueryParam("providerId") String counterPartyId,
+                                      @QueryParam("assetId") String assetId,
+                                      @QueryParam("dataDestinationUrl") URL dataDestinationUrl) {
         monitor.debug(format("[Client] Received a %s POST request", NEGOTIATE_PATH));
-        Objects.requireNonNull(providerUrl, "Provider URL must not be null");
-        Objects.requireNonNull(providerId, "Provider ID must not be null");
+        Objects.requireNonNull(counterPartyUrl, "Provider URL must not be null");
+        Objects.requireNonNull(counterPartyId, "Provider ID must not be null");
         Objects.requireNonNull(assetId, "Asset ID must not be null");
 
         Pair<String, Policy> idPolicyPair; // id means contractOfferId
         try {
-            idPolicyPair = policyController.getAcceptablePolicyForAssetId(providerUrl, assetId);
+            idPolicyPair = policyController.getAcceptablePolicyForAssetId(counterPartyId, counterPartyUrl, assetId);
         } catch (InterruptedException negotiationException) {
-            monitor.severe(format("[Client] Getting policies failed for provider %s and asset %s", providerUrl,
+            monitor.severe(format("[Client] Getting policies failed for provider %s and asset %s", counterPartyUrl,
                     assetId), negotiationException);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(negotiationException.getMessage())
                     .build();
@@ -158,8 +144,8 @@ public class ClientEndpoint {
 
         var contractRequest = ContractRequest.Builder.newInstance()
                 .contractOffer(offer)
-                .counterPartyAddress(providerUrl.toString())
-                .providerId(providerId)
+                .counterPartyAddress(counterPartyUrl.toString())
+                .providerId(counterPartyId)
                 .protocol(DATASPACE_PROTOCOL_HTTP)
                 .build();
         ContractAgreement agreement;
@@ -167,13 +153,13 @@ public class ClientEndpoint {
         try {
             agreement = negotiationController.negotiateContract(contractRequest);
         } catch (InterruptedException | ExecutionException negotiationException) {
-            monitor.severe(format("[Client] Negotiation failed for provider %s and contractOffer %s", providerUrl,
+            monitor.severe(format("[Client] Negotiation failed for provider %s and contractOffer %s", counterPartyUrl,
                     offer.getId()), negotiationException);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(negotiationException.getMessage())
                     .build();
         }
 
-        return getData(providerUrl, agreement.getId(), assetId, dataDestinationUrl);
+        return getData(counterPartyUrl, agreement.getId(), assetId, dataDestinationUrl);
     }
 
     /**
@@ -205,17 +191,17 @@ public class ClientEndpoint {
     /**
      * Submits a data transfer request to the providerUrl.
      *
-     * @param providerUrl The data provider's url
-     * @param agreementId The basis of the data transfer.
-     * @param assetId     The asset of which the data should be transferred
+     * @param providerUrl        The data provider's url
+     * @param agreementId        The basis of the data transfer.
+     * @param assetId            The asset of which the data should be transferred
      * @param dataDestinationUrl URL of destination data sink.
      * @return On success, the data of the desired asset. Else, returns an error message.
      */
     @GET
     @Path(TRANSFER_PATH)
     public Response getData(@QueryParam("providerUrl") URL providerUrl,
-            @QueryParam("agreementId") String agreementId, @QueryParam("assetId") String assetId,
-            @QueryParam("dataDestinationUrl") URL dataDestinationUrl) {
+                            @QueryParam("agreementId") String agreementId, @QueryParam("assetId") String assetId,
+                            @QueryParam("dataDestinationUrl") URL dataDestinationUrl) {
         monitor.debug(format("[Client] Received a %s GET request", TRANSFER_PATH));
         Objects.requireNonNull(providerUrl, "providerUrl must not be null");
         Objects.requireNonNull(agreementId, "agreementId must not be null");

@@ -15,16 +15,9 @@
  */
 package de.fraunhofer.iosb.client.dataTransfer;
 
-import static de.fraunhofer.iosb.client.dataTransfer.DataTransferController.DATA_TRANSFER_API_KEY;
-import static java.lang.String.format;
-import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
-import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
-
-import java.net.URI;
-import java.net.URL;
-import java.util.Objects;
-import java.util.UUID;
-
+import de.fraunhofer.iosb.client.ClientEndpoint;
+import jakarta.ws.rs.core.UriBuilder;
+import jakarta.ws.rs.core.UriBuilderException;
 import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.spi.EdcException;
@@ -32,9 +25,15 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 
-import de.fraunhofer.iosb.client.ClientEndpoint;
-import jakarta.ws.rs.core.UriBuilder;
-import jakarta.ws.rs.core.UriBuilderException;
+import java.net.URI;
+import java.net.URL;
+import java.util.Objects;
+import java.util.UUID;
+
+import static de.fraunhofer.iosb.client.dataTransfer.DataTransferController.DATA_TRANSFER_API_KEY;
+import static java.lang.String.format;
+import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 
 /**
  * Initiate transfer requests
@@ -46,7 +45,7 @@ class TransferInitiator {
     private final URI ownUri;
 
     TransferInitiator(Config config, Monitor monitor,
-            TransferProcessManager transferProcessManager) {
+                      TransferProcessManager transferProcessManager) {
         this.monitor = monitor;
         this.ownUri = createOwnUriFromConfigurationValues(config);
         this.transferProcessManager = transferProcessManager;
@@ -72,9 +71,8 @@ class TransferInitiator {
 
         var transferRequest = TransferRequest.Builder.newInstance()
                 .id(UUID.randomUUID().toString()) // this is not relevant, thus can be random
-                .connectorId(providerUrl.toString()) // the address of the provider connector
+                .counterPartyAddress(providerUrl.toString()) // the address of the provider connector
                 .protocol(DATASPACE_PROTOCOL_HTTP)
-                .connectorId("consumer")
                 .assetId(assetId)
                 .dataDestination(dataSinkAddress)
                 .contractId(agreementId)
@@ -104,7 +102,7 @@ class TransferInitiator {
         } catch (IllegalArgumentException | UriBuilderException ownUriBuilderException) {
             monitor.severe(
                     format("[Client] Could not build own URI, thus cannot transfer data to this EDC. Only data transfers to external endpoints are supported. Exception message: %s",
-                    ownUriBuilderException.getMessage()));
+                            ownUriBuilderException.getMessage()));
         }
         return null;
     }

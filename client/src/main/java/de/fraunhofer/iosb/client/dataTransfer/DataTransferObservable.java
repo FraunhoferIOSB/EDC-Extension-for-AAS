@@ -15,11 +15,11 @@
  */
 package de.fraunhofer.iosb.client.dataTransfer;
 
+import org.eclipse.edc.spi.monitor.Monitor;
+
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-
-import org.eclipse.edc.spi.monitor.Monitor;
 
 import static java.lang.String.format;
 

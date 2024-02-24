@@ -15,7 +15,14 @@
  */
 package de.fraunhofer.iosb.client.dataTransfer;
 
-import static java.lang.String.format;
+import de.fraunhofer.iosb.client.authentication.CustomAuthenticationRequestFilter;
+import org.eclipse.edc.api.auth.spi.AuthenticationService;
+import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
+import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
+import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.system.configuration.Config;
+import org.eclipse.edc.web.spi.WebService;
 
 import java.net.URL;
 import java.util.Objects;
@@ -25,15 +32,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import org.eclipse.edc.api.auth.spi.AuthenticationService;
-import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
-import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
-import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.system.configuration.Config;
-import org.eclipse.edc.web.spi.WebService;
-
-import de.fraunhofer.iosb.client.authentication.CustomAuthenticationRequestFilter;
+import static java.lang.String.format;
 
 public class DataTransferController {
 
@@ -62,7 +61,7 @@ public class DataTransferController {
      *                                      consumer.
      */
     public DataTransferController(Monitor monitor, Config config, WebService webService,
-            AuthenticationService authenticationService, TransferProcessManager transferProcessManager) {
+                                  AuthenticationService authenticationService, TransferProcessManager transferProcessManager) {
         this.config = config;
         this.transferInitiator = new TransferInitiator(config, monitor, transferProcessManager);
         this.dataEndpointAuthenticationRequestFilter = new CustomAuthenticationRequestFilter(monitor,
@@ -82,14 +81,13 @@ public class DataTransferController {
      * @param assetId         The asset to be fetched.
      * @param dataSinkAddress HTTPDataAddress the result of the transfer should be
      *                        sent to. (If null, send to extension and print in log)
-     * 
      * @return A completable future whose result will be the data or an error
-     *         message.
+     * message.
      * @throws InterruptedException If the data transfer was interrupted
      * @throws ExecutionException   If the data transfer process failed
      */
     public String initiateTransferProcess(URL providerUrl, String agreementId, String assetId,
-            URL dataDestinationUrl) throws InterruptedException, ExecutionException {
+                                          URL dataDestinationUrl) throws InterruptedException, ExecutionException {
         // Prepare for incoming data
         var dataFuture = new CompletableFuture<String>();
         dataTransferObservable.register(dataFuture, agreementId);

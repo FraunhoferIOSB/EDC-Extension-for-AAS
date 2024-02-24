@@ -19,18 +19,17 @@ import de.fraunhofer.iosb.client.ClientEndpoint;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.util.Objects;
-
-import org.eclipse.edc.spi.monitor.Monitor;
 
 import static java.lang.String.format;
 
 /**
  * Endpoint for automated data transfer
  */
-@Consumes({ MediaType.APPLICATION_JSON, MediaType.WILDCARD })
-@Produces({ MediaType.APPLICATION_JSON })
+@Consumes({MediaType.APPLICATION_JSON, MediaType.WILDCARD})
+@Produces({MediaType.APPLICATION_JSON})
 @Path(ClientEndpoint.AUTOMATED_PATH)
 public class DataTransferEndpoint {
 

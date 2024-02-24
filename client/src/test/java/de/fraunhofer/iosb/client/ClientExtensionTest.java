@@ -1,8 +1,5 @@
 package de.fraunhofer.iosb.client;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-
 import org.eclipse.edc.api.auth.spi.AuthenticationService;
 import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationObservable;
@@ -17,6 +14,9 @@ import org.eclipse.edc.web.spi.WebService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 
 @ExtendWith(DependencyInjectionExtension.class)
 public class ClientExtensionTest {

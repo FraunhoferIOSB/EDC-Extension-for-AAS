@@ -15,13 +15,6 @@
  */
 package de.fraunhofer.iosb.client.negotiation;
 
-import static java.lang.String.format;
-
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
 import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
@@ -30,6 +23,13 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
+
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
+import static java.lang.String.format;
 
 /**
  * Provides API for contract negotiation by
@@ -48,8 +48,8 @@ public class NegotiationController {
     private final ClientContractNegotiationListener listener;
 
     public NegotiationController(ConsumerContractNegotiationManager consumerNegotiationManager,
-            ContractNegotiationObservable observable, ContractNegotiationStore contractNegotiationStore,
-            Config config) {
+                                 ContractNegotiationObservable observable, ContractNegotiationStore contractNegotiationStore,
+                                 Config config) {
         this.config = config;
         this.negotiator = new Negotiator(consumerNegotiationManager, contractNegotiationStore, config);
         this.listener = new ClientContractNegotiationListener();

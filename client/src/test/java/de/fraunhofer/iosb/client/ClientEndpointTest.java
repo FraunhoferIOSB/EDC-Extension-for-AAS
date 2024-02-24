@@ -15,23 +15,11 @@
  */
 package de.fraunhofer.iosb.client;
 
-import static java.lang.String.format;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.mockserver.integration.ClientAndServer.startClientAndServer;
-
-import java.io.IOException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeoutException;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import de.fraunhofer.iosb.client.dataTransfer.DataTransferController;
+import de.fraunhofer.iosb.client.negotiation.NegotiationController;
+import de.fraunhofer.iosb.client.policy.PolicyController;
+import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.api.auth.spi.AuthenticationService;
 import org.eclipse.edc.catalog.spi.Catalog;
 import org.eclipse.edc.catalog.spi.Dataset;
@@ -61,12 +49,22 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockserver.integration.ClientAndServer;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeoutException;
 
-import de.fraunhofer.iosb.client.dataTransfer.DataTransferController;
-import de.fraunhofer.iosb.client.negotiation.NegotiationController;
-import de.fraunhofer.iosb.client.policy.PolicyController;
-import jakarta.ws.rs.core.Response;
+import static java.lang.String.format;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 
 public class ClientEndpointTest {
 
@@ -147,7 +145,7 @@ public class ClientEndpointTest {
         var completableFuture = new CompletableFuture<StatusResult<byte[]>>();
         completableFuture.complete(StatusResult.success(new ObjectMapper().writeValueAsBytes(mockCatalog)));
 
-        when(catalogService.requestCatalog(any(), any(), any())).thenReturn(completableFuture);
+        when(catalogService.requestCatalog(any(), any(), any(), any())).thenReturn(completableFuture);
         return catalogService;
     }
 
@@ -219,7 +217,7 @@ public class ClientEndpointTest {
     public void addAcceptedContractOffersTest() {
         var mockPolicyDefinitionsAsList = new ArrayList<PolicyDefinition>();
         mockPolicyDefinitionsAsList.add(mockPolicyDefinition); // ClientEndpoint creates ArrayList
-        var offers = new PolicyDefinition[] { mockPolicyDefinition };
+        var offers = new PolicyDefinition[]{mockPolicyDefinition};
 
         clientEndpoint.addAcceptedPolicyDefinitions(offers);
 
@@ -228,7 +226,7 @@ public class ClientEndpointTest {
 
     @Test
     public void updateAcceptedContractOfferTest() {
-        var offers = new PolicyDefinition[] { mockPolicyDefinition };
+        var offers = new PolicyDefinition[]{mockPolicyDefinition};
 
         clientEndpoint.addAcceptedPolicyDefinitions(offers);
 

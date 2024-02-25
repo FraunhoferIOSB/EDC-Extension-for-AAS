@@ -30,8 +30,8 @@ public class ClientExtensionTest {
         context.registerService(CatalogService.class, mock(CatalogService.class));
         context.registerService(ConsumerContractNegotiationManager.class,
                 mock(ConsumerContractNegotiationManager.class));
-        context.registerService(ContractNegotiationStore.class, mock(ContractNegotiationStore.class));
         context.registerService(ContractNegotiationObservable.class, mock(ContractNegotiationObservable.class));
+        context.registerService(ContractNegotiationStore.class, mock(ContractNegotiationStore.class));
         context.registerService(TransferProcessManager.class, mock(TransferProcessManager.class));
         context.registerService(WebService.class, mock(WebService.class));
         context.registerService(Monitor.class, mock(Monitor.class));

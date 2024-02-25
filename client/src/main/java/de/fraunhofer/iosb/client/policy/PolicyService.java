@@ -31,6 +31,7 @@ import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.ByteArrayInputStream;
 import java.net.URL;
@@ -80,13 +81,14 @@ class PolicyService {
 
     }
 
-    Dataset getDatasetForAssetId(String counterPartyId, URL counterPartyUrl, String assetId) throws InterruptedException {
+    Dataset getDatasetForAssetId(@NotNull String counterPartyId, @NotNull URL counterPartyUrl, @NotNull String assetId) throws InterruptedException {
+
         var catalogFuture = catalogService.requestCatalog(
                 counterPartyId, // why do we even need a provider id when we have the url...
                 counterPartyUrl.toString(),
                 DATASPACE_PROTOCOL_HTTP,
                 QuerySpec.Builder.newInstance()
-                        .filter(List.of(criterion(Asset.PROPERTY_ID, "=", assetId)))
+                        .filter(criterion(Asset.PROPERTY_ID, "=", assetId))
                         .build());
 
         StatusResult<byte[]> catalogResponse;

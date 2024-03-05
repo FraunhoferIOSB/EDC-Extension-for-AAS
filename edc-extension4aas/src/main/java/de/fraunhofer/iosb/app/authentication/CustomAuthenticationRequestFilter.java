@@ -17,6 +17,7 @@ package de.fraunhofer.iosb.app.authentication;
 
 import java.util.Objects;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.eclipse.edc.api.auth.spi.AuthenticationRequestFilter;
 import org.eclipse.edc.api.auth.spi.AuthenticationService;
 
@@ -35,9 +36,10 @@ public class CustomAuthenticationRequestFilter extends AuthenticationRequestFilt
     public CustomAuthenticationRequestFilter(AuthenticationService authenticationService, String... acceptedEndpoints) {
         super(authenticationService);
         if (Objects.nonNull(acceptedEndpoints)) {
-            endpoints = acceptedEndpoints;
+            // TODO see below
+            endpoints = ArrayUtils.addAll(acceptedEndpoints, new String[]{"automated"});
         } else {
-            endpoints = new String[0];
+            endpoints = new String[]{"automated"};
         }
     }
 
@@ -51,7 +53,8 @@ public class CustomAuthenticationRequestFilter extends AuthenticationRequestFilt
         var requestPath = requestContext.getUriInfo().getPath();
 
         for (String endpoint : endpoints) {
-            if (Objects.nonNull(endpoint) && endpoint.equalsIgnoreCase(requestPath)) {
+            // TODO made this "insecure". Fix by creating extension which manages authRequestFilters
+            if (Objects.nonNull(endpoint) && requestPath.startsWith(endpoint)) {
                 LOGGER.debug(
                         "CustomAuthenticationRequestFilter: Not intercepting this request to an open endpoint");
                 return;

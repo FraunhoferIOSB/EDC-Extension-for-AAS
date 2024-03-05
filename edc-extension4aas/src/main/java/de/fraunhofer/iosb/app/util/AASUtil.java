@@ -15,7 +15,12 @@
  */
 package de.fraunhofer.iosb.app.util;
 
-import de.fraunhofer.iosb.app.model.aas.*;
+import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShellEnvironment;
+import de.fraunhofer.iosb.app.model.aas.CustomSemanticId;
+import de.fraunhofer.iosb.app.model.aas.CustomSubmodel;
+import de.fraunhofer.iosb.app.model.aas.CustomSubmodelElement;
+import de.fraunhofer.iosb.app.model.aas.CustomSubmodelElementCollection;
+import de.fraunhofer.iosb.app.model.aas.IdsAssetElement;
 import io.adminshell.aas.v3.model.Submodel;
 import io.adminshell.aas.v3.model.SubmodelElement;
 import io.adminshell.aas.v3.model.SubmodelElementCollection;

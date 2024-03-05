@@ -15,35 +15,30 @@
  */
 package de.fraunhofer.iosb.app.aas;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockserver.integration.ClientAndServer.startClientAndServer;
-import static org.mockserver.model.HttpRequest.request;
-import static org.mockserver.model.HttpResponse.response;
-
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import de.fraunhofer.iosb.app.testutils.FileManager;
+import io.adminshell.aas.v3.dataformat.DeserializationException;
+import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockserver.integration.ClientAndServer;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 
-import de.fraunhofer.iosb.app.testUtils.FileManager;
-import io.adminshell.aas.v3.dataformat.DeserializationException;
-import okhttp3.OkHttpClient;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockserver.integration.ClientAndServer.startClientAndServer;
+import static org.mockserver.model.HttpRequest.request;
+import static org.mockserver.model.HttpResponse.response;
 
 /**
  * Testing AAS Agent. Using mocked AAS service (HTTP endpoints)
  */
 public class AasAgentTest {
 
-    /**
-     *
-     */
     private static final String HTTP_LOCALHOST_8080 = "http://localhost:8080";
 
     private AasAgent aasAgent;

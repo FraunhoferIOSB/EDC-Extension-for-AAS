@@ -27,9 +27,9 @@ public class CustomAssetAdministrationShellEnvironment {
 
     protected List<CustomAssetAdministrationShell> assetAdministrationShells = new ArrayList<>();
 
-    protected List<CustomSubmodel> submodels= new ArrayList<>();
+    protected List<CustomSubmodel> submodels = new ArrayList<>();
 
-    protected List<CustomConceptDescription> conceptDescriptions= new ArrayList<>();
+    protected List<CustomConceptDescription> conceptDescriptions = new ArrayList<>();
 
     public List<CustomAssetAdministrationShell> getAssetAdministrationShells() {
         return assetAdministrationShells;

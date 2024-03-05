@@ -15,22 +15,21 @@
  */
 package de.fraunhofer.iosb.app.aas;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
+import de.fraunhofer.iosb.app.util.HttpRestClient;
+import jakarta.ws.rs.core.Response;
+import okhttp3.OkHttpClient;
+import org.eclipse.edc.spi.EdcException;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
 
-import org.eclipse.edc.spi.EdcException;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import de.fraunhofer.iosb.app.util.HttpRestClient;
-import jakarta.ws.rs.core.Response;
-import okhttp3.OkHttpClient;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class FaaastServiceManagerTest {
 
@@ -89,7 +88,6 @@ public class FaaastServiceManagerTest {
         try {
             faaastServiceManager.stopService(new URL("http://does-not-exist.com:1234/aas"));
             fail("This operation should fail");
-        } catch (IllegalArgumentException ignored) {
         } catch (Exception unexpectedException) {
             fail();
         }

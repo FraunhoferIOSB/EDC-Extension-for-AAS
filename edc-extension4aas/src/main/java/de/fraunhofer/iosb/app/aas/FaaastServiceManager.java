@@ -139,8 +139,7 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
 
             faaastServiceRepository.put(new URL(LOCALHOST_URL + localFaaastServicePort), service);
 
-        } catch (
-                Exception faaastServiceException) {
+        } catch (Exception faaastServiceException) {
             throw new EdcException(FAAAST_SERVICE_EXCEPTION_MESSAGE, faaastServiceException);
         }
         return new URL(LOCALHOST_URL + localFaaastServicePort);

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.client.dataTransfer;
+package de.fraunhofer.iosb.client.datatransfer;
 
 import de.fraunhofer.iosb.client.authentication.CustomAuthenticationRequestFilter;
 import org.eclipse.edc.api.auth.spi.AuthenticationService;
@@ -80,8 +80,7 @@ public class DataTransferController {
      * @param assetId            The asset to be fetched.
      * @param dataDestinationUrl HTTPDataAddress the result of the transfer should be
      *                           sent to. (If null, send to extension and print in log)
-     * @return A completable future whose result will be the data or an error
-     * message.
+     * @return A completable future whose result will be the data or an error message.
      * @throws InterruptedException If the data transfer was interrupted
      * @throws ExecutionException   If the data transfer process failed
      */

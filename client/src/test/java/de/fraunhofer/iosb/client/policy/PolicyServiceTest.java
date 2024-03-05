@@ -16,7 +16,7 @@
 package de.fraunhofer.iosb.client.policy;
 
 import de.fraunhofer.iosb.client.exception.AmbiguousOrNullException;
-import de.fraunhofer.iosb.client.testUtils.FileManager;
+import de.fraunhofer.iosb.client.testutils.FileManager;
 import org.eclipse.edc.catalog.spi.Catalog;
 import org.eclipse.edc.catalog.spi.DataService;
 import org.eclipse.edc.catalog.spi.Dataset;
@@ -29,7 +29,6 @@ import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,16 +39,18 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 import static java.lang.String.format;
 import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 /**
  * We assume here that catalogService does not return null objects as well as null catalogs inside their return value.
@@ -141,7 +142,19 @@ public class PolicyServiceTest {
 
         when(catalogService.requestCatalog(any(), any(), any(), any())).thenReturn(mockedFuture);
 
-        when(typeTransformerRegistry.transform(any(), any())).thenReturn(Result.success(Catalog.Builder.newInstance().dataset(Dataset.Builder.newInstance().id(datasetId).offer(UUID.randomUUID().toString(), Policy.Builder.newInstance().build()).distribution(Distribution.Builder.newInstance().dataService(DataService.Builder.newInstance().build()).format("").build()).build()).build()));
+        when(typeTransformerRegistry.transform(any(), any()))
+                .thenReturn(Result.success(
+                        Catalog.Builder.newInstance()
+                                .dataset(Dataset.Builder.newInstance()
+                                        .id(datasetId)
+                                        .offer(UUID.randomUUID().toString(), Policy.Builder.newInstance().build())
+                                        .distribution(
+                                                Distribution.Builder.newInstance()
+                                                        .dataService(DataService.Builder.newInstance().build())
+                                                        .format("")
+                                                        .build())
+                                        .build())
+                                .build()));
 
         assertEquals(datasetId, policyService.getDatasetForAssetId("provider", testUrl, "test-asset-id").getId());
     }

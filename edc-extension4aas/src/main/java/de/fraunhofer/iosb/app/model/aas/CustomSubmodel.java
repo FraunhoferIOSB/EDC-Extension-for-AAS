@@ -18,11 +18,11 @@ package de.fraunhofer.iosb.app.model.aas;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-
 import io.adminshell.aas.v3.model.Constraint;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -64,6 +64,11 @@ public class CustomSubmodel extends AASElement {
 
     public void setSubmodelElements(List<CustomSubmodelElement> submodelElements) {
         this.submodelElements = submodelElements;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(identification, idShort);
     }
 
     @Override

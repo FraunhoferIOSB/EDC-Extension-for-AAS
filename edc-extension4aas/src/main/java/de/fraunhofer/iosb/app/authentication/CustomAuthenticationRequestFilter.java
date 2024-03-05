@@ -15,13 +15,12 @@
  */
 package de.fraunhofer.iosb.app.authentication;
 
-import java.util.Objects;
-
+import de.fraunhofer.iosb.app.Logger;
+import jakarta.ws.rs.container.ContainerRequestContext;
 import org.eclipse.edc.api.auth.spi.AuthenticationRequestFilter;
 import org.eclipse.edc.api.auth.spi.AuthenticationService;
 
-import de.fraunhofer.iosb.app.Logger;
-import jakarta.ws.rs.container.ContainerRequestContext;
+import java.util.Objects;
 
 /**
  * Custom AuthenticationRequestFilter filtering requests that go directly to an

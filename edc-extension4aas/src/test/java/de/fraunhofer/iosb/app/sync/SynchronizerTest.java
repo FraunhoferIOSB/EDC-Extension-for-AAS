@@ -15,19 +15,11 @@
  */
 package de.fraunhofer.iosb.app.sync;
 
-import static java.lang.String.format;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.fail;
-import static org.mockito.Mockito.mock;
-import static org.mockserver.integration.ClientAndServer.startClientAndServer;
-import static org.mockserver.model.HttpRequest.request;
-import static org.mockserver.model.HttpResponse.response;
-
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.Objects;
-
+import de.fraunhofer.iosb.app.controller.AasController;
+import de.fraunhofer.iosb.app.controller.ResourceController;
+import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
+import de.fraunhofer.iosb.app.testutils.FileManager;
+import okhttp3.OkHttpClient;
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.spi.EdcException;
@@ -39,11 +31,18 @@ import org.junit.jupiter.api.Test;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.matchers.Times;
 
-import de.fraunhofer.iosb.app.controller.AasController;
-import de.fraunhofer.iosb.app.controller.ResourceController;
-import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
-import de.fraunhofer.iosb.app.testUtils.FileManager;
-import okhttp3.OkHttpClient;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Objects;
+
+import static java.lang.String.format;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockserver.integration.ClientAndServer.startClientAndServer;
+import static org.mockserver.model.HttpRequest.request;
+import static org.mockserver.model.HttpResponse.response;
 
 public class SynchronizerTest {
 

@@ -69,7 +69,7 @@ class PolicyService {
      * @param catalogService Fetching the catalog of a provider.
      * @param transformer    Transform json-ld byte-array catalog to catalog class
      */
-    public PolicyService(CatalogService catalogService, TypeTransformerRegistry transformer,
+    PolicyService(CatalogService catalogService, TypeTransformerRegistry transformer,
                          PolicyServiceConfig config, PolicyDefinitionStore policyDefinitionStore, Monitor monitor) {
         this.catalogService = catalogService;
         this.transformer = transformer;

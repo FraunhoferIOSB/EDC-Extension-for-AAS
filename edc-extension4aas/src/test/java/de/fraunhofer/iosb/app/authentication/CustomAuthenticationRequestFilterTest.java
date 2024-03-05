@@ -15,26 +15,25 @@
  */
 package de.fraunhofer.iosb.app.authentication;
 
+import de.fraunhofer.iosb.app.Endpoint;
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.UriInfo;
+import org.eclipse.edc.api.auth.spi.AuthenticationService;
+import org.eclipse.edc.web.spi.exception.AuthenticationFailedException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import java.util.Map;
+import java.util.Objects;
+
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
-import java.util.Map;
-import java.util.Objects;
-
-import org.eclipse.edc.api.auth.spi.AuthenticationService;
-import org.eclipse.edc.web.spi.exception.AuthenticationFailedException;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import de.fraunhofer.iosb.app.Endpoint;
-import jakarta.ws.rs.container.ContainerRequestContext;
-import jakarta.ws.rs.core.MultivaluedHashMap;
-import jakarta.ws.rs.core.MultivaluedMap;
-import jakarta.ws.rs.core.UriInfo;
 
 public class CustomAuthenticationRequestFilterTest {
 

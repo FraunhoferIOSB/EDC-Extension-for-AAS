@@ -15,17 +15,17 @@
  */
 package de.fraunhofer.iosb.app.edc;
 
+import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
+import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import static java.lang.String.format;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-
-import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
-import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 
 public class ContractHandlerTest {
 

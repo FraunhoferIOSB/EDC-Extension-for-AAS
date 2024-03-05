@@ -15,10 +15,10 @@
  */
 package de.fraunhofer.iosb.app;
 
+import org.eclipse.edc.spi.monitor.ConsoleMonitor;
+
 import java.util.Objects;
 import java.util.function.Supplier;
-
-import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 
 /**
  * Singleton class.

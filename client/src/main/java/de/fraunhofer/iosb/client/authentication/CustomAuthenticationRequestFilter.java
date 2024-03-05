@@ -16,7 +16,7 @@
 package de.fraunhofer.iosb.client.authentication;
 
 import de.fraunhofer.iosb.client.ClientEndpoint;
-import de.fraunhofer.iosb.client.dataTransfer.DataTransferEndpoint;
+import de.fraunhofer.iosb.client.datatransfer.DataTransferEndpoint;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import org.eclipse.edc.api.auth.spi.AuthenticationRequestFilter;
 import org.eclipse.edc.api.auth.spi.AuthenticationService;
@@ -64,10 +64,10 @@ public class CustomAuthenticationRequestFilter extends AuthenticationRequestFilt
         var requestPath = requestContext.getUriInfo().getPath();
 
         for (String key : tempKeys.keySet()) {
-            if (requestContext.getHeaders().containsKey(key)
-                    && requestContext.getHeaderString(key).equals(tempKeys.get(key))
-                    && requestPath.startsWith(
-                    format("%s/%s", ClientEndpoint.AUTOMATED_PATH, DataTransferEndpoint.RECEIVE_DATA_PATH))) {
+            if (requestContext.getHeaders().containsKey(key) &&
+                    requestContext.getHeaderString(key).equals(tempKeys.get(key)) &&
+                    requestPath.startsWith(
+                            format("%s/%s", ClientEndpoint.AUTOMATED_PATH, DataTransferEndpoint.RECEIVE_DATA_PATH))) {
                 monitor.debug(
                         format("[Client] Data Transfer request with custom api key %s", key));
                 tempKeys.remove(key);

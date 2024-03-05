@@ -15,7 +15,7 @@
  */
 package de.fraunhofer.iosb.client;
 
-import de.fraunhofer.iosb.client.dataTransfer.DataTransferController;
+import de.fraunhofer.iosb.client.datatransfer.DataTransferController;
 import de.fraunhofer.iosb.client.negotiation.NegotiationController;
 import de.fraunhofer.iosb.client.policy.PolicyController;
 import org.eclipse.edc.api.auth.spi.AuthenticationService;

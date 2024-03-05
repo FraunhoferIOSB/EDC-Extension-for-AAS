@@ -15,25 +15,11 @@
  */
 package de.fraunhofer.iosb.app.aas;
 
-import static java.lang.String.format;
-
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-
-import org.eclipse.edc.spi.EdcException;
-
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-
 import de.fraunhofer.iosb.app.Logger;
 import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShell;
 import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShellEnvironment;
@@ -57,6 +43,18 @@ import io.adminshell.aas.v3.model.impl.DefaultReference;
 import io.adminshell.aas.v3.model.impl.DefaultSubmodel;
 import jakarta.ws.rs.core.Response;
 import okhttp3.OkHttpClient;
+import org.eclipse.edc.spi.EdcException;
+
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+
+import static java.lang.String.format;
 
 /**
  * Communicating with AAS service
@@ -149,8 +147,7 @@ public class AasAgent {
      * sourceUrl field.
      *
      * @param aasServiceUrl AAS service to be updated
-     * @return AAS model enriched with each elements access URL as string in assetId
-     *         field.
+     * @return AAS model enriched with each elements access URL as string in assetId field.
      */
     public CustomAssetAdministrationShellEnvironment getAasEnvWithUrls(URL aasServiceUrl, boolean onlySubmodels)
             throws IOException, DeserializationException {

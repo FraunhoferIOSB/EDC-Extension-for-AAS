@@ -16,7 +16,7 @@
 package de.fraunhofer.iosb.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.fraunhofer.iosb.client.dataTransfer.DataTransferController;
+import de.fraunhofer.iosb.client.datatransfer.DataTransferController;
 import de.fraunhofer.iosb.client.negotiation.NegotiationController;
 import de.fraunhofer.iosb.client.policy.PolicyController;
 import jakarta.ws.rs.core.Response;
@@ -184,8 +184,8 @@ public class ClientEndpointTest {
                         .build())) {
             fail();
         } catch (EdcException expected) {
-            if (!(expected.getCause().getClass().equals(TimeoutException.class)
-                    && expected.getMessage().contains("Agreement"))) {
+            if (!(expected.getCause().getClass().equals(TimeoutException.class) &&
+                    expected.getMessage().contains("Agreement"))) {
                 fail(); // This must fail because of agreement timeout.
             }
         }

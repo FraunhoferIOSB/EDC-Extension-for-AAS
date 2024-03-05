@@ -15,29 +15,28 @@
  */
 package de.fraunhofer.iosb.app;
 
-import static java.lang.String.format;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-
+import de.fraunhofer.iosb.app.controller.AasController;
+import de.fraunhofer.iosb.app.controller.ConfigurationController;
+import de.fraunhofer.iosb.app.model.configuration.Configuration;
+import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
+import de.fraunhofer.iosb.app.testutils.FileManager;
+import de.fraunhofer.iosb.app.util.Encoder;
+import jakarta.ws.rs.core.Response;
+import okhttp3.OkHttpClient;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import de.fraunhofer.iosb.app.controller.AasController;
-import de.fraunhofer.iosb.app.controller.ConfigurationController;
-import de.fraunhofer.iosb.app.model.configuration.Configuration;
-import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
-import de.fraunhofer.iosb.app.testUtils.FileManager;
-import de.fraunhofer.iosb.app.util.Encoder;
-import jakarta.ws.rs.core.Response;
-import okhttp3.OkHttpClient;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+
+import static java.lang.String.format;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Not mocking the controllers this endpoint uses, as the mocking/validation

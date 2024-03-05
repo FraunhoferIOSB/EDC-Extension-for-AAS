@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.client.dataTransfer;
+package de.fraunhofer.iosb.client.datatransfer;
 
 import de.fraunhofer.iosb.client.ClientEndpoint;
 import jakarta.ws.rs.core.UriBuilder;
@@ -30,7 +30,7 @@ import java.net.URL;
 import java.util.Objects;
 import java.util.UUID;
 
-import static de.fraunhofer.iosb.client.dataTransfer.DataTransferController.DATA_TRANSFER_API_KEY;
+import static de.fraunhofer.iosb.client.datatransfer.DataTransferController.DATA_TRANSFER_API_KEY;
 import static java.lang.String.format;
 import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;

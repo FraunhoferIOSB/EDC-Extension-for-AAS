@@ -37,8 +37,6 @@ public class Negotiator {
      * Class constructor
      *
      * @param consumerNegotiationManager Initiating a negotiation as a consumer.
-     * @param observable                 Status updates for waiting data transfer
-     *                                   requesters to avoid busy waiting.
      * @param contractNegotiationStore   Check for existing agreements before
      *                                   negotiating
      */

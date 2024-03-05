@@ -62,7 +62,7 @@ public class DataTransferController {
      */
     public DataTransferController(Monitor monitor, Config config, WebService webService,
             AuthenticationService authenticationService, TransferProcessManager transferProcessManager) {
-        this.config = config;
+        this.config = config.getConfig("edc.client");
         this.transferInitiator = new TransferInitiator(config, monitor, transferProcessManager);
         this.dataEndpointAuthenticationRequestFilter = new CustomAuthenticationRequestFilter(monitor,
                 authenticationService);
@@ -70,6 +70,7 @@ public class DataTransferController {
         this.dataTransferObservable = new DataTransferObservable(monitor);
         var dataTransferEndpoint = new DataTransferEndpoint(monitor, dataTransferObservable);
         webService.registerResource(dataTransferEndpoint);
+        webService.registerResource(dataEndpointAuthenticationRequestFilter);
     }
 
     /**
@@ -79,7 +80,7 @@ public class DataTransferController {
      * @param providerUrl     The provider from whom the data is to be fetched.
      * @param agreementId     Non-null ContractAgreement of the negotiation process.
      * @param assetId         The asset to be fetched.
-     * @param dataSinkAddress HTTPDataAddress the result of the transfer should be
+     * @param dataDestinationUrl HTTPDataAddress the result of the transfer should be
      *                        sent to. (If null, send to extension and print in log)
      * 
      * @return A completable future whose result will be the data or an error
@@ -112,7 +113,7 @@ public class DataTransferController {
 
     private String waitForData(CompletableFuture<String> dataFuture, String agreementId)
             throws InterruptedException, ExecutionException {
-        var waitForTransferTimeout = config.getInteger("getWaitForTransferTimeout",
+        var waitForTransferTimeout = config.getInteger("waitForTransferTimeout",
                 WAIT_FOR_TRANSFER_TIMEOUT_DEFAULT);
         try {
             // Fetch TransferTimeout everytime to adapt to runtime config changes

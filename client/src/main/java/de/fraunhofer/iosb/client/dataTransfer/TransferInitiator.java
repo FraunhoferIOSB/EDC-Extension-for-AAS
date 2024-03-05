@@ -73,6 +73,7 @@ class TransferInitiator {
         var transferRequest = TransferRequest.Builder.newInstance()
                 .id(UUID.randomUUID().toString()) // this is not relevant, thus can be random
                 .connectorId(providerUrl.toString()) // the address of the provider connector
+                .counterPartyAddress(providerUrl.toString())
                 .protocol(DATASPACE_PROTOCOL_HTTP)
                 .connectorId("consumer")
                 .assetId(assetId)
@@ -88,6 +89,8 @@ class TransferInitiator {
 
     private URI createOwnUriFromConfigurationValues(Config config) {
         var protocolAddressString = config.getString("edc.dsp.callback.address", null);
+        // Remove /dsp from URL
+        protocolAddressString = protocolAddressString.substring(0, protocolAddressString.length() - "/dsp".length());
         var ownPort = config.getInteger("web.http.port", -1);
         var ownPath = config.getString("web.http.path", null);
         try {

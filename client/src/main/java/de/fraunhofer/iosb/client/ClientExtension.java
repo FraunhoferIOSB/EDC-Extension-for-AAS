@@ -15,6 +15,10 @@
  */
 package de.fraunhofer.iosb.client;
 
+import de.fraunhofer.iosb.client.authentication.CustomAuthenticationRequestFilter;
+import de.fraunhofer.iosb.client.dataTransfer.DataTransferController;
+import de.fraunhofer.iosb.client.negotiation.NegotiationController;
+import de.fraunhofer.iosb.client.policy.PolicyController;
 import org.eclipse.edc.api.auth.spi.AuthenticationService;
 import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationObservable;
@@ -27,45 +31,40 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.spi.WebService;
 
-import de.fraunhofer.iosb.client.dataTransfer.DataTransferController;
-import de.fraunhofer.iosb.client.negotiation.NegotiationController;
-import de.fraunhofer.iosb.client.policy.PolicyController;
-
 public class ClientExtension implements ServiceExtension {
 
-        @Inject
-        private AuthenticationService authenticationService;
-        @Inject
-        private CatalogService catalogService;
-        @Inject
-        private ConsumerContractNegotiationManager consumerNegotiationManager;
-        @Inject
-        private ContractNegotiationObservable contractNegotiationObservable;
-        @Inject
-        private ContractNegotiationStore contractNegotiationStore;
-        @Inject
-        private TransferProcessManager transferProcessManager;
-        @Inject
-        private TypeTransformerRegistry transformer;
-        @Inject
-        private WebService webService;
+    @Inject
+    private AuthenticationService authenticationService;
+    @Inject
+    private CatalogService catalogService;
+    @Inject
+    private ConsumerContractNegotiationManager consumerNegotiationManager;
+    @Inject
+    private ContractNegotiationObservable contractNegotiationObservable;
+    @Inject
+    private ContractNegotiationStore contractNegotiationStore;
+    @Inject
+    private TransferProcessManager transferProcessManager;
+    @Inject
+    private TypeTransformerRegistry transformer;
+    @Inject
+    private WebService webService;
 
-        @Override
-        public void initialize(ServiceExtensionContext context) {
-                var monitor = context.getMonitor();
-                var config = context.getConfig("edc.client");
+    @Override
+    public void initialize(ServiceExtensionContext context) {
+        var monitor = context.getMonitor();
+        var config = context.getConfig("edc.client");
 
-                var policyController = new PolicyController(monitor, catalogService, transformer, config);
+        var policyController = new PolicyController(monitor, catalogService, transformer, config);
 
-                var negotiationController = new NegotiationController(consumerNegotiationManager,
-                                contractNegotiationObservable, contractNegotiationStore, config);
+        var negotiationController = new NegotiationController(consumerNegotiationManager,
+                contractNegotiationObservable, contractNegotiationStore, config);
 
-                var dataTransferController = new DataTransferController(monitor, config, webService,
-                                authenticationService, transferProcessManager);
+        var dataTransferController = new DataTransferController(monitor, context.getConfig(), webService,
+                authenticationService, transferProcessManager);
 
-                webService.registerResource(new ClientEndpoint(monitor, negotiationController, policyController,
-                                dataTransferController));
-
-        }
+        webService.registerResource(new ClientEndpoint(monitor, negotiationController, policyController,
+                dataTransferController));
+    }
 
 }

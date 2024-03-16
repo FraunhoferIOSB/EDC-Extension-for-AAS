@@ -15,6 +15,9 @@
  */
 package de.fraunhofer.iosb.client.authentication;
 
+import de.fraunhofer.iosb.api.PublicApiManagementService;
+import de.fraunhofer.iosb.api.model.Endpoint;
+import de.fraunhofer.iosb.api.model.HttpMethod;
 import de.fraunhofer.iosb.client.ClientEndpoint;
 import de.fraunhofer.iosb.client.dataTransfer.DataTransferEndpoint;
 import jakarta.ws.rs.container.ContainerRequestContext;
@@ -22,6 +25,7 @@ import org.eclipse.edc.api.auth.spi.AuthenticationRequestFilter;
 import org.eclipse.edc.api.auth.spi.AuthenticationService;
 import org.eclipse.edc.spi.monitor.Monitor;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -32,49 +36,24 @@ import static java.lang.String.format;
  * Custom AuthenticationRequestFilter filtering requests that go directly to an
  * AAS service (managed by this extension) or the extension's configuration.
  */
-public class CustomAuthenticationRequestFilter extends AuthenticationRequestFilter {
+public class DataTransferEndpointManager {
 
-    private final Monitor monitor;
-    private final Map<String, String> tempKeys;
+    private final PublicApiManagementService publicApiManagementService;
 
-    public CustomAuthenticationRequestFilter(Monitor monitor, AuthenticationService authenticationService) {
-        super(authenticationService);
-        this.monitor = monitor;
-        tempKeys = new ConcurrentHashMap<>();
+    public DataTransferEndpointManager(PublicApiManagementService publicApiManagementService) {
+        this.publicApiManagementService = publicApiManagementService;
     }
 
     /**
      * Add key,value pair for a request. This key will only be available for one
      * request.
-     *
+
+     * @param agreementId Agreement to build the endpoint path suffix
      * @param key   The key name
-     * @param value The actual key
+     * @param value The value
      */
-    public void addTemporaryApiKey(String key, String value) {
-        tempKeys.put(key, value);
-    }
-
-    /**
-     * On automated data transfer: If the request is valid, the key,value pair used
-     * for this request will no longer be valid.
-     */
-    @Override
-    public void filter(ContainerRequestContext requestContext) {
-        Objects.requireNonNull(requestContext);
-        var requestPath = requestContext.getUriInfo().getPath();
-
-        for (String key : tempKeys.keySet()) {
-            if (requestContext.getHeaders().containsKey(key)
-                    && requestContext.getHeaderString(key).equals(tempKeys.get(key))
-                    && requestPath.startsWith(
-                            format("%s/%s", ClientEndpoint.AUTOMATED_PATH, DataTransferEndpoint.RECEIVE_DATA_PATH))) {
-                monitor.debug(
-                        format("[Client] Data Transfer request with custom api key %s", key));
-                tempKeys.remove(key);
-                return;
-            }
-        }
-
-        super.filter(requestContext);
+    public void addTemporaryEndpoint(String agreementId, String key, String value) {
+        var endpointSuffix = ClientEndpoint.AUTOMATED_PATH + "/receiveData/" + agreementId;
+        publicApiManagementService.addTemporaryEndpoint(new Endpoint(endpointSuffix, HttpMethod.POST, Map.of(key, List.of(value))));
     }
 }

@@ -15,7 +15,10 @@
  */
 package de.fraunhofer.iosb.client;
 
-import org.eclipse.edc.api.auth.spi.AuthenticationService;
+import de.fraunhofer.iosb.api.PublicApiManagementService;
+import de.fraunhofer.iosb.client.dataTransfer.DataTransferController;
+import de.fraunhofer.iosb.client.negotiation.NegotiationController;
+import de.fraunhofer.iosb.client.policy.PolicyController;
 import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
@@ -27,45 +30,42 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.spi.WebService;
 
-import de.fraunhofer.iosb.client.dataTransfer.DataTransferController;
-import de.fraunhofer.iosb.client.negotiation.NegotiationController;
-import de.fraunhofer.iosb.client.policy.PolicyController;
-
 public class ClientExtension implements ServiceExtension {
 
-        @Inject
-        private AuthenticationService authenticationService;
-        @Inject
-        private CatalogService catalogService;
-        @Inject
-        private ConsumerContractNegotiationManager consumerNegotiationManager;
-        @Inject
-        private ContractNegotiationObservable contractNegotiationObservable;
-        @Inject
-        private ContractNegotiationStore contractNegotiationStore;
-        @Inject
-        private TransferProcessManager transferProcessManager;
-        @Inject
-        private TypeTransformerRegistry transformer;
-        @Inject
-        private WebService webService;
+    // Non-public unified authentication request filter management service
+    @Inject
+    private PublicApiManagementService publicApiManagementService;
 
-        @Override
-        public void initialize(ServiceExtensionContext context) {
-                var monitor = context.getMonitor();
-                var config = context.getConfig("edc.client");
+    @Inject
+    private CatalogService catalogService;
+    @Inject
+    private ConsumerContractNegotiationManager consumerNegotiationManager;
+    @Inject
+    private ContractNegotiationObservable contractNegotiationObservable;
+    @Inject
+    private ContractNegotiationStore contractNegotiationStore;
+    @Inject
+    private TransferProcessManager transferProcessManager;
+    @Inject
+    private TypeTransformerRegistry transformer;
+    @Inject
+    private WebService webService;
 
-                var policyController = new PolicyController(monitor, catalogService, transformer, config);
+    @Override
+    public void initialize(ServiceExtensionContext context) {
+        var monitor = context.getMonitor();
+        var config = context.getConfig("edc.client");
 
-                var negotiationController = new NegotiationController(consumerNegotiationManager,
-                                contractNegotiationObservable, contractNegotiationStore, config);
+        var policyController = new PolicyController(monitor, catalogService, transformer, config);
 
-                var dataTransferController = new DataTransferController(monitor, config, webService,
-                                authenticationService, transferProcessManager);
+        var negotiationController = new NegotiationController(consumerNegotiationManager,
+                contractNegotiationObservable, contractNegotiationStore, config);
 
-                webService.registerResource(new ClientEndpoint(monitor, negotiationController, policyController,
-                                dataTransferController));
+        var dataTransferController = new DataTransferController(monitor, context.getConfig(), webService,
+                publicApiManagementService, transferProcessManager, context.getConnectorId());
 
-        }
+        webService.registerResource(new ClientEndpoint(monitor, negotiationController, policyController,
+                dataTransferController));
+    }
 
 }

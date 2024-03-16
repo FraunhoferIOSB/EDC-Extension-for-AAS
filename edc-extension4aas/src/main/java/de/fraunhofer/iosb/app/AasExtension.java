@@ -15,13 +15,15 @@
  */
 package de.fraunhofer.iosb.app;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.Objects;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-
+import de.fraunhofer.iosb.api.PublicApiManagementService;
+import de.fraunhofer.iosb.api.model.HttpMethod;
+import de.fraunhofer.iosb.app.controller.AasController;
+import de.fraunhofer.iosb.app.controller.ConfigurationController;
+import de.fraunhofer.iosb.app.controller.ResourceController;
+import de.fraunhofer.iosb.app.model.configuration.Configuration;
+import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
+import de.fraunhofer.iosb.app.sync.Synchronizer;
+import okhttp3.OkHttpClient;
 import org.eclipse.edc.api.auth.spi.AuthenticationService;
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
@@ -31,19 +33,23 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.web.spi.WebService;
 
-import de.fraunhofer.iosb.app.authentication.CustomAuthenticationRequestFilter;
-import de.fraunhofer.iosb.app.controller.AasController;
-import de.fraunhofer.iosb.app.controller.ConfigurationController;
-import de.fraunhofer.iosb.app.controller.ResourceController;
-import de.fraunhofer.iosb.app.model.configuration.Configuration;
-import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
-import de.fraunhofer.iosb.app.sync.Synchronizer;
-import okhttp3.OkHttpClient;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
 
 /**
  * EDC Extension supporting usage of Asset Administration Shells.
  */
 public class AasExtension implements ServiceExtension {
+
+    // Non-public unified authentication request filter management service
+    @Inject
+    private PublicApiManagementService publicApiManagementService;
 
     @Inject
     private AssetIndex assetIndex;
@@ -59,7 +65,7 @@ public class AasExtension implements ServiceExtension {
     private WebService webService;
 
     private static final String SETTINGS_PREFIX = "edc.aas";
-    private static final Logger logger = Logger.getInstance();
+    private static final Logger LOGGER = Logger.getInstance();
     private final ScheduledExecutorService syncExecutor = new ScheduledThreadPoolExecutor(1);
     private AasController aasController;
 
@@ -76,10 +82,11 @@ public class AasExtension implements ServiceExtension {
         initializeSynchronizer(selfDescriptionRepository);
         registerServicesByConfig(selfDescriptionRepository);
 
-        var authenticationRequestFilter = new CustomAuthenticationRequestFilter(authenticationService,
-                Configuration.getInstance().isExposeSelfDescription() ? Endpoint.SELF_DESCRIPTION_PATH : null);
+        // Add public endpoint if wanted by config
+        if (Configuration.getInstance().isExposeSelfDescription()) {
+            publicApiManagementService.addEndpoints(List.of(new de.fraunhofer.iosb.api.model.Endpoint(Endpoint.SELF_DESCRIPTION_PATH, HttpMethod.GET, null)));
+        }
 
-        webService.registerResource(authenticationRequestFilter);
         webService.registerResource(endpoint);
     }
 
@@ -103,7 +110,7 @@ public class AasExtension implements ServiceExtension {
 
                 selfDescriptionRepository.createSelfDescription(serviceUrl);
             } catch (IOException startAASException) {
-                logger.warning("Could not start AAS service provided by configuration", startAASException);
+                LOGGER.warning("Could not start AAS service provided by configuration", startAASException);
             }
         }
 
@@ -121,7 +128,7 @@ public class AasExtension implements ServiceExtension {
 
     @Override
     public void shutdown() {
-        logger.info("Shutting down EDC4AAS extension...");
+        LOGGER.info("Shutting down EDC4AAS extension...");
         syncExecutor.shutdown();
         aasController.stopServices();
     }

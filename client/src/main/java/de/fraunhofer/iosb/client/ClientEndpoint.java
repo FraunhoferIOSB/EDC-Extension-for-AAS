@@ -47,8 +47,8 @@ import jakarta.ws.rs.core.Response;
 /**
  * Automated contract negotiation
  */
-@Consumes({ MediaType.APPLICATION_JSON, MediaType.WILDCARD })
-@Produces({ MediaType.APPLICATION_JSON })
+@Consumes({MediaType.APPLICATION_JSON, MediaType.WILDCARD})
+@Produces({MediaType.APPLICATION_JSON})
 @Path(ClientEndpoint.AUTOMATED_PATH)
 public class ClientEndpoint {
     /*
@@ -70,15 +70,15 @@ public class ClientEndpoint {
     /**
      * Initialize a client endpoint.
      *
-     * @param policyService     Finds out policy for a given asset id and provider
-     *                          EDC url.
-     * @param negotiator        Send contract offer, negotiation status watch.
-     * @param transferInitiator Initiate transfer requests.
+     * @param monitor               Logging functionality
+     * @param negotiationController Send contract offer, negotiation status watch.
+     * @param policyController      Provides API for accepted policy management and provider dataset retrieval.
+     * @param transferController    Initiate transfer requests.
      */
     public ClientEndpoint(Monitor monitor,
-            NegotiationController negotiationController,
-            PolicyController policyController,
-            DataTransferController transferController) {
+                          NegotiationController negotiationController,
+                          PolicyController policyController,
+                          DataTransferController transferController) {
         this.monitor = monitor;
 
         this.policyController = policyController;
@@ -91,13 +91,10 @@ public class ClientEndpoint {
      * of the services' policyDefinitionStore instance containing user added
      * policyDefinitions. If more than one policyDefinitions are provided by the
      * provider connector, an AmbiguousOrNullException will be thrown.
-     * 
+     *
      * @param providerUrl Provider of the asset.
      * @param assetId     Asset ID of the asset whose contract should be fetched.
      * @return One policyDefinition offered by the provider for the given assetId.
-     * @throws InterruptedException Thread for agreementId was waiting, sleeping, or
-     *                              otherwise occupied, and was
-     *                              interrupted.
      */
     @GET
     @Path(DATASET_PATH)
@@ -123,18 +120,18 @@ public class ClientEndpoint {
      * Negotiate a contract agreement using the given contract offer if no agreement
      * exists for this constellation.
      *
-     * @param providerUrl Provider EDCs URL (DSP endpoint)
-     * @param providerId  Provider EDCs ID
-     * @param assetId     ID of the asset to be retrieved
+     * @param providerUrl        Provider EDCs URL (DSP endpoint)
+     * @param providerId         Provider EDCs ID
+     * @param assetId            ID of the asset to be retrieved
      * @param dataDestinationUrl URL of destination data sink.
      * @return Asset data
      */
     @POST
     @Path(NEGOTIATE_PATH)
     public Response negotiateContract(@QueryParam("providerUrl") URL providerUrl,
-            @QueryParam("providerId") String providerId,
-            @QueryParam("assetId") String assetId,
-            @QueryParam("dataDestinationUrl") URL dataDestinationUrl) {
+                                      @QueryParam("providerId") String providerId,
+                                      @QueryParam("assetId") String assetId,
+                                      @QueryParam("dataDestinationUrl") URL dataDestinationUrl) {
         monitor.debug(format("[Client] Received a %s POST request", NEGOTIATE_PATH));
         Objects.requireNonNull(providerUrl, "Provider URL must not be null");
         Objects.requireNonNull(providerId, "Provider ID must not be null");
@@ -205,17 +202,17 @@ public class ClientEndpoint {
     /**
      * Submits a data transfer request to the providerUrl.
      *
-     * @param providerUrl The data provider's url
-     * @param agreementId The basis of the data transfer.
-     * @param assetId     The asset of which the data should be transferred
+     * @param providerUrl        The data provider's url
+     * @param agreementId        The basis of the data transfer.
+     * @param assetId            The asset of which the data should be transferred
      * @param dataDestinationUrl URL of destination data sink.
      * @return On success, the data of the desired asset. Else, returns an error message.
      */
     @GET
     @Path(TRANSFER_PATH)
     public Response getData(@QueryParam("providerUrl") URL providerUrl,
-            @QueryParam("agreementId") String agreementId, @QueryParam("assetId") String assetId,
-            @QueryParam("dataDestinationUrl") URL dataDestinationUrl) {
+                            @QueryParam("agreementId") String agreementId, @QueryParam("assetId") String assetId,
+                            @QueryParam("dataDestinationUrl") URL dataDestinationUrl) {
         monitor.debug(format("[Client] Received a %s GET request", TRANSFER_PATH));
         Objects.requireNonNull(providerUrl, "providerUrl must not be null");
         Objects.requireNonNull(agreementId, "agreementId must not be null");

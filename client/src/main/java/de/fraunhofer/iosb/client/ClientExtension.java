@@ -15,11 +15,10 @@
  */
 package de.fraunhofer.iosb.client;
 
-import de.fraunhofer.iosb.client.authentication.CustomAuthenticationRequestFilter;
+import de.fraunhofer.iosb.api.PublicApiManagementService;
 import de.fraunhofer.iosb.client.dataTransfer.DataTransferController;
 import de.fraunhofer.iosb.client.negotiation.NegotiationController;
 import de.fraunhofer.iosb.client.policy.PolicyController;
-import org.eclipse.edc.api.auth.spi.AuthenticationService;
 import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
@@ -33,8 +32,10 @@ import org.eclipse.edc.web.spi.WebService;
 
 public class ClientExtension implements ServiceExtension {
 
+    // Non-public unified authentication request filter management service
     @Inject
-    private AuthenticationService authenticationService;
+    private PublicApiManagementService publicApiManagementService;
+
     @Inject
     private CatalogService catalogService;
     @Inject
@@ -61,7 +62,7 @@ public class ClientExtension implements ServiceExtension {
                 contractNegotiationObservable, contractNegotiationStore, config);
 
         var dataTransferController = new DataTransferController(monitor, context.getConfig(), webService,
-                authenticationService, transferProcessManager);
+                publicApiManagementService, transferProcessManager, context.getConnectorId());
 
         webService.registerResource(new ClientEndpoint(monitor, negotiationController, policyController,
                 dataTransferController));

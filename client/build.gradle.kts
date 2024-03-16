@@ -16,13 +16,16 @@ java {
 }
 
 dependencies {
+
+    // Centralized auth request filter
+    implementation(project(":public-api-management"))
+
     // See this project's README.MD for explanations
     implementation("$group:contract-core:$edcVersion")
     implementation("$group:dsp-catalog-http-dispatcher:$edcVersion")
     implementation("$group:management-api:$edcVersion")
     implementation("$group:runtime-metamodel:$edcVersion")
     implementation("$group:data-plane-http-spi:$edcVersion") // HttpDataAddress
-
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 
     testImplementation("$group:junit:$edcVersion")

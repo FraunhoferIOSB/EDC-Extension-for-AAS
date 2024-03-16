@@ -32,6 +32,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeoutException;
 
+import de.fraunhofer.iosb.api.PublicApiManagementService;
 import org.eclipse.edc.api.auth.spi.AuthenticationService;
 import org.eclipse.edc.catalog.spi.Catalog;
 import org.eclipse.edc.catalog.spi.Dataset;
@@ -116,8 +117,8 @@ public class ClientEndpointTest {
                         mock(Monitor.class),
                         mockConfig(),
                         mock(WebService.class),
-                        mock(AuthenticationService.class),
-                        mockTransferProcessManager()));
+                        mock(PublicApiManagementService.class),
+                        mockTransferProcessManager(), ""));
     }
 
     private Config mockConfig() {
@@ -219,7 +220,7 @@ public class ClientEndpointTest {
     public void addAcceptedContractOffersTest() {
         var mockPolicyDefinitionsAsList = new ArrayList<PolicyDefinition>();
         mockPolicyDefinitionsAsList.add(mockPolicyDefinition); // ClientEndpoint creates ArrayList
-        var offers = new PolicyDefinition[] { mockPolicyDefinition };
+        var offers = new PolicyDefinition[]{mockPolicyDefinition};
 
         clientEndpoint.addAcceptedPolicyDefinitions(offers);
 
@@ -228,7 +229,7 @@ public class ClientEndpointTest {
 
     @Test
     public void updateAcceptedContractOfferTest() {
-        var offers = new PolicyDefinition[] { mockPolicyDefinition };
+        var offers = new PolicyDefinition[]{mockPolicyDefinition};
 
         clientEndpoint.addAcceptedPolicyDefinitions(offers);
 

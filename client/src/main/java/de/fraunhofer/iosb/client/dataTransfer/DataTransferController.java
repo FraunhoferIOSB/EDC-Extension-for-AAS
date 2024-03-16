@@ -25,15 +25,14 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import org.eclipse.edc.api.auth.spi.AuthenticationService;
+import de.fraunhofer.iosb.api.PublicApiManagementService;
+import de.fraunhofer.iosb.client.authentication.DataTransferEndpointManager;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
 import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.web.spi.WebService;
-
-import de.fraunhofer.iosb.client.authentication.CustomAuthenticationRequestFilter;
 
 public class DataTransferController {
 
@@ -46,57 +45,53 @@ public class DataTransferController {
     private final DataTransferObservable dataTransferObservable;
     private final TransferInitiator transferInitiator;
 
-    private final CustomAuthenticationRequestFilter dataEndpointAuthenticationRequestFilter;
+    private final DataTransferEndpointManager dataTransferEndpointManager;
 
     /**
      * Class constructor
      *
-     * @param monitor                       Logging.
-     * @param config                        Read config value transfer timeout and
-     *                                      own URI
-     * @param webService                    Register data transfer endpoint.
-     * @param authenticationService Creating and passing through custom api
-     *                                      keys for each data transfer.
-     * @param transferProcessManager        Initiating a transfer process as a
-     *                                      consumer.
+     * @param monitor                    Logging.
+     * @param config                     Read config value transfer timeout and
+     *                                   own URI
+     * @param webService                 Register data transfer endpoint.
+     * @param publicApiManagementService Creating and passing through custom api
+     *                                   keys for each data transfer.
+     * @param transferProcessManager     Initiating a transfer process as a
+     *                                   consumer.
+     * @param connectorId                Connector ID for the provider to learn
      */
     public DataTransferController(Monitor monitor, Config config, WebService webService,
-            AuthenticationService authenticationService, TransferProcessManager transferProcessManager) {
+                                  PublicApiManagementService publicApiManagementService, TransferProcessManager transferProcessManager, String connectorId) {
         this.config = config.getConfig("edc.client");
-        this.transferInitiator = new TransferInitiator(config, monitor, transferProcessManager);
-        this.dataEndpointAuthenticationRequestFilter = new CustomAuthenticationRequestFilter(monitor,
-                authenticationService);
-
+        this.transferInitiator = new TransferInitiator(config, monitor, transferProcessManager, connectorId);
+        this.dataTransferEndpointManager = new DataTransferEndpointManager(publicApiManagementService);
         this.dataTransferObservable = new DataTransferObservable(monitor);
         var dataTransferEndpoint = new DataTransferEndpoint(monitor, dataTransferObservable);
         webService.registerResource(dataTransferEndpoint);
-        webService.registerResource(dataEndpointAuthenticationRequestFilter);
     }
 
     /**
      * Initiates the transfer process defined by the arguments. The data of the
      * transfer will be sent to {@link DataTransferEndpoint#RECEIVE_DATA_PATH}.
      *
-     * @param providerUrl     The provider from whom the data is to be fetched.
-     * @param agreementId     Non-null ContractAgreement of the negotiation process.
-     * @param assetId         The asset to be fetched.
+     * @param providerUrl        The provider from whom the data is to be fetched.
+     * @param agreementId        Non-null ContractAgreement of the negotiation process.
+     * @param assetId            The asset to be fetched.
      * @param dataDestinationUrl HTTPDataAddress the result of the transfer should be
-     *                        sent to. (If null, send to extension and print in log)
-     * 
-     * @return A completable future whose result will be the data or an error
-     *         message.
+     *                           sent to. (If null, send to extension and print in log)
+     * @return A completable future whose result will be the data or an error message.
      * @throws InterruptedException If the data transfer was interrupted
      * @throws ExecutionException   If the data transfer process failed
      */
     public String initiateTransferProcess(URL providerUrl, String agreementId, String assetId,
-            URL dataDestinationUrl) throws InterruptedException, ExecutionException {
+                                          URL dataDestinationUrl) throws InterruptedException, ExecutionException {
         // Prepare for incoming data
         var dataFuture = new CompletableFuture<String>();
         dataTransferObservable.register(dataFuture, agreementId);
 
         if (Objects.isNull(dataDestinationUrl)) {
             var apiKey = UUID.randomUUID().toString();
-            dataEndpointAuthenticationRequestFilter.addTemporaryApiKey(DATA_TRANSFER_API_KEY, apiKey);
+            dataTransferEndpointManager.addTemporaryEndpoint(agreementId, DATA_TRANSFER_API_KEY, apiKey);
 
             this.transferInitiator.initiateTransferProcess(providerUrl, agreementId, assetId, apiKey);
             return waitForData(dataFuture, agreementId);

@@ -18,6 +18,9 @@ java {
 }
 
 dependencies {
+    // Centralized auth request filter
+    implementation(project(":public-api-management"))
+
     // See this project's README.MD for explanations
     implementation("$group:contract-core:$edcVersion")
     implementation("$group:management-api:$edcVersion")

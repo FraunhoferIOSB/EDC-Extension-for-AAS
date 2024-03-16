@@ -116,7 +116,7 @@ public class ClientEndpointTest {
                         mockConfig(),
                         mock(WebService.class),
                         mock(PublicApiManagementService.class),
-                        mockTransferProcessManager(), ""));
+                        mockTransferProcessManager()));
     }
 
     private Config mockConfig() {

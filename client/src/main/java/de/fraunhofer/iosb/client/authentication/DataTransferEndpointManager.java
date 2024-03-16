@@ -19,18 +19,9 @@ import de.fraunhofer.iosb.api.PublicApiManagementService;
 import de.fraunhofer.iosb.api.model.Endpoint;
 import de.fraunhofer.iosb.api.model.HttpMethod;
 import de.fraunhofer.iosb.client.ClientEndpoint;
-import de.fraunhofer.iosb.client.datatransfer.DataTransferEndpoint;
-import jakarta.ws.rs.container.ContainerRequestContext;
-import org.eclipse.edc.api.auth.spi.AuthenticationRequestFilter;
-import org.eclipse.edc.api.auth.spi.AuthenticationService;
-import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
-
-import static java.lang.String.format;
 
 /**
  * Custom AuthenticationRequestFilter filtering requests that go directly to an

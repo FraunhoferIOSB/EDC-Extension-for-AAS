@@ -58,12 +58,11 @@ public class DataTransferController {
      *                                   keys for each data transfer.
      * @param transferProcessManager     Initiating a transfer process as a
      *                                   consumer.
-     * @param connectorId                Connector ID for the provider to learn
      */
     public DataTransferController(Monitor monitor, Config config, WebService webService,
-                                  PublicApiManagementService publicApiManagementService, TransferProcessManager transferProcessManager, String connectorId) {
+                                  PublicApiManagementService publicApiManagementService, TransferProcessManager transferProcessManager) {
         this.config = config.getConfig("edc.client");
-        this.transferInitiator = new TransferInitiator(config, monitor, transferProcessManager, connectorId);
+        this.transferInitiator = new TransferInitiator(config, monitor, transferProcessManager);
         this.dataTransferEndpointManager = new DataTransferEndpointManager(publicApiManagementService);
         this.dataTransferObservable = new DataTransferObservable(monitor);
         var dataTransferEndpoint = new DataTransferEndpoint(monitor, dataTransferObservable);

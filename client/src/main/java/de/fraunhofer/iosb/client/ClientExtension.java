@@ -15,10 +15,10 @@
  */
 package de.fraunhofer.iosb.client;
 
+import de.fraunhofer.iosb.api.PublicApiManagementService;
 import de.fraunhofer.iosb.client.datatransfer.DataTransferController;
 import de.fraunhofer.iosb.client.negotiation.NegotiationController;
 import de.fraunhofer.iosb.client.policy.PolicyController;
-import de.fraunhofer.iosb.api.PublicApiManagementService;
 import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
@@ -62,7 +62,7 @@ public class ClientExtension implements ServiceExtension {
                 contractNegotiationObservable, contractNegotiationStore, config);
 
         var dataTransferController = new DataTransferController(monitor, config, webService,
-                publicApiManagementService, transferProcessManager, context.getConnectorId());
+                publicApiManagementService, transferProcessManager);
 
         webService.registerResource(new ClientEndpoint(monitor, negotiationController, policyController,
                 dataTransferController));

@@ -157,7 +157,7 @@ public class Synchronizer implements SelfDescriptionChangeListener {
                 oldSubmodel = oldSubmodels.get(oldSubmodels.indexOf(submodel));
             } else {
                 oldSubmodel = oldSubmodels.stream().filter(
-                        oldSubmodelTest -> submodel.equals(oldSubmodelTest))
+                                submodel::equals)
                         .findFirst().orElse(null);
                 if (Objects.isNull(oldSubmodel)) {
                     return;

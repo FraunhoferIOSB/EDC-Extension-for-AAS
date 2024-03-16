@@ -86,7 +86,7 @@ public class ConfigurationController implements Controllable {
             // Read config values as map -> edc Config -> merge with old
             // -> set as AAS extension config
             Config newConfig = ConfigFactory.fromMap(objectMapper.readValue(newConfigValues,
-                    new TypeReference<Map<String, String>>() {
+                    new TypeReference<>() {
                     }));
             Config mergedConfig = sysConfig.merge(newConfig);
             configuration = objectReader.readValue(objectMapper.writeValueAsString(mergedConfig.getEntries()));

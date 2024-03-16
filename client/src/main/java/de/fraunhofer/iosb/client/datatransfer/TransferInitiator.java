@@ -43,14 +43,12 @@ class TransferInitiator {
     private final TransferProcessManager transferProcessManager;
     private final Monitor monitor;
     private final URI ownUri;
-    private final String connectorId;
 
     TransferInitiator(Config config, Monitor monitor,
-                      TransferProcessManager transferProcessManager, String connectorId) {
+                      TransferProcessManager transferProcessManager) {
         this.monitor = monitor;
         this.ownUri = createOwnUriFromConfigurationValues(config);
         this.transferProcessManager = transferProcessManager;
-        this.connectorId = connectorId;
     }
 
     void initiateTransferProcess(URL providerUrl, String agreementId, String assetId, String apiKey) {

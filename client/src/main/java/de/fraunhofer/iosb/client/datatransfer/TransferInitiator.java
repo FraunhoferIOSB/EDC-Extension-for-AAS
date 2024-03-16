@@ -43,12 +43,14 @@ class TransferInitiator {
     private final TransferProcessManager transferProcessManager;
     private final Monitor monitor;
     private final URI ownUri;
+    private final String connectorId;
 
     TransferInitiator(Config config, Monitor monitor,
-                      TransferProcessManager transferProcessManager) {
+                      TransferProcessManager transferProcessManager, String connectorId) {
         this.monitor = monitor;
         this.ownUri = createOwnUriFromConfigurationValues(config);
         this.transferProcessManager = transferProcessManager;
+        this.connectorId = connectorId;
     }
 
     void initiateTransferProcess(URL providerUrl, String agreementId, String assetId, String apiKey) {
@@ -85,9 +87,22 @@ class TransferInitiator {
     }
 
     private URI createOwnUriFromConfigurationValues(Config config) {
-        var protocolAddressString = config.getString("edc.dsp.callback.address", null);
-        var ownPort = config.getInteger("web.http.port", -1);
-        var ownPath = config.getString("web.http.path", null);
+        String protocolAddressString;
+        int ownPort;
+        String ownPath;
+        try {
+            protocolAddressString = config.getString("edc.dsp.callback.address");
+            ownPort = config.getInteger("web.http.port", -1);
+            ownPath = config.getString("web.http.path", null);
+        } catch (EdcException noSettingFound) {
+            monitor.severe(
+                    format("[Client] Could not build own URI, thus cannot transfer data to this EDC. Only data transfers to external endpoints are supported. Exception message: %s",
+                            noSettingFound.getMessage()));
+            return null;
+        }
+
+        // Remove /dsp from URL
+        protocolAddressString = protocolAddressString.substring(0, protocolAddressString.length() - "/dsp".length());
         try {
             return UriBuilder
                     .fromUri(protocolAddressString)

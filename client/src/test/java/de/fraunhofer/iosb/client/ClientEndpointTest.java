@@ -16,11 +16,12 @@
 package de.fraunhofer.iosb.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import de.fraunhofer.iosb.api.PublicApiManagementService;
 import de.fraunhofer.iosb.client.datatransfer.DataTransferController;
 import de.fraunhofer.iosb.client.negotiation.NegotiationController;
 import de.fraunhofer.iosb.client.policy.PolicyController;
 import jakarta.ws.rs.core.Response;
-import org.eclipse.edc.api.auth.spi.AuthenticationService;
+
 import org.eclipse.edc.catalog.spi.Catalog;
 import org.eclipse.edc.catalog.spi.Dataset;
 import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
@@ -114,8 +115,8 @@ public class ClientEndpointTest {
                         mock(Monitor.class),
                         mockConfig(),
                         mock(WebService.class),
-                        mock(AuthenticationService.class),
-                        mockTransferProcessManager()));
+                        mock(PublicApiManagementService.class),
+                        mockTransferProcessManager(), ""));
     }
 
     private Config mockConfig() {

@@ -88,6 +88,7 @@ public class FaaastServiceManagerTest {
         try {
             faaastServiceManager.stopService(new URL("http://does-not-exist.com:1234/aas"));
             fail("This operation should fail");
+        } catch (IllegalArgumentException expected) {
         } catch (Exception unexpectedException) {
             fail();
         }

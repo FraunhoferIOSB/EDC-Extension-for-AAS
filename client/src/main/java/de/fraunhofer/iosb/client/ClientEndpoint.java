@@ -50,7 +50,9 @@ import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPA
 @Produces({MediaType.APPLICATION_JSON})
 @Path(ClientEndpoint.AUTOMATED_PATH)
 public class ClientEndpoint {
-
+    /*
+     * Root path for the client
+     */
     public static final String AUTOMATED_PATH = "automated";
     private static final String ACCEPTED_POLICIES_PATH = "acceptedPolicies";
     private static final String DATASET_PATH = "dataset";
@@ -67,6 +69,7 @@ public class ClientEndpoint {
     /**
      * Initialize a client endpoint.
      *
+     * @param monitor               Logging functionality
      * @param policyController      Finds out policy for a given asset id and provider EDC url.
      * @param negotiationController Send contract offer, negotiation status watch.
      * @param transferController    Initiate transfer requests.

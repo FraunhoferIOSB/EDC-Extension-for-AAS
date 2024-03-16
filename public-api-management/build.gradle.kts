@@ -16,17 +16,9 @@ java {
 }
 
 dependencies {
-
-    // Centralized auth request filter
-    implementation(project(":public-api-management"))
-
     // See this project's README.MD for explanations
-    implementation("$group:contract-core:$edcVersion")
-    implementation("$group:dsp-catalog-http-dispatcher:$edcVersion")
-    implementation("$group:management-api:$edcVersion")
-    implementation("$group:runtime-metamodel:$edcVersion")
-    implementation("$group:data-plane-http-spi:$edcVersion") // HttpDataAddress
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
+    implementation("$group:auth-spi:$edcVersion")
 
     testImplementation("$group:junit:$edcVersion")
     testImplementation("org.glassfish.jersey.core:jersey-common:3.1.3")

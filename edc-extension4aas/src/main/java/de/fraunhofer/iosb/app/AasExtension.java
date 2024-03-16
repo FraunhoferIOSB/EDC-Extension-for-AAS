@@ -15,7 +15,8 @@
  */
 package de.fraunhofer.iosb.app;
 
-import de.fraunhofer.iosb.app.authentication.CustomAuthenticationRequestFilter;
+import de.fraunhofer.iosb.api.PublicApiManagementService;
+import de.fraunhofer.iosb.api.model.HttpMethod;
 import de.fraunhofer.iosb.app.controller.AasController;
 import de.fraunhofer.iosb.app.controller.ConfigurationController;
 import de.fraunhofer.iosb.app.controller.ResourceController;
@@ -34,15 +35,21 @@ import org.eclipse.edc.web.spi.WebService;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+
 /**
  * EDC Extension supporting usage of Asset Administration Shells.
  */
 public class AasExtension implements ServiceExtension {
+
+    // Non-public unified authentication request filter management service
+    @Inject
+    private PublicApiManagementService publicApiManagementService;
 
     @Inject
     private AssetIndex assetIndex;
@@ -75,10 +82,11 @@ public class AasExtension implements ServiceExtension {
         initializeSynchronizer(selfDescriptionRepository);
         registerServicesByConfig(selfDescriptionRepository);
 
-        var authenticationRequestFilter = new CustomAuthenticationRequestFilter(authenticationService,
-                Configuration.getInstance().isExposeSelfDescription() ? Endpoint.SELF_DESCRIPTION_PATH : null);
+        // Add public endpoint if wanted by config
+        if (Configuration.getInstance().isExposeSelfDescription()) {
+            publicApiManagementService.addEndpoints(List.of(new de.fraunhofer.iosb.api.model.Endpoint(Endpoint.SELF_DESCRIPTION_PATH, HttpMethod.GET, null)));
+        }
 
-        webService.registerResource(authenticationRequestFilter);
         webService.registerResource(endpoint);
     }
 

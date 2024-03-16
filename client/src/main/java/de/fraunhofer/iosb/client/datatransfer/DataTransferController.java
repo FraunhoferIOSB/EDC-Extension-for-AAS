@@ -15,8 +15,8 @@
  */
 package de.fraunhofer.iosb.client.datatransfer;
 
-import de.fraunhofer.iosb.client.authentication.CustomAuthenticationRequestFilter;
-import org.eclipse.edc.api.auth.spi.AuthenticationService;
+import de.fraunhofer.iosb.api.PublicApiManagementService;
+import de.fraunhofer.iosb.client.authentication.DataTransferEndpointManager;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
 import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.spi.EdcException;
@@ -45,27 +45,26 @@ public class DataTransferController {
     private final DataTransferObservable dataTransferObservable;
     private final TransferInitiator transferInitiator;
 
-    private final CustomAuthenticationRequestFilter dataEndpointAuthenticationRequestFilter;
+    private final DataTransferEndpointManager dataTransferEndpointManager;
 
     /**
      * Class constructor
      *
-     * @param monitor                Logging.
-     * @param config                 Read config value transfer timeout and
-     *                               own URI
-     * @param webService             Register data transfer endpoint.
-     * @param authenticationService  Creating and passing through custom api
-     *                               keys for each data transfer.
-     * @param transferProcessManager Initiating a transfer process as a
-     *                               consumer.
+     * @param monitor                    Logging.
+     * @param config                     Read config value transfer timeout and
+     *                                   own URI
+     * @param webService                 Register data transfer endpoint.
+     * @param publicApiManagementService Creating and passing through custom api
+     *                                   keys for each data transfer.
+     * @param transferProcessManager     Initiating a transfer process as a
+     *                                   consumer.
+     * @param connectorId                Connector ID for the provider to learn
      */
     public DataTransferController(Monitor monitor, Config config, WebService webService,
-                                  AuthenticationService authenticationService, TransferProcessManager transferProcessManager) {
-        this.config = config;
-        this.transferInitiator = new TransferInitiator(config, monitor, transferProcessManager);
-        this.dataEndpointAuthenticationRequestFilter = new CustomAuthenticationRequestFilter(monitor,
-                authenticationService);
-
+                                  PublicApiManagementService publicApiManagementService, TransferProcessManager transferProcessManager, String connectorId) {
+        this.config = config.getConfig("edc.client");
+        this.transferInitiator = new TransferInitiator(config, monitor, transferProcessManager, connectorId);
+        this.dataTransferEndpointManager = new DataTransferEndpointManager(publicApiManagementService);
         this.dataTransferObservable = new DataTransferObservable(monitor);
         var dataTransferEndpoint = new DataTransferEndpoint(monitor, dataTransferObservable);
         webService.registerResource(dataTransferEndpoint);
@@ -92,7 +91,7 @@ public class DataTransferController {
 
         if (Objects.isNull(dataDestinationUrl)) {
             var apiKey = UUID.randomUUID().toString();
-            dataEndpointAuthenticationRequestFilter.addTemporaryApiKey(DATA_TRANSFER_API_KEY, apiKey);
+            dataTransferEndpointManager.addTemporaryEndpoint(agreementId, DATA_TRANSFER_API_KEY, apiKey);
 
             this.transferInitiator.initiateTransferProcess(providerUrl, agreementId, assetId, apiKey);
             return waitForData(dataFuture, agreementId);
@@ -109,7 +108,7 @@ public class DataTransferController {
 
     private String waitForData(CompletableFuture<String> dataFuture, String agreementId)
             throws InterruptedException, ExecutionException {
-        var waitForTransferTimeout = config.getInteger("getWaitForTransferTimeout",
+        var waitForTransferTimeout = config.getInteger("waitForTransferTimeout",
                 WAIT_FOR_TRANSFER_TIMEOUT_DEFAULT);
         try {
             // Fetch TransferTimeout everytime to adapt to runtime config changes

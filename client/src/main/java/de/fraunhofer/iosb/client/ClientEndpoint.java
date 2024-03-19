@@ -15,10 +15,13 @@
  */
 package de.fraunhofer.iosb.client;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iosb.client.datatransfer.DataTransferController;
 import de.fraunhofer.iosb.client.negotiation.NegotiationController;
 import de.fraunhofer.iosb.client.policy.PolicyController;
 import de.fraunhofer.iosb.client.util.Pair;
+import jakarta.json.*;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -29,16 +32,21 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.edc.catalog.spi.Dataset;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
 import org.eclipse.edc.spi.types.domain.offer.ContractOffer;
 
+import java.io.StringReader;
 import java.net.URL;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
@@ -55,7 +63,7 @@ public class ClientEndpoint {
      */
     public static final String AUTOMATED_PATH = "automated";
     private static final String ACCEPTED_POLICIES_PATH = "acceptedPolicies";
-    private static final String DATASET_PATH = "dataset";
+    private static final String OFFER_PATH = "offer";
     private static final String NEGOTIATE_CONTRACT_PATH = "negotiateContract";
     private static final String NEGOTIATE_PATH = "negotiate";
     private static final String TRANSFER_PATH = "transfer";
@@ -65,6 +73,8 @@ public class ClientEndpoint {
     private final NegotiationController negotiationController;
     private final PolicyController policyController;
     private final DataTransferController transferController;
+
+    private final ObjectMapper objectMapper;
 
     /**
      * Initialize a client endpoint.
@@ -83,22 +93,23 @@ public class ClientEndpoint {
         this.policyController = policyController;
         this.negotiationController = negotiationController;
         this.transferController = transferController;
+        this.objectMapper = new ObjectMapper();
     }
 
     /**
-     * Return dataset for assetId that match any policyDefinitions' policy
+     * Return dataset for assetId that match any policyDefinition's policy
      * of the services' policyDefinitionStore instance containing user added
      * policyDefinitions. If more than one policyDefinitions are provided by the
      * provider connector, an AmbiguousOrNullException will be thrown.
      *
      * @param providerUrl Provider of the asset.
      * @param assetId     Asset ID of the asset whose contract should be fetched.
-     * @return One policyDefinition offered by the provider for the given assetId.
+     * @return A dataset offered by the provider for the given assetId.
      */
     @GET
-    @Path(DATASET_PATH)
-    public Response getDataset(@QueryParam("providerUrl") URL providerUrl, @QueryParam("assetId") String assetId, @QueryParam("providerId") String counterPartyId) {
-        monitor.debug(format("[Client] Received a %s GET request", DATASET_PATH));
+    @Path(OFFER_PATH)
+    public Response getOffer(@QueryParam("providerUrl") URL providerUrl, @QueryParam("assetId") String assetId, @QueryParam("providerId") String counterPartyId) {
+        monitor.debug(format("[Client] Received a %s GET request", OFFER_PATH));
 
         if (Objects.isNull(providerUrl)) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Provider URL must not be null").build();
@@ -106,13 +117,38 @@ public class ClientEndpoint {
 
         try {
             var dataset = policyController.getDataset(counterPartyId, providerUrl, assetId);
-            return Response.ok(dataset).build();
+
+            var parsedResponse = buildResponseFrom(dataset);
+            return Response.ok(parsedResponse).build();
+
         } catch (InterruptedException interruptedException) {
-            monitor.severe(format("[Client] Getting dataset failed for provider %s and asset %s", providerUrl,
+            monitor.severe(format("[Client] Getting offer failed for provider %s and asset %s", providerUrl,
                     assetId), interruptedException);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(interruptedException.getMessage())
                     .build();
+
+        } catch (JsonProcessingException policyWriteException) {
+            monitor.severe(format("[Client] Parsing policy failed for provider %s and asset %s", providerUrl,
+                    assetId), policyWriteException);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(policyWriteException.getMessage())
+                    .build();
+
         }
+    }
+
+    private String buildResponseFrom(Dataset dataset) throws JsonProcessingException {
+        var offer = dataset.getOffers().entrySet().stream().findFirst().orElseThrow();
+
+        // Build negotiation request body for the user
+        var policyString = objectMapper.writeValueAsString(offer.getValue());
+        var policyJson = Json.createReader(new StringReader(policyString)).read();
+
+        return Json.createObjectBuilder()
+                .add("id", offer.getKey())
+                .add("policy", policyJson)
+                .add("assetId", offer.getValue().getTarget())
+                .build()
+                .toString();
     }
 
     /**
@@ -186,7 +222,12 @@ public class ClientEndpoint {
         Objects.requireNonNull(contractRequest, "ContractRequest must not be null");
         try {
             var agreement = negotiationController.negotiateContract(contractRequest);
-            return Response.ok(agreement).build();
+            // Sanitize response (only ID is relevant here)
+            var agreementResponse = Json.createObjectBuilder()
+                    .add("agreement-id", agreement.getId())
+                    .build()
+                    .toString();
+            return Response.ok(agreementResponse).build();
         } catch (InterruptedException | ExecutionException negotiationException) {
             monitor.severe(
                     format("[Client] Negotiation failed for provider %s and contractRequest %s",

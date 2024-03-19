@@ -29,7 +29,6 @@ import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 
 import java.net.URL;
-import java.util.Map;
 
 /**
  * Handles requests regarding the application's configuration.

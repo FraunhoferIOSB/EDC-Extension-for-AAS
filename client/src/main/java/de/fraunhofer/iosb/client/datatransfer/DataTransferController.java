@@ -61,8 +61,8 @@ public class DataTransferController {
      */
     public DataTransferController(Monitor monitor, Config config, WebService webService,
                                   PublicApiManagementService publicApiManagementService, TransferProcessManager transferProcessManager) {
-        this.config = config.getConfig("edc.client");
         this.transferInitiator = new TransferInitiator(config, monitor, transferProcessManager);
+        this.config = config.getConfig("edc.client");
         this.dataTransferEndpointManager = new DataTransferEndpointManager(publicApiManagementService);
         this.dataTransferObservable = new DataTransferObservable(monitor);
         var dataTransferEndpoint = new DataTransferEndpoint(monitor, dataTransferObservable);
@@ -85,8 +85,7 @@ public class DataTransferController {
     public String initiateTransferProcess(URL providerUrl, String agreementId, String assetId,
                                           URL dataDestinationUrl) throws InterruptedException, ExecutionException {
         // Prepare for incoming data
-        var dataFuture = new CompletableFuture<String>();
-        dataTransferObservable.register(dataFuture, agreementId);
+        var dataFuture = dataTransferObservable.register(agreementId);
 
         if (Objects.isNull(dataDestinationUrl)) {
             var apiKey = UUID.randomUUID().toString();
@@ -95,11 +94,13 @@ public class DataTransferController {
             this.transferInitiator.initiateTransferProcess(providerUrl, agreementId, assetId, apiKey);
             return waitForData(dataFuture, agreementId);
         } else {
+            // Send data to custom target url
             var dataSinkAddress = HttpDataAddress.Builder.newInstance()
                     .baseUrl(dataDestinationUrl.toString())
                     .build();
 
             this.transferInitiator.initiateTransferProcess(providerUrl, agreementId, assetId, dataSinkAddress);
+            // Don't have to wait for data
             return null;
         }
 

@@ -40,14 +40,14 @@ public class DataTransferEndpoint {
     /*
      * Path for providers to send data to.
      */
-    public static final String RECEIVE_DATA_PATH = "receiveData";
+    static final String RECEIVE_DATA_PATH = "receiveData";
 
     private final Monitor monitor;
     private final DataTransferObservable observable;
 
-    public DataTransferEndpoint(Monitor monitor, DataTransferObservable observable) {
+    DataTransferEndpoint(Monitor monitor, DataTransferObservable dataTransferObservable) {
         this.monitor = monitor;
-        this.observable = observable;
+        this.observable = dataTransferObservable;
     }
 
     /**

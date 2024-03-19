@@ -15,25 +15,13 @@
  */
 package de.fraunhofer.iosb.client;
 
-import static java.lang.String.format;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.mockserver.integration.ClientAndServer.startClientAndServer;
-
-import java.io.IOException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeoutException;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iosb.api.PublicApiManagementService;
-import org.eclipse.edc.api.auth.spi.AuthenticationService;
+import de.fraunhofer.iosb.client.datatransfer.DataTransferController;
+import de.fraunhofer.iosb.client.negotiation.NegotiationController;
+import de.fraunhofer.iosb.client.policy.PolicyController;
+import jakarta.ws.rs.core.Response;
+
 import org.eclipse.edc.catalog.spi.Catalog;
 import org.eclipse.edc.catalog.spi.Dataset;
 import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
@@ -62,12 +50,22 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockserver.integration.ClientAndServer;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeoutException;
 
-import de.fraunhofer.iosb.client.dataTransfer.DataTransferController;
-import de.fraunhofer.iosb.client.negotiation.NegotiationController;
-import de.fraunhofer.iosb.client.policy.PolicyController;
-import jakarta.ws.rs.core.Response;
+import static java.lang.String.format;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 
 public class ClientEndpointTest {
 
@@ -118,7 +116,7 @@ public class ClientEndpointTest {
                         mockConfig(),
                         mock(WebService.class),
                         mock(PublicApiManagementService.class),
-                        mockTransferProcessManager(), ""));
+                        mockTransferProcessManager()));
     }
 
     private Config mockConfig() {
@@ -148,7 +146,7 @@ public class ClientEndpointTest {
         var completableFuture = new CompletableFuture<StatusResult<byte[]>>();
         completableFuture.complete(StatusResult.success(new ObjectMapper().writeValueAsBytes(mockCatalog)));
 
-        when(catalogService.requestCatalog(any(), any(), any())).thenReturn(completableFuture);
+        when(catalogService.requestCatalog(any(), any(), any(), any())).thenReturn(completableFuture);
         return catalogService;
     }
 
@@ -187,8 +185,8 @@ public class ClientEndpointTest {
                         .build())) {
             fail();
         } catch (EdcException expected) {
-            if (!(expected.getCause().getClass().equals(TimeoutException.class)
-                    && expected.getMessage().contains("Agreement"))) {
+            if (!(expected.getCause().getClass().equals(TimeoutException.class) &&
+                    expected.getMessage().contains("Agreement"))) {
                 fail(); // This must fail because of agreement timeout.
             }
         }

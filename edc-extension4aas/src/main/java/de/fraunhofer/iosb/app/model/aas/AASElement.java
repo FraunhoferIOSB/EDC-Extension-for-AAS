@@ -15,11 +15,10 @@
  */
 package de.fraunhofer.iosb.app.model.aas;
 
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import io.adminshell.aas.v3.model.EmbeddedDataSpecification;
+
+import java.util.List;
 
 /*
  * Collect common attributes of every AAS element.

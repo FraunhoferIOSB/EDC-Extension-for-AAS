@@ -15,10 +15,10 @@
  */
 package de.fraunhofer.iosb.app.model.configuration;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.net.URL;
 import java.util.Objects;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Singleton class.

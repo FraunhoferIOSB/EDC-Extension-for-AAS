@@ -15,14 +15,15 @@
  */
 package de.fraunhofer.iosb.app.model.aas;
 
-import java.util.List;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-
 import io.adminshell.aas.v3.model.Constraint;
+
+import java.util.List;
+import java.util.Objects;
 
 @JsonAutoDetect
 @JsonTypeInfo(use = JsonTypeInfo.Id.DEDUCTION)
@@ -47,6 +48,11 @@ public class CustomSubmodelElement extends AASElement {
 
     public void setIdShort(String idShort) {
         this.idShort = idShort;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(idShort);
     }
 
     @Override

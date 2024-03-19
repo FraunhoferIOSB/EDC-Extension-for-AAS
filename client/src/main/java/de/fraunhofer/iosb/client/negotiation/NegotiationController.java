@@ -15,13 +15,6 @@
  */
 package de.fraunhofer.iosb.client.negotiation;
 
-import static java.lang.String.format;
-
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
 import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.edc.connector.contract.spi.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
@@ -30,6 +23,14 @@ import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
+
+import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
+import static java.lang.String.format;
 
 /**
  * Provides API for contract negotiation by
@@ -48,10 +49,10 @@ public class NegotiationController {
     private final ClientContractNegotiationListener listener;
 
     public NegotiationController(ConsumerContractNegotiationManager consumerNegotiationManager,
-            ContractNegotiationObservable observable, ContractNegotiationStore contractNegotiationStore,
-            Config config) {
+                                 ContractNegotiationObservable observable, ContractNegotiationStore contractNegotiationStore,
+                                 Config config) {
         this.config = config;
-        this.negotiator = new Negotiator(consumerNegotiationManager, contractNegotiationStore, config);
+        this.negotiator = new Negotiator(consumerNegotiationManager, contractNegotiationStore);
         this.listener = new ClientContractNegotiationListener();
         observable.registerListener(listener);
     }
@@ -60,13 +61,17 @@ public class NegotiationController {
             throws InterruptedException, ExecutionException {
 
         var negotiationStatusResult = negotiator.negotiate(contractRequest);
-
-        if (negotiationStatusResult.succeeded()) {
-            return waitForAgreement(negotiationStatusResult.getContent().getId());
-        } else {
+        if (!negotiationStatusResult.succeeded()) {
             throw new EdcException(negotiationStatusResult.getFailureDetail());
         }
+        var negotiation = negotiationStatusResult.getContent();
+        if (Objects.nonNull(negotiation.getContractAgreement())) {
+            return negotiationStatusResult.getContent().getContractAgreement();
+        } else {
+            return waitForAgreement(negotiation.getId());
+        }
     }
+
 
     private ContractAgreement waitForAgreement(String negotiationId) throws InterruptedException, ExecutionException {
         var agreementFuture = new CompletableFuture<ContractNegotiation>();

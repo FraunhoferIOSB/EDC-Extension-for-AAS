@@ -13,17 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.client.dataTransfer;
-
-import static java.lang.String.format;
-
-import java.net.URL;
-import java.util.Objects;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+package de.fraunhofer.iosb.client.datatransfer;
 
 import de.fraunhofer.iosb.api.PublicApiManagementService;
 import de.fraunhofer.iosb.client.authentication.DataTransferEndpointManager;
@@ -33,6 +23,16 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.web.spi.WebService;
+
+import java.net.URL;
+import java.util.Objects;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
+import static java.lang.String.format;
 
 public class DataTransferController {
 
@@ -58,12 +58,11 @@ public class DataTransferController {
      *                                   keys for each data transfer.
      * @param transferProcessManager     Initiating a transfer process as a
      *                                   consumer.
-     * @param connectorId                Connector ID for the provider to learn
      */
     public DataTransferController(Monitor monitor, Config config, WebService webService,
-                                  PublicApiManagementService publicApiManagementService, TransferProcessManager transferProcessManager, String connectorId) {
+                                  PublicApiManagementService publicApiManagementService, TransferProcessManager transferProcessManager) {
+        this.transferInitiator = new TransferInitiator(config, monitor, transferProcessManager);
         this.config = config.getConfig("edc.client");
-        this.transferInitiator = new TransferInitiator(config, monitor, transferProcessManager, connectorId);
         this.dataTransferEndpointManager = new DataTransferEndpointManager(publicApiManagementService);
         this.dataTransferObservable = new DataTransferObservable(monitor);
         var dataTransferEndpoint = new DataTransferEndpoint(monitor, dataTransferObservable);
@@ -86,8 +85,7 @@ public class DataTransferController {
     public String initiateTransferProcess(URL providerUrl, String agreementId, String assetId,
                                           URL dataDestinationUrl) throws InterruptedException, ExecutionException {
         // Prepare for incoming data
-        var dataFuture = new CompletableFuture<String>();
-        dataTransferObservable.register(dataFuture, agreementId);
+        var dataFuture = dataTransferObservable.register(agreementId);
 
         if (Objects.isNull(dataDestinationUrl)) {
             var apiKey = UUID.randomUUID().toString();
@@ -96,11 +94,13 @@ public class DataTransferController {
             this.transferInitiator.initiateTransferProcess(providerUrl, agreementId, assetId, apiKey);
             return waitForData(dataFuture, agreementId);
         } else {
+            // Send data to custom target url
             var dataSinkAddress = HttpDataAddress.Builder.newInstance()
                     .baseUrl(dataDestinationUrl.toString())
                     .build();
 
             this.transferInitiator.initiateTransferProcess(providerUrl, agreementId, assetId, dataSinkAddress);
+            // Don't have to wait for data
             return null;
         }
 

@@ -38,10 +38,8 @@ dependencies {
     implementation("$group:data-plane-core:$edcVersion")
     implementation("$group:data-plane-http:$edcVersion")
     implementation("$group:data-plane-client:$edcVersion")
-    implementation("$group:data-plane-selector-client:$edcVersion")
     implementation("$group:data-plane-selector-core:$edcVersion")
     implementation("$group:transfer-data-plane:$edcVersion")
-
 }
 
 

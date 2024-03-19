@@ -19,12 +19,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.spi.monitor.Monitor;
 
-import static java.lang.String.format;
-
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+
+import static java.lang.String.format;
 
 /**
  * Contains user added PolicyDefinitions.
@@ -77,7 +81,6 @@ class PolicyDefinitionStore {
     /**
      * Update a policyDefinition
      *
-     * @param policyDefinitionId PolicyDefinition ID (non null)
      * @param policyDefinition   The updated policyDefinition
      * @return Optional containing updated policy definition or null
      */

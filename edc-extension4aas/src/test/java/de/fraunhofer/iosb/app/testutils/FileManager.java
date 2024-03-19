@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.app.testUtils;
+package de.fraunhofer.iosb.app.testutils;
 
 import org.apache.commons.io.IOUtils;
 
@@ -30,10 +30,10 @@ public class FileManager {
     private FileManager() {
     }
 
-    private static final File resourcesDirectory = new File("src/test/resources");
+    private static final File RESOURCES_DIRECTORY = new File("src/test/resources");
 
     public static String loadResource(String fileName) {
-        try (FileInputStream x = new FileInputStream(new File(resourcesDirectory, fileName))) {
+        try (FileInputStream x = new FileInputStream(new File(RESOURCES_DIRECTORY, fileName))) {
             return IOUtils.toString(x, StandardCharsets.UTF_8);
         } catch (FileNotFoundException e) {
             fail("File not found exception on file " + fileName);

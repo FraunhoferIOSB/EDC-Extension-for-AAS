@@ -13,20 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.client.dataTransfer;
-
-import static org.junit.jupiter.api.Assertions.fail;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.Map;
-import java.util.UUID;
+package de.fraunhofer.iosb.client.datatransfer;
 
 import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
 import org.eclipse.edc.connector.transfer.spi.TransferProcessManager;
@@ -34,10 +21,21 @@ import org.eclipse.edc.connector.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.StatusResult;
-import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Map;
+import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class TransferInitiatorTest {
 
@@ -52,7 +50,7 @@ public class TransferInitiatorTest {
         var configMock = ConfigFactory.fromMap(Map.of("edc.dsp.callback.address", "http://localhost:4321/dsp",
                 "web.http.port", "8080", "web.http.path", "/api"));
 
-        transferInitiator = new TransferInitiator(configMock, mock(Monitor.class), mockTransferProcessManager, "http://localhost");
+        transferInitiator = new TransferInitiator(configMock, mock(Monitor.class), mockTransferProcessManager);
 
         mockStatusResult = (StatusResult<TransferProcess>) mock(StatusResult.class);
 

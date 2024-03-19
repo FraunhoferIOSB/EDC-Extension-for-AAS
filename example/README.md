@@ -113,10 +113,10 @@ java -Dedc.fs.config=./example/configurations/consumer.properties -jar ./example
 ```
 
 Starting the data transfer from provider to consumer. There is a `postman collection` containing the necessary http
-request located in `/examples/resources`. Do the following steps:
+requests located in `/examples/resources`. Complete the following steps:
 
-1. Call the provider's self description on `http://localhost:8181/api/selfDescription`, and choose an element you want
-   to fetch. Put its `asset id` as a variable in the postman collection's variables section.
+1. Call the provider's self-description on `http://localhost:8181/api/selfDescription` and choose an element you want
+   to fetch. Put its `asset id` as a variable in the postman collection's variables section ("Current value").
 
 ### Fully automated
 
@@ -142,15 +142,16 @@ __Important__:
 ### Separate requests
 
 1. Execute the request `Client/1. Get dataset for asset`
-   Choose a policy of the response body.
+   This will return the provider offer for this asset. Copy the full response for the next step.
 
-2. Put the policy inside of request `Client/2. Initiate negotiation with contractOffer`'s body (policy field) and
+2. Paste the response inside of request `Client/2. Initiate negotiation with contractOffer`'s body ("contractOffer" field, as can be seen in the screenshot) and
    execute said request.
+<img src="resources/tutorial-images/step-2">
 
-3. If everything went right, request `2` returns an agreementID. Update the postman collection's agreementID variable
-   with the response value.
+3. If everything succeeded, request `2` returns an agreementID. Update the postman collection's "agreement-id" variable
+   using the response value.
 
-4. Execute request `3. Get data for agreement id and asset id`. If everything went right, the response should be the
+4. Execute request `3. Get data for agreement id and asset id`. If again everything went right, the response should be the
    data behind the previously selected asset.
 
 ## Running the Example (manual)
@@ -190,18 +191,17 @@ requests for data transfer in this extensions repository located in `/examples/r
 3. With this `<negotiation-id>`, query the consumer connector about the state of the negotiation. Execute request 2 of
    the data transfer folder.
    It should return:
-
-```json
-{
-  "contractAgreementId": "<agreement-id>",
-  "counterPartyAddress": "http://localhost:8282/api/v1/ids/data",
-  "errorDetail": null,
-  "id": "ac6e1c97-13d6-41ff-8b79-1029d7f094bb",
-  "protocol": "ids-multipart",
-  "state": "CONFIRMED",
-  "type": "CONSUMER"
-}
-```
+    ```json
+    {
+      "contractAgreementId": "<agreement-id>",
+      "counterPartyAddress": "http://localhost:8282/api/v1/ids/data",
+      "errorDetail": null,
+      "id": "ac6e1c97-13d6-41ff-8b79-1029d7f094bb",
+      "protocol": "ids-multipart",
+      "state": "CONFIRMED",
+      "type": "CONSUMER"
+    }
+    ```
 
 4. Put the `<agreement-id>` in the postman collection's agreement-id variable.
    Execute request 3 of the Data Transfer folder. The provider connector should now send the data, and in the consumer

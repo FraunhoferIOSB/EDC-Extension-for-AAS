@@ -18,9 +18,10 @@ package de.fraunhofer.iosb.app.model.aas;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-
 import io.adminshell.aas.v3.model.AssetInformation;
 import io.adminshell.aas.v3.model.impl.DefaultAssetInformation;
+
+import java.util.Objects;
 
 /**
  * AAS Model for the self description of the edc
@@ -56,6 +57,11 @@ public class CustomAssetAdministrationShell extends AASElement {
 
     public void setAssetInformation(DefaultAssetInformation assetInformation) {
         this.assetInformation = assetInformation;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(identification, idShort);
     }
 
     @Override

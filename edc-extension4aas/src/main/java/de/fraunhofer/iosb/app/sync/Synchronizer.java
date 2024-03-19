@@ -17,7 +17,11 @@ package de.fraunhofer.iosb.app.sync;
 
 import de.fraunhofer.iosb.app.controller.AasController;
 import de.fraunhofer.iosb.app.controller.ResourceController;
-import de.fraunhofer.iosb.app.model.aas.*;
+import de.fraunhofer.iosb.app.model.aas.AASElement;
+import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShellEnvironment;
+import de.fraunhofer.iosb.app.model.aas.CustomSubmodel;
+import de.fraunhofer.iosb.app.model.aas.CustomSubmodelElement;
+import de.fraunhofer.iosb.app.model.aas.IdsAssetElement;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import de.fraunhofer.iosb.app.model.ids.SelfDescription;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionChangeListener;
@@ -153,7 +157,7 @@ public class Synchronizer implements SelfDescriptionChangeListener {
                 oldSubmodel = oldSubmodels.get(oldSubmodels.indexOf(submodel));
             } else {
                 oldSubmodel = oldSubmodels.stream().filter(
-                        oldSubmodelTest -> submodel.equals(oldSubmodelTest))
+                                submodel::equals)
                         .findFirst().orElse(null);
                 if (Objects.isNull(oldSubmodel)) {
                     return;

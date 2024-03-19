@@ -16,7 +16,7 @@
 package de.fraunhofer.iosb.client;
 
 import de.fraunhofer.iosb.api.PublicApiManagementService;
-import de.fraunhofer.iosb.client.dataTransfer.DataTransferController;
+import de.fraunhofer.iosb.client.datatransfer.DataTransferController;
 import de.fraunhofer.iosb.client.negotiation.NegotiationController;
 import de.fraunhofer.iosb.client.policy.PolicyController;
 import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
@@ -61,8 +61,9 @@ public class ClientExtension implements ServiceExtension {
         var negotiationController = new NegotiationController(consumerNegotiationManager,
                 contractNegotiationObservable, contractNegotiationStore, config);
 
+        // This controller needs base config to read EDC's hostname + specific ports
         var dataTransferController = new DataTransferController(monitor, context.getConfig(), webService,
-                publicApiManagementService, transferProcessManager, context.getConnectorId());
+                publicApiManagementService, transferProcessManager);
 
         webService.registerResource(new ClientEndpoint(monitor, negotiationController, policyController,
                 dataTransferController));

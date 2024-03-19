@@ -13,38 +13,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.client.dataTransfer;
+package de.fraunhofer.iosb.client.datatransfer;
 
 import de.fraunhofer.iosb.client.ClientEndpoint;
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.util.Objects;
-
-import org.eclipse.edc.spi.monitor.Monitor;
 
 import static java.lang.String.format;
 
 /**
  * Endpoint for automated data transfer
  */
-@Consumes({ MediaType.APPLICATION_JSON, MediaType.WILDCARD })
-@Produces({ MediaType.APPLICATION_JSON })
+@Consumes({MediaType.APPLICATION_JSON, MediaType.WILDCARD})
+@Produces({MediaType.APPLICATION_JSON})
 @Path(ClientEndpoint.AUTOMATED_PATH)
 public class DataTransferEndpoint {
 
     /*
      * Path for providers to send data to.
      */
-    public static final String RECEIVE_DATA_PATH = "receiveData";
+    static final String RECEIVE_DATA_PATH = "receiveData";
 
     private final Monitor monitor;
     private final DataTransferObservable observable;
 
-    public DataTransferEndpoint(Monitor monitor, DataTransferObservable observable) {
+    DataTransferEndpoint(Monitor monitor, DataTransferObservable dataTransferObservable) {
         this.monitor = monitor;
-        this.observable = observable;
+        this.observable = dataTransferObservable;
     }
 
     /**

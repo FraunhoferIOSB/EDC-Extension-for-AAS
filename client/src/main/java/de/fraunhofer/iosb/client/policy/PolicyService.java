@@ -15,22 +15,9 @@
  */
 package de.fraunhofer.iosb.client.policy;
 
-import static java.lang.String.format;
-import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
-import static org.eclipse.edc.spi.query.Criterion.criterion;
-
-import java.io.ByteArrayInputStream;
-import java.net.URL;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
+import de.fraunhofer.iosb.client.exception.AmbiguousOrNullException;
+import de.fraunhofer.iosb.client.util.Pair;
+import jakarta.json.Json;
 import org.eclipse.edc.catalog.spi.Catalog;
 import org.eclipse.edc.catalog.spi.Dataset;
 import org.eclipse.edc.connector.spi.catalog.CatalogService;
@@ -44,10 +31,23 @@ import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.jetbrains.annotations.NotNull;
 
-import de.fraunhofer.iosb.client.exception.AmbiguousOrNullException;
-import de.fraunhofer.iosb.client.util.Pair;
-import jakarta.json.Json;
+import java.io.ByteArrayInputStream;
+import java.net.URL;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static java.lang.String.format;
+import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
+import static org.eclipse.edc.spi.query.Criterion.criterion;
 
 /**
  * Finds out policy for a given asset id and provider EDC url
@@ -69,8 +69,8 @@ class PolicyService {
      * @param catalogService Fetching the catalog of a provider.
      * @param transformer    Transform json-ld byte-array catalog to catalog class
      */
-    public PolicyService(CatalogService catalogService, TypeTransformerRegistry transformer,
-            PolicyServiceConfig config, PolicyDefinitionStore policyDefinitionStore, Monitor monitor) {
+    PolicyService(CatalogService catalogService, TypeTransformerRegistry transformer,
+                         PolicyServiceConfig config, PolicyDefinitionStore policyDefinitionStore, Monitor monitor) {
         this.catalogService = catalogService;
         this.transformer = transformer;
 
@@ -81,27 +81,29 @@ class PolicyService {
 
     }
 
-    Dataset getDatasetForAssetId(URL providerUrl, String assetId) throws InterruptedException {
+    Dataset getDatasetForAssetId(@NotNull String counterPartyId, @NotNull URL counterPartyUrl, @NotNull String assetId) throws InterruptedException {
+
         var catalogFuture = catalogService.requestCatalog(
-                providerUrl.toString(),
+                counterPartyId, // why do we even need a provider id when we have the url...
+                counterPartyUrl.toString(),
                 DATASPACE_PROTOCOL_HTTP,
                 QuerySpec.Builder.newInstance()
-                        .filter(List.of(criterion(Asset.PROPERTY_ID, "=", assetId)))
+                        .filter(criterion(Asset.PROPERTY_ID, "=", assetId))
                         .build());
 
         StatusResult<byte[]> catalogResponse;
         try {
             catalogResponse = catalogFuture.get(config.getWaitForCatalogTimeout(), TimeUnit.SECONDS);
         } catch (ExecutionException futureExecutionException) {
-            throw new EdcException(format("Failed fetching a catalog by provider %s.", providerUrl),
+            throw new EdcException(format("Failed fetching a catalog by provider %s.", counterPartyUrl),
                     futureExecutionException);
         } catch (TimeoutException timeoutCatalogFutureGetException) {
-            throw new EdcException(format("Timeout while waiting for catalog by provider %s.", providerUrl),
+            throw new EdcException(format("Timeout while waiting for catalog by provider %s.", counterPartyUrl),
                     timeoutCatalogFutureGetException);
         }
 
         if (catalogResponse.failed()) {
-            throw new EdcException(format(CATALOG_RETRIEVAL_FAILURE_MSG, providerUrl,
+            throw new EdcException(format(CATALOG_RETRIEVAL_FAILURE_MSG, counterPartyUrl,
                     catalogResponse.getFailureMessages()));
         }
 
@@ -111,14 +113,14 @@ class PolicyService {
         var catalogJsonExpansionResult = jsonLdExpander.expand(catalogJson);
 
         if (catalogJsonExpansionResult.failed()) {
-            throw new EdcException(format(CATALOG_RETRIEVAL_FAILURE_MSG, providerUrl,
+            throw new EdcException(format(CATALOG_RETRIEVAL_FAILURE_MSG, counterPartyUrl,
                     catalogJsonExpansionResult.getFailureMessages()));
         }
 
         var catalogResult = transformer.transform(catalogJsonExpansionResult.getContent(), Catalog.class);
 
         if (catalogResult.failed()) {
-            throw new EdcException(format(CATALOG_RETRIEVAL_FAILURE_MSG, providerUrl,
+            throw new EdcException(format(CATALOG_RETRIEVAL_FAILURE_MSG, counterPartyUrl,
                     catalogResult.getFailureMessages()));
         }
 
@@ -132,9 +134,9 @@ class PolicyService {
         return datasets.get(0);
     }
 
-    Pair<String, Policy> getAcceptablePolicyForAssetId(URL providerUrl, String assetId)
+    Pair<String, Policy> getAcceptablePolicyForAssetId(String counterPartyId, URL providerUrl, String assetId)
             throws InterruptedException {
-        var dataset = getDatasetForAssetId(providerUrl, assetId);
+        var dataset = getDatasetForAssetId(counterPartyId, providerUrl, assetId);
 
         Map.Entry<String, Policy> acceptablePolicy;
         if (config.isAcceptAllProviderOffers()) {
@@ -165,16 +167,16 @@ class PolicyService {
 
     private boolean policyDefinitionRulesEquality(Policy first, Policy second) {
         List<Rule> firstRules = Stream.of(
-                first.getPermissions(),
-                first.getProhibitions(),
-                first.getObligations())
+                        first.getPermissions(),
+                        first.getProhibitions(),
+                        first.getObligations())
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList());
 
         List<Rule> secondRules = Stream.of(
-                second.getPermissions(),
-                second.getProhibitions(),
-                second.getObligations())
+                        second.getPermissions(),
+                        second.getProhibitions(),
+                        second.getObligations())
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList());
 

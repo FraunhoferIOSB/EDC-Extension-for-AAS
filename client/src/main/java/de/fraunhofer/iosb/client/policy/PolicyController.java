@@ -15,10 +15,7 @@
  */
 package de.fraunhofer.iosb.client.policy;
 
-import java.net.URL;
-import java.util.List;
-import java.util.Optional;
-
+import de.fraunhofer.iosb.client.util.Pair;
 import org.eclipse.edc.catalog.spi.Dataset;
 import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.spi.catalog.CatalogService;
@@ -27,7 +24,9 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
-import de.fraunhofer.iosb.client.util.Pair;
+import java.net.URL;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * Provides API for accepted policy management and provider dataset retrieval.
@@ -40,7 +39,7 @@ public class PolicyController {
     private final PolicyService policyService;
 
     public PolicyController(Monitor monitor, CatalogService catalogService,
-            TypeTransformerRegistry typeTransformerRegistry, Config systemConfig) {
+                            TypeTransformerRegistry typeTransformerRegistry, Config systemConfig) {
         var config = new PolicyServiceConfig(systemConfig);
 
         this.policyDefinitionStore = new PolicyDefinitionStore(monitor, config.getAcceptedPolicyDefinitionsPath());
@@ -48,8 +47,8 @@ public class PolicyController {
                 this.policyDefinitionStore, monitor);
     }
 
-    public Dataset getDataset(URL providerUrl, String assetId) throws InterruptedException {
-        return policyService.getDatasetForAssetId(providerUrl, assetId);
+    public Dataset getDataset(String counterPartyId, URL counterPartyUrl, String assetId) throws InterruptedException {
+        return policyService.getDatasetForAssetId(counterPartyId, counterPartyUrl, assetId);
     }
 
     /**
@@ -60,16 +59,17 @@ public class PolicyController {
      * If more than one policyDefinitions are provided by the provider
      * connector, an AmbiguousOrNullException will be thrown.
      *
-     * @param providerUrl Provider of the asset.
-     * @param assetId     Asset ID of the asset whose contract should be fetched.
+     * @param counterPartyId  Provider of the asset. (id)
+     * @param counterPartyUrl Provider of the asset. (url)
+     * @param assetId         Asset ID of the asset whose contract should be fetched.
      * @return One policyDefinition offered by the provider for the given assetId.
      * @throws InterruptedException Thread for agreementId was waiting, sleeping, or
      *                              otherwise occupied, and was
      *                              interrupted.
      */
-    public Pair<String, Policy> getAcceptablePolicyForAssetId(URL providerUrl, String assetId)
+    public Pair<String, Policy> getAcceptablePolicyForAssetId(String counterPartyId, URL counterPartyUrl, String assetId)
             throws InterruptedException {
-        return policyService.getAcceptablePolicyForAssetId(providerUrl, assetId);
+        return policyService.getAcceptablePolicyForAssetId(counterPartyId, counterPartyUrl, assetId);
     }
 
     public void addAcceptedPolicyDefinitions(PolicyDefinition[] policyDefinitions) {

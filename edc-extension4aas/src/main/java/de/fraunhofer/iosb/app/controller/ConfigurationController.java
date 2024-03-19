@@ -15,23 +15,20 @@
  */
 package de.fraunhofer.iosb.app.controller;
 
-import java.net.URL;
-import java.util.Map;
-
-import org.eclipse.edc.spi.system.configuration.Config;
-import org.eclipse.edc.spi.system.configuration.ConfigFactory;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.json.JsonMapper;
-
 import de.fraunhofer.iosb.app.Logger;
 import de.fraunhofer.iosb.app.RequestType;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.edc.spi.system.configuration.Config;
+import org.eclipse.edc.spi.system.configuration.ConfigFactory;
+
+import java.net.URL;
 
 /**
  * Handles requests regarding the application's configuration.
@@ -88,7 +85,7 @@ public class ConfigurationController implements Controllable {
             // Read config values as map -> edc Config -> merge with old
             // -> set as AAS extension config
             Config newConfig = ConfigFactory.fromMap(objectMapper.readValue(newConfigValues,
-                    new TypeReference<Map<String, String>>() {
+                    new TypeReference<>() {
                     }));
             Config mergedConfig = sysConfig.merge(newConfig);
             configuration = objectReader.readValue(objectMapper.writeValueAsString(mergedConfig.getEntries()));

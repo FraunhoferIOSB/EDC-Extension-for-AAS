@@ -22,7 +22,7 @@ import org.eclipse.edc.spi.system.configuration.Config;
  */
 public class PolicyServiceConfig {
 
-    private static final boolean ACCEPT_ALL_PROVIDER_OFFERS_DEFAULT = false;
+    private static final boolean ACCEPT_ALL_POLICY_DEFINITIONS_DEFAULT = false;
     private static final int WAIT_FOR_CATALOG_TIMEOUT_DEFAULT = 10;
     private static final String ACCEPTED_POLICY_DEFINITIONS_PATH_DEFAULT = null;
 
@@ -33,7 +33,7 @@ public class PolicyServiceConfig {
     }
 
     boolean isAcceptAllProviderOffers() {
-        return config.getBoolean("acceptAllProviderOffers", ACCEPT_ALL_PROVIDER_OFFERS_DEFAULT);
+        return config.getBoolean("acceptAllProviderOffers", ACCEPT_ALL_POLICY_DEFINITIONS_DEFAULT);
     }
 
     int getWaitForCatalogTimeout() {

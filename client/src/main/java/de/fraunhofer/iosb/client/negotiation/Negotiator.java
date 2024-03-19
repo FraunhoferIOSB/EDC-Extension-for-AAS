@@ -15,15 +15,12 @@
  */
 package de.fraunhofer.iosb.client.negotiation;
 
-import java.util.concurrent.ExecutionException;
-
 import org.eclipse.edc.connector.contract.spi.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.response.StatusResult;
-import org.eclipse.edc.spi.system.configuration.Config;
 
 /**
  * Send contractrequest, negotiation status watch
@@ -41,7 +38,7 @@ public class Negotiator {
      *                                   negotiating
      */
     public Negotiator(ConsumerContractNegotiationManager consumerNegotiationManager,
-            ContractNegotiationStore contractNegotiationStore, Config config) {
+                      ContractNegotiationStore contractNegotiationStore) {
         this.consumerNegotiationManager = consumerNegotiationManager;
         this.contractNegotiationStore = contractNegotiationStore;
     }
@@ -49,7 +46,7 @@ public class Negotiator {
     /*
      * InterruptedException: Thread for agreementId was waiting, sleeping, or
      * otherwise occupied, and was interrupted.
-     * 
+     *
      * ExecutionException: Attempted to retrieve the agreementId but the task
      * aborted by throwing an exception. This exception can be inspected using the
      * getCause() method.
@@ -64,7 +61,12 @@ public class Negotiator {
         if (!relevantAgreements.isEmpty()) {
             // assuming contractNegotiationStore removes invalid agreements
             return StatusResult.success(
-                    ContractNegotiation.Builder.newInstance().contractAgreement(relevantAgreements.get(0)).build());
+                    ContractNegotiation.Builder.newInstance()
+                            .contractAgreement(relevantAgreements.get(0))
+                            .counterPartyAddress(contractRequest.getCounterPartyAddress())
+                            .counterPartyId(contractRequest.getProviderId())
+                            .protocol(contractRequest.getProtocol())
+                            .build());
         }
 
         return consumerNegotiationManager.initiate(contractRequest);

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.client.dataTransfer;
+package de.fraunhofer.iosb.client.datatransfer;
 
 import de.fraunhofer.iosb.client.ClientEndpoint;
 import jakarta.ws.rs.core.UriBuilder;
@@ -30,11 +30,10 @@ import java.net.URL;
 import java.util.Objects;
 import java.util.UUID;
 
-import static de.fraunhofer.iosb.client.dataTransfer.DataTransferController.DATA_TRANSFER_API_KEY;
+import static de.fraunhofer.iosb.client.datatransfer.DataTransferController.DATA_TRANSFER_API_KEY;
 import static java.lang.String.format;
 import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
-
 
 /**
  * Initiate transfer requests
@@ -44,14 +43,12 @@ class TransferInitiator {
     private final TransferProcessManager transferProcessManager;
     private final Monitor monitor;
     private final URI ownUri;
-    private final String connectorId;
 
     TransferInitiator(Config config, Monitor monitor,
-                      TransferProcessManager transferProcessManager, String connectorId) {
+                      TransferProcessManager transferProcessManager) {
         this.monitor = monitor;
         this.ownUri = createOwnUriFromConfigurationValues(config);
         this.transferProcessManager = transferProcessManager;
-        this.connectorId = connectorId;
     }
 
     void initiateTransferProcess(URL providerUrl, String agreementId, String assetId, String apiKey) {
@@ -74,10 +71,8 @@ class TransferInitiator {
 
         var transferRequest = TransferRequest.Builder.newInstance()
                 .id(UUID.randomUUID().toString()) // this is not relevant, thus can be random
-                .connectorId(providerUrl.toString()) // the address of the provider connector
-                .counterPartyAddress(providerUrl.toString())
+                .counterPartyAddress(providerUrl.toString()) // the address of the provider connector
                 .protocol(DATASPACE_PROTOCOL_HTTP)
-                .connectorId(this.connectorId)
                 .assetId(assetId)
                 .dataDestination(dataSinkAddress)
                 .contractId(agreementId)

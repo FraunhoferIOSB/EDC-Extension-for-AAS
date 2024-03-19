@@ -61,7 +61,8 @@ public class ClientExtension implements ServiceExtension {
         var negotiationController = new NegotiationController(consumerNegotiationManager,
                 contractNegotiationObservable, contractNegotiationStore, config);
 
-        var dataTransferController = new DataTransferController(monitor, config, webService,
+        // This controller needs base config to read EDC's hostname + specific ports
+        var dataTransferController = new DataTransferController(monitor, context.getConfig(), webService,
                 publicApiManagementService, transferProcessManager);
 
         webService.registerResource(new ClientEndpoint(monitor, negotiationController, policyController,

@@ -24,6 +24,7 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
 
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -60,13 +61,17 @@ public class NegotiationController {
             throws InterruptedException, ExecutionException {
 
         var negotiationStatusResult = negotiator.negotiate(contractRequest);
-
-        if (negotiationStatusResult.succeeded()) {
-            return waitForAgreement(negotiationStatusResult.getContent().getId());
-        } else {
+        if (!negotiationStatusResult.succeeded()) {
             throw new EdcException(negotiationStatusResult.getFailureDetail());
         }
+        var negotiation = negotiationStatusResult.getContent();
+        if (Objects.nonNull(negotiation.getContractAgreement())) {
+            return negotiationStatusResult.getContent().getContractAgreement();
+        } else {
+            return waitForAgreement(negotiation.getId());
+        }
     }
+
 
     private ContractAgreement waitForAgreement(String negotiationId) throws InterruptedException, ExecutionException {
         var agreementFuture = new CompletableFuture<ContractNegotiation>();

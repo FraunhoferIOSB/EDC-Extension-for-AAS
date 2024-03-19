@@ -38,7 +38,7 @@ public class PolicyServiceConfigTest {
     @Test
     public void isAcceptAllProviderOffersTest() {
         var expected = true;
-        when(config.getBoolean("acceptedPolicyDefinitionsPath", false)).thenReturn(expected);
+        when(config.getBoolean("acceptAllProviderOffers", false)).thenReturn(expected);
 
         assertTrue(policyServiceConfig.isAcceptAllProviderOffers());
     }

@@ -61,7 +61,12 @@ public class Negotiator {
         if (!relevantAgreements.isEmpty()) {
             // assuming contractNegotiationStore removes invalid agreements
             return StatusResult.success(
-                    ContractNegotiation.Builder.newInstance().contractAgreement(relevantAgreements.get(0)).build());
+                    ContractNegotiation.Builder.newInstance()
+                            .contractAgreement(relevantAgreements.get(0))
+                            .counterPartyAddress(contractRequest.getCounterPartyAddress())
+                            .counterPartyId(contractRequest.getProviderId())
+                            .protocol(contractRequest.getProtocol())
+                            .build());
         }
 
         return consumerNegotiationManager.initiate(contractRequest);

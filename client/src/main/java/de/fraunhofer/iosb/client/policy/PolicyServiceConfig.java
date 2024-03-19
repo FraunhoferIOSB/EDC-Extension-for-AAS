@@ -33,7 +33,7 @@ public class PolicyServiceConfig {
     }
 
     boolean isAcceptAllProviderOffers() {
-        return config.getBoolean("acceptedPolicyDefinitionsPath", ACCEPT_ALL_POLICY_DEFINITIONS_DEFAULT);
+        return config.getBoolean("acceptAllProviderOffers", ACCEPT_ALL_POLICY_DEFINITIONS_DEFAULT);
     }
 
     int getWaitForCatalogTimeout() {

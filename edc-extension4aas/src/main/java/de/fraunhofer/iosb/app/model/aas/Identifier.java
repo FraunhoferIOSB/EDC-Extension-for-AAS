@@ -38,7 +38,7 @@ public class Identifier {
 
     @Override
     public int hashCode() {
-        return Objects.hash(idType, id);
+        return Objects.hash(id);
     }
 
     @Override

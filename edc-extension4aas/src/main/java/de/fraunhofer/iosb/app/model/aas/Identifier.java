@@ -19,6 +19,8 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.Objects;
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonAutoDetect
 public class Identifier {
@@ -32,6 +34,11 @@ public class Identifier {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(idType, id);
     }
 
     @Override

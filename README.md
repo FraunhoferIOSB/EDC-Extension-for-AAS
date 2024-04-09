@@ -9,16 +9,17 @@ model via the EDC.
 
 | Specification                                                                                                                                  | Version                                                                                                   |
 |:-----------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------|
-| Eclipse Dataspace Connector                                                                                                                    | v0.1.3                                                                                                    |
+| Eclipse Dataspace Connector                                                                                                                    | v0.4.1                                                                                                    |
 | AAS - Details of the Asset Administration Shell - Part 1<br />The exchange of information between partners in the value chain of Industrie 4.0 | Version 3.0RC01<br />(based on [admin-shell-io/java-model](https://github.com/admin-shell-io/java-model)) |
 
 ## Repo Structure
 
 The repository contains several material:
 
+- `client`: Source code for the client extension (automated contract negotiation)
 - `config`: Checkstyle files for code formatting
-- `edc-extension4aas`: Source code for the extension
-- `example`: Example use case for the edc-extension4aas with a preconfigured EDC launcher.
+- `edc-extension4aas`: Source code for the AAS extension
+- `example`: Example use case for the edc-extension4aas and client extension with a preconfigured EDC launcher.
 
 <!-- ------------------Template Section --------------------------- -->
 
@@ -34,8 +35,10 @@ contracts have to be defined for each element.
 In order to minimize configuration effort and prevent errors, this extension is able to link running AAS into EDC
 Assets. Furthermore, this extension can also start AAS by reading an AAS model. A default contract can be chosen to be
 applied for all elements. For critical elements, additional contracts can be placed.
-External changes to the model of an AAS are automatically synchronized by the Extension.
-Additionally, a client providing API calls for aggregations of processes such as contract negotiation and data transfer
+External changes to the model of an AAS are automatically synchronized by the extension.
+
+Additionally, a client extension providing API calls for aggregations of processes such as contract negotiation and data
+transfer
 is available.
 
 ### Use Cases
@@ -62,15 +65,20 @@ Provide digital twin (AAS) data to business partners in Data Spaces like Catena-
 
 #### **Client Interfaces**
 
-| HTTP Method | Interface (edc:1234/api/...) ((a) = only for authenticated users) | Parameters ((r) = required)                                                                                                                                    | Description                                                                                                                                                                                                                                                                   |
-|:------------|:------------------------------------------------------------------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| POST        | negotiate (a)                                                     | Query Parameter "providerUrl": URL (r), Query Parameter "assetId": String (r), Query Parameter "dataDestinationUrl"                                            | Perform an automated contract negotiation with a provider and get the data stored in the specified asset. Optionally, a data destination URL can be specified where the data is sent to on success.                                                                           |
-| GET         | dataset (a)                                                       | Query Parameter "providerUrl": URL (r), Query Parameter "assetId": String (r)                                                                                  | Get offered dataset from the specified provider's catalog that contains the specified asset's policies.                                                                                                                                                                       |
-| POST        | negotiateContract (a)                                             | Query Parameter "providerUrl": URL (r), request body: contractOffer (r)                                                                                        | Using a contractOffer and a providerUrl, negotiate a contract. Returns an agreementId on success.                                                                                                                                                                             |
-| GET         | transfer (a)                                                      | Query Parameter "providerUrl": URL (r), Query Parameter "agreementId": String (r), Query Parameter "assetId": String (r), Query Parameter "dataDestinationUrl" | Submits a data transfer request to the providerUrl. On success, returns the data behind the specified asset. Optionally, a data destination URL can be specified where the data is then sent to.                                                                              |
-| POST        | contractOffers (a)                                                | request body: List of ContractOffers (JSON) (r)                                                                                                                | Adds the given ContractOffers to the accepted ContractOffers list: On fully automated negotiation, the provider's ContractOffer is matched against the consumer's accepted ContractOffer list. If any ContractOffer's policies fit the provider's, the negotiation continues. |
+| HTTP Method | Interface (edc:1234/api/automated/...) ((a) = only for authenticated users) | Parameters ((r) = required)                                                                                                                                        | Description                                                                                                                                                                                                                                                                                                                                      |
+|:------------|:----------------------------------------------------------------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| POST        | negotiate (a)                                                               | Query Parameter "providerUrl": URL (r), Query Parameter "providerId": String (r), Query Parameter "assetId": String (r), Query Parameter "dataDestinationUrl": URL | Perform an automated contract negotiation with a provider (given provider URL and ID) and get the data stored for the specified asset. Optionally, a data destination URL can be specified where the data is sent to instead of the extension's log.                                                                                             |
+| GET         | dataset (a)                                                                 | Query Parameter "providerUrl": URL (r), Query Parameter "assetId": String (r), Query Parameter "providerId": String (r)                                            | Get dataset from the specified provider's catalog that contains the specified asset's policies.                                                                                                                                                                                                                                                  |
+| POST        | negotiateContract (a)                                                       | request body: org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest (r)                                                                         | Using a contractRequest (JSON in http request body), negotiate a contract. Returns the corresponding agreementId on success.                                                                                                                                                                                                                     |
+| GET         | transfer (a)                                                                | Query Parameter "providerUrl": URL (r), Query Parameter "agreementId": String (r), Query Parameter "assetId": String (r), Query Parameter "dataDestinationUrl"     | Submits a data transfer request to the providerUrl. On success, returns the data behind the specified asset. Optionally, a data destination URL can be specified where the data is sent to instead of the extension's log.                                                                                                                       |
+| POST        | acceptedPolicies (a)                                                        | request body: List of PolicyDefinitions (JSON) (r)                                                                                                                 | Adds the given PolicyDefinitions to the accepted PolicyDefinitions list (Explanation: On fully automated negotiation, the provider's PolicyDefinition is matched against the consumer's accepted PolicyDefinitions list. If any PolicyDefinition fits the provider's, the negotiation continues.) Returns "OK"-Response if requestBody is valid. |
+| GET         | acceptedPolicies (a)                                                        | -                                                                                                                                                                  | Returns the client extension's accepted policy definitions for fully automated negotiation.                                                                                                                                                                                                                                                      |
+| DELETE      | acceptedPolicies (a)                                                        | request body: PolicyDefinition: PolicyDefinition (JSON) (r)                                                                                                        | Updates the client extension's accepted policy definition with the same policyDefinitionId as the request.                                                                                                                                                                                                                                       |
+| PUT         | acceptedPolicies (a)                                                        | request body: PolicyDefinitionId: String (JSON) (r)                                                                                                                | Deletes a client extension's accepted policy definition with the same policyDefinitionId as the request.                                                                                                                                                                                                                                         |
 
 ### Dependencies
+
+#### EDC-Extension-for-AAS
 
 | Name                                          | Description                                                                                                   |
 |:----------------------------------------------|:--------------------------------------------------------------------------------------------------------------|
@@ -84,7 +92,20 @@ Provide digital twin (AAS) data to business partners in Data Spaces like Catena-
 | org.eclipse.edc:runtime-metamodel             | EDC metamodel                                                                                                 |
 | org.eclipse.edc:dsp-catalog-http-dispatcher   | EDC constants                                                                                                 |
 
+#### Client Extension
+
+| Name                                        | Description                                |
+|:--------------------------------------------|:-------------------------------------------|
+| org.eclipse.edc:contract-core               | Client: Observe contract negotiation state |
+| org.eclipse.edc:dsp-catalog-http-dispatcher | EDC constants                              |
+| org.eclipse.edc:management-api              | EDC asset/contract management              |
+| org.eclipse.edc:runtime-metamodel           | EDC metamodel                              |
+| org.eclipse.edc:data-plane-http-spi         | HttpDataAddress                            |
+| jakarta.ws.rs:jakarta.ws.rs-api             | provides HTTP endpoints of extension       |
+
 ### Configurations
+
+#### **EDC-Extension-for-AAS Configurations**
 
 | Key                               | Value Type                | Description                                                                                                                                                                                                                                             |
 |:----------------------------------|:--------------------------|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -97,27 +118,27 @@ Provide digital twin (AAS) data to business partners in Data Spaces like Catena-
 | edc.aas.defaultAccessPolicyPath   | path                      | Path to an access policy file (JSON). This policy will be used as the default access policy for all assets created after the configuration value has been set.                                                                                          |
 | edc.aas.defaultContractPolicyPath | path                      | Path to a contract policy file (JSON). This policy will be used as the default contract policy for all assets created after the configuration value has been set.                                                                                       |
 
-#### **Client Configurations**
+#### **Client Extension Configurations**
 
-| Key                                       | Value Type              | Description                                                                                                                                                             |
-|:------------------------------------------|:------------------------|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| edc.aas.client.waitForAgreementTimeout    | whole number in seconds | How long should the extension wait for an agreement when automatically negotiating a contract? Default value is 10(s).                                                  |
-| edc.aas.client.waitForTransferTimeout     | whole number in seconds | How long should the extension wait for a data transfer when automatically negotiating a contract? Default value is 10(s).                                               |
-| edc.aas.client.acceptAllProviderOffers    | boolean                 | If true, the client accepts any contractOffer offered by a provider connector on automated contract negotiation (e.g., trusted provider). Default value: false          |
-| edc.aas.client.acceptedContractOffersPath | path                    | Path pointing to a JSON-file containing acceptable ContractOffers for automated contract negotiation in a list (only policies must match in a provider's ContractOffer) |
+| Key                                      | Value Type              | Description                                                                                                                                                                   |
+|:-----------------------------------------|:------------------------|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| edc.client.waitForAgreementTimeout       | whole number in seconds | How long should the extension wait for an agreement when automatically negotiating a contract? Default value is 10(s).                                                        |
+| edc.client.waitForTransferTimeout        | whole number in seconds | How long should the extension wait for a data transfer when automatically negotiating a contract? Default value is 10(s).                                                     |
+| edc.client.acceptAllProviderOffers       | boolean                 | If true, the client accepts any contractOffer offered by a provider connector on automated contract negotiation (e.g., trusted provider). Default value: false                |
+| edc.client.acceptedPolicyDefinitionsPath | path                    | Path pointing to a JSON-file containing acceptable PolicyDefinitions for automated contract negotiation in a list (only policies must match in a provider's PolicyDefinition) |
 
 ## Terminology
 
 | Term          | Description                                                                                                                                                                                                                                                                                                                      |
 |:--------------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | AAS           | Asset Administration Shell (see [AAS reading guide](https://www.plattform-i40.de/IP/Redaktion/DE/Downloads/Publikation/Asset_Administration_Shell_Reading_Guide.html) or [AAS specification part 1](https://www.plattform-i40.de/IP/Redaktion/DE/Downloads/Publikation/Details_of_the_Asset_Administration_Shell_Part1_V3.html)) |
-| FA³ST Service | Open Source java implementation of the AAS part 2 see on [GitHub](https://github.com/FraunhoferIOSB/FAAAST-Service)                                                                                                                                                                                                              |
+| FA³ST Service | Open Source java implementation of the AAS part 2 [see on GitHub](https://github.com/FraunhoferIOSB/FAAAST-Service)                                                                                                                                                                                                              |
 
 ## Roadmap
 
 Features in development:
 
 - Graphical interface to simplify providing and requesting AAS (
-  see: https://github.com/FraunhoferIOSB/EDC-Extension-for-AAS-Dashboard)
-- Built-in client to request AAS data from other EDC (automatic contract negotiation)
+  see: https://github.com/FraunhoferIOSB/EDC-Extension-for-AAS-Dashboard) &#x2713;
+- Built-in client to request AAS data from other EDC (automatic contract negotiation) &#x2713;
 - Docker Hub container deployment

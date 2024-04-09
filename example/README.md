@@ -1,7 +1,6 @@
 # Example Use Case
 
-The example use case starts two connectors with the edc4aas extension. The first connector is a provider of an AAS model
-and the second connector is an example consumer which wants to retrieve data from the provider.
+The example use case starts two connectors with the edc4aas extension and the client extension. The first connector is a provider of an AAS model and the second connector is an example consumer which wants to retrieve data from the provider.
 
 The example has the following structure:
 
@@ -16,6 +15,7 @@ The example has the following structure:
 - `dataspaceconnector-configuration.properties`: Debugging and quick testing of changes via `./gradlew run --debug-jvm`
   command
 - `docker-compose.yml`, `Dockerfile`: Docker files
+- `README.md`: This README file
 
 ## Getting Started
 
@@ -40,12 +40,15 @@ java "-Dedc.fs.config=./example/configurations/provider.properties" -jar ./examp
 
 ### Alternative: docker & docker-compose
 
+
 After building the extension as seen above, a docker image can be built with
 
-```sh
-cd ./example
-docker build -t edc-aas-extension:latest .
-```
+1. `cd ./example`
+2. `docker build -t edc-aas-extension:latest .`
+3. `mkdir workdir`
+4. Create configuration under `./workdir/config.properties`
+5. Add additional files under `./workdir` (Fitting to your paths in config.properties)
+6. Run with `docker run -i -v $PWD/workdir:/workdir/ -e EDC_FS_CONFIG=/workdir/config.properties edc-extension4aas:latest`
 
 This docker image can be run individually or **inside a docker-compose file**:
 
@@ -110,20 +113,20 @@ java -Dedc.fs.config=./example/configurations/consumer.properties -jar ./example
 ```
 
 Starting the data transfer from provider to consumer. There is a `postman collection` containing the necessary http
-request located in `/examples/resources`. Do the following steps:
+requests located in `/examples/resources`. Complete the following steps:
 
-1. Call the provider's self description on `http://localhost:8181/api/selfDescription`, and choose an element you want
-   to fetch. Put its `asset id` as a variable in the postman collection's variables section.
+1. Call the provider's self-description on `http://localhost:8181/api/selfDescription` and choose an element you want
+   to fetch. Put its `asset id` as a variable in the postman collection's variables section ("Current value").
 
 ### Fully automated
 
 __Important__:
 
-- If the (consumer's) config value `edc.aas.client.acceptAllProviderOffers` is set to `true`: This command will fetch
+- If the (consumer's) config value `edc.client.acceptAllProviderOffers` is set to `true`: This command will fetch
   a provider policy for the selected asset and accept it as is. If no policies exist for this asset, no negotiation will
   take place.
 
-- If the (consumer's) config value `edc.aas.client.acceptAllProviderOffers` is set to `false` (default): This command
+- If the (consumer's) config value `edc.client.acceptAllProviderOffers` is set to `false` (default): This command
   will request the provider's offered policy for the asset and check it against its own accepted policyDefinitions by
   comparing the permissions, prohibitions and obligations of both the provider's policyDefinition and the ones in the
   policyDefinitionStore. The assetID or other IDs must not be equal for the policyDefinitions to match. Initially, this
@@ -139,21 +142,22 @@ __Important__:
 ### Separate requests
 
 1. Execute the request `Client/1. Get dataset for asset`
-   Choose a policy of the response body.
+   This will return the provider offer for this asset. Copy the full response for the next step.
 
-2. Put the policy inside of request `Client/2. Initiate negotiation with contractOffer`'s body (policy field) and
+2. Paste the response inside of request `Client/2. Initiate negotiation with contractOffer`'s body ("contractOffer" field, as can be seen in the screenshot) and
    execute said request.
+<img src="resources/tutorial-images/step-2">
 
-3. If everything went right, request `2` returns an agreementID. Update the postman collection's agreementID variable
-   with the response value.
+3. If everything succeeded, request `2` returns an agreementID. Update the postman collection's "agreement-id" variable
+   using the response value.
 
-4. Execute request `3. Get data for agreement id and asset id`. If everything went right, the response should be the
+4. Execute request `3. Get data for agreement id and asset id`. If again everything went right, the response should be the
    data behind the previously selected asset.
 
 ## Running the Example (manual)
 
 
-### Info: Manual data transfer example is outdated! Please refer to the edc samples repository 
+### Warning: Manual data transfer example is outdated! Please refer to the official EDC documentation! 
 
 Build the EDC with the extensions.
 
@@ -187,18 +191,17 @@ requests for data transfer in this extensions repository located in `/examples/r
 3. With this `<negotiation-id>`, query the consumer connector about the state of the negotiation. Execute request 2 of
    the data transfer folder.
    It should return:
-
-```json
-{
-  "contractAgreementId": "<agreement-id>",
-  "counterPartyAddress": "http://localhost:8282/api/v1/ids/data",
-  "errorDetail": null,
-  "id": "ac6e1c97-13d6-41ff-8b79-1029d7f094bb",
-  "protocol": "ids-multipart",
-  "state": "CONFIRMED",
-  "type": "CONSUMER"
-}
-```
+    ```json
+    {
+      "contractAgreementId": "<agreement-id>",
+      "counterPartyAddress": "http://localhost:8282/api/v1/ids/data",
+      "errorDetail": null,
+      "id": "ac6e1c97-13d6-41ff-8b79-1029d7f094bb",
+      "protocol": "ids-multipart",
+      "state": "CONFIRMED",
+      "type": "CONSUMER"
+    }
+    ```
 
 4. Put the `<agreement-id>` in the postman collection's agreement-id variable.
    Execute request 3 of the Data Transfer folder. The provider connector should now send the data, and in the consumer

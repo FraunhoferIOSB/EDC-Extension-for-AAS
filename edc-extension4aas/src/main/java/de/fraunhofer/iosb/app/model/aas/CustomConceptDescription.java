@@ -17,8 +17,12 @@ package de.fraunhofer.iosb.app.model.aas;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+
+import java.util.Objects;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 @JsonAutoDetect
 public class CustomConceptDescription extends AASElement {
 
@@ -39,6 +43,11 @@ public class CustomConceptDescription extends AASElement {
 
     public void setIdShort(String idShort) {
         this.idShort = idShort;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(identification, idShort);
     }
 
     @Override

@@ -16,17 +16,20 @@
 package de.fraunhofer.iosb.app.model.aas;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
+import java.util.ArrayList;
 import java.util.List;
 
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class CustomAssetAdministrationShellEnvironment {
 
-    protected List<CustomAssetAdministrationShell> assetAdministrationShells;
+    protected List<CustomAssetAdministrationShell> assetAdministrationShells = new ArrayList<>();
 
-    protected List<CustomSubmodel> submodels;
+    protected List<CustomSubmodel> submodels = new ArrayList<>();
 
-    protected List<CustomConceptDescription> conceptDescriptions;
+    protected List<CustomConceptDescription> conceptDescriptions = new ArrayList<>();
 
     public List<CustomAssetAdministrationShell> getAssetAdministrationShells() {
         return assetAdministrationShells;

@@ -17,10 +17,9 @@ package de.fraunhofer.iosb.app.aas;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iosb.app.Logger;
-import de.fraunhofer.iosb.app.testUtils.FileManager;
-import okhttp3.OkHttpClient;
+import de.fraunhofer.iosb.app.testutils.FileManager;
 import io.adminshell.aas.v3.dataformat.DeserializationException;
-import org.eclipse.edc.spi.monitor.Monitor;
+import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,7 +31,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.mock;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
@@ -42,18 +40,10 @@ import static org.mockserver.model.HttpResponse.response;
  */
 public class AasAgentTest {
 
-    /**
-     *
-     */
     private static final String HTTP_LOCALHOST_8080 = "http://localhost:8080";
 
     private AasAgent aasAgent;
     private static ClientAndServer mockServer;
-
-    @BeforeAll
-    public static void initializeLogger() {
-        Logger.getInstance().setMonitor(mock(Monitor.class));
-    }
 
     @BeforeAll
     public static void startMockServer() {
@@ -65,8 +55,7 @@ public class AasAgentTest {
         aasAgent = new AasAgent(new OkHttpClient());
     }
 
-    @Test // Can't really test this anymore with new variable "sourceUrl" that is not
-    // serialized
+    @Test
     public void testGetAasEnvWithUrls() throws IOException, DeserializationException {
         var shells = FileManager.loadResource("shells.json");
         var submodels = FileManager.loadResource("submodels.json");
@@ -80,7 +69,27 @@ public class AasAgentTest {
         var shouldBeResult = FileManager.loadResource("selfDescriptionWithAccessURLS.json");
 
         var result = new ObjectMapper().writeValueAsString(
-                aasAgent.getAasEnvWithUrls(new URL(HTTP_LOCALHOST_8080)));
+                aasAgent.getAasEnvWithUrls(new URL(HTTP_LOCALHOST_8080), false));
+        result = result.replace("\n", "").replace(" ", "");
+
+        assertEquals(shouldBeResult, result);
+    }
+
+    @Test
+    public void testGetAasEnvWithUrlsOnlySubmodels() throws IOException, DeserializationException {
+        var shells = FileManager.loadResource("shells.json");
+        var submodels = FileManager.loadResource("submodels.json");
+        var conceptDescriptions = FileManager.loadResource("conceptDescriptions.json");
+
+        mockServer.when(request().withMethod("GET").withPath("/shells")).respond(response().withBody(shells));
+        mockServer.when(request().withMethod("GET").withPath("/submodels")).respond(response().withBody(submodels));
+        mockServer.when(request().withMethod("GET").withPath("/concept-descriptions"))
+                .respond(response().withBody(conceptDescriptions));
+
+        var shouldBeResult = FileManager.loadResource("selfDescriptionWithAccessURLsSubmodelsOnly.json");
+
+        var result = new ObjectMapper().writeValueAsString(
+                aasAgent.getAasEnvWithUrls(new URL(HTTP_LOCALHOST_8080), true));
         result = result.replace("\n", "").replace(" ", "");
 
         assertEquals(shouldBeResult, result);

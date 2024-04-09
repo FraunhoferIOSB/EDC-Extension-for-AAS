@@ -15,12 +15,8 @@
  */
 package de.fraunhofer.iosb.app.util;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-
 import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShellEnvironment;
+import de.fraunhofer.iosb.app.model.aas.CustomSemanticId;
 import de.fraunhofer.iosb.app.model.aas.CustomSubmodel;
 import de.fraunhofer.iosb.app.model.aas.CustomSubmodelElement;
 import de.fraunhofer.iosb.app.model.aas.CustomSubmodelElementCollection;
@@ -28,6 +24,11 @@ import de.fraunhofer.iosb.app.model.aas.IdsAssetElement;
 import io.adminshell.aas.v3.model.Submodel;
 import io.adminshell.aas.v3.model.SubmodelElement;
 import io.adminshell.aas.v3.model.SubmodelElementCollection;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
 
 public final class AASUtil {
 
@@ -88,6 +89,12 @@ public final class AASUtil {
             } else {
                 var customSubmodelElement = new CustomSubmodelElement();
                 customSubmodelElement.setIdShort(submodelElement.getIdShort());
+
+                if (Objects.nonNull(submodelElement.getSemanticId().getKeys())) {
+                    customSubmodelElement
+                            .setSemanticId(new CustomSemanticId(submodelElement.getSemanticId().getKeys()));
+                }
+
                 customSubmodelElements.add(customSubmodelElement);
             }
         }

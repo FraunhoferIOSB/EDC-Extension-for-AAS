@@ -15,17 +15,15 @@
  */
 package de.fraunhofer.iosb.app.sync;
 
-import de.fraunhofer.iosb.app.Logger;
 import de.fraunhofer.iosb.app.controller.AasController;
 import de.fraunhofer.iosb.app.controller.ResourceController;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
-import de.fraunhofer.iosb.app.testUtils.FileManager;
+import de.fraunhofer.iosb.app.testutils.FileManager;
 import okhttp3.OkHttpClient;
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.asset.AssetIndex;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,7 +36,9 @@ import java.net.URL;
 import java.util.Objects;
 
 import static java.lang.String.format;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.model.HttpRequest.request;
@@ -62,7 +62,6 @@ public class SynchronizerTest {
 
     @BeforeAll
     public static void initialize() throws MalformedURLException {
-        Logger.getInstance().setMonitor(mock(Monitor.class));
         port = 8080;
         url = new URL(format("http://localhost:%s", port));
     }
@@ -102,7 +101,7 @@ public class SynchronizerTest {
     }
 
     @Test
-    public void synchronizationRemoveSubmodelElementTest() {
+    public void synchronizationRemoveAllSubmodelElementsTest() {
         startMockServer(port);
 
         prepareDefaultMockedResponse();
@@ -142,7 +141,7 @@ public class SynchronizerTest {
 
         prepareEmptyMockedResponse();
         synchronizer.synchronize();
-        assertEquals("{\"assetAdministrationShells\":[],\"submodels\":[],\"conceptDescriptions\":[]}",
+        assertEquals("{}",
                 selfDescriptionRepo.getSelfDescription(url).toString());
     }
 

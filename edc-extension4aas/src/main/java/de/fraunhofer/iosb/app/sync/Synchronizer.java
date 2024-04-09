@@ -17,7 +17,12 @@ package de.fraunhofer.iosb.app.sync;
 
 import de.fraunhofer.iosb.app.controller.AasController;
 import de.fraunhofer.iosb.app.controller.ResourceController;
-import de.fraunhofer.iosb.app.model.aas.*;
+import de.fraunhofer.iosb.app.model.aas.AASElement;
+import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShellEnvironment;
+import de.fraunhofer.iosb.app.model.aas.CustomSubmodel;
+import de.fraunhofer.iosb.app.model.aas.CustomSubmodelElement;
+import de.fraunhofer.iosb.app.model.aas.IdsAssetElement;
+import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import de.fraunhofer.iosb.app.model.ids.SelfDescription;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionChangeListener;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
@@ -43,12 +48,14 @@ public class Synchronizer implements SelfDescriptionChangeListener {
     private final SelfDescriptionRepository selfDescriptionRepository;
     private final AasController aasController;
     private final ResourceController resourceController;
+    private final Configuration configuration;
 
     public Synchronizer(SelfDescriptionRepository selfDescriptionRepository,
-                        AasController aasController, ResourceController resourceController) {
+            AasController aasController, ResourceController resourceController) {
         this.selfDescriptionRepository = selfDescriptionRepository;
         this.aasController = aasController;
         this.resourceController = resourceController;
+        this.configuration = Configuration.getInstance();
     }
 
     /**
@@ -62,10 +69,12 @@ public class Synchronizer implements SelfDescriptionChangeListener {
     }
 
     private void synchronize(URL aasServiceUrl) {
-        var oldSelfDescription = selfDescriptionRepository.getSelfDescription(aasServiceUrl);
-        CustomAssetAdministrationShellEnvironment newEnvironment;
+        var onlySubmodels = this.configuration.isOnlySubmodels();
 
-        newEnvironment = fetchCurrentAasModel(aasServiceUrl);
+        var oldSelfDescription = selfDescriptionRepository.getSelfDescription(aasServiceUrl);
+        var newEnvironment = fetchCurrentAasModel(aasServiceUrl, onlySubmodels);
+
+        // Only load submodels or shells, conceptDescriptions, submodelElements as well?
 
         if (Objects.nonNull(oldSelfDescription)) {
             var oldEnvironment = oldSelfDescription.getEnvironment();
@@ -77,8 +86,9 @@ public class Synchronizer implements SelfDescriptionChangeListener {
             // If the element exists in oldEnvironment, copy the old elements into
             // newEnvironment, already having an idsContractId/idsAssetId
             syncShell(newEnvironment, oldEnvironment);
-            syncSubmodel(newEnvironment, oldEnvironment);
             syncConceptDescription(newEnvironment, oldEnvironment);
+
+            syncSubmodel(newEnvironment, oldEnvironment);
 
             removeOldElements(newEnvironment, oldEnvironment);
 
@@ -88,11 +98,11 @@ public class Synchronizer implements SelfDescriptionChangeListener {
         selfDescriptionRepository.updateSelfDescription(aasServiceUrl, newEnvironment);
     }
 
-    private CustomAssetAdministrationShellEnvironment fetchCurrentAasModel(URL aasServiceUrl) {
+    private CustomAssetAdministrationShellEnvironment fetchCurrentAasModel(URL aasServiceUrl, boolean onlySubmodels) {
         CustomAssetAdministrationShellEnvironment newEnvironment;
 
         try { // Fetch current AAS model from AAS service
-            newEnvironment = aasController.getAasModelWithUrls(aasServiceUrl);
+            newEnvironment = aasController.getAasModelWithUrls(aasServiceUrl, onlySubmodels);
         } catch (IOException aasServiceUnreachableException) {
             throw new EdcException(format("Could not reach AAS service (%s): %s", aasServiceUrl,
                     aasServiceUnreachableException.getMessage()));
@@ -105,7 +115,8 @@ public class Synchronizer implements SelfDescriptionChangeListener {
 
     private void addNewElements(CustomAssetAdministrationShellEnvironment newEnvironment) {
         var envElements = AASUtil.getAllElements(newEnvironment);
-        addAssetsContracts(envElements.stream().filter(element -> Objects.isNull(element.getIdsContractId()))
+        addAssetsContracts(envElements.stream().filter(
+                element -> Objects.isNull(element.getIdsAssetId()) || Objects.isNull(element.getIdsContractId()))
                 .toList());
     }
 
@@ -113,14 +124,14 @@ public class Synchronizer implements SelfDescriptionChangeListener {
      * Removes elements that were deleted on AAS service
      */
     private void removeOldElements(CustomAssetAdministrationShellEnvironment newEnvironment,
-                                   CustomAssetAdministrationShellEnvironment oldEnvironment) {
+            CustomAssetAdministrationShellEnvironment oldEnvironment) {
         var elementsToRemove = AASUtil.getAllElements(oldEnvironment);
         elementsToRemove.removeAll(AASUtil.getAllElements(newEnvironment));
         removeAssetsContracts(elementsToRemove);
     }
 
     private void syncShell(CustomAssetAdministrationShellEnvironment newEnvironment,
-                           CustomAssetAdministrationShellEnvironment oldEnvironment) {
+            CustomAssetAdministrationShellEnvironment oldEnvironment) {
         var oldShells = oldEnvironment.getAssetAdministrationShells();
         newEnvironment.getAssetAdministrationShells().replaceAll(
                 shell -> oldShells.contains(shell)
@@ -129,7 +140,7 @@ public class Synchronizer implements SelfDescriptionChangeListener {
     }
 
     private void syncConceptDescription(CustomAssetAdministrationShellEnvironment newEnvironment,
-                                        CustomAssetAdministrationShellEnvironment oldEnvironment) {
+            CustomAssetAdministrationShellEnvironment oldEnvironment) {
         var oldConceptDescriptions = oldEnvironment.getConceptDescriptions();
         newEnvironment.getConceptDescriptions().replaceAll(
                 conceptDescription -> oldConceptDescriptions.contains(conceptDescription)
@@ -138,17 +149,15 @@ public class Synchronizer implements SelfDescriptionChangeListener {
     }
 
     private void syncSubmodel(CustomAssetAdministrationShellEnvironment newEnvironment,
-                              CustomAssetAdministrationShellEnvironment oldEnvironment) {
+            CustomAssetAdministrationShellEnvironment oldEnvironment) {
         var oldSubmodels = oldEnvironment.getSubmodels();
         newEnvironment.getSubmodels().forEach(submodel -> {
             CustomSubmodel oldSubmodel;
             if (oldSubmodels.contains(submodel)) {
-                oldSubmodel = oldSubmodels
-                        .get(oldSubmodels.indexOf(submodel));
+                oldSubmodel = oldSubmodels.get(oldSubmodels.indexOf(submodel));
             } else {
                 oldSubmodel = oldSubmodels.stream().filter(
-                                oldSubmodelTest -> oldSubmodelTest.getIdentification().equals(submodel.getIdentification())
-                                        && oldSubmodelTest.getIdShort().equals(submodel.getIdShort()))
+                                submodel::equals)
                         .findFirst().orElse(null);
                 if (Objects.isNull(oldSubmodel)) {
                     return;
@@ -164,7 +173,7 @@ public class Synchronizer implements SelfDescriptionChangeListener {
     }
 
     private void syncSubmodelElements(Collection<CustomSubmodelElement> allElements,
-                                      Collection<CustomSubmodelElement> allOldElements) {
+            Collection<CustomSubmodelElement> allOldElements) {
         allElements.stream()
                 .filter(allOldElements::contains)
                 .forEach(element -> {

@@ -10,7 +10,6 @@ val okHttpVersion: String by project
 val rsApi: String by project
 val mockitoVersion: String by project
 val mockserverVersion: String by project
-val metaModelVersion: String by project
 
 java {
     toolchain {
@@ -19,11 +18,15 @@ java {
 }
 
 dependencies {
+    // Centralized auth request filter
+    implementation(project(":public-api-management"))
+
     // See this project's README.MD for explanations
     implementation("$group:contract-core:$edcVersion")
-    implementation("$group:dsp-catalog-http-dispatcher:$edcVersion")
     implementation("$group:management-api:$edcVersion")
     implementation("$group:runtime-metamodel:$edcVersion")
+    implementation("$group:data-plane-http-spi:$edcVersion") // HttpDataAddress
+
     implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
     implementation("de.fraunhofer.iosb.ilt.faaast.service:starter:${faaastVersion}")
     implementation("org.eclipse.digitaltwin.aas4j:dataformat-json:1.0.0-milestone-04")
@@ -31,7 +34,7 @@ dependencies {
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 
     testImplementation("$group:junit:$edcVersion")
-    testImplementation("org.glassfish.jersey.core:jersey-common:3.1.3")
+    testImplementation("org.glassfish.jersey.core:jersey-common:3.1.5")
     testImplementation("org.mockito:mockito-core:${mockitoVersion}")
     testImplementation("org.mock-server:mockserver-junit-jupiter:${mockserverVersion}")
     testImplementation("org.mock-server:mockserver-netty:${mockserverVersion}")
@@ -40,14 +43,10 @@ dependencies {
 repositories {
     mavenCentral()
 }
-
-tasks.test {
-    useJUnitPlatform()
-}
-
-tasks.jacocoTestReport {
-    dependsOn(tasks.test) // tests are required to run before generating the report
-}
+tasks.compileJava {options.encoding = "UTF-8"}
+tasks.compileTestJava {options.encoding = "UTF-8"}
+tasks.test {useJUnitPlatform()}
+tasks.jacocoTestReport {dependsOn(tasks.test)}
 
 // FA³ST dependency needs the following
 configurations.all {

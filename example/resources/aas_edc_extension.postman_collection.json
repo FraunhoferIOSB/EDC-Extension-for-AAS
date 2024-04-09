@@ -1,8 +1,9 @@
 {
 	"info": {
-		"_postman_id": "11d46791-636f-49a5-8bb9-d040c8285963",
+		"_postman_id": "14677191-e263-4d83-ba13-d126c064b460",
 		"name": "EDC Extension",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "20511334"
 	},
 	"item": [
 		{
@@ -91,7 +92,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{consumer}}/api/automated/acceptedPolicies",
+									"raw": "{{consumer}}/api/automated/acceptedPolicies?policyDefinitionId=my-custom-policy-definition",
 									"host": [
 										"{{consumer}}"
 									],
@@ -99,6 +100,12 @@
 										"api",
 										"automated",
 										"acceptedPolicies"
+									],
+									"query": [
+										{
+											"key": "policyDefinitionId",
+											"value": "my-custom-policy-definition"
+										}
 									]
 								}
 							},
@@ -166,7 +173,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{consumer}}/api/automated/negotiate?providerUrl={{provider-dsp}}&assetId={{asset-id}}",
+							"raw": "{{consumer}}/api/automated/negotiate?providerUrl={{provider-dsp}}&providerId=provider&assetId={{asset-id}}",
 							"host": [
 								"{{consumer}}"
 							],
@@ -179,6 +186,10 @@
 								{
 									"key": "providerUrl",
 									"value": "{{provider-dsp}}"
+								},
+								{
+									"key": "providerId",
+									"value": "provider"
 								},
 								{
 									"key": "assetId",
@@ -196,19 +207,19 @@
 					"response": []
 				},
 				{
-					"name": "1. Get dataset for asset",
+					"name": "1. Get offer for asset",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{consumer}}/api/automated/dataset?providerUrl={{provider-dsp}}&assetId={{asset-id}}",
+							"raw": "{{consumer}}/api/automated/offer?providerUrl={{provider-dsp}}&assetId={{asset-id}}",
 							"host": [
 								"{{consumer}}"
 							],
 							"path": [
 								"api",
 								"automated",
-								"dataset"
+								"offer"
 							],
 							"query": [
 								{
@@ -231,7 +242,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{  \r\n    \"@context\": {\r\n    \"edc\": \"https://w3id.org/edc/v0.0.1/ns/\",\r\n    \"odrl\": \"http://www.w3.org/ns/odrl/2/\"\r\n  },\r\n    \"providerId\": \"provider\",\r\n    \"consumerId\": \"consumer\",\r\n    \"connectorAddress\": \"{{provider}}\",\r\n    \"protocol\": \"dataspace-protocol-http\",\r\n    \"counterPartyId\": \"provider\",\r\n    \"counterPartyAddress\": \"{{provider-dsp}}\",\r\n    \"contractOffer\": {\r\n        \"id\": \"DEFAULT_CONTRACT24:-1268910060:3886d894-3955-4b06-83c6-e86fdeb5e65a\",\r\n        \"policy\": {\r\n            \"permissions\": [\r\n                {\r\n                    \"edctype\": \"dataspaceconnector:permission\",\r\n                    \"target\": \"{{asset-id}}\",\r\n                    \"action\": {\r\n                        \"type\": \"USE\"\r\n                    }\r\n                }\r\n            ],\r\n            \"target\": \"{{asset-id}}\"\r\n        },\r\n        \"assetId\": \"{{asset-id}}\"\r\n    }\r\n}",
+							"raw": "{\r\n    \"@context\": {\r\n        \"edc\": \"https://w3id.org/edc/v0.0.1/ns/\",\r\n        \"odrl\": \"http://www.w3.org/ns/odrl/2/\"\r\n    },\r\n    \"providerId\": \"provider\",\r\n    \"protocol\": \"dataspace-protocol-http\",\r\n    \"counterPartyId\": \"provider\",\r\n    \"counterPartyAddress\": \"{{provider-dsp}}\",\r\n    \"contractOffer\": <insert-offer-here>\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -256,7 +267,13 @@
 					"name": "3. Get data for agreement id and asset id",
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "x-api-key",
+								"value": "password",
+								"type": "text"
+							}
+						],
 						"url": {
 							"raw": "{{consumer}}/api/automated/transfer?providerUrl={{provider-dsp}}&agreementId={{agreement-id}}&assetId={{asset-id}}",
 							"host": [
@@ -842,7 +859,7 @@
 					"response": []
 				},
 				{
-					"name": "Post policydefinitions",
+					"name": "Get assets",
 					"request": {
 						"method": "POST",
 						"header": [
@@ -854,7 +871,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"@type\": \"PolicyDefinition\",\r\n    \"id\": \"random-policy-definition-id\",\r\n    \"https://w3id.org/edc/v0.0.1/ns/policy\": {\r\n        \"permissions\": [\r\n            {\r\n                \"edctype\": \"dataspaceconnector:permission\",\r\n                \"target\": \"{{asset-id}}\",\r\n                \"action\": {\r\n                    \"type\": \"USE\"\r\n                },\r\n                \"constraints\": [\r\n                    {\r\n                        \"edctype\": \"AtomicConstraint\",\r\n                        \"leftExpression\": {\r\n                            \"edctype\": \"dataspaceconnector:literalexpression\",\r\n                            \"value\": \"region\"\r\n                        },\r\n                        \"rightExpression\": {\r\n                            \"edctype\": \"dataspaceconnector:literalexpression\",\r\n                            \"value\": \"eu\"\r\n                        },\r\n                        \"operator\": \"EQ\"\r\n                    }\r\n                ]\r\n            }\r\n        ],\r\n        \"target\": \"{{asset-id}}\"\r\n    }\r\n}",
+							"raw": "",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -862,13 +879,14 @@
 							}
 						},
 						"url": {
-							"raw": "{{provider-management}}/v2/policydefinitions",
+							"raw": "{{consumer-management}}/v3/assets/request",
 							"host": [
-								"{{provider-management}}"
+								"{{consumer-management}}"
 							],
 							"path": [
-								"v2",
-								"policydefinitions"
+								"v3",
+								"assets",
+								"request"
 							]
 						}
 					},
@@ -933,6 +951,16 @@
 	],
 	"variable": [
 		{
+			"key": "asset-id",
+			"value": "",
+			"type": "default"
+		},
+		{
+			"key": "agreement-id",
+			"value": "",
+			"type": "default"
+		},
+		{
 			"key": "provider",
 			"value": "http://localhost:8181",
 			"type": "default"
@@ -960,26 +988,6 @@
 		{
 			"key": "consumer-management",
 			"value": "http://localhost:9192/management",
-			"type": "default"
-		},
-		{
-			"key": "asset-id",
-			"value": "",
-			"type": "default"
-		},
-		{
-			"key": "contract-offer-id",
-			"value": "",
-			"type": "default"
-		},
-		{
-			"key": "negotiation-id",
-			"value": "",
-			"type": "default"
-		},
-		{
-			"key": "agreement-id",
-			"value": "",
 			"type": "default"
 		},
 		{

@@ -15,6 +15,7 @@
  */
 package de.fraunhofer.iosb.app.model.ids;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -37,6 +38,7 @@ public class SelfDescription {
         Objects.requireNonNull(newSelfDescription);
         this.aasEnv = newSelfDescription;
         this.objectMapper = new ObjectMapper();
+        objectMapper.setSerializationInclusion(Include.NON_NULL);
     }
 
     /**
@@ -49,7 +51,7 @@ public class SelfDescription {
         try {
             aasEnvString = objectMapper.writeValueAsString(aasEnv);
         } catch (JsonProcessingException e) {
-            LOGGER.error("Could not serialize self description", e);
+            LOGGER.severe("Could not serialize self description", e);
             return null;
         }
         return aasEnvString;
@@ -60,7 +62,7 @@ public class SelfDescription {
         try {
             aasEnvString = objectMapper.readTree(this.toString());
         } catch (JsonProcessingException e) {
-            LOGGER.error("Could not serialize self description", e);
+            LOGGER.severe("Could not serialize self description", e);
             return null;
         }
         return aasEnvString;

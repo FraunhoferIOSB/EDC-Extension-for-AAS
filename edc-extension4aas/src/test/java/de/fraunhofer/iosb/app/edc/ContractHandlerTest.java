@@ -15,18 +15,17 @@
  */
 package de.fraunhofer.iosb.app.edc;
 
-import de.fraunhofer.iosb.app.Logger;
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
-import org.eclipse.edc.spi.monitor.Monitor;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static java.lang.String.format;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 public class ContractHandlerTest {
 
@@ -34,11 +33,6 @@ public class ContractHandlerTest {
     private ContractHandler contractHandler;
     private final ContractDefinitionStore mockedContractDefinitionStore = mock(ContractDefinitionStore.class);
     private final PolicyDefinitionStore mockedPolicyDefinitionStore = mock(PolicyDefinitionStore.class);
-
-    @BeforeAll
-    public static void initializeLogger() {
-        Logger.getInstance().setMonitor(mock(Monitor.class));
-    }
 
     @BeforeEach
     public void initializeAasAgent() {

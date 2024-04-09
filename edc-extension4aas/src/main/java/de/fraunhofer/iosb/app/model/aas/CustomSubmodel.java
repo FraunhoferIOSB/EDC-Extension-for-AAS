@@ -17,16 +17,20 @@ package de.fraunhofer.iosb.app.model.aas;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import io.adminshell.aas.v3.model.Constraint;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonAutoDetect
 public class CustomSubmodel extends AASElement {
 
     protected Identifier identification;
+    protected List<Constraint> qualifiers;
     protected String idShort;
     protected List<CustomSubmodelElement> submodelElements = new ArrayList<>();
 
@@ -36,6 +40,14 @@ public class CustomSubmodel extends AASElement {
 
     public void setIdentification(Identifier identification) {
         this.identification = identification;
+    }
+
+    public List<Constraint> getQualifiers() {
+        return qualifiers;
+    }
+
+    public void setQualifiers(List<Constraint> qualifiers) {
+        this.qualifiers = qualifiers;
     }
 
     public String getIdShort() {
@@ -55,6 +67,11 @@ public class CustomSubmodel extends AASElement {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(identification, idShort);
+    }
+
+    @Override
     public boolean equals(Object obj) {
         if (obj == null) {
             return false;
@@ -71,15 +88,7 @@ public class CustomSubmodel extends AASElement {
             return false;
         }
 
-        if (!this.getIdShort().equals(other.getIdShort())) {
-            return false;
-        }
-
-        if ((this.getSubmodelElements() == null) ? (other.getSubmodelElements() != null)
-                : this.getSubmodelElements().size() != other.getSubmodelElements().size()) {
-            return false;
-        }
-
-        return new HashSet<>(other.getSubmodelElements()).containsAll(this.getSubmodelElements());
+        return this.getIdShort().equals(other.getIdShort());
     }
+
 }

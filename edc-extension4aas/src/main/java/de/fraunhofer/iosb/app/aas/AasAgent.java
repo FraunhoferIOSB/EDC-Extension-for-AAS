@@ -16,16 +16,30 @@
 package de.fraunhofer.iosb.app.aas;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import de.fraunhofer.iosb.app.Logger;
-import de.fraunhofer.iosb.app.model.aas.*;
+import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShell;
+import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShellEnvironment;
+import de.fraunhofer.iosb.app.model.aas.CustomConceptDescription;
+import de.fraunhofer.iosb.app.model.aas.CustomSemanticId;
+import de.fraunhofer.iosb.app.model.aas.CustomSubmodel;
+import de.fraunhofer.iosb.app.model.aas.CustomSubmodelElement;
+import de.fraunhofer.iosb.app.model.aas.CustomSubmodelElementCollection;
+import de.fraunhofer.iosb.app.model.aas.Identifier;
 import de.fraunhofer.iosb.app.util.AASUtil;
 import de.fraunhofer.iosb.app.util.Encoder;
 import de.fraunhofer.iosb.app.util.HttpRestClient;
 import de.fraunhofer.iosb.app.util.Transformer;
 import io.adminshell.aas.v3.dataformat.DeserializationException;
 import io.adminshell.aas.v3.dataformat.json.JsonDeserializer;
+import io.adminshell.aas.v3.model.Key;
+import io.adminshell.aas.v3.model.Reference;
 import io.adminshell.aas.v3.model.Submodel;
+import io.adminshell.aas.v3.model.impl.DefaultKey;
+import io.adminshell.aas.v3.model.impl.DefaultReference;
 import io.adminshell.aas.v3.model.impl.DefaultSubmodel;
 import jakarta.ws.rs.core.Response;
 import okhttp3.OkHttpClient;
@@ -34,7 +48,11 @@ import org.eclipse.edc.spi.EdcException;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
 
 import static java.lang.String.format;
 
@@ -52,8 +70,17 @@ public class AasAgent {
         Objects.requireNonNull(client);
         this.httpRestClient = new HttpRestClient(client);
         logger = Logger.getInstance();
-        objectMapper = new ObjectMapper();
-        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        // Make objectMapper recognize DefaultReference as implementation of Reference
+        final var simpleModule = new SimpleModule()
+                .addAbstractTypeMapping(Reference.class, DefaultReference.class)
+                .addAbstractTypeMapping(Key.class, DefaultKey.class);
+
+        objectMapper = JsonMapper
+                .builder()
+                .enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS)
+                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                .build();
+        objectMapper.registerModule(simpleModule);
     }
 
     /**
@@ -69,7 +96,7 @@ public class AasAgent {
         try {
             response = Transformer.okHttpResponseToJakartaResponse(httpRestClient.put(aasServiceUrl, element));
         } catch (IOException io) {
-            logger.error("Could not fetch AAS env from AAS service", io);
+            logger.severe("Could not fetch AAS env from AAS service", io);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
 
@@ -88,7 +115,7 @@ public class AasAgent {
         try {
             response = Transformer.okHttpResponseToJakartaResponse(httpRestClient.post(aasServiceUrl, element));
         } catch (IOException io) {
-            logger.error("Could not fetch AAS env from AAS service", io);
+            logger.severe("Could not fetch AAS env from AAS service", io);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
 
@@ -108,7 +135,7 @@ public class AasAgent {
         try {
             response = Transformer.okHttpResponseToJakartaResponse(httpRestClient.delete(aasServiceUrl, element));
         } catch (IOException io) {
-            logger.error("Could not fetch AAS env from AAS service", io);
+            logger.severe("Could not fetch AAS env from AAS service", io);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
 
@@ -120,14 +147,13 @@ public class AasAgent {
      * sourceUrl field.
      *
      * @param aasServiceUrl AAS service to be updated
-     * @return AAS model enriched with each elements access URL as string in assetId
-     * field.
+     * @return AAS model enriched with each elements access URL as string in assetId field.
      */
-    public CustomAssetAdministrationShellEnvironment getAasEnvWithUrls(URL aasServiceUrl)
+    public CustomAssetAdministrationShellEnvironment getAasEnvWithUrls(URL aasServiceUrl, boolean onlySubmodels)
             throws IOException, DeserializationException {
         var aasServiceUrlString = aasServiceUrl.toString();
 
-        var model = readModel(aasServiceUrl);
+        var model = readModel(aasServiceUrl, onlySubmodels);
         // Add urls to all shells
         model.getAssetAdministrationShells().forEach(shell -> shell.setSourceUrl(
                 format("%s/shells/%s", aasServiceUrlString,
@@ -143,6 +169,11 @@ public class AasAgent {
                                     Encoder.encodeBase64(submodel.getIdentification().getId())),
                             elem));
         });
+        model.getSubmodels().forEach(submodel -> AASUtil.getAllSubmodelElements(submodel)
+                .forEach(element -> element.setSourceUrl(
+                        element.getSourceUrl()
+                                .replaceFirst("\\.", "/"))));
+
         // Add urls to all concept descriptions
         model.getConceptDescriptions().forEach(
                 conceptDesc -> conceptDesc.setSourceUrl(format("%s/concept-descriptions/%s", aasServiceUrlString,
@@ -153,58 +184,72 @@ public class AasAgent {
     /**
      * Returns the AAS model.
      */
-    private CustomAssetAdministrationShellEnvironment readModel(URL aasServiceUrl)
+    private CustomAssetAdministrationShellEnvironment readModel(URL aasServiceUrl, boolean onlySubmodels)
             throws IOException, DeserializationException {
+        var aasEnv = new CustomAssetAdministrationShellEnvironment();
 
-        String shellResponse;
-        String conceptResponse;
-        String submodelResponse;
+        URL shellsUrl;
+        URL conceptDescriptionsUrl;
+        URL submodelUrl;
         try {
-            shellResponse =
-                    Objects.requireNonNull(httpRestClient.get(aasServiceUrl.toURI().resolve("/shells").toURL()).body()).string();
-            submodelResponse =
-                    Objects.requireNonNull(httpRestClient.get(aasServiceUrl.toURI().resolve("/submodels").toURL()).body()).string();
-            conceptResponse = Objects.requireNonNull(httpRestClient.get(aasServiceUrl.toURI().resolve("/concept" +
-                            "-descriptions").toURL()).body())
-                    .string();
-        } catch (URISyntaxException e) {
-            throw new EdcException(e.getMessage());
+            submodelUrl = aasServiceUrl.toURI().resolve("/submodels").toURL();
+            shellsUrl = aasServiceUrl.toURI().resolve("/shells").toURL();
+            conceptDescriptionsUrl = aasServiceUrl.toURI().resolve("/concept-descriptions").toURL();
+        } catch (URISyntaxException resolveUriException) {
+            throw new EdcException(
+                    format("Error while building URLs for reading from the AAS Service at %s", aasServiceUrl),
+                    resolveUriException);
         }
 
-        CustomAssetAdministrationShell[] shells = objectMapper.readValue(shellResponse,
-                CustomAssetAdministrationShell[].class);
-        CustomConceptDescription[] conceptDescriptions = objectMapper.readValue(conceptResponse,
-                CustomConceptDescription[].class);
+        aasEnv.setSubmodels(readSubmodels(submodelUrl, onlySubmodels));
+        if (!onlySubmodels) {
+            aasEnv.setAssetAdministrationShells(readShells(shellsUrl));
+            aasEnv.setConceptDescriptions(readConceptDescriptions(conceptDescriptionsUrl));
+        }
+        return aasEnv;
+    }
 
-        // Because of SMCs "value" field, submodels have to be parsed manually
+    private List<CustomConceptDescription> readConceptDescriptions(URL conceptDescriptionsUrl) throws IOException {
 
-        // First, parse into full admin-shell.io submodels:
+        var conceptResponse = Objects.requireNonNull(httpRestClient.get(conceptDescriptionsUrl).body()).string();
+
+        return Arrays.asList(objectMapper.readValue(conceptResponse, CustomConceptDescription[].class));
+    }
+
+    private List<CustomAssetAdministrationShell> readShells(URL shellsUrl) throws IOException {
+        var shellHttpResponse = Objects.requireNonNull(httpRestClient.get(shellsUrl).body()).string();
+
+        return Arrays.asList(objectMapper.readValue(shellHttpResponse, CustomAssetAdministrationShell[].class));
+    }
+
+    private List<CustomSubmodel> readSubmodels(URL submodelUrl, boolean onlySubmodels)
+            throws IOException, DeserializationException {
+        var submodelHttpResponse = Objects.requireNonNull(httpRestClient.get(submodelUrl).body()).string();
+
+        // First, parse into "full" admin-shell.io submodels:
         JsonDeserializer jsonDeserializer = new JsonDeserializer();
-        List<DefaultSubmodel> submodels = jsonDeserializer.readReferables(submodelResponse, DefaultSubmodel.class);
+        List<DefaultSubmodel> submodels = jsonDeserializer.readReferables(submodelHttpResponse, DefaultSubmodel.class);
 
-        // Now, create custom submodels from the data of the full submodels
+        // Now, create customSubmodels from the "full" submodels
         List<CustomSubmodel> customSubmodels = new ArrayList<>();
         for (Submodel submodel : submodels) {
             var customSubmodel = new CustomSubmodel();
             var customIdentification = new Identifier();
             customIdentification.setId(submodel.getIdentification().getIdentifier());
             customSubmodel.setIdentification(customIdentification);
-
             customSubmodel.setIdShort(submodel.getIdShort());
+            if (Objects.nonNull(submodel.getSemanticId().getKeys())) {
+                customSubmodel.setSemanticId(new CustomSemanticId(submodel.getSemanticId().getKeys()));
+            }
 
-            // Recursively add submodelElements
-            var customElements = AASUtil.getCustomSubmodelElementStructureFromSubmodel(submodel);
-            customSubmodel.setSubmodelElements((List<CustomSubmodelElement>) customElements);
-
+            if (!onlySubmodels) {
+                // Recursively add submodelElements
+                var customElements = AASUtil.getCustomSubmodelElementStructureFromSubmodel(submodel);
+                customSubmodel.setSubmodelElements((List<CustomSubmodelElement>) customElements);
+            }
             customSubmodels.add(customSubmodel);
         }
-        var aasEnv = new CustomAssetAdministrationShellEnvironment();
-
-        aasEnv.setAssetAdministrationShells(Arrays.asList(shells));
-        aasEnv.setSubmodels(customSubmodels);
-        aasEnv.setConceptDescriptions(Arrays.asList(conceptDescriptions));
-
-        return aasEnv;
+        return customSubmodels;
     }
 
     /**
@@ -218,11 +263,11 @@ public class AasAgent {
         if (element instanceof CustomSubmodelElementCollection) {
             Collection<CustomSubmodelElement> newCollectionElements = new ArrayList<>();
             for (var collectionElement : ((CustomSubmodelElementCollection) element).getValue()) {
-                newCollectionElements.add(putUrlRec(format("%s/%s", url, element.getIdShort()), collectionElement));
+                newCollectionElements.add(putUrlRec(format("%s.%s", url, element.getIdShort()), collectionElement));
             }
             ((CustomSubmodelElementCollection) element).setValues(newCollectionElements);
         }
-        element.setSourceUrl(format("%s/%s", url, element.getIdShort()));
+        element.setSourceUrl(format("%s.%s", url, element.getIdShort()));
         return element;
     }
 }

@@ -16,13 +16,17 @@
 package de.fraunhofer.iosb.app.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import de.fraunhofer.iosb.app.Logger;
 import de.fraunhofer.iosb.app.RequestType;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.edc.spi.system.configuration.Config;
+import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 
 import java.net.URL;
 
@@ -32,50 +36,66 @@ import java.net.URL;
 public class ConfigurationController implements Controllable {
 
     private final Logger logger;
+    private final Config sysConfig;
     private Configuration configuration;
     private final ObjectMapper objectMapper;
     private final ObjectReader objectReader;
 
-    public ConfigurationController() {
+    public ConfigurationController(Config config) {
+        this.sysConfig = config;
         logger = Logger.getInstance();
         configuration = Configuration.getInstance();
-        objectMapper = new ObjectMapper();
-        // TODO case insensitive object mapper without deprecated configuration?
-        objectMapper.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
+        objectMapper = JsonMapper.builder().configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true).build();
         objectReader = objectMapper.readerForUpdating(configuration);
+
+        initializeConfiguration();
+    }
+
+    private void initializeConfiguration() {
+        try {
+            configuration = objectReader.readValue(objectMapper.writeValueAsString(sysConfig.getEntries()));
+        } catch (JsonProcessingException jsonProcessingException) {
+            logger.severe("Initiailzing AAS extension configuration failed",
+                    jsonProcessingException);
+        }
+
     }
 
     @Override
     public Response handleRequest(RequestType requestType, URL url, String... requestData) {
         return switch (requestType) {
-            case GET -> readConfiguration();
+            case GET -> getConfiguration();
             case PUT -> updateConfiguration(requestData[0]);
             default -> Response.status(Response.Status.NOT_IMPLEMENTED).build();
         };
     }
 
-    private Response readConfiguration() {
+    private Response getConfiguration() {
         try {
             var serializedConfiguration = objectMapper.writeValueAsString(configuration);
             return Response.status(Response.Status.OK).entity(serializedConfiguration).build();
         } catch (JsonProcessingException jsonProcessingException) {
-            logger.error("Serialization of configuration object failed.\n", jsonProcessingException);
+            logger.severe("Serialization of configuration object failed.\n", jsonProcessingException);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }
 
     private Response updateConfiguration(String newConfigValues) {
-        // A string containing the new configuration for the response
-        String newConfigurationAsString;
         try {
-            configuration = objectReader.readValue(newConfigValues);
-            newConfigurationAsString = objectMapper.writeValueAsString(configuration);
+            // Read config values as map -> edc Config -> merge with old
+            // -> set as AAS extension config
+            Config newConfig = ConfigFactory.fromMap(objectMapper.readValue(newConfigValues,
+                    new TypeReference<>() {
+                    }));
+            Config mergedConfig = sysConfig.merge(newConfig);
+            configuration = objectReader.readValue(objectMapper.writeValueAsString(mergedConfig.getEntries()));
         } catch (JsonProcessingException jsonProcessingException) {
-            logger.error("Updating configuration to this configuration failed:\n" + newConfigValues,
+            logger.severe("Updating configuration to this configuration failed:\n" + newConfigValues,
                     jsonProcessingException);
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
-        return Response.status(Response.Status.OK).entity(newConfigurationAsString).build();
+
+        return Response.status(Response.Status.OK).build();
     }
 
 }

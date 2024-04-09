@@ -70,10 +70,10 @@ public class AasController implements Controllable {
      * @throws DeserializationException AAS from service could not be deserialized
      * @throws IOException              Communication with AAS service failed
      */
-    public CustomAssetAdministrationShellEnvironment getAasModelWithUrls(URL aasServiceUrl)
+    public CustomAssetAdministrationShellEnvironment getAasModelWithUrls(URL aasServiceUrl, boolean onlySubmodels)
             throws IOException, DeserializationException {
         Objects.requireNonNull(aasServiceUrl);
-        return aasAgent.getAasEnvWithUrls(aasServiceUrl);
+        return aasAgent.getAasEnvWithUrls(aasServiceUrl, onlySubmodels);
     }
 
     /**
@@ -90,12 +90,12 @@ public class AasController implements Controllable {
         Objects.requireNonNull(aasModelPath);
 
         if (Objects.isNull(aasConfigPath)) {
-            logger.log(format(
+            logger.info(format(
                     "Booting up AAS service given AAS model path (%s)\n and service port (%s)\n...",
                     aasModelPath, aasServicePort));
             return aasServiceManager.startService(aasModelPath, aasServicePort);
         }
-        logger.log(format(
+        logger.info(format(
                 "Booting up AAS service given AAS model path (%s)\n and service config path (%s)...",
                 aasModelPath, aasConfigPath));
         return aasServiceManager.startService(aasModelPath, aasConfigPath, aasServicePort);
@@ -107,7 +107,7 @@ public class AasController implements Controllable {
      * @param aasServiceUrl URL of service to be stopped
      */
     public void stopAssetAdministrationShellService(URL aasServiceUrl) {
-        logger.log(format("Shutting down AAS service with URL %s...", aasServiceUrl.toString()));
+        logger.info(format("Shutting down AAS service with URL %s...", aasServiceUrl.toString()));
         aasServiceManager.stopService(aasServiceUrl);
     }
 
@@ -115,7 +115,7 @@ public class AasController implements Controllable {
      * Stops all internally started AAS services
      */
     public void stopServices() {
-        logger.log("Shutting down all AAS services...");
+        logger.info("Shutting down all AAS services...");
         aasServiceManager.stopServices();
     }
 }

@@ -19,6 +19,7 @@ val edcVersion: String by project
 
 dependencies {
     implementation(project(":edc-extension4aas"))
+    implementation(project(":client"))
 
     implementation("$group:control-plane-core:$edcVersion")
     implementation("$group:dsp:$edcVersion")
@@ -37,11 +38,8 @@ dependencies {
     implementation("$group:data-plane-core:$edcVersion")
     implementation("$group:data-plane-http:$edcVersion")
     implementation("$group:data-plane-client:$edcVersion")
-    implementation("$group:data-plane-selector-client:$edcVersion")
     implementation("$group:data-plane-selector-core:$edcVersion")
-    implementation("$group:data-plane-selector-api:$edcVersion")
     implementation("$group:transfer-data-plane:$edcVersion")
-
 }
 
 

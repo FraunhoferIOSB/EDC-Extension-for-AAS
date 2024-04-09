@@ -19,11 +19,11 @@ import de.fraunhofer.iosb.app.controller.AasController;
 import de.fraunhofer.iosb.app.controller.ConfigurationController;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
-import de.fraunhofer.iosb.app.testUtils.FileManager;
+import de.fraunhofer.iosb.app.testutils.FileManager;
 import de.fraunhofer.iosb.app.util.Encoder;
 import jakarta.ws.rs.core.Response;
 import okhttp3.OkHttpClient;
-import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,8 +34,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import static java.lang.String.format;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.mock;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Not mocking the controllers this endpoint uses, as the mocking/validation
@@ -56,7 +57,6 @@ public class EndpointTest {
 
     @BeforeAll
     public static void initialize() throws MalformedURLException {
-        Logger.getInstance().setMonitor(mock(Monitor.class));
         port = 8080;
         url = new URL(format("http://localhost:%s", port));
     }
@@ -67,7 +67,8 @@ public class EndpointTest {
         aasController = new AasController(new OkHttpClient());
         endpoint = new Endpoint(
                 selfDescriptionRepo,
-                aasController);
+                aasController,
+                new ConfigurationController(ConfigFactory.empty()));
     }
 
     @AfterEach
@@ -89,7 +90,7 @@ public class EndpointTest {
     @Test
     public void changeSingleConfigValueTest() {
         var config = FileManager.loadResource("config.json");
-        var configController = new ConfigurationController();
+        var configController = new ConfigurationController(ConfigFactory.empty());
         configController.handleRequest(RequestType.PUT, null, config);
 
         configController.handleRequest(RequestType.PUT, null,
@@ -148,8 +149,8 @@ public class EndpointTest {
         endpoint.postAasService(url);
 
         endpoint.putAasRequest(new URL(format(url.toString(), "/submodels/",
-                        Encoder.encodeBase64("https://example.com/ids/sm/4445_8090_6012_7409"),
-                        "/submodel-elements/GripperUp")),
+                Encoder.encodeBase64("https://example.com/ids/sm/4445_8090_6012_7409"),
+                "/submodel-elements/GripperUp")),
                 FileManager.loadResource("submodelElement.json"));
 
         // Still null: not synchronized by Synchronizer

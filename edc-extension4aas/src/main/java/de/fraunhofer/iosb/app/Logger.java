@@ -15,20 +15,18 @@
  */
 package de.fraunhofer.iosb.app;
 
-import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 
 import java.util.Objects;
+import java.util.function.Supplier;
 
 /**
  * Singleton class.
- * Wrapper for prefix logging using
- * org.eclipse.edc.spi.monitor.Monitor.
+ * Wrapper for logging with prefix
+ * ({@link org.eclipse.edc.spi.monitor.ConsoleMonitor}).
  */
-public class Logger {
-    private static final String PREFIX_SEPARATOR = " :: ";
+public class Logger extends ConsoleMonitor {
     private static Logger instance;
-    private final String prefix = "EDC4AAS";
-    private Monitor monitor;
 
     private Logger() {
     }
@@ -46,57 +44,8 @@ public class Logger {
         return instance;
     }
 
-    /**
-     * Only to be called by the extension itself.
-     *
-     * @param monitor The monitor used to log stuff from
-     */
-    public void setMonitor(Monitor monitor) {
-        this.monitor = monitor;
-    }
-
-    /**
-     * Log a message with severity "info"
-     *
-     * @param message Message to be logged
-     */
-    public void log(String message) {
-        monitor.info(prefix + PREFIX_SEPARATOR + message);
-    }
-
-    /**
-     * Log a message with severity "info"
-     *
-     * @param message Message to be logged
-     */
-    public void log(String... message) {
-        monitor.info(prefix + PREFIX_SEPARATOR + String.join(" ", message));
-    }
-
-    /**
-     * Log a message with severity "debug"
-     *
-     * @param message Message to be logged
-     */
-    public void debug(String message) {
-        monitor.debug(prefix + PREFIX_SEPARATOR + message);
-    }
-
-    /**
-     * Log a message with severity "debug"
-     *
-     * @param message Message to be logged
-     */
-    public void warn(String message, Throwable... errors) {
-        monitor.warning(prefix + PREFIX_SEPARATOR + message, errors);
-    }
-
-    /**
-     * Log a message with severity "severe"
-     *
-     * @param message Message to be logged
-     */
-    public void error(String message, Throwable... errors) {
-        monitor.severe(prefix + PREFIX_SEPARATOR + message, errors);
+    @Override
+    public String sanitizeMessage(Supplier<String> supplier) {
+        return "EDC4AAS: " + super.sanitizeMessage(supplier);
     }
 }

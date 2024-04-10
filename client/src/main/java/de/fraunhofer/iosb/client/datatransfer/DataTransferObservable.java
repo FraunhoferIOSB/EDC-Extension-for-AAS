@@ -44,7 +44,7 @@ class DataTransferObservable {
      * @return Object containing data in case of transfer.
      */
     CompletableFuture<String> register(String agreementId) {
-        observers.put(agreementId, new CompletableFuture<String>());
+        observers.put(agreementId, new CompletableFuture<>());
         return observers.get(agreementId);
     }
 

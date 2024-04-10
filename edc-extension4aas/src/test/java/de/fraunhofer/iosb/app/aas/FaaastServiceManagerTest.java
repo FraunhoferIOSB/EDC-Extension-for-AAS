@@ -15,8 +15,8 @@
  */
 package de.fraunhofer.iosb.app.aas;
 
-import de.fraunhofer.iosb.app.util.HttpRestClient;
 import de.fraunhofer.iosb.app.testutils.TrustSelfSignedOkHttpClient;
+import de.fraunhofer.iosb.app.util.HttpRestClient;
 import dev.failsafe.RetryPolicy;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.connector.core.base.EdcHttpClientImpl;
@@ -48,10 +48,7 @@ public class FaaastServiceManagerTest {
     public void startServiceTest() throws IOException, URISyntaxException {
         var url = startService();
         var restClient = new HttpRestClient(new EdcHttpClientImpl(new TrustSelfSignedOkHttpClient().newBuilder().build(), RetryPolicy.ofDefaults(), mock(Monitor.class)));
-        // TODO Somehow FA³ST does not want to serve the default model...
-        var x = restClient.get(url.toURI().resolve("/api/v3.0/shells").toURL());
-        System.out.println(x);
-        assertEquals(Response.Status.OK.getStatusCode(), x.code());
+        assertEquals(Response.Status.OK.getStatusCode(), restClient.get(url.toURI().resolve("/api/v3.0/shells").toURL()).code());
     }
 
     @Test

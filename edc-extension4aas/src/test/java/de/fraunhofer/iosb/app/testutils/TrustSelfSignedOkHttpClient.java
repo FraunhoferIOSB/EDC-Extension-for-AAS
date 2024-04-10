@@ -5,7 +5,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
@@ -14,24 +13,23 @@ import javax.net.ssl.X509TrustManager;
 public class TrustSelfSignedOkHttpClient extends OkHttpClient {
 
     private TrustManager[] trustAllCerts;
-    private SSLContext sslContext;
 
     private TrustManager[] getTrustManager() throws NoSuchAlgorithmException, KeyManagementException {
-        return new TrustManager[] { new X509TrustManager() {
+        return new TrustManager[] {new X509TrustManager() {
             @Override
-            public void checkClientTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
+            public void checkClientTrusted(X509Certificate[] x509Certificates, String s) {
 
             }
 
             @Override
-            public void checkServerTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
+            public void checkServerTrusted(X509Certificate[] x509Certificates, String s) {
             }
 
             @Override
             public X509Certificate[] getAcceptedIssuers() {
                 return new X509Certificate[0];
             }
-        } };
+        }};
     }
 
     private SSLContext getSslContext() throws NoSuchAlgorithmException, KeyManagementException {
@@ -43,6 +41,7 @@ public class TrustSelfSignedOkHttpClient extends OkHttpClient {
     @NotNull
     @Override
     public Builder newBuilder() {
+        SSLContext sslContext;
         try {
             trustAllCerts = getTrustManager();
             sslContext = getSslContext();

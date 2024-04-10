@@ -40,7 +40,6 @@ import java.net.URL;
 import java.util.Objects;
 
 import static java.lang.String.format;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.mock;

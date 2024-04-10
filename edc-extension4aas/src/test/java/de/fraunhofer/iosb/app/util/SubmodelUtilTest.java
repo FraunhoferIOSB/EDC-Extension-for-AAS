@@ -15,7 +15,6 @@
  */
 package de.fraunhofer.iosb.app.util;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import de.fraunhofer.iosb.app.model.aas.CustomSubmodel;
 import de.fraunhofer.iosb.app.model.aas.CustomSubmodelElementCollection;
@@ -25,6 +24,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class SubmodelUtilTest {
     private static CustomSubmodel testCustomSubmodel;
@@ -44,7 +45,7 @@ public class SubmodelUtilTest {
 
     @Test
     public void getAllSubmodelElementsTest() {
-        assertEquals(101, AASUtil.getAllSubmodelElements(testCustomSubmodel).size());
+        assertEquals(101, AssetAdministrationShellUtil.getAllSubmodelElements(testCustomSubmodel).size());
 
     }
 
@@ -67,6 +68,6 @@ public class SubmodelUtilTest {
         // Cast to use equals method
         assertEquals(
                 testCustomSubmodel.getSubmodelElements().size(),
-                AASUtil.getCustomSubmodelElementStructureFromSubmodel(testSubmodel).size());
+                AssetAdministrationShellUtil.getCustomSubmodelElementStructureFromSubmodel(testSubmodel).size());
     }
 }

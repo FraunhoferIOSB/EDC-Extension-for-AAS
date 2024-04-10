@@ -26,7 +26,7 @@ import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import de.fraunhofer.iosb.app.model.ids.SelfDescription;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionChangeListener;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
-import de.fraunhofer.iosb.app.util.AASUtil;
+import de.fraunhofer.iosb.app.util.AssetAdministrationShellUtil;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.DeserializationException;
 import org.eclipse.edc.spi.EdcException;
@@ -114,7 +114,7 @@ public class Synchronizer implements SelfDescriptionChangeListener {
     }
 
     private void addNewElements(CustomAssetAdministrationShellEnvironment newEnvironment) {
-        var envElements = AASUtil.getAllElements(newEnvironment);
+        var envElements = AssetAdministrationShellUtil.getAllElements(newEnvironment);
         addAssetsContracts(envElements.stream().filter(
                 element -> Objects.isNull(element.getIdsAssetId()) || Objects.isNull(element.getIdsContractId()))
                 .toList());
@@ -125,8 +125,8 @@ public class Synchronizer implements SelfDescriptionChangeListener {
      */
     private void removeOldElements(CustomAssetAdministrationShellEnvironment newEnvironment,
             CustomAssetAdministrationShellEnvironment oldEnvironment) {
-        var elementsToRemove = AASUtil.getAllElements(oldEnvironment);
-        elementsToRemove.removeAll(AASUtil.getAllElements(newEnvironment));
+        var elementsToRemove = AssetAdministrationShellUtil.getAllElements(oldEnvironment);
+        elementsToRemove.removeAll(AssetAdministrationShellUtil.getAllElements(newEnvironment));
         removeAssetsContracts(elementsToRemove);
     }
 
@@ -166,8 +166,8 @@ public class Synchronizer implements SelfDescriptionChangeListener {
 
             submodel.setIdsAssetId(oldSubmodel.getIdsAssetId());
             submodel.setIdsContractId(oldSubmodel.getIdsContractId());
-            var allElements = AASUtil.getAllSubmodelElements(submodel);
-            var allOldElements = AASUtil.getAllSubmodelElements(oldSubmodel);
+            var allElements = AssetAdministrationShellUtil.getAllSubmodelElements(submodel);
+            var allOldElements = AssetAdministrationShellUtil.getAllSubmodelElements(oldSubmodel);
             syncSubmodelElements(allElements, allOldElements);
         });
     }
@@ -207,7 +207,7 @@ public class Synchronizer implements SelfDescriptionChangeListener {
 
     @Override
     public void removed(SelfDescription removed) {
-        var allElements = AASUtil.getAllElements(removed.getEnvironment());
+        var allElements = AssetAdministrationShellUtil.getAllElements(removed.getEnvironment());
         removeAssetsContracts(allElements);
     }
 

@@ -23,7 +23,6 @@ import de.fraunhofer.iosb.app.controller.ResourceController;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
 import de.fraunhofer.iosb.app.sync.Synchronizer;
-import okhttp3.OkHttpClient;
 import org.eclipse.edc.api.auth.spi.AuthenticationService;
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
@@ -110,8 +109,8 @@ public class AasExtension implements ServiceExtension {
                         aasConfigPath);
 
                 selfDescriptionRepository.createSelfDescription(serviceUrl);
-            } catch (IOException startAASException) {
-                LOGGER.warning("Could not start AAS service provided by configuration", startAASException);
+            } catch (IOException startAssetAdministrationShellException) {
+                LOGGER.warning("Could not start AAS service provided by configuration", startAssetAdministrationShellException);
             }
         }
 

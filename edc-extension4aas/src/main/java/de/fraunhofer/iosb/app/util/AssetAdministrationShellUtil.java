@@ -26,13 +26,12 @@ import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElementCollection;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-public final class AASUtil {
+public final class AssetAdministrationShellUtil {
 
-    private AASUtil() {
+    private AssetAdministrationShellUtil() {
     }
 
     /**
@@ -58,7 +57,7 @@ public final class AASUtil {
         allElements.addAll(env.getConceptDescriptions());
         allElements.addAll(env.getAssetAdministrationShells());
         allElements.addAll(env.getSubmodels());
-        env.getSubmodels().forEach(submodel -> allElements.addAll(AASUtil.getAllSubmodelElements(submodel)));
+        env.getSubmodels().forEach(submodel -> allElements.addAll(AssetAdministrationShellUtil.getAllSubmodelElements(submodel)));
         return allElements;
     }
 

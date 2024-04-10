@@ -17,7 +17,6 @@ package de.fraunhofer.iosb.app.aas;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import de.fraunhofer.iosb.app.Logger;
@@ -27,7 +26,7 @@ import de.fraunhofer.iosb.app.model.aas.CustomConceptDescription;
 import de.fraunhofer.iosb.app.model.aas.CustomSubmodel;
 import de.fraunhofer.iosb.app.model.aas.CustomSubmodelElement;
 import de.fraunhofer.iosb.app.model.aas.CustomSubmodelElementCollection;
-import de.fraunhofer.iosb.app.util.AASUtil;
+import de.fraunhofer.iosb.app.util.AssetAdministrationShellUtil;
 import de.fraunhofer.iosb.app.util.Encoder;
 import de.fraunhofer.iosb.app.util.HttpRestClient;
 import de.fraunhofer.iosb.app.util.Transformer;
@@ -41,7 +40,6 @@ import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.digitaltwin.aas4j.v3.model.Submodel;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultKey;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultReference;
-import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultSubmodel;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 
@@ -63,8 +61,6 @@ public class AasAgent {
 
     private final HttpRestClient httpRestClient;
     private final Logger logger;
-    // Object Mapper to write model as self-description using custom aas model
-    private final ObjectMapper objectMapper;
     private final JsonDeserializer jsonDeserializer;
 
     public AasAgent(EdcHttpClient client) {
@@ -76,7 +72,8 @@ public class AasAgent {
                 .addAbstractTypeMapping(Reference.class, DefaultReference.class)
                 .addAbstractTypeMapping(Key.class, DefaultKey.class);
 
-        objectMapper = JsonMapper
+        // Object Mapper to write model as self-description using custom aas model
+        var objectMapper = JsonMapper
                 .builder()
                 .enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS)
                 .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
@@ -172,7 +169,7 @@ public class AasAgent {
                                     Encoder.encodeBase64(submodel.getId())),
                             elem));
         });
-        model.getSubmodels().forEach(submodel -> AASUtil.getAllSubmodelElements(submodel)
+        model.getSubmodels().forEach(submodel -> AssetAdministrationShellUtil.getAllSubmodelElements(submodel)
                 .forEach(element -> element.setSourceUrl(
                         element.getSourceUrl()
                                 .replaceFirst("\\.", "/"))));
@@ -249,7 +246,7 @@ public class AasAgent {
 
             if (!onlySubmodels) {
                 // Recursively add submodelElements
-                var customElements = AASUtil.getCustomSubmodelElementStructureFromSubmodel(submodel);
+                var customElements = AssetAdministrationShellUtil.getCustomSubmodelElementStructureFromSubmodel(submodel);
                 customSubmodel.setSubmodelElements((List<CustomSubmodelElement>) customElements);
             }
             customSubmodels.add(customSubmodel);

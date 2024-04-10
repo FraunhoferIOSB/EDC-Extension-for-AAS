@@ -15,20 +15,16 @@
  */
 package de.fraunhofer.iosb.app.aas;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iosb.app.testutils.FileManager;
-import de.fraunhofer.iosb.app.testutils.StringMethods;
 import de.fraunhofer.iosb.app.testutils.TrustSelfSignedOkHttpClient;
 import de.fraunhofer.iosb.app.util.Encoder;
 import dev.failsafe.RetryPolicy;
-import okhttp3.OkHttpClient;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.DeserializationException;
 import org.eclipse.edc.connector.core.base.EdcHttpClientImpl;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockserver.integration.ClientAndServer;
 
@@ -43,20 +39,21 @@ import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
+
 /**
  * Testing AAS Agent. Using mocked AAS service (HTTP endpoints)
  */
 public class AasAgentTest {
 
-    private static final int port = 42042;
-    private static final String HTTP_LOCALHOST_8080 = "http://localhost:" + port;
+    private static final int PORT = 42042;
+    private static final String HTTP_LOCALHOST_8080 = "http://localhost:" + PORT;
 
     private AasAgent aasAgent;
     private static ClientAndServer mockServer;
 
     @BeforeAll
     public static void startMockServer() {
-        mockServer = startClientAndServer(port);
+        mockServer = startClientAndServer(PORT);
     }
 
     @BeforeEach

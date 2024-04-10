@@ -22,8 +22,8 @@ import de.fraunhofer.iosb.app.aas.AssetAdministrationShellServiceManager;
 import de.fraunhofer.iosb.app.aas.FaaastServiceManager;
 import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShellEnvironment;
 import jakarta.ws.rs.core.Response;
-import okhttp3.OkHttpClient;
-import io.adminshell.aas.v3.dataformat.DeserializationException;
+import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.DeserializationException;
+import org.eclipse.edc.spi.http.EdcHttpClient;
 
 import java.io.IOException;
 import java.net.URL;
@@ -42,11 +42,11 @@ public class AasController implements Controllable {
     private final AssetAdministrationShellServiceManager aasServiceManager;
     private final Logger logger;
 
-    public AasController(OkHttpClient okHttpClient) {
-        Objects.requireNonNull(okHttpClient);
+    public AasController(EdcHttpClient edcHttpClient) {
+        Objects.requireNonNull(edcHttpClient);
 
         logger = Logger.getInstance();
-        aasAgent = new AasAgent(okHttpClient);
+        aasAgent = new AasAgent(edcHttpClient);
         aasServiceManager = new FaaastServiceManager();
     }
 

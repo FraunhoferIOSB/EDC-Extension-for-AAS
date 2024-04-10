@@ -1,82 +1,45 @@
 [
-    {
-        "assetInformation": {
-            "assetKind": "Instance",
-            "globalAssetId": {
-                "keys": [
-                    {
-                        "idType": "Iri",
-                        "type": "Asset",
-                        "value": "https://acplt.org/Test_Asset"
-                    }
-                ]
-            },
-            "billOfMaterial": [
-                {
-                    "keys": [
-                        {
-                            "idType": "Iri",
-                            "type": "Submodel",
-                            "value": "http://acplt.org/Submodels/Assets/TestAsset/BillOfMaterial"
-                        }
-                    ]
-                }
-            ]
-        },
-        "submodels": [
-            {
-                "keys": [
-                    {
-                        "type": "Submodel",
-                        "value": "https://example.com/ids/sm/1145_8090_6012_5097",
-                        "idType": "Iri"
-                    }
-                ]
-            },
-            {
-                "keys": [
-                    {
-                        "type": "Submodel",
-                        "value": "https://example.com/ids/sm/4445_8090_6012_7409",
-                        "idType": "Iri"
-                    }
-                ]
-            },
-            {
-                "keys": [
-                    {
-                        "type": "Submodel",
-                        "value": "https://example.com/ids/sm/2110_9090_6012_8448",
-                        "idType": "Iri"
-                    }
-                ]
-            },
-            {
-                "keys": [
-                    {
-                        "type": "Submodel",
-                        "value": "https://example.com/ids/sm/5410_9090_6012_0950",
-                        "idType": "Iri"
-                    }
-                ]
-            },
-            {
-                "keys": [
-                    {
-                        "type": "Submodel",
-                        "value": "https://example.com/ids/sm/2402_1191_1022_1090",
-                        "idType": "Iri"
-                    }
-                ]
-            }
-        ],
-        "identification": {
-            "idType": "Iri",
-            "id": "https://example.com/ids/aas/3235_8090_6012_8932"
-        },
-        "idShort": "FestoDemoAAS",
-        "modelType": {
-            "name": "AssetAdministrationShell"
-        }
-    }
+  {
+    "idShort": "ExampleAAS",
+    "description": [
+      {
+        "language": "en",
+        "text": "An Example Asset Administration Shell"
+      },
+      {
+        "language": "de",
+        "text": "Ein Beispiel-Verwaltungsschale"
+      }
+    ],
+    "administration": {
+      "version": "1",
+      "revision": "0"
+    },
+    "id": "https://example.com/ids/sm/3122_5150_2042_4130",
+    "assetInformation": {
+      "assetKind": "Instance",
+      "globalAssetId": "https://example.org/asset/1"
+    },
+    "submodels": [
+      {
+        "type": "ExternalReference",
+        "keys": [
+          {
+            "type": "Submodel",
+            "value": "https://example.org/submodel/1"
+          }
+        ]
+      },
+      {
+        "type": "ExternalReference",
+        "keys": [
+          {
+            "type": "Submodel",
+            "value": "https://example.org/submodel/2"
+          }
+        ]
+      }
+    ],
+    "modelType": "AssetAdministrationShell"
+  }
 ]

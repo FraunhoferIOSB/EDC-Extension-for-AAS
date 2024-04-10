@@ -16,9 +16,12 @@
 package de.fraunhofer.iosb.app.aas;
 
 import de.fraunhofer.iosb.app.util.HttpRestClient;
+import de.fraunhofer.iosb.app.testutils.TrustSelfSignedOkHttpClient;
+import dev.failsafe.RetryPolicy;
 import jakarta.ws.rs.core.Response;
-import okhttp3.OkHttpClient;
+import org.eclipse.edc.connector.core.base.EdcHttpClientImpl;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,6 +33,7 @@ import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.Mockito.mock;
 
 public class FaaastServiceManagerTest {
 
@@ -43,9 +47,11 @@ public class FaaastServiceManagerTest {
     @Test
     public void startServiceTest() throws IOException, URISyntaxException {
         var url = startService();
-        var restClient = new HttpRestClient(new OkHttpClient());
-
-        assertEquals(Response.Status.OK.getStatusCode(), restClient.get(url.toURI().resolve("/shells").toURL()).code());
+        var restClient = new HttpRestClient(new EdcHttpClientImpl(new TrustSelfSignedOkHttpClient().newBuilder().build(), RetryPolicy.ofDefaults(), mock(Monitor.class)));
+        // TODO Somehow FA³ST does not want to serve the default model...
+        var x = restClient.get(url.toURI().resolve("/api/v3.0/shells").toURL());
+        System.out.println(x);
+        assertEquals(Response.Status.OK.getStatusCode(), x.code());
     }
 
     @Test

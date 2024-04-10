@@ -29,6 +29,7 @@ import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStor
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.asset.AssetIndex;
+import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.web.spi.WebService;
@@ -58,7 +59,7 @@ public class AasExtension implements ServiceExtension {
     @Inject
     private ContractDefinitionStore contractStore;
     @Inject
-    private OkHttpClient okHttpClient;
+    private EdcHttpClient edcHttpClient;
     @Inject
     private PolicyDefinitionStore policyStore;
     @Inject
@@ -75,7 +76,7 @@ public class AasExtension implements ServiceExtension {
 
         // Distribute controllers, repository
         var selfDescriptionRepository = new SelfDescriptionRepository();
-        this.aasController = new AasController(okHttpClient);
+        this.aasController = new AasController(edcHttpClient);
         var endpoint = new Endpoint(selfDescriptionRepository, this.aasController, configurationController);
 
         // Initialize/Start synchronizer, start AAS services defined in configuration

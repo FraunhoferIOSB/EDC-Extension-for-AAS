@@ -41,7 +41,7 @@ import static java.lang.String.format;
 public class FaaastServiceManager implements AssetAdministrationShellServiceManager {
 
     private static final String FAAAST_SERVICE_EXCEPTION_MESSAGE = "Exception thrown by FA³ST service.";
-    private static final String LOCALHOST_URL = "http://localhost:";
+    private static final String LOCALHOST_URL = "https://localhost:";
 
     private final Logger logger;
     private final Map<URL, Service> faaastServiceRepository;
@@ -68,6 +68,7 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
                 .persistence(PersistenceInMemoryConfig.builder().initialModelFile(aasModelPath.toFile()).build())
                 .messageBus(new MessageBusInternalConfig())
                 .build();
+        ServiceConfigHelper.autoComplete(serviceConfig);
 
         Service service;
         try {
@@ -107,16 +108,14 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
 
         try {
             var serviceConfig = ServiceConfigHelper.load(configPath.toFile());
-            var isEndpointsNull = Objects.isNull(serviceConfig.getEndpoints()); // Remove auto generated httpEndpoint
-            // later...
-            ServiceConfigHelper.autoComplete(serviceConfig);
+            var isEndpointsNull = Objects.isNull(serviceConfig.getEndpoints()); // Remove auto generated httpEndpoint later...
 
             if (localFaaastServicePort != 0) {
                 if (isEndpointsNull) {
-                    serviceConfig.setEndpoints(List.of(new HttpEndpointConfig.Builder().port(port).build()));
+                    serviceConfig.setEndpoints(List.of(HttpEndpointConfig.builder().port(port).build()));
                 } else {
                     var endpoints = serviceConfig.getEndpoints();
-                    endpoints.add(new HttpEndpointConfig.Builder().port(port).build());
+                    endpoints.add(HttpEndpointConfig.builder().port(port).build());
                     serviceConfig.setEndpoints(endpoints);
                 }
             } else {
@@ -126,6 +125,7 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
             }
 
             serviceConfig.setPersistence(PersistenceInMemoryConfig.builder().initialModelFile(aasModelPath.toFile()).build());
+            ServiceConfigHelper.autoComplete(serviceConfig);
 
             // If localFaaastServicePort is unchanged, no valid HTTP Endpoint was found/created.
             if (localFaaastServicePort == 0) {

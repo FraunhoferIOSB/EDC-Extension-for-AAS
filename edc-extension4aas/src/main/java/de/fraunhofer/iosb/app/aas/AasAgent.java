@@ -24,35 +24,35 @@ import de.fraunhofer.iosb.app.Logger;
 import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShell;
 import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShellEnvironment;
 import de.fraunhofer.iosb.app.model.aas.CustomConceptDescription;
-import de.fraunhofer.iosb.app.model.aas.CustomSemanticId;
 import de.fraunhofer.iosb.app.model.aas.CustomSubmodel;
 import de.fraunhofer.iosb.app.model.aas.CustomSubmodelElement;
 import de.fraunhofer.iosb.app.model.aas.CustomSubmodelElementCollection;
-import de.fraunhofer.iosb.app.model.aas.Identifier;
 import de.fraunhofer.iosb.app.util.AASUtil;
 import de.fraunhofer.iosb.app.util.Encoder;
 import de.fraunhofer.iosb.app.util.HttpRestClient;
 import de.fraunhofer.iosb.app.util.Transformer;
-import io.adminshell.aas.v3.dataformat.DeserializationException;
-import io.adminshell.aas.v3.dataformat.json.JsonDeserializer;
-import io.adminshell.aas.v3.model.Key;
-import io.adminshell.aas.v3.model.Reference;
-import io.adminshell.aas.v3.model.Submodel;
-import io.adminshell.aas.v3.model.impl.DefaultKey;
-import io.adminshell.aas.v3.model.impl.DefaultReference;
-import io.adminshell.aas.v3.model.impl.DefaultSubmodel;
 import jakarta.ws.rs.core.Response;
-import okhttp3.OkHttpClient;
+import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.DeserializationException;
+import org.eclipse.digitaltwin.aas4j.v3.dataformat.json.JsonDeserializer;
+import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShell;
+import org.eclipse.digitaltwin.aas4j.v3.model.ConceptDescription;
+import org.eclipse.digitaltwin.aas4j.v3.model.Key;
+import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
+import org.eclipse.digitaltwin.aas4j.v3.model.Submodel;
+import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultKey;
+import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultReference;
+import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultSubmodel;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.http.EdcHttpClient;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
@@ -63,10 +63,11 @@ public class AasAgent {
 
     private final HttpRestClient httpRestClient;
     private final Logger logger;
-    // Object Mapper to write model as self description using custom aas model
+    // Object Mapper to write model as self-description using custom aas model
     private final ObjectMapper objectMapper;
+    private final JsonDeserializer jsonDeserializer;
 
-    public AasAgent(OkHttpClient client) {
+    public AasAgent(EdcHttpClient client) {
         Objects.requireNonNull(client);
         this.httpRestClient = new HttpRestClient(client);
         logger = Logger.getInstance();
@@ -81,6 +82,8 @@ public class AasAgent {
                 .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
                 .build();
         objectMapper.registerModule(simpleModule);
+        jsonDeserializer = new JsonDeserializer();
+
     }
 
     /**
@@ -156,17 +159,17 @@ public class AasAgent {
         var model = readModel(aasServiceUrl, onlySubmodels);
         // Add urls to all shells
         model.getAssetAdministrationShells().forEach(shell -> shell.setSourceUrl(
-                format("%s/shells/%s", aasServiceUrlString,
-                        Encoder.encodeBase64(shell.getIdentification().getId()))));
+                format("%s/api/v3.0/shells/%s", aasServiceUrlString,
+                        Encoder.encodeBase64(shell.getId()))));
         // Add urls to all submodels, submodelElements
         model.getSubmodels().forEach(submodel -> {
             submodel.setSourceUrl(
-                    format("%s/submodels/%s", aasServiceUrlString,
-                            Encoder.encodeBase64(submodel.getIdentification().getId())));
+                    format("%s/api/v3.0/submodels/%s", aasServiceUrlString,
+                            Encoder.encodeBase64(submodel.getId())));
             submodel.getSubmodelElements()
                     .forEach(elem -> putUrlRec(
-                            format("%s/submodels/%s/submodel/submodel-elements", aasServiceUrlString,
-                                    Encoder.encodeBase64(submodel.getIdentification().getId())),
+                            format("%s/api/v3.0/submodels/%s/submodel/submodel-elements", aasServiceUrlString,
+                                    Encoder.encodeBase64(submodel.getId())),
                             elem));
         });
         model.getSubmodels().forEach(submodel -> AASUtil.getAllSubmodelElements(submodel)
@@ -176,8 +179,8 @@ public class AasAgent {
 
         // Add urls to all concept descriptions
         model.getConceptDescriptions().forEach(
-                conceptDesc -> conceptDesc.setSourceUrl(format("%s/concept-descriptions/%s", aasServiceUrlString,
-                        Encoder.encodeBase64(conceptDesc.getIdentification().getId()))));
+                conceptDesc -> conceptDesc.setSourceUrl(format("%s/api/v3.0/concept-descriptions/%s", aasServiceUrlString,
+                        Encoder.encodeBase64(conceptDesc.getId()))));
         return model;
     }
 
@@ -192,9 +195,9 @@ public class AasAgent {
         URL conceptDescriptionsUrl;
         URL submodelUrl;
         try {
-            submodelUrl = aasServiceUrl.toURI().resolve("/submodels").toURL();
-            shellsUrl = aasServiceUrl.toURI().resolve("/shells").toURL();
-            conceptDescriptionsUrl = aasServiceUrl.toURI().resolve("/concept-descriptions").toURL();
+            submodelUrl = aasServiceUrl.toURI().resolve("/api/v3.0/submodels").toURL();
+            shellsUrl = aasServiceUrl.toURI().resolve("/api/v3.0/shells").toURL();
+            conceptDescriptionsUrl = aasServiceUrl.toURI().resolve("/api/v3.0/concept-descriptions").toURL();
         } catch (URISyntaxException resolveUriException) {
             throw new EdcException(
                     format("Error while building URLs for reading from the AAS Service at %s", aasServiceUrl),
@@ -209,37 +212,39 @@ public class AasAgent {
         return aasEnv;
     }
 
-    private List<CustomConceptDescription> readConceptDescriptions(URL conceptDescriptionsUrl) throws IOException {
-
+    private List<CustomConceptDescription> readConceptDescriptions(URL conceptDescriptionsUrl) throws IOException, DeserializationException {
         var conceptResponse = Objects.requireNonNull(httpRestClient.get(conceptDescriptionsUrl).body()).string();
 
-        return Arrays.asList(objectMapper.readValue(conceptResponse, CustomConceptDescription[].class));
+        return jsonDeserializer.readList(conceptResponse, ConceptDescription.class)
+                .stream()
+                .map(CustomConceptDescription::fromConceptDescription)
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
-    private List<CustomAssetAdministrationShell> readShells(URL shellsUrl) throws IOException {
-        var shellHttpResponse = Objects.requireNonNull(httpRestClient.get(shellsUrl).body()).string();
+    private List<CustomAssetAdministrationShell> readShells(URL shellsUrl) throws IOException, DeserializationException {
+        var shellResponse = Objects.requireNonNull(httpRestClient.get(shellsUrl).body()).string();
 
-        return Arrays.asList(objectMapper.readValue(shellHttpResponse, CustomAssetAdministrationShell[].class));
+        return jsonDeserializer.readList(shellResponse, AssetAdministrationShell.class)
+                .stream()
+                .map(CustomAssetAdministrationShell::fromAssetAdministrationShell)
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
     private List<CustomSubmodel> readSubmodels(URL submodelUrl, boolean onlySubmodels)
             throws IOException, DeserializationException {
         var submodelHttpResponse = Objects.requireNonNull(httpRestClient.get(submodelUrl).body()).string();
 
-        // First, parse into "full" admin-shell.io submodels:
-        JsonDeserializer jsonDeserializer = new JsonDeserializer();
-        List<DefaultSubmodel> submodels = jsonDeserializer.readReferables(submodelHttpResponse, DefaultSubmodel.class);
+        // First, parse into "full" submodels:
+        List<Submodel> submodels = jsonDeserializer.readList(submodelHttpResponse, Submodel.class);
 
         // Now, create customSubmodels from the "full" submodels
         List<CustomSubmodel> customSubmodels = new ArrayList<>();
         for (Submodel submodel : submodels) {
             var customSubmodel = new CustomSubmodel();
-            var customIdentification = new Identifier();
-            customIdentification.setId(submodel.getIdentification().getIdentifier());
-            customSubmodel.setIdentification(customIdentification);
+            customSubmodel.setId(submodel.getId());
             customSubmodel.setIdShort(submodel.getIdShort());
-            if (Objects.nonNull(submodel.getSemanticId().getKeys())) {
-                customSubmodel.setSemanticId(new CustomSemanticId(submodel.getSemanticId().getKeys()));
+            if (Objects.nonNull(submodel.getSemanticId())) {
+                customSubmodel.setSemanticId(submodel.getSemanticId());
             }
 
             if (!onlySubmodels) {

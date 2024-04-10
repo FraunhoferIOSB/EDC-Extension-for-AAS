@@ -485,7 +485,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{provider}}/api/aas?requestUrl=http://localhost:12345/submodels/aHR0cHM6Ly9leGFtcGxlLmNvbS9pZHMvc20vMTE0NV84MDkwXzYwMTJfNTA5Nw",
+							"raw": "{{provider}}/api/aas?requestUrl=http://localhost:12345/api/v3.0/submodels/aHR0cHM6Ly9leGFtcGxlLmNvbS9pZHMvc20vMTE0NV84MDkwXzYwMTJfNTA5Nw",
 							"host": [
 								"{{provider}}"
 							],
@@ -496,7 +496,7 @@
 							"query": [
 								{
 									"key": "requestUrl",
-									"value": "http://localhost:12345/submodels/aHR0cHM6Ly9leGFtcGxlLmNvbS9pZHMvc20vMTE0NV84MDkwXzYwMTJfNTA5Nw"
+									"value": "http://localhost:12345/api/v3.0/submodels/aHR0cHM6Ly9leGFtcGxlLmNvbS9pZHMvc20vMTE0NV84MDkwXzYwMTJfNTA5Nw"
 								}
 							]
 						}
@@ -524,7 +524,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{provider}}/api/aas?requestUrl=http://localhost:12345/submodels/aHR0cHM6Ly9leGFtcGxlLmNvbS9pZHMvc20vNDQ0NV84MDkwXzYwMTJfNzQwOQ",
+							"raw": "{{provider}}/api/aas?requestUrl=http://localhost:12345/api/v3.0/submodels/aHR0cHM6Ly9leGFtcGxlLmNvbS9pZHMvc20vNDQ0NV84MDkwXzYwMTJfNzQwOQ",
 							"host": [
 								"{{provider}}"
 							],
@@ -535,7 +535,7 @@
 							"query": [
 								{
 									"key": "requestUrl",
-									"value": "http://localhost:12345/submodels/aHR0cHM6Ly9leGFtcGxlLmNvbS9pZHMvc20vNDQ0NV84MDkwXzYwMTJfNzQwOQ"
+									"value": "http://localhost:12345/api/v3.0/submodels/aHR0cHM6Ly9leGFtcGxlLmNvbS9pZHMvc20vNDQ0NV84MDkwXzYwMTJfNzQwOQ"
 								}
 							]
 						}

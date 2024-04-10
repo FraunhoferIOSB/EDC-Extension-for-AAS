@@ -18,7 +18,7 @@ package de.fraunhofer.iosb.app.model.aas;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import io.adminshell.aas.v3.model.Constraint;
+import org.eclipse.digitaltwin.aas4j.v3.model.Qualifier;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,26 +27,26 @@ import java.util.Objects;
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonAutoDetect
-public class CustomSubmodel extends AASElement {
+public class CustomSubmodel extends AssetAdministrationShellElement {
 
-    protected Identifier identification;
-    protected List<Constraint> qualifiers;
+    protected String id;
+    protected List<Qualifier> qualifiers;
     protected String idShort;
     protected List<CustomSubmodelElement> submodelElements = new ArrayList<>();
 
-    public Identifier getIdentification() {
-        return identification;
+    public String getId() {
+        return id;
     }
 
-    public void setIdentification(Identifier identification) {
-        this.identification = identification;
+    public void setId(String id) {
+        this.id = id;
     }
 
-    public List<Constraint> getQualifiers() {
+    public List<Qualifier> getQualifiers() {
         return qualifiers;
     }
 
-    public void setQualifiers(List<Constraint> qualifiers) {
+    public void setQualifiers(List<Qualifier> qualifiers) {
         this.qualifiers = qualifiers;
     }
 
@@ -68,7 +68,7 @@ public class CustomSubmodel extends AASElement {
 
     @Override
     public int hashCode() {
-        return Objects.hash(identification, idShort);
+        return Objects.hash(id, idShort);
     }
 
     @Override
@@ -83,12 +83,12 @@ public class CustomSubmodel extends AASElement {
 
         final CustomSubmodel other = (CustomSubmodel) obj;
 
-        if ((this.getIdentification() == null) ? (other.getIdentification() != null)
-                : !this.getIdentification().equals(other.getIdentification())) {
+        if ((this.getId() == null) ? (other.getId() != null)
+                : !this.getId().equals(other.getId())) {
             return false;
         }
 
-        return this.getIdShort().equals(other.getIdShort());
+        return Objects.equals(this.getId(), other.getId()) && Objects.equals(this.getIdShort(), other.getIdShort());
     }
 
 }

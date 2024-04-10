@@ -16,17 +16,17 @@
 package de.fraunhofer.iosb.app.util;
 
 import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShellEnvironment;
-import de.fraunhofer.iosb.app.model.aas.CustomSemanticId;
 import de.fraunhofer.iosb.app.model.aas.CustomSubmodel;
 import de.fraunhofer.iosb.app.model.aas.CustomSubmodelElement;
 import de.fraunhofer.iosb.app.model.aas.CustomSubmodelElementCollection;
 import de.fraunhofer.iosb.app.model.aas.IdsAssetElement;
-import io.adminshell.aas.v3.model.Submodel;
-import io.adminshell.aas.v3.model.SubmodelElement;
-import io.adminshell.aas.v3.model.SubmodelElementCollection;
+import org.eclipse.digitaltwin.aas4j.v3.model.Submodel;
+import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElement;
+import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElementCollection;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -79,20 +79,24 @@ public final class AASUtil {
      * custom submodel.
      */
     private static Collection<CustomSubmodelElement> unpackElements(Collection<SubmodelElement> submodelElements) {
+        if (submodelElements == null) {
+            return new ArrayList<>(); //empty collection
+        }
+
         Collection<CustomSubmodelElement> customSubmodelElements = new ArrayList<>();
         for (SubmodelElement submodelElement : submodelElements) {
             if (submodelElement instanceof SubmodelElementCollection) {
                 customSubmodelElements.add(
                         new CustomSubmodelElementCollection(
                                 submodelElement.getIdShort(),
-                                unpackElements(((SubmodelElementCollection) submodelElement).getValues())));
+                                unpackElements(((SubmodelElementCollection) submodelElement).getValue())));
             } else {
                 var customSubmodelElement = new CustomSubmodelElement();
                 customSubmodelElement.setIdShort(submodelElement.getIdShort());
 
-                if (Objects.nonNull(submodelElement.getSemanticId().getKeys())) {
+                if (Objects.nonNull(submodelElement.getSemanticId())) {
                     customSubmodelElement
-                            .setSemanticId(new CustomSemanticId(submodelElement.getSemanticId().getKeys()));
+                            .setSemanticId(submodelElement.getSemanticId());
                 }
 
                 customSubmodelElements.add(customSubmodelElement);
@@ -106,7 +110,7 @@ public final class AASUtil {
      * flat structure.
      */
     private static Collection<CustomSubmodelElement> flattenElements(Collection<CustomSubmodelElement> flatList,
-            Collection<CustomSubmodelElement> submodelElements) {
+                                                                     Collection<CustomSubmodelElement> submodelElements) {
         if (Objects.isNull(submodelElements)) {
             return flatList;
         }

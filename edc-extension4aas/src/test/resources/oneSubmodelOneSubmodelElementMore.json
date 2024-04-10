@@ -1,0 +1,56 @@
+[
+    {
+        "idShort": "ExampleSubmodel1",
+        "id": "https://example.org/submodel/1",
+        "semanticId": {
+            "type": "ExternalReference",
+            "keys": [
+                {
+                    "type": "GlobalReference",
+                    "value": "0173-1#01-AFZ615#016"
+                }
+            ]
+        },
+        "submodelElements": [
+            {
+                "category": "PARAMETER",
+                "idShort": "IntegerValue",
+                "valueType": "xs:integer",
+                "value": "5000",
+                "modelType": "Property"
+            },
+            {
+                "idShort": "AddedProperty",
+                "valueType": "xs:double",
+                "value": "1.2",
+                "modelType": "Property"
+            }
+        ],
+        "modelType": "Submodel"
+    },
+    {
+        "idShort": "ExampleSubmodel2",
+        "id": "https://example.org/submodel/2",
+        "submodelElements": [
+            {
+                "idShort": "ExampleCollection",
+                "value": [
+                    {
+                        "idShort": "CollectionEntry1",
+                        "valueType": "xs:string",
+                        "value": "entry1-value",
+                        "modelType": "Property"
+                    },
+                    {
+                        "idShort": "CollectionEntry2",
+                        "valueType": "xs:double",
+                        "value": "1.2",
+                        "modelType": "Property"
+                    }
+                ],
+                "modelType": "SubmodelElementCollection"
+            }
+        ],
+        "modelType": "Submodel"
+    }
+]

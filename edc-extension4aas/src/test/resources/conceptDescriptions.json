@@ -1,37 +1,44 @@
 [
   {
-    "modelType": {
-      "name": "ConceptDescription"
-    },
-    "administration": {
-      "revision": "0",
-      "version": "0.9"
-    },
-    "identification": {
-      "idType": "Iri",
-      "id": "https://acplt.org/Test_ConceptDescription"
-    },
-    "idShort": "TestConceptDescription",
-    "isCaseOf": [
+    "idShort": "ExampleConceptDescription",
+    "id": "https://example.org/concept-description/1",
+    "embeddedDataSpecifications": [
       {
-        "keys": [
-          {
-            "idType": "Iri",
-            "type": "GlobalReference",
-            "value": "http://acplt.org/DataSpecifications/ConceptDescriptions/TestConceptDescription"
-          }
-        ]
+        "dataSpecification": {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+            }
+          ]
+        },
+        "dataSpecificationContent": {
+          "preferredName": [
+            {
+              "language": "en",
+              "text": "preferredName-value-en"
+            },
+            {
+              "language": "de",
+              "text": "preferredName-value-de"
+            }
+          ],
+          "shortName": [
+            {
+              "language": "en",
+              "text": "shortName-value-en"
+            },
+            {
+              "language": "de",
+              "text": "shortName-value-de"
+            }
+          ],
+          "dataType": "STRING_TRANSLATABLE",
+          "modelType": "DataSpecificationIec61360"
+        }
       }
     ],
-    "description": [
-      {
-        "language": "en-us",
-        "text": "An example concept description for the test application"
-      },
-      {
-        "language": "de",
-        "text": "Ein Beispiel-ConceptDescription für eine Test-Anwendung"
-      }
-    ]
+    "modelType": "ConceptDescription"
   }
 ]

@@ -18,21 +18,22 @@ package de.fraunhofer.iosb.app.util;
 import de.fraunhofer.iosb.app.Logger;
 import okhttp3.HttpUrl;
 import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import org.eclipse.edc.spi.http.EdcHttpClient;
 
 import java.io.IOException;
 import java.net.URL;
 import java.util.Objects;
 
+
 public class HttpRestClient {
 
     private final Logger logger;
-    private final OkHttpClient client;
+    private final EdcHttpClient client;
 
-    public HttpRestClient(OkHttpClient client) {
+    public HttpRestClient(EdcHttpClient client) {
         logger = Logger.getInstance();
         this.client = client;
     }
@@ -49,7 +50,7 @@ public class HttpRestClient {
                 .url(Objects.requireNonNull(HttpUrl.get(url)))
                 .get()
                 .build();
-        return client.newCall(request).execute();
+        return client.execute(request);
     }
 
     /**
@@ -65,7 +66,7 @@ public class HttpRestClient {
                 .url(Objects.requireNonNull(HttpUrl.get(url)))
                 .put(RequestBody.create(payload, MediaType.parse("application/json")))
                 .build();
-        return client.newCall(request).execute();
+        return client.execute(request);
     }
 
     /**
@@ -81,7 +82,7 @@ public class HttpRestClient {
                 .url(Objects.requireNonNull(HttpUrl.get(url)))
                 .post(RequestBody.create(payload, MediaType.parse("application/json")))
                 .build();
-        return client.newCall(request).execute();
+        return client.execute(request);
     }
 
     /**
@@ -107,6 +108,6 @@ public class HttpRestClient {
                     .delete()
                     .build();
         }
-        return client.newCall(request).execute();
+        return client.execute(request);
     }
 }

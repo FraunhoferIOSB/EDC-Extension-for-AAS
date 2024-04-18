@@ -15,10 +15,8 @@
  */
 package de.fraunhofer.iosb.app.aas;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.MapperFeature;
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
 import de.fraunhofer.iosb.app.Logger;
 import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShell;
 import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShellEnvironment;
@@ -35,20 +33,20 @@ import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.DeserializationException
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.json.JsonDeserializer;
 import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShell;
 import org.eclipse.digitaltwin.aas4j.v3.model.ConceptDescription;
-import org.eclipse.digitaltwin.aas4j.v3.model.Key;
-import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.digitaltwin.aas4j.v3.model.Submodel;
-import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultKey;
-import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultReference;
 import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.http.EdcHttpClient;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.Certificate;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -59,28 +57,19 @@ import static java.lang.String.format;
  */
 public class AasAgent {
 
+    private static final Logger LOGGER = Logger.getInstance();
+
     private final HttpRestClient httpRestClient;
-    private final Logger logger;
     private final JsonDeserializer jsonDeserializer;
+    private final Map<String, Certificate[]> acceptedCertificates;
 
-    public AasAgent(EdcHttpClient client) {
-        Objects.requireNonNull(client);
-        this.httpRestClient = new HttpRestClient(client);
-        logger = Logger.getInstance();
-        // Make objectMapper recognize DefaultReference as implementation of Reference
-        final var simpleModule = new SimpleModule()
-                .addAbstractTypeMapping(Reference.class, DefaultReference.class)
-                .addAbstractTypeMapping(Key.class, DefaultKey.class);
+    private final ObjectMapper objectMapper;
 
-        // Object Mapper to write model as self-description using custom aas model
-        var objectMapper = JsonMapper
-                .builder()
-                .enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS)
-                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-                .build();
-        objectMapper.registerModule(simpleModule);
+    public AasAgent() {
+        httpRestClient = new HttpRestClient();
         jsonDeserializer = new JsonDeserializer();
-
+        acceptedCertificates = new HashMap<>();
+        objectMapper = new ObjectMapper();
     }
 
     /**
@@ -96,7 +85,7 @@ public class AasAgent {
         try {
             response = Transformer.okHttpResponseToJakartaResponse(httpRestClient.put(aasServiceUrl, element));
         } catch (IOException io) {
-            logger.severe("Could not fetch AAS env from AAS service", io);
+            LOGGER.severe("Could not fetch AAS env from AAS service", io);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
 
@@ -115,7 +104,7 @@ public class AasAgent {
         try {
             response = Transformer.okHttpResponseToJakartaResponse(httpRestClient.post(aasServiceUrl, element));
         } catch (IOException io) {
-            logger.severe("Could not fetch AAS env from AAS service", io);
+            LOGGER.severe("Could not fetch AAS env from AAS service", io);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
 
@@ -135,7 +124,7 @@ public class AasAgent {
         try {
             response = Transformer.okHttpResponseToJakartaResponse(httpRestClient.delete(aasServiceUrl, element));
         } catch (IOException io) {
-            logger.severe("Could not fetch AAS env from AAS service", io);
+            LOGGER.severe("Could not fetch AAS env from AAS service", io);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
 
@@ -211,8 +200,9 @@ public class AasAgent {
 
     private List<CustomConceptDescription> readConceptDescriptions(URL conceptDescriptionsUrl) throws IOException, DeserializationException {
         var conceptResponse = Objects.requireNonNull(httpRestClient.get(conceptDescriptionsUrl).body()).string();
+        var conceptResponseJsonNode = objectMapper.readTree(conceptResponse).get("result");
 
-        return jsonDeserializer.readList(conceptResponse, ConceptDescription.class)
+        return jsonDeserializer.readList(conceptResponseJsonNode, ConceptDescription.class)
                 .stream()
                 .map(CustomConceptDescription::fromConceptDescription)
                 .collect(Collectors.toCollection(ArrayList::new));
@@ -220,8 +210,9 @@ public class AasAgent {
 
     private List<CustomAssetAdministrationShell> readShells(URL shellsUrl) throws IOException, DeserializationException {
         var shellResponse = Objects.requireNonNull(httpRestClient.get(shellsUrl).body()).string();
+        var shellResponseJsonNode = objectMapper.readTree(shellResponse).get("result");
 
-        return jsonDeserializer.readList(shellResponse, AssetAdministrationShell.class)
+        return jsonDeserializer.readList(shellResponseJsonNode, AssetAdministrationShell.class)
                 .stream()
                 .map(CustomAssetAdministrationShell::fromAssetAdministrationShell)
                 .collect(Collectors.toCollection(ArrayList::new));
@@ -229,10 +220,11 @@ public class AasAgent {
 
     private List<CustomSubmodel> readSubmodels(URL submodelUrl, boolean onlySubmodels)
             throws IOException, DeserializationException {
-        var submodelHttpResponse = Objects.requireNonNull(httpRestClient.get(submodelUrl).body()).string();
+        var submodelResponse = Objects.requireNonNull(httpRestClient.get(submodelUrl).body()).string();
+        var submodelResponseJsonNode = objectMapper.readTree(submodelResponse).get("result");
 
         // First, parse into "full" submodels:
-        List<Submodel> submodels = jsonDeserializer.readList(submodelHttpResponse, Submodel.class);
+        List<Submodel> submodels = jsonDeserializer.readList(submodelResponseJsonNode, Submodel.class);
 
         // Now, create customSubmodels from the "full" submodels
         List<CustomSubmodel> customSubmodels = new ArrayList<>();
@@ -271,5 +263,23 @@ public class AasAgent {
         }
         element.setSourceUrl(format("%s.%s", url, element.getIdShort()));
         return element;
+    }
+
+    public void addCertificates(URL url, Certificate[] certs) throws KeyStoreException, NoSuchAlgorithmException {
+        acceptedCertificates.put(url.toString(), certs);
+        httpRestClient.setAcceptedSelfSignedCertificates(acceptedCertificates);
+    }
+
+    public void removeCertificates(URL aasServiceUrl) {
+        acceptedCertificates.remove(aasServiceUrl.toString());
+        // Here we don't throw the exception on since we should still remove
+        // the service even if we cannot remove its self-signed certificates.
+        try {
+            httpRestClient.setAcceptedSelfSignedCertificates(acceptedCertificates);
+        } catch (KeyStoreException | NoSuchAlgorithmException generalSecurityException) {
+            throw new EdcException(
+                    format("Exception thrown while trying to remove certificate by %s", aasServiceUrl),
+                    generalSecurityException);
+        }
     }
 }

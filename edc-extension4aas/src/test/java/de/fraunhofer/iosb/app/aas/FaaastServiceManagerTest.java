@@ -47,7 +47,7 @@ public class FaaastServiceManagerTest {
     @Test
     public void startServiceTest() throws IOException, URISyntaxException {
         var url = startService();
-        var restClient = new HttpRestClient(new EdcHttpClientImpl(new TrustSelfSignedOkHttpClient().newBuilder().build(), RetryPolicy.ofDefaults(), mock(Monitor.class)));
+        var restClient = new HttpRestClient();
         assertEquals(Response.Status.OK.getStatusCode(), restClient.get(url.toURI().resolve("/api/v3.0/shells").toURL()).code());
     }
 

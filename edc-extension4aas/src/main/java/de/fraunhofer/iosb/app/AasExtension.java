@@ -80,6 +80,7 @@ public class AasExtension implements ServiceExtension {
 
         // Initialize/Start synchronizer, start AAS services defined in configuration
         initializeSynchronizer(selfDescriptionRepository);
+        // This makes the connector shutdown if an exception occurs while starting config services
         registerServicesByConfig(selfDescriptionRepository);
 
         // Add public endpoint if wanted by config

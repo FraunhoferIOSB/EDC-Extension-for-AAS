@@ -58,7 +58,7 @@ public class AasAgentTest {
 
     @BeforeEach
     public void initializeAasAgent() {
-        aasAgent = new AasAgent(new EdcHttpClientImpl(new TrustSelfSignedOkHttpClient().newBuilder().build(), RetryPolicy.ofDefaults(), mock(Monitor.class)));
+        aasAgent = new AasAgent();
     }
 
     @Test

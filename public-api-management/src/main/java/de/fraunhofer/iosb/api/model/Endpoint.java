@@ -32,6 +32,7 @@ public record Endpoint(String suffix, HttpMethod method, Map<String, List<String
     public Endpoint {
         Objects.requireNonNull(suffix);
         Objects.requireNonNull(method);
+        Objects.requireNonNull(customHeaders);
     }
 
     /**
@@ -47,6 +48,7 @@ public record Endpoint(String suffix, HttpMethod method, Map<String, List<String
         if (!this.suffix().equals(other.suffix()) || !this.method().equals(other.method())) {
             return false;
         }
+
         return this.customHeaders().entrySet().stream().allMatch(entry ->
                 other.customHeaders().containsKey(entry.getKey()) &&
                         new HashSet<>(other.customHeaders().get(entry.getKey())).containsAll(entry.getValue()));

@@ -1,45 +1,50 @@
-[
-  {
-    "idShort": "ExampleAAS",
-    "description": [
-      {
-        "language": "en",
-        "text": "An Example Asset Administration Shell"
+{
+  "result": [
+    {
+      "idShort": "ExampleAAS",
+      "description": [
+        {
+          "language": "en",
+          "text": "An Example Asset Administration Shell"
+        },
+        {
+          "language": "de",
+          "text": "Ein Beispiel-Verwaltungsschale"
+        }
+      ],
+      "administration": {
+        "version": "1",
+        "revision": "0"
       },
-      {
-        "language": "de",
-        "text": "Ein Beispiel-Verwaltungsschale"
-      }
-    ],
-    "administration": {
-      "version": "1",
-      "revision": "0"
-    },
-    "id": "https://example.com/ids/sm/3122_5150_2042_4130",
-    "assetInformation": {
-      "assetKind": "Instance",
-      "globalAssetId": "https://example.org/asset/1"
-    },
-    "submodels": [
-      {
-        "type": "ExternalReference",
-        "keys": [
-          {
-            "type": "Submodel",
-            "value": "https://example.org/submodel/1"
-          }
-        ]
+      "id": "https://example.com/ids/sm/3122_5150_2042_4130",
+      "assetInformation": {
+        "assetKind": "Instance",
+        "globalAssetId": "https://example.org/asset/1"
       },
-      {
-        "type": "ExternalReference",
-        "keys": [
-          {
-            "type": "Submodel",
-            "value": "https://example.org/submodel/2"
-          }
-        ]
-      }
-    ],
-    "modelType": "AssetAdministrationShell"
+      "submodels": [
+        {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "Submodel",
+              "value": "https://example.org/submodel/1"
+            }
+          ]
+        },
+        {
+          "type": "ExternalReference",
+          "keys": [
+            {
+              "type": "Submodel",
+              "value": "https://example.org/submodel/2"
+            }
+          ]
+        }
+      ],
+      "modelType": "AssetAdministrationShell"
+    }
+  ],
+  "paging_metadata": {
+    "cursor": null
   }
-]
+}

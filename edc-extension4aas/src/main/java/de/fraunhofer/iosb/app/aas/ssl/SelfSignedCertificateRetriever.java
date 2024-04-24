@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.app.util;
+package de.fraunhofer.iosb.app.aas.ssl;
 
 import org.eclipse.edc.spi.EdcException;
 
@@ -35,7 +35,7 @@ import static java.lang.String.format;
 /**
  * Retrieve certificates of an online service by its URL.
  * This should only be used for explicitly known services and URLs!
- * (Example: Create a FA³ST service which uses TLS with a self-signed cert.
+ * (Example: Create a FA³ST service which uses TLS with a self-signed certificate if no other is provided.
  * -> Need its cert to communicate with it)
  */
 public class SelfSignedCertificateRetriever {

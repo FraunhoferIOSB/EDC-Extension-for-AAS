@@ -93,28 +93,30 @@ public class AasExtension implements ServiceExtension {
 
     private void registerServicesByConfig(SelfDescriptionRepository selfDescriptionRepository) {
         var configInstance = Configuration.getInstance();
+        Path aasConfigPath = null;
 
         if (Objects.nonNull(configInstance.getRemoteAasLocation())) {
             selfDescriptionRepository.createSelfDescription(configInstance.getRemoteAasLocation());
         }
 
-        if (Objects.nonNull(configInstance.getLocalAasModelPath())) {
-            try {
-                Path aasConfigPath = null;
-                if (Objects.nonNull(configInstance.getAasServiceConfigPath())) {
-                    aasConfigPath = Path.of(configInstance.getAasServiceConfigPath());
-                }
-                var serviceUrl = aasController.startService(
-                        Path.of(configInstance.getLocalAasModelPath()),
-                        configInstance.getLocalAasServicePort(),
-                        aasConfigPath);
-
-                selfDescriptionRepository.createSelfDescription(serviceUrl);
-            } catch (IOException startAssetAdministrationShellException) {
-                LOGGER.warning("Could not start AAS service provided by configuration", startAssetAdministrationShellException);
-            }
+        if (Objects.isNull(configInstance.getLocalAasModelPath())) {
+            return;
         }
 
+        if (Objects.nonNull(configInstance.getAasServiceConfigPath())) {
+            aasConfigPath = Path.of(configInstance.getAasServiceConfigPath());
+        }
+
+        try {
+            var serviceUrl = aasController.startService(
+                    Path.of(configInstance.getLocalAasModelPath()),
+                    configInstance.getLocalAasServicePort(),
+                    aasConfigPath);
+
+            selfDescriptionRepository.createSelfDescription(serviceUrl);
+        } catch (IOException startAssetAdministrationShellException) {
+            LOGGER.warning("Could not start AAS service provided by configuration", startAssetAdministrationShellException);
+        }
     }
 
     private void initializeSynchronizer(SelfDescriptionRepository selfDescriptionRepository) {

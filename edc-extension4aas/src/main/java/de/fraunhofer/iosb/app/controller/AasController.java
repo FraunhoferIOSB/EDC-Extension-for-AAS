@@ -20,8 +20,8 @@ import de.fraunhofer.iosb.app.RequestType;
 import de.fraunhofer.iosb.app.aas.AasAgent;
 import de.fraunhofer.iosb.app.aas.AssetAdministrationShellServiceManager;
 import de.fraunhofer.iosb.app.aas.FaaastServiceManager;
+import de.fraunhofer.iosb.app.aas.ssl.SelfSignedCertificateRetriever;
 import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShellEnvironment;
-import de.fraunhofer.iosb.app.util.SelfSignedCertificateRetriever;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.DeserializationException;
 import org.eclipse.edc.spi.http.EdcHttpClient;
@@ -41,6 +41,7 @@ import static java.lang.String.format;
  */
 public class AasController implements Controllable {
 
+    private static final String HTTPS = "https";
     private final AasAgent aasAgent;
     private final AssetAdministrationShellServiceManager aasServiceManager;
     private final Logger logger;
@@ -106,8 +107,7 @@ public class AasController implements Controllable {
             serviceUrl = aasServiceManager.startService(aasModelPath, aasConfigPath, aasServicePort);
         }
 
-        // TODO replace "https" with constant string
-        if (serviceUrl.getProtocol().equalsIgnoreCase("https")) {
+        if (serviceUrl.getProtocol().equalsIgnoreCase(HTTPS)) {
             var certs = SelfSignedCertificateRetriever.getSelfSignedCertificate(serviceUrl);
             try {
                 aasAgent.addCertificates(serviceUrl, certs);

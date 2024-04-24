@@ -55,10 +55,9 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
     public URL startService(Path aasModelPath, int port) throws IOException {
         Objects.requireNonNull(aasModelPath);
         if (!isValidPort(port)) {
-            var errorMessage = format("Port is not valid: (%s).", port);
-            logger.severe(errorMessage);
-            throw new EdcException(errorMessage);
+            throw new EdcException(format("Port is not valid: (%s).", port));
         }
+
         logger.debug(format("Booting up FA³ST service using AAS model path (%s) and service port (%s).", aasModelPath,
                 port));
 

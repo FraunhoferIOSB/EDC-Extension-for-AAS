@@ -123,8 +123,7 @@ public class HttpRestClient {
      * Add self-signed certificates to trust when executing http requests.
      *
      * @param certs All self-signed certificates to trust.
-     *
-     * @throws KeyStoreException generic keyStore exception to throw at user (maybe some OS error)
+     * @throws KeyStoreException        generic keyStore exception to throw at user (maybe some OS error)
      * @throws NoSuchAlgorithmException When a particular cryptographic algorithm is requested but is not available in the environment.
      */
     public void setAcceptedSelfSignedCertificates(Map<String, Certificate[]> certs) throws KeyStoreException, NoSuchAlgorithmException {

@@ -15,9 +15,10 @@
  */
 package de.fraunhofer.iosb.app.aas;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
 import de.fraunhofer.iosb.app.Logger;
+import de.fraunhofer.iosb.app.model.aas.AssetAdministrationShellElement;
 import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShell;
 import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShellEnvironment;
 import de.fraunhofer.iosb.app.model.aas.CustomConceptDescription;
@@ -33,6 +34,7 @@ import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.DeserializationException
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.json.JsonDeserializer;
 import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShell;
 import org.eclipse.digitaltwin.aas4j.v3.model.ConceptDescription;
+import org.eclipse.digitaltwin.aas4j.v3.model.Identifiable;
 import org.eclipse.digitaltwin.aas4j.v3.model.Submodel;
 import org.eclipse.edc.spi.EdcException;
 
@@ -177,9 +179,9 @@ public class AasAgent {
             throws IOException, DeserializationException {
         var aasEnv = new CustomAssetAdministrationShellEnvironment();
 
+        URL submodelUrl;
         URL shellsUrl;
         URL conceptDescriptionsUrl;
-        URL submodelUrl;
         try {
             submodelUrl = aasServiceUrl.toURI().resolve("/api/v3.0/submodels").toURL();
             shellsUrl = aasServiceUrl.toURI().resolve("/api/v3.0/shells").toURL();
@@ -199,32 +201,23 @@ public class AasAgent {
     }
 
     private List<CustomConceptDescription> readConceptDescriptions(URL conceptDescriptionsUrl) throws IOException, DeserializationException {
-        var conceptResponse = Objects.requireNonNull(httpRestClient.get(conceptDescriptionsUrl).body()).string();
-        var conceptResponseJsonNode = objectMapper.readTree(conceptResponse).get("result");
+        var element = readAssetAdministrationShellElement(conceptDescriptionsUrl, ConceptDescription.class);
 
-        return jsonDeserializer.readList(conceptResponseJsonNode, ConceptDescription.class)
-                .stream()
+        return element.stream()
                 .map(CustomConceptDescription::fromConceptDescription)
                 .collect(Collectors.toCollection(ArrayList::new));
     }
 
     private List<CustomAssetAdministrationShell> readShells(URL shellsUrl) throws IOException, DeserializationException {
-        var shellResponse = Objects.requireNonNull(httpRestClient.get(shellsUrl).body()).string();
-        var shellResponseJsonNode = objectMapper.readTree(shellResponse).get("result");
+        var element = readAssetAdministrationShellElement(shellsUrl, AssetAdministrationShell.class);
 
-        return jsonDeserializer.readList(shellResponseJsonNode, AssetAdministrationShell.class)
-                .stream()
+        return element.stream()
                 .map(CustomAssetAdministrationShell::fromAssetAdministrationShell)
                 .collect(Collectors.toCollection(ArrayList::new));
     }
 
-    private List<CustomSubmodel> readSubmodels(URL submodelUrl, boolean onlySubmodels)
-            throws IOException, DeserializationException {
-        var submodelResponse = Objects.requireNonNull(httpRestClient.get(submodelUrl).body()).string();
-        var submodelResponseJsonNode = objectMapper.readTree(submodelResponse).get("result");
-
-        // First, parse into "full" submodels:
-        List<Submodel> submodels = jsonDeserializer.readList(submodelResponseJsonNode, Submodel.class);
+    private List<CustomSubmodel> readSubmodels(URL submodelUrl, boolean onlySubmodels) throws IOException, DeserializationException {
+        var submodels = readAssetAdministrationShellElement(submodelUrl, Submodel.class);
 
         // Now, create customSubmodels from the "full" submodels
         List<CustomSubmodel> customSubmodels = new ArrayList<>();
@@ -244,6 +237,13 @@ public class AasAgent {
             customSubmodels.add(customSubmodel);
         }
         return customSubmodels;
+    }
+
+    private <T extends Identifiable> List<T> readAssetAdministrationShellElement(URL contentUrl, Class<T> clazz) throws IOException, DeserializationException {
+        var response = Objects.requireNonNull(httpRestClient.get(contentUrl).body()).string();
+        var responseJson = objectMapper.readTree(response).get("result");
+
+        return Objects.isNull(responseJson) ? List.of() : jsonDeserializer.readList(responseJson, clazz);
     }
 
     /**

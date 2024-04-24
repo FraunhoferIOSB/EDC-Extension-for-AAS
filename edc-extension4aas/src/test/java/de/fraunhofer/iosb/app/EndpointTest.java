@@ -20,8 +20,8 @@ import de.fraunhofer.iosb.app.controller.ConfigurationController;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
 import de.fraunhofer.iosb.app.testutils.FileManager;
-import de.fraunhofer.iosb.app.util.Encoder;
 import de.fraunhofer.iosb.app.testutils.TrustSelfSignedOkHttpClient;
+import de.fraunhofer.iosb.app.util.Encoder;
 import dev.failsafe.RetryPolicy;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.connector.core.base.EdcHttpClientImpl;
@@ -68,7 +68,13 @@ public class EndpointTest {
     @BeforeEach
     public void setupEndpoint() {
         selfDescriptionRepo = new SelfDescriptionRepository();
-        aasController = new AasController(new EdcHttpClientImpl(new TrustSelfSignedOkHttpClient().newBuilder().build(), RetryPolicy.ofDefaults(), mock(Monitor.class)));
+        aasController = new AasController(
+                new EdcHttpClientImpl(
+                        new TrustSelfSignedOkHttpClient()
+                                .newBuilder()
+                                .build(),
+                        RetryPolicy.ofDefaults(),
+                        mock(Monitor.class)));
         endpoint = new Endpoint(
                 selfDescriptionRepo,
                 aasController,
@@ -153,8 +159,8 @@ public class EndpointTest {
         endpoint.postAasService(url);
 
         endpoint.putAasRequest(new URL(format(url.toString(), "/api/v3.0/submodels/",
-                Encoder.encodeBase64("https://example.com/ids/sm/4445_8090_6012_7409"),
-                "/submodel-elements/GripperUp")),
+                        Encoder.encodeBase64("https://example.com/ids/sm/4445_8090_6012_7409"),
+                        "/submodel-elements/GripperUp")),
                 FileManager.loadResource("submodelElement.json"));
 
         // Still null: not synchronized by Synchronizer

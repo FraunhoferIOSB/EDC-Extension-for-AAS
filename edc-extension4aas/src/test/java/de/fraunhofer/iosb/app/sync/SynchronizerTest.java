@@ -28,6 +28,7 @@ import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.asset.AssetIndex;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -67,6 +68,7 @@ public class SynchronizerTest {
     public static void initialize() throws MalformedURLException {
         port = 8080;
         url = new URL(format("http://localhost:%s", port));
+        startMockServer(port);
     }
 
     @BeforeEach
@@ -81,13 +83,19 @@ public class SynchronizerTest {
                         mock(ContractDefinitionStore.class),
                         mock(PolicyDefinitionStore.class)));
         selfDescriptionRepo.registerListener(synchronizer);
+        prepareDefaultMockedResponse();
     }
 
-    @AfterEach
-    public void shutdownMockServer() {
+    @AfterAll
+    public static void shutdownMockServer() {
         if (Objects.nonNull(mockServer) && mockServer.isRunning()) {
             mockServer.stop();
         }
+    }
+
+    @AfterEach
+    public void cleanUp() {
+        mockServer.reset();
     }
 
     /*
@@ -95,8 +103,6 @@ public class SynchronizerTest {
      */
     @Test
     public void synchronizationInitializeTest() {
-        startMockServer(port);
-        prepareDefaultMockedResponse();
 
         selfDescriptionRepo.createSelfDescription(url);
         StringMethods.assertEqualsIgnoreWhiteSpace(
@@ -106,9 +112,6 @@ public class SynchronizerTest {
 
     @Test
     public void synchronizationRemoveAllSubmodelElementsTest() {
-        startMockServer(port);
-
-        prepareDefaultMockedResponse();
         selfDescriptionRepo.createSelfDescription(url);
         StringMethods.assertEqualsIgnoreWhiteSpace(
                 Objects.requireNonNull(FileManager.loadResource("selfDescriptionWithIds.json")),
@@ -123,9 +126,6 @@ public class SynchronizerTest {
 
     @Test
     public void synchronizationAddOneSubmodelElementTest() {
-        startMockServer(port);
-
-        prepareDefaultMockedResponse();
         selfDescriptionRepo.createSelfDescription(url);
         StringMethods.assertEqualsIgnoreWhiteSpace(
                 Objects.requireNonNull(FileManager.loadResource("selfDescriptionWithIds.json")),
@@ -140,9 +140,6 @@ public class SynchronizerTest {
 
     @Test
     public void synchronizationRemoveAllTest() {
-        startMockServer(port);
-
-        prepareDefaultMockedResponse();
         selfDescriptionRepo.createSelfDescription(url);
         StringMethods.assertEqualsIgnoreWhiteSpace(
                 Objects.requireNonNull(FileManager.loadResource("selfDescriptionWithIds.json")),
@@ -156,9 +153,6 @@ public class SynchronizerTest {
 
     @Test
     public void synchronizationRemoveAasTest() {
-        startMockServer(port);
-
-        prepareDefaultMockedResponse();
         selfDescriptionRepo.createSelfDescription(url);
         StringMethods.assertEqualsIgnoreWhiteSpace(
                 Objects.requireNonNull(FileManager.loadResource("selfDescriptionWithIds.json")),
@@ -170,11 +164,13 @@ public class SynchronizerTest {
 
     @Test
     public void aasServiceNotAvailableTest() {
+        mockServer.stop();
         try {
             selfDescriptionRepo.createSelfDescription(url);
             fail("AAS service not available, self description should not be created");
         } catch (EdcException expected) {
         }
+        startMockServer(port);
     }
 
     private void prepareRemovedSubmodelMockedResponse() {

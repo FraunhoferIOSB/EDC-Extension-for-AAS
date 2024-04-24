@@ -16,12 +16,8 @@
 package de.fraunhofer.iosb.app.aas;
 
 import de.fraunhofer.iosb.app.testutils.FileManager;
-import de.fraunhofer.iosb.app.testutils.TrustSelfSignedOkHttpClient;
 import de.fraunhofer.iosb.app.util.Encoder;
-import dev.failsafe.RetryPolicy;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.DeserializationException;
-import org.eclipse.edc.connector.core.base.EdcHttpClientImpl;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,11 +30,9 @@ import java.net.URL;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mock;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
-
 
 /**
  * Testing AAS Agent. Using mocked AAS service (HTTP endpoints)
@@ -59,6 +53,7 @@ public class AasAgentTest {
     @BeforeEach
     public void initializeAasAgent() {
         aasAgent = new AasAgent();
+        mockServer.reset();
     }
 
     @Test
@@ -67,6 +62,7 @@ public class AasAgentTest {
         var submodels = FileManager.loadResource("submodels.json");
         var conceptDescriptions = FileManager.loadResource("conceptDescriptions.json");
 
+        // maybe replace with fa³st service
         mockServer.when(request().withMethod("GET").withPath("/api/v3.0/shells")).respond(response().withBody(shells));
         mockServer.when(request().withMethod("GET").withPath("/api/v3.0/submodels")).respond(response().withBody(submodels));
         mockServer.when(request().withMethod("GET").withPath("/api/v3.0/concept-descriptions"))

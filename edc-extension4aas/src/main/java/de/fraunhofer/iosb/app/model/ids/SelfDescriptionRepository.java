@@ -16,28 +16,24 @@
 package de.fraunhofer.iosb.app.model.ids;
 
 import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShellEnvironment;
-import org.eclipse.edc.spi.observe.Observable;
+import org.eclipse.edc.spi.observe.ObservableImpl;
 
 import java.net.URL;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
- * Self description repository, also an observable so that on removal of self
- * description, AssetIndex / ContractStore can be synchronized
+ * Self-description repository, also an observable so that on removal
+ * of self-description, AssetIndex / ContractStore can be synchronized
  */
-public class SelfDescriptionRepository implements Observable<SelfDescriptionChangeListener> {
+public class SelfDescriptionRepository extends ObservableImpl<SelfDescriptionChangeListener> {
 
-    private final Collection<SelfDescriptionChangeListener> listeners;
     private final Map<URL, SelfDescription> content;
 
     public SelfDescriptionRepository() {
         content = new HashMap<>();
-        listeners = new ConcurrentLinkedQueue<>();
     }
 
     public Set<Entry<URL, SelfDescription>> getAllSelfDescriptions() {
@@ -45,25 +41,32 @@ public class SelfDescriptionRepository implements Observable<SelfDescriptionChan
     }
 
     /**
-     * Return self description associated with this URL
+     * Return self-description associated with this URL
      *
      * @param aasUrl URL determining self description to be returned
-     * @return self description associated with AAS URL
+     * @return self-description associated with AAS URL
      */
     public SelfDescription getSelfDescription(URL aasUrl) {
         return content.get(aasUrl);
     }
 
+    /**
+     * Create entry for a self-description.
+     * This will indirectly call the synchronizer to fetch the AAS
+     * service's contents and build the self-description from it.
+     *
+     * @param aasUrl The URL of the AAS service.
+     */
     public void createSelfDescription(URL aasUrl) {
         content.put(aasUrl, null);
-        listeners.forEach(listener -> listener.created(aasUrl));
+        this.getListeners().forEach(listener -> listener.created(aasUrl));
     }
 
     /**
      * Update self description.
      *
-     * @param aasUrl         URL of self description to be updated
-     * @param newEnvironment updated environment from which self description is
+     * @param aasUrl         URL of self-description to be updated
+     * @param newEnvironment updated environment from which self-description is
      *                       created
      */
     public void updateSelfDescription(URL aasUrl, CustomAssetAdministrationShellEnvironment newEnvironment) {
@@ -71,28 +74,12 @@ public class SelfDescriptionRepository implements Observable<SelfDescriptionChan
     }
 
     /**
-     * Remove self description and notify listeners.
+     * Remove self-description and notify listeners.
      *
-     * @param aasUrl URL of self description to be updated
+     * @param aasUrl URL of self-description to be updated
      */
     public void removeSelfDescription(URL aasUrl) {
         var toBeRemoved = content.remove(aasUrl);
-        listeners.forEach(listener -> listener.removed(toBeRemoved));
+        this.getListeners().forEach(listener -> listener.removed(toBeRemoved));
     }
-
-    @Override
-    public Collection<SelfDescriptionChangeListener> getListeners() {
-        return listeners;
-    }
-
-    @Override
-    public void registerListener(SelfDescriptionChangeListener listener) {
-        listeners.add(listener);
-    }
-
-    @Override
-    public void unregisterListener(SelfDescriptionChangeListener listener) {
-        listeners.remove(listener);
-    }
-
 }

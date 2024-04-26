@@ -67,7 +67,7 @@ public class AasExtension implements ServiceExtension {
 
     private static final String SETTINGS_PREFIX = "edc.aas";
     private static final Logger LOGGER = Logger.getInstance();
-    private final ScheduledExecutorService syncExecutor = new ScheduledThreadPoolExecutor(1);
+    private ScheduledExecutorService syncExecutor;
     private AasController aasController;
 
     @Override
@@ -126,6 +126,7 @@ public class AasExtension implements ServiceExtension {
         selfDescriptionRepository.registerListener(synchronizer);
 
         // Task: get all AAS service URLs, synchronize EDC and AAS
+        syncExecutor = new ScheduledThreadPoolExecutor(1);
         syncExecutor.scheduleAtFixedRate(synchronizer::synchronize, 1,
                 Configuration.getInstance().getSyncPeriod(), TimeUnit.SECONDS);
     }

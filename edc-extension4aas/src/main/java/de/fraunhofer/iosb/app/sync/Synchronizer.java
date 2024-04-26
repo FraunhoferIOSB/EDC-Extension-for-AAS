@@ -39,8 +39,9 @@ import java.util.Objects;
 
 import static java.lang.String.format;
 
+
 /**
- * Synchronize registered AAS services with local self descriptions and
+ * Synchronize registered AAS services with local self-descriptions and
  * assetIndex/contractStore.
  */
 public class Synchronizer implements SelfDescriptionChangeListener {
@@ -51,7 +52,7 @@ public class Synchronizer implements SelfDescriptionChangeListener {
     private final Configuration configuration;
 
     public Synchronizer(SelfDescriptionRepository selfDescriptionRepository,
-            AasController aasController, ResourceController resourceController) {
+                        AasController aasController, ResourceController resourceController) {
         this.selfDescriptionRepository = selfDescriptionRepository;
         this.aasController = aasController;
         this.resourceController = resourceController;
@@ -116,7 +117,7 @@ public class Synchronizer implements SelfDescriptionChangeListener {
     private void addNewElements(CustomAssetAdministrationShellEnvironment newEnvironment) {
         var envElements = AssetAdministrationShellUtil.getAllElements(newEnvironment);
         addAssetsContracts(envElements.stream().filter(
-                element -> Objects.isNull(element.getIdsAssetId()) || Objects.isNull(element.getIdsContractId()))
+                        element -> Objects.isNull(element.getIdsAssetId()) || Objects.isNull(element.getIdsContractId()))
                 .toList());
     }
 
@@ -124,14 +125,14 @@ public class Synchronizer implements SelfDescriptionChangeListener {
      * Removes elements that were deleted on AAS service
      */
     private void removeOldElements(CustomAssetAdministrationShellEnvironment newEnvironment,
-            CustomAssetAdministrationShellEnvironment oldEnvironment) {
+                                   CustomAssetAdministrationShellEnvironment oldEnvironment) {
         var elementsToRemove = AssetAdministrationShellUtil.getAllElements(oldEnvironment);
         elementsToRemove.removeAll(AssetAdministrationShellUtil.getAllElements(newEnvironment));
         removeAssetsContracts(elementsToRemove);
     }
 
     private void syncShell(CustomAssetAdministrationShellEnvironment newEnvironment,
-            CustomAssetAdministrationShellEnvironment oldEnvironment) {
+                           CustomAssetAdministrationShellEnvironment oldEnvironment) {
         var oldShells = oldEnvironment.getAssetAdministrationShells();
         newEnvironment.getAssetAdministrationShells().replaceAll(
                 shell -> oldShells.contains(shell)
@@ -140,7 +141,7 @@ public class Synchronizer implements SelfDescriptionChangeListener {
     }
 
     private void syncConceptDescription(CustomAssetAdministrationShellEnvironment newEnvironment,
-            CustomAssetAdministrationShellEnvironment oldEnvironment) {
+                                        CustomAssetAdministrationShellEnvironment oldEnvironment) {
         var oldConceptDescriptions = oldEnvironment.getConceptDescriptions();
         newEnvironment.getConceptDescriptions().replaceAll(
                 conceptDescription -> oldConceptDescriptions.contains(conceptDescription)
@@ -149,7 +150,7 @@ public class Synchronizer implements SelfDescriptionChangeListener {
     }
 
     private void syncSubmodel(CustomAssetAdministrationShellEnvironment newEnvironment,
-            CustomAssetAdministrationShellEnvironment oldEnvironment) {
+                              CustomAssetAdministrationShellEnvironment oldEnvironment) {
         var oldSubmodels = oldEnvironment.getSubmodels();
         newEnvironment.getSubmodels().forEach(submodel -> {
             CustomSubmodel oldSubmodel;
@@ -173,7 +174,7 @@ public class Synchronizer implements SelfDescriptionChangeListener {
     }
 
     private void syncSubmodelElements(Collection<CustomSubmodelElement> allElements,
-            Collection<CustomSubmodelElement> allOldElements) {
+                                      Collection<CustomSubmodelElement> allOldElements) {
         allElements.stream()
                 .filter(allOldElements::contains)
                 .forEach(element -> {

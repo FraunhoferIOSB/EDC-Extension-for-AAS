@@ -25,7 +25,7 @@ import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShellEnvironmen
 import java.util.Objects;
 
 /**
- * Self description holding the structure of an AAS model
+ * Self-description holding the structure of an AAS model
  */
 public class SelfDescription {
 

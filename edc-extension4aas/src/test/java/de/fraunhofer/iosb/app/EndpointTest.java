@@ -24,7 +24,7 @@ import de.fraunhofer.iosb.app.testutils.TrustSelfSignedOkHttpClient;
 import de.fraunhofer.iosb.app.util.Encoder;
 import dev.failsafe.RetryPolicy;
 import jakarta.ws.rs.core.Response;
-import org.eclipse.edc.connector.core.base.EdcHttpClientImpl;
+import org.eclipse.edc.http.client.EdcHttpClientImpl;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.junit.jupiter.api.AfterEach;

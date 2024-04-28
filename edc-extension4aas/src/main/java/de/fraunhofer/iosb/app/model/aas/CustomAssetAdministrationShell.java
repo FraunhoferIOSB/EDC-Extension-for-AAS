@@ -18,29 +18,29 @@ package de.fraunhofer.iosb.app.model.aas;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import io.adminshell.aas.v3.model.AssetInformation;
-import io.adminshell.aas.v3.model.impl.DefaultAssetInformation;
+import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShell;
+import org.eclipse.digitaltwin.aas4j.v3.model.AssetInformation;
 
 import java.util.Objects;
 
 /**
- * AAS Model for the self description of the edc
+ * AAS Model for the self-description of the edc
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @JsonAutoDetect
-public class CustomAssetAdministrationShell extends AASElement {
+public class CustomAssetAdministrationShell extends AssetAdministrationShellElement {
 
-    protected Identifier identification;
+    protected String id;
     protected String idShort;
     protected AssetInformation assetInformation;
 
-    public Identifier getIdentification() {
-        return identification;
+    public String getId() {
+        return id;
     }
 
-    public void setIdentification(Identifier identification) {
-        this.identification = identification;
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getIdShort() {
@@ -55,32 +55,34 @@ public class CustomAssetAdministrationShell extends AASElement {
         return assetInformation;
     }
 
-    public void setAssetInformation(DefaultAssetInformation assetInformation) {
+    public void setAssetInformation(AssetInformation assetInformation) {
         this.assetInformation = assetInformation;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(identification, idShort);
+        return Objects.hash(id, idShort, assetInformation);
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
-        }
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        CustomAssetAdministrationShell that = (CustomAssetAdministrationShell) o;
 
-        if (obj.getClass() != this.getClass()) {
-            return false;
-        }
-
-        final CustomAssetAdministrationShell other = (CustomAssetAdministrationShell) obj;
-
-        if ((this.getIdentification() == null) ? (other.getIdentification() != null)
-                : !this.getIdentification().equals(other.getIdentification())) {
-            return false;
-        }
-
-        return this.getIdShort().equals(other.getIdShort());
+        return Objects.equals(id, that.id) &&
+                Objects.equals(idShort, that.idShort) &&
+                Objects.equals(assetInformation, that.assetInformation);
     }
+
+    public static CustomAssetAdministrationShell fromAssetAdministrationShell(AssetAdministrationShell from) {
+        final var result = new CustomAssetAdministrationShell();
+
+        result.setIdShort(from.getIdShort());
+        result.setId(from.getId());
+        result.setAssetInformation(from.getAssetInformation());
+
+        return result;
+    }
+
 }

@@ -7,10 +7,10 @@ model via the EDC.
 
 ## Version compatibility
 
-| Specification                                                                                                                                  | Version                                                                                                   |
-|:-----------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------|
-| Eclipse Dataspace Connector                                                                                                                    | v0.4.1                                                                                                    |
-| AAS - Details of the Asset Administration Shell - Part 1<br />The exchange of information between partners in the value chain of Industrie 4.0 | Version 3.0RC01<br />(based on [admin-shell-io/java-model](https://github.com/admin-shell-io/java-model)) |
+| Specification                                                                                                                                  | Version                                                                                                      |
+|:-----------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------|
+| Eclipse Dataspace Connector                                                                                                                    | v0.5.1                                                                                                       |
+| AAS - Details of the Asset Administration Shell - Part 1<br />The exchange of information between partners in the value chain of Industrie 4.0 | AAS Specs – Part 1 V3.0 (final)<br/>(based on [eclipse-aas4j/aas4j](https://github.com/eclipse-aas4j/aas4j)) |
 
 ## Repo Structure
 
@@ -20,6 +20,7 @@ The repository contains several material:
 - `config`: Checkstyle files for code formatting
 - `edc-extension4aas`: Source code for the AAS extension
 - `example`: Example use case for the edc-extension4aas and client extension with a preconfigured EDC launcher.
+- `public-api-management`: Small extension for managing outward facing endpoints which require no authentication
 
 <!-- ------------------Template Section --------------------------- -->
 

@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import io.adminshell.aas.v3.model.Constraint;
+import org.eclipse.digitaltwin.aas4j.v3.model.Qualifier;
 
 import java.util.List;
 import java.util.Objects;
@@ -29,16 +29,16 @@ import java.util.Objects;
 @JsonTypeInfo(use = JsonTypeInfo.Id.DEDUCTION)
 @JsonInclude(Include.NON_NULL)
 @JsonSubTypes.Type(CustomSubmodelElementCollection.class)
-public class CustomSubmodelElement extends AASElement {
+public class CustomSubmodelElement extends AssetAdministrationShellElement {
 
-    protected List<Constraint> qualifiers;
+    protected List<Qualifier> qualifiers;
     protected String idShort;
 
-    public List<Constraint> getQualifiers() {
+    public List<Qualifier> getQualifiers() {
         return qualifiers;
     }
 
-    public void setQualifiers(List<Constraint> qualifiers) {
+    public void setQualifiers(List<Qualifier> qualifiers) {
         this.qualifiers = qualifiers;
     }
 
@@ -75,6 +75,15 @@ public class CustomSubmodelElement extends AASElement {
             if (!(other instanceof CustomSubmodelElementCollection)) {
                 return false;
             }
+
+            if (Objects.isNull(((CustomSubmodelElementCollection) other).getValue())) {
+                return Objects.isNull(((CustomSubmodelElementCollection) this).getValue());
+            }
+
+            if (Objects.isNull(((CustomSubmodelElementCollection) this).getValue())) {
+                return false;
+            }
+
             return ((CustomSubmodelElementCollection) other).getValue()
                     .containsAll(((CustomSubmodelElementCollection) this).getValue());
         }

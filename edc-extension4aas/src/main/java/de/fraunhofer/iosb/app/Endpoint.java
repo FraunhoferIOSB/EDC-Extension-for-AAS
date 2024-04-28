@@ -243,8 +243,8 @@ public class Endpoint {
     }
 
     /**
-     * Print self descriptions of AAS environments registered at this EDC. If no
-     * query parameter is given, print all self descriptions available.
+     * Print self-descriptions of AAS environments registered at this EDC. If no
+     * query parameter is given, print all self-descriptions available.
      *
      * @param aasServiceUrl Specify an AAS environment by its service
      * @return Self description(s)
@@ -254,14 +254,14 @@ public class Endpoint {
     public Response getSelfDescription(@QueryParam("aasService") URL aasServiceUrl) {
         if (Objects.isNull(aasServiceUrl)) {
             LOGGER.debug("Received a self description GET request");
-            // Build JSON object containing all self descriptions
-            var selfDescriptions = objectMapper.createArrayNode();
+            // Build JSON object containing all self-descriptions
+            var selfDescriptionsJson = objectMapper.createArrayNode();
             selfDescriptionRepository.getAllSelfDescriptions().stream()
                     .map(Map.Entry::getValue)
                     .filter(Objects::nonNull)
-                    .forEach(selfDescription -> selfDescriptions.add(selfDescription.toJsonNode()));
+                    .forEach(selfDescription -> selfDescriptionsJson.add(selfDescription.toJsonNode()));
 
-            return Response.ok(selfDescriptions.toString()).build();
+            return Response.ok(selfDescriptionsJson.toString()).build();
         } else {
             LOGGER.debug(format("Received a self description GET request to %s", aasServiceUrl));
             var selfDescription = selfDescriptionRepository.getSelfDescription(aasServiceUrl);
@@ -280,7 +280,7 @@ public class Endpoint {
      */
     private Response handleAasRequest(RequestType requestType, URL requestUrl, String body) {
         try (var response = aasController.handleRequest(requestType, requestUrl, body)) {
-
+            // check if status code is 2xx
             if (!response.getStatusInfo().getFamily().equals(Family.SUCCESSFUL)) {
                 LOGGER.severe("AAS request failed. Response from URL: " + response.getStatusInfo());
                 return Response.status(response.getStatus()).build();

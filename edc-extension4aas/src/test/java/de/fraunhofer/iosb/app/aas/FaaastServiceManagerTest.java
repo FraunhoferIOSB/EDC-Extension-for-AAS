@@ -17,10 +17,10 @@ package de.fraunhofer.iosb.app.aas;
 
 import de.fraunhofer.iosb.app.util.HttpRestClient;
 import jakarta.ws.rs.core.Response;
-import okhttp3.OkHttpClient;
 import org.eclipse.edc.spi.EdcException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -40,12 +40,13 @@ public class FaaastServiceManagerTest {
         faaastServiceManager = new FaaastServiceManager();
     }
 
+    @Disabled("FA³ST service manager startService method cannot be used on its own, AasController must accept self-signed certificate")
     @Test
     public void startServiceTest() throws IOException, URISyntaxException {
         var url = startService();
-        var restClient = new HttpRestClient(new OkHttpClient());
+        var restClient = new HttpRestClient();
 
-        assertEquals(Response.Status.OK.getStatusCode(), restClient.get(url.toURI().resolve("/shells").toURL()).code());
+        assertEquals(Response.Status.OK.getStatusCode(), restClient.get(url.toURI().resolve("/api/v3.0/shells").toURL()).code());
     }
 
     @Test

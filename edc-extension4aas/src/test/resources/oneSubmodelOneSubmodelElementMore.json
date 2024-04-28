@@ -19,6 +19,12 @@
           "valueType": "xs:integer",
           "value": "5000",
           "modelType": "Property"
+        },
+        {
+          "idShort": "AddedProperty",
+          "valueType": "xs:double",
+          "value": "1.2",
+          "modelType": "Property"
         }
       ],
       "modelType": "Submodel"
@@ -48,8 +54,5 @@
       ],
       "modelType": "Submodel"
     }
-  ],
-  "paging_metadata": {
-    "cursor": null
-  }
+  ]
 }

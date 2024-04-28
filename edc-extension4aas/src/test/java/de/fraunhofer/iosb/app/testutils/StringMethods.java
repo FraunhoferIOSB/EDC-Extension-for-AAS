@@ -13,28 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.app.model.aas;
+package de.fraunhofer.iosb.app.testutils;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Collection;
+public class StringMethods {
 
-@JsonAutoDetect
-public class CustomSubmodelElementCollection extends CustomSubmodelElement {
-
-    public CustomSubmodelElementCollection(String idShort, Collection<CustomSubmodelElement> value) {
-        this.idShort = idShort;
-        this.value = value;
+    public static void assertEqualsIgnoreWhiteSpace(String expected, String actual) {
+        assertTrue(expected != null || actual == null);
+        assertNotNull(actual);
+        assertEquals(expected.replaceAll(" +", "").replaceAll("\n", ""), actual.replaceAll(" +", "").replaceAll("\n", ""));
     }
-
-    private Collection<CustomSubmodelElement> value;
-
-    public Collection<CustomSubmodelElement> getValue() {
-        return value;
-    }
-
-    public void setValues(Collection<CustomSubmodelElement> value) {
-        this.value = value;
-    }
-
 }

@@ -16,22 +16,23 @@
 package de.fraunhofer.iosb.app.model.aas;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.adminshell.aas.v3.model.EmbeddedDataSpecification;
+import org.eclipse.digitaltwin.aas4j.v3.model.EmbeddedDataSpecification;
+import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 
 import java.util.List;
 
 /*
  * Collect common attributes of every AAS element.
  */
-public class AASElement extends IdsAssetElement {
+public class AssetAdministrationShellElement extends IdsAssetElement {
 
     protected String idShort;
-    
+
     @JsonProperty("semanticId")
-    protected CustomSemanticId customSemanticId;
+    protected Reference customSemanticId;
 
     protected List<EmbeddedDataSpecification> embeddedDataSpecifications;
-    
+
     public String getIdShort() {
         return idShort;
     }
@@ -40,11 +41,11 @@ public class AASElement extends IdsAssetElement {
         this.idShort = idShort;
     }
 
-    public CustomSemanticId getCustomSemanticId() {
+    public Reference getSemanticId() {
         return customSemanticId;
     }
 
-    public void setSemanticId(CustomSemanticId semanticId) {
+    public void setSemanticId(Reference semanticId) {
         this.customSemanticId = semanticId;
     }
 

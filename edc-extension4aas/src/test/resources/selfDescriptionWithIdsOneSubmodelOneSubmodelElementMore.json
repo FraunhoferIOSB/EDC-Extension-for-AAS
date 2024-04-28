@@ -23,6 +23,11 @@
           "idsContractId": "DEFAULT_CONTRACT5",
           "idsAssetId": "1974016668",
           "idShort": "IntegerValue"
+        },
+        {
+          "idsContractId": "DEFAULT_CONTRACT9",
+          "idsAssetId": "425310284",
+          "idShort": "AddedProperty"
         }
       ],
       "semanticId": {

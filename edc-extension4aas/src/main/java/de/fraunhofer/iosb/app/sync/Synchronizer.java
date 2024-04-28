@@ -17,7 +17,7 @@ package de.fraunhofer.iosb.app.sync;
 
 import de.fraunhofer.iosb.app.controller.AasController;
 import de.fraunhofer.iosb.app.controller.ResourceController;
-import de.fraunhofer.iosb.app.model.aas.AASElement;
+import de.fraunhofer.iosb.app.model.aas.AssetAdministrationShellElement;
 import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShellEnvironment;
 import de.fraunhofer.iosb.app.model.aas.CustomSubmodel;
 import de.fraunhofer.iosb.app.model.aas.CustomSubmodelElement;
@@ -26,9 +26,9 @@ import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import de.fraunhofer.iosb.app.model.ids.SelfDescription;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionChangeListener;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
-import de.fraunhofer.iosb.app.util.AASUtil;
-import io.adminshell.aas.v3.dataformat.DeserializationException;
+import de.fraunhofer.iosb.app.util.AssetAdministrationShellUtil;
 import jakarta.ws.rs.core.MediaType;
+import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.DeserializationException;
 import org.eclipse.edc.spi.EdcException;
 
 import java.io.IOException;
@@ -39,8 +39,9 @@ import java.util.Objects;
 
 import static java.lang.String.format;
 
+
 /**
- * Synchronize registered AAS services with local self descriptions and
+ * Synchronize registered AAS services with local self-descriptions and
  * assetIndex/contractStore.
  */
 public class Synchronizer implements SelfDescriptionChangeListener {
@@ -51,7 +52,7 @@ public class Synchronizer implements SelfDescriptionChangeListener {
     private final Configuration configuration;
 
     public Synchronizer(SelfDescriptionRepository selfDescriptionRepository,
-            AasController aasController, ResourceController resourceController) {
+                        AasController aasController, ResourceController resourceController) {
         this.selfDescriptionRepository = selfDescriptionRepository;
         this.aasController = aasController;
         this.resourceController = resourceController;
@@ -59,7 +60,7 @@ public class Synchronizer implements SelfDescriptionChangeListener {
     }
 
     /**
-     * Synchronize AAS services with self description and EDC
+     * Synchronize AAS services with self-description and EDC
      * AssetIndex/ContractStore
      */
     public void synchronize() {
@@ -92,7 +93,7 @@ public class Synchronizer implements SelfDescriptionChangeListener {
 
             removeOldElements(newEnvironment, oldEnvironment);
 
-            // Finally, update the self description
+            // Finally, update the self-description
         }
         addNewElements(newEnvironment);
         selfDescriptionRepository.updateSelfDescription(aasServiceUrl, newEnvironment);
@@ -105,18 +106,18 @@ public class Synchronizer implements SelfDescriptionChangeListener {
             newEnvironment = aasController.getAasModelWithUrls(aasServiceUrl, onlySubmodels);
         } catch (IOException aasServiceUnreachableException) {
             throw new EdcException(format("Could not reach AAS service (%s): %s", aasServiceUrl,
-                    aasServiceUnreachableException.getMessage()));
+                    aasServiceUnreachableException.getMessage()), aasServiceUnreachableException);
         } catch (DeserializationException aasModelDeserializationException) {
             throw new EdcException(format("Could not deserialize AAS model (%s): %s", aasServiceUrl,
-                    aasModelDeserializationException.getMessage()));
+                    aasModelDeserializationException.getMessage()), aasModelDeserializationException);
         }
         return newEnvironment;
     }
 
     private void addNewElements(CustomAssetAdministrationShellEnvironment newEnvironment) {
-        var envElements = AASUtil.getAllElements(newEnvironment);
+        var envElements = AssetAdministrationShellUtil.getAllElements(newEnvironment);
         addAssetsContracts(envElements.stream().filter(
-                element -> Objects.isNull(element.getIdsAssetId()) || Objects.isNull(element.getIdsContractId()))
+                        element -> Objects.isNull(element.getIdsAssetId()) || Objects.isNull(element.getIdsContractId()))
                 .toList());
     }
 
@@ -124,14 +125,14 @@ public class Synchronizer implements SelfDescriptionChangeListener {
      * Removes elements that were deleted on AAS service
      */
     private void removeOldElements(CustomAssetAdministrationShellEnvironment newEnvironment,
-            CustomAssetAdministrationShellEnvironment oldEnvironment) {
-        var elementsToRemove = AASUtil.getAllElements(oldEnvironment);
-        elementsToRemove.removeAll(AASUtil.getAllElements(newEnvironment));
+                                   CustomAssetAdministrationShellEnvironment oldEnvironment) {
+        var elementsToRemove = AssetAdministrationShellUtil.getAllElements(oldEnvironment);
+        elementsToRemove.removeAll(AssetAdministrationShellUtil.getAllElements(newEnvironment));
         removeAssetsContracts(elementsToRemove);
     }
 
     private void syncShell(CustomAssetAdministrationShellEnvironment newEnvironment,
-            CustomAssetAdministrationShellEnvironment oldEnvironment) {
+                           CustomAssetAdministrationShellEnvironment oldEnvironment) {
         var oldShells = oldEnvironment.getAssetAdministrationShells();
         newEnvironment.getAssetAdministrationShells().replaceAll(
                 shell -> oldShells.contains(shell)
@@ -140,7 +141,7 @@ public class Synchronizer implements SelfDescriptionChangeListener {
     }
 
     private void syncConceptDescription(CustomAssetAdministrationShellEnvironment newEnvironment,
-            CustomAssetAdministrationShellEnvironment oldEnvironment) {
+                                        CustomAssetAdministrationShellEnvironment oldEnvironment) {
         var oldConceptDescriptions = oldEnvironment.getConceptDescriptions();
         newEnvironment.getConceptDescriptions().replaceAll(
                 conceptDescription -> oldConceptDescriptions.contains(conceptDescription)
@@ -149,7 +150,7 @@ public class Synchronizer implements SelfDescriptionChangeListener {
     }
 
     private void syncSubmodel(CustomAssetAdministrationShellEnvironment newEnvironment,
-            CustomAssetAdministrationShellEnvironment oldEnvironment) {
+                              CustomAssetAdministrationShellEnvironment oldEnvironment) {
         var oldSubmodels = oldEnvironment.getSubmodels();
         newEnvironment.getSubmodels().forEach(submodel -> {
             CustomSubmodel oldSubmodel;
@@ -166,14 +167,14 @@ public class Synchronizer implements SelfDescriptionChangeListener {
 
             submodel.setIdsAssetId(oldSubmodel.getIdsAssetId());
             submodel.setIdsContractId(oldSubmodel.getIdsContractId());
-            var allElements = AASUtil.getAllSubmodelElements(submodel);
-            var allOldElements = AASUtil.getAllSubmodelElements(oldSubmodel);
+            var allElements = AssetAdministrationShellUtil.getAllSubmodelElements(submodel);
+            var allOldElements = AssetAdministrationShellUtil.getAllSubmodelElements(oldSubmodel);
             syncSubmodelElements(allElements, allOldElements);
         });
     }
 
     private void syncSubmodelElements(Collection<CustomSubmodelElement> allElements,
-            Collection<CustomSubmodelElement> allOldElements) {
+                                      Collection<CustomSubmodelElement> allOldElements) {
         allElements.stream()
                 .filter(allOldElements::contains)
                 .forEach(element -> {
@@ -189,7 +190,7 @@ public class Synchronizer implements SelfDescriptionChangeListener {
         elements.forEach(element -> {
             // Version unknown, MediaType is "application/json" by default
             var assetContractPair = resourceController.createResource(element.getSourceUrl(),
-                    ((AASElement) element).getIdShort(),
+                    ((AssetAdministrationShellElement) element).getIdShort(),
                     MediaType.APPLICATION_JSON, null);
             element.setIdsAssetId(assetContractPair.getFirst());
             element.setIdsContractId(assetContractPair.getSecond());
@@ -207,7 +208,7 @@ public class Synchronizer implements SelfDescriptionChangeListener {
 
     @Override
     public void removed(SelfDescription removed) {
-        var allElements = AASUtil.getAllElements(removed.getEnvironment());
+        var allElements = AssetAdministrationShellUtil.getAllElements(removed.getEnvironment());
         removeAssetsContracts(allElements);
     }
 

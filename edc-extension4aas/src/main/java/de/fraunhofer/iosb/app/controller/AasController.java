@@ -20,14 +20,17 @@ import de.fraunhofer.iosb.app.RequestType;
 import de.fraunhofer.iosb.app.aas.AasAgent;
 import de.fraunhofer.iosb.app.aas.AssetAdministrationShellServiceManager;
 import de.fraunhofer.iosb.app.aas.FaaastServiceManager;
+import de.fraunhofer.iosb.app.aas.ssl.SelfSignedCertificateRetriever;
 import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShellEnvironment;
-import io.adminshell.aas.v3.dataformat.DeserializationException;
 import jakarta.ws.rs.core.Response;
-import okhttp3.OkHttpClient;
+import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.DeserializationException;
+import org.eclipse.edc.spi.http.EdcHttpClient;
 
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Objects;
 
 import static java.lang.String.format;
@@ -38,15 +41,16 @@ import static java.lang.String.format;
  */
 public class AasController implements Controllable {
 
+    private static final String HTTPS = "https";
     private final AasAgent aasAgent;
     private final AssetAdministrationShellServiceManager aasServiceManager;
     private final Logger logger;
 
-    public AasController(OkHttpClient okHttpClient) {
-        Objects.requireNonNull(okHttpClient);
+    public AasController(EdcHttpClient edcHttpClient) {
+        Objects.requireNonNull(edcHttpClient);
 
         logger = Logger.getInstance();
-        aasAgent = new AasAgent(okHttpClient);
+        aasAgent = new AasAgent();
         aasServiceManager = new FaaastServiceManager();
     }
 
@@ -61,12 +65,13 @@ public class AasController implements Controllable {
     }
 
     /**
-     * Returns the AAS model of the AAS service behind the aasServiceUrl, as a self
-     * description (see model/aas/*). This model has the access URL of each AAS
-     * element in the sourceUrl field.
+     * Returns the AAS model of the AAS service behind the aasServiceUrl, as a
+     * self-description (see model/aas/*). This model has the access URL of
+     * each AAS element in the sourceUrl field.
      *
      * @param aasServiceUrl url of the service
-     * @return aasServiceUrl's model, in self description form
+     * @param onlySubmodels Don't get shells, concept descriptions, submodel elements
+     * @return aasServiceUrl's model, in self-description form
      * @throws DeserializationException AAS from service could not be deserialized
      * @throws IOException              Communication with AAS service failed
      */
@@ -89,16 +94,30 @@ public class AasController implements Controllable {
     public URL startService(Path aasModelPath, int aasServicePort, Path aasConfigPath) throws IOException {
         Objects.requireNonNull(aasModelPath);
 
+        URL serviceUrl;
         if (Objects.isNull(aasConfigPath)) {
             logger.info(format(
                     "Booting up AAS service given AAS model path (%s)\n and service port (%s)\n...",
                     aasModelPath, aasServicePort));
-            return aasServiceManager.startService(aasModelPath, aasServicePort);
+            serviceUrl = aasServiceManager.startService(aasModelPath, aasServicePort);
+        } else {
+            logger.info(format(
+                    "Booting up AAS service given AAS model path (%s)\n and service config path (%s)...",
+                    aasModelPath, aasConfigPath));
+            serviceUrl = aasServiceManager.startService(aasModelPath, aasConfigPath, aasServicePort);
         }
-        logger.info(format(
-                "Booting up AAS service given AAS model path (%s)\n and service config path (%s)...",
-                aasModelPath, aasConfigPath));
-        return aasServiceManager.startService(aasModelPath, aasConfigPath, aasServicePort);
+
+        if (serviceUrl.getProtocol().equalsIgnoreCase(HTTPS)) {
+            var certs = SelfSignedCertificateRetriever.getSelfSignedCertificate(serviceUrl);
+            try {
+                aasAgent.addCertificates(serviceUrl, certs);
+            } catch (KeyStoreException | NoSuchAlgorithmException generalSecurityException) {
+                // This means we probably cannot communicate with the service... warn user
+                logger.warning("Could not add service's certificate to trust manager, communication will probably not be possible.", generalSecurityException);
+            }
+        }
+
+        return serviceUrl;
     }
 
     /**
@@ -108,6 +127,10 @@ public class AasController implements Controllable {
      */
     public void stopAssetAdministrationShellService(URL aasServiceUrl) {
         logger.info(format("Shutting down AAS service with URL %s...", aasServiceUrl.toString()));
+        if (aasServiceUrl.getProtocol().equals("https")) {
+            aasAgent.removeCertificates(aasServiceUrl);
+        }
+
         aasServiceManager.stopService(aasServiceUrl);
     }
 

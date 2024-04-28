@@ -18,23 +18,24 @@ package de.fraunhofer.iosb.app.model.aas;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import org.eclipse.digitaltwin.aas4j.v3.model.ConceptDescription;
 
 import java.util.Objects;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @JsonAutoDetect
-public class CustomConceptDescription extends AASElement {
+public class CustomConceptDescription extends AssetAdministrationShellElement {
 
-    protected Identifier identification;
+    protected String id;
     protected String idShort;
 
-    public Identifier getIdentification() {
-        return identification;
+    public String getId() {
+        return id;
     }
 
-    public void setIdentification(Identifier identification) {
-        this.identification = identification;
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getIdShort() {
@@ -47,7 +48,7 @@ public class CustomConceptDescription extends AASElement {
 
     @Override
     public int hashCode() {
-        return Objects.hash(identification, idShort);
+        return Objects.hash(id, idShort);
     }
 
     @Override
@@ -62,11 +63,21 @@ public class CustomConceptDescription extends AASElement {
 
         final CustomConceptDescription other = (CustomConceptDescription) obj;
 
-        if ((this.getIdentification() == null) ? (other.getIdentification() != null)
-                : !this.getIdentification().equals(other.getIdentification())) {
+        if ((this.getId() == null) ? (other.getId() != null)
+                : !this.getId().equals(other.getId())) {
             return false;
         }
 
         return this.getIdShort().equals(other.getIdShort());
+    }
+
+    public static CustomConceptDescription fromConceptDescription(ConceptDescription from) {
+        final var result = new CustomConceptDescription();
+
+        result.setId(from.getId());
+        result.setIdShort(from.getIdShort());
+        result.setEmbeddedDataSpecifications(from.getEmbeddedDataSpecifications());
+
+        return result;
     }
 }

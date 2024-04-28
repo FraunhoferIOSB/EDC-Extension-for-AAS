@@ -19,11 +19,16 @@ import de.fraunhofer.iosb.app.controller.AasController;
 import de.fraunhofer.iosb.app.controller.ResourceController;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
 import de.fraunhofer.iosb.app.testutils.FileManager;
+import de.fraunhofer.iosb.app.testutils.StringMethods;
+import dev.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
+import org.eclipse.edc.connector.core.base.EdcHttpClientImpl;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.asset.AssetIndex;
+import org.eclipse.edc.spi.monitor.Monitor;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,7 +41,6 @@ import java.net.URL;
 import java.util.Objects;
 
 import static java.lang.String.format;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
@@ -56,14 +60,15 @@ public class SynchronizerTest {
     private final String shells = FileManager.loadResource("shells.json");
     private final String submodels = FileManager.loadResource("submodels.json");
     private final String submodelsNoSubmodelElements = FileManager.loadResource("submodelsNoSubmodelElements.json");
-    private final String oneSubmodelOneSubmodelElementLess = FileManager
-            .loadResource("oneSubmodelOneSubmodelElementLess.json");
+    private final String oneSubmodelOneSubmodelElementMore = FileManager
+            .loadResource("oneSubmodelOneSubmodelElementMore.json");
     private final String conceptDescriptions = FileManager.loadResource("conceptDescriptions.json");
 
     @BeforeAll
     public static void initialize() throws MalformedURLException {
         port = 8080;
         url = new URL(format("http://localhost:%s", port));
+        startMockServer(port);
     }
 
     @BeforeEach
@@ -72,19 +77,25 @@ public class SynchronizerTest {
         synchronizer = new Synchronizer(
                 selfDescriptionRepo,
                 new AasController(
-                        new OkHttpClient()),
+                        new EdcHttpClientImpl(new OkHttpClient(), RetryPolicy.ofDefaults(), mock(Monitor.class))),
                 new ResourceController(
                         mock(AssetIndex.class),
                         mock(ContractDefinitionStore.class),
                         mock(PolicyDefinitionStore.class)));
         selfDescriptionRepo.registerListener(synchronizer);
+        prepareDefaultMockedResponse();
     }
 
-    @AfterEach
-    public void shutdownMockServer() {
+    @AfterAll
+    public static void shutdownMockServer() {
         if (Objects.nonNull(mockServer) && mockServer.isRunning()) {
             mockServer.stop();
         }
+    }
+
+    @AfterEach
+    public void cleanUp() {
+        mockServer.reset();
     }
 
     /*
@@ -92,66 +103,59 @@ public class SynchronizerTest {
      */
     @Test
     public void synchronizationInitializeTest() {
-        startMockServer(port);
-        prepareDefaultMockedResponse();
 
         selfDescriptionRepo.createSelfDescription(url);
-        assertEquals(FileManager.loadResource("selfDescriptionWithIds.json"),
+        StringMethods.assertEqualsIgnoreWhiteSpace(
+                Objects.requireNonNull(FileManager.loadResource("selfDescriptionWithIds.json")),
                 selfDescriptionRepo.getSelfDescription(url).toString());
     }
 
     @Test
     public void synchronizationRemoveAllSubmodelElementsTest() {
-        startMockServer(port);
-
-        prepareDefaultMockedResponse();
         selfDescriptionRepo.createSelfDescription(url);
-        assertEquals(FileManager.loadResource("selfDescriptionWithIds.json"),
+        StringMethods.assertEqualsIgnoreWhiteSpace(
+                Objects.requireNonNull(FileManager.loadResource("selfDescriptionWithIds.json")),
                 selfDescriptionRepo.getSelfDescription(url).toString());
 
         prepareRemovedSubmodelMockedResponse();
         synchronizer.synchronize();
-        assertEquals(FileManager.loadResource("selfDescriptionWithIdsNoSubmodelElements.json"),
+        StringMethods.assertEqualsIgnoreWhiteSpace(
+                Objects.requireNonNull(FileManager.loadResource("selfDescriptionWithIdsNoSubmodelElements.json")),
                 selfDescriptionRepo.getSelfDescription(url).toString());
     }
 
     @Test
-    public void synchronizationRemoveOneSubmodelElementTest() {
-        startMockServer(port);
-
-        prepareDefaultMockedResponse();
+    public void synchronizationAddOneSubmodelElementTest() {
         selfDescriptionRepo.createSelfDescription(url);
-        assertEquals(FileManager.loadResource("selfDescriptionWithIds.json"),
+        StringMethods.assertEqualsIgnoreWhiteSpace(
+                Objects.requireNonNull(FileManager.loadResource("selfDescriptionWithIds.json")),
                 selfDescriptionRepo.getSelfDescription(url).toString());
 
-        prepareRemovedSubmodelElementMockedResponse();
+        prepareAddedSubmodelElementMockedResponse();
         synchronizer.synchronize();
-        assertEquals(FileManager.loadResource("selfDescriptionWithIdsOneSubmodelOneSubmodelElementLess.json"),
+        StringMethods.assertEqualsIgnoreWhiteSpace(
+                Objects.requireNonNull(FileManager.loadResource("selfDescriptionWithIdsOneSubmodelOneSubmodelElementMore.json")),
                 selfDescriptionRepo.getSelfDescription(url).toString());
     }
 
     @Test
     public void synchronizationRemoveAllTest() {
-        startMockServer(port);
-
-        prepareDefaultMockedResponse();
         selfDescriptionRepo.createSelfDescription(url);
-        assertEquals(FileManager.loadResource("selfDescriptionWithIds.json"),
+        StringMethods.assertEqualsIgnoreWhiteSpace(
+                Objects.requireNonNull(FileManager.loadResource("selfDescriptionWithIds.json")),
                 selfDescriptionRepo.getSelfDescription(url).toString());
 
         prepareEmptyMockedResponse();
         synchronizer.synchronize();
-        assertEquals("{}",
+        StringMethods.assertEqualsIgnoreWhiteSpace("{}",
                 selfDescriptionRepo.getSelfDescription(url).toString());
     }
 
     @Test
     public void synchronizationRemoveAasTest() {
-        startMockServer(port);
-
-        prepareDefaultMockedResponse();
         selfDescriptionRepo.createSelfDescription(url);
-        assertEquals(FileManager.loadResource("selfDescriptionWithIds.json"),
+        StringMethods.assertEqualsIgnoreWhiteSpace(
+                Objects.requireNonNull(FileManager.loadResource("selfDescriptionWithIds.json")),
                 selfDescriptionRepo.getSelfDescription(url).toString());
 
         selfDescriptionRepo.removeSelfDescription(url);
@@ -160,46 +164,48 @@ public class SynchronizerTest {
 
     @Test
     public void aasServiceNotAvailableTest() {
+        mockServer.stop();
         try {
             selfDescriptionRepo.createSelfDescription(url);
             fail("AAS service not available, self description should not be created");
         } catch (EdcException expected) {
         }
+        startMockServer(port);
     }
 
     private void prepareRemovedSubmodelMockedResponse() {
-        mockServer.when(request().withMethod("GET").withPath("/shells"), Times.exactly(1))
+        mockServer.when(request().withMethod("GET").withPath("/api/v3.0/shells"), Times.exactly(1))
                 .respond(response().withBody(shells));
-        mockServer.when(request().withMethod("GET").withPath("/submodels"), Times.exactly(1))
+        mockServer.when(request().withMethod("GET").withPath("/api/v3.0/submodels"), Times.exactly(1))
                 .respond(response().withBody(submodelsNoSubmodelElements));
-        mockServer.when(request().withMethod("GET").withPath("/concept-descriptions"), Times.exactly(1))
+        mockServer.when(request().withMethod("GET").withPath("/api/v3.0/concept-descriptions"), Times.exactly(1))
                 .respond(response().withBody(conceptDescriptions));
     }
 
-    private void prepareRemovedSubmodelElementMockedResponse() {
-        mockServer.when(request().withMethod("GET").withPath("/shells"), Times.exactly(1))
+    private void prepareAddedSubmodelElementMockedResponse() {
+        mockServer.when(request().withMethod("GET").withPath("/api/v3.0/shells"), Times.exactly(1))
                 .respond(response().withBody(shells));
-        mockServer.when(request().withMethod("GET").withPath("/submodels"), Times.exactly(1))
-                .respond(response().withBody(oneSubmodelOneSubmodelElementLess));
-        mockServer.when(request().withMethod("GET").withPath("/concept-descriptions"), Times.exactly(1))
+        mockServer.when(request().withMethod("GET").withPath("/api/v3.0/submodels"), Times.exactly(1))
+                .respond(response().withBody(oneSubmodelOneSubmodelElementMore));
+        mockServer.when(request().withMethod("GET").withPath("/api/v3.0/concept-descriptions"), Times.exactly(1))
                 .respond(response().withBody(conceptDescriptions));
     }
 
     private void prepareDefaultMockedResponse() {
-        mockServer.when(request().withMethod("GET").withPath("/shells"), Times.exactly(1))
+        mockServer.when(request().withMethod("GET").withPath("/api/v3.0/shells"), Times.exactly(1))
                 .respond(response().withBody(shells));
-        mockServer.when(request().withMethod("GET").withPath("/submodels"), Times.exactly(1))
+        mockServer.when(request().withMethod("GET").withPath("/api/v3.0/submodels"), Times.exactly(1))
                 .respond(response().withBody(submodels));
-        mockServer.when(request().withMethod("GET").withPath("/concept-descriptions"), Times.exactly(1))
+        mockServer.when(request().withMethod("GET").withPath("/api/v3.0/concept-descriptions"), Times.exactly(1))
                 .respond(response().withBody(conceptDescriptions));
     }
 
     private void prepareEmptyMockedResponse() {
-        mockServer.when(request().withMethod("GET").withPath("/shells"), Times.exactly(1))
+        mockServer.when(request().withMethod("GET").withPath("/api/v3.0/shells"), Times.exactly(1))
                 .respond(response().withBody("[]"));
-        mockServer.when(request().withMethod("GET").withPath("/submodels"), Times.exactly(1))
+        mockServer.when(request().withMethod("GET").withPath("/api/v3.0/submodels"), Times.exactly(1))
                 .respond(response().withBody("[]"));
-        mockServer.when(request().withMethod("GET").withPath("/concept-descriptions"), Times.exactly(1))
+        mockServer.when(request().withMethod("GET").withPath("/api/v3.0/concept-descriptions"), Times.exactly(1))
                 .respond(response().withBody("[]"));
     }
 

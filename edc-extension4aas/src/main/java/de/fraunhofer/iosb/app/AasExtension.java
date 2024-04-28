@@ -23,12 +23,12 @@ import de.fraunhofer.iosb.app.controller.ResourceController;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
 import de.fraunhofer.iosb.app.sync.Synchronizer;
-import okhttp3.OkHttpClient;
 import org.eclipse.edc.api.auth.spi.AuthenticationService;
 import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.asset.AssetIndex;
+import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.web.spi.WebService;
@@ -36,6 +36,7 @@ import org.eclipse.edc.web.spi.WebService;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -58,7 +59,7 @@ public class AasExtension implements ServiceExtension {
     @Inject
     private ContractDefinitionStore contractStore;
     @Inject
-    private OkHttpClient okHttpClient;
+    private EdcHttpClient edcHttpClient;
     @Inject
     private PolicyDefinitionStore policyStore;
     @Inject
@@ -66,7 +67,7 @@ public class AasExtension implements ServiceExtension {
 
     private static final String SETTINGS_PREFIX = "edc.aas";
     private static final Logger LOGGER = Logger.getInstance();
-    private final ScheduledExecutorService syncExecutor = new ScheduledThreadPoolExecutor(1);
+    private ScheduledExecutorService syncExecutor;
     private AasController aasController;
 
     @Override
@@ -75,16 +76,17 @@ public class AasExtension implements ServiceExtension {
 
         // Distribute controllers, repository
         var selfDescriptionRepository = new SelfDescriptionRepository();
-        this.aasController = new AasController(okHttpClient);
+        this.aasController = new AasController(edcHttpClient);
         var endpoint = new Endpoint(selfDescriptionRepository, this.aasController, configurationController);
 
         // Initialize/Start synchronizer, start AAS services defined in configuration
         initializeSynchronizer(selfDescriptionRepository);
+        // This makes the connector shutdown if an exception occurs while starting config services
         registerServicesByConfig(selfDescriptionRepository);
 
         // Add public endpoint if wanted by config
         if (Configuration.getInstance().isExposeSelfDescription()) {
-            publicApiManagementService.addEndpoints(List.of(new de.fraunhofer.iosb.api.model.Endpoint(Endpoint.SELF_DESCRIPTION_PATH, HttpMethod.GET, null)));
+            publicApiManagementService.addEndpoints(List.of(new de.fraunhofer.iosb.api.model.Endpoint(Endpoint.SELF_DESCRIPTION_PATH, HttpMethod.GET, Map.of())));
         }
 
         webService.registerResource(endpoint);
@@ -92,28 +94,30 @@ public class AasExtension implements ServiceExtension {
 
     private void registerServicesByConfig(SelfDescriptionRepository selfDescriptionRepository) {
         var configInstance = Configuration.getInstance();
+        Path aasConfigPath = null;
 
         if (Objects.nonNull(configInstance.getRemoteAasLocation())) {
             selfDescriptionRepository.createSelfDescription(configInstance.getRemoteAasLocation());
         }
 
-        if (Objects.nonNull(configInstance.getLocalAasModelPath())) {
-            try {
-                Path aasConfigPath = null;
-                if (Objects.nonNull(configInstance.getAasServiceConfigPath())) {
-                    aasConfigPath = Path.of(configInstance.getAasServiceConfigPath());
-                }
-                var serviceUrl = aasController.startService(
-                        Path.of(configInstance.getLocalAasModelPath()),
-                        configInstance.getLocalAasServicePort(),
-                        aasConfigPath);
-
-                selfDescriptionRepository.createSelfDescription(serviceUrl);
-            } catch (IOException startAASException) {
-                LOGGER.warning("Could not start AAS service provided by configuration", startAASException);
-            }
+        if (Objects.isNull(configInstance.getLocalAasModelPath())) {
+            return;
         }
 
+        if (Objects.nonNull(configInstance.getAasServiceConfigPath())) {
+            aasConfigPath = Path.of(configInstance.getAasServiceConfigPath());
+        }
+
+        try {
+            var serviceUrl = aasController.startService(
+                    Path.of(configInstance.getLocalAasModelPath()),
+                    configInstance.getLocalAasServicePort(),
+                    aasConfigPath);
+
+            selfDescriptionRepository.createSelfDescription(serviceUrl);
+        } catch (IOException startAssetAdministrationShellException) {
+            LOGGER.warning("Could not start AAS service provided by configuration", startAssetAdministrationShellException);
+        }
     }
 
     private void initializeSynchronizer(SelfDescriptionRepository selfDescriptionRepository) {
@@ -122,6 +126,7 @@ public class AasExtension implements ServiceExtension {
         selfDescriptionRepository.registerListener(synchronizer);
 
         // Task: get all AAS service URLs, synchronize EDC and AAS
+        syncExecutor = new ScheduledThreadPoolExecutor(1);
         syncExecutor.scheduleAtFixedRate(synchronizer::synchronize, 1,
                 Configuration.getInstance().getSyncPeriod(), TimeUnit.SECONDS);
     }

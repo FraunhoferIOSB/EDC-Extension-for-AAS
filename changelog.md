@@ -2,7 +2,7 @@
 
 ## Current development version
 
-Compatibility: **Eclipse Dataspace Connector v0.5.1**
+Compatibility: **Eclipse Dataspace Connector v0.6.2**
 
 **New Features**
 
@@ -109,7 +109,7 @@ This version is compatible to **Eclipse Dataspace Connector v0.0.1-Milestone 7**
 **Bugfixes**
 
 * CustomAuthenticationRequestFilter
-    * No requests were filtered when self description was exposed by config
+    * No requests were filtered when self-description was exposed by config
 
 ## V1.0.0-alpha
 
@@ -126,7 +126,7 @@ This version is compatible to **Eclipse Dataspace Connector v0.0.1-Milestone 6**
       AuthenticationServices and AuthenticationRequestFilters.
 
 * Configuration value "exposeSelfDescription"
-    * Set to _False_ to not expose the extension's self descriptions
+    * Set to _False_ to not expose the extension's self-descriptions
     * Default value is _True_
 
 **Bugfixes**

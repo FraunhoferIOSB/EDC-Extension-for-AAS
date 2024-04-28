@@ -181,7 +181,7 @@ java -Dedc.fs.config=./example/configurations/consumer.properties -jar ./example
 Starting the data transfer from provider to consumer. There is a `postman collection` containing all necessary http
 requests for data transfer in this extensions repository located in `/examples/resources`. Do the following steps:
 
-1. Call the provider's self description on `http://localhost:8181/api/selfDescription`, and choose an element you want
+1. Call the provider's self-description on `http://localhost:8181/api/selfDescription`, and choose an element you want
    to fetch. Put its `asset id` and `contract id` as variables in the postman collection.
 
 2. Send the contract offer to the EDC Provider. Execute request 1 of the data transfer folder.

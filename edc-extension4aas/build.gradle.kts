@@ -29,7 +29,7 @@ dependencies {
 
     implementation("de.fraunhofer.iosb.ilt.faaast.service:starter:${faaastVersion}")
     implementation("org.eclipse.digitaltwin.aas4j:aas4j-dataformat-json:1.0.1")
-    implementation("org.eclipse.digitaltwin.aas4j:aas4j-model:1.0.1")
+    implementation("org.eclipse.digitaltwin.aas4j:aas4j-model:1.0.2")
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 
     testImplementation("$group:junit:$edcVersion")

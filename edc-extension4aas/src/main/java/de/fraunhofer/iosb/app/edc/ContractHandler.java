@@ -113,6 +113,7 @@ public class ContractHandler {
                 .permission(Permission.Builder.newInstance()
                         .action(Action.Builder.newInstance().type("USE").build())
                         .build())
+                .assigner("provider") // as this is just an example policy, assigner can be generic
                 .build();
     }
 

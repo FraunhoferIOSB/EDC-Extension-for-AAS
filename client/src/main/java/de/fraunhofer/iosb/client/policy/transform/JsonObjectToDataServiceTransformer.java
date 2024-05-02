@@ -2,6 +2,7 @@
  * Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
  * Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
  * Forschung e.V.
+ * Copyright (c) 2023 Fraunhofer Institute for Software and Systems Engineering
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +29,7 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCT_TERMS_ATTRIBUT
 
 /**
  * Transform JSON to DataService.
- *
- * @see JsonObjectToCatalogTransformer explanation as to why this is needed here.
+ * Modified code from: <a href="https://github.com/eclipse-edc/Connector/tree/v0.5.1/core/common/transform-core">https://github.com/eclipse-edc/Connector/tree/v0.5.1/core/common/transform-core</a>
  */
 public class JsonObjectToDataServiceTransformer extends AbstractJsonLdTransformer<JsonObject, DataService> {
 

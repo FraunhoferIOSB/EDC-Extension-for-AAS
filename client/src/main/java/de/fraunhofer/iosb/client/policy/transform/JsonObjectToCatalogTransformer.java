@@ -2,6 +2,7 @@
  * Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
  * Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
  * Forschung e.V.
+ * Copyright (c) 2023 Fraunhofer Institute for Software and Systems Engineering
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +31,9 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DSPACE_PROPERTY_PA
 
 /**
  * Transformer for Catalog in JSON representation to EDC Catalog class.
- * <a href="https://github.com/eclipse-edc/Connector/pull/3916">https://github.com/eclipse-edc/Connector/pull/3916</a>: "the JsonObjectTo... catalog related transformers are actually unused in the whole project so I deleted them as they are dead code."
+ * Modified code from <a href="https://github.com/eclipse-edc/Connector/tree/v0.5.1/core/common/transform-core">github.com</a>
+ * <br>See also: <a href="https://github.com/eclipse-edc/Connector/pull/3916">https://github.com/eclipse-edc/Connector/pull/3916</a>
+ *
  */
 public class JsonObjectToCatalogTransformer extends AbstractJsonLdTransformer<JsonObject, Catalog> {
 

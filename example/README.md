@@ -115,7 +115,7 @@ java -Dedc.fs.config=./example/configurations/consumer.properties -jar ./example
 Starting the data transfer from provider to consumer. There is a `postman collection` containing the necessary http
 requests located in `/examples/resources`. Complete the following steps:
 
-1. Call the provider's self-description on `http://localhost:8181/api/selfDescription` and choose an element you want
+1. Call the provider's self-description on `http://localhost:8281/api/selfDescription` and choose an element you want
    to fetch. Put its `asset id` as a variable in the postman collection's variables section ("Current value").
 
 ### Fully automated

@@ -16,7 +16,6 @@ java {
 }
 
 dependencies {
-    // See this project's README.MD for explanations
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
     implementation("$group:auth-spi:$edcVersion")
 

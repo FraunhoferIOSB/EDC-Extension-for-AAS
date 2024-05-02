@@ -5,6 +5,7 @@ services:
     image: edc-aas-extension:latest
     ports:
       - "8181:8181"
+      - "8281:8281"
       - "8182:8182"
       - "8282:8282"
     environment:
@@ -13,6 +14,7 @@ services:
     image: edc-aas-extension:latest
     ports:
       - "9191:9191"
+      - "9291:9291"
       - "9192:9192"
       - "9292:9292"
     environment:

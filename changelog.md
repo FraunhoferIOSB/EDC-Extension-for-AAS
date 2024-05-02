@@ -4,12 +4,20 @@
 
 Compatibility: **Eclipse Dataspace Connector v0.6.2**
 
+Compatibility: **AAS V3**
+
 **New Features**
 
 - counterPartyId now needed when using client extension
 
 
 **Bugfixes**
+
+- DataTransfer with self-signed certificates (FA³ST DataSource)
+
+**Miscellaneous**
+
+- !Change API port for self-description to 8281/9291 in examples!
 
 ## V1.0.0-alpha5
 

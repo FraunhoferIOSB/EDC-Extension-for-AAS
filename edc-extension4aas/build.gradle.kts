@@ -24,7 +24,9 @@ dependencies {
     implementation("$group:management-api:$edcVersion")
     implementation("$group:runtime-metamodel:$edcVersion")
     implementation("$group:data-plane-http-spi:$edcVersion") // HttpDataAddress
+    implementation("$group:data-plane-http:$edcVersion") // HttpRequestFactory
     implementation("$group:http-lib:$edcVersion")
+    implementation("$group:data-plane-spi:$edcVersion") // DataSource, StreamResult
 
     implementation("de.fraunhofer.iosb.ilt.faaast.service:starter:${faaastVersion}")
     implementation("org.eclipse.digitaltwin.aas4j:aas4j-dataformat-json:1.0.1")

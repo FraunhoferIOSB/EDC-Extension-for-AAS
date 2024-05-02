@@ -29,7 +29,7 @@ dependencies {
     implementation("$group:data-plane-spi:$edcVersion") // DataSource, StreamResult
 
     implementation("de.fraunhofer.iosb.ilt.faaast.service:starter:${faaastVersion}")
-    implementation("org.eclipse.digitaltwin.aas4j:aas4j-dataformat-json:1.0.1")
+    implementation("org.eclipse.digitaltwin.aas4j:aas4j-dataformat-json:1.0.2")
     implementation("org.eclipse.digitaltwin.aas4j:aas4j-model:1.0.1")
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 

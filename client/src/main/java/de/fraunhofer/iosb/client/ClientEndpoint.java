@@ -32,13 +32,13 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import org.eclipse.edc.catalog.spi.Dataset;
-import org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest;
-import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
+import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
+import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
-import org.eclipse.edc.spi.types.domain.offer.ContractOffer;
 
 import java.io.StringReader;
 import java.net.URL;
@@ -46,7 +46,7 @@ import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
 import static java.lang.String.format;
-import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
+import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 
 /**
  * Automated contract negotiation
@@ -186,10 +186,9 @@ public class ClientEndpoint {
                 .build();
 
         var contractRequest = ContractRequest.Builder.newInstance()
-                .contractOffer(offer)
-                .counterPartyAddress(counterPartyUrl.toString())
-                .providerId(counterPartyId)
                 .protocol(DATASPACE_PROTOCOL_HTTP)
+                .counterPartyAddress(counterPartyUrl.toString())
+                .contractOffer(offer)
                 .build();
         ContractAgreement agreement;
 

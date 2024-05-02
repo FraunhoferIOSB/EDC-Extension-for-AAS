@@ -16,11 +16,18 @@
 package de.fraunhofer.iosb.client.policy;
 
 import de.fraunhofer.iosb.client.exception.AmbiguousOrNullException;
+import de.fraunhofer.iosb.client.policy.transform.JsonObjectToCatalogTransformer;
+import de.fraunhofer.iosb.client.policy.transform.JsonObjectToDataServiceTransformer;
+import de.fraunhofer.iosb.client.policy.transform.JsonObjectToDatasetTransformer;
+import de.fraunhofer.iosb.client.policy.transform.JsonObjectToDistributionTransformer;
 import de.fraunhofer.iosb.client.util.Pair;
 import jakarta.json.Json;
-import org.eclipse.edc.catalog.spi.Catalog;
-import org.eclipse.edc.catalog.spi.Dataset;
-import org.eclipse.edc.connector.spi.catalog.CatalogService;
+import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
+import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
+import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
+import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService;
+import org.eclipse.edc.connector.controlplane.transform.odrl.OdrlTransformersFactory;
+import org.eclipse.edc.connector.core.agent.NoOpParticipantIdMapper;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.policy.model.Policy;
@@ -29,7 +36,6 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.response.StatusResult;
-import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.jetbrains.annotations.NotNull;
 
@@ -46,8 +52,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
-import static org.eclipse.edc.protocol.dsp.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
+import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
+
 
 /**
  * Finds out policy for a given asset id and provider EDC url
@@ -70,7 +77,7 @@ class PolicyService {
      * @param transformer    Transform json-ld byte-array catalog to catalog class
      */
     PolicyService(CatalogService catalogService, TypeTransformerRegistry transformer,
-                         PolicyServiceConfig config, PolicyDefinitionStore policyDefinitionStore, Monitor monitor) {
+                  PolicyServiceConfig config, PolicyDefinitionStore policyDefinitionStore, Monitor monitor) {
         this.catalogService = catalogService;
         this.transformer = transformer;
 
@@ -79,6 +86,7 @@ class PolicyService {
 
         this.jsonLdExpander = new TitaniumJsonLd(monitor);
 
+        registerTransformers();
     }
 
     Dataset getDatasetForAssetId(@NotNull String counterPartyId, @NotNull URL counterPartyUrl, @NotNull String assetId) throws InterruptedException {
@@ -188,6 +196,18 @@ class PolicyService {
     private <T extends Rule> boolean ruleEquality(T first, T second) {
         return Objects.equals(first.getAction(), second.getAction()) && Objects.equals(first.getConstraints(),
                 second.getConstraints());
+    }
+
+    /* Re-activate transformers that were deleted in EDC after version 0.6.0
+     *  Also activate other transformers needed for PolicyService but not registered in the right place
+     */
+    private void registerTransformers() {
+        transformer.register(new JsonObjectToCatalogTransformer());
+        transformer.register(new JsonObjectToDatasetTransformer());
+        transformer.register(new JsonObjectToDataServiceTransformer());
+        transformer.register(new JsonObjectToDistributionTransformer());
+        OdrlTransformersFactory.jsonObjectToOdrlTransformers(new NoOpParticipantIdMapper())
+                .forEach(transformer::register);
     }
 
 }

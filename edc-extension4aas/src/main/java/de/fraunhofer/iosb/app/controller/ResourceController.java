@@ -18,9 +18,9 @@ package de.fraunhofer.iosb.app.controller;
 import de.fraunhofer.iosb.app.edc.ContractHandler;
 import de.fraunhofer.iosb.app.edc.ResourceHandler;
 import de.fraunhofer.iosb.app.util.Pair;
-import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
-import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
-import org.eclipse.edc.spi.asset.AssetIndex;
+import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
+import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
+import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 
 /**
  * Controls communication with EDC (EDC contracts and EDC assets)

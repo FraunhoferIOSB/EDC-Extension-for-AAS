@@ -21,7 +21,10 @@ dependencies {
     implementation(project(":public-api-management"))
 
     // See this project's README.MD for explanations
-    implementation("$group:contract-core:$edcVersion")
+    implementation("$group:control-plane-contract:$edcVersion")
+    implementation("$group:control-plane-transform:$edcVersion")
+    implementation("$group:connector-core:$edcVersion")
+    implementation("$group:json-ld-lib:$edcVersion")
     implementation("$group:dsp-catalog-http-dispatcher:$edcVersion")
     implementation("$group:management-api:$edcVersion")
     implementation("$group:runtime-metamodel:$edcVersion")

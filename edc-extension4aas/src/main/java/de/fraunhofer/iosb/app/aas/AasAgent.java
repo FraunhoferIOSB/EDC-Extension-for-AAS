@@ -59,14 +59,13 @@ public class AasAgent {
 
     private static final Logger LOGGER = Logger.getInstance();
 
-    private final HttpRestClient httpRestClient;
+    private final HttpRestClient httpRestClient = HttpRestClient.getInstance();
     private final JsonDeserializer jsonDeserializer;
     private final Map<String, Certificate[]> acceptedCertificates;
 
     private final ObjectMapper objectMapper;
 
     public AasAgent() {
-        httpRestClient = new HttpRestClient();
         jsonDeserializer = new JsonDeserializer();
         acceptedCertificates = new HashMap<>();
         objectMapper = new ObjectMapper();

@@ -20,17 +20,20 @@ import de.fraunhofer.iosb.api.model.HttpMethod;
 import de.fraunhofer.iosb.app.controller.AasController;
 import de.fraunhofer.iosb.app.controller.ConfigurationController;
 import de.fraunhofer.iosb.app.controller.ResourceController;
+import de.fraunhofer.iosb.app.dataplane.aas.pipeline.AasDataSourceFactory;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
 import de.fraunhofer.iosb.app.sync.Synchronizer;
-import org.eclipse.edc.api.auth.spi.AuthenticationService;
-import org.eclipse.edc.connector.contract.spi.offer.store.ContractDefinitionStore;
-import org.eclipse.edc.connector.policy.spi.store.PolicyDefinitionStore;
+import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
+import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
+import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
+import org.eclipse.edc.connector.dataplane.http.params.HttpRequestParamsProviderImpl;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.spi.asset.AssetIndex;
-import org.eclipse.edc.spi.http.EdcHttpClient;
+import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.web.spi.WebService;
 
 import java.io.IOException;
@@ -55,18 +58,21 @@ public class AasExtension implements ServiceExtension {
     @Inject
     private AssetIndex assetIndex;
     @Inject
-    private AuthenticationService authenticationService;
-    @Inject
     private ContractDefinitionStore contractStore;
-    @Inject
-    private EdcHttpClient edcHttpClient;
+    @Inject // AAS Data Source Factory
+    private PipelineService pipelineService;
     @Inject
     private PolicyDefinitionStore policyStore;
+    @Inject // AAS Data Source Factory
+    private TypeManager typeManager;
+    @Inject // AAS Data Source Factory
+    private Vault vault;
     @Inject
     private WebService webService;
 
     private static final String SETTINGS_PREFIX = "edc.aas";
     private static final Logger LOGGER = Logger.getInstance();
+
     private ScheduledExecutorService syncExecutor;
     private AasController aasController;
 
@@ -76,7 +82,7 @@ public class AasExtension implements ServiceExtension {
 
         // Distribute controllers, repository
         var selfDescriptionRepository = new SelfDescriptionRepository();
-        this.aasController = new AasController(edcHttpClient);
+        this.aasController = new AasController();
         var endpoint = new Endpoint(selfDescriptionRepository, this.aasController, configurationController);
 
         // Initialize/Start synchronizer, start AAS services defined in configuration
@@ -88,6 +94,11 @@ public class AasExtension implements ServiceExtension {
         if (Configuration.getInstance().isExposeSelfDescription()) {
             publicApiManagementService.addEndpoints(List.of(new de.fraunhofer.iosb.api.model.Endpoint(Endpoint.SELF_DESCRIPTION_PATH, HttpMethod.GET, Map.of())));
         }
+
+        // Register AAS Data Source factory for dataTransfer with self-signed certificates on FA³ST side
+        var paramsProvider = new HttpRequestParamsProviderImpl(vault, typeManager);
+        var aasDataSourceFactory = new AasDataSourceFactory(paramsProvider, context.getMonitor());
+        pipelineService.registerFactory(aasDataSourceFactory);
 
         webService.registerResource(endpoint);
     }

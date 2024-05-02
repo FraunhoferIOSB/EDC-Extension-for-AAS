@@ -16,7 +16,7 @@
 package de.fraunhofer.iosb.client.policy;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
+import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.io.IOException;

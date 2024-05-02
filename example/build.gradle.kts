@@ -29,6 +29,7 @@ dependencies {
 
     // Enables X-Api-Key auth
     implementation("$group:auth-tokenbased:$edcVersion")
+    implementation("$group:control-api-configuration:$edcVersion")
 
     // Read configuration values
     implementation("$group:configuration-filesystem:$edcVersion")

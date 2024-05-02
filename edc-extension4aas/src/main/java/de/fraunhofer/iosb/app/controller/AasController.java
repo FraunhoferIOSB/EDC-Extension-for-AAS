@@ -24,7 +24,6 @@ import de.fraunhofer.iosb.app.aas.ssl.SelfSignedCertificateRetriever;
 import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShellEnvironment;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.DeserializationException;
-import org.eclipse.edc.spi.http.EdcHttpClient;
 
 import java.io.IOException;
 import java.net.URL;
@@ -46,8 +45,7 @@ public class AasController implements Controllable {
     private final AssetAdministrationShellServiceManager aasServiceManager;
     private final Logger logger;
 
-    public AasController(EdcHttpClient edcHttpClient) {
-        Objects.requireNonNull(edcHttpClient);
+    public AasController() {
 
         logger = Logger.getInstance();
         aasAgent = new AasAgent();

@@ -20,14 +20,14 @@ import java.net.URL;
 public interface SelfDescriptionChangeListener {
 
     /**
-     * Called when a self description was created
+     * Called when a self-description was created
      *
      * @param aasUrl The URL of the newly registered AAS service
      */
     void created(URL aasUrl);
 
     /**
-     * Called when a self description was removed
+     * Called when a self-description was removed
      *
      * @param removed The SelfDescription of the unregistered AAS service
      */

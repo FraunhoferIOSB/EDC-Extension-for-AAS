@@ -194,8 +194,7 @@ public class Endpoint {
 
     /**
      * Forward POST request to provided host in requestUrl. If requestUrl is an AAS
-     * service that is registered at this EDC, synchronize assets and self
-     * description as well.
+     * service that is registered at this EDC, synchronize assets and self-description as well.
      *
      * @param requestUrl  URL of AAS service to be updated
      * @param requestBody AAS element
@@ -212,8 +211,7 @@ public class Endpoint {
 
     /**
      * Forward DELETE request to provided host in requestUrl. If requestUrl is an
-     * AAS service that is registered at this EDC, synchronize assets and self
-     * description as well.
+     * AAS service that is registered at this EDC, synchronize assets and self-description as well.
      *
      * @param requestUrl URL of AAS service to be deleted
      * @return Response status

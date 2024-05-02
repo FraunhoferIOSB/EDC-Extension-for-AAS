@@ -43,12 +43,21 @@ import static java.lang.String.format;
 
 public class HttpRestClient {
 
+    private static HttpRestClient instance;
+
     private final Logger logger;
     private OkHttpClient client;
 
-    public HttpRestClient() {
+    private HttpRestClient() {
         logger = Logger.getInstance();
         this.client = new OkHttpClient();
+    }
+
+    public static HttpRestClient getInstance() {
+        if (instance == null) {
+            instance = new HttpRestClient();
+        }
+        return instance;
     }
 
     /**
@@ -116,6 +125,10 @@ public class HttpRestClient {
                 .url(Objects.requireNonNull(HttpUrl.get(url)))
                 .delete(requestBody)
                 .build();
+        return client.newCall(request).execute();
+    }
+
+    public Response execute(Request request) throws IOException {
         return client.newCall(request).execute();
     }
 

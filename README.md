@@ -9,7 +9,7 @@ model via the EDC.
 
 | Specification                                                                                                                                  | Version                                                                                                      |
 |:-----------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------|
-| Eclipse Dataspace Connector                                                                                                                    | v0.5.1                                                                                                       |
+| Eclipse Dataspace Connector                                                                                                                    | v0.6.2                                                                                                       |
 | AAS - Details of the Asset Administration Shell - Part 1<br />The exchange of information between partners in the value chain of Industrie 4.0 | AAS Specs – Part 1 V3.0 (final)<br/>(based on [eclipse-aas4j/aas4j](https://github.com/eclipse-aas4j/aas4j)) |
 
 ## Repo Structure

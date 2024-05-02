@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "14677191-e263-4d83-ba13-d126c064b460",
+		"_postman_id": "9283a67f-f207-4e01-a561-60bba2345133",
 		"name": "EDC Extension",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "20511334"
@@ -79,7 +79,8 @@
 									{
 										"key": "x-api-key",
 										"value": "password",
-										"type": "default"
+										"type": "default",
+										"uuid": "13642ce1-b0d7-42ac-9f86-b3bc6e2acb03"
 									}
 								],
 								"body": {
@@ -169,7 +170,8 @@
 							{
 								"key": "x-api-key",
 								"value": "password",
-								"type": "default"
+								"type": "default",
+								"uuid": "c02f630c-e67d-45f2-883c-df9bcf3b5fba"
 							}
 						],
 						"url": {
@@ -271,7 +273,8 @@
 							{
 								"key": "x-api-key",
 								"value": "password",
-								"type": "text"
+								"type": "text",
+								"uuid": "934f59f2-6c06-432a-8987-1bb44b191f0f"
 							}
 						],
 						"url": {
@@ -357,7 +360,8 @@
 							{
 								"key": "x-api-key",
 								"value": "password",
-								"type": "default"
+								"type": "default",
+								"uuid": "af8d1f8c-cbb4-4907-a8d6-616162c6a75e"
 							}
 						],
 						"url": {
@@ -388,7 +392,8 @@
 							{
 								"key": "x-api-key",
 								"value": "password",
-								"type": "default"
+								"type": "default",
+								"uuid": "3f26775e-e937-4b44-9f7d-543d28ec0a64"
 							}
 						],
 						"url": {
@@ -424,7 +429,8 @@
 							{
 								"key": "x-api-key",
 								"value": "password",
-								"type": "default"
+								"type": "default",
+								"uuid": "25ded300-0fcb-4395-afa2-6827e5ba0d37"
 							}
 						],
 						"url": {
@@ -472,7 +478,8 @@
 							{
 								"key": "x-api-key",
 								"value": "password",
-								"type": "default"
+								"type": "default",
+								"uuid": "dba724f6-bd73-444f-96a4-d6350439fc27"
 							}
 						],
 						"body": {
@@ -511,7 +518,8 @@
 							{
 								"key": "x-api-key",
 								"value": "password",
-								"type": "default"
+								"type": "default",
+								"uuid": "cb29894f-df6d-48ad-a827-e447bb7ee31f"
 							}
 						],
 						"body": {
@@ -569,12 +577,14 @@
 							{
 								"key": "X-Api-Key",
 								"value": "password",
-								"type": "default"
+								"type": "default",
+								"uuid": "de1566c6-aaa4-4e08-a40b-927c8dc78b3f"
 							},
 							{
 								"key": "Content-Type",
 								"value": "application/json",
-								"type": "default"
+								"type": "default",
+								"uuid": "16ed5a17-5614-451c-b042-b01de7e73510"
 							}
 						],
 						"body": {
@@ -607,7 +617,8 @@
 							{
 								"key": "x-api-key",
 								"value": "password",
-								"type": "default"
+								"type": "default",
+								"uuid": "9923fa7e-2774-4b9b-b0e9-ec4fe7031f2f"
 							}
 						],
 						"url": {
@@ -635,12 +646,14 @@
 							{
 								"key": "x-api-key",
 								"value": "password",
-								"type": "default"
+								"type": "default",
+								"uuid": "89d259f9-cd8e-4165-9532-38f7c6a91eb8"
 							},
 							{
 								"key": "Content-Type",
 								"value": "application/json",
-								"type": "default"
+								"type": "default",
+								"uuid": "9b8cbb7c-202a-41bf-9fae-bb134973b752"
 							}
 						],
 						"body": {
@@ -694,12 +707,14 @@
 							{
 								"key": "X-Api-Key",
 								"value": "password",
-								"type": "default"
+								"type": "default",
+								"uuid": "7fc80a71-fb4e-46ad-b45f-2d52101ba499"
 							},
 							{
 								"key": "Content-Type",
 								"value": "application/json",
-								"type": "default"
+								"type": "default",
+								"uuid": "62bc24c6-703a-432a-8e41-d80e15983288"
 							}
 						],
 						"body": {
@@ -734,7 +749,8 @@
 							{
 								"key": "x-api-key",
 								"value": "password",
-								"type": "default"
+								"type": "default",
+								"uuid": "a4bb493e-c12e-4108-a6cc-859c51aca04d"
 							}
 						],
 						"url": {
@@ -764,12 +780,14 @@
 							{
 								"key": "x-api-key",
 								"value": "password",
-								"type": "default"
+								"type": "default",
+								"uuid": "d84bd1c2-d450-43ec-8617-670fd9ea921a"
 							},
 							{
 								"key": "Content-Type",
 								"value": "application/json",
-								"type": "default"
+								"type": "default",
+								"uuid": "df328b16-9d7c-4a29-a9e4-31607ec12068"
 							}
 						],
 						"body": {
@@ -809,7 +827,8 @@
 							{
 								"key": "x-api-key",
 								"value": "password",
-								"type": "default"
+								"type": "default",
+								"uuid": "cd6c25dc-41d3-411f-adb7-acc76d253211"
 							}
 						],
 						"url": {
@@ -841,7 +860,8 @@
 							{
 								"key": "x-api-key",
 								"value": "password",
-								"type": "default"
+								"type": "default",
+								"uuid": "9e0af207-382a-4b3f-be92-4f4a8fcb8e7d"
 							}
 						],
 						"url": {
@@ -866,7 +886,8 @@
 							{
 								"key": "x-api-key",
 								"value": "password",
-								"type": "default"
+								"type": "default",
+								"uuid": "254e57c4-90fa-4ecb-8d68-0d0e559d6643"
 							}
 						],
 						"body": {
@@ -900,7 +921,8 @@
 							{
 								"key": "x-api-key",
 								"value": "password",
-								"type": "default"
+								"type": "default",
+								"uuid": "c1a53a0a-4fc9-42df-a36e-ae9909390a89"
 							}
 						],
 						"body": {
@@ -962,7 +984,7 @@
 		},
 		{
 			"key": "provider",
-			"value": "http://localhost:8181",
+			"value": "http://localhost:8281",
 			"type": "default"
 		},
 		{
@@ -977,7 +999,7 @@
 		},
 		{
 			"key": "consumer",
-			"value": "http://localhost:9191",
+			"value": "http://localhost:9291",
 			"type": "default"
 		},
 		{
@@ -992,7 +1014,7 @@
 		},
 		{
 			"key": "docker-provider-connector-url",
-			"value": "http://provider:8181",
+			"value": "http://provider:8281",
 			"type": "default"
 		},
 		{
@@ -1007,7 +1029,7 @@
 		},
 		{
 			"key": "docker-consumer",
-			"value": "http://consumer:9191",
+			"value": "http://consumer:9291",
 			"type": "default"
 		}
 	]

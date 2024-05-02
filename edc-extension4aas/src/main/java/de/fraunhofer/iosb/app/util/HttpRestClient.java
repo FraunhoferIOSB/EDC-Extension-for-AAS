@@ -131,6 +131,7 @@ public class HttpRestClient {
     public Response execute(Request request) throws IOException {
         return client.newCall(request).execute();
     }
+
     /**
      * Add self-signed certificates to trust when executing http requests.
      *

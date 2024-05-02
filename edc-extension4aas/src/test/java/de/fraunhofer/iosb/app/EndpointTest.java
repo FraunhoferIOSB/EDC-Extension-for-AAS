@@ -68,13 +68,7 @@ public class EndpointTest {
     @BeforeEach
     public void setupEndpoint() {
         selfDescriptionRepo = new SelfDescriptionRepository();
-        aasController = new AasController(
-                new EdcHttpClientImpl(
-                        new TrustSelfSignedOkHttpClient()
-                                .newBuilder()
-                                .build(),
-                        RetryPolicy.ofDefaults(),
-                        mock(Monitor.class)));
+        aasController = new AasController();
         endpoint = new Endpoint(
                 selfDescriptionRepo,
                 aasController,

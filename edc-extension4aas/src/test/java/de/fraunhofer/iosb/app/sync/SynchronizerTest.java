@@ -76,8 +76,7 @@ public class SynchronizerTest {
         selfDescriptionRepo = new SelfDescriptionRepository();
         synchronizer = new Synchronizer(
                 selfDescriptionRepo,
-                new AasController(
-                        new EdcHttpClientImpl(new OkHttpClient(), RetryPolicy.ofDefaults(), mock(Monitor.class))),
+                new AasController(),
                 new ResourceController(
                         mock(AssetIndex.class),
                         mock(ContractDefinitionStore.class),

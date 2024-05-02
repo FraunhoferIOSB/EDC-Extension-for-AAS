@@ -15,9 +15,9 @@
  */
 package de.fraunhofer.iosb.app.edc;
 
+import de.fraunhofer.iosb.app.dataplane.aas.pipeline.AasDataAddress;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
-import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
 
 /**
  * Internal communication with EDC. Manages EDC assets and contracts.
@@ -41,7 +41,7 @@ public class ResourceHandler {
      */
     public String createAsset(String sourceUrl, String name, String contentType, String version) {
         var assetId = createAssetId(sourceUrl);
-        var dataAddress = HttpDataAddress.Builder.newInstance().baseUrl(sourceUrl).build();
+        var dataAddress = AasDataAddress.Builder.newInstance().baseUrl(sourceUrl).build();
         var asset = Asset.Builder.newInstance()
                 .id(assetId)
                 .name(name)

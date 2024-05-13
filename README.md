@@ -40,7 +40,7 @@ External changes to the model of an AAS are automatically synchronized by the ex
 
 Additionally, a client extension providing API calls for aggregations of processes such as contract negotiation and data
 transfer
-is available.
+is available. The result is a one-click negotiation and data transfer, ideal for SME or individuals.
 
 ### Use Cases
 
@@ -49,8 +49,9 @@ Provide digital twin (AAS) data to business partners in Data Spaces like Catena-
 ## Technical Details
 
 ### Interfaces
+<details>
 
-#### **Provider Interfaces**
+<summary>Provider Interfaces</summary>
 
 | HTTP Method | Interface (edc:1234/api/...) ((a) = only for authenticated users) | Parameters ((r) = required)                                                                                                                                                              | Description                                                                                                                                                                                                                                                                                                              |
 |:------------|:------------------------------------------------------------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -63,9 +64,11 @@ Provide digital twin (AAS) data to business partners in Data Spaces like Catena-
 | DELETE      | aas (a)                                                           | Query Parameter requestUrl: URL of AAS service to be updated (r)                                                                                                                         | Forward DELETE request to provided host in requestUrl. If requestUrl is an AAS service that is registered at this EDC, synchronize assets and self description as well.                                                                                                                                                  |
 | PUT         | aas (a)                                                           | Query Parameter "requestUrl": URL of AAS service to be updated (r), request body: AAS element (r)                                                                                        | Forward PUT request to provided host in requestUrl.                                                                                                                                                                                                                                                                      |
 | GET         | selfDescription                                                   | -                                                                                                                                                                                        | Return self description of extension.                                                                                                                                                                                                                                                                                    |
+</details>
 
-#### **Client Interfaces**
-
+<details>
+<summary>Client Interfaces</summary>
+  
 | HTTP Method | Interface (edc:1234/api/automated/...) ((a) = only for authenticated users) | Parameters ((r) = required)                                                                                                                                        | Description                                                                                                                                                                                                                                                                                                                                      |
 |:------------|:----------------------------------------------------------------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | POST        | negotiate (a)                                                               | Query Parameter "providerUrl": URL (r), Query Parameter "providerId": String (r), Query Parameter "assetId": String (r), Query Parameter "dataDestinationUrl": URL | Perform an automated contract negotiation with a provider (given provider URL and ID) and get the data stored for the specified asset. Optionally, a data destination URL can be specified where the data is sent to instead of the extension's log.                                                                                             |
@@ -76,6 +79,7 @@ Provide digital twin (AAS) data to business partners in Data Spaces like Catena-
 | GET         | acceptedPolicies (a)                                                        | -                                                                                                                                                                  | Returns the client extension's accepted policy definitions for fully automated negotiation.                                                                                                                                                                                                                                                      |
 | DELETE      | acceptedPolicies (a)                                                        | request body: PolicyDefinition: PolicyDefinition (JSON) (r)                                                                                                        | Updates the client extension's accepted policy definition with the same policyDefinitionId as the request.                                                                                                                                                                                                                                       |
 | PUT         | acceptedPolicies (a)                                                        | request body: PolicyDefinitionId: String (JSON) (r)                                                                                                                | Deletes a client extension's accepted policy definition with the same policyDefinitionId as the request.                                                                                                                                                                                                                                         |
+</details>
 
 ### Dependencies
 
@@ -87,7 +91,7 @@ Provide digital twin (AAS) data to business partners in Data Spaces like Catena-
 | io.admin-shell.aas:dataformat-json            | [admin-shell-io java serializer](https://github.com/admin-shell-io/java-serializer) (de-)serialize AAS models |
 | io.admin-shell.aas:model                      | [admin-shell-io java model](https://github.com/admin-shell-io/java-model) (de-)serialize AAS models           |
 | com.squareup.okhttp3:okhttp                   | Send HTTP requests to AAS services                                                                            |
-| jakarta.ws.rs:jakarta.ws.rs-api               | provides HTTP endpoints of extension                                                                          |
+| jakarta.ws.rs:jakarta.ws.rs-api               | HTTP endpoints of extension                                                                                   |
 | org.eclipse.edc:contract-core                 | Client: Observe contract negotiation state                                                                    |
 | org.eclipse.edc:management-api                | EDC asset/contract management                                                                                 |
 | org.eclipse.edc:runtime-metamodel             | EDC metamodel                                                                                                 |
@@ -102,11 +106,13 @@ Provide digital twin (AAS) data to business partners in Data Spaces like Catena-
 | org.eclipse.edc:management-api              | EDC asset/contract management              |
 | org.eclipse.edc:runtime-metamodel           | EDC metamodel                              |
 | org.eclipse.edc:data-plane-http-spi         | HttpDataAddress                            |
-| jakarta.ws.rs:jakarta.ws.rs-api             | provides HTTP endpoints of extension       |
+| jakarta.ws.rs:jakarta.ws.rs-api             | HTTP endpoints of extension                |
 
 ### Configurations
+<details>
 
-#### **EDC-Extension-for-AAS Configurations**
+<summary>EDC-Extension-for-AAS Configurations</summary>
+
 
 | Key                               | Value Type                | Description                                                                                                                                                                                                                                             |
 |:----------------------------------|:--------------------------|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -118,8 +124,12 @@ Provide digital twin (AAS) data to business partners in Data Spaces like Catena-
 | edc.aas.exposeSelfDescription     | true/false                | Whether the Self Description should be exposed on {edc}/api/selfDescription. When set to False, the selfDescription is still available for authenticated requests.                                                                                      |
 | edc.aas.defaultAccessPolicyPath   | path                      | Path to an access policy file (JSON). This policy will be used as the default access policy for all assets created after the configuration value has been set.                                                                                          |
 | edc.aas.defaultContractPolicyPath | path                      | Path to a contract policy file (JSON). This policy will be used as the default contract policy for all assets created after the configuration value has been set.                                                                                       |
+</details>
 
-#### **Client Extension Configurations**
+<details>
+
+<summary>Client Extension Configurations</summary>  
+
 
 | Key                                      | Value Type              | Description                                                                                                                                                                   |
 |:-----------------------------------------|:------------------------|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -127,6 +137,7 @@ Provide digital twin (AAS) data to business partners in Data Spaces like Catena-
 | edc.client.waitForTransferTimeout        | whole number in seconds | How long should the extension wait for a data transfer when automatically negotiating a contract? Default value is 10(s).                                                     |
 | edc.client.acceptAllProviderOffers       | boolean                 | If true, the client accepts any contractOffer offered by a provider connector on automated contract negotiation (e.g., trusted provider). Default value: false                |
 | edc.client.acceptedPolicyDefinitionsPath | path                    | Path pointing to a JSON-file containing acceptable PolicyDefinitions for automated contract negotiation in a list (only policies must match in a provider's PolicyDefinition) |
+</details>
 
 ## Terminology
 
@@ -141,5 +152,5 @@ Features in development:
 
 - Graphical interface to simplify providing and requesting AAS (
   see: https://github.com/FraunhoferIOSB/EDC-Extension-for-AAS-Dashboard) &#x2713;
-- Built-in client to request AAS data from other EDC (automatic contract negotiation) &#x2713;
+- AAS data-plane for EDC
 - Docker Hub container deployment

@@ -44,8 +44,8 @@ public class AasDataSourceFactory implements DataSourceFactory {
     }
 
     @Override
-    public boolean canHandle(DataFlowStartMessage request) {
-        return AAS_DATA_TYPE.equals(request.getSourceDataAddress().getType());
+    public String supportedType() {
+        return AAS_DATA_TYPE;
     }
 
     @Override

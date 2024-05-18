@@ -7,10 +7,10 @@ model via the EDC.
 
 ## Version compatibility
 
-| Specification                                                                                                                                  | Version                                                                                                      |
-|:-----------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------|
-| Eclipse Dataspace Connector                                                                                                                    | v0.6.2                                                                                                       |
-| AAS - Details of the Asset Administration Shell - Part 1<br />The exchange of information between partners in the value chain of Industrie 4.0 | AAS Specs – Part 1 V3.0 (final)<br/>(based on [eclipse-aas4j/aas4j](https://github.com/eclipse-aas4j/aas4j)) |
+| Specification                                                                                                                                                                                                                                                                | Version                                                                                                      |
+|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------|
+| [Eclipse Dataspace Connector](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector)                                                                                                                                                                              | v0.6.3                                                                                                       |
+| [AAS - Details of the Asset Administration Shell - Part 1](https://www.plattform-i40.de/IP/Redaktion/EN/Downloads/Publikation/Details_of_the_Asset_Administration_Shell_Part1_V3.html)<br />The exchange of information between partners in the value chain of Industrie 4.0 | AAS Specs – Part 1 V3.0 (final)<br/>(based on [eclipse-aas4j/aas4j](https://github.com/eclipse-aas4j/aas4j)) |
 
 ## Repo Structure
 
@@ -31,16 +31,9 @@ the [Example's README](example/README.md).
 
 ## Functionality
 
-AAS data can be shared over the EDC by linking an EDC Asset to the HTTP endpoint of the AAS element. Additionally,
-contracts have to be defined for each element.
-In order to minimize configuration effort and prevent errors, this extension is able to link running AAS into EDC
-Assets. Furthermore, this extension can also start AAS by reading an AAS model. A default contract can be chosen to be
-applied for all elements. For critical elements, additional contracts can be placed.
-External changes to the model of an AAS are automatically synchronized by the extension.
+AAS data can be shared over the EDC by linking an EDC Asset to the HTTP endpoint of the AAS element. Additionally, contracts have to be defined for each element. In order to minimize configuration effort and prevent errors, this extension is able to link running AAS into EDC Assets. Furthermore, this extension can also start AAS by reading an AAS model. A default contract can be chosen to be applied for all elements. For critical elements, additional contracts can be placed. External changes to the model of an AAS are automatically synchronized by the extension.
 
-Additionally, a client extension providing API calls for aggregations of processes such as contract negotiation and data
-transfer
-is available. The result is a one-click negotiation and data transfer, ideal for SME or individuals.
+Additionally, a client extension providing API calls for aggregations of processes such as contract negotiation and data transfer is available. The result is a one-click negotiation and data transfer, ideal for SME or individuals.
 
 ### Use Cases
 
@@ -85,28 +78,35 @@ Provide digital twin (AAS) data to business partners in Data Spaces like Catena-
 
 #### EDC-Extension-for-AAS
 
-| Name                                          | Description                                                                                                   |
-|:----------------------------------------------|:--------------------------------------------------------------------------------------------------------------|
-| de.fraunhofer.iosb.ilt.faaast.service:starter | [FA³ST Service](https://github.com/FraunhoferIOSB/FAAAST-Service) to start AAS services internally.           |
-| io.admin-shell.aas:dataformat-json            | [admin-shell-io java serializer](https://github.com/admin-shell-io/java-serializer) (de-)serialize AAS models |
-| io.admin-shell.aas:model                      | [admin-shell-io java model](https://github.com/admin-shell-io/java-model) (de-)serialize AAS models           |
-| com.squareup.okhttp3:okhttp                   | Send HTTP requests to AAS services                                                                            |
-| jakarta.ws.rs:jakarta.ws.rs-api               | HTTP endpoints of extension                                                                                   |
-| org.eclipse.edc:contract-core                 | Client: Observe contract negotiation state                                                                    |
-| org.eclipse.edc:management-api                | EDC asset/contract management                                                                                 |
-| org.eclipse.edc:runtime-metamodel             | EDC metamodel                                                                                                 |
-| org.eclipse.edc:dsp-catalog-http-dispatcher   | EDC constants                                                                                                 |
+| Name                                                | Description                                                                                                                      |
+|:----------------------------------------------------|:---------------------------------------------------------------------------------------------------------------------------------|
+| public-api-management (local)                       | Centralized http authentication request filter                                                                                   |
+| de.fraunhofer.iosb.ilt.faaast.service:starter       | [FA³ST Service](https://github.com/FraunhoferIOSB/FAAAST-Service) to start AAS services internally.                              |
+| org.eclipse.digitaltwin.aas4j:aas4j-dataformat-json | [Eclipse AAS4J JSON (de-)serializer](https://github.com/eclipse-aas4j/aas4j/tree/main/dataformat-json) (de-)serialize AAS models |
+| org.eclipse.digitaltwin.aas4j:aas4j-model           | [Eclipse AAS4J java model](https://github.com/eclipse-aas4j/aas4j/tree/main/model)                                               |
+| org.eclipse.edc:data-plane-http                     | EDC HttpRequestFactory Field                                                                                                     |
+| org.eclipse.edc:data-plane-http-spi                 | EDC HttpDataAddress Field                                                                                                        |
+| org.eclipse.edc:data-plane-spi                      | EDC DataSource, StreamResult Field                                                                                               |
+| org.eclipse.edc:management-api                      | EDC Asset/Contract Management                                                                                                    |
 
 #### Client Extension
 
-| Name                                        | Description                                |
-|:--------------------------------------------|:-------------------------------------------|
-| org.eclipse.edc:contract-core               | Client: Observe contract negotiation state |
-| org.eclipse.edc:dsp-catalog-http-dispatcher | EDC constants                              |
-| org.eclipse.edc:management-api              | EDC asset/contract management              |
-| org.eclipse.edc:runtime-metamodel           | EDC metamodel                              |
-| org.eclipse.edc:data-plane-http-spi         | HttpDataAddress                            |
-| jakarta.ws.rs:jakarta.ws.rs-api             | HTTP endpoints of extension                |
+| Name                                        | Description                                    |
+|:--------------------------------------------|:-----------------------------------------------|
+| public-api-management (local)               | Centralized http authentication request filter |
+| org.eclipse.edc:connector-core              | PolicyService                                  |
+| org.eclipse.edc:control-plane-contract      | Observe contract negotiations                  |
+| org.eclipse.edc:control-plane-transform     | Type transformers                              |
+| org.eclipse.edc:data-plane-http-spi         | HttpDataAddress                                |
+| org.eclipse.edc:dsp-catalog-http-dispatcher | EDC constants                                  |
+| org.eclipse.edc:json-ld-lib                 | JsonLD expansion                               |
+| org.eclipse.edc:management-api              | EDC WebService for registering endpoints       |
+
+#### Public API Management Extension
+
+| Name                     | Description            |
+|:-------------------------|:-----------------------|
+| org.eclipse.edc:auth-spi | EDC Authentication SPI |
 
 ### Configurations
 <details>

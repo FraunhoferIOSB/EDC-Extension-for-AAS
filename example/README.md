@@ -154,60 +154,6 @@ __Important__:
 4. Execute request `3. Get data for agreement id and asset id`. If again everything went right, the response should be the
    data behind the previously selected asset.
 
-## Running the Example (manual)
-
-
-### Warning: Manual data transfer example is outdated! Please refer to the official EDC documentation! 
-
-Build the EDC with the extensions.
-
-```sh
-cd /EDC-Extension-for-AAS
-./gradlew clean build
-```
-
-Start the provider connector:
-
-```sh
-java -Dedc.fs.config=./example/configurations/provider.properties -jar ./example/build/libs/dataspace-connector.jar
-```
-
-Open another console and start the consumer connector:
-
-```sh
-java -Dedc.fs.config=./example/configurations/consumer.properties -jar ./example/build/libs/dataspace-connector.jar
-```
-
-Starting the data transfer from provider to consumer. There is a `postman collection` containing all necessary http
-requests for data transfer in this extensions repository located in `/examples/resources`. Do the following steps:
-
-1. Call the provider's self-description on `http://localhost:8181/api/selfDescription`, and choose an element you want
-   to fetch. Put its `asset id` and `contract id` as variables in the postman collection.
-
-2. Send the contract offer to the EDC Provider. Execute request 1 of the data transfer folder.
-   You should get a contract negotiation ID (consumer's negotiation ID) like this: `"id":"<negotiation-id>"}`. Put
-   this `<negotiation-id>` as negotiation id variable in the postman collection.
-
-3. With this `<negotiation-id>`, query the consumer connector about the state of the negotiation. Execute request 2 of
-   the data transfer folder.
-   It should return:
-    ```json
-    {
-      "contractAgreementId": "<agreement-id>",
-      "counterPartyAddress": "http://localhost:8282/api/v1/ids/data",
-      "errorDetail": null,
-      "id": "ac6e1c97-13d6-41ff-8b79-1029d7f094bb",
-      "protocol": "ids-multipart",
-      "state": "CONFIRMED",
-      "type": "CONSUMER"
-    }
-    ```
-
-4. Put the `<agreement-id>` in the postman collection's agreement-id variable.
-   Execute request 3 of the Data Transfer folder. The provider connector should now send the data, and in the consumer
-   edc's logs there should be confirmation of the transfer. The consumer prints as console output the fetched AAS
-   element.
-
 ## Debugging the extension
 
 With the gradle goal `run` and the additional flag `--debug-jvm`, the extension can be debugged while running within the

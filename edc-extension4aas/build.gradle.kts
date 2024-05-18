@@ -22,17 +22,14 @@ dependencies {
     implementation(project(":public-api-management"))
 
     // See this project's README.MD for explanations
+    implementation("$group:data-plane-http:$edcVersion")
+    implementation("$group:data-plane-http-spi:$edcVersion")
+    implementation("$group:data-plane-spi:$edcVersion")
     implementation("$group:management-api:$edcVersion")
-    implementation("$group:runtime-metamodel:$edcVersion")
-    implementation("$group:data-plane-http-spi:$edcVersion") // HttpDataAddress
-    implementation("$group:data-plane-http:$edcVersion") // HttpRequestFactory
-    implementation("$group:http-lib:$edcVersion")
-    implementation("$group:data-plane-spi:$edcVersion") // DataSource, StreamResult
 
     implementation("de.fraunhofer.iosb.ilt.faaast.service:starter:${faaastVersion}")
     implementation("org.eclipse.digitaltwin.aas4j:aas4j-dataformat-json:${aas4jVersion}")
     implementation("org.eclipse.digitaltwin.aas4j:aas4j-model:${aas4jVersion}")
-    implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 
     testImplementation("$group:junit:$edcVersion")
     testImplementation("org.glassfish.jersey.core:jersey-common:3.1.6")

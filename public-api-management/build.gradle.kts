@@ -16,14 +16,13 @@ java {
 }
 
 dependencies {
-    implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
+    // See this project's README.MD for explanations
     implementation("$group:auth-spi:$edcVersion")
 
     testImplementation("$group:junit:$edcVersion")
     testImplementation("org.glassfish.jersey.core:jersey-common:3.1.3")
     testImplementation("org.mockito:mockito-core:${mockitoVersion}")
     testImplementation("org.mock-server:mockserver-junit-jupiter:${mockserverVersion}")
-    testImplementation("org.mock-server:mockserver-netty:${mockserverVersion}")
 }
 
 repositories {

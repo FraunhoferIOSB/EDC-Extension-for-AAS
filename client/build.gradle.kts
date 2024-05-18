@@ -16,26 +16,21 @@ java {
 }
 
 dependencies {
-
-    // Centralized auth request filter
+    // See this project's README.MD for explanations
     implementation(project(":public-api-management"))
 
-    // See this project's README.MD for explanations
-    implementation("$group:control-plane-contract:$edcVersion")
-    implementation("$group:control-plane-transform:$edcVersion")
-    implementation("$group:connector-core:$edcVersion")
-    implementation("$group:json-ld-lib:$edcVersion")
-    implementation("$group:dsp-catalog-http-dispatcher:$edcVersion")
-    implementation("$group:management-api:$edcVersion")
-    implementation("$group:runtime-metamodel:$edcVersion")
-    implementation("$group:data-plane-http-spi:$edcVersion") // HttpDataAddress
-    implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
+    implementation("$group:connector-core:$edcVersion") // PolicyService
+    implementation("$group:control-plane-contract:$edcVersion") // Observe contract negotiations
+    implementation("$group:control-plane-transform:$edcVersion") // Type transformers
+    implementation("$group:data-plane-http-spi:$edcVersion") // EDC HttpDataAddress
+    implementation("$group:dsp-catalog-http-dispatcher:$edcVersion") // DSP HTTP constant
+    implementation("$group:json-ld-lib:$edcVersion") // JsonLD expansion
+    implementation("$group:management-api:$edcVersion") // EDC WebService for registering endpoints
 
     testImplementation("$group:junit:$edcVersion")
     testImplementation("org.glassfish.jersey.core:jersey-common:3.1.3")
     testImplementation("org.mockito:mockito-core:${mockitoVersion}")
     testImplementation("org.mock-server:mockserver-junit-jupiter:${mockserverVersion}")
-    testImplementation("org.mock-server:mockserver-netty:${mockserverVersion}")
 }
 
 repositories {

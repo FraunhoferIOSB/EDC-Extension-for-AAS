@@ -2,22 +2,33 @@
 
 ## Current development version
 
-Compatibility: **Eclipse Dataspace Connector v0.6.2**
-
-Compatibility: **AAS V3**
+Compatibility: **Eclipse Dataspace Connector v0.6.3**
 
 **New Features**
 
-- counterPartyId now needed when using client extension
-
-
 **Bugfixes**
-
-- DataTransfer with self-signed certificates (FA³ST DataSource)
 
 **Miscellaneous**
 
-- !Change API port for self-description to 8281/9291 in examples!
+## V2.0.0
+
+This version is compatible to **Eclipse Dataspace Connector v0.6.2**
+
+**New Features**
+
+* Support of **Eclipse Dataspace Connector v0.6.2**
+* **AAS was updated to model V3**
+* Option to offer Submodels instead of all SubmodelElements.
+
+**Bugfixes**
+
+* Allow data transfer with self-signed certificates (FA³ST DataSource)
+
+**Miscellaneous**
+
+* Update postman requests
+* !Change API port for self-description to 8281/9291 in examples!
+
 
 ## V1.0.0-alpha5
 

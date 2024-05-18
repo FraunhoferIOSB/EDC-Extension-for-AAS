@@ -3,6 +3,7 @@ plugins {
     jacoco
 }
 
+val aas4jVersion: String by project
 val javaVersion: String by project
 val faaastVersion: String by project
 val edcVersion: String by project
@@ -29,8 +30,8 @@ dependencies {
     implementation("$group:data-plane-spi:$edcVersion") // DataSource, StreamResult
 
     implementation("de.fraunhofer.iosb.ilt.faaast.service:starter:${faaastVersion}")
-    implementation("org.eclipse.digitaltwin.aas4j:aas4j-dataformat-json:1.0.1")
-    implementation("org.eclipse.digitaltwin.aas4j:aas4j-model:1.0.1")
+    implementation("org.eclipse.digitaltwin.aas4j:aas4j-dataformat-json:${aas4jVersion}")
+    implementation("org.eclipse.digitaltwin.aas4j:aas4j-model:${aas4jVersion}")
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 
     testImplementation("$group:junit:$edcVersion")

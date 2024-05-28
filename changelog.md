@@ -2,7 +2,7 @@
 
 ## Current development version
 
-Compatibility: **Eclipse Dataspace Connector v0.6.4**
+Compatibility: **Eclipse Dataspace Connector v0.7.0**
 
 **New Features**
 

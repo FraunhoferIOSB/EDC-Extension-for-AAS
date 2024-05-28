@@ -23,9 +23,12 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.Certificate;
+import java.security.cert.CertificateExpiredException;
+import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.X509Certificate;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
@@ -56,6 +59,31 @@ public class SelfSignedCertificateRetriever {
     };
 
     private SelfSignedCertificateRetriever() {
+    }
+
+    public static boolean isTrusted(URL url) throws IOException {
+        // Set to system socketFactory
+        HttpsURLConnection.setDefaultSSLSocketFactory(HttpsURLConnection.getDefaultSSLSocketFactory());
+        HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
+
+        try {
+            conn.connect();
+        } catch (SSLHandshakeException sslHandshakeException) {
+            // Could be self-signed
+            return false;
+        }
+
+        var certs = conn.getServerCertificates();
+        for (var cert : certs) {
+            if (cert instanceof X509Certificate) {
+                try {
+                    ((X509Certificate) cert).checkValidity();
+                } catch (CertificateExpiredException | CertificateNotYetValidException cee) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     public static Certificate[] getSelfSignedCertificate(URL url) throws IOException {

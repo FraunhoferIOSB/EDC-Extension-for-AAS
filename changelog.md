@@ -10,6 +10,8 @@ Compatibility: **Eclipse Dataspace Connector v0.6.4**
 
 **Miscellaneous**
 
+* Use Extension's HttpClient only for AAS services with self-signed HTTPS certificates
+
 ## V2.0.0
 
 This version is compatible to **Eclipse Dataspace Connector v0.6.2**

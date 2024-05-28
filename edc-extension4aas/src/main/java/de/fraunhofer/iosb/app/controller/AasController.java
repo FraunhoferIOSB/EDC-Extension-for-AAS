@@ -76,6 +76,7 @@ public class AasController implements Controllable {
     public CustomAssetAdministrationShellEnvironment getAasModelWithUrls(URL aasServiceUrl, boolean onlySubmodels)
             throws IOException, DeserializationException {
         Objects.requireNonNull(aasServiceUrl);
+
         return aasAgent.getAasEnvWithUrls(aasServiceUrl, onlySubmodels);
     }
 
@@ -105,7 +106,8 @@ public class AasController implements Controllable {
             serviceUrl = aasServiceManager.startService(aasModelPath, aasConfigPath, aasServicePort);
         }
 
-        if (serviceUrl.getProtocol().equalsIgnoreCase(HTTPS)) {
+        // Check if HTTPS and self-signed certificate both apply
+        if (serviceUrl.getProtocol().equalsIgnoreCase(HTTPS) && !SelfSignedCertificateRetriever.isTrusted(serviceUrl)) {
             var certs = SelfSignedCertificateRetriever.getSelfSignedCertificate(serviceUrl);
             try {
                 aasAgent.addCertificates(serviceUrl, certs);

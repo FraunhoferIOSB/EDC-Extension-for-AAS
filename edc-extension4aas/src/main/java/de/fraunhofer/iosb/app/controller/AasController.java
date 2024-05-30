@@ -105,17 +105,7 @@ public class AasController implements Controllable {
                     aasModelPath, aasConfigPath));
             serviceUrl = aasServiceManager.startService(aasModelPath, aasConfigPath, aasServicePort);
         }
-
-        // Check if HTTPS and self-signed certificate both apply
-        if (serviceUrl.getProtocol().equalsIgnoreCase(HTTPS) && !SelfSignedCertificateRetriever.isTrusted(serviceUrl)) {
-            var certs = SelfSignedCertificateRetriever.getSelfSignedCertificate(serviceUrl);
-            try {
-                aasAgent.addCertificates(serviceUrl, certs);
-            } catch (KeyStoreException | NoSuchAlgorithmException generalSecurityException) {
-                // This means we probably cannot communicate with the service... warn user
-                logger.warning("Could not add service's certificate to trust manager, communication will probably not be possible.", generalSecurityException);
-            }
-        }
+        addCertificates(serviceUrl);
 
         return serviceUrl;
     }
@@ -127,9 +117,8 @@ public class AasController implements Controllable {
      */
     public void stopAssetAdministrationShellService(URL aasServiceUrl) {
         logger.info(format("Shutting down AAS service with URL %s...", aasServiceUrl.toString()));
-        if (aasServiceUrl.getProtocol().equals("https")) {
-            aasAgent.removeCertificates(aasServiceUrl);
-        }
+
+        removeCertificates(aasServiceUrl);
 
         aasServiceManager.stopService(aasServiceUrl);
     }
@@ -140,5 +129,23 @@ public class AasController implements Controllable {
     public void stopServices() {
         logger.info("Shutting down all AAS services...");
         aasServiceManager.stopServices();
+    }
+
+    public void addCertificates(URL aasServiceUrl) throws IOException {
+        // Check if HTTPS and self-signed certificate both apply
+        if (!aasServiceUrl.getProtocol().equalsIgnoreCase(HTTPS) || SelfSignedCertificateRetriever.isTrusted(aasServiceUrl)) {
+            return;
+        }
+        var certs = SelfSignedCertificateRetriever.getSelfSignedCertificate(aasServiceUrl);
+        try {
+            aasAgent.addCertificates(aasServiceUrl, certs);
+        } catch (KeyStoreException | NoSuchAlgorithmException generalSecurityException) {
+            // This means we probably cannot communicate with the server... warn user
+            logger.warning("Could not add service's certificate to trust manager, communication will probably not be possible.", generalSecurityException);
+        }
+    }
+
+    public void removeCertificates(URL aasServiceUrl) {
+        aasAgent.removeCertificates(aasServiceUrl);
     }
 }

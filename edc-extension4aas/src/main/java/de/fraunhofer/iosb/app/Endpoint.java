@@ -16,6 +16,7 @@
 package de.fraunhofer.iosb.app;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import de.fraunhofer.iosb.app.aas.ssl.SelfSignedCertificateRetriever;
 import de.fraunhofer.iosb.app.controller.AasController;
 import de.fraunhofer.iosb.app.controller.ConfigurationController;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
@@ -31,6 +32,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 import jakarta.ws.rs.core.Response.Status.Family;
+import org.eclipse.edc.spi.EdcException;
 
 import java.io.IOException;
 import java.net.URL;
@@ -116,7 +118,12 @@ public class Endpoint {
         if (Objects.nonNull(selfDescriptionRepository.getSelfDescription(aasServiceUrl))) {
             return Response.ok("Service was already registered at EDC").build();
         }
-
+        // accept certificate if self-signed
+        try {
+            aasController.addCertificates(aasServiceUrl);
+        } catch (IOException certificateException) {
+            throw new EdcException("Failed to add certificates", certificateException);
+        }
         selfDescriptionRepository.createSelfDescription(aasServiceUrl);
 
         return Response.ok("Registered new client at EDC").build();
@@ -184,6 +191,8 @@ public class Endpoint {
         if (Objects.isNull(selfDescriptionRepository.getSelfDescription(aasServiceUrl))) {
             return Response.ok("Service was not registered to EDC").build();
         }
+
+        aasController.removeCertificates(aasServiceUrl);
 
         // Stop AAS Service if started internally
         aasController.stopAssetAdministrationShellService(aasServiceUrl);

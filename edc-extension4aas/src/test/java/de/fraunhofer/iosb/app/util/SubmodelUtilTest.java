@@ -37,7 +37,7 @@ public class SubmodelUtilTest {
         var customCollObj = incrediblyNestedCustomCollectionWithOneHundredLayers;
         for (int i = 0; i < 100; i++) {
             var newCustomColl = new CustomSubmodelElementCollection(String.valueOf(i), null);
-            customCollObj.setValues(List.of(newCustomColl));
+            customCollObj.setValue(List.of(newCustomColl));
             customCollObj = newCustomColl;
         }
         testCustomSubmodel.setSubmodelElements(List.of(incrediblyNestedCustomCollectionWithOneHundredLayers));

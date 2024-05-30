@@ -256,7 +256,7 @@ public class AasAgent {
             for (var collectionElement : ((CustomSubmodelElementCollection) element).getValue()) {
                 newCollectionElements.add(putUrlRec(format("%s.%s", url, element.getIdShort()), collectionElement));
             }
-            ((CustomSubmodelElementCollection) element).setValues(newCollectionElements);
+            ((CustomSubmodelElementCollection) element).setValue(newCollectionElements);
         }
         element.setSourceUrl(format("%s.%s", url, element.getIdShort()));
         return element;

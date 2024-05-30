@@ -23,6 +23,7 @@ import de.fraunhofer.iosb.app.model.aas.IdsAssetElement;
 import org.eclipse.digitaltwin.aas4j.v3.model.Submodel;
 import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElement;
 import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElementCollection;
+import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElementList;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -84,22 +85,23 @@ public final class AssetAdministrationShellUtil {
 
         Collection<CustomSubmodelElement> customSubmodelElements = new ArrayList<>();
         for (SubmodelElement submodelElement : submodelElements) {
+            CustomSubmodelElement toAdd;
+
             if (submodelElement instanceof SubmodelElementCollection) {
-                customSubmodelElements.add(
-                        new CustomSubmodelElementCollection(
-                                submodelElement.getIdShort(),
-                                unpackElements(((SubmodelElementCollection) submodelElement).getValue())));
+                toAdd = new CustomSubmodelElementCollection(
+                        submodelElement.getIdShort(),
+                        unpackElements(((SubmodelElementCollection) submodelElement).getValue()));
+            } else if (submodelElement instanceof SubmodelElementList) {
+                toAdd = new CustomSubmodelElementCollection(
+                        submodelElement.getIdShort(),
+                        unpackElements(((SubmodelElementList) submodelElement).getValue()));
             } else {
-                var customSubmodelElement = new CustomSubmodelElement();
-                customSubmodelElement.setIdShort(submodelElement.getIdShort());
-
-                if (Objects.nonNull(submodelElement.getSemanticId())) {
-                    customSubmodelElement
-                            .setSemanticId(submodelElement.getSemanticId());
-                }
-
-                customSubmodelElements.add(customSubmodelElement);
+                toAdd = new CustomSubmodelElement();
+                toAdd.setIdShort(submodelElement.getIdShort());
+                toAdd.setSemanticId(submodelElement.getSemanticId());
             }
+            customSubmodelElements.add(toAdd);
+
         }
         return customSubmodelElements;
     }

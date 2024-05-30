@@ -20,9 +20,9 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import java.util.Collection;
 
 @JsonAutoDetect
-public class CustomSubmodelElementCollection extends CustomSubmodelElement {
+public class CustomSubmodelElementList extends AssetAdministrationShellElement {
 
-    public CustomSubmodelElementCollection(String idShort, Collection<CustomSubmodelElement> value) {
+    public CustomSubmodelElementList(String idShort, Collection<CustomSubmodelElement> value) {
         this.idShort = idShort;
         this.value = value;
     }

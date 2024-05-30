@@ -21,7 +21,6 @@ import java.net.URL;
 import java.util.Objects;
 
 /**
- * Singleton class.
  * The configuration of the application.
  */
 public class Configuration {
@@ -56,6 +55,9 @@ public class Configuration {
     @JsonProperty(SETTINGS_PREFIX + "defaultContractPolicyPath")
     private String defaultContractPolicyPath;
 
+    @JsonProperty(SETTINGS_PREFIX + "acceptSelfSignedCertificates")
+    private boolean isAcceptSelfSignedCertificates = false;
+
     public static synchronized Configuration getInstance() {
         if (Objects.isNull(instance)) {
             instance = new Configuration();
@@ -87,10 +89,6 @@ public class Configuration {
         return onlySubmodels;
     }
 
-    public void setOnlySubmodels(boolean onlySubmodels) {
-        this.onlySubmodels = onlySubmodels;
-    }
-
     public boolean isExposeSelfDescription() {
         return exposeSelfDescription;
     }
@@ -103,4 +101,7 @@ public class Configuration {
         return defaultContractPolicyPath;
     }
 
+    public boolean isAcceptSelfSignedCertificates() {
+        return isAcceptSelfSignedCertificates;
+    }
 }

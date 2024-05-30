@@ -16,7 +16,6 @@
 package de.fraunhofer.iosb.app;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.fraunhofer.iosb.app.aas.ssl.SelfSignedCertificateRetriever;
 import de.fraunhofer.iosb.app.controller.AasController;
 import de.fraunhofer.iosb.app.controller.ConfigurationController;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;

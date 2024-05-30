@@ -17,6 +17,7 @@ package de.fraunhofer.iosb.app.util;
 
 
 import de.fraunhofer.iosb.app.Logger;
+import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import okhttp3.HttpUrl;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -44,9 +45,11 @@ import static java.lang.String.format;
 public class HttpRestClient {
 
     private static HttpRestClient instance;
+    private static final Configuration CONFIGURATION = Configuration.getInstance();
 
     private final Logger logger;
     private OkHttpClient client;
+
 
     private HttpRestClient() {
         logger = Logger.getInstance();
@@ -140,6 +143,10 @@ public class HttpRestClient {
      * @throws NoSuchAlgorithmException When a particular cryptographic algorithm is requested but is not available in the environment.
      */
     public void setAcceptedSelfSignedCertificates(Map<String, Certificate[]> certs) throws KeyStoreException, NoSuchAlgorithmException {
+        if (!CONFIGURATION.isAcceptSelfSignedCertificates()) {
+            return;
+        }
+
         var keyStore = createAndPopulateKeyStore(certs);
 
         var tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());

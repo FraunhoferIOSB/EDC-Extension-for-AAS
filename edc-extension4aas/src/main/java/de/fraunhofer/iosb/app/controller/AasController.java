@@ -133,7 +133,7 @@ public class AasController implements Controllable {
 
     public void addCertificates(URL aasServiceUrl) throws IOException {
         // Check if HTTPS and self-signed certificate both apply
-        if (!aasServiceUrl.getProtocol().equalsIgnoreCase(HTTPS) || SelfSignedCertificateRetriever.isTrusted(aasServiceUrl)) {
+        if (!aasServiceUrl.getProtocol().equalsIgnoreCase(HTTPS)) {
             return;
         }
         var certs = SelfSignedCertificateRetriever.getSelfSignedCertificate(aasServiceUrl);

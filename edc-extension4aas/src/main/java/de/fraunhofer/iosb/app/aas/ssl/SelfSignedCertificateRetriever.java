@@ -61,31 +61,6 @@ public class SelfSignedCertificateRetriever {
     private SelfSignedCertificateRetriever() {
     }
 
-    public static boolean isTrusted(URL url) throws IOException {
-        // Set to system socketFactory
-        HttpsURLConnection.setDefaultSSLSocketFactory(HttpsURLConnection.getDefaultSSLSocketFactory());
-        HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
-
-        try {
-            conn.connect();
-        } catch (SSLHandshakeException sslHandshakeException) {
-            // Could be self-signed
-            return false;
-        }
-
-        var certs = conn.getServerCertificates();
-        for (var cert : certs) {
-            if (cert instanceof X509Certificate) {
-                try {
-                    ((X509Certificate) cert).checkValidity();
-                } catch (CertificateExpiredException | CertificateNotYetValidException cee) {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
     public static Certificate[] getSelfSignedCertificate(URL url) throws IOException {
         SSLContext sslContext;
         // TLS can have ports other than 443 -> use it

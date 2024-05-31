@@ -17,11 +17,11 @@ package de.fraunhofer.iosb.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iosb.api.PublicApiManagementService;
+import de.fraunhofer.iosb.app.dataplane.aas.pipeline.AasDataAddress;
 import de.fraunhofer.iosb.client.datatransfer.DataTransferController;
 import de.fraunhofer.iosb.client.negotiation.NegotiationController;
 import de.fraunhofer.iosb.client.policy.PolicyController;
 import jakarta.ws.rs.core.Response;
-
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
@@ -203,7 +203,7 @@ public class ClientEndpointTest {
     @Test
     public void getDataTest() {
         try {
-            clientEndpoint.getData(url, "test-agreement-id", "test-asset-id", url);
+            clientEndpoint.getData(url, "test-agreement-id", "test-asset-id", AasDataAddress.Builder.newInstance().baseUrl(url.toString()).build());
             fail();
         } catch (EdcException expected) {
         }

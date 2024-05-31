@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 
 import static de.fraunhofer.iosb.app.dataplane.aas.pipeline.AasDataSourceFactory.AAS_DATA_TYPE;
@@ -27,10 +28,15 @@ import static org.eclipse.edc.dataaddress.httpdata.spi.HttpDataAddressSchema.BAS
 
 /**
  * Inspired by {@link org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress}
+ * Enables more specific communication with AAS services
  */
 @JsonTypeName()
 @JsonDeserialize(builder = DataAddress.Builder.class)
 public class AasDataAddress extends DataAddress {
+
+    private static final String METHOD = "method";
+    private static final String ADDITIONAL_HEADER = "header";
+    private static final String QUERY_PARAMS = "queryParams";
 
     private AasDataAddress() {
         super();
@@ -57,6 +63,21 @@ public class AasDataAddress extends DataAddress {
 
         public Builder baseUrl(String baseUrl) {
             this.property(BASE_URL, baseUrl);
+            return this;
+        }
+
+        public Builder method(String method) {
+            this.property(METHOD, method);
+            return this;
+        }
+
+        public Builder headers(String key, String value) {
+            this.property(ADDITIONAL_HEADER + key, value);
+            return this;
+        }
+
+        public Builder queryParams(String queryParams) {
+            this.property(QUERY_PARAMS, queryParams);
             return this;
         }
 

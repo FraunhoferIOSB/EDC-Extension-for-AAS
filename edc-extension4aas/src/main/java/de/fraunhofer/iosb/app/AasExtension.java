@@ -20,6 +20,7 @@ import de.fraunhofer.iosb.api.model.HttpMethod;
 import de.fraunhofer.iosb.app.controller.AasController;
 import de.fraunhofer.iosb.app.controller.ConfigurationController;
 import de.fraunhofer.iosb.app.controller.ResourceController;
+import de.fraunhofer.iosb.app.dataplane.aas.pipeline.AasDataSinkFactory;
 import de.fraunhofer.iosb.app.dataplane.aas.pipeline.AasDataSourceFactory;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
@@ -98,7 +99,10 @@ public class AasExtension implements ServiceExtension {
         // Register AAS Data Source factory for dataTransfer with self-signed certificates on FA³ST side
         var paramsProvider = new HttpRequestParamsProviderImpl(vault, typeManager);
         var aasDataSourceFactory = new AasDataSourceFactory(paramsProvider, context.getMonitor());
+        var aasDataSinkFactory = new AasDataSinkFactory(paramsProvider, context.getMonitor());
+
         pipelineService.registerFactory(aasDataSourceFactory);
+        pipelineService.registerFactory(aasDataSinkFactory);
 
         webService.registerResource(endpoint);
     }

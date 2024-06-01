@@ -173,7 +173,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"type\": \"HttpData\",\n    \"properties\": {\n        \"https://w3id.org/edc/v0.0.1/ns/baseUrl\": \"https://localhost:12345/api/v3.0/submodels/aHR0cHM6Ly9leGFtcGxlLmNvbS9pZHMvc20vNTIxM18xMTIwXzgwMjJfOTMwNQ==/submodel-elements/Skills.Skill.Name\",\n        \"method\": \"PATCH\",\n        \"header:x-api-key\": \"password\"\n    }\n}",
+							"raw": "{\n    \"type\": \"AasData\",\n    \"properties\": {\n        \"https://w3id.org/edc/v0.0.1/ns/baseUrl\": \"https://localhost:12345/api/v3.0/submodels/aHR0cHM6Ly9leGFtcGxlLmNvbS9pZHMvc20vNTIxM18xMTIwXzgwMjJfOTMwNQ==/submodel-elements/Skills.Skill.Name\",\n        \"method\": \"PATCH\",\n        \"header:x-api-key\": \"password\"\n    }\n}",
 							"options": {
 								"raw": {
 									"language": "json"

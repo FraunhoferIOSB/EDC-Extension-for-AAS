@@ -27,6 +27,9 @@ import org.jetbrains.annotations.NotNull;
 
 import static de.fraunhofer.iosb.app.dataplane.aas.pipeline.AasDataSourceFactory.AAS_DATA_TYPE;
 
+/**
+ * Inspired by {@link org.eclipse.edc.connector.dataplane.http.pipeline.HttpDataSourceFactory}
+ */
 public class AasDataSinkFactory implements DataSinkFactory {
 
     private final Monitor monitor;
@@ -60,7 +63,7 @@ public class AasDataSinkFactory implements DataSinkFactory {
         try {
             createSink(request);
         } catch (Exception e) {
-            return Result.failure("Failed to build HttpDataSource: " + e.getMessage());
+            return Result.failure("Failed to build AasDataSink: " + e.getMessage());
         }
         return Result.success();
     }

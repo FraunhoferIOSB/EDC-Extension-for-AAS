@@ -68,7 +68,7 @@ public class AasDataSourceFactory implements DataSourceFactory {
         try {
             createSource(request);
         } catch (Exception e) {
-            return Result.failure("Failed to build HttpDataSource: " + e.getMessage());
+            return Result.failure("Failed to build AasDataSource: " + e.getMessage());
         }
         return Result.success();
     }

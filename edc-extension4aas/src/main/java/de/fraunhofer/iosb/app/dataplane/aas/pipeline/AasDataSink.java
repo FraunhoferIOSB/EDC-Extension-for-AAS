@@ -36,6 +36,9 @@ import static org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult.fail
  * the HttpRequestParams and EdcExtension custom http client.
  * This works similarly to HttpDataSink but uses a custom
  * HttpClient accepting certain self-signed certificates.
+ * TODO Since foreign AAS services should have valid certificates
+ * TODO this sink will probably not be needed in the future
+ * TODO (except if we want to send data to completely untrusted servers)
  */
 public class AasDataSink implements DataSink {
 
@@ -60,6 +63,7 @@ public class AasDataSink implements DataSink {
 
     private StreamResult<Object> transferPart(DataSource.Part part) {
         var request = requestFactory.toRequest(params, part);
+
         monitor.debug(() -> "Executing HTTP request to AAS service: " + request.url());
 
         try (var response = httpClient.execute(request)) {

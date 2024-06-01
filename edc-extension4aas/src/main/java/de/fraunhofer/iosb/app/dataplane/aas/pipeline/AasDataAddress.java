@@ -20,7 +20,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 
 import static de.fraunhofer.iosb.app.dataplane.aas.pipeline.AasDataSourceFactory.AAS_DATA_TYPE;
@@ -37,6 +36,7 @@ public class AasDataAddress extends DataAddress {
     private static final String METHOD = "method";
     private static final String ADDITIONAL_HEADER = "header";
     private static final String QUERY_PARAMS = "queryParams";
+
 
     private AasDataAddress() {
         super();

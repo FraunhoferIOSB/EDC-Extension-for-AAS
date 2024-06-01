@@ -152,15 +152,11 @@ public class AasAgent {
                     format("%s/api/v3.0/submodels/%s", aasServiceUrlString,
                             Encoder.encodeBase64(submodel.getId())));
             submodel.getSubmodelElements()
-                    .forEach(elem -> putUrlRec(
-                            format("%s/api/v3.0/submodels/%s/submodel/submodel-elements", aasServiceUrlString,
+                    .forEach(elem -> putUrl(
+                            format("%s/api/v3.0/submodels/%s/submodel-elements", aasServiceUrlString,
                                     Encoder.encodeBase64(submodel.getId())),
                             elem));
         });
-        model.getSubmodels().forEach(submodel -> AssetAdministrationShellUtil.getAllSubmodelElements(submodel)
-                .forEach(element -> element.setSourceUrl(
-                        element.getSourceUrl()
-                                .replaceFirst("\\.", "/"))));
 
         // Add urls to all concept descriptions
         model.getConceptDescriptions().forEach(
@@ -246,11 +242,25 @@ public class AasAgent {
     /**
      * Add the access url of this element to its contract ID field. If this element
      * is a collection, do this recursively for all elements inside this collection,
-     * too.
+     * too (since we don't know how deeply nested the collection is).
      */
+    private void putUrl(String url, CustomSubmodelElement element) {
+        var topElementUrl = format("%s/%s", url, element.getIdShort());
+
+        element.setSourceUrl(topElementUrl);
+
+        // "value" field of a submodel element can be an array or not available (no collection)
+        if (element instanceof CustomSubmodelElementCollection) {
+            Collection<CustomSubmodelElement> modifiedCollectionItems = new ArrayList<>();
+            for (var collectionItem : ((CustomSubmodelElementCollection) element).getValue()) {
+                modifiedCollectionItems.add(putUrlRec(topElementUrl, collectionItem));
+            }
+            ((CustomSubmodelElementCollection) element).setValue(modifiedCollectionItems);
+        }
+    }
+
     private CustomSubmodelElement putUrlRec(String url, CustomSubmodelElement element) {
-        // "value" field of a submodel element can be string or array, this is why
-        // a type check has been added here
+        // "value" field of a submodel element can be an array or not available (no collection)
         if (element instanceof CustomSubmodelElementCollection) {
             Collection<CustomSubmodelElement> newCollectionElements = new ArrayList<>();
             for (var collectionElement : ((CustomSubmodelElementCollection) element).getValue()) {

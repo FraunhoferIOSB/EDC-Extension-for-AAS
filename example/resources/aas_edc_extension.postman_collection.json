@@ -173,7 +173,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"type\": \"AasDataAddress\",\n    \"properties\": {\n        \"baseUrl\": \"https://aas-service:12345\",\n        \"method\": \"PUT\",\n        \"header:x-api-key\": \"password\"\n    }\n}",
+							"raw": "{\n    \"type\": \"HttpData\",\n    \"properties\": {\n        \"https://w3id.org/edc/v0.0.1/ns/baseUrl\": \"https://localhost:12345/api/v3.0/submodels/aHR0cHM6Ly9leGFtcGxlLmNvbS9pZHMvc20vNTIxM18xMTIwXzgwMjJfOTMwNQ==/submodel-elements/Skills.Skill.Name\",\n        \"method\": \"PATCH\",\n        \"header:x-api-key\": \"password\"\n    }\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -364,12 +364,11 @@
 						"header": [
 							{
 								"key": "x-api-key",
-								"value": "password",
-								"type": "default"
+								"value": "password"
 							}
 						],
 						"url": {
-							"raw": "{{provider}}/api/client?url=http://localhost:8080",
+							"raw": "{{provider}}/api/client?url=https://localhost:12345",
 							"host": [
 								"{{provider}}"
 							],
@@ -380,7 +379,7 @@
 							"query": [
 								{
 									"key": "url",
-									"value": "http://localhost:8080",
+									"value": "https://localhost:12345",
 									"description": "External FA³ST service"
 								}
 							]

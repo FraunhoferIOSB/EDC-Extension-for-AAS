@@ -22,6 +22,7 @@ import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
 import de.fraunhofer.iosb.app.testutils.FileManager;
 import de.fraunhofer.iosb.app.util.Encoder;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -62,12 +63,13 @@ public class EndpointTest {
 
     @BeforeEach
     public void setupEndpoint() {
+        var monitor = new ConsoleMonitor();
         selfDescriptionRepo = new SelfDescriptionRepository();
-        aasController = new AasController();
+        aasController = new AasController(monitor);
         endpoint = new Endpoint(
                 selfDescriptionRepo,
                 aasController,
-                new ConfigurationController(ConfigFactory.empty()));
+                new ConfigurationController(ConfigFactory.empty(), monitor), monitor);
     }
 
     @AfterEach
@@ -89,7 +91,7 @@ public class EndpointTest {
     @Test
     public void changeSingleConfigValueTest() {
         var config = FileManager.loadResource("config.json");
-        var configController = new ConfigurationController(ConfigFactory.empty());
+        var configController = new ConfigurationController(ConfigFactory.empty(), new ConsoleMonitor());
         configController.handleRequest(RequestType.PUT, null, config);
 
         configController.handleRequest(RequestType.PUT, null,

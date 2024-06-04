@@ -18,6 +18,7 @@ package de.fraunhofer.iosb.app.aas;
 import de.fraunhofer.iosb.app.testutils.FileManager;
 import de.fraunhofer.iosb.app.util.Encoder;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.DeserializationException;
+import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,7 +53,7 @@ public class AasAgentTest {
 
     @BeforeEach
     public void initializeAasAgent() {
-        aasAgent = new AasAgent();
+        aasAgent = new AasAgent(new ConsoleMonitor());
         mockServer.reset();
     }
 

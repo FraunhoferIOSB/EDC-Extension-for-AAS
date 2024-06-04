@@ -69,7 +69,7 @@ public class AasDataSink implements DataSink {
         try (var response = httpClient.execute(request)) {
             return StreamResult.success("DataTransfer completed. Response from consumer: " + response.body());
         } catch (IOException e) {
-            var errorMessage = "IOException while data transfering: " + e.getMessage();
+            var errorMessage = "IOException while data transferring: " + e.getMessage();
             monitor.severe(() -> errorMessage);
             return StreamResult.error(errorMessage);
         }

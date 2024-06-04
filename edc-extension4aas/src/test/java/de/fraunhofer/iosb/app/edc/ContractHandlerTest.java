@@ -17,6 +17,7 @@ package de.fraunhofer.iosb.app.edc;
 
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
+import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -36,7 +37,7 @@ public class ContractHandlerTest {
 
     @BeforeEach
     public void initializeAasAgent() {
-        contractHandler = new ContractHandler(mockedContractDefinitionStore, mockedPolicyDefinitionStore);
+        contractHandler = new ContractHandler(mockedContractDefinitionStore, mockedPolicyDefinitionStore, new ConsoleMonitor());
     }
 
     @Test

@@ -21,6 +21,7 @@ import de.fraunhofer.iosb.app.util.Pair;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
+import org.eclipse.edc.spi.monitor.Monitor;
 
 /**
  * Controls communication with EDC (EDC contracts and EDC assets)
@@ -31,9 +32,9 @@ public class ResourceController {
     private final ContractHandler contractHandler;
 
     public ResourceController(AssetIndex assetIndex, ContractDefinitionStore contractStore,
-                              PolicyDefinitionStore policyStore) {
+                              PolicyDefinitionStore policyStore, Monitor monitor) {
         resourceAgent = new ResourceHandler(assetIndex);
-        contractHandler = new ContractHandler(contractStore, policyStore);
+        contractHandler = new ContractHandler(contractStore, policyStore, monitor);
     }
 
     /**

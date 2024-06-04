@@ -15,7 +15,6 @@
  */
 package de.fraunhofer.iosb.app.controller;
 
-import de.fraunhofer.iosb.app.Logger;
 import de.fraunhofer.iosb.app.RequestType;
 import de.fraunhofer.iosb.app.aas.AasAgent;
 import de.fraunhofer.iosb.app.aas.AssetAdministrationShellServiceManager;
@@ -24,6 +23,8 @@ import de.fraunhofer.iosb.app.aas.ssl.SelfSignedCertificateRetriever;
 import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShellEnvironment;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.DeserializationException;
+import org.eclipse.edc.spi.monitor.ConsoleMonitor;
+import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.io.IOException;
 import java.net.URL;
@@ -43,13 +44,13 @@ public class AasController implements Controllable {
     private static final String HTTPS = "https";
     private final AasAgent aasAgent;
     private final AssetAdministrationShellServiceManager aasServiceManager;
-    private final Logger logger;
+    private final Monitor monitor;
 
-    public AasController() {
+    public AasController(Monitor monitor) {
+        this.monitor = monitor;
 
-        logger = Logger.getInstance();
-        aasAgent = new AasAgent();
-        aasServiceManager = new FaaastServiceManager();
+        aasAgent = new AasAgent(monitor);
+        aasServiceManager = new FaaastServiceManager(new ConsoleMonitor());
     }
 
     @Override
@@ -95,12 +96,12 @@ public class AasController implements Controllable {
 
         URL serviceUrl;
         if (Objects.isNull(aasConfigPath)) {
-            logger.info(format(
+            monitor.info(format(
                     "Booting up AAS service given AAS model path (%s)\n and service port (%s)\n...",
                     aasModelPath, aasServicePort));
             serviceUrl = aasServiceManager.startService(aasModelPath, aasServicePort);
         } else {
-            logger.info(format(
+            monitor.info(format(
                     "Booting up AAS service given AAS model path (%s)\n and service config path (%s)...",
                     aasModelPath, aasConfigPath));
             serviceUrl = aasServiceManager.startService(aasModelPath, aasConfigPath, aasServicePort);
@@ -116,7 +117,7 @@ public class AasController implements Controllable {
      * @param aasServiceUrl URL of service to be stopped
      */
     public void stopAssetAdministrationShellService(URL aasServiceUrl) {
-        logger.info(format("Shutting down AAS service with URL %s...", aasServiceUrl.toString()));
+        monitor.info(format("Shutting down AAS service with URL %s...", aasServiceUrl.toString()));
 
         removeCertificates(aasServiceUrl);
 
@@ -127,7 +128,7 @@ public class AasController implements Controllable {
      * Stops all internally started AAS services
      */
     public void stopServices() {
-        logger.info("Shutting down all AAS services...");
+        monitor.info("Shutting down all AAS services...");
         aasServiceManager.stopServices();
     }
 
@@ -141,7 +142,7 @@ public class AasController implements Controllable {
             aasAgent.addCertificates(aasServiceUrl, certs);
         } catch (KeyStoreException | NoSuchAlgorithmException generalSecurityException) {
             // This means we probably cannot communicate with the server... warn user
-            logger.warning("Could not add service's certificate to trust manager, communication will probably not be possible.", generalSecurityException);
+            monitor.warning("Could not add service's certificate to trust manager, communication will probably not be possible.", generalSecurityException);
         }
     }
 

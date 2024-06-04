@@ -18,6 +18,7 @@ package de.fraunhofer.iosb.app.aas;
 import de.fraunhofer.iosb.app.util.HttpRestClient;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -37,7 +38,7 @@ public class FaaastServiceManagerTest {
 
     @BeforeEach
     public void initializeFaaastServiceManager() {
-        faaastServiceManager = new FaaastServiceManager();
+        faaastServiceManager = new FaaastServiceManager(new ConsoleMonitor());
     }
 
     @Disabled("FA³ST service manager startService method cannot be used on its own, AasController must accept self-signed certificate")

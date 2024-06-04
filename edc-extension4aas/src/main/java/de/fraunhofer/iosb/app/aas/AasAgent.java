@@ -16,7 +16,6 @@
 package de.fraunhofer.iosb.app.aas;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.fraunhofer.iosb.app.Logger;
 import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShell;
 import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShellEnvironment;
 import de.fraunhofer.iosb.app.model.aas.CustomConceptDescription;
@@ -26,7 +25,6 @@ import de.fraunhofer.iosb.app.model.aas.CustomSubmodelElementCollection;
 import de.fraunhofer.iosb.app.util.AssetAdministrationShellUtil;
 import de.fraunhofer.iosb.app.util.Encoder;
 import de.fraunhofer.iosb.app.util.HttpRestClient;
-import de.fraunhofer.iosb.app.util.Transformer;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.DeserializationException;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.json.JsonDeserializer;
@@ -35,6 +33,7 @@ import org.eclipse.digitaltwin.aas4j.v3.model.ConceptDescription;
 import org.eclipse.digitaltwin.aas4j.v3.model.Identifiable;
 import org.eclipse.digitaltwin.aas4j.v3.model.Submodel;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -57,7 +56,7 @@ import static java.lang.String.format;
  */
 public class AasAgent {
 
-    private static final Logger LOGGER = Logger.getInstance();
+    private final Monitor monitor;
 
     private final HttpRestClient httpRestClient = HttpRestClient.getInstance();
     private final JsonDeserializer jsonDeserializer;
@@ -65,7 +64,8 @@ public class AasAgent {
 
     private final ObjectMapper objectMapper;
 
-    public AasAgent() {
+    public AasAgent(Monitor monitor) {
+        this.monitor = monitor;
         jsonDeserializer = new JsonDeserializer();
         acceptedCertificates = new HashMap<>();
         objectMapper = new ObjectMapper();
@@ -80,15 +80,14 @@ public class AasAgent {
      * @return String containing response of AAS service.
      */
     public Response putModel(URL aasServiceUrl, String element) {
-        Response response;
-        try {
-            response = Transformer.okHttpResponseToJakartaResponse(httpRestClient.put(aasServiceUrl, element));
+
+        try (okhttp3.Response response = httpRestClient.put(aasServiceUrl, element, monitor)) {
+            return Response.status(response.code()).entity(aasServiceUrl).build();
+
         } catch (IOException io) {
-            LOGGER.severe("Could not fetch AAS env from AAS service", io);
+            monitor.severe("Could not fetch AAS env from AAS service", io);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
-
-        return Response.status(response.getStatus()).entity(aasServiceUrl).build();
     }
 
     /**
@@ -99,15 +98,14 @@ public class AasAgent {
      * @return String containing response of AAS service.
      */
     public Response postModel(URL aasServiceUrl, String element) {
-        Response response;
-        try {
-            response = Transformer.okHttpResponseToJakartaResponse(httpRestClient.post(aasServiceUrl, element));
+
+        try (okhttp3.Response response = httpRestClient.post(aasServiceUrl, element, monitor)) {
+            return Response.status(response.code()).entity(aasServiceUrl).build();
+
         } catch (IOException io) {
-            LOGGER.severe("Could not fetch AAS env from AAS service", io);
+            monitor.severe("Could not fetch AAS env from AAS service", io);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
-
-        return Response.status(response.getStatus()).entity(aasServiceUrl).build();
     }
 
     /**
@@ -119,15 +117,14 @@ public class AasAgent {
      * @return String containing response of AAS service.
      */
     public Response deleteModel(URL aasServiceUrl, String element) {
-        Response response;
-        try {
-            response = Transformer.okHttpResponseToJakartaResponse(httpRestClient.delete(aasServiceUrl, element));
+
+        try (okhttp3.Response response = httpRestClient.delete(aasServiceUrl, element, monitor)) {
+            return Response.status(response.code()).entity(aasServiceUrl).build();
         } catch (IOException io) {
-            LOGGER.severe("Could not fetch AAS env from AAS service", io);
+            monitor.severe("Could not fetch AAS env from AAS service", io);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
 
-        return Response.status(response.getStatus()).entity(aasServiceUrl).build();
     }
 
     /**
@@ -233,7 +230,7 @@ public class AasAgent {
     }
 
     private <T extends Identifiable> List<T> readAssetAdministrationShellElement(URL contentUrl, Class<T> clazz) throws IOException, DeserializationException {
-        var response = Objects.requireNonNull(httpRestClient.get(contentUrl).body()).string();
+        var response = Objects.requireNonNull(httpRestClient.get(contentUrl, monitor).body()).string();
         var responseJson = objectMapper.readTree(response).get("result");
 
         return Objects.isNull(responseJson) ? List.of() : jsonDeserializer.readList(responseJson, clazz);

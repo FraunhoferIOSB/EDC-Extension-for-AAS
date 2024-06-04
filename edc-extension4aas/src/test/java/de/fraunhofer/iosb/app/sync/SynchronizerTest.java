@@ -24,6 +24,7 @@ import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -69,14 +70,17 @@ public class SynchronizerTest {
 
     @BeforeEach
     public void setupSynchronizer() {
+        var monitor = new ConsoleMonitor();
+
         selfDescriptionRepo = new SelfDescriptionRepository();
         synchronizer = new Synchronizer(
                 selfDescriptionRepo,
-                new AasController(),
+                new AasController(monitor),
                 new ResourceController(
                         mock(AssetIndex.class),
                         mock(ContractDefinitionStore.class),
-                        mock(PolicyDefinitionStore.class)));
+                        mock(PolicyDefinitionStore.class),
+                        monitor));
         selfDescriptionRepo.registerListener(synchronizer);
         prepareDefaultMockedResponse();
     }

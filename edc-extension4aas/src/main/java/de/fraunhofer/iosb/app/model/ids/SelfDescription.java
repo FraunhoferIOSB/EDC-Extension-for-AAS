@@ -19,8 +19,8 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.fraunhofer.iosb.app.Logger;
 import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShellEnvironment;
+import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.util.Objects;
 
@@ -29,13 +29,14 @@ import java.util.Objects;
  */
 public class SelfDescription {
 
-    private static final Logger LOGGER = Logger.getInstance();
-
     private final CustomAssetAdministrationShellEnvironment aasEnv; // enriched with contractIds
+    private final Monitor monitor;
     private final ObjectMapper objectMapper;
 
-    public SelfDescription(CustomAssetAdministrationShellEnvironment newSelfDescription) {
+    public SelfDescription(CustomAssetAdministrationShellEnvironment newSelfDescription, Monitor monitor) {
         Objects.requireNonNull(newSelfDescription);
+
+        this.monitor = monitor;
         this.aasEnv = newSelfDescription;
         this.objectMapper = new ObjectMapper();
         objectMapper.setSerializationInclusion(Include.NON_NULL);
@@ -51,7 +52,7 @@ public class SelfDescription {
         try {
             aasEnvString = objectMapper.writeValueAsString(aasEnv);
         } catch (JsonProcessingException e) {
-            LOGGER.severe("Could not serialize self description", e);
+            monitor.severe("Could not serialize self description", e);
             return null;
         }
         return aasEnvString;
@@ -62,7 +63,7 @@ public class SelfDescription {
         try {
             aasEnvString = objectMapper.readTree(this.toString());
         } catch (JsonProcessingException e) {
-            LOGGER.severe("Could not serialize self description", e);
+            monitor.severe("Could not serialize self description", e);
             return null;
         }
         return aasEnvString;

@@ -16,6 +16,7 @@
 package de.fraunhofer.iosb.app.model.ids;
 
 import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShellEnvironment;
+import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -24,7 +25,7 @@ public class SelfDescriptionTest {
 
     @Test
     public void emptyEnvironmentTest() {
-        SelfDescription selfDescription = new SelfDescription(new CustomAssetAdministrationShellEnvironment());
+        SelfDescription selfDescription = new SelfDescription(new CustomAssetAdministrationShellEnvironment(), new ConsoleMonitor());
         assertEquals("{}",
                 selfDescription.toString());
     }

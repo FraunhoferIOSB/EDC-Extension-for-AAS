@@ -15,8 +15,6 @@
  */
 package de.fraunhofer.iosb.app.util;
 
-
-import de.fraunhofer.iosb.app.Logger;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import okhttp3.HttpUrl;
 import okhttp3.MediaType;
@@ -25,6 +23,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.io.IOException;
 import java.net.URL;
@@ -47,12 +46,10 @@ public class HttpRestClient {
     private static HttpRestClient instance;
     private static final Configuration CONFIGURATION = Configuration.getInstance();
 
-    private final Logger logger;
     private OkHttpClient client;
 
 
     private HttpRestClient() {
-        logger = Logger.getInstance();
         this.client = new OkHttpClient();
     }
 
@@ -67,10 +64,11 @@ public class HttpRestClient {
      * Issue a get request to a given url
      *
      * @param url the url to where the get request goes
+     * @param monitor monitor used for logging
      * @return Response by the service behind the url
      */
-    public Response get(URL url) throws IOException {
-        logger.debug("GET " + url);
+    public Response get(URL url, Monitor monitor) throws IOException {
+        monitor.debug("GET " + url);
         var request = new Request.Builder()
                 .url(Objects.requireNonNull(HttpUrl.get(url)))
                 .get()
@@ -83,10 +81,11 @@ public class HttpRestClient {
      *
      * @param url     the url to where the put request goes
      * @param payload payload of this operation
+     * @param monitor monitor used for logging
      * @return Response by the service behind the url
      */
-    public Response put(URL url, String payload) throws IOException {
-        logger.debug("PUT " + url);
+    public Response put(URL url, String payload, Monitor monitor) throws IOException {
+        monitor.debug("PUT " + url);
         var request = new Request.Builder()
                 .url(Objects.requireNonNull(HttpUrl.get(url)))
                 .put(RequestBody.create(payload, MediaType.parse("application/json")))
@@ -99,10 +98,11 @@ public class HttpRestClient {
      *
      * @param url     the url to where the post request goes
      * @param payload payload of this operation
+     * @param monitor monitor used for logging
      * @return Response by the service behind the url
      */
-    public Response post(URL url, String payload) throws IOException {
-        logger.debug("POST " + url);
+    public Response post(URL url, String payload, Monitor monitor) throws IOException {
+        monitor.debug("POST " + url);
         var request = new Request.Builder()
                 .url(Objects.requireNonNull(HttpUrl.get(url)))
                 .post(RequestBody.create(payload, MediaType.parse("application/json")))
@@ -115,10 +115,11 @@ public class HttpRestClient {
      *
      * @param url     the url to where the post request goes
      * @param payload payload of this operation
+     * @param monitor monitor used for logging
      * @return Response by the service behind the url
      */
-    public Response delete(URL url, String payload) throws IOException {
-        logger.debug("DELETE " + url);
+    public Response delete(URL url, String payload, Monitor monitor) throws IOException {
+        monitor.debug("DELETE " + url);
 
         RequestBody requestBody = null;
         if (Objects.nonNull(payload)) {

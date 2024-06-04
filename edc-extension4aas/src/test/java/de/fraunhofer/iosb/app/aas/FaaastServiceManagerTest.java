@@ -47,7 +47,7 @@ public class FaaastServiceManagerTest {
         var url = startService();
         var restClient = HttpRestClient.getInstance();
 
-        assertEquals(Response.Status.OK.getStatusCode(), restClient.get(url.toURI().resolve("/api/v3.0/shells").toURL()).code());
+        assertEquals(Response.Status.OK.getStatusCode(), restClient.get(url.toURI().resolve("/api/v3.0/shells").toURL(), new ConsoleMonitor()).code());
     }
 
     @Test

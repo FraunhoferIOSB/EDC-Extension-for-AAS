@@ -238,6 +238,8 @@ public class ClientEndpoint {
 
     /**
      * Submits a data transfer request to the providerUrl.
+     * In the future this could be replaced with the
+     * <a href="https://www.ietf.org/archive/id/draft-ietf-httpbis-safe-method-w-body-02.html">HTTP QUERY method</a>
      *
      * @param providerUrl The data provider's url
      * @param agreementId The basis of the data transfer.
@@ -245,7 +247,7 @@ public class ClientEndpoint {
      * @param dataAddress URL of destination data sink.
      * @return On success, the data of the desired asset. Else, returns an error message.
      */
-    @GET
+    @POST
     @Path(TRANSFER_PATH)
     public Response getData(@QueryParam("providerUrl") URL providerUrl,
                             @QueryParam("agreementId") String agreementId,

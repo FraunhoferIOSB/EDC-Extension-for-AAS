@@ -101,7 +101,7 @@ public class AasExtension implements ServiceExtension {
 
         // Register AAS Data Source factory for dataTransfer with self-signed certificates on FA³ST side
         var paramsProvider = new HttpRequestParamsProviderImpl(vault, typeManager);
-        var aasDataSourceFactory = new AasDataSourceFactory(paramsProvider, monitor);
+        var aasDataSourceFactory = new AasDataSourceFactory(monitor);
         var aasDataSinkFactory = new AasDataSinkFactory(paramsProvider, monitor);
 
         pipelineService.registerFactory(aasDataSourceFactory);

@@ -22,8 +22,8 @@ import de.fraunhofer.iosb.app.model.aas.CustomConceptDescription;
 import de.fraunhofer.iosb.app.model.aas.CustomSubmodel;
 import de.fraunhofer.iosb.app.model.aas.CustomSubmodelElement;
 import de.fraunhofer.iosb.app.model.aas.CustomSubmodelElementCollection;
+import de.fraunhofer.iosb.app.model.aas.CustomSubmodelElementList;
 import de.fraunhofer.iosb.app.util.AssetAdministrationShellUtil;
-import de.fraunhofer.iosb.app.util.Encoder;
 import de.fraunhofer.iosb.app.util.HttpRestClient;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.DeserializationException;
@@ -31,7 +31,12 @@ import org.eclipse.digitaltwin.aas4j.v3.dataformat.json.JsonDeserializer;
 import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShell;
 import org.eclipse.digitaltwin.aas4j.v3.model.ConceptDescription;
 import org.eclipse.digitaltwin.aas4j.v3.model.Identifiable;
+import org.eclipse.digitaltwin.aas4j.v3.model.Key;
+import org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes;
+import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.digitaltwin.aas4j.v3.model.Submodel;
+import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultKey;
+import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultReference;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 
@@ -42,7 +47,6 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.Certificate;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -136,36 +140,51 @@ public class AasAgent {
      */
     public CustomAssetAdministrationShellEnvironment getAasEnvWithUrls(URL aasServiceUrl, boolean onlySubmodels)
             throws IOException, DeserializationException {
-        var aasServiceUrlString = aasServiceUrl.toString();
+        var aasServiceUrlString = format("%s/api/v3.0", aasServiceUrl);
 
-        var model = readModel(aasServiceUrl, onlySubmodels);
-        // Add urls to all shells
-        model.getAssetAdministrationShells().forEach(shell -> shell.setSourceUrl(
-                format("%s/api/v3.0/shells/%s", aasServiceUrlString,
-                        Encoder.encodeBase64(shell.getId()))));
-        // Add urls to all submodels, submodelElements
-        model.getSubmodels().forEach(submodel -> {
-            submodel.setSourceUrl(
-                    format("%s/api/v3.0/submodels/%s", aasServiceUrlString,
-                            Encoder.encodeBase64(submodel.getId())));
+        var environment = readEnvironment(aasServiceUrl, onlySubmodels);
+
+        environment.getAssetAdministrationShells().forEach(shell -> {
+            shell.setSourceUrl(aasServiceUrlString);
+            shell.setReferenceChain(
+                    new DefaultReference.Builder()
+                            .keys(new DefaultKey.Builder()
+                                    .type(KeyTypes.ASSET_ADMINISTRATION_SHELL)
+                                    .value(shell.getId())
+                                    .build())
+                            .build());
+        });
+
+        environment.getConceptDescriptions().forEach(conceptDesc -> {
+            conceptDesc.setSourceUrl(aasServiceUrlString);
+            conceptDesc.setReferenceChain(
+                    new DefaultReference.Builder()
+                            .keys(new DefaultKey.Builder()
+                                    .type(KeyTypes.CONCEPT_DESCRIPTION)
+                                    .value(conceptDesc.getId())
+                                    .build())
+                            .build());
+        });
+
+        environment.getSubmodels().forEach(submodel -> {
+            submodel.setSourceUrl(aasServiceUrlString);
+            submodel.setReferenceChain(
+                    new DefaultReference.Builder()
+                            .keys(createKey(KeyTypes.SUBMODEL, submodel.getId()))
+                            .build());
             submodel.getSubmodelElements()
-                    .forEach(elem -> putUrl(
-                            format("%s/api/v3.0/submodels/%s/submodel-elements", aasServiceUrlString,
-                                    Encoder.encodeBase64(submodel.getId())),
+                    .forEach(elem -> putUrl(aasServiceUrlString,
+                            submodel.getReferenceChain(),
                             elem));
         });
 
-        // Add urls to all concept descriptions
-        model.getConceptDescriptions().forEach(
-                conceptDesc -> conceptDesc.setSourceUrl(format("%s/api/v3.0/concept-descriptions/%s", aasServiceUrlString,
-                        Encoder.encodeBase64(conceptDesc.getId()))));
-        return model;
+        return environment;
     }
 
     /**
-     * Returns the AAS model.
+     * Returns the AAS environment.
      */
-    private CustomAssetAdministrationShellEnvironment readModel(URL aasServiceUrl, boolean onlySubmodels)
+    private CustomAssetAdministrationShellEnvironment readEnvironment(URL aasServiceUrl, boolean onlySubmodels)
             throws IOException, DeserializationException {
         var aasEnv = new CustomAssetAdministrationShellEnvironment();
 
@@ -178,7 +197,7 @@ public class AasAgent {
             conceptDescriptionsUrl = aasServiceUrl.toURI().resolve("/api/v3.0/concept-descriptions").toURL();
         } catch (URISyntaxException resolveUriException) {
             throw new EdcException(
-                    format("Error while building URLs for reading from the AAS Service at %s", aasServiceUrl),
+                    format("Error while building URLs for reading from the AAS service at %s", aasServiceUrl),
                     resolveUriException);
         }
 
@@ -237,37 +256,45 @@ public class AasAgent {
     }
 
     /**
-     * Add the access url of this element to its contract ID field. If this element
-     * is a collection, do this recursively for all elements inside this collection,
+     * Add the access url + refChain of this element to its sourceUrl field. If this element
+     * is a collection/list, do this recursively for all elements inside this collection/list,
      * too (since we don't know how deeply nested the collection is).
      */
-    private void putUrl(String url, CustomSubmodelElement element) {
-        var topElementUrl = format("%s/%s", url, element.getIdShort());
-
-        element.setSourceUrl(topElementUrl);
+    private void putUrl(String url, Reference parentReferenceChain, CustomSubmodelElement element) {
+        var ownReferenceChainBuilder = new DefaultReference.Builder()
+                .keys(new ArrayList<>(parentReferenceChain.getKeys()));
+        Reference ownReferenceChain;
 
         // "value" field of a submodel element can be an array or not available (no collection)
         if (element instanceof CustomSubmodelElementCollection) {
-            Collection<CustomSubmodelElement> modifiedCollectionItems = new ArrayList<>();
-            for (var collectionItem : ((CustomSubmodelElementCollection) element).getValue()) {
-                modifiedCollectionItems.add(putUrlRec(topElementUrl, collectionItem));
-            }
-            ((CustomSubmodelElementCollection) element).setValue(modifiedCollectionItems);
+            ownReferenceChain = ownReferenceChainBuilder
+                    .keys(createKey(KeyTypes.SUBMODEL_ELEMENT_COLLECTION,
+                            element.getIdShort()))
+                    .build();
+
+            ((CustomSubmodelElementCollection) element).getValue().forEach(item -> putUrl(url, ownReferenceChain, item));
+
+        } else if (element instanceof CustomSubmodelElementList) {
+            ownReferenceChain = ownReferenceChainBuilder
+                    .keys(createKey(KeyTypes.SUBMODEL_ELEMENT_LIST,
+                            element.getIdShort()))
+                    .build();
+            ((CustomSubmodelElementList) element).getValue().forEach(item -> putUrl(url, ownReferenceChain, item));
+
+        } else { // Can not have any child elements...
+            ownReferenceChain = ownReferenceChainBuilder
+                    .keys(createKey(KeyTypes.SUBMODEL_ELEMENT,
+                            element.getIdShort())).build();
         }
+
+        element.setSourceUrl(url);
+        element.setReferenceChain(ownReferenceChain);
     }
 
-    private CustomSubmodelElement putUrlRec(String url, CustomSubmodelElement element) {
-        // "value" field of a submodel element can be an array or not available (no collection)
-        if (element instanceof CustomSubmodelElementCollection) {
-            Collection<CustomSubmodelElement> newCollectionElements = new ArrayList<>();
-            for (var collectionElement : ((CustomSubmodelElementCollection) element).getValue()) {
-                newCollectionElements.add(putUrlRec(format("%s.%s", url, element.getIdShort()), collectionElement));
-            }
-            ((CustomSubmodelElementCollection) element).setValue(newCollectionElements);
-        }
-        element.setSourceUrl(format("%s.%s", url, element.getIdShort()));
-        return element;
+    private Key createKey(KeyTypes type, String value) {
+        return new DefaultKey.Builder().type(type).value(value).build();
     }
+
 
     public void addCertificates(URL url, Certificate[] certs) throws KeyStoreException, NoSuchAlgorithmException {
         acceptedCertificates.put(url.toString(), certs);

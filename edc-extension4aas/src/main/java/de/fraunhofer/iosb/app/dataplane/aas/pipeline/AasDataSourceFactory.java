@@ -16,15 +16,13 @@
 package de.fraunhofer.iosb.app.dataplane.aas.pipeline;
 
 import de.fraunhofer.iosb.app.util.HttpRestClient;
-import org.eclipse.edc.connector.dataplane.http.params.HttpRequestFactory;
-import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
-import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParamsProvider;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSourceFactory;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.jetbrains.annotations.NotNull;
+
 
 /**
  * Inspired by {@link org.eclipse.edc.connector.dataplane.http.pipeline.HttpDataSourceFactory}
@@ -34,13 +32,9 @@ public class AasDataSourceFactory implements DataSourceFactory {
     public static final String AAS_DATA_TYPE = "AasData";
 
     private final Monitor monitor;
-    private final HttpRequestParamsProvider requestParamsProvider;
-    private final HttpRequestFactory requestFactory;
 
-    public AasDataSourceFactory(HttpRequestParamsProvider requestParamsProvider, Monitor monitor) {
+    public AasDataSourceFactory(Monitor monitor) {
         this.monitor = monitor;
-        this.requestParamsProvider = requestParamsProvider;
-        this.requestFactory = new HttpRequestFactory();
     }
 
     @Override
@@ -50,16 +44,14 @@ public class AasDataSourceFactory implements DataSourceFactory {
 
     @Override
     public DataSource createSource(DataFlowStartMessage request) {
-        var dataAddress = HttpDataAddress.Builder.newInstance()
-                .copyFrom(request.getSourceDataAddress())
-                .build();
+        var dataSource = (AasDataAddress) request.getSourceDataAddress();
         return AasDataSource.Builder.newInstance()
                 .httpClient(HttpRestClient.getInstance())
                 .monitor(monitor)
                 .requestId(request.getId())
-                .name(dataAddress.getName())
-                .params(requestParamsProvider.provideSourceParams(request))
-                .requestFactory(requestFactory)
+                .baseUrl(dataSource.getBaseUrl())
+                .path(dataSource.referenceChainAsPath())
+                .headers(dataSource.getAdditionalHeaders())
                 .build();
     }
 

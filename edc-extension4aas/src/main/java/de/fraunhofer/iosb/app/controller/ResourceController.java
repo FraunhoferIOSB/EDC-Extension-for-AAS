@@ -18,6 +18,7 @@ package de.fraunhofer.iosb.app.controller;
 import de.fraunhofer.iosb.app.edc.ContractHandler;
 import de.fraunhofer.iosb.app.edc.ResourceHandler;
 import de.fraunhofer.iosb.app.util.Pair;
+import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
@@ -42,13 +43,13 @@ public class ResourceController {
      * asset
      *
      * @param linkToResource Link to resource to be registered
+     * @param referenceChain To create the full access url dynamically this reference chain is passed
      * @param name           The name of the asset (e.g., idShort)
      * @param contentType    Content behind the sourceUrl
-     * @param version        For versioning of assets
      * @return contract id
      */
-    public Pair<String, String> createResource(String linkToResource, String name, String contentType, String version) {
-        var assetId = resourceAgent.createAsset(linkToResource, name, contentType, version);
+    public Pair<String, String> createResource(String linkToResource, Reference referenceChain, String name, String contentType) {
+        var assetId = resourceAgent.createAsset(linkToResource, referenceChain, name, contentType);
         var contractId = contractHandler.registerAssetToDefaultContract(assetId);
         return new Pair<>(assetId, contractId);
     }

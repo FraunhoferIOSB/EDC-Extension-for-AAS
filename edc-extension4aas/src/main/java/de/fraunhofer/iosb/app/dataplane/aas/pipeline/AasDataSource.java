@@ -16,21 +16,19 @@
 package de.fraunhofer.iosb.app.dataplane.aas.pipeline;
 
 import de.fraunhofer.iosb.app.util.HttpRestClient;
+import okhttp3.Headers;
 import okhttp3.MediaType;
-import okhttp3.ResponseBody;
-import org.eclipse.edc.connector.dataplane.http.params.HttpRequestFactory;
+import okhttp3.Request;
 import org.eclipse.edc.connector.dataplane.http.pipeline.HttpPart;
-import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParams;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.io.IOException;
-import java.io.InputStream;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
@@ -43,37 +41,40 @@ import static org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult.succ
  * Inspired by {@link org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress}
  */
 public class AasDataSource implements DataSource {
+
     private static final int FORBIDDEN = 401;
     private static final int NOT_AUTHORIZED = 403;
     private static final int NOT_FOUND = 404;
 
-    private String name;
-    private HttpRequestParams params;
     private String requestId;
     private Monitor monitor;
     private HttpRestClient httpClient;
-    private HttpRequestFactory requestFactory;
-    private final AtomicReference<ResponseBodyStream> responseBodyStream = new AtomicReference<>();
+    private String baseUrl;
+    private String path;
+    private Map<String, String> headers;
 
     private AasDataSource() {
     }
 
     @Override
     public StreamResult<Stream<Part>> openPartStream() {
-        var request = requestFactory.toRequest(params);
-        monitor.debug(() -> "Executing HTTP request to FA³ST: " + request.url());
-        try {
-            // NB: Do not close the response as the body input stream needs to be read after this method returns. The response closes the body stream.
-            var response = httpClient.execute(request);
+        var request = new Request.Builder()
+                .url(baseUrl + path)
+                .headers(Headers.of(headers))
+                .get()
+                .build();
+
+        try (var response = httpClient.execute(request)) {
             if (response.isSuccessful()) {
                 var body = response.body();
                 if (body == null) {
-                    throw new EdcException(format("Received empty response body transferring HTTP data for request %s: %s", requestId, response.code()));
+                    throw new EdcException(format("Received empty response body transferring AAS data for request %s: %s", requestId, response.code()));
                 }
-                var stream = body.byteStream();
-                responseBodyStream.set(new ResponseBodyStream(body, stream));
+                var bodyStream = body.byteStream();
                 var mediaType = Optional.ofNullable(body.contentType()).map(MediaType::toString).orElse(OCTET_STREAM);
-                return success(Stream.of(new HttpPart(name, stream, mediaType)));
+                body.close();
+                return success(Stream.of(new HttpPart("AAS Part", bodyStream, mediaType)));
+
             } else {
                 try {
                     if (NOT_AUTHORIZED == response.code() || FORBIDDEN == response.code()) {
@@ -81,7 +82,7 @@ public class AasDataSource implements DataSource {
                     } else if (NOT_FOUND == response.code()) {
                         return StreamResult.notFound();
                     } else {
-                        return error(format("Received code transferring HTTP data: %s - %s.", response.code(), response.message()));
+                        return error(format("Received code transferring AAS data: %s - %s.", response.code(), response.message()));
                     }
                 } finally {
                     try {
@@ -91,26 +92,15 @@ public class AasDataSource implements DataSource {
                     }
                 }
             }
+
         } catch (IOException e) {
             throw new EdcException(e);
         }
-
     }
 
     @Override
     public void close() {
-        var bodyStream = responseBodyStream.get();
-        if (bodyStream != null) {
-            bodyStream.responseBody().close();
-            try {
-                bodyStream.stream().close();
-            } catch (IOException e) {
-                // do nothing
-            }
-        }
-    }
-
-    private record ResponseBodyStream(ResponseBody responseBody, InputStream stream) {
+        // no-op
 
     }
 
@@ -123,16 +113,6 @@ public class AasDataSource implements DataSource {
 
         private Builder() {
             dataSource = new AasDataSource();
-        }
-
-        public Builder params(HttpRequestParams params) {
-            dataSource.params = params;
-            return this;
-        }
-
-        public Builder name(String name) {
-            dataSource.name = name;
-            return this;
         }
 
         public Builder requestId(String requestId) {
@@ -150,8 +130,18 @@ public class AasDataSource implements DataSource {
             return this;
         }
 
-        public Builder requestFactory(HttpRequestFactory requestFactory) {
-            dataSource.requestFactory = requestFactory;
+        public Builder baseUrl(String baseUrl) {
+            dataSource.baseUrl = baseUrl;
+            return this;
+        }
+
+        public Builder path(String urlPath) {
+            dataSource.path = urlPath;
+            return this;
+        }
+
+        public Builder headers(Map<String, String> headers) {
+            dataSource.headers = headers;
             return this;
         }
 
@@ -159,9 +149,11 @@ public class AasDataSource implements DataSource {
             Objects.requireNonNull(dataSource.requestId, "requestId");
             Objects.requireNonNull(dataSource.httpClient, "httpClient");
             Objects.requireNonNull(dataSource.monitor, "monitor");
-            Objects.requireNonNull(dataSource.requestFactory, "requestFactory");
+            Objects.requireNonNull(dataSource.baseUrl, "baseUrl");
+            Objects.requireNonNull(dataSource.path, "path");
             return dataSource;
         }
+
     }
 
 }

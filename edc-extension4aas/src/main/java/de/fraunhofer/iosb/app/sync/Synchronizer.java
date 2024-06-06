@@ -190,8 +190,9 @@ public class Synchronizer implements SelfDescriptionChangeListener {
         elements.forEach(element -> {
             // Version unknown, MediaType is "application/json" by default
             var assetContractPair = resourceController.createResource(element.getSourceUrl(),
+                    element.getReferenceChain(),
                     ((AssetAdministrationShellElement) element).getIdShort(),
-                    MediaType.APPLICATION_JSON, null);
+                    MediaType.APPLICATION_JSON);
             element.setIdsAssetId(assetContractPair.getFirst());
             element.setIdsContractId(assetContractPair.getSecond());
         });

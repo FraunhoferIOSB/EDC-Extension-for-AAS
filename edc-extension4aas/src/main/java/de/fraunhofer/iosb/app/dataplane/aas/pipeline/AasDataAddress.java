@@ -46,7 +46,6 @@ public class AasDataAddress extends DataAddress {
 
     private static final String METHOD = "method";
     private static final String ADDITIONAL_HEADER = "header";
-    private static final String QUERY_PARAMS = "queryParams";
 
 
     private AasDataAddress() {
@@ -112,7 +111,6 @@ public class AasDataAddress extends DataAddress {
         return urlBuilder.toString();
     }
 
-
     @JsonPOJOBuilder(withPrefix = "")
     public static final class Builder extends DataAddress.Builder<AasDataAddress, Builder> {
 
@@ -136,14 +134,12 @@ public class AasDataAddress extends DataAddress {
             return this;
         }
 
-
         public Builder referenceChain(Reference referenceChain) {
             Objects.requireNonNull(referenceChain.getKeys());
 
             this.property(REFERENCE_CHAIN, referenceChain);
             return this;
         }
-
 
         @Override
         public AasDataAddress build() {

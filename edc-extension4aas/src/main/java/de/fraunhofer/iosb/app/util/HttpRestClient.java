@@ -16,7 +16,6 @@
 package de.fraunhofer.iosb.app.util;
 
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
-import de.fraunhofer.iosb.ilt.faaast.service.certificate.util.KeyStoreHelper;
 import okhttp3.HttpUrl;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;

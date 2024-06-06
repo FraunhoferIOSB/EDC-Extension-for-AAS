@@ -32,6 +32,7 @@ import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.DeserializationException
 import org.eclipse.edc.spi.EdcException;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collection;
 import java.util.List;
@@ -65,7 +66,11 @@ public class Synchronizer implements SelfDescriptionChangeListener {
      */
     public void synchronize() {
         for (var selfDescription : selfDescriptionRepository.getAllSelfDescriptions()) {
-            synchronize(selfDescription.getKey());
+            try {
+                synchronize(new URL(selfDescription.getKey()));
+            } catch (MalformedURLException e) {
+                throw new EdcException("AAS URL malformed while synchronizing", e);
+            }
         }
     }
 

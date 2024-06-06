@@ -15,28 +15,12 @@
  */
 package de.fraunhofer.iosb.app.aas;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShell;
 import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShellEnvironment;
 import de.fraunhofer.iosb.app.model.aas.CustomConceptDescription;
 import de.fraunhofer.iosb.app.model.aas.CustomSubmodel;
-import de.fraunhofer.iosb.app.model.aas.CustomSubmodelElement;
-import de.fraunhofer.iosb.app.model.aas.CustomSubmodelElementCollection;
-import de.fraunhofer.iosb.app.model.aas.CustomSubmodelElementList;
-import de.fraunhofer.iosb.app.util.AssetAdministrationShellUtil;
 import de.fraunhofer.iosb.app.util.HttpRestClient;
 import jakarta.ws.rs.core.Response;
-import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.DeserializationException;
-import org.eclipse.digitaltwin.aas4j.v3.dataformat.json.JsonDeserializer;
-import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShell;
-import org.eclipse.digitaltwin.aas4j.v3.model.ConceptDescription;
-import org.eclipse.digitaltwin.aas4j.v3.model.Identifiable;
-import org.eclipse.digitaltwin.aas4j.v3.model.Key;
-import org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes;
-import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
-import org.eclipse.digitaltwin.aas4j.v3.model.Submodel;
-import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultKey;
-import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultReference;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 
@@ -46,12 +30,9 @@ import java.net.URL;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.Certificate;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
@@ -63,16 +44,14 @@ public class AasAgent {
     private final Monitor monitor;
 
     private final HttpRestClient httpRestClient = HttpRestClient.getInstance();
-    private final JsonDeserializer jsonDeserializer;
     private final Map<String, Certificate[]> acceptedCertificates;
 
-    private final ObjectMapper objectMapper;
+
+    private ModelParser modelParser;
 
     public AasAgent(Monitor monitor) {
         this.monitor = monitor;
-        jsonDeserializer = new JsonDeserializer();
         acceptedCertificates = new HashMap<>();
-        objectMapper = new ObjectMapper();
     }
 
     /**
@@ -139,53 +118,37 @@ public class AasAgent {
      * @return AAS model enriched with each elements access URL as string in assetId field.
      */
     public CustomAssetAdministrationShellEnvironment getAasEnvWithUrls(URL aasServiceUrl, boolean onlySubmodels)
-            throws IOException, DeserializationException {
+            throws IOException {
         var aasServiceUrlString = format("%s/api/v3.0", aasServiceUrl);
+        modelParser = new ModelParser(aasServiceUrlString);
 
-        var environment = readEnvironment(aasServiceUrl, onlySubmodels);
-
-        environment.getAssetAdministrationShells().forEach(shell -> {
-            shell.setSourceUrl(aasServiceUrlString);
-            shell.setReferenceChain(
-                    new DefaultReference.Builder()
-                            .keys(new DefaultKey.Builder()
-                                    .type(KeyTypes.ASSET_ADMINISTRATION_SHELL)
-                                    .value(shell.getId())
-                                    .build())
-                            .build());
-        });
-
-        environment.getConceptDescriptions().forEach(conceptDesc -> {
-            conceptDesc.setSourceUrl(aasServiceUrlString);
-            conceptDesc.setReferenceChain(
-                    new DefaultReference.Builder()
-                            .keys(new DefaultKey.Builder()
-                                    .type(KeyTypes.CONCEPT_DESCRIPTION)
-                                    .value(conceptDesc.getId())
-                                    .build())
-                            .build());
-        });
-
-        environment.getSubmodels().forEach(submodel -> {
-            submodel.setSourceUrl(aasServiceUrlString);
-            submodel.setReferenceChain(
-                    new DefaultReference.Builder()
-                            .keys(createKey(KeyTypes.SUBMODEL, submodel.getId()))
-                            .build());
-            submodel.getSubmodelElements()
-                    .forEach(elem -> putUrl(aasServiceUrlString,
-                            submodel.getReferenceChain(),
-                            elem));
-        });
-
-        return environment;
+        return readEnvironment(aasServiceUrl, onlySubmodels);
     }
+
+    public void addCertificates(URL url, Certificate[] certs) throws KeyStoreException, NoSuchAlgorithmException {
+        acceptedCertificates.put(url.toString(), certs);
+        httpRestClient.setAcceptedSelfSignedCertificates(acceptedCertificates);
+    }
+
+    public void removeCertificates(URL aasServiceUrl) {
+        acceptedCertificates.remove(aasServiceUrl.toString());
+        // Here we don't throw the exception on since we should still remove
+        // the service even if we cannot remove its self-signed certificates.
+        try {
+            httpRestClient.setAcceptedSelfSignedCertificates(acceptedCertificates);
+        } catch (KeyStoreException | NoSuchAlgorithmException generalSecurityException) {
+            throw new EdcException(
+                    format("Exception thrown while trying to remove certificate by %s", aasServiceUrl),
+                    generalSecurityException);
+        }
+    }
+
 
     /**
      * Returns the AAS environment.
      */
     private CustomAssetAdministrationShellEnvironment readEnvironment(URL aasServiceUrl, boolean onlySubmodels)
-            throws IOException, DeserializationException {
+            throws IOException {
         var aasEnv = new CustomAssetAdministrationShellEnvironment();
 
         URL submodelUrl;
@@ -209,108 +172,34 @@ public class AasAgent {
         return aasEnv;
     }
 
-    private List<CustomConceptDescription> readConceptDescriptions(URL conceptDescriptionsUrl) throws IOException, DeserializationException {
-        var element = readAssetAdministrationShellElement(conceptDescriptionsUrl, ConceptDescription.class);
-
-        return element.stream()
-                .map(CustomConceptDescription::fromConceptDescription)
-                .collect(Collectors.toCollection(ArrayList::new));
-    }
-
-    private List<CustomAssetAdministrationShell> readShells(URL shellsUrl) throws IOException, DeserializationException {
-        var element = readAssetAdministrationShellElement(shellsUrl, AssetAdministrationShell.class);
-
-        return element.stream()
-                .map(CustomAssetAdministrationShell::fromAssetAdministrationShell)
-                .collect(Collectors.toCollection(ArrayList::new));
-    }
-
-    private List<CustomSubmodel> readSubmodels(URL submodelUrl, boolean onlySubmodels) throws IOException, DeserializationException {
-        var submodels = readAssetAdministrationShellElement(submodelUrl, Submodel.class);
-
-        // Now, create customSubmodels from the "full" submodels
-        List<CustomSubmodel> customSubmodels = new ArrayList<>();
-        for (Submodel submodel : submodels) {
-            var customSubmodel = new CustomSubmodel();
-            customSubmodel.setId(submodel.getId());
-            customSubmodel.setIdShort(submodel.getIdShort());
-            if (Objects.nonNull(submodel.getSemanticId())) {
-                customSubmodel.setSemanticId(submodel.getSemanticId());
+    private List<CustomConceptDescription> readConceptDescriptions(URL conceptDescriptionsUrl) throws IOException {
+        try (var response = httpRestClient.get(conceptDescriptionsUrl, monitor)) {
+            var body = response.body();
+            if (body == null) {
+                throw new EdcException("Received empty body for concept description request");
             }
+            return modelParser.parseConceptDescriptions(body.string());
+        }
+    }
 
-            if (!onlySubmodels) {
-                // Recursively add submodelElements
-                var customElements = AssetAdministrationShellUtil.getCustomSubmodelElementStructureFromSubmodel(submodel);
-                customSubmodel.setSubmodelElements((List<CustomSubmodelElement>) customElements);
+    private List<CustomAssetAdministrationShell> readShells(URL shellsUrl) throws IOException {
+        try (var response = httpRestClient.get(shellsUrl, monitor)) {
+            var body = response.body();
+            if (body == null) {
+                throw new EdcException("Received empty body for shell request");
             }
-            customSubmodels.add(customSubmodel);
-        }
-        return customSubmodels;
-    }
-
-    private <T extends Identifiable> List<T> readAssetAdministrationShellElement(URL contentUrl, Class<T> clazz) throws IOException, DeserializationException {
-        var response = Objects.requireNonNull(httpRestClient.get(contentUrl, monitor).body()).string();
-        var responseJson = objectMapper.readTree(response).get("result");
-
-        return Objects.isNull(responseJson) ? List.of() : jsonDeserializer.readList(responseJson, clazz);
-    }
-
-    /**
-     * Add the access url + refChain of this element to its sourceUrl field. If this element
-     * is a collection/list, do this recursively for all elements inside this collection/list,
-     * too (since we don't know how deeply nested the collection is).
-     */
-    private void putUrl(String url, Reference parentReferenceChain, CustomSubmodelElement element) {
-        var ownReferenceChainBuilder = new DefaultReference.Builder()
-                .keys(new ArrayList<>(parentReferenceChain.getKeys()));
-        Reference ownReferenceChain;
-
-        // "value" field of a submodel element can be an array or not available (no collection)
-        if (element instanceof CustomSubmodelElementCollection) {
-            ownReferenceChain = ownReferenceChainBuilder
-                    .keys(createKey(KeyTypes.SUBMODEL_ELEMENT_COLLECTION,
-                            element.getIdShort()))
-                    .build();
-
-            ((CustomSubmodelElementCollection) element).getValue().forEach(item -> putUrl(url, ownReferenceChain, item));
-
-        } else if (element instanceof CustomSubmodelElementList) {
-            ownReferenceChain = ownReferenceChainBuilder
-                    .keys(createKey(KeyTypes.SUBMODEL_ELEMENT_LIST,
-                            element.getIdShort()))
-                    .build();
-            ((CustomSubmodelElementList) element).getValue().forEach(item -> putUrl(url, ownReferenceChain, item));
-
-        } else { // Can not have any child elements...
-            ownReferenceChain = ownReferenceChainBuilder
-                    .keys(createKey(KeyTypes.SUBMODEL_ELEMENT,
-                            element.getIdShort())).build();
-        }
-
-        element.setSourceUrl(url);
-        element.setReferenceChain(ownReferenceChain);
-    }
-
-    private Key createKey(KeyTypes type, String value) {
-        return new DefaultKey.Builder().type(type).value(value).build();
-    }
-
-
-    public void addCertificates(URL url, Certificate[] certs) throws KeyStoreException, NoSuchAlgorithmException {
-        acceptedCertificates.put(url.toString(), certs);
-        httpRestClient.setAcceptedSelfSignedCertificates(acceptedCertificates);
-    }
-
-    public void removeCertificates(URL aasServiceUrl) {
-        acceptedCertificates.remove(aasServiceUrl.toString());
-        // Here we don't throw the exception on since we should still remove
-        // the service even if we cannot remove its self-signed certificates.
-        try {
-            httpRestClient.setAcceptedSelfSignedCertificates(acceptedCertificates);
-        } catch (KeyStoreException | NoSuchAlgorithmException generalSecurityException) {
-            throw new EdcException(
-                    format("Exception thrown while trying to remove certificate by %s", aasServiceUrl),
-                    generalSecurityException);
+            return modelParser.parseShells(body.string());
         }
     }
+
+    private List<CustomSubmodel> readSubmodels(URL submodelUrl, boolean onlySubmodels) throws IOException {
+        try (var response = httpRestClient.get(submodelUrl, monitor)) {
+            var body = response.body();
+            if (body == null) {
+                throw new EdcException("Received empty body for submodel request");
+            }
+            return modelParser.parseSubmodels(body.string(), onlySubmodels);
+        }
+    }
+
 }

@@ -53,23 +53,23 @@ import java.util.concurrent.TimeUnit;
  */
 public class AasExtension implements ServiceExtension {
 
-    // Non-public unified authentication request filter management service
-    @Inject
+
+    @Inject // Register public endpoints
     private PublicApiManagementService publicApiManagementService;
 
-    @Inject
+    @Inject // Create / manage EDC assets
     private AssetIndex assetIndex;
-    @Inject
+    @Inject // Create / manage EDC contracts
     private ContractDefinitionStore contractStore;
     @Inject // AAS Data Source/Sink Factory
     private PipelineService pipelineService;
-    @Inject
+    @Inject // Create / manage EDC policies
     private PolicyDefinitionStore policyStore;
     @Inject // AAS Data Source/Sink Factory
     private TypeManager typeManager;
     @Inject // AAS Data Source/Sink Factory
     private Vault vault;
-    @Inject
+    @Inject // Register http endpoint at EDC
     private WebService webService;
 
     private static final String SETTINGS_PREFIX = "edc.aas";

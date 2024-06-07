@@ -50,7 +50,7 @@ public class AasController implements Controllable {
         this.monitor = monitor;
 
         aasAgent = new AasAgent(monitor);
-        aasServiceManager = new FaaastServiceManager(new ConsoleMonitor());
+        aasServiceManager = new FaaastServiceManager(monitor);
     }
 
     @Override

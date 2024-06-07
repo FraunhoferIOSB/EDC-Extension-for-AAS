@@ -99,11 +99,11 @@ public class AasAgentTest {
         mockServer.when(request().withMethod("POST").withPath(SUBMODELS).withBody("raw_data_forwarded"))
                 .respond(response().withStatusCode(200));
 
-        var response = aasAgent.postModel(new URL(HTTP_LOCALHOST_8080 + SUBMODELS),
-                "raw_data_forwarded");
-
-        // Check whether AAS agent forwards the raw data of a request
-        assertEquals(200, response.getStatus());
+        try (var response = aasAgent.postModel(new URL(HTTP_LOCALHOST_8080 + SUBMODELS),
+                "raw_data_forwarded")) {
+            // Check whether AAS agent forwards the raw data of a request
+            assertEquals(200, response.getStatus());
+        }
     }
 
     @Test
@@ -111,10 +111,10 @@ public class AasAgentTest {
         mockServer.when(request().withMethod("DELETE").withPath(CONCEPT_DESCRIPTIONS))
                 .respond(response().withStatusCode(200));
 
-        var response = aasAgent.deleteModel(new URL(HTTP_LOCALHOST_8080 + CONCEPT_DESCRIPTIONS), null);
-
-        // Check whether AAS agent forwards the raw data of a request
-        assertEquals(200, response.getStatus());
+        try (var response = aasAgent.deleteModel(new URL(HTTP_LOCALHOST_8080 + CONCEPT_DESCRIPTIONS), null)) {
+            // Check whether AAS agent forwards the raw data of a request
+            assertEquals(200, response.getStatus());
+        }
     }
 
     @AfterAll

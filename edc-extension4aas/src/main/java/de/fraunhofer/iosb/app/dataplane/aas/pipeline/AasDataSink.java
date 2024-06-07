@@ -38,7 +38,7 @@ import static org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult.fail
  * HttpClient accepting certain self-signed certificates.
  * TODO Since foreign AAS services should have valid certificates
  * TODO this sink will probably not be needed in the future
- * TODO (except if we want to send data to completely untrusted servers)
+ * TODO (Unless we want to send data to completely untrusted servers)
  */
 public class AasDataSink implements DataSink {
 
@@ -69,7 +69,7 @@ public class AasDataSink implements DataSink {
         try (var response = httpClient.execute(request)) {
             return StreamResult.success("DataTransfer completed. Response from consumer: " + response.body());
         } catch (IOException e) {
-            var errorMessage = "IOException while data transferring: " + e.getMessage();
+            var errorMessage = "IOException while data transferring to AAS: " + e.getMessage();
             monitor.severe(() -> errorMessage);
             return StreamResult.error(errorMessage);
         }

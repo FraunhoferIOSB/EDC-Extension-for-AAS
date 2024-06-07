@@ -19,6 +19,7 @@ import de.fraunhofer.iosb.app.util.HttpRestClient;
 import okhttp3.Headers;
 import okhttp3.MediaType;
 import okhttp3.Request;
+import okhttp3.ResponseBody;
 import org.eclipse.edc.connector.dataplane.http.pipeline.HttpPart;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
@@ -26,9 +27,11 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
@@ -52,6 +55,7 @@ public class AasDataSource implements DataSource {
     private String baseUrl;
     private String path;
     private Map<String, String> headers;
+    private final AtomicReference<ResponseBodyStream> responseBodyStream = new AtomicReference<>();
 
     private AasDataSource() {
     }
@@ -64,13 +68,17 @@ public class AasDataSource implements DataSource {
                 .get()
                 .build();
 
-        try (var response = httpClient.execute(request)) {
+        try {
+            // NB: Do not close the response as the body input stream needs to be read after this method returns. The response closes the body stream.
+            var response = httpClient.execute(request);
+
             if (response.isSuccessful()) {
                 var body = response.body();
                 if (body == null) {
                     throw new EdcException(format("Received empty response body transferring AAS data for request %s: %s", requestId, response.code()));
                 }
                 var bodyStream = body.byteStream();
+                responseBodyStream.set(new ResponseBodyStream(body, bodyStream));
                 var mediaType = Optional.ofNullable(body.contentType()).map(MediaType::toString).orElse(OCTET_STREAM);
                 body.close();
                 return success(Stream.of(new HttpPart("AAS Part", bodyStream, mediaType)));
@@ -100,8 +108,18 @@ public class AasDataSource implements DataSource {
 
     @Override
     public void close() {
-        // no-op
+        var bodyStream = responseBodyStream.get();
+        if (bodyStream != null) {
+            bodyStream.responseBody().close();
+            try {
+                bodyStream.stream().close();
+            } catch (IOException e) {
+                // do nothing --> closing the response body should close the inputStream as well...
+            }
+        }
+    }
 
+    private record ResponseBodyStream(ResponseBody responseBody, InputStream stream) {
     }
 
     public static class Builder {

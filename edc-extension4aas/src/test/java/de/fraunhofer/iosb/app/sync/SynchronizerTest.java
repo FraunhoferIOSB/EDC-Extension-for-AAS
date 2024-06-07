@@ -54,6 +54,11 @@ public class SynchronizerTest {
     private Synchronizer synchronizer;
     private SelfDescriptionRepository selfDescriptionRepo;
 
+    private static final String PATH_PREFIX = "/api/v3.0";
+    private static final String SUBMODELS = PATH_PREFIX + "/submodels";
+    private static final String SHELLS = PATH_PREFIX + "/shells";
+    private static final String CONCEPT_DESCRIPTIONS = PATH_PREFIX + "/concept-descriptions";
+
     private final String shells = FileManager.loadResource("shells.json");
     private final String submodels = FileManager.loadResource("submodels.json");
     private final String submodelsNoSubmodelElements = FileManager.loadResource("submodelsNoSubmodelElements.json");
@@ -173,38 +178,38 @@ public class SynchronizerTest {
     }
 
     private void prepareRemovedSubmodelMockedResponse() {
-        mockServer.when(request().withMethod("GET").withPath("/api/v3.0/shells"), Times.exactly(1))
+        mockServer.when(request().withMethod("GET").withPath(SHELLS), Times.exactly(1))
                 .respond(response().withBody(shells));
-        mockServer.when(request().withMethod("GET").withPath("/api/v3.0/submodels"), Times.exactly(1))
+        mockServer.when(request().withMethod("GET").withPath(SUBMODELS), Times.exactly(1))
                 .respond(response().withBody(submodelsNoSubmodelElements));
-        mockServer.when(request().withMethod("GET").withPath("/api/v3.0/concept-descriptions"), Times.exactly(1))
+        mockServer.when(request().withMethod("GET").withPath(CONCEPT_DESCRIPTIONS), Times.exactly(1))
                 .respond(response().withBody(conceptDescriptions));
     }
 
     private void prepareAddedSubmodelElementMockedResponse() {
-        mockServer.when(request().withMethod("GET").withPath("/api/v3.0/shells"), Times.exactly(1))
+        mockServer.when(request().withMethod("GET").withPath(SHELLS), Times.exactly(1))
                 .respond(response().withBody(shells));
-        mockServer.when(request().withMethod("GET").withPath("/api/v3.0/submodels"), Times.exactly(1))
+        mockServer.when(request().withMethod("GET").withPath(SUBMODELS), Times.exactly(1))
                 .respond(response().withBody(oneSubmodelOneSubmodelElementMore));
-        mockServer.when(request().withMethod("GET").withPath("/api/v3.0/concept-descriptions"), Times.exactly(1))
+        mockServer.when(request().withMethod("GET").withPath(CONCEPT_DESCRIPTIONS), Times.exactly(1))
                 .respond(response().withBody(conceptDescriptions));
     }
 
     private void prepareDefaultMockedResponse() {
-        mockServer.when(request().withMethod("GET").withPath("/api/v3.0/shells"), Times.exactly(1))
+        mockServer.when(request().withMethod("GET").withPath(SHELLS), Times.exactly(1))
                 .respond(response().withBody(shells));
-        mockServer.when(request().withMethod("GET").withPath("/api/v3.0/submodels"), Times.exactly(1))
+        mockServer.when(request().withMethod("GET").withPath(SUBMODELS), Times.exactly(1))
                 .respond(response().withBody(submodels));
-        mockServer.when(request().withMethod("GET").withPath("/api/v3.0/concept-descriptions"), Times.exactly(1))
+        mockServer.when(request().withMethod("GET").withPath(CONCEPT_DESCRIPTIONS), Times.exactly(1))
                 .respond(response().withBody(conceptDescriptions));
     }
 
     private void prepareEmptyMockedResponse() {
-        mockServer.when(request().withMethod("GET").withPath("/api/v3.0/shells"), Times.exactly(1))
+        mockServer.when(request().withMethod("GET").withPath(SHELLS), Times.exactly(1))
                 .respond(response().withBody("[]"));
-        mockServer.when(request().withMethod("GET").withPath("/api/v3.0/submodels"), Times.exactly(1))
+        mockServer.when(request().withMethod("GET").withPath(SUBMODELS), Times.exactly(1))
                 .respond(response().withBody("[]"));
-        mockServer.when(request().withMethod("GET").withPath("/api/v3.0/concept-descriptions"), Times.exactly(1))
+        mockServer.when(request().withMethod("GET").withPath(CONCEPT_DESCRIPTIONS), Times.exactly(1))
                 .respond(response().withBody("[]"));
     }
 

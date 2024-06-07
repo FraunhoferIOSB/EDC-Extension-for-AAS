@@ -38,6 +38,7 @@ import org.eclipse.edc.spi.EdcException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
@@ -66,17 +67,25 @@ public class ModelParser {
     List<CustomConceptDescription> parseConceptDescriptions(String conceptDescriptions) {
         var elementList = readList(conceptDescriptions, ConceptDescription.class);
 
+        if (Objects.isNull(elementList)) {
+            return new ArrayList<>();
+        }
+
         return elementList.stream()
                 .map(CustomConceptDescription::fromConceptDescription)
                 .peek(element -> {
                     element.setSourceUrl(accessUrl);
                     element.setReferenceChain(
                             createReference(KeyTypes.CONCEPT_DESCRIPTION, element.getId()));
-                }).toList();
+                }).collect(Collectors.toCollection(ArrayList::new));
     }
 
     List<CustomAssetAdministrationShell> parseShells(String shells) {
         var elementList = readList(shells, AssetAdministrationShell.class);
+
+        if (Objects.isNull(elementList)) {
+            return new ArrayList<>();
+        }
 
         return elementList.stream()
                 .map(CustomAssetAdministrationShell::fromAssetAdministrationShell)
@@ -84,11 +93,15 @@ public class ModelParser {
                     element.setSourceUrl(accessUrl);
                     element.setReferenceChain(
                             createReference(KeyTypes.ASSET_ADMINISTRATION_SHELL, element.getId()));
-                }).toList();
+                }).collect(Collectors.toCollection(ArrayList::new));
     }
 
     List<CustomSubmodel> parseSubmodels(String submodels, boolean onlySubmodels) {
         var elementList = readList(submodels, Submodel.class);
+
+        if (Objects.isNull(elementList)) {
+            return new ArrayList<>();
+        }
 
         // Map from real Submodel to CustomSubmodel, get SubmodelElements
         List<CustomSubmodel> customSubmodels = new ArrayList<>();
@@ -116,7 +129,7 @@ public class ModelParser {
                             createReference(KeyTypes.SUBMODEL, element.getId()));
                     element.getSubmodelElements()
                             .forEach(elem -> putUrl(accessUrl, element.getReferenceChain(), elem));
-                }).toList();
+                }).collect(Collectors.toCollection(ArrayList::new));
     }
 
 

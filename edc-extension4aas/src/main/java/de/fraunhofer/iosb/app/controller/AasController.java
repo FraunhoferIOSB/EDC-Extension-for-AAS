@@ -23,7 +23,6 @@ import de.fraunhofer.iosb.app.aas.ssl.SelfSignedCertificateRetriever;
 import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShellEnvironment;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.DeserializationException;
-import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.io.IOException;

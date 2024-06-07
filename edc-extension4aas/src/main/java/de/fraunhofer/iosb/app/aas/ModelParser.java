@@ -100,7 +100,7 @@ public class ModelParser {
                     element.setReferenceChain(
                             createReference(KeyTypes.SUBMODEL, element.getId()));
                     element.getSubmodelElements()
-                            .forEach(elem -> putUrl(accessUrl, elem.getReferenceChain(), elem));
+                            .forEach(elem -> putUrl(accessUrl, element.getReferenceChain(), elem));
                 }).toList();
     }
 

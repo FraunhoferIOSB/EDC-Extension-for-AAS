@@ -18,10 +18,10 @@ package de.fraunhofer.iosb.client.datatransfer;
 import de.fraunhofer.iosb.api.PublicApiManagementService;
 import de.fraunhofer.iosb.client.authentication.DataTransferEndpointManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager;
-import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.configuration.Config;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.web.spi.WebService;
 
 import java.net.URL;
@@ -76,18 +76,18 @@ public class DataTransferController {
      * @param providerUrl        The provider from whom the data is to be fetched.
      * @param agreementId        Non-null ContractAgreement of the negotiation process.
      * @param assetId            The asset to be fetched.
-     * @param dataDestinationUrl HTTPDataAddress the result of the transfer should be
+     * @param dataSinkAddress    HTTPDataAddress the result of the transfer should be
      *                           sent to. (If null, send to extension and print in log)
      * @return A completable future whose result will be the data or an error message.
      * @throws InterruptedException If the data transfer was interrupted
      * @throws ExecutionException   If the data transfer process failed
      */
     public String initiateTransferProcess(URL providerUrl, String agreementId, String assetId,
-                                          URL dataDestinationUrl) throws InterruptedException, ExecutionException {
+                                          DataAddress dataSinkAddress) throws InterruptedException, ExecutionException {
         // Prepare for incoming data
         var dataFuture = dataTransferObservable.register(agreementId);
 
-        if (Objects.isNull(dataDestinationUrl)) {
+        if (Objects.isNull(dataSinkAddress)) {
             var apiKey = UUID.randomUUID().toString();
             dataTransferEndpointManager.addTemporaryEndpoint(agreementId, DATA_TRANSFER_API_KEY, apiKey);
 
@@ -95,10 +95,6 @@ public class DataTransferController {
             return waitForData(dataFuture, agreementId);
         } else {
             // Send data to custom target url
-            var dataSinkAddress = HttpDataAddress.Builder.newInstance()
-                    .baseUrl(dataDestinationUrl.toString())
-                    .build();
-
             this.transferInitiator.initiateTransferProcess(providerUrl, agreementId, assetId, dataSinkAddress);
             // Don't have to wait for data
             return null;

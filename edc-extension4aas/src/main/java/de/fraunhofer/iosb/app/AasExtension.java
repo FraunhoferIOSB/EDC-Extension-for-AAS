@@ -20,6 +20,7 @@ import de.fraunhofer.iosb.api.model.HttpMethod;
 import de.fraunhofer.iosb.app.controller.AasController;
 import de.fraunhofer.iosb.app.controller.ConfigurationController;
 import de.fraunhofer.iosb.app.controller.ResourceController;
+import de.fraunhofer.iosb.app.dataplane.aas.pipeline.AasDataSinkFactory;
 import de.fraunhofer.iosb.app.dataplane.aas.pipeline.AasDataSourceFactory;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
@@ -30,6 +31,7 @@ import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionS
 import org.eclipse.edc.connector.dataplane.http.params.HttpRequestParamsProviderImpl;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -51,39 +53,41 @@ import java.util.concurrent.TimeUnit;
  */
 public class AasExtension implements ServiceExtension {
 
-    // Non-public unified authentication request filter management service
-    @Inject
+
+    @Inject // Register public endpoints
     private PublicApiManagementService publicApiManagementService;
 
-    @Inject
+    @Inject // Create / manage EDC assets
     private AssetIndex assetIndex;
-    @Inject
+    @Inject // Create / manage EDC contracts
     private ContractDefinitionStore contractStore;
-    @Inject // AAS Data Source Factory
+    @Inject // AAS Data Source/Sink Factory
     private PipelineService pipelineService;
-    @Inject
+    @Inject // Create / manage EDC policies
     private PolicyDefinitionStore policyStore;
-    @Inject // AAS Data Source Factory
+    @Inject // AAS Data Source/Sink Factory
     private TypeManager typeManager;
-    @Inject // AAS Data Source Factory
+    @Inject // AAS Data Source/Sink Factory
     private Vault vault;
-    @Inject
+    @Inject // Register http endpoint at EDC
     private WebService webService;
 
     private static final String SETTINGS_PREFIX = "edc.aas";
-    private static final Logger LOGGER = Logger.getInstance();
 
+    private Monitor monitor;
     private ScheduledExecutorService syncExecutor;
     private AasController aasController;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var configurationController = new ConfigurationController(context.getConfig(SETTINGS_PREFIX));
+        this.monitor = context.getMonitor().withPrefix("EDC4AAS");
+
+        var configurationController = new ConfigurationController(context.getConfig(SETTINGS_PREFIX), monitor);
 
         // Distribute controllers, repository
         var selfDescriptionRepository = new SelfDescriptionRepository();
-        this.aasController = new AasController();
-        var endpoint = new Endpoint(selfDescriptionRepository, this.aasController, configurationController);
+        this.aasController = new AasController(monitor);
+        var endpoint = new Endpoint(selfDescriptionRepository, this.aasController, configurationController, monitor);
 
         // Initialize/Start synchronizer, start AAS services defined in configuration
         initializeSynchronizer(selfDescriptionRepository);
@@ -97,8 +101,11 @@ public class AasExtension implements ServiceExtension {
 
         // Register AAS Data Source factory for dataTransfer with self-signed certificates on FA³ST side
         var paramsProvider = new HttpRequestParamsProviderImpl(vault, typeManager);
-        var aasDataSourceFactory = new AasDataSourceFactory(paramsProvider, context.getMonitor());
+        var aasDataSourceFactory = new AasDataSourceFactory(monitor);
+        var aasDataSinkFactory = new AasDataSinkFactory(paramsProvider, monitor);
+
         pipelineService.registerFactory(aasDataSourceFactory);
+        pipelineService.registerFactory(aasDataSinkFactory);
 
         webService.registerResource(endpoint);
     }
@@ -127,13 +134,13 @@ public class AasExtension implements ServiceExtension {
 
             selfDescriptionRepository.createSelfDescription(serviceUrl);
         } catch (IOException startAssetAdministrationShellException) {
-            LOGGER.warning("Could not start AAS service provided by configuration", startAssetAdministrationShellException);
+            monitor.warning("Could not start AAS service provided by configuration", startAssetAdministrationShellException);
         }
     }
 
     private void initializeSynchronizer(SelfDescriptionRepository selfDescriptionRepository) {
         var synchronizer = new Synchronizer(selfDescriptionRepository, aasController,
-                new ResourceController(assetIndex, contractStore, policyStore));
+                new ResourceController(assetIndex, contractStore, policyStore, monitor));
         selfDescriptionRepository.registerListener(synchronizer);
 
         // Task: get all AAS service URLs, synchronize EDC and AAS
@@ -144,8 +151,10 @@ public class AasExtension implements ServiceExtension {
 
     @Override
     public void shutdown() {
-        LOGGER.info("Shutting down EDC4AAS extension...");
-        syncExecutor.shutdown();
+        monitor.info("Shutting down EDC4AAS extension...");
+        if (syncExecutor != null) {
+            syncExecutor.shutdown();
+        }
         aasController.stopServices();
     }
 }

@@ -21,10 +21,10 @@ import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.json.JsonMapper;
-import de.fraunhofer.iosb.app.Logger;
 import de.fraunhofer.iosb.app.RequestType;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 
@@ -35,15 +35,15 @@ import java.net.URL;
  */
 public class ConfigurationController implements Controllable {
 
-    private final Logger logger;
+    private final Monitor monitor;
     private final Config sysConfig;
     private Configuration configuration;
     private final ObjectMapper objectMapper;
     private final ObjectReader objectReader;
 
-    public ConfigurationController(Config config) {
+    public ConfigurationController(Config config, Monitor monitor) {
         this.sysConfig = config;
-        logger = Logger.getInstance();
+        this.monitor = monitor;
         configuration = Configuration.getInstance();
         objectMapper = JsonMapper.builder().configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true).build();
         objectReader = objectMapper.readerForUpdating(configuration);
@@ -55,7 +55,7 @@ public class ConfigurationController implements Controllable {
         try {
             configuration = objectReader.readValue(objectMapper.writeValueAsString(sysConfig.getEntries()));
         } catch (JsonProcessingException jsonProcessingException) {
-            logger.severe("Initiailzing AAS extension configuration failed",
+            monitor.severe("Initializing AAS extension configuration failed",
                     jsonProcessingException);
         }
 
@@ -75,7 +75,7 @@ public class ConfigurationController implements Controllable {
             var serializedConfiguration = objectMapper.writeValueAsString(configuration);
             return Response.status(Response.Status.OK).entity(serializedConfiguration).build();
         } catch (JsonProcessingException jsonProcessingException) {
-            logger.severe("Serialization of configuration object failed.\n", jsonProcessingException);
+            monitor.severe("Serialization of configuration object failed.\n", jsonProcessingException);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -90,7 +90,7 @@ public class ConfigurationController implements Controllable {
             Config mergedConfig = sysConfig.merge(newConfig);
             configuration = objectReader.readValue(objectMapper.writeValueAsString(mergedConfig.getEntries()));
         } catch (JsonProcessingException jsonProcessingException) {
-            logger.severe("Updating configuration to this configuration failed:\n" + newConfigValues,
+            monitor.severe("Updating configuration to this configuration failed:\n" + newConfigValues,
                     jsonProcessingException);
             return Response.status(Response.Status.BAD_REQUEST).build();
         }

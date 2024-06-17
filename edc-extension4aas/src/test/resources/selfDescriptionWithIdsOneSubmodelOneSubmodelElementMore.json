@@ -2,7 +2,7 @@
   "assetAdministrationShells": [
     {
       "idsContractId": "DEFAULT_CONTRACT2",
-      "idsAssetId": "1521042482",
+      "idsAssetId": "-1484950248",
       "idShort": "ExampleAAS",
       "id": "https://example.com/ids/sm/3122_5150_2042_4130",
       "assetInformation": {
@@ -15,18 +15,18 @@
   "submodels": [
     {
       "idsContractId": "DEFAULT_CONTRACT3",
-      "idsAssetId": "-195703650",
+      "idsAssetId": "1370626040",
       "idShort": "ExampleSubmodel1",
       "id": "https://example.org/submodel/1",
       "submodelElements": [
         {
           "idsContractId": "DEFAULT_CONTRACT5",
-          "idsAssetId": "1974016668",
+          "idsAssetId": "-1243635682",
           "idShort": "IntegerValue"
         },
         {
           "idsContractId": "DEFAULT_CONTRACT9",
-          "idsAssetId": "425310284",
+          "idsAssetId": "-537664758",
           "idShort": "AddedProperty"
         }
       ],
@@ -42,23 +42,23 @@
     },
     {
       "idsContractId": "DEFAULT_CONTRACT4",
-      "idsAssetId": "-195703649",
+      "idsAssetId": "1370626041",
       "idShort": "ExampleSubmodel2",
       "id": "https://example.org/submodel/2",
       "submodelElements": [
         {
           "idsContractId": "DEFAULT_CONTRACT8",
-          "idsAssetId": "-351731938",
+          "idsAssetId": "-1994137410",
           "idShort": "ExampleCollection",
           "value": [
             {
               "idsContractId": "DEFAULT_CONTRACT6",
-              "idsAssetId": "-1502725331",
+              "idsAssetId": "-763441779",
               "idShort": "CollectionEntry1"
             },
             {
               "idsContractId": "DEFAULT_CONTRACT7",
-              "idsAssetId": "-1502725330",
+              "idsAssetId": "-763441778",
               "idShort": "CollectionEntry2"
             }
           ]
@@ -69,7 +69,7 @@
   "conceptDescriptions": [
     {
       "idsContractId": "DEFAULT_CONTRACT1",
-      "idsAssetId": "-2084733481",
+      "idsAssetId": "-1819874755",
       "idShort": "ExampleConceptDescription",
       "embeddedDataSpecifications": [
         {

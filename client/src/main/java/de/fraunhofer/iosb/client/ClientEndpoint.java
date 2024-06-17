@@ -39,6 +39,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractO
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 
 import java.io.StringReader;
 import java.net.URL;
@@ -152,10 +153,10 @@ public class ClientEndpoint {
      * Negotiate a contract agreement using the given contract offer if no agreement
      * exists for this constellation.
      *
-     * @param counterPartyUrl    Provider EDCs URL (DSP endpoint)
-     * @param counterPartyId     Provider EDCs ID
-     * @param assetId            ID of the asset to be retrieved
-     * @param dataDestinationUrl URL of destination data sink.
+     * @param counterPartyUrl Provider EDCs URL (DSP endpoint)
+     * @param counterPartyId  Provider EDCs ID
+     * @param assetId         ID of the asset to be retrieved
+     * @param dataAddress     DataAddress of destination data sink.
      * @return Asset data
      */
     @POST
@@ -163,7 +164,7 @@ public class ClientEndpoint {
     public Response negotiateContract(@QueryParam("providerUrl") URL counterPartyUrl,
                                       @QueryParam("providerId") String counterPartyId,
                                       @QueryParam("assetId") String assetId,
-                                      @QueryParam("dataDestinationUrl") URL dataDestinationUrl) {
+                                      DataAddress dataAddress) {
         monitor.debug(format("[Client] Received a %s POST request", NEGOTIATE_PATH));
         Objects.requireNonNull(counterPartyUrl, "Provider URL must not be null");
         Objects.requireNonNull(counterPartyId, "Provider ID must not be null");
@@ -201,7 +202,7 @@ public class ClientEndpoint {
                     .build();
         }
 
-        return getData(counterPartyUrl, agreement.getId(), assetId, dataDestinationUrl);
+        return getData(counterPartyUrl, agreement.getId(), assetId, dataAddress);
     }
 
     /**
@@ -237,19 +238,21 @@ public class ClientEndpoint {
 
     /**
      * Submits a data transfer request to the providerUrl.
+     * In the future this could be replaced with the
+     * <a href="https://www.ietf.org/archive/id/draft-ietf-httpbis-safe-method-w-body-02.html">HTTP QUERY method</a>
      *
-     * @param providerUrl        The data provider's url
-     * @param agreementId        The basis of the data transfer.
-     * @param assetId            The asset of which the data should be transferred
-     * @param dataDestinationUrl URL of destination data sink.
+     * @param providerUrl The data provider's url
+     * @param agreementId The basis of the data transfer.
+     * @param assetId     The asset of which the data should be transferred
+     * @param dataAddress URL of destination data sink.
      * @return On success, the data of the desired asset. Else, returns an error message.
      */
-    @GET
+    @POST
     @Path(TRANSFER_PATH)
     public Response getData(@QueryParam("providerUrl") URL providerUrl,
                             @QueryParam("agreementId") String agreementId,
                             @QueryParam("assetId") String assetId,
-                            @QueryParam("dataDestinationUrl") URL dataDestinationUrl) {
+                            DataAddress dataAddress) {
         monitor.debug(format("[Client] Received a %s GET request", TRANSFER_PATH));
         Objects.requireNonNull(providerUrl, "providerUrl must not be null");
         Objects.requireNonNull(agreementId, "agreementId must not be null");
@@ -257,11 +260,11 @@ public class ClientEndpoint {
 
         try {
             var data = transferController.initiateTransferProcess(providerUrl, agreementId, assetId,
-                    dataDestinationUrl);
-            if (Objects.isNull(dataDestinationUrl)) {
+                    dataAddress);
+            if (Objects.isNull(dataAddress)) {
                 return Response.ok(data).build();
             } else {
-                return Response.ok(format("Data transfer request to URL %s sent.", dataDestinationUrl)).build();
+                return Response.ok("Data transfer request sent.").build();
             }
         } catch (InterruptedException | ExecutionException negotiationException) {
             monitor.severe(format("[Client] Data transfer failed for provider %s and agreementId %s", providerUrl,

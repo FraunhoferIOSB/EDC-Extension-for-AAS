@@ -32,6 +32,7 @@ import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.DeserializationException
 import org.eclipse.edc.spi.EdcException;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collection;
 import java.util.List;
@@ -65,7 +66,11 @@ public class Synchronizer implements SelfDescriptionChangeListener {
      */
     public void synchronize() {
         for (var selfDescription : selfDescriptionRepository.getAllSelfDescriptions()) {
-            synchronize(selfDescription.getKey());
+            try {
+                synchronize(new URL(selfDescription.getKey()));
+            } catch (MalformedURLException e) {
+                throw new EdcException("AAS URL malformed while synchronizing", e);
+            }
         }
     }
 
@@ -75,26 +80,21 @@ public class Synchronizer implements SelfDescriptionChangeListener {
         var oldSelfDescription = selfDescriptionRepository.getSelfDescription(aasServiceUrl);
         var newEnvironment = fetchCurrentAasModel(aasServiceUrl, onlySubmodels);
 
-        // Only load submodels or shells, conceptDescriptions, submodelElements as well?
+        CustomAssetAdministrationShellEnvironment oldEnvironment;
 
-        if (Objects.nonNull(oldSelfDescription)) {
-            var oldEnvironment = oldSelfDescription.getEnvironment();
-
-            // For all shells, conceptDescriptions, submodels, submodelElements:
-            // Check whether any element was added or removed.
-            // If a new element was added: This element is now in newEnvironment without
-            // idsContractId/idsAssetId field.
-            // If the element exists in oldEnvironment, copy the old elements into
-            // newEnvironment, already having an idsContractId/idsAssetId
-            syncShell(newEnvironment, oldEnvironment);
-            syncConceptDescription(newEnvironment, oldEnvironment);
-
-            syncSubmodel(newEnvironment, oldEnvironment);
-
-            removeOldElements(newEnvironment, oldEnvironment);
-
-            // Finally, update the self-description
+        if (Objects.isNull(oldSelfDescription)) {
+            oldEnvironment = new CustomAssetAdministrationShellEnvironment();
+        } else {
+            oldEnvironment = oldSelfDescription.getEnvironment();
         }
+
+        // Check whether any element was added or removed.
+        // - Added elements need idsContractId/idsAssetId
+        // - Existing elements are copied into newEnvironment
+        syncShell(newEnvironment, oldEnvironment);
+        syncConceptDescription(newEnvironment, oldEnvironment);
+        syncSubmodel(newEnvironment, oldEnvironment);
+
         addNewElements(newEnvironment);
         selfDescriptionRepository.updateSelfDescription(aasServiceUrl, newEnvironment);
     }
@@ -119,16 +119,6 @@ public class Synchronizer implements SelfDescriptionChangeListener {
         addAssetsContracts(envElements.stream().filter(
                         element -> Objects.isNull(element.getIdsAssetId()) || Objects.isNull(element.getIdsContractId()))
                 .toList());
-    }
-
-    /*
-     * Removes elements that were deleted on AAS service
-     */
-    private void removeOldElements(CustomAssetAdministrationShellEnvironment newEnvironment,
-                                   CustomAssetAdministrationShellEnvironment oldEnvironment) {
-        var elementsToRemove = AssetAdministrationShellUtil.getAllElements(oldEnvironment);
-        elementsToRemove.removeAll(AssetAdministrationShellUtil.getAllElements(newEnvironment));
-        removeAssetsContracts(elementsToRemove);
     }
 
     private void syncShell(CustomAssetAdministrationShellEnvironment newEnvironment,
@@ -190,8 +180,9 @@ public class Synchronizer implements SelfDescriptionChangeListener {
         elements.forEach(element -> {
             // Version unknown, MediaType is "application/json" by default
             var assetContractPair = resourceController.createResource(element.getSourceUrl(),
+                    element.getReferenceChain(),
                     ((AssetAdministrationShellElement) element).getIdShort(),
-                    MediaType.APPLICATION_JSON, null);
+                    MediaType.APPLICATION_JSON);
             element.setIdsAssetId(assetContractPair.getFirst());
             element.setIdsContractId(assetContractPair.getSecond());
         });

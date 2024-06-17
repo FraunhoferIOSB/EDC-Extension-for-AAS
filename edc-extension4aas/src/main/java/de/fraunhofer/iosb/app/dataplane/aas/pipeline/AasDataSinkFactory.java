@@ -16,25 +16,30 @@
 package de.fraunhofer.iosb.app.dataplane.aas.pipeline;
 
 import de.fraunhofer.iosb.app.util.HttpRestClient;
-import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;
-import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSourceFactory;
+import org.eclipse.edc.connector.dataplane.http.params.HttpRequestFactory;
+import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParamsProvider;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSink;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSinkFactory;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.jetbrains.annotations.NotNull;
 
+import static de.fraunhofer.iosb.app.dataplane.aas.pipeline.AasDataSourceFactory.AAS_DATA_TYPE;
 
 /**
  * Inspired by {@link org.eclipse.edc.connector.dataplane.http.pipeline.HttpDataSourceFactory}
  */
-public class AasDataSourceFactory implements DataSourceFactory {
-
-    public static final String AAS_DATA_TYPE = "AasData";
+public class AasDataSinkFactory implements DataSinkFactory {
 
     private final Monitor monitor;
+    private final HttpRequestParamsProvider requestParamsProvider;
+    private final HttpRequestFactory requestFactory;
 
-    public AasDataSourceFactory(Monitor monitor) {
+    public AasDataSinkFactory(HttpRequestParamsProvider requestParamsProvider, Monitor monitor) {
         this.monitor = monitor;
+        this.requestParamsProvider = requestParamsProvider;
+        this.requestFactory = new HttpRequestFactory();
     }
 
     @Override
@@ -43,24 +48,22 @@ public class AasDataSourceFactory implements DataSourceFactory {
     }
 
     @Override
-    public DataSource createSource(DataFlowStartMessage request) {
-        var dataSource = (AasDataAddress) request.getSourceDataAddress();
-        return AasDataSource.Builder.newInstance()
+    public DataSink createSink(DataFlowStartMessage request) {
+        return AasDataSink.Builder.newInstance()
+                // Self-signed also possible for sinks
                 .httpClient(HttpRestClient.getInstance())
                 .monitor(monitor)
-                .requestId(request.getId())
-                .baseUrl(dataSource.getBaseUrl())
-                .path(dataSource.referenceChainAsPath())
-                .headers(dataSource.getAdditionalHeaders())
+                .params(requestParamsProvider.provideSinkParams(request))
+                .requestFactory(requestFactory)
                 .build();
     }
 
     @Override
     public @NotNull Result<Void> validateRequest(DataFlowStartMessage request) {
         try {
-            createSource(request);
+            createSink(request);
         } catch (Exception e) {
-            return Result.failure("Failed to build AasDataSource: " + e.getMessage());
+            return Result.failure("Failed to build AasDataSink: " + e.getMessage());
         }
         return Result.success();
     }

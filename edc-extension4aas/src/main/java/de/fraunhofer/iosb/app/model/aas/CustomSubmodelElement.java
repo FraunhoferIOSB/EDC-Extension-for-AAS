@@ -18,9 +18,9 @@ package de.fraunhofer.iosb.app.model.aas;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.eclipse.digitaltwin.aas4j.v3.model.Qualifier;
+import org.eclipse.digitaltwin.aas4j.v3.model.annotations.KnownSubtypes;
 
 import java.util.List;
 import java.util.Objects;
@@ -28,7 +28,7 @@ import java.util.Objects;
 @JsonAutoDetect
 @JsonTypeInfo(use = JsonTypeInfo.Id.DEDUCTION)
 @JsonInclude(Include.NON_NULL)
-@JsonSubTypes.Type(CustomSubmodelElementCollection.class)
+@KnownSubtypes({@KnownSubtypes.Type(CustomSubmodelElementCollection.class), @KnownSubtypes.Type(CustomSubmodelElementList.class)})
 public class CustomSubmodelElement extends AssetAdministrationShellElement {
 
     protected List<Qualifier> qualifiers;

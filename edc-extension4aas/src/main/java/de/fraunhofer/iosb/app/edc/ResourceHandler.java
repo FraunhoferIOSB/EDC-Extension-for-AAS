@@ -16,6 +16,7 @@
 package de.fraunhofer.iosb.app.edc;
 
 import de.fraunhofer.iosb.app.dataplane.aas.pipeline.AasDataAddress;
+import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 
@@ -36,17 +37,21 @@ public class ResourceHandler {
      * @param sourceUrl   Data of the asset
      * @param name        The name of the asset (e.g., idShort)
      * @param contentType Content behind the sourceUrl
-     * @param version     For versioning of assets
      * @return asset ID of created asset
      */
-    public String createAsset(String sourceUrl, String name, String contentType, String version) {
-        var assetId = createAssetId(sourceUrl);
-        var dataAddress = AasDataAddress.Builder.newInstance().baseUrl(sourceUrl).build();
+    public String createAsset(String sourceUrl, Reference referenceChain, String name, String contentType) {
+        var dataAddress = AasDataAddress.Builder.newInstance()
+                .baseUrl(sourceUrl)
+                .referenceChain(referenceChain)
+                .method("GET")
+                .build();
+
+        var assetId = createAssetId(dataAddress.referenceChainAsPath());
+
         var asset = Asset.Builder.newInstance()
                 .id(assetId)
                 .name(name)
                 .contentType(contentType)
-                .version(version)
                 .dataAddress(dataAddress)
                 .build();
         assetIndex.create(asset);

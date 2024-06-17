@@ -9,7 +9,10 @@ services:
       - "8182:8182"
       - "8282:8282"
     environment:
-      EDC_FS_CONFIG: /configurations/docker-provider.properties
+      EDC_FS_CONFIG: /resources/docker-provider.properties
+    volumes:
+      - ./configurations:/resources
+      - ./resources:/resources
   consumer:
     image: edc-aas-extension:latest
     ports:
@@ -18,4 +21,6 @@ services:
       - "9192:9192"
       - "9292:9292"
     environment:
-      EDC_FS_CONFIG: /configurations/docker-consumer.properties
+      EDC_FS_CONFIG: /resources/docker-consumer.properties
+    volumes:
+      - ./configurations:/resources

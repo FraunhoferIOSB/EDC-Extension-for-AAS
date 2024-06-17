@@ -79,7 +79,7 @@ public class SelfDescriptionRepository extends ObservableImpl<SelfDescriptionCha
      * @param aasUrl URL of self-description to be updated
      */
     public void removeSelfDescription(URL aasUrl) {
-        var toBeRemoved = content.remove(aasUrl.toString());
-        this.getListeners().forEach(listener -> listener.removed(toBeRemoved));
+        content.remove(aasUrl.toString());
+        this.getListeners().forEach(listener -> listener.removed(aasUrl));
     }
 }

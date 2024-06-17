@@ -29,8 +29,8 @@ public interface SelfDescriptionChangeListener {
     /**
      * Called when a self-description was removed
      *
-     * @param removed The SelfDescription of the unregistered AAS service
+     * @param removed The URL of the unregistered AAS service
      */
-    void removed(SelfDescription removed);
+    void removed(URL removed);
 
 }

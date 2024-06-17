@@ -23,7 +23,6 @@ import de.fraunhofer.iosb.app.model.aas.CustomSubmodel;
 import de.fraunhofer.iosb.app.model.aas.CustomSubmodelElement;
 import de.fraunhofer.iosb.app.model.aas.IdsAssetElement;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
-import de.fraunhofer.iosb.app.model.ids.SelfDescription;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionChangeListener;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
 import de.fraunhofer.iosb.app.util.AssetAdministrationShellUtil;
@@ -78,15 +77,12 @@ public class Synchronizer implements SelfDescriptionChangeListener {
         var onlySubmodels = this.configuration.isOnlySubmodels();
 
         var oldSelfDescription = selfDescriptionRepository.getSelfDescription(aasServiceUrl);
+
+        var oldEnvironment = Objects.isNull(oldSelfDescription) ?
+                new CustomAssetAdministrationShellEnvironment() :
+                oldSelfDescription.getEnvironment();
+
         var newEnvironment = fetchCurrentAasModel(aasServiceUrl, onlySubmodels);
-
-        CustomAssetAdministrationShellEnvironment oldEnvironment;
-
-        if (Objects.isNull(oldSelfDescription)) {
-            oldEnvironment = new CustomAssetAdministrationShellEnvironment();
-        } else {
-            oldEnvironment = oldSelfDescription.getEnvironment();
-        }
 
         // Check whether any element was added or removed.
         // - Added elements need idsContractId/idsAssetId
@@ -194,12 +190,15 @@ public class Synchronizer implements SelfDescriptionChangeListener {
 
     @Override
     public void created(URL aasUrl) {
-        synchronize(aasUrl);
+        if (aasController.addCertificates(aasUrl).succeeded()) {
+            synchronize(aasUrl);
+        }
     }
 
     @Override
-    public void removed(SelfDescription removed) {
-        var allElements = AssetAdministrationShellUtil.getAllElements(removed.getEnvironment());
+    public void removed(URL removed) {
+        aasController.removeCertificates(removed);
+        var allElements = AssetAdministrationShellUtil.getAllElements(selfDescriptionRepository.getSelfDescription(removed).getEnvironment());
         removeAssetsContracts(allElements);
     }
 

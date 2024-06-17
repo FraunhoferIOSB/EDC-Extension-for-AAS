@@ -31,7 +31,6 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 import jakarta.ws.rs.core.Response.Status.Family;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.io.IOException;
@@ -119,10 +118,8 @@ public class Endpoint {
             return Response.ok("Service was already registered at EDC").build();
         }
         // accept certificate if self-signed
-        try {
-            aasController.addCertificates(aasServiceUrl);
-        } catch (IOException certificateException) {
-            throw new EdcException("Failed to add certificates", certificateException);
+        if (aasController.addCertificates(aasServiceUrl).failed()) {
+            return Response.notModified("Failed to add certificates").build();
         }
         selfDescriptionRepository.createSelfDescription(aasServiceUrl);
 

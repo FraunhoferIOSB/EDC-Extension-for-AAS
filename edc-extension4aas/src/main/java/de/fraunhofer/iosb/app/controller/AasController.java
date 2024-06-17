@@ -24,6 +24,7 @@ import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShellEnvironmen
 import jakarta.ws.rs.core.Response;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.DeserializationException;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.result.Result;
 
 import java.io.IOException;
 import java.net.URL;
@@ -105,7 +106,6 @@ public class AasController implements Controllable {
                     aasModelPath, aasConfigPath));
             serviceUrl = aasServiceManager.startService(aasModelPath, aasConfigPath, aasServicePort);
         }
-        addCertificates(serviceUrl);
 
         return serviceUrl;
     }
@@ -131,18 +131,23 @@ public class AasController implements Controllable {
         aasServiceManager.stopServices();
     }
 
-    public void addCertificates(URL aasServiceUrl) throws IOException {
+    public Result<Void> addCertificates(URL aasServiceUrl) {
+        // TODO rename to something like "make extension accept this url" since http services and services with "real" certificates should also yield a successful result
         // Check if HTTPS and self-signed certificate both apply
         if (!aasServiceUrl.getProtocol().equalsIgnoreCase(HTTPS)) {
-            return;
+            return Result.success();
         }
-        var certs = SelfSignedCertificateRetriever.getSelfSignedCertificate(aasServiceUrl);
+
         try {
+            var certs = SelfSignedCertificateRetriever.getSelfSignedCertificate(aasServiceUrl);
             aasAgent.addCertificates(aasServiceUrl, certs);
-        } catch (KeyStoreException | NoSuchAlgorithmException generalSecurityException) {
+        } catch (KeyStoreException | NoSuchAlgorithmException | IOException addCertificateException) {
             // This means we probably cannot communicate with the server... warn user
-            monitor.warning("Could not add service's certificate to trust manager, communication will probably not be possible.", generalSecurityException);
+            monitor.warning("Could not add service's certificate to trust manager, communication will probably not be possible.", addCertificateException);
+            return Result.failure(addCertificateException.getMessage());
         }
+
+        return Result.success();
     }
 
     public void removeCertificates(URL aasServiceUrl) {

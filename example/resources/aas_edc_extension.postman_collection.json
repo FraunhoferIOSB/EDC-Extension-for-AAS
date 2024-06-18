@@ -250,7 +250,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"@context\": {\r\n        \"edc\": \"https://w3id.org/edc/v0.0.1/ns/\",\r\n        \"odrl\": \"http://www.w3.org/ns/odrl/2/\"\r\n    },\r\n    \"providerId\": \"provider\",\r\n    \"protocol\": \"dataspace-protocol-http\",\r\n    \"counterPartyId\": \"provider\",\r\n    \"counterPartyAddress\": \"{{provider-dsp}}\",\r\n    \"contractOffer\": {\r\n    \"id\": \"REVGQVVMVF9DT05UUkFDVDI2:LTE1MzMzNTMwOTQ=:YzI2NjNhZDAtMmRkNC00ZGYxLTljNDEtMGNhMWQxZjg3OWMw\",\r\n    \"policy\": {\r\n        \"permissions\": [\r\n            {\r\n                \"edctype\": \"dataspaceconnector:permission\",\r\n                \"action\": {\r\n                    \"type\": \"USE\",\r\n                    \"includedIn\": null,\r\n                    \"constraint\": null\r\n                },\r\n                \"constraints\": [],\r\n                \"duties\": []\r\n            }\r\n        ],\r\n        \"prohibitions\": [],\r\n        \"obligations\": [],\r\n        \"extensibleProperties\": {},\r\n        \"inheritsFrom\": null,\r\n        \"assigner\": \"provider\",\r\n        \"assignee\": null,\r\n        \"target\": \"-1533353094\",\r\n        \"@type\": {\r\n            \"@policytype\": \"offer\"\r\n        }\r\n    },\r\n    \"assetId\": \"-1533353094\"\r\n}\r\n}",
+							"raw": "{\r\n    \"@context\": {\r\n        \"edc\": \"https://w3id.org/edc/v0.0.1/ns/\",\r\n        \"odrl\": \"http://www.w3.org/ns/odrl/2/\"\r\n    },\r\n    \"providerId\": \"provider\",\r\n    \"protocol\": \"dataspace-protocol-http\",\r\n    \"counterPartyId\": \"provider\",\r\n    \"counterPartyAddress\": \"{{provider-dsp}}\",\r\n    \"contractOffer\": {\r\n        \"id\": \"REVGQVVMVF9DT05UUkFDVDMw:MTY5NjE5ODM3Ng==:MGUzY2UxZDMtMjliYi00YzQ3LTlkN2QtODM2YTQ2MmMzNTQ1\",\r\n        \"policy\": {\r\n            \"permissions\": [\r\n                {\r\n                    \"edctype\": \"dataspaceconnector:permission\",\r\n                    \"action\": {\r\n                        \"type\": \"USE\",\r\n                        \"includedIn\": null,\r\n                        \"constraint\": null\r\n                    },\r\n                    \"constraints\": [],\r\n                    \"duties\": []\r\n                }\r\n            ],\r\n            \"prohibitions\": [],\r\n            \"obligations\": [],\r\n            \"extensibleProperties\": {},\r\n            \"inheritsFrom\": null,\r\n            \"assigner\": \"provider\",\r\n            \"assignee\": null,\r\n            \"target\": \"1696198376\",\r\n            \"@type\": {\r\n                \"@policytype\": \"offer\"\r\n            }\r\n        },\r\n        \"assetId\": \"1696198376\"\r\n    }\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -272,9 +272,9 @@
 					"response": []
 				},
 				{
-					"name": "3. Get data for agreement id and asset id",
+					"name": "3. Get data",
 					"request": {
-						"method": "GET",
+						"method": "POST",
 						"header": [
 							{
 								"key": "x-api-key",
@@ -435,7 +435,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{provider}}/api/client?url=http://localhost:12345",
+							"raw": "{{provider}}/api/client?url=https://localhost:12345",
 							"host": [
 								"{{provider}}"
 							],
@@ -446,7 +446,7 @@
 							"query": [
 								{
 									"key": "url",
-									"value": "http://localhost:12345"
+									"value": "https://localhost:12345"
 								}
 							]
 						}
@@ -492,7 +492,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{provider}}/api/aas?requestUrl=http://localhost:12345/api/v3.0/submodels/aHR0cHM6Ly9leGFtcGxlLmNvbS9pZHMvc20vMTE0NV84MDkwXzYwMTJfNTA5Nw",
+							"raw": "{{provider}}/api/aas?requestUrl=https://localhost:12345/api/v3.0/submodels/aHR0cHM6Ly9leGFtcGxlLmNvbS9pZHMvc20vMTE0NV84MDkwXzYwMTJfNTA5Nw",
 							"host": [
 								"{{provider}}"
 							],
@@ -503,7 +503,7 @@
 							"query": [
 								{
 									"key": "requestUrl",
-									"value": "http://localhost:12345/api/v3.0/submodels/aHR0cHM6Ly9leGFtcGxlLmNvbS9pZHMvc20vMTE0NV84MDkwXzYwMTJfNTA5Nw"
+									"value": "https://localhost:12345/api/v3.0/submodels/aHR0cHM6Ly9leGFtcGxlLmNvbS9pZHMvc20vMTE0NV84MDkwXzYwMTJfNTA5Nw"
 								}
 							]
 						}
@@ -618,8 +618,7 @@
 						"header": [
 							{
 								"key": "x-api-key",
-								"value": "password",
-								"type": "default"
+								"value": "password"
 							}
 						],
 						"body": {
@@ -658,7 +657,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"@context\": {\r\n        \"edc\": \"https://w3id.org/edc/v0.0.1/ns/\"\r\n    },\r\n    \"providerUrl\": \"{{provider-dsp}}\",\r\n    \"protocol\": \"dataspace-protocol-http\"\r\n}",
+							"raw": "{\r\n    \"@context\": {\r\n        \"edc\": \"https://w3id.org/edc/v0.0.1/ns/\"\r\n    },\r\n    \"counterPartyAddress\": \"{{provider-dsp}}\",\r\n    \"protocol\": \"dataspace-protocol-http\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"

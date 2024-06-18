@@ -114,9 +114,6 @@ public class AasController implements Controllable {
      */
     public void stopAssetAdministrationShellService(URL aasServiceUrl) {
         monitor.info(format("Shutting down AAS service with URL %s...", aasServiceUrl.toString()));
-
-        removeCertificates(aasServiceUrl);
-
         aasServiceManager.stopService(aasServiceUrl);
     }
 

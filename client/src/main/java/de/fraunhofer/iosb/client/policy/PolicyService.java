@@ -90,7 +90,6 @@ class PolicyService {
     }
 
     Dataset getDatasetForAssetId(@NotNull String counterPartyId, @NotNull URL counterPartyUrl, @NotNull String assetId) throws InterruptedException {
-
         var catalogFuture = catalogService.requestCatalog(
                 counterPartyId, // why do we even need a provider id when we have the url...
                 counterPartyUrl.toString(),

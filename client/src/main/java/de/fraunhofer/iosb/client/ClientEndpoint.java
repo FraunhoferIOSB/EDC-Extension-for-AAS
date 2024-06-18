@@ -107,6 +107,9 @@ public class ClientEndpoint {
     @GET
     @Path(OFFER_PATH)
     public Response getOffer(@QueryParam("providerUrl") URL providerUrl, @QueryParam("assetId") String assetId, @QueryParam("providerId") String counterPartyId) {
+        Objects.requireNonNull(assetId, "Asset ID must not be null");
+
+
         monitor.debug(format("[Client] Received an %s GET request", OFFER_PATH));
 
         if (Objects.isNull(providerUrl)) {

@@ -137,11 +137,14 @@ public class AasController implements Controllable {
         if (!aasServiceUrl.getProtocol().equalsIgnoreCase(HTTPS)) {
             return Result.success();
         }
+        var certsResult = SelfSignedCertificateRetriever.getSelfSignedCertificate(aasServiceUrl);
+        if (certsResult.failed() && !certsResult.getFailureMessages().contains("trusted")) {
+            return Result.failure(certsResult.getFailureMessages());
+        }
 
         try {
-            var certs = SelfSignedCertificateRetriever.getSelfSignedCertificate(aasServiceUrl);
-            aasAgent.addCertificates(aasServiceUrl, certs);
-        } catch (KeyStoreException | NoSuchAlgorithmException | IOException addCertificateException) {
+            aasAgent.addCertificates(aasServiceUrl, certsResult.getContent());
+        } catch (KeyStoreException addCertificateException) {
             // This means we probably cannot communicate with the server... warn user
             monitor.warning("Could not add service's certificate to trust manager, communication will probably not be possible.", addCertificateException);
             return Result.failure(addCertificateException.getMessage());

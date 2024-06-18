@@ -125,7 +125,7 @@ public class AasAgent {
         return readEnvironment(aasServiceUrl, onlySubmodels);
     }
 
-    public void addCertificates(URL url, Certificate[] certs) throws KeyStoreException, NoSuchAlgorithmException {
+    public void addCertificates(URL url, Certificate[] certs) throws KeyStoreException {
         acceptedCertificates.put(url.toString(), certs);
         httpRestClient.setAcceptedSelfSignedCertificates(acceptedCertificates);
     }
@@ -136,7 +136,7 @@ public class AasAgent {
         // the service even if we cannot remove its self-signed certificates.
         try {
             httpRestClient.setAcceptedSelfSignedCertificates(acceptedCertificates);
-        } catch (KeyStoreException | NoSuchAlgorithmException generalSecurityException) {
+        } catch (KeyStoreException generalSecurityException) {
             throw new EdcException(
                     format("Exception thrown while trying to remove certificate by %s", aasServiceUrl),
                     generalSecurityException);

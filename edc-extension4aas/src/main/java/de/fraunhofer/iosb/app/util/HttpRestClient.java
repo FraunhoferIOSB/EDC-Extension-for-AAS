@@ -36,6 +36,7 @@ import java.security.cert.CertificateException;
 import java.util.Map;
 import java.util.Objects;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
@@ -64,7 +65,7 @@ public class HttpRestClient {
     /**
      * Issue a get request to a given url
      *
-     * @param url the url to where the get request goes
+     * @param url     the url to where the get request goes
      * @param monitor monitor used for logging
      * @return Response by the service behind the url
      */
@@ -144,19 +145,28 @@ public class HttpRestClient {
      * @throws KeyStoreException        generic keyStore exception to throw at user (maybe some OS error)
      * @throws NoSuchAlgorithmException When a particular cryptographic algorithm is requested but is not available in the environment.
      */
-    public void setAcceptedSelfSignedCertificates(Map<String, Certificate[]> certs) throws KeyStoreException, NoSuchAlgorithmException {
+    public void setAcceptedSelfSignedCertificates(Map<String, Certificate[]> certs) throws KeyStoreException {
         if (!CONFIGURATION.isAcceptSelfSignedCertificates()) {
             return;
         }
 
         var keyStore = createAndPopulateKeyStore(certs);
 
-        var tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-        tmf.init(keyStore);
+        TrustManager[] trustManagers = null;
+        SSLContext sslContext = null;
+        try {
+            var tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            tmf.init(keyStore);
 
-        var trustManagers = tmf.getTrustManagers();
+            trustManagers = tmf.getTrustManagers();
 
-        SSLContext sslContext = SSLContext.getInstance("TLS");
+            sslContext = SSLContext.getInstance("TLS");
+
+        } catch (NoSuchAlgorithmException noSuchAlgorithmException) {
+            // Something wrong with the system as TLS or a default algorithm is not found
+            throw new EdcException("An exception occurred trying to accept a self-signed certificate.",
+                    noSuchAlgorithmException);
+        }
 
         // No KeyManager needed: we don't need to authenticate ourselves, only trust "others"
         try {

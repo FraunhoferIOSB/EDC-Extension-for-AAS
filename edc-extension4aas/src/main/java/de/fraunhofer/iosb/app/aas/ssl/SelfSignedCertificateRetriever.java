@@ -80,7 +80,7 @@ public class SelfSignedCertificateRetriever {
         }
 
         HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory());
-        HttpsURLConnection conn = null;
+        HttpsURLConnection conn;
 
         try {
             conn = (HttpsURLConnection) url.openConnection();

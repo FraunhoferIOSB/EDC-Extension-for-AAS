@@ -143,7 +143,6 @@ public class HttpRestClient {
      *
      * @param certs All self-signed certificates to trust.
      * @throws KeyStoreException        generic keyStore exception to throw at user (maybe some OS error)
-     * @throws NoSuchAlgorithmException When a particular cryptographic algorithm is requested but is not available in the environment.
      */
     public void setAcceptedSelfSignedCertificates(Map<String, Certificate[]> certs) throws KeyStoreException {
         if (!CONFIGURATION.isAcceptSelfSignedCertificates()) {
@@ -152,8 +151,8 @@ public class HttpRestClient {
 
         var keyStore = createAndPopulateKeyStore(certs);
 
-        TrustManager[] trustManagers = null;
-        SSLContext sslContext = null;
+        TrustManager[] trustManagers;
+        SSLContext sslContext;
         try {
             var tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
             tmf.init(keyStore);

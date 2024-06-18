@@ -78,7 +78,6 @@ public class AasDataSource implements DataSource {
                 var bodyStream = body.byteStream();
                 responseBodyStream.set(new ResponseBodyStream(body, bodyStream));
                 var mediaType = Optional.ofNullable(body.contentType()).map(MediaType::toString).orElse(OCTET_STREAM);
-                body.close();
                 return StreamResult.success(Stream.of(new HttpPart("AAS Part", bodyStream, mediaType)));
 
             } else {

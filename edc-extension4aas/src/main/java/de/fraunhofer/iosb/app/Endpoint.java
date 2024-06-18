@@ -118,7 +118,7 @@ public class Endpoint {
             return Response.ok("Service was already registered at EDC").build();
         }
         // accept certificate if self-signed
-        if (aasController.addCertificates(aasServiceUrl).failed()) {
+        if (aasController.registerCertificates(aasServiceUrl).failed()) {
             return Response.notModified("Failed to add certificates").build();
         }
         selfDescriptionRepository.createSelfDescription(aasServiceUrl);

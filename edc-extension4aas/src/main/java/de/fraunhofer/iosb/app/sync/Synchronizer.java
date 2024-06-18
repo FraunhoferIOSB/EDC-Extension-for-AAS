@@ -27,7 +27,6 @@ import de.fraunhofer.iosb.app.model.ids.SelfDescriptionChangeListener;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
 import de.fraunhofer.iosb.app.util.AssetAdministrationShellUtil;
 import jakarta.ws.rs.core.MediaType;
-import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.DeserializationException;
 import org.eclipse.edc.spi.EdcException;
 
 import java.io.IOException;
@@ -103,9 +102,6 @@ public class Synchronizer implements SelfDescriptionChangeListener {
         } catch (IOException aasServiceUnreachableException) {
             throw new EdcException(format("Could not reach AAS service (%s): %s", aasServiceUrl,
                     aasServiceUnreachableException.getMessage()), aasServiceUnreachableException);
-        } catch (DeserializationException aasModelDeserializationException) {
-            throw new EdcException(format("Could not deserialize AAS model (%s): %s", aasServiceUrl,
-                    aasModelDeserializationException.getMessage()), aasModelDeserializationException);
         }
         return newEnvironment;
     }
@@ -190,7 +186,7 @@ public class Synchronizer implements SelfDescriptionChangeListener {
 
     @Override
     public void created(URL aasUrl) {
-        if (aasController.addCertificates(aasUrl).succeeded()) {
+        if (aasController.registerCertificates(aasUrl).succeeded()) {
             synchronize(aasUrl);
         }
     }

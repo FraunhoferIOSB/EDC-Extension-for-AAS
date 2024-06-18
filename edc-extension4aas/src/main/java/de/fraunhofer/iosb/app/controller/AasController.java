@@ -22,7 +22,6 @@ import de.fraunhofer.iosb.app.aas.FaaastServiceManager;
 import de.fraunhofer.iosb.app.aas.ssl.SelfSignedCertificateRetriever;
 import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShellEnvironment;
 import jakarta.ws.rs.core.Response;
-import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.DeserializationException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 
@@ -70,11 +69,10 @@ public class AasController implements Controllable {
      * @param aasServiceUrl url of the service
      * @param onlySubmodels Don't get shells, concept descriptions, submodel elements
      * @return aasServiceUrl's model, in self-description form
-     * @throws DeserializationException AAS from service could not be deserialized
      * @throws IOException              Communication with AAS service failed
      */
     public CustomAssetAdministrationShellEnvironment getAasModelWithUrls(URL aasServiceUrl, boolean onlySubmodels)
-            throws IOException, DeserializationException {
+            throws IOException {
         Objects.requireNonNull(aasServiceUrl);
 
         return aasAgent.getAasEnvWithUrls(aasServiceUrl, onlySubmodels);
@@ -130,8 +128,7 @@ public class AasController implements Controllable {
         aasServiceManager.stopServices();
     }
 
-    public Result<Void> addCertificates(URL aasServiceUrl) {
-        // TODO rename to something like "make extension accept this url" since http services and services with "real" certificates should also yield a successful result
+    public Result<Void> registerCertificates(URL aasServiceUrl) {
         // Check if HTTPS and self-signed certificate both apply
         if (!aasServiceUrl.getProtocol().equalsIgnoreCase(HTTPS)) {
             return Result.success();

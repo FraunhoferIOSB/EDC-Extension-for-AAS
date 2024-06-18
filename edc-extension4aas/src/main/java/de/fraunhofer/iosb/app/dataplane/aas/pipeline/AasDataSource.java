@@ -36,8 +36,6 @@ import java.util.stream.Stream;
 
 import static java.lang.String.format;
 import static org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress.OCTET_STREAM;
-import static org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult.error;
-import static org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult.success;
 
 /**
  * Data source for new FA³ST with possibly self-signed certificate.
@@ -81,7 +79,7 @@ public class AasDataSource implements DataSource {
                 responseBodyStream.set(new ResponseBodyStream(body, bodyStream));
                 var mediaType = Optional.ofNullable(body.contentType()).map(MediaType::toString).orElse(OCTET_STREAM);
                 body.close();
-                return success(Stream.of(new HttpPart("AAS Part", bodyStream, mediaType)));
+                return StreamResult.success(Stream.of(new HttpPart("AAS Part", bodyStream, mediaType)));
 
             } else {
                 try {
@@ -90,7 +88,7 @@ public class AasDataSource implements DataSource {
                     } else if (NOT_FOUND == response.code()) {
                         return StreamResult.notFound();
                     } else {
-                        return error(format("Received code transferring AAS data: %s - %s.", response.code(), response.message()));
+                        return StreamResult.error(format("Received code transferring AAS data: %s - %s.", response.code(), response.message()));
                     }
                 } finally {
                     try {

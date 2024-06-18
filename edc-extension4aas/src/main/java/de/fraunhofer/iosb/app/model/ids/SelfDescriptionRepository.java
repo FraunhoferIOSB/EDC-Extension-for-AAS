@@ -79,7 +79,8 @@ public class SelfDescriptionRepository extends ObservableImpl<SelfDescriptionCha
      * @param aasUrl URL of self-description to be updated
      */
     public void removeSelfDescription(URL aasUrl) {
-        content.remove(aasUrl.toString());
+        // Before we remove the self-description, notify listeners (synchronizer -> remove assets from edc)
         this.getListeners().forEach(listener -> listener.removed(aasUrl));
+        content.remove(aasUrl.toString());
     }
 }

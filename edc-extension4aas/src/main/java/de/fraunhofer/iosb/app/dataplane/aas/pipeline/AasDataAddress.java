@@ -47,7 +47,6 @@ public class AasDataAddress extends DataAddress {
     private static final String METHOD = "method";
     private static final String ADDITIONAL_HEADER = "header";
 
-
     private AasDataAddress() {
         super();
         this.setType(AAS_DATA_TYPE);
@@ -61,20 +60,7 @@ public class AasDataAddress extends DataAddress {
     public Map<String, String> getAdditionalHeaders() {
         return getProperties().entrySet().stream()
                 .filter(entry -> entry.getKey().startsWith(ADDITIONAL_HEADER))
-                .collect(toMap(entry -> entry.getKey().replace(ADDITIONAL_HEADER, ""), it -> (String) it.getValue()));
-    }
-
-
-    public Reference getReferenceChain() {
-        var referenceChain = properties.get(REFERENCE_CHAIN);
-
-        if (Objects.isNull(referenceChain)) {
-            return new DefaultReference();
-        }
-        if (referenceChain instanceof Reference) {
-            return (Reference) referenceChain;
-        }
-        throw new EdcException(new IllegalStateException("Something not of type Reference was stored in the property of an AasDataAddress!"));
+                .collect(toMap(headerName -> headerName.getKey().replace(ADDITIONAL_HEADER, ""), headerValue -> (String) headerValue.getValue()));
     }
 
     public String referenceChainAsPath() {
@@ -109,6 +95,20 @@ public class AasDataAddress extends DataAddress {
         }
 
         return urlBuilder.toString();
+    }
+
+    private Reference getReferenceChain() {
+        var referenceChain = properties.get(REFERENCE_CHAIN);
+
+        if (Objects.isNull(referenceChain)) {
+            return new DefaultReference();
+        }
+
+        if (referenceChain instanceof Reference) {
+            return (Reference) referenceChain;
+        }
+
+        throw new EdcException(new IllegalStateException("Something not of type Reference was stored in the property of an AasDataAddress!"));
     }
 
     @JsonPOJOBuilder(withPrefix = "")

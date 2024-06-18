@@ -15,7 +15,7 @@
  */
 package de.fraunhofer.iosb.app.aas.ssl;
 
-import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.result.Result;
 
 import java.io.IOException;
 import java.net.URL;
@@ -23,9 +23,14 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.Certificate;
+import java.security.cert.CertificateExpiredException;
+import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.X509Certificate;
+import java.util.List;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLPeerUnverifiedException;
+import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
@@ -58,25 +63,63 @@ public class SelfSignedCertificateRetriever {
     private SelfSignedCertificateRetriever() {
     }
 
-    public static Certificate[] getSelfSignedCertificate(URL url) throws IOException {
+    public static Result<Certificate[]> getSelfSignedCertificate(URL url) {
         SSLContext sslContext;
-        // TLS can have ports other than 443 -> use it
-        String proto = url.getPort() == 443 ? "SSL" : "TLS";
+
+        if (isTrusted(url)) {
+            return Result.failure("trusted");
+        }
+
         try {
-            sslContext = SSLContext.getInstance(proto);
+            sslContext = SSLContext.getInstance("TLS");
             sslContext.init(null, TRUST_ALL_MANAGER, new SecureRandom());
         } catch (NoSuchAlgorithmException | KeyManagementException generalSecurityException) {
-            throw new EdcException(format("Could not retrieve certificates for %s", url),
-                    generalSecurityException);
+            return Result.failure(List.of(
+                    format("Could not retrieve certificates for %s", url),
+                    generalSecurityException.getMessage()));
         }
 
         HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory());
-        var conn = (HttpsURLConnection) url.openConnection();
-        conn.connect();
+        HttpsURLConnection conn = null;
 
-        var certs = conn.getServerCertificates();
+        try {
+            conn = (HttpsURLConnection) url.openConnection();
+            conn.connect();
+        } catch (IOException e) {
+            return Result.failure(List.of(e.getMessage()));
+        }
+        X509Certificate[] certs;
+        try {
+            certs = (X509Certificate[]) conn.getServerCertificates();
+        } catch (SSLPeerUnverifiedException e) {
+            return Result.failure("peer unverified");
+        }
+
+        try {
+            for (X509Certificate cert : certs) {
+                cert.checkValidity();
+            }
+        } catch (CertificateExpiredException | CertificateNotYetValidException e) {
+            return Result.failure("expired");
+        }
+
         conn.disconnect();
-        return certs;
+        return Result.success(certs);
+
+    }
+
+    private static boolean isTrusted(URL url) {
+        HttpsURLConnection.setDefaultSSLSocketFactory((SSLSocketFactory) SSLSocketFactory.getDefault());
+
+        try {
+            var conn = (HttpsURLConnection) url.openConnection();
+            conn.connect();
+            // Connection with standard java library succeeded
+            // -> according to this system, the server has a trusted certificate
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
     }
 
 }

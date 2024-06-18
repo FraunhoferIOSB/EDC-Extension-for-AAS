@@ -107,7 +107,7 @@ public class ClientEndpoint {
     @GET
     @Path(OFFER_PATH)
     public Response getOffer(@QueryParam("providerUrl") URL providerUrl, @QueryParam("assetId") String assetId, @QueryParam("providerId") String counterPartyId) {
-        monitor.debug(format("[Client] Received a %s GET request", OFFER_PATH));
+        monitor.debug(format("[Client] Received an %s GET request", OFFER_PATH));
 
         if (Objects.isNull(providerUrl)) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Provider URL must not be null").build();

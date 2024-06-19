@@ -31,6 +31,7 @@ import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionS
 import org.eclipse.edc.connector.dataplane.http.params.HttpRequestParamsProviderImpl;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -39,6 +40,7 @@ import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.web.spi.WebService;
 
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
@@ -112,7 +114,6 @@ public class AasExtension implements ServiceExtension {
 
     private void registerServicesByConfig(SelfDescriptionRepository selfDescriptionRepository) {
         var configInstance = Configuration.getInstance();
-        Path aasConfigPath = null;
 
         if (Objects.nonNull(configInstance.getRemoteAasLocation())) {
             selfDescriptionRepository.createSelfDescription(configInstance.getRemoteAasLocation());
@@ -122,20 +123,24 @@ public class AasExtension implements ServiceExtension {
             return;
         }
 
+        Path aasConfigPath = null;
+
         if (Objects.nonNull(configInstance.getAasServiceConfigPath())) {
             aasConfigPath = Path.of(configInstance.getAasServiceConfigPath());
         }
 
+        URL serviceUrl;
         try {
-            var serviceUrl = aasController.startService(
+            serviceUrl = aasController.startService(
                     Path.of(configInstance.getLocalAasModelPath()),
                     configInstance.getLocalAasServicePort(),
                     aasConfigPath);
 
-            selfDescriptionRepository.createSelfDescription(serviceUrl);
         } catch (IOException startAssetAdministrationShellException) {
-            monitor.warning("Could not start AAS service provided by configuration", startAssetAdministrationShellException);
+            throw new EdcException("Could not start AAS service provided by configuration", startAssetAdministrationShellException);
         }
+
+        selfDescriptionRepository.createSelfDescription(serviceUrl);
     }
 
     private void initializeSynchronizer(SelfDescriptionRepository selfDescriptionRepository) {

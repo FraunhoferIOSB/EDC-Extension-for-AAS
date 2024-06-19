@@ -32,7 +32,7 @@ dependencies {
     implementation("org.eclipse.digitaltwin.aas4j:aas4j-model:${aas4jVersion}")
 
     testImplementation("$group:junit:$edcVersion")
-    testImplementation("org.glassfish.jersey.core:jersey-common:3.1.6")
+    testImplementation("org.glassfish.jersey.core:jersey-common:3.1.7")
     testImplementation("org.mockito:mockito-core:${mockitoVersion}")
     testImplementation("org.mock-server:mockserver-junit-jupiter:${mockserverVersion}")
     testImplementation("org.mock-server:mockserver-netty:${mockserverVersion}")

@@ -175,8 +175,8 @@ public class Synchronizer implements SelfDescriptionChangeListener {
                     element.getReferenceChain(),
                     ((AssetAdministrationShellElement) element).getIdShort(),
                     MediaType.APPLICATION_JSON);
-            element.setIdsAssetId(assetContractPair.getFirst());
-            element.setIdsContractId(assetContractPair.getSecond());
+            element.setIdsAssetId(assetContractPair.first());
+            element.setIdsContractId(assetContractPair.second());
         });
     }
 

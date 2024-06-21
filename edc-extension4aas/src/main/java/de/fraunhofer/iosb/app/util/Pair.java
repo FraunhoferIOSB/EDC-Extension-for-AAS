@@ -15,56 +15,5 @@
  */
 package de.fraunhofer.iosb.app.util;
 
-/**
- * Lightweight implementation of a tuple.
- */
-public class Pair<T, U> {
-    private T first;
-    private U second;
-
-    public Pair(T first, U second) {
-        this.first = first;
-        this.second = second;
-    }
-
-    public T getFirst() {
-        return first;
-    }
-
-    public void setFirst(T t) {
-        this.first = t;
-    }
-
-    public U getSecond() {
-        return second;
-    }
-
-    public void setSecond(U u) {
-        this.second = u;
-    }
-
-    @Override
-    public String toString() {
-        return first.toString().concat(";").concat(second.toString());
-    }
-
-    public static class PairBuilder<T, U> {
-        private T first;
-        private U second;
-
-        public PairBuilder<T, U> first(T t) {
-            this.first = t;
-            return this;
-        }
-
-        public PairBuilder<T, U> second(U u) {
-            this.second = u;
-            return this;
-        }
-
-        public Pair<T, U> build() {
-            return new Pair<>(this.first, this.second);
-        }
-
-    }
+public record Pair<T, U>(T first, U second) {
 }

@@ -7,12 +7,17 @@ Compatibility: **Eclipse Dataspace Connector v0.7.0**
 **New Features**
 
 * Dynamical building of AAS access URLs using Reference Chains [Submodel x, Collection y, Element z]
-* Accepting self-signed certificates (only possible for own AAS services) now optional
-* SubmodelElementList is now a model element inside the SelfDescription
+* Accepting self-signed certificates (only possible for own AAS services) now optional (`edc.aas.acceptSelfSignedCertificates`)
+* SubmodelElementList is now a model element inside the SelfDescription (AASv3 change)
+
+* New extension: data-plane-aas
+  * Provides custom AAS data source and data sink
 
 **Bugfixes**
 
 * Adding external AAS services with self-signed certificates using configuration value edc.aas.remoteAASLocation is now possible
+* Unregistering an external AAS service no longer throws IllegalArgumentException
+* DataTransfer with AAS DataSource no longer throws IOException: closed
 
 **Miscellaneous**
 
@@ -22,6 +27,7 @@ Compatibility: **Eclipse Dataspace Connector v0.7.0**
   * Only works if the provider "knows" the consumer AAS service
 * EDC4AAS extension now uses EDC monitor directly instead of wrapping it with custom logger
 * Since the AAS model parsing got more complex, it was extracted out of the AAS agent
+* Added tests for self-signed certificate retriever
 
 ## V2.0.0
 

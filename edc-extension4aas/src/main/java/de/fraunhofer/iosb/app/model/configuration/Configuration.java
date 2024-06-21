@@ -41,13 +41,13 @@ public class Configuration {
     private String aasServiceConfigPath;
 
     @JsonProperty(SETTINGS_PREFIX + "syncPeriod")
-    private final int syncPeriod = 5; // Seconds
+    private int syncPeriod = 5; // Seconds
     
     @JsonProperty(SETTINGS_PREFIX + "onlySubmodels")
-    private final boolean onlySubmodels = false;
+    private boolean onlySubmodels = false;
 
     @JsonProperty(SETTINGS_PREFIX + "exposeSelfDescription")
-    private final boolean exposeSelfDescription = true;
+    private boolean exposeSelfDescription = true;
 
     @JsonProperty(SETTINGS_PREFIX + "defaultAccessPolicyPath")
     private String defaultAccessPolicyPath;
@@ -56,7 +56,7 @@ public class Configuration {
     private String defaultContractPolicyPath;
 
     @JsonProperty(SETTINGS_PREFIX + "acceptSelfSignedCertificates")
-    private final boolean isAcceptSelfSignedCertificates = false;
+    private boolean isAcceptSelfSignedCertificates = false;
 
     public static synchronized Configuration getInstance() {
         if (Objects.isNull(instance)) {

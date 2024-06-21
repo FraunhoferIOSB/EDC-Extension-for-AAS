@@ -17,10 +17,10 @@ package de.fraunhofer.iosb.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iosb.api.PublicApiManagementService;
-import de.fraunhofer.iosb.app.dataplane.aas.pipeline.AasDataAddress;
 import de.fraunhofer.iosb.client.datatransfer.DataTransferController;
 import de.fraunhofer.iosb.client.negotiation.NegotiationController;
 import de.fraunhofer.iosb.client.policy.PolicyController;
+import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;

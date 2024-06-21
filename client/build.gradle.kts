@@ -18,8 +18,7 @@ java {
 dependencies {
     // See this project's README.MD for explanations
     implementation(project(":public-api-management"))
-    // TODO maybe extract dataSource/Sink to extension
-    implementation(project(":edc-extension4aas"))
+    implementation(project(":data-plane-aas"))
 
     implementation("$group:connector-core:$edcVersion") // PolicyService
     implementation("$group:control-plane-contract:$edcVersion") // Observe contract negotiations

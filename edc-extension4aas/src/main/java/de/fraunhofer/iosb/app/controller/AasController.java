@@ -15,6 +15,7 @@
  */
 package de.fraunhofer.iosb.app.controller;
 
+import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
 import de.fraunhofer.iosb.app.RequestType;
 import de.fraunhofer.iosb.app.aas.AasAgent;
 import de.fraunhofer.iosb.app.aas.AssetAdministrationShellServiceManager;
@@ -44,10 +45,10 @@ public class AasController implements Controllable {
     private final AssetAdministrationShellServiceManager aasServiceManager;
     private final Monitor monitor;
 
-    public AasController(Monitor monitor) {
+    public AasController(Monitor monitor, AasDataProcessorFactory aasDataProcessorFactory) {
         this.monitor = monitor;
 
-        aasAgent = new AasAgent(monitor);
+        aasAgent = new AasAgent(monitor, aasDataProcessorFactory);
         aasServiceManager = new FaaastServiceManager(monitor);
     }
 

@@ -15,6 +15,7 @@
  */
 package de.fraunhofer.iosb.app.aas;
 
+import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
 import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShell;
 import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShellEnvironment;
 import de.fraunhofer.iosb.app.model.aas.CustomConceptDescription;
@@ -48,8 +49,9 @@ public class AasAgent {
 
     private ModelParser modelParser;
 
-    public AasAgent(Monitor monitor) {
+    public AasAgent(Monitor monitor, AasDataProcessorFactory aasDataProcessorFactory) {
         this.monitor = monitor;
+        // TODO here we change httpRestClient to AASManipulator...
         acceptedCertificates = new HashMap<>();
     }
 

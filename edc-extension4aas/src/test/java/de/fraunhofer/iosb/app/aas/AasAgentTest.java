@@ -15,8 +15,10 @@
  */
 package de.fraunhofer.iosb.app.aas;
 
+import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
 import de.fraunhofer.iosb.app.testutils.FileManager;
 import de.fraunhofer.iosb.app.util.AssetAdministrationShellUtil;
+import de.fraunhofer.iosb.ssl.impl.DefaultSelfSignedCertificateRetriever;
 import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElement;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.junit.jupiter.api.AfterAll;
@@ -56,7 +58,7 @@ public class AasAgentTest {
 
     @BeforeEach
     public void initialize() {
-        aasAgent = new AasAgent(new ConsoleMonitor());
+        aasAgent = new AasAgent(new ConsoleMonitor(), new AasDataProcessorFactory(new DefaultSelfSignedCertificateRetriever()));
         mockServer.reset();
     }
 
@@ -84,7 +86,7 @@ public class AasAgentTest {
 
     @Test
     public void testPutAasShell() throws MalformedURLException {
-        mockServer.when(request().withMethod("PUT").withPath(SHELLS).withBody("raw_data_forwarded"))
+        mockServer.when(request().withMethod("PUT").withPath(SHELLS + "/").withBody("raw_data_forwarded"))
                 .respond(response().withStatusCode(200));
 
         var response = aasAgent.putModel(new URL(HTTP_LOCALHOST_8080 + SHELLS),
@@ -96,7 +98,7 @@ public class AasAgentTest {
 
     @Test
     public void testPostAasSubmodel() throws MalformedURLException {
-        mockServer.when(request().withMethod("POST").withPath(SUBMODELS).withBody("raw_data_forwarded"))
+        mockServer.when(request().withMethod("POST").withPath(SUBMODELS + "/").withBody("raw_data_forwarded"))
                 .respond(response().withStatusCode(200));
 
         try (var response = aasAgent.postModel(new URL(HTTP_LOCALHOST_8080 + SUBMODELS),
@@ -108,7 +110,7 @@ public class AasAgentTest {
 
     @Test
     public void testDeleteAasConceptDescription() throws MalformedURLException {
-        mockServer.when(request().withMethod("DELETE").withPath(CONCEPT_DESCRIPTIONS))
+        mockServer.when(request().withMethod("DELETE").withPath(CONCEPT_DESCRIPTIONS + "/"))
                 .respond(response().withStatusCode(200));
 
         try (var response = aasAgent.deleteModel(new URL(HTTP_LOCALHOST_8080 + CONCEPT_DESCRIPTIONS), null)) {

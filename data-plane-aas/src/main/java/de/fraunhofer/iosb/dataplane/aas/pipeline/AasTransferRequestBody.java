@@ -43,6 +43,11 @@ public class AasTransferRequestBody extends RequestBody {
         }
     }
 
+    public AasTransferRequestBody(byte[] bytes, String contentType) {
+        this.contentType = contentType;
+        this.bytes = bytes;
+    }
+
     @Override
     public long contentLength() {
         return bytes == null ? 0 : bytes.length;

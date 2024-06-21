@@ -15,7 +15,7 @@
  */
 package de.fraunhofer.iosb.dataplane.aas.pipeline;
 
-import de.fraunhofer.iosb.aas.AasReader;
+import de.fraunhofer.iosb.aas.AasDataProcessor;
 import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
 import okhttp3.MediaType;
 import okhttp3.ResponseBody;
@@ -46,7 +46,7 @@ public class AasDataSource implements DataSource {
 
     private String requestId;
     private Monitor monitor;
-    private AasReader aasReader;
+    private AasDataProcessor aasDataProcessor;
     private AasDataAddress aasDataAddress;
     private final AtomicReference<ResponseBodyStream> responseBodyStream = new AtomicReference<>();
 
@@ -58,7 +58,7 @@ public class AasDataSource implements DataSource {
 
         try {
             // NB: Do not close the response as the body input stream needs to be read after this method returns. The response closes the body stream.
-            var response = aasReader.get(aasDataAddress);
+            var response = aasDataProcessor.send(aasDataAddress);
 
             if (response.isSuccessful()) {
                 var body = response.body();
@@ -125,8 +125,8 @@ public class AasDataSource implements DataSource {
             return this;
         }
 
-        public Builder aasReader(AasReader httpClient) {
-            dataSource.aasReader = httpClient;
+        public Builder aasManipulator(AasDataProcessor aasDataProcessor) {
+            dataSource.aasDataProcessor = aasDataProcessor;
             return this;
         }
 
@@ -143,7 +143,7 @@ public class AasDataSource implements DataSource {
 
         public AasDataSource build() {
             Objects.requireNonNull(dataSource.requestId, "requestId");
-            Objects.requireNonNull(dataSource.aasReader, "httpClient");
+            Objects.requireNonNull(dataSource.aasDataProcessor, "httpClient");
             Objects.requireNonNull(dataSource.monitor, "monitor");
             Objects.requireNonNull(dataSource.aasDataAddress, "aasDataAddress");
 

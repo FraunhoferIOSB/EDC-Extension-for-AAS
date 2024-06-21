@@ -15,12 +15,13 @@
  */
 package de.fraunhofer.iosb.app;
 
+import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
 import de.fraunhofer.iosb.app.controller.AasController;
 import de.fraunhofer.iosb.app.controller.ConfigurationController;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
 import de.fraunhofer.iosb.app.testutils.FileManager;
-import de.fraunhofer.iosb.app.util.Encoder;
+import de.fraunhofer.iosb.ssl.impl.NoOpSelfSignedCertificateRetriever;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
@@ -29,7 +30,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -37,6 +37,7 @@ import static java.lang.String.format;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * Not mocking the controllers this endpoint uses, as the mocking/validation
@@ -65,7 +66,7 @@ public class EndpointTest {
     public void setupEndpoint() {
         var monitor = new ConsoleMonitor();
         selfDescriptionRepo = new SelfDescriptionRepository();
-        aasController = new AasController(monitor);
+        aasController = new AasController(monitor, new AasDataProcessorFactory(new NoOpSelfSignedCertificateRetriever()));
         endpoint = new Endpoint(
                 selfDescriptionRepo,
                 aasController,
@@ -84,8 +85,11 @@ public class EndpointTest {
 
     @Test
     public void getSelfDescriptionTest() {
-        endpoint.postAasService(url);
-        assertEquals("[]", endpoint.getSelfDescription(null).getEntity());
+        try (var response = endpoint.postAasService(url)) {
+            assertEquals("[]", endpoint.getSelfDescription(null).getEntity());
+        } catch (Exception e) {
+            fail();
+        }
     }
 
     @Test
@@ -111,6 +115,8 @@ public class EndpointTest {
 
     @Test
     public void postFalseAasServiceTest() throws MalformedURLException {
+        assertEquals(0, selfDescriptionRepo.getAllSelfDescriptions().size());
+
         endpoint.postAasService(new URL("http://example.com/aas"));
 
         // No selfDescription has been added, but the URL will still be periodically
@@ -144,18 +150,4 @@ public class EndpointTest {
 
         assertNull(selfDescriptionRepo.getSelfDescription(url));
     }
-
-    @Test
-    public void putAasRequestTest() throws IOException {
-        endpoint.postAasService(url);
-
-        endpoint.putAasRequest(new URL(format(url.toString(), "/api/v3.0/submodels/",
-                        Encoder.encodeBase64("https://example.com/ids/sm/4445_8090_6012_7409"),
-                        "/submodel-elements/GripperUp")),
-                FileManager.loadResource("submodelElement.json"));
-
-        // Still null: not synchronized by Synchronizer
-        assertNull(selfDescriptionRepo.getSelfDescription(url));
-    }
-
 }

@@ -15,7 +15,7 @@
  */
 package de.fraunhofer.iosb.dataplane.aas.pipeline;
 
-import de.fraunhofer.iosb.aas.AasManipulator;
+import de.fraunhofer.iosb.aas.AasDataProcessor;
 import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSink;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;
@@ -41,7 +41,7 @@ import static org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult.fail
  */
 public class AasDataSink implements DataSink {
 
-    private AasManipulator aasManipulator;
+    private AasDataProcessor aasDataProcessor;
     private AasDataAddress aasDataAddress;
     private Monitor monitor;
 
@@ -63,7 +63,7 @@ public class AasDataSink implements DataSink {
 
         monitor.debug(() -> "Executing HTTP request to AAS service: " + aasDataAddress.getBaseUrl());
 
-        try (var response = aasManipulator.send(aasDataAddress, part)) {
+        try (var response = aasDataProcessor.send(aasDataAddress, part)) {
             return StreamResult.success("DataTransfer completed. Response from consumer: " + response.body());
         } catch (IOException e) {
             var errorMessage = "IOException while data transferring to AAS: " + e.getMessage();
@@ -89,8 +89,8 @@ public class AasDataSink implements DataSink {
             return this;
         }
 
-        public Builder aasManipulator(AasManipulator aasManipulator) {
-            dataSink.aasManipulator = aasManipulator;
+        public Builder aasManipulator(AasDataProcessor aasDataProcessor) {
+            dataSink.aasDataProcessor = aasDataProcessor;
             return this;
         }
 
@@ -100,7 +100,7 @@ public class AasDataSink implements DataSink {
         }
 
         public AasDataSink build() {
-            Objects.requireNonNull(dataSink.aasManipulator, "aasManipulator");
+            Objects.requireNonNull(dataSink.aasDataProcessor, "aasManipulator");
             Objects.requireNonNull(dataSink.aasDataAddress, "aasDataAddress");
             return dataSink;
         }

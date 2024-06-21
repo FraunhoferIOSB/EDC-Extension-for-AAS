@@ -48,7 +48,7 @@ public class AasDataSinkFactory implements DataSinkFactory {
     public DataSink createSink(DataFlowStartMessage request) {
         var dataAddress = AasDataAddress.Builder.newInstance().copyFrom(request.getDestinationDataAddress()).build();
         return AasDataSink.Builder.newInstance()
-                .aasManipulator(aasDataProcessorFactory.manipulatorFor(dataAddress.getBaseUrl()))
+                .aasManipulator(aasDataProcessorFactory.processorFor(dataAddress.getBaseUrl()))
                 .monitor(monitor)
                 .aasDataAddress(dataAddress)
                 .build();

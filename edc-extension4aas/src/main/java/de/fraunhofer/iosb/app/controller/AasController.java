@@ -20,16 +20,13 @@ import de.fraunhofer.iosb.app.RequestType;
 import de.fraunhofer.iosb.app.aas.AasAgent;
 import de.fraunhofer.iosb.app.aas.AssetAdministrationShellServiceManager;
 import de.fraunhofer.iosb.app.aas.FaaastServiceManager;
-import de.fraunhofer.iosb.app.aas.ssl.SelfSignedCertificateRetriever;
 import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShellEnvironment;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.result.Result;
 
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
-import java.security.KeyStoreException;
 import java.util.Objects;
 
 import static java.lang.String.format;
@@ -124,30 +121,5 @@ public class AasController implements Controllable {
     public void stopServices() {
         monitor.info("Shutting down all AAS services...");
         aasServiceManager.stopServices();
-    }
-
-    public Result<Void> registerCertificates(URL aasServiceUrl) {
-        // Check if HTTPS and self-signed certificate both apply
-        if (!aasServiceUrl.getProtocol().equalsIgnoreCase(HTTPS)) {
-            return Result.success();
-        }
-        var certsResult = SelfSignedCertificateRetriever.getSelfSignedCertificate(aasServiceUrl);
-        if (certsResult.failed() && !certsResult.getFailureMessages().contains("trusted")) {
-            return Result.failure(certsResult.getFailureMessages());
-        }
-
-        try {
-            aasAgent.addCertificates(aasServiceUrl, certsResult.getContent());
-        } catch (KeyStoreException addCertificateException) {
-            // This means we probably cannot communicate with the server... warn user
-            monitor.warning("Could not add service's certificate to trust manager, communication will probably not be possible.", addCertificateException);
-            return Result.failure(addCertificateException.getMessage());
-        }
-
-        return Result.success();
-    }
-
-    public void removeCertificates(URL aasServiceUrl) {
-        aasAgent.removeCertificates(aasServiceUrl);
     }
 }

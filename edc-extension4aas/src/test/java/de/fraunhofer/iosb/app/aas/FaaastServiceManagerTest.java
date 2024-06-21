@@ -15,13 +15,15 @@
  */
 package de.fraunhofer.iosb.app.aas;
 
-import de.fraunhofer.iosb.app.util.HttpRestClient;
+import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
+import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
+import de.fraunhofer.iosb.ssl.impl.DefaultSelfSignedCertificateRetriever;
+import jakarta.ws.rs.HttpMethod;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -41,13 +43,19 @@ public class FaaastServiceManagerTest {
         faaastServiceManager = new FaaastServiceManager(new ConsoleMonitor());
     }
 
-    @Disabled("FA³ST service manager startService method cannot be used on its own, AasController must accept self-signed certificate")
     @Test
     public void startServiceTest() throws IOException, URISyntaxException {
         var url = startService();
-        var restClient = HttpRestClient.getInstance();
 
-        assertEquals(Response.Status.OK.getStatusCode(), restClient.get(url.toURI().resolve("/api/v3.0/shells").toURL(), new ConsoleMonitor()).code());
+        assertEquals(Response.Status.OK.getStatusCode(), new AasDataProcessorFactory(new DefaultSelfSignedCertificateRetriever())
+                .processorFor(url.toString())
+                .send(AasDataAddress.Builder.newInstance()
+                                .method(HttpMethod.GET)
+                                .baseUrl(url.toURI().resolve("/api/v3.0/shells").toString())
+                                .build(),
+                        null,
+                        null)
+                .code());
     }
 
     @Test

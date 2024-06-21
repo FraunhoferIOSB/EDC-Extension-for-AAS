@@ -1,23 +1,12 @@
-/*
- * Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
- * Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
- * Forschung e.V.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *     http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-package de.fraunhofer.iosb.app.aas.ssl;
+package de.fraunhofer.iosb.ssl.impl;
 
-import de.fraunhofer.iosb.app.aas.FaaastServiceManager;
-import de.fraunhofer.iosb.ssl.impl.DefaultSelfSignedCertificateRetriever;
-import org.eclipse.edc.spi.monitor.ConsoleMonitor;
+import de.fraunhofer.iosb.ilt.faaast.service.Service;
+import de.fraunhofer.iosb.ilt.faaast.service.config.CoreConfig;
+import de.fraunhofer.iosb.ilt.faaast.service.config.ServiceConfig;
+import de.fraunhofer.iosb.ilt.faaast.service.endpoint.http.HttpEndpointConfig;
+import de.fraunhofer.iosb.ilt.faaast.service.messagebus.internal.MessageBusInternalConfig;
+import de.fraunhofer.iosb.ilt.faaast.service.persistence.memory.PersistenceInMemoryConfig;
+import de.fraunhofer.iosb.ilt.faaast.service.starter.util.ServiceConfigHelper;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -30,10 +19,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.fail;
 
-/**
- * Self-signed certificates should be returned, valid, expired, invalid, ... certificates should not.
- */
-class SelfSignedCertificateRetrieverTest {
+class DefaultSelfSignedCertificateRetrieverTest {
+
+    private static final String LOCALHOST_URL = "https://localhost:";
 
     private static final String VALID = "https://google.com";
     private static final String EXPIRED = "https://expired.badssl.com";
@@ -41,9 +29,26 @@ class SelfSignedCertificateRetrieverTest {
 
     @Test
     void getSelfSignedCertificate() throws IOException {
-        var faaastMgr = new FaaastServiceManager(new ConsoleMonitor());
-        var url = faaastMgr.startService(Path.of("src/test/resources/aasEnvironment.json"), 12345);
+        var port = 12345;
+        var serviceConfig = new ServiceConfig.Builder()
+                .core(new CoreConfig.Builder().requestHandlerThreadPoolSize(2).build())
+                .endpoint(new HttpEndpointConfig.Builder().port(port).build())
+                .persistence(PersistenceInMemoryConfig.builder()
+                        .initialModelFile(Path.of("src/test/resources/aasEnvironment.json")
+                                .toFile())
+                        .build())
+                .messageBus(new MessageBusInternalConfig())
+                .build();
+        ServiceConfigHelper.autoComplete(serviceConfig);
 
+        Service service;
+        try {
+            service = new Service(serviceConfig);
+            service.start();
+        } catch (Exception faaastServiceException) {
+            throw new RuntimeException(faaastServiceException);
+        }
+        var url = new URL(LOCALHOST_URL + port);
         var certResult = new DefaultSelfSignedCertificateRetriever().getSelfSignedCertificate(url);
 
         if (certResult.succeeded()) {
@@ -52,7 +57,7 @@ class SelfSignedCertificateRetrieverTest {
             fail();
         }
 
-        faaastMgr.stopServices();
+        service.stop();
     }
 
     @Test
@@ -88,5 +93,4 @@ class SelfSignedCertificateRetrieverTest {
             fail();
         }
     }
-
 }

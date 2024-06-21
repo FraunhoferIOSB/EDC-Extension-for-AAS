@@ -15,11 +15,13 @@
  */
 package de.fraunhofer.iosb.app.sync;
 
+import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
 import de.fraunhofer.iosb.app.controller.AasController;
 import de.fraunhofer.iosb.app.controller.ResourceController;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
 import de.fraunhofer.iosb.app.testutils.FileManager;
 import de.fraunhofer.iosb.app.testutils.StringMethods;
+import de.fraunhofer.iosb.ssl.impl.DefaultSelfSignedCertificateRetriever;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
@@ -55,9 +57,9 @@ public class SynchronizerTest {
     private SelfDescriptionRepository selfDescriptionRepo;
 
     private static final String PATH_PREFIX = "/api/v3.0";
-    private static final String SUBMODELS = PATH_PREFIX + "/submodels";
-    private static final String SHELLS = PATH_PREFIX + "/shells";
-    private static final String CONCEPT_DESCRIPTIONS = PATH_PREFIX + "/concept-descriptions";
+    private static final String SUBMODELS = PATH_PREFIX + "/submodels/";
+    private static final String SHELLS = PATH_PREFIX + "/shells/";
+    private static final String CONCEPT_DESCRIPTIONS = PATH_PREFIX + "/concept-descriptions/";
 
     private final String shells = FileManager.loadResource("shells.json");
     private final String submodels = FileManager.loadResource("submodels.json");
@@ -80,7 +82,7 @@ public class SynchronizerTest {
         selfDescriptionRepo = new SelfDescriptionRepository();
         synchronizer = new Synchronizer(
                 selfDescriptionRepo,
-                new AasController(monitor),
+                new AasController(monitor, new AasDataProcessorFactory(new DefaultSelfSignedCertificateRetriever())),
                 new ResourceController(
                         mock(AssetIndex.class),
                         mock(ContractDefinitionStore.class),
@@ -107,8 +109,8 @@ public class SynchronizerTest {
      */
     @Test
     public void synchronizationInitializeTest() {
-
         selfDescriptionRepo.createSelfDescription(url);
+
         StringMethods.assertEqualsIgnoreWhiteSpace(
                 Objects.requireNonNull(FileManager.loadResource("selfDescriptionWithIds.json")),
                 selfDescriptionRepo.getSelfDescription(url).toString());

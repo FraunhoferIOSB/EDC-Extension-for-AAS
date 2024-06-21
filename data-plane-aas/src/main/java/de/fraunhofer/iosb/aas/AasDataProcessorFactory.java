@@ -28,13 +28,22 @@ import static java.lang.String.format;
 
 public class AasDataProcessorFactory {
 
+    private static final String HTTPS = "HTTPS";
     private final SelfSignedCertificateRetriever retriever;
 
     public AasDataProcessorFactory(SelfSignedCertificateRetriever retriever) {
         this.retriever = retriever;
     }
 
-    public AasManipulator manipulatorFor(String urlString) {
+    /**
+     * Return a processor for a given URL.
+     * This is for AAS services with self-signed certificates.
+     * Allowing self-signed certificates can be configured (see readme).
+     *
+     * @param urlString URL of AAS service.
+     * @return AAS Processor allowing communication with AAS service using AAS data addresses
+     */
+    public AasDataProcessor processorFor(String urlString) {
         URL aasUrl;
         try {
             aasUrl = new URL(urlString);
@@ -43,28 +52,18 @@ public class AasDataProcessorFactory {
         }
 
         try {
-            return new AasManipulator(clientFor(getCertificates(aasUrl)));
-        } catch (KeyStoreException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public AasReader readerFor(String urlString) {
-        URL aasUrl;
-        try {
-            aasUrl = new URL(urlString);
-        } catch (MalformedURLException malformedUrlException) {
-            throw new EdcException("Malformed URL for AAS manipulator", malformedUrlException);
-        }
-
-        try {
-            return new AasReader(clientFor(getCertificates(aasUrl)));
+            return new AasDataProcessor(clientFor(getCertificates(aasUrl)));
         } catch (KeyStoreException e) {
             throw new RuntimeException(e);
         }
     }
 
     private Certificate[] getCertificates(URL url) {
+        if (!url.getProtocol().equalsIgnoreCase(HTTPS)) {
+            // No HTTPS, no certificates...
+            return null;
+        }
+
         var certsResult = retriever.getSelfSignedCertificate(url);
 
         if (certsResult.failed() && !certsResult.getFailureMessages().contains("trusted")) {

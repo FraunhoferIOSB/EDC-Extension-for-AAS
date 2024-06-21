@@ -186,14 +186,11 @@ public class Synchronizer implements SelfDescriptionChangeListener {
 
     @Override
     public void created(URL aasUrl) {
-        if (aasController.registerCertificates(aasUrl).succeeded()) {
-            synchronize(aasUrl);
-        }
+        synchronize(aasUrl);
     }
 
     @Override
     public void removed(URL removed) {
-        aasController.removeCertificates(removed);
         var allElements = AssetAdministrationShellUtil.getAllElements(selfDescriptionRepository.getSelfDescription(removed).getEnvironment());
         removeAssetsContracts(allElements);
     }

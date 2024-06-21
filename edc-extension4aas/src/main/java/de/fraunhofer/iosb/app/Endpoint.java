@@ -117,12 +117,8 @@ public class Endpoint {
         if (Objects.nonNull(selfDescriptionRepository.getSelfDescription(aasServiceUrl))) {
             return Response.ok("Service was already registered at EDC").build();
         }
-        // accept certificate if self-signed
-        if (aasController.registerCertificates(aasServiceUrl).failed()) {
-            return Response.notModified("Failed to add certificates").build();
-        }
-        selfDescriptionRepository.createSelfDescription(aasServiceUrl);
 
+        selfDescriptionRepository.createSelfDescription(aasServiceUrl);
         return Response.ok("Registered new client at EDC").build();
     }
 
@@ -188,8 +184,6 @@ public class Endpoint {
         if (Objects.isNull(selfDescriptionRepository.getSelfDescription(aasServiceUrl))) {
             return Response.ok("Service was not registered to EDC").build();
         }
-
-        aasController.removeCertificates(aasServiceUrl);
 
         // Stop AAS Service if started internally
         aasController.stopAssetAdministrationShellService(aasServiceUrl);

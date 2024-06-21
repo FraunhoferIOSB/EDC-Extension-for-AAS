@@ -37,9 +37,9 @@ public class ConfigurationController implements Controllable {
 
     private final Monitor monitor;
     private final Config sysConfig;
-    private Configuration configuration;
     private final ObjectMapper objectMapper;
     private final ObjectReader objectReader;
+    private Configuration configuration;
 
     public ConfigurationController(Config config, Monitor monitor) {
         this.sysConfig = config;

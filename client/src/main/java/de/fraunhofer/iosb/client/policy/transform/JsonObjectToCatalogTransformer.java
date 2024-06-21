@@ -33,7 +33,6 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DSPACE_PROPERTY_PA
  * Transformer for Catalog in JSON representation to EDC Catalog class.
  * Modified code from <a href="https://github.com/eclipse-edc/Connector/tree/v0.5.1/core/common/transform-core">github.com</a>
  * <br>See also: <a href="https://github.com/eclipse-edc/Connector/pull/3916">https://github.com/eclipse-edc/Connector/pull/3916</a>
- *
  */
 public class JsonObjectToCatalogTransformer extends AbstractJsonLdTransformer<JsonObject, Catalog> {
 

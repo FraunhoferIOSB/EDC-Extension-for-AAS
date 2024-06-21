@@ -21,14 +21,12 @@ import okhttp3.Headers;
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.internal.http.HttpMethod;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource.Part;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Objects;
 
 /**
  * Communication to an AAS service via an OkHttpClient.

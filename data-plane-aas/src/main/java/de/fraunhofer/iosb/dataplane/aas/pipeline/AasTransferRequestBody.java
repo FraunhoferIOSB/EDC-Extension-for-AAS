@@ -22,26 +22,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.function.Supplier;
 
 /**
  * Inspired by EDCs NonChunkedTransferRequestBody.
  */
 public class AasTransferRequestBody extends RequestBody {
 
-    private byte[] bytes;
+    private final byte[] bytes;
     private final String contentType;
-
-    public AasTransferRequestBody(Supplier<InputStream> contentSupplier, String contentType) {
-        this.contentType = contentType;
-
-        try (var inputStream = contentSupplier.get()) {
-            this.bytes = inputStream.readAllBytes();
-        } catch (IOException e) {
-            //do nothing
-        }
-    }
 
     public AasTransferRequestBody(byte[] bytes, String contentType) {
         this.contentType = contentType;

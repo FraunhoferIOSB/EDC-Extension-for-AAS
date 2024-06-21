@@ -38,7 +38,6 @@ import javax.net.ssl.X509TrustManager;
 import static java.lang.String.format;
 
 
-
 /**
  * Retrieve certificates of an online service by its URL.
  * This should only be used for explicitly known services and URLs!
@@ -60,6 +59,20 @@ public class DefaultSelfSignedCertificateRetriever implements SelfSignedCertific
                 }
             }
     };
+
+    private static boolean isTrusted(URL url) {
+        HttpsURLConnection.setDefaultSSLSocketFactory((SSLSocketFactory) SSLSocketFactory.getDefault());
+
+        try {
+            var conn = (HttpsURLConnection) url.openConnection();
+            conn.connect();
+            // Connection with standard java library succeeded
+            // -> according to this system, the server has a trusted certificate
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
+    }
 
     public Result<Certificate[]> getSelfSignedCertificate(URL url) {
         SSLContext sslContext;
@@ -104,20 +117,6 @@ public class DefaultSelfSignedCertificateRetriever implements SelfSignedCertific
         conn.disconnect();
         return Result.success(certs);
 
-    }
-
-    private static boolean isTrusted(URL url) {
-        HttpsURLConnection.setDefaultSSLSocketFactory((SSLSocketFactory) SSLSocketFactory.getDefault());
-
-        try {
-            var conn = (HttpsURLConnection) url.openConnection();
-            conn.connect();
-            // Connection with standard java library succeeded
-            // -> according to this system, the server has a trusted certificate
-            return true;
-        } catch (IOException e) {
-            return false;
-        }
     }
 
 }

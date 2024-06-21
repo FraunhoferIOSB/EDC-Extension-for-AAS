@@ -73,11 +73,11 @@ public class DataTransferController {
      * Initiates the transfer process defined by the arguments. The data of the
      * transfer will be sent to {@link DataTransferEndpoint#RECEIVE_DATA_PATH}.
      *
-     * @param providerUrl        The provider from whom the data is to be fetched.
-     * @param agreementId        Non-null ContractAgreement of the negotiation process.
-     * @param assetId            The asset to be fetched.
-     * @param dataSinkAddress    HTTPDataAddress the result of the transfer should be
-     *                           sent to. (If null, send to extension and print in log)
+     * @param providerUrl     The provider from whom the data is to be fetched.
+     * @param agreementId     Non-null ContractAgreement of the negotiation process.
+     * @param assetId         The asset to be fetched.
+     * @param dataSinkAddress HTTPDataAddress the result of the transfer should be
+     *                        sent to. (If null, send to extension and print in log)
      * @return A completable future whose result will be the data or an error message.
      * @throws InterruptedException If the data transfer was interrupted
      * @throws ExecutionException   If the data transfer process failed

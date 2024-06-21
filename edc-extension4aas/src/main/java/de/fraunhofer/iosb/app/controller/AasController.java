@@ -37,7 +37,6 @@ import static java.lang.String.format;
  */
 public class AasController implements Controllable {
 
-    private static final String HTTPS = "https";
     private final AasAgent aasAgent;
     private final AssetAdministrationShellServiceManager aasServiceManager;
     private final Monitor monitor;
@@ -67,7 +66,7 @@ public class AasController implements Controllable {
      * @param aasServiceUrl url of the service
      * @param onlySubmodels Don't get shells, concept descriptions, submodel elements
      * @return aasServiceUrl's model, in self-description form
-     * @throws IOException              Communication with AAS service failed
+     * @throws IOException Communication with AAS service failed
      */
     public CustomAssetAdministrationShellEnvironment getAasModelWithUrls(URL aasServiceUrl, boolean onlySubmodels)
             throws IOException {

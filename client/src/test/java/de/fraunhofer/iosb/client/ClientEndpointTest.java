@@ -73,11 +73,9 @@ public class ClientEndpointTest {
 
     private static URL url;
     private static ClientAndServer mockServer;
-
-    private ClientEndpoint clientEndpoint;
-
     private static PolicyDefinition mockPolicyDefinition;
     private static Catalog mockCatalog;
+    private ClientEndpoint clientEndpoint;
 
     @BeforeAll
     public static void initialize() throws IOException {
@@ -218,7 +216,7 @@ public class ClientEndpointTest {
     public void addAcceptedContractOffersTest() {
         var mockPolicyDefinitionsAsList = new ArrayList<PolicyDefinition>();
         mockPolicyDefinitionsAsList.add(mockPolicyDefinition); // ClientEndpoint creates ArrayList
-        var offers = new PolicyDefinition[]{mockPolicyDefinition};
+        var offers = new PolicyDefinition[] {mockPolicyDefinition};
 
         clientEndpoint.addAcceptedPolicyDefinitions(offers);
 
@@ -227,7 +225,7 @@ public class ClientEndpointTest {
 
     @Test
     public void updateAcceptedContractOfferTest() {
-        var offers = new PolicyDefinition[]{mockPolicyDefinition};
+        var offers = new PolicyDefinition[] {mockPolicyDefinition};
 
         clientEndpoint.addAcceptedPolicyDefinitions(offers);
 

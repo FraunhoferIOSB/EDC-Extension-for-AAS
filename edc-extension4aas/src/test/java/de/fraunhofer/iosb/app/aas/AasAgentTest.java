@@ -47,13 +47,17 @@ public class AasAgentTest {
     private static final String SUBMODELS = PATH_PREFIX + "/submodels";
     private static final String SHELLS = PATH_PREFIX + "/shells";
     private static final String CONCEPT_DESCRIPTIONS = PATH_PREFIX + "/concept-descriptions";
-
-    private AasAgent aasAgent;
     private static ClientAndServer mockServer;
+    private AasAgent aasAgent;
 
     @BeforeAll
     public static void startMockServer() {
         mockServer = startClientAndServer(PORT);
+    }
+
+    @AfterAll
+    public static void stopMockServer() {
+        mockServer.stop();
     }
 
     @BeforeEach
@@ -118,12 +122,6 @@ public class AasAgentTest {
             assertEquals(200, response.getStatus());
         }
     }
-
-    @AfterAll
-    public static void stopMockServer() {
-        mockServer.stop();
-    }
-
 
     private void prepareServerResponse() {
         var shells = FileManager.loadResource("shells.json");

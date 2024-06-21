@@ -51,7 +51,6 @@ public class AasAgent {
 
     public AasAgent(Monitor monitor, AasDataProcessorFactory aasDataProcessorFactory) {
         this.monitor = monitor;
-        // TODO here we change httpRestClient to AASManipulator...
         this.aasDataProcessorFactory = aasDataProcessorFactory;
     }
 

@@ -58,11 +58,10 @@ public class AasDataSourceFactory implements DataSourceFactory {
 
     @Override
     public @NotNull Result<Void> validateRequest(DataFlowStartMessage request) {
-        try {
-            createSource(request);
+        try (var ignored = createSource(request)) {
+            return Result.success();
         } catch (Exception e) {
             return Result.failure("Failed to build AAS data source: " + e.getMessage());
         }
-        return Result.success();
     }
 }

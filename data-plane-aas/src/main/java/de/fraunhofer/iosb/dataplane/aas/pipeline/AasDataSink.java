@@ -76,12 +76,12 @@ public class AasDataSink implements DataSink {
     public static class Builder {
         private final AasDataSink dataSink;
 
-        public static Builder newInstance() {
-            return new Builder();
-        }
-
         private Builder() {
             dataSink = new AasDataSink();
+        }
+
+        public static Builder newInstance() {
+            return new Builder();
         }
 
         public Builder aasDataAddress(AasDataAddress aasDataAddress) {

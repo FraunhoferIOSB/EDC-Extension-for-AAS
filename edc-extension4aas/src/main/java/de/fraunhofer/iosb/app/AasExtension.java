@@ -44,18 +44,17 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-
 /**
  * EDC Extension supporting usage of Asset Administration Shells.
  */
 public class AasExtension implements ServiceExtension {
 
 
+    private static final String SETTINGS_PREFIX = "edc.aas";
     @Inject
     private AasDataProcessorFactory aasDataProcessorFactory;
     @Inject // Register public endpoints
     private PublicApiManagementService publicApiManagementService;
-
     @Inject // Create / manage EDC assets
     private AssetIndex assetIndex;
     @Inject // Create / manage EDC contracts
@@ -64,9 +63,6 @@ public class AasExtension implements ServiceExtension {
     private PolicyDefinitionStore policyStore;
     @Inject // Register http endpoint at EDC
     private WebService webService;
-
-    private static final String SETTINGS_PREFIX = "edc.aas";
-
     private Monitor monitor;
     private ScheduledExecutorService syncExecutor;
     private AasController aasController;

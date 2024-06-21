@@ -43,12 +43,11 @@ public class AasDataSource implements DataSource {
     private static final int NOT_AUTHORIZED = 403;
     private static final int NOT_FOUND = 404;
     private static final String APPLICATION_JSON = "application/json";
-
+    private final AtomicReference<ResponseBodyStream> responseBodyStream = new AtomicReference<>();
     private String requestId;
     private Monitor monitor;
     private AasDataProcessor aasDataProcessor;
     private AasDataAddress aasDataAddress;
-    private final AtomicReference<ResponseBodyStream> responseBodyStream = new AtomicReference<>();
 
     private AasDataSource() {
     }
@@ -112,12 +111,12 @@ public class AasDataSource implements DataSource {
     public static class Builder {
         private final AasDataSource dataSource;
 
-        public static Builder newInstance() {
-            return new Builder();
-        }
-
         private Builder() {
             dataSource = new AasDataSource();
+        }
+
+        public static Builder newInstance() {
+            return new Builder();
         }
 
         public Builder requestId(String requestId) {

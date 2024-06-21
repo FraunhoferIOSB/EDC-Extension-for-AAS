@@ -59,11 +59,11 @@ import static org.mockito.Mockito.when;
  */
 public class PolicyServiceTest {
 
+    private final URL testUrl;
     private CatalogService catalogService;
     private TypeTransformerRegistry typeTransformerRegistry;
     private PolicyServiceConfig config;
     private PolicyService policyService;
-    private final URL testUrl;
 
     public PolicyServiceTest() throws MalformedURLException {
         int providerPort = 54321;

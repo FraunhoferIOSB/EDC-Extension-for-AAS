@@ -48,7 +48,7 @@ public class AasDataAddress extends DataAddress {
     public static final String BASE_URL = "https://w3id.org/edc/v0.0.1/ns/baseUrl";
 
     private static final String METHOD = "method";
-    private static final String ADDITIONAL_HEADER = "header";
+    private static final String ADDITIONAL_HEADER = "header:";
 
     private AasDataAddress() {
         super();
@@ -77,13 +77,13 @@ public class AasDataAddress extends DataAddress {
 
             switch (key.getType()) {
                 case ASSET_ADMINISTRATION_SHELL:
-                    urlBuilder.append("/shells/").append(Encoder.encodeBase64(key.getValue()));
+                    urlBuilder.append("shells/").append(Encoder.encodeBase64(key.getValue()));
                     break;
                 case SUBMODEL:
-                    urlBuilder.append("/submodels/").append(Encoder.encodeBase64(key.getValue()));
+                    urlBuilder.append("submodels/").append(Encoder.encodeBase64(key.getValue()));
                     break;
                 case CONCEPT_DESCRIPTION:
-                    urlBuilder.append("/concept-descriptions/").append(Encoder.encodeBase64(key.getValue()));
+                    urlBuilder.append("concept-descriptions/").append(Encoder.encodeBase64(key.getValue()));
                     break;
                 case SUBMODEL_ELEMENT:
                 case SUBMODEL_ELEMENT_COLLECTION:

@@ -24,6 +24,7 @@ import de.fraunhofer.iosb.app.controller.ResourceController;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
 import de.fraunhofer.iosb.app.sync.Synchronizer;
+import de.fraunhofer.iosb.registry.AasServiceRegistry;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
@@ -53,6 +54,8 @@ public class AasExtension implements ServiceExtension {
     private static final String SETTINGS_PREFIX = "edc.aas";
     @Inject
     private AasDataProcessorFactory aasDataProcessorFactory;
+    @Inject // Register AAS services with self-signed certs to communicate with them
+    private AasServiceRegistry aasServiceRegistry;
     @Inject // Register public endpoints
     private PublicApiManagementService publicApiManagementService;
     @Inject // Create / manage EDC assets
@@ -63,6 +66,7 @@ public class AasExtension implements ServiceExtension {
     private PolicyDefinitionStore policyStore;
     @Inject // Register http endpoint at EDC
     private WebService webService;
+
     private Monitor monitor;
     private ScheduledExecutorService syncExecutor;
     private AasController aasController;
@@ -124,7 +128,8 @@ public class AasExtension implements ServiceExtension {
 
     private void initializeSynchronizer(SelfDescriptionRepository selfDescriptionRepository) {
         var synchronizer = new Synchronizer(selfDescriptionRepository, aasController,
-                new ResourceController(assetIndex, contractStore, policyStore, monitor));
+                new ResourceController(assetIndex, contractStore, policyStore, monitor),
+                aasServiceRegistry);
         selfDescriptionRepository.registerListener(synchronizer);
 
         // Task: get all AAS service URLs, synchronize EDC and AAS

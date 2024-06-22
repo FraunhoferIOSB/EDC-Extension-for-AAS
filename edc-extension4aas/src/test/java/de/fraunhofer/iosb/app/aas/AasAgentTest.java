@@ -15,7 +15,7 @@
  */
 package de.fraunhofer.iosb.app.aas;
 
-import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
+import de.fraunhofer.iosb.aas.impl.AllAasDataProcessorFactory;
 import de.fraunhofer.iosb.app.testutils.FileManager;
 import de.fraunhofer.iosb.app.util.AssetAdministrationShellUtil;
 import de.fraunhofer.iosb.ssl.impl.DefaultSelfSignedCertificateRetriever;
@@ -62,7 +62,7 @@ public class AasAgentTest {
 
     @BeforeEach
     public void initialize() {
-        aasAgent = new AasAgent(new ConsoleMonitor(), new AasDataProcessorFactory(new DefaultSelfSignedCertificateRetriever()));
+        aasAgent = new AasAgent(new ConsoleMonitor(), new AllAasDataProcessorFactory(new DefaultSelfSignedCertificateRetriever()));
         mockServer.reset();
     }
 

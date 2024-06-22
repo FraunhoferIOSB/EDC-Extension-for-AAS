@@ -17,6 +17,7 @@ package de.fraunhofer.iosb.aas;
 
 import de.fraunhofer.iosb.ssl.SelfSignedCertificateRetriever;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.result.Result;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -26,10 +27,10 @@ import java.security.cert.Certificate;
 import static de.fraunhofer.iosb.aas.http.HttpClientProvider.clientFor;
 import static java.lang.String.format;
 
-public class AasDataProcessorFactory {
+public abstract class AasDataProcessorFactory {
 
     private static final String HTTPS = "HTTPS";
-    private final SelfSignedCertificateRetriever retriever;
+    protected final SelfSignedCertificateRetriever retriever;
 
     public AasDataProcessorFactory(SelfSignedCertificateRetriever retriever) {
         this.retriever = retriever;
@@ -51,17 +52,21 @@ public class AasDataProcessorFactory {
             throw new EdcException("Malformed URL for AAS manipulator", malformedUrlException);
         }
 
+        var certResult = getCertificates(aasUrl);
+
         try {
-            return new AasDataProcessor(clientFor(getCertificates(aasUrl)));
+            return new AasDataProcessor(clientFor(certResult.getContent()));
         } catch (KeyStoreException e) {
-            throw new RuntimeException(e);
+            throw new EdcException(e);
         }
     }
 
-    private Certificate[] getCertificates(URL url) {
+    protected abstract Result<Certificate[]> getCertificates(URL url);
+
+    protected Result<Certificate[]> retrieveCertificates(URL url) {
         if (!url.getProtocol().equalsIgnoreCase(HTTPS)) {
-            // No HTTPS, no certificates...
-            return null;
+            // Returning no certificates means accepting only trusted authorities (and http)
+            return Result.success(null);
         }
 
         var certsResult = retriever.getSelfSignedCertificate(url);
@@ -71,6 +76,6 @@ public class AasDataProcessorFactory {
                     certsResult.getFailureMessages()));
         }
 
-        return certsResult.getContent();
+        return certsResult;
     }
 }

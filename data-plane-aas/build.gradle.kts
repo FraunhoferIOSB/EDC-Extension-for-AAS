@@ -18,8 +18,6 @@ dependencies {
     testImplementation("$group:junit:$edcVersion")
     testImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
     testImplementation("de.fraunhofer.iosb.ilt.faaast.service:starter:${faaastVersion}")
-
-
 }
 
 tasks.test { useJUnitPlatform() }

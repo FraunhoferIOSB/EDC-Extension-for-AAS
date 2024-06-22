@@ -15,7 +15,7 @@
  */
 package de.fraunhofer.iosb.app.aas;
 
-import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
+import de.fraunhofer.iosb.aas.impl.AllAasDataProcessorFactory;
 import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
 import de.fraunhofer.iosb.ssl.impl.DefaultSelfSignedCertificateRetriever;
 import jakarta.ws.rs.HttpMethod;
@@ -47,7 +47,7 @@ public class FaaastServiceManagerTest {
     public void startServiceTest() throws IOException, URISyntaxException {
         var url = startService();
 
-        assertEquals(Response.Status.OK.getStatusCode(), new AasDataProcessorFactory(new DefaultSelfSignedCertificateRetriever())
+        assertEquals(Response.Status.OK.getStatusCode(), new AllAasDataProcessorFactory(new DefaultSelfSignedCertificateRetriever())
                 .processorFor(url.toString())
                 .send(AasDataAddress.Builder.newInstance()
                                 .method(HttpMethod.GET)

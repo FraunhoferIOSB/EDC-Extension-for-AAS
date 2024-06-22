@@ -17,15 +17,12 @@ java {
 }
 
 dependencies {
-    // Centralized auth request filter
     implementation(project(":public-api-management"))
     implementation(project(":data-plane-aas"))
 
-    // See this project's README.MD for explanations
+    implementation("de.fraunhofer.iosb.ilt.faaast.service:starter:${faaastVersion}")
     implementation("$group:http-spi:${edcVersion}")
     implementation("$group:management-api:$edcVersion")
-
-    implementation("de.fraunhofer.iosb.ilt.faaast.service:starter:${faaastVersion}")
 
     testImplementation("$group:junit:$edcVersion")
     testImplementation("org.glassfish.jersey.core:jersey-common:3.1.6")

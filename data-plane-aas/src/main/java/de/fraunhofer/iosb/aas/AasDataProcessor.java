@@ -35,7 +35,7 @@ public class AasDataProcessor {
 
     private final OkHttpClient httpClient;
 
-    AasDataProcessor(OkHttpClient httpClient) {
+    public AasDataProcessor(OkHttpClient httpClient) {
         this.httpClient = httpClient;
     }
 
@@ -86,7 +86,7 @@ public class AasDataProcessor {
                         HttpMethod.permitsRequestBody(aasDataAddress.getMethod()) ? requestBody : null)
                 .url(HttpUrl.get(aasDataAddress.getBaseUrl())
                         .newBuilder()
-                        .addPathSegment(aasDataAddress.referenceChainAsPath())
+                        .addPathSegments(aasDataAddress.referenceChainAsPath())
                         .build())
                 .headers(Headers.of(aasDataAddress.getAdditionalHeaders()))
                 .build();

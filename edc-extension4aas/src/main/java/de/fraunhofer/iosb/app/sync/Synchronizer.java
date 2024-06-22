@@ -26,6 +26,7 @@ import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionChangeListener;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
 import de.fraunhofer.iosb.app.util.AssetAdministrationShellUtil;
+import de.fraunhofer.iosb.registry.AasServiceRegistry;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.edc.spi.EdcException;
 
@@ -49,12 +50,14 @@ public class Synchronizer implements SelfDescriptionChangeListener {
     private final AasController aasController;
     private final ResourceController resourceController;
     private final Configuration configuration;
+    private final AasServiceRegistry aasServiceRegistry;
 
     public Synchronizer(SelfDescriptionRepository selfDescriptionRepository,
-                        AasController aasController, ResourceController resourceController) {
+                        AasController aasController, ResourceController resourceController, AasServiceRegistry aasServiceRegistry) {
         this.selfDescriptionRepository = selfDescriptionRepository;
         this.aasController = aasController;
         this.resourceController = resourceController;
+        this.aasServiceRegistry = aasServiceRegistry;
         this.configuration = Configuration.getInstance();
     }
 
@@ -73,7 +76,7 @@ public class Synchronizer implements SelfDescriptionChangeListener {
     }
 
     private void synchronize(URL aasServiceUrl) {
-        var onlySubmodels = this.configuration.isOnlySubmodels();
+        var onlySubmodels = configuration.isOnlySubmodels();
 
         var oldSelfDescription = selfDescriptionRepository.getSelfDescription(aasServiceUrl);
 
@@ -186,6 +189,13 @@ public class Synchronizer implements SelfDescriptionChangeListener {
 
     @Override
     public void created(URL aasUrl) {
+        var registrationResult = aasServiceRegistry.register(aasUrl.toString());
+        if (registrationResult.failed()) {
+            throw new EdcException(format("Could not synchronize with %s: %s",
+                    aasUrl,
+                    registrationResult.getFailureMessages()));
+        }
+
         synchronize(aasUrl);
     }
 
@@ -193,6 +203,8 @@ public class Synchronizer implements SelfDescriptionChangeListener {
     public void removed(URL removed) {
         var allElements = AssetAdministrationShellUtil.getAllElements(selfDescriptionRepository.getSelfDescription(removed).getEnvironment());
         removeAssetsContracts(allElements);
+
+        aasServiceRegistry.unregister(removed.toString());
     }
 
 }

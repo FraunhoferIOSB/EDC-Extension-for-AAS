@@ -16,7 +16,7 @@ The example has the following structure:
 - `dataspaceconnector-configuration.properties`: Debugging and quick testing of changes via `./gradlew run --debug-jvm`
   command
 - `docker-compose.yml`, `Dockerfile`: Docker files
-- `README.md`: This README file
+- `README.md`: This file
 
 ## Getting Started
 
@@ -140,7 +140,7 @@ __Important__:
    body. This must be a JSON representation of an EDC DataAddress like for example an HttpDataAddress:
     ```json
     {
-       "type": "HttpData",
+       "type": "AasData",
        "properties": {
            "https://w3id.org/edc/v0.0.1/ns/baseUrl": "https://my-aas:1234/api/v3.0/submodels/xyz/submodel-elements/a.b.c",
            "method": "PATCH",

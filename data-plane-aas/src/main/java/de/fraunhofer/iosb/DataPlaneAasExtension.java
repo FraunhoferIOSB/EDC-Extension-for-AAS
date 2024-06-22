@@ -16,9 +16,11 @@
 package de.fraunhofer.iosb;
 
 import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
+import de.fraunhofer.iosb.aas.impl.AllAasDataProcessorFactory;
+import de.fraunhofer.iosb.aas.impl.RegisteredAasDataProcessorFactory;
 import de.fraunhofer.iosb.dataplane.aas.pipeline.AasDataSinkFactory;
 import de.fraunhofer.iosb.dataplane.aas.pipeline.AasDataSourceFactory;
-import de.fraunhofer.iosb.ssl.SelfSignedCertificateRetriever;
+import de.fraunhofer.iosb.registry.AasServiceRegistry;
 import de.fraunhofer.iosb.ssl.impl.DefaultSelfSignedCertificateRetriever;
 import de.fraunhofer.iosb.ssl.impl.NoOpSelfSignedCertificateRetriever;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
@@ -27,6 +29,8 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+
+import java.util.HashSet;
 
 /**
  * Provides support for communicating with AAS services.
@@ -43,13 +47,14 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
  *     </li>
  * </ul>
  */
-@Provides(AasDataProcessorFactory.class)
+@Provides({AasDataProcessorFactory.class, AasServiceRegistry.class})
 @Extension(value = DataPlaneAasExtension.NAME)
 public class DataPlaneAasExtension implements ServiceExtension {
 
     public static final String NAME = "Data Plane AAS";
 
-    private static final String ACCEPT_SELF_SIGNED_AAS_SERVICES = "edc.aas.acceptSelfSignedCertificates";
+    private static final String ALL_SELF_SIGNED = "edc.dataplane.aas.acceptAllSelfSignedCertificates";
+    private static final String OWN_SELF_SIGNED = "edc.dataplane.aas.acceptOwnSelfSignedCertificates";
 
     @Inject
     private PipelineService pipelineService;
@@ -57,15 +62,24 @@ public class DataPlaneAasExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var monitor = context.getMonitor();
 
-        var acceptSelfSignedAasServices = context.getSetting(ACCEPT_SELF_SIGNED_AAS_SERVICES, false);
+        var allSelfSigned = context.getSetting(ALL_SELF_SIGNED, false);
+        var ownSelfSigned = context.getSetting(OWN_SELF_SIGNED, allSelfSigned);
 
-        SelfSignedCertificateRetriever retriever = acceptSelfSignedAasServices ?
+        var retriever = (allSelfSigned || ownSelfSigned) ?
                 new DefaultSelfSignedCertificateRetriever() :
                 new NoOpSelfSignedCertificateRetriever();
 
-        var aasDataProcessorFactory = new AasDataProcessorFactory(retriever);
+        var registeredServices = ownSelfSigned ? new HashSet<String>() : null;
+
+        var aasDataProcessorFactory = allSelfSigned ?
+                new AllAasDataProcessorFactory(retriever) :
+                new RegisteredAasDataProcessorFactory(retriever, registeredServices);
 
         context.registerService(AasDataProcessorFactory.class, aasDataProcessorFactory);
+
+        var registry = new AasServiceRegistry(registeredServices);
+
+        context.registerService(AasServiceRegistry.class, registry);
 
         var aasDataSourceFactory = new AasDataSourceFactory(monitor, aasDataProcessorFactory);
         pipelineService.registerFactory(aasDataSourceFactory);

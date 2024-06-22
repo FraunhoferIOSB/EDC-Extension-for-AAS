@@ -15,12 +15,13 @@
  */
 package de.fraunhofer.iosb.app.sync;
 
-import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
+import de.fraunhofer.iosb.aas.impl.AllAasDataProcessorFactory;
 import de.fraunhofer.iosb.app.controller.AasController;
 import de.fraunhofer.iosb.app.controller.ResourceController;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
 import de.fraunhofer.iosb.app.testutils.FileManager;
 import de.fraunhofer.iosb.app.testutils.StringMethods;
+import de.fraunhofer.iosb.registry.AasServiceRegistry;
 import de.fraunhofer.iosb.ssl.impl.DefaultSelfSignedCertificateRetriever;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
@@ -37,6 +38,7 @@ import org.mockserver.matchers.Times;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashSet;
 import java.util.Objects;
 
 import static java.lang.String.format;
@@ -90,12 +92,13 @@ public class SynchronizerTest {
         selfDescriptionRepo = new SelfDescriptionRepository();
         synchronizer = new Synchronizer(
                 selfDescriptionRepo,
-                new AasController(monitor, new AasDataProcessorFactory(new DefaultSelfSignedCertificateRetriever())),
+                new AasController(monitor, new AllAasDataProcessorFactory(new DefaultSelfSignedCertificateRetriever())),
                 new ResourceController(
                         mock(AssetIndex.class),
                         mock(ContractDefinitionStore.class),
                         mock(PolicyDefinitionStore.class),
-                        monitor));
+                        monitor),
+                new AasServiceRegistry(new HashSet<>()));
         selfDescriptionRepo.registerListener(synchronizer);
         prepareDefaultMockedResponse();
     }

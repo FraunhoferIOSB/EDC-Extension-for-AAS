@@ -15,7 +15,7 @@
  */
 package de.fraunhofer.iosb.app;
 
-import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
+import de.fraunhofer.iosb.aas.impl.AllAasDataProcessorFactory;
 import de.fraunhofer.iosb.app.controller.AasController;
 import de.fraunhofer.iosb.app.controller.ConfigurationController;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
@@ -66,7 +66,7 @@ public class EndpointTest {
     public void setupEndpoint() {
         var monitor = new ConsoleMonitor();
         selfDescriptionRepo = new SelfDescriptionRepository();
-        aasController = new AasController(monitor, new AasDataProcessorFactory(new NoOpSelfSignedCertificateRetriever()));
+        aasController = new AasController(monitor, new AllAasDataProcessorFactory(new NoOpSelfSignedCertificateRetriever()));
         endpoint = new Endpoint(
                 selfDescriptionRepo,
                 aasController,

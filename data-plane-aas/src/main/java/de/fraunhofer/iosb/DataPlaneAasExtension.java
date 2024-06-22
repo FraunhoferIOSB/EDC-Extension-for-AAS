@@ -69,7 +69,7 @@ public class DataPlaneAasExtension implements ServiceExtension {
                 new DefaultSelfSignedCertificateRetriever() :
                 new NoOpSelfSignedCertificateRetriever();
 
-        var registeredServices = ownSelfSigned ? new HashSet<String>() : null;
+        var registeredServices = (ownSelfSigned || allSelfSigned) ? new HashSet<String>() : null;
 
         var aasDataProcessorFactory = allSelfSigned ?
                 new AllAasDataProcessorFactory(retriever) :

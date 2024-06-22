@@ -40,7 +40,7 @@ public class AasDataProcessor {
     }
 
     /**
-     * Send data to an AAS service.
+     * Send data to an AAS service with no requestBody
      *
      * @param aasDataAddress The address of the AAS service.
      * @return Response by the AAS service.

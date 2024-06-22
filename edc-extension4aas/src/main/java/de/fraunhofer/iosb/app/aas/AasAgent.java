@@ -21,20 +21,14 @@ import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShellEnvironmen
 import de.fraunhofer.iosb.app.model.aas.CustomConceptDescription;
 import de.fraunhofer.iosb.app.model.aas.CustomSubmodel;
 import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.List;
 
-import static jakarta.ws.rs.HttpMethod.DELETE;
 import static jakarta.ws.rs.HttpMethod.GET;
-import static jakarta.ws.rs.HttpMethod.POST;
-import static jakarta.ws.rs.HttpMethod.PUT;
 import static java.lang.String.format;
 
 /**
@@ -44,64 +38,12 @@ public class AasAgent {
 
     private static final int INTERNAL_SERVER_ERROR = 500;
 
-    private final Monitor monitor;
     private final AasDataProcessorFactory aasDataProcessorFactory;
 
     private ModelParser modelParser;
 
-    public AasAgent(Monitor monitor, AasDataProcessorFactory aasDataProcessorFactory) {
-        this.monitor = monitor;
+    public AasAgent(AasDataProcessorFactory aasDataProcessorFactory) {
         this.aasDataProcessorFactory = aasDataProcessorFactory;
-    }
-
-    /**
-     * Overwrite aas model element.
-     *
-     * @param aasServiceUrl AAS service to be updated with the path to the updated
-     *                      element
-     * @param element       Updated AAS model element.
-     * @return String containing response of AAS service.
-     */
-    public Response putModel(URL aasServiceUrl, String element) {
-        try (var response = executeRequest(aasServiceUrl, element, PUT)) {
-            return Response.status(response.code()).entity(aasServiceUrl).build();
-        } catch (IOException io) {
-            monitor.severe(format("Could not execute %s request to %s", POST, aasServiceUrl), io);
-            return Response.serverError().build();
-        }
-    }
-
-    /**
-     * Create aas model element.
-     *
-     * @param aasServiceUrl AAS service to be updated with path to the new element
-     * @param element       New AAS model element.
-     * @return String containing response of AAS service.
-     */
-    public Response postModel(URL aasServiceUrl, String element) {
-        try (var response = executeRequest(aasServiceUrl, element, POST)) {
-            return Response.status(response.code()).entity(aasServiceUrl).build();
-        } catch (IOException io) {
-            monitor.severe(format("Could not execute %s request to %s", POST, aasServiceUrl), io);
-            return Response.serverError().build();
-        }
-    }
-
-    /**
-     * Create aas model element.
-     *
-     * @param aasServiceUrl AAS service to be updated with the path to the element
-     *                      to be removed
-     * @param element       New AAS model element.
-     * @return String containing response of AAS service.
-     */
-    public Response deleteModel(URL aasServiceUrl, String element) {
-        try (var response = executeRequest(aasServiceUrl, element, DELETE)) {
-            return Response.status(response.code()).entity(aasServiceUrl).build();
-        } catch (IOException io) {
-            monitor.severe(format("Could not execute %s request to %s", POST, aasServiceUrl), io);
-            return Response.serverError().build();
-        }
     }
 
     /**
@@ -178,17 +120,11 @@ public class AasAgent {
     }
 
     private okhttp3.Response executeRequest(URL aasServiceUrl) throws IOException {
-        return executeRequest(aasServiceUrl, null, GET);
-    }
-
-    private okhttp3.Response executeRequest(URL aasServiceUrl, String element, String httpMethod) throws IOException {
         return aasDataProcessorFactory.processorFor(aasServiceUrl.toString())
                 .send(AasDataAddress.Builder
-                                .newInstance()
-                                .method(httpMethod)
-                                .baseUrl(aasServiceUrl.toString())
-                                .build(),
-                        element,
-                        MediaType.APPLICATION_JSON);
+                        .newInstance()
+                        .method(GET)
+                        .baseUrl(aasServiceUrl.toString())
+                        .build());
     }
 }

@@ -16,12 +16,10 @@
 package de.fraunhofer.iosb.app.controller;
 
 import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
-import de.fraunhofer.iosb.app.RequestType;
 import de.fraunhofer.iosb.app.aas.AasAgent;
 import de.fraunhofer.iosb.app.aas.AssetAdministrationShellServiceManager;
 import de.fraunhofer.iosb.app.aas.FaaastServiceManager;
 import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShellEnvironment;
-import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.io.IOException;
@@ -35,7 +33,7 @@ import static java.lang.String.format;
  * Handles requests regarding the Asset Administration Shells registered to this
  * extension
  */
-public class AasController implements Controllable {
+public class AasController {
 
     private final AasAgent aasAgent;
     private final AssetAdministrationShellServiceManager aasServiceManager;
@@ -44,18 +42,8 @@ public class AasController implements Controllable {
     public AasController(Monitor monitor, AasDataProcessorFactory aasDataProcessorFactory) {
         this.monitor = monitor;
 
-        aasAgent = new AasAgent(monitor, aasDataProcessorFactory);
+        aasAgent = new AasAgent(aasDataProcessorFactory);
         aasServiceManager = new FaaastServiceManager(monitor);
-    }
-
-    @Override
-    public Response handleRequest(RequestType requestType, URL url, String... requestData) {
-        return switch (requestType) {
-            case POST -> aasAgent.postModel(url, requestData[0]);
-            case PUT -> aasAgent.putModel(url, requestData[0]);
-            case DELETE -> aasAgent.deleteModel(url, requestData[0]);
-            default -> Response.status(Response.Status.NOT_IMPLEMENTED).build();
-        };
     }
 
     /**

@@ -20,7 +20,6 @@ import de.fraunhofer.iosb.app.testutils.FileManager;
 import de.fraunhofer.iosb.app.util.AssetAdministrationShellUtil;
 import de.fraunhofer.iosb.ssl.impl.DefaultSelfSignedCertificateRetriever;
 import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElement;
-import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,7 +27,6 @@ import org.junit.jupiter.api.Test;
 import org.mockserver.integration.ClientAndServer;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -62,7 +60,7 @@ public class AasAgentTest {
 
     @BeforeEach
     public void initialize() {
-        aasAgent = new AasAgent(new ConsoleMonitor(), new AllAasDataProcessorFactory(new DefaultSelfSignedCertificateRetriever()));
+        aasAgent = new AasAgent(new AllAasDataProcessorFactory(new DefaultSelfSignedCertificateRetriever()));
         mockServer.reset();
     }
 
@@ -86,41 +84,6 @@ public class AasAgentTest {
         AssetAdministrationShellUtil.getAllElements(result).forEach(elem -> assertEquals(HTTP_LOCALHOST_8080 + PATH_PREFIX, elem.getSourceUrl()));
 
         assertEquals(AssetAdministrationShellUtil.getAllElements(result).stream().filter(elem -> elem instanceof SubmodelElement).count(), 0);
-    }
-
-    @Test
-    public void testPutAasShell() throws MalformedURLException {
-        mockServer.when(request().withMethod("PUT").withPath(SHELLS + "/").withBody("raw_data_forwarded"))
-                .respond(response().withStatusCode(200));
-
-        var response = aasAgent.putModel(new URL(HTTP_LOCALHOST_8080 + SHELLS),
-                "raw_data_forwarded");
-
-        // Check whether AAS agent forwards the raw data of a request
-        assertEquals(200, response.getStatus());
-    }
-
-    @Test
-    public void testPostAasSubmodel() throws MalformedURLException {
-        mockServer.when(request().withMethod("POST").withPath(SUBMODELS + "/").withBody("raw_data_forwarded"))
-                .respond(response().withStatusCode(200));
-
-        try (var response = aasAgent.postModel(new URL(HTTP_LOCALHOST_8080 + SUBMODELS),
-                "raw_data_forwarded")) {
-            // Check whether AAS agent forwards the raw data of a request
-            assertEquals(200, response.getStatus());
-        }
-    }
-
-    @Test
-    public void testDeleteAasConceptDescription() throws MalformedURLException {
-        mockServer.when(request().withMethod("DELETE").withPath(CONCEPT_DESCRIPTIONS + "/"))
-                .respond(response().withStatusCode(200));
-
-        try (var response = aasAgent.deleteModel(new URL(HTTP_LOCALHOST_8080 + CONCEPT_DESCRIPTIONS), null)) {
-            // Check whether AAS agent forwards the raw data of a request
-            assertEquals(200, response.getStatus());
-        }
     }
 
     private void prepareServerResponse() {

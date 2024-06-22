@@ -35,7 +35,8 @@ public class RegisteredAasDataProcessorFactory extends AasDataProcessorFactory {
 
     @Override
     protected Result<Certificate[]> getCertificates(URL url) {
-        if (registeredAasServices == null || !registeredAasServices.contains(url.toString())) {
+        if (registeredAasServices == null ||
+                registeredAasServices.stream().noneMatch(service -> url.toString().startsWith(service))) {
             return Result.failure("AAS service is not registered and allowing all self-signed certificates is disabled");
         }
 

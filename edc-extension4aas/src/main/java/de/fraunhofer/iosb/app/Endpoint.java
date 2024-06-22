@@ -30,7 +30,6 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
-import jakarta.ws.rs.core.Response.Status.Family;
 import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.io.IOException;
@@ -50,7 +49,6 @@ import static java.lang.String.format;
 public class Endpoint {
 
     public static final String SELF_DESCRIPTION_PATH = "selfDescription";
-    private static final String AAS_REQUEST_PATH = "aas";
     private static final String CONFIG_PATH = "config";
     private static final String CLIENT_PATH = "client";
     private static final String ENVIRONMENT_PATH = "environment";
@@ -193,54 +191,6 @@ public class Endpoint {
     }
 
     /**
-     * Forward POST request to provided host in requestUrl. If requestUrl is an AAS
-     * service that is registered at this EDC, synchronize assets and self-description as well.
-     *
-     * @param requestUrl  URL of AAS service to be updated
-     * @param requestBody AAS element
-     * @return Response status
-     */
-    @POST
-    @Path(AAS_REQUEST_PATH)
-    public Response postAasRequest(@QueryParam("requestUrl") URL requestUrl, String requestBody) {
-        monitor.info("Received an AAS POST request");
-        Objects.requireNonNull(requestUrl);
-        Objects.requireNonNull(requestBody);
-        return handleAasRequest(RequestType.POST, requestUrl, requestBody);
-    }
-
-    /**
-     * Forward DELETE request to provided host in requestUrl. If requestUrl is an
-     * AAS service that is registered at this EDC, synchronize assets and self-description as well.
-     *
-     * @param requestUrl URL of AAS service to be deleted
-     * @return Response status
-     */
-    @DELETE
-    @Path(AAS_REQUEST_PATH)
-    public Response deleteAasRequest(@QueryParam("requestUrl") URL requestUrl) {
-        monitor.info("Received an AAS DELETE request");
-        Objects.requireNonNull(requestUrl);
-        return handleAasRequest(RequestType.DELETE, requestUrl, "");
-    }
-
-    /**
-     * Forward PUT request to provided host in requestUrl.
-     *
-     * @param requestUrl  URL of AAS service to be updated
-     * @param requestBody AAS element
-     * @return Response status
-     */
-    @PUT
-    @Path(AAS_REQUEST_PATH)
-    public Response putAasRequest(@QueryParam("requestUrl") URL requestUrl, String requestBody) {
-        monitor.info("Received an AAS PUT request");
-        Objects.requireNonNull(requestUrl);
-        Objects.requireNonNull(requestBody);
-        return handleAasRequest(RequestType.PUT, requestUrl, requestBody);
-    }
-
-    /**
      * Print self-descriptions of AAS environments registered at this EDC. If no
      * query parameter is given, print all self-descriptions available.
      *
@@ -272,19 +222,4 @@ public class Endpoint {
         }
     }
 
-    /*
-     * Does not synchronize assetIndex & selfDescription. This happens periodically
-     * via Synchronizer
-     */
-    private Response handleAasRequest(RequestType requestType, URL requestUrl, String body) {
-        try (var response = aasController.handleRequest(requestType, requestUrl, body)) {
-            // check if status code is 2xx
-            if (!response.getStatusInfo().getFamily().equals(Family.SUCCESSFUL)) {
-                monitor.severe("AAS request failed. Response from URL: " + response.getStatusInfo());
-                return Response.status(response.getStatus()).build();
-            }
-            monitor.info("AAS request succeeded.");
-        }
-        return Response.ok().build();
-    }
 }

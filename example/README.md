@@ -1,6 +1,7 @@
 # Example Use Case
 
-The example use case starts two connectors with the edc4aas extension and the client extension. The first connector is a provider of an AAS model and the second connector is an example consumer which wants to retrieve data from the provider.
+The example use case starts two connectors with the edc4aas extension and the client extension. The first connector is a
+provider of an AAS model and the second connector is an example consumer which wants to retrieve data from the provider.
 
 The example has the following structure:
 
@@ -15,7 +16,7 @@ The example has the following structure:
 - `dataspaceconnector-configuration.properties`: Debugging and quick testing of changes via `./gradlew run --debug-jvm`
   command
 - `docker-compose.yml`, `Dockerfile`: Docker files
-- `README.md`: This README file
+- `README.md`: This file
 
 ## Getting Started
 
@@ -40,7 +41,6 @@ java "-Dedc.fs.config=./example/configurations/provider.properties" -jar ./examp
 
 ### Alternative: docker & docker-compose
 
-
 After building the extension as seen above, a docker image can be built with
 
 1. `cd ./example`
@@ -48,7 +48,8 @@ After building the extension as seen above, a docker image can be built with
 3. `mkdir workdir`
 4. Create configuration under `./workdir/config.properties`
 5. Add additional files under `./workdir` (Fitting to your paths in config.properties)
-6. Run with `docker run -i -v $PWD/workdir:/workdir/ -e EDC_FS_CONFIG=/workdir/config.properties edc-extension4aas:latest`
+6. Run
+   with `docker run -i -v $PWD/workdir:/workdir/ -e EDC_FS_CONFIG=/workdir/config.properties edc-extension4aas:latest`
 
 This docker image can be run individually or **inside a docker-compose file**:
 
@@ -135,24 +136,44 @@ __Important__:
   consumer connector).
 
 1. Execute the request `Client/Automated Negotiation`. The consumer connector will now try to negotiate a contract with
-   the provider to get the data of the selected asset.
+   the provider to get the data of the selected asset. Optionally, you can provide a target address via the request
+   body. This must be a JSON representation of an EDC DataAddress like for example an HttpDataAddress:
+    ```json
+    {
+       "type": "AasData",
+       "properties": {
+           "https://w3id.org/edc/v0.0.1/ns/baseUrl": "https://my-aas:1234/api/v3.0/submodels/xyz/submodel-elements/a.b.c",
+           "method": "PATCH",
+           "header:x-api-key": "password"
+       }
+    }
+    ```
 
-2. If everything went right, the response should already be the data behind the `asset id` you selected.
+2. If everything went right, the response should already be the data behind the `asset id` you selected (in case of
+   DataAddress, the data should be at the target address).
 
 ### Separate requests
 
 1. Execute the request `Client/1. Get dataset for asset`
    This will return the provider offer for this asset. Copy the full response for the next step.
 
-2. Paste the response inside of request `Client/2. Initiate negotiation with contractOffer`'s body ("contractOffer" field, as can be seen in the screenshot) and
+2. Paste the response inside of request `Client/2. Initiate negotiation with contractOffer`'s body ("contractOffer"
+   field, as can be seen in the screenshot) and
    execute said request.
-<img src="resources/tutorial-images/step-2">
+   <img src="resources/tutorial-images/step-2">
 
 3. If everything succeeded, request `2` returns an agreementID. Update the postman collection's "agreement-id" variable
    using the response value.
 
-4. Execute request `3. Get data for agreement id and asset id`. If again everything went right, the response should be the
-   data behind the previously selected asset.
+4. Execute request `3. Get data for agreement id and asset id`. If again everything went right, the response should be
+   the data behind the previously selected asset. Here, you can also provide a DataAddress like in step 1 of the fully
+   automated tutorial.
+
+## HTTPS connector configuration files
+
+Even though 'provider-https.properties' and 'consumer-https.properties' are valid connectors on their own, they cannot
+communicate with each other since they both use self-signed TLS certificates. Those certificates are not allowed when
+communicating with another connector, so data transfer will not be possible.
 
 ## Debugging the extension
 

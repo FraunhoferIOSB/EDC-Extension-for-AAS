@@ -22,12 +22,12 @@ import java.util.Collection;
 @JsonAutoDetect
 public class CustomSubmodelElementList extends CustomSubmodelElement {
 
+    private Collection<CustomSubmodelElement> value;
+
     public CustomSubmodelElementList(String idShort, Collection<CustomSubmodelElement> value) {
         this.idShort = idShort;
         this.value = value;
     }
-
-    private Collection<CustomSubmodelElement> value;
 
     public Collection<CustomSubmodelElement> getValue() {
         return value;

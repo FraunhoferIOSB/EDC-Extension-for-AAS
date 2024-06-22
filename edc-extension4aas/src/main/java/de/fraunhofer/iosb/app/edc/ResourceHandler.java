@@ -15,7 +15,7 @@
  */
 package de.fraunhofer.iosb.app.edc;
 
-import de.fraunhofer.iosb.app.dataplane.aas.pipeline.AasDataAddress;
+import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;

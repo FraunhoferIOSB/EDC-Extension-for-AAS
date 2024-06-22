@@ -15,25 +15,20 @@
  */
 package de.fraunhofer.iosb.app.aas;
 
+import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
 import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShell;
 import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShellEnvironment;
 import de.fraunhofer.iosb.app.model.aas.CustomConceptDescription;
 import de.fraunhofer.iosb.app.model.aas.CustomSubmodel;
-import de.fraunhofer.iosb.app.util.HttpRestClient;
-import jakarta.ws.rs.core.Response;
+import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
 import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.Certificate;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
+import static jakarta.ws.rs.HttpMethod.GET;
 import static java.lang.String.format;
 
 /**
@@ -41,73 +36,14 @@ import static java.lang.String.format;
  */
 public class AasAgent {
 
-    private final Monitor monitor;
+    private static final int INTERNAL_SERVER_ERROR = 500;
 
-    private final HttpRestClient httpRestClient = HttpRestClient.getInstance();
-    private final Map<String, Certificate[]> acceptedCertificates;
-
+    private final AasDataProcessorFactory aasDataProcessorFactory;
 
     private ModelParser modelParser;
 
-    public AasAgent(Monitor monitor) {
-        this.monitor = monitor;
-        acceptedCertificates = new HashMap<>();
-    }
-
-    /**
-     * Overwrite aas model element.
-     *
-     * @param aasServiceUrl AAS service to be updated with the path to the updated
-     *                      element
-     * @param element       Updated AAS model element.
-     * @return String containing response of AAS service.
-     */
-    public Response putModel(URL aasServiceUrl, String element) {
-
-        try (okhttp3.Response response = httpRestClient.put(aasServiceUrl, element, monitor)) {
-            return Response.status(response.code()).entity(aasServiceUrl).build();
-
-        } catch (IOException io) {
-            monitor.severe("Could not fetch AAS env from AAS service", io);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-
-    /**
-     * Create aas model element.
-     *
-     * @param aasServiceUrl AAS service to be updated with path to the new element
-     * @param element       New AAS model element.
-     * @return String containing response of AAS service.
-     */
-    public Response postModel(URL aasServiceUrl, String element) {
-
-        try (okhttp3.Response response = httpRestClient.post(aasServiceUrl, element, monitor)) {
-            return Response.status(response.code()).entity(aasServiceUrl).build();
-
-        } catch (IOException io) {
-            monitor.severe("Could not fetch AAS env from AAS service", io);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-
-    /**
-     * Create aas model element.
-     *
-     * @param aasServiceUrl AAS service to be updated with the path to the element
-     *                      to be removed
-     * @param element       New AAS model element.
-     * @return String containing response of AAS service.
-     */
-    public Response deleteModel(URL aasServiceUrl, String element) {
-
-        try (okhttp3.Response response = httpRestClient.delete(aasServiceUrl, element, monitor)) {
-            return Response.status(response.code()).entity(aasServiceUrl).build();
-        } catch (IOException io) {
-            monitor.severe("Could not fetch AAS env from AAS service", io);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
-        }
-
+    public AasAgent(AasDataProcessorFactory aasDataProcessorFactory) {
+        this.aasDataProcessorFactory = aasDataProcessorFactory;
     }
 
     /**
@@ -124,25 +60,6 @@ public class AasAgent {
 
         return readEnvironment(aasServiceUrl, onlySubmodels);
     }
-
-    public void addCertificates(URL url, Certificate[] certs) throws KeyStoreException, NoSuchAlgorithmException {
-        acceptedCertificates.put(url.toString(), certs);
-        httpRestClient.setAcceptedSelfSignedCertificates(acceptedCertificates);
-    }
-
-    public void removeCertificates(URL aasServiceUrl) {
-        acceptedCertificates.remove(aasServiceUrl.toString());
-        // Here we don't throw the exception on since we should still remove
-        // the service even if we cannot remove its self-signed certificates.
-        try {
-            httpRestClient.setAcceptedSelfSignedCertificates(acceptedCertificates);
-        } catch (KeyStoreException | NoSuchAlgorithmException generalSecurityException) {
-            throw new EdcException(
-                    format("Exception thrown while trying to remove certificate by %s", aasServiceUrl),
-                    generalSecurityException);
-        }
-    }
-
 
     /**
      * Returns the AAS environment.
@@ -173,9 +90,9 @@ public class AasAgent {
     }
 
     private List<CustomConceptDescription> readConceptDescriptions(URL conceptDescriptionsUrl) throws IOException {
-        try (var response = httpRestClient.get(conceptDescriptionsUrl, monitor)) {
+        try (var response = executeRequest(conceptDescriptionsUrl)) {
             var body = response.body();
-            if (body == null) {
+            if (body == null || response.code() == INTERNAL_SERVER_ERROR) {
                 throw new EdcException("Received empty body for concept description request");
             }
             return modelParser.parseConceptDescriptions(body.string());
@@ -183,9 +100,9 @@ public class AasAgent {
     }
 
     private List<CustomAssetAdministrationShell> readShells(URL shellsUrl) throws IOException {
-        try (var response = httpRestClient.get(shellsUrl, monitor)) {
+        try (var response = executeRequest(shellsUrl)) {
             var body = response.body();
-            if (body == null) {
+            if (body == null || response.code() == INTERNAL_SERVER_ERROR) {
                 throw new EdcException("Received empty body for shell request");
             }
             return modelParser.parseShells(body.string());
@@ -193,13 +110,21 @@ public class AasAgent {
     }
 
     private List<CustomSubmodel> readSubmodels(URL submodelUrl, boolean onlySubmodels) throws IOException {
-        try (var response = httpRestClient.get(submodelUrl, monitor)) {
+        try (var response = executeRequest(submodelUrl)) {
             var body = response.body();
-            if (body == null) {
+            if (body == null || response.code() == INTERNAL_SERVER_ERROR) {
                 throw new EdcException("Received empty body for submodel request");
             }
             return modelParser.parseSubmodels(body.string(), onlySubmodels);
         }
     }
 
+    private okhttp3.Response executeRequest(URL aasServiceUrl) throws IOException {
+        return aasDataProcessorFactory.processorFor(aasServiceUrl.toString())
+                .send(AasDataAddress.Builder
+                        .newInstance()
+                        .method(GET)
+                        .baseUrl(aasServiceUrl.toString())
+                        .build());
+    }
 }

@@ -35,6 +35,16 @@ public class CustomAssetAdministrationShell extends AssetAdministrationShellElem
     protected String idShort;
     protected AssetInformation assetInformation;
 
+    public static CustomAssetAdministrationShell fromAssetAdministrationShell(AssetAdministrationShell from) {
+        final var result = new CustomAssetAdministrationShell();
+
+        result.setIdShort(from.getIdShort());
+        result.setId(from.getId());
+        result.setAssetInformation(from.getAssetInformation());
+
+        return result;
+    }
+
     public String getId() {
         return id;
     }
@@ -73,16 +83,6 @@ public class CustomAssetAdministrationShell extends AssetAdministrationShellElem
         return Objects.equals(id, that.id) &&
                 Objects.equals(idShort, that.idShort) &&
                 Objects.equals(assetInformation, that.assetInformation);
-    }
-
-    public static CustomAssetAdministrationShell fromAssetAdministrationShell(AssetAdministrationShell from) {
-        final var result = new CustomAssetAdministrationShell();
-
-        result.setIdShort(from.getIdShort());
-        result.setId(from.getId());
-        result.setAssetInformation(from.getAssetInformation());
-
-        return result;
     }
 
 }

@@ -18,7 +18,6 @@ package de.fraunhofer.iosb.app.model.configuration;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.net.URL;
-import java.util.Objects;
 
 /**
  * The configuration of the application.
@@ -42,7 +41,7 @@ public class Configuration {
 
     @JsonProperty(SETTINGS_PREFIX + "syncPeriod")
     private int syncPeriod = 5; // Seconds
-    
+
     @JsonProperty(SETTINGS_PREFIX + "onlySubmodels")
     private boolean onlySubmodels = false;
 
@@ -55,11 +54,8 @@ public class Configuration {
     @JsonProperty(SETTINGS_PREFIX + "defaultContractPolicyPath")
     private String defaultContractPolicyPath;
 
-    @JsonProperty(SETTINGS_PREFIX + "acceptSelfSignedCertificates")
-    private boolean isAcceptSelfSignedCertificates = false;
-
     public static synchronized Configuration getInstance() {
-        if (Objects.isNull(instance)) {
+        if (instance == null) {
             instance = new Configuration();
         }
         return instance;
@@ -99,9 +95,5 @@ public class Configuration {
 
     public String getDefaultContractPolicyPath() {
         return defaultContractPolicyPath;
-    }
-
-    public boolean isAcceptSelfSignedCertificates() {
-        return isAcceptSelfSignedCertificates;
     }
 }

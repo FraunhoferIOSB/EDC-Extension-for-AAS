@@ -13,21 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.app.util;
+package de.fraunhofer.iosb.ssl.impl;
 
-import java.util.Base64;
-import java.util.Objects;
+import de.fraunhofer.iosb.ssl.SelfSignedCertificateRetriever;
 
-/**
- * Encoding utility class.
- */
-public class Encoder {
-
-    /**
-     * Return base64 encoded String version of input
-     */
-    public static String encodeBase64(String toBeEncoded) {
-        Objects.requireNonNull(toBeEncoded, "toBeEncoded must not be null");
-        return Base64.getEncoder().encodeToString(toBeEncoded.getBytes());
-    }
+public class NoOpSelfSignedCertificateRetriever implements SelfSignedCertificateRetriever {
 }

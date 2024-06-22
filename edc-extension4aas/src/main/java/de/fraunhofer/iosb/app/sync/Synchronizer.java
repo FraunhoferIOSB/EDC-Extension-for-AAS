@@ -26,8 +26,8 @@ import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionChangeListener;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
 import de.fraunhofer.iosb.app.util.AssetAdministrationShellUtil;
+import de.fraunhofer.iosb.registry.AasServiceRegistry;
 import jakarta.ws.rs.core.MediaType;
-import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.DeserializationException;
 import org.eclipse.edc.spi.EdcException;
 
 import java.io.IOException;
@@ -50,12 +50,14 @@ public class Synchronizer implements SelfDescriptionChangeListener {
     private final AasController aasController;
     private final ResourceController resourceController;
     private final Configuration configuration;
+    private final AasServiceRegistry aasServiceRegistry;
 
     public Synchronizer(SelfDescriptionRepository selfDescriptionRepository,
-                        AasController aasController, ResourceController resourceController) {
+                        AasController aasController, ResourceController resourceController, AasServiceRegistry aasServiceRegistry) {
         this.selfDescriptionRepository = selfDescriptionRepository;
         this.aasController = aasController;
         this.resourceController = resourceController;
+        this.aasServiceRegistry = aasServiceRegistry;
         this.configuration = Configuration.getInstance();
     }
 
@@ -74,7 +76,7 @@ public class Synchronizer implements SelfDescriptionChangeListener {
     }
 
     private void synchronize(URL aasServiceUrl) {
-        var onlySubmodels = this.configuration.isOnlySubmodels();
+        var onlySubmodels = configuration.isOnlySubmodels();
 
         var oldSelfDescription = selfDescriptionRepository.getSelfDescription(aasServiceUrl);
 
@@ -103,9 +105,6 @@ public class Synchronizer implements SelfDescriptionChangeListener {
         } catch (IOException aasServiceUnreachableException) {
             throw new EdcException(format("Could not reach AAS service (%s): %s", aasServiceUrl,
                     aasServiceUnreachableException.getMessage()), aasServiceUnreachableException);
-        } catch (DeserializationException aasModelDeserializationException) {
-            throw new EdcException(format("Could not deserialize AAS model (%s): %s", aasServiceUrl,
-                    aasModelDeserializationException.getMessage()), aasModelDeserializationException);
         }
         return newEnvironment;
     }
@@ -179,8 +178,8 @@ public class Synchronizer implements SelfDescriptionChangeListener {
                     element.getReferenceChain(),
                     ((AssetAdministrationShellElement) element).getIdShort(),
                     MediaType.APPLICATION_JSON);
-            element.setIdsAssetId(assetContractPair.getFirst());
-            element.setIdsContractId(assetContractPair.getSecond());
+            element.setIdsAssetId(assetContractPair.first());
+            element.setIdsContractId(assetContractPair.second());
         });
     }
 
@@ -190,16 +189,22 @@ public class Synchronizer implements SelfDescriptionChangeListener {
 
     @Override
     public void created(URL aasUrl) {
-        if (aasController.addCertificates(aasUrl).succeeded()) {
-            synchronize(aasUrl);
+        var registrationResult = aasServiceRegistry.register(aasUrl.toString());
+        if (registrationResult.failed()) {
+            throw new EdcException(format("Could not synchronize with %s: %s",
+                    aasUrl,
+                    registrationResult.getFailureMessages()));
         }
+
+        synchronize(aasUrl);
     }
 
     @Override
     public void removed(URL removed) {
-        aasController.removeCertificates(removed);
         var allElements = AssetAdministrationShellUtil.getAllElements(selfDescriptionRepository.getSelfDescription(removed).getEnvironment());
         removeAssetsContracts(allElements);
+
+        aasServiceRegistry.unregister(removed.toString());
     }
 
 }

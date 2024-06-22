@@ -15,11 +15,14 @@
  */
 package de.fraunhofer.iosb.app.sync;
 
+import de.fraunhofer.iosb.aas.impl.AllAasDataProcessorFactory;
 import de.fraunhofer.iosb.app.controller.AasController;
 import de.fraunhofer.iosb.app.controller.ResourceController;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
 import de.fraunhofer.iosb.app.testutils.FileManager;
 import de.fraunhofer.iosb.app.testutils.StringMethods;
+import de.fraunhofer.iosb.registry.AasServiceRegistry;
+import de.fraunhofer.iosb.ssl.impl.DefaultSelfSignedCertificateRetriever;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
@@ -35,6 +38,7 @@ import org.mockserver.matchers.Times;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashSet;
 import java.util.Objects;
 
 import static java.lang.String.format;
@@ -47,30 +51,38 @@ import static org.mockserver.model.HttpResponse.response;
 
 public class SynchronizerTest {
 
+    private static final String PATH_PREFIX = "/api/v3.0";
+    private static final String SUBMODELS = PATH_PREFIX + "/submodels/";
+    private static final String SHELLS = PATH_PREFIX + "/shells/";
+    private static final String CONCEPT_DESCRIPTIONS = PATH_PREFIX + "/concept-descriptions/";
     private static int port;
     private static URL url;
     private static ClientAndServer mockServer;
-
-    private Synchronizer synchronizer;
-    private SelfDescriptionRepository selfDescriptionRepo;
-
-    private static final String PATH_PREFIX = "/api/v3.0";
-    private static final String SUBMODELS = PATH_PREFIX + "/submodels";
-    private static final String SHELLS = PATH_PREFIX + "/shells";
-    private static final String CONCEPT_DESCRIPTIONS = PATH_PREFIX + "/concept-descriptions";
-
     private final String shells = FileManager.loadResource("shells.json");
     private final String submodels = FileManager.loadResource("submodels.json");
     private final String submodelsNoSubmodelElements = FileManager.loadResource("submodelsNoSubmodelElements.json");
     private final String oneSubmodelOneSubmodelElementMore = FileManager
             .loadResource("oneSubmodelOneSubmodelElementMore.json");
     private final String conceptDescriptions = FileManager.loadResource("conceptDescriptions.json");
+    private Synchronizer synchronizer;
+    private SelfDescriptionRepository selfDescriptionRepo;
 
     @BeforeAll
     public static void initialize() throws MalformedURLException {
         port = 8080;
         url = new URL(format("http://localhost:%s", port));
         startMockServer(port);
+    }
+
+    @AfterAll
+    public static void shutdownMockServer() {
+        if (Objects.nonNull(mockServer) && mockServer.isRunning()) {
+            mockServer.stop();
+        }
+    }
+
+    private static void startMockServer(int port) {
+        mockServer = startClientAndServer(port);
     }
 
     @BeforeEach
@@ -80,21 +92,15 @@ public class SynchronizerTest {
         selfDescriptionRepo = new SelfDescriptionRepository();
         synchronizer = new Synchronizer(
                 selfDescriptionRepo,
-                new AasController(monitor),
+                new AasController(monitor, new AllAasDataProcessorFactory(new DefaultSelfSignedCertificateRetriever())),
                 new ResourceController(
                         mock(AssetIndex.class),
                         mock(ContractDefinitionStore.class),
                         mock(PolicyDefinitionStore.class),
-                        monitor));
+                        monitor),
+                new AasServiceRegistry(new HashSet<>()));
         selfDescriptionRepo.registerListener(synchronizer);
         prepareDefaultMockedResponse();
-    }
-
-    @AfterAll
-    public static void shutdownMockServer() {
-        if (Objects.nonNull(mockServer) && mockServer.isRunning()) {
-            mockServer.stop();
-        }
     }
 
     @AfterEach
@@ -107,8 +113,8 @@ public class SynchronizerTest {
      */
     @Test
     public void synchronizationInitializeTest() {
-
         selfDescriptionRepo.createSelfDescription(url);
+
         StringMethods.assertEqualsIgnoreWhiteSpace(
                 Objects.requireNonNull(FileManager.loadResource("selfDescriptionWithIds.json")),
                 selfDescriptionRepo.getSelfDescription(url).toString());
@@ -211,10 +217,6 @@ public class SynchronizerTest {
                 .respond(response().withBody("[]"));
         mockServer.when(request().withMethod("GET").withPath(CONCEPT_DESCRIPTIONS), Times.exactly(1))
                 .respond(response().withBody("[]"));
-    }
-
-    private static void startMockServer(int port) {
-        mockServer = startClientAndServer(port);
     }
 
 }

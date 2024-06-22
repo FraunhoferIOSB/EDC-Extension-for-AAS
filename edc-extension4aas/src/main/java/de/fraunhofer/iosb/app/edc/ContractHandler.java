@@ -53,16 +53,13 @@ public class ContractHandler {
     private static final String DEFAULT_ACCESS_POLICY_UID = "DEFAULT_ACCESS_POLICY";
     private static final String DEFAULT_CONTRACT_POLICY_UID = "DEFAULT_CONTRACT_POLICY";
     private static final String DEFAULT_CONTRACT_DEFINITION_UID = "DEFAULT_CONTRACT";
-
-    private long contractNumber = 0L;
-
     private final ContractDefinitionStore contractDefinitionStore;
     private final PolicyDefinitionStore policyDefinitionStore;
     private final Configuration configuration;
     private final Monitor monitor;
     private final ObjectReader objectReader;
-
     private final Policy defaultPolicy;
+    private long contractNumber = 0L;
 
     /**
      * Creates an instance of the ContractHandler class.

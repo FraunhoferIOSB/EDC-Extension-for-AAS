@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.app.dataplane.aas.pipeline;
+package de.fraunhofer.iosb.dataplane.aas.pipeline;
 
-import de.fraunhofer.iosb.app.util.HttpRestClient;
-import org.eclipse.edc.connector.dataplane.http.params.HttpRequestFactory;
-import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParams;
+import de.fraunhofer.iosb.aas.AasDataProcessor;
+import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSink;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
@@ -42,9 +41,8 @@ import static org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult.fail
  */
 public class AasDataSink implements DataSink {
 
-    private HttpRequestFactory requestFactory;
-    private HttpRestClient httpClient;
-    private HttpRequestParams params;
+    private AasDataProcessor aasDataProcessor;
+    private AasDataAddress aasDataAddress;
     private Monitor monitor;
 
     @Override
@@ -62,11 +60,10 @@ public class AasDataSink implements DataSink {
     }
 
     private StreamResult<Object> transferPart(DataSource.Part part) {
-        var request = requestFactory.toRequest(params, part);
 
-        monitor.debug(() -> "Executing HTTP request to AAS service: " + request.url());
+        monitor.debug(() -> "Executing HTTP request to AAS service: " + aasDataAddress.getBaseUrl());
 
-        try (var response = httpClient.execute(request)) {
+        try (var response = aasDataProcessor.send(aasDataAddress, part)) {
             return StreamResult.success("DataTransfer completed. Response from consumer: " + response.body());
         } catch (IOException e) {
             var errorMessage = "IOException while data transferring to AAS: " + e.getMessage();
@@ -79,21 +76,21 @@ public class AasDataSink implements DataSink {
     public static class Builder {
         private final AasDataSink dataSink;
 
-        public static Builder newInstance() {
-            return new Builder();
-        }
-
         private Builder() {
             dataSink = new AasDataSink();
         }
 
-        public Builder params(HttpRequestParams params) {
-            dataSink.params = params;
+        public static Builder newInstance() {
+            return new Builder();
+        }
+
+        public Builder aasDataAddress(AasDataAddress aasDataAddress) {
+            dataSink.aasDataAddress = aasDataAddress;
             return this;
         }
 
-        public Builder httpClient(HttpRestClient httpClient) {
-            dataSink.httpClient = httpClient;
+        public Builder aasManipulator(AasDataProcessor aasDataProcessor) {
+            dataSink.aasDataProcessor = aasDataProcessor;
             return this;
         }
 
@@ -102,14 +99,9 @@ public class AasDataSink implements DataSink {
             return this;
         }
 
-        public Builder requestFactory(HttpRequestFactory requestFactory) {
-            dataSink.requestFactory = requestFactory;
-            return this;
-        }
-
         public AasDataSink build() {
-            Objects.requireNonNull(dataSink.httpClient, "httpClient");
-            Objects.requireNonNull(dataSink.requestFactory, "requestFactory");
+            Objects.requireNonNull(dataSink.aasDataProcessor, "aasManipulator");
+            Objects.requireNonNull(dataSink.aasDataAddress, "aasDataAddress");
             return dataSink;
         }
     }

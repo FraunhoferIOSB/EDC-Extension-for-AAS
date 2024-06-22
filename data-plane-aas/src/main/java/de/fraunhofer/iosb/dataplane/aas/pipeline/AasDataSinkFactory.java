@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.app.dataplane.aas.pipeline;
+package de.fraunhofer.iosb.dataplane.aas.pipeline;
 
-import de.fraunhofer.iosb.app.util.HttpRestClient;
-import org.eclipse.edc.connector.dataplane.http.params.HttpRequestFactory;
-import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParamsProvider;
+import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
+import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSink;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSinkFactory;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -25,21 +24,19 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.jetbrains.annotations.NotNull;
 
-import static de.fraunhofer.iosb.app.dataplane.aas.pipeline.AasDataSourceFactory.AAS_DATA_TYPE;
+import static de.fraunhofer.iosb.dataplane.aas.pipeline.AasDataSourceFactory.AAS_DATA_TYPE;
 
 /**
- * Inspired by {@link org.eclipse.edc.connector.dataplane.http.pipeline.HttpDataSourceFactory}
+ * Inspired by org.eclipse.edc.connector.dataplane.http.pipeline.HttpDataSourceFactory
  */
 public class AasDataSinkFactory implements DataSinkFactory {
 
     private final Monitor monitor;
-    private final HttpRequestParamsProvider requestParamsProvider;
-    private final HttpRequestFactory requestFactory;
+    private final AasDataProcessorFactory aasDataProcessorFactory;
 
-    public AasDataSinkFactory(HttpRequestParamsProvider requestParamsProvider, Monitor monitor) {
+    public AasDataSinkFactory(Monitor monitor, AasDataProcessorFactory aasDataProcessorFactory) {
         this.monitor = monitor;
-        this.requestParamsProvider = requestParamsProvider;
-        this.requestFactory = new HttpRequestFactory();
+        this.aasDataProcessorFactory = aasDataProcessorFactory;
     }
 
     @Override
@@ -49,12 +46,11 @@ public class AasDataSinkFactory implements DataSinkFactory {
 
     @Override
     public DataSink createSink(DataFlowStartMessage request) {
+        var dataAddress = AasDataAddress.Builder.newInstance().copyFrom(request.getDestinationDataAddress()).build();
         return AasDataSink.Builder.newInstance()
-                // Self-signed also possible for sinks
-                .httpClient(HttpRestClient.getInstance())
+                .aasManipulator(aasDataProcessorFactory.processorFor(dataAddress.getBaseUrl()))
                 .monitor(monitor)
-                .params(requestParamsProvider.provideSinkParams(request))
-                .requestFactory(requestFactory)
+                .aasDataAddress(dataAddress)
                 .build();
     }
 
@@ -63,7 +59,7 @@ public class AasDataSinkFactory implements DataSinkFactory {
         try {
             createSink(request);
         } catch (Exception e) {
-            return Result.failure("Failed to build AasDataSink: " + e.getMessage());
+            return Result.failure("Failed to build AAS data sink: " + e.getMessage());
         }
         return Result.success();
     }

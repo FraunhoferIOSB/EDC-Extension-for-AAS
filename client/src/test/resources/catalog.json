@@ -1,29 +1,27 @@
 {
   "@id": "e042a6b5-6903-41de-a30d-4b9d26ec6964",
   "@type": "dcat:Catalog",
-  "dcat:dataset":
-    {
-      "@id": "ef4d028f-70d7-404a-b22e-c5b0ffa3aa0b",
-      "@type": "dcat:Dataset",
-      "odrl:hasPolicy": {
-        "@id": "DEFAULT_CONTRACT2:-1379397334:98e4c6c1-3293-46f5-840d-db553b2f1d6f",
-        "@type": "odrl:Set",
-        "odrl:permission": {
-          "odrl:target": "-1379397334",
-          "odrl:action": {
-            "odrl:type": "USE"
-          }
-        },
-        "odrl:prohibition": [],
-        "odrl:obligation": [],
-        "odrl:target": "-1379397334"
+  "dcat:dataset": {
+    "@id": "ef4d028f-70d7-404a-b22e-c5b0ffa3aa0b",
+    "@type": "dcat:Dataset",
+    "odrl:hasPolicy": {
+      "@id": "DEFAULT_CONTRACT2:-1379397334:98e4c6c1-3293-46f5-840d-db553b2f1d6f",
+      "@type": "odrl:Set",
+      "odrl:permission": {
+        "odrl:target": "-1379397334",
+        "odrl:action": {
+          "odrl:type": "USE"
+        }
       },
-      "dcat:distribution": [],
-      "edc:name": "FestoDemoAAS",
-      "edc:id": "-1379397334",
-      "edc:contenttype": "application/json"
-    }
-  ,
+      "odrl:prohibition": [],
+      "odrl:obligation": [],
+      "odrl:target": "-1379397334"
+    },
+    "dcat:distribution": [],
+    "edc:name": "FestoDemoAAS",
+    "edc:id": "-1379397334",
+    "edc:contenttype": "application/json"
+  },
   "dcat:service": {
     "@id": "69e2ae2c-39ee-4f81-b460-f2f1aa02c50a",
     "@type": "dcat:DataService",

@@ -13,40 +13,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.app.dataplane.aas.pipeline;
+package de.fraunhofer.iosb.dataplane.aas.spi;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import de.fraunhofer.iosb.app.util.Encoder;
+import de.fraunhofer.iosb.util.Encoder;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultReference;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
-import static de.fraunhofer.iosb.app.dataplane.aas.pipeline.AasDataSourceFactory.AAS_DATA_TYPE;
+import static de.fraunhofer.iosb.dataplane.aas.pipeline.AasDataSourceFactory.AAS_DATA_TYPE;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toMap;
-import static org.eclipse.edc.dataaddress.httpdata.spi.HttpDataAddressSchema.BASE_URL;
+
 
 /**
- * Inspired by {@link org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress}
+ * Inspired by  org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress
  * Enables more specific communication with AAS services
  */
-@JsonTypeName()
+@JsonTypeName
 @JsonDeserialize(builder = DataAddress.Builder.class)
 public class AasDataAddress extends DataAddress {
 
     public static final String REFERENCE_CHAIN = "referenceChain";
+    public static final String BASE_URL = "https://w3id.org/edc/v0.0.1/ns/baseUrl";
 
     private static final String METHOD = "method";
-    private static final String ADDITIONAL_HEADER = "header";
-
+    private static final String ADDITIONAL_HEADER = "header:";
 
     private AasDataAddress() {
         super();
@@ -58,23 +60,14 @@ public class AasDataAddress extends DataAddress {
         return getStringProperty(BASE_URL);
     }
 
+    public String getMethod() {
+        return getStringProperty(METHOD);
+    }
+
     public Map<String, String> getAdditionalHeaders() {
         return getProperties().entrySet().stream()
                 .filter(entry -> entry.getKey().startsWith(ADDITIONAL_HEADER))
-                .collect(toMap(entry -> entry.getKey().replace(ADDITIONAL_HEADER, ""), it -> (String) it.getValue()));
-    }
-
-
-    public Reference getReferenceChain() {
-        var referenceChain = properties.get(REFERENCE_CHAIN);
-
-        if (Objects.isNull(referenceChain)) {
-            return new DefaultReference();
-        }
-        if (referenceChain instanceof Reference) {
-            return (Reference) referenceChain;
-        }
-        throw new EdcException(new IllegalStateException("Something not of type Reference was stored in the property of an AasDataAddress!"));
+                .collect(toMap(headerName -> headerName.getKey().replace(ADDITIONAL_HEADER, ""), headerValue -> (String) headerValue.getValue()));
     }
 
     public String referenceChainAsPath() {
@@ -84,13 +77,13 @@ public class AasDataAddress extends DataAddress {
 
             switch (key.getType()) {
                 case ASSET_ADMINISTRATION_SHELL:
-                    urlBuilder.append("/shells/").append(Encoder.encodeBase64(key.getValue()));
+                    urlBuilder.append("shells/").append(Encoder.encodeBase64(key.getValue()));
                     break;
                 case SUBMODEL:
-                    urlBuilder.append("/submodels/").append(Encoder.encodeBase64(key.getValue()));
+                    urlBuilder.append("submodels/").append(Encoder.encodeBase64(key.getValue()));
                     break;
                 case CONCEPT_DESCRIPTION:
-                    urlBuilder.append("/concept-descriptions/").append(Encoder.encodeBase64(key.getValue()));
+                    urlBuilder.append("concept-descriptions/").append(Encoder.encodeBase64(key.getValue()));
                     break;
                 case SUBMODEL_ELEMENT:
                 case SUBMODEL_ELEMENT_COLLECTION:
@@ -109,6 +102,20 @@ public class AasDataAddress extends DataAddress {
         }
 
         return urlBuilder.toString();
+    }
+
+    private Reference getReferenceChain() {
+        var referenceChain = properties.get(REFERENCE_CHAIN);
+
+        if (Objects.isNull(referenceChain)) {
+            return new DefaultReference();
+        }
+
+        if (referenceChain instanceof Reference) {
+            return (Reference) referenceChain;
+        }
+
+        throw new EdcException(new IllegalStateException("Something not of type Reference was stored in the property of an AasDataAddress!"));
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -141,10 +148,16 @@ public class AasDataAddress extends DataAddress {
             return this;
         }
 
+        public Builder copyFrom(DataAddress other) {
+            (Optional.ofNullable(other).map(DataAddress::getProperties).orElse(Collections.emptyMap())).forEach(this::property);
+            return this;
+        }
+
         @Override
         public AasDataAddress build() {
             this.type(AAS_DATA_TYPE);
             return address;
         }
     }
+
 }

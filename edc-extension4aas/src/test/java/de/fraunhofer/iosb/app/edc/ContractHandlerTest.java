@@ -31,9 +31,9 @@ import static org.mockito.Mockito.verify;
 public class ContractHandlerTest {
 
     private static final String DEFAULT_CONTRACT_NAME = "DEFAULT_CONTRACT";
-    private ContractHandler contractHandler;
     private final ContractDefinitionStore mockedContractDefinitionStore = mock(ContractDefinitionStore.class);
     private final PolicyDefinitionStore mockedPolicyDefinitionStore = mock(PolicyDefinitionStore.class);
+    private ContractHandler contractHandler;
 
     @BeforeEach
     public void initializeAasAgent() {

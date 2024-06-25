@@ -30,13 +30,13 @@ import java.util.Set;
  */
 public class SelfDescriptionRepository extends ObservableImpl<SelfDescriptionChangeListener> {
 
-    private final Map<URL, SelfDescription> content;
+    private final Map<String, SelfDescription> content;
 
     public SelfDescriptionRepository() {
         content = new HashMap<>();
     }
 
-    public Set<Entry<URL, SelfDescription>> getAllSelfDescriptions() {
+    public Set<Entry<String, SelfDescription>> getAllSelfDescriptions() {
         return content.entrySet();
     }
 
@@ -47,7 +47,7 @@ public class SelfDescriptionRepository extends ObservableImpl<SelfDescriptionCha
      * @return self-description associated with AAS URL
      */
     public SelfDescription getSelfDescription(URL aasUrl) {
-        return content.get(aasUrl);
+        return content.get(aasUrl.toString());
     }
 
     /**
@@ -58,7 +58,7 @@ public class SelfDescriptionRepository extends ObservableImpl<SelfDescriptionCha
      * @param aasUrl The URL of the AAS service.
      */
     public void createSelfDescription(URL aasUrl) {
-        content.put(aasUrl, null);
+        content.put(aasUrl.toString(), null);
         this.getListeners().forEach(listener -> listener.created(aasUrl));
     }
 
@@ -70,7 +70,7 @@ public class SelfDescriptionRepository extends ObservableImpl<SelfDescriptionCha
      *                       created
      */
     public void updateSelfDescription(URL aasUrl, CustomAssetAdministrationShellEnvironment newEnvironment) {
-        content.put(aasUrl, new SelfDescription(newEnvironment));
+        content.put(aasUrl.toString(), new SelfDescription(newEnvironment));
     }
 
     /**
@@ -79,7 +79,8 @@ public class SelfDescriptionRepository extends ObservableImpl<SelfDescriptionCha
      * @param aasUrl URL of self-description to be updated
      */
     public void removeSelfDescription(URL aasUrl) {
-        var toBeRemoved = content.remove(aasUrl);
-        this.getListeners().forEach(listener -> listener.removed(toBeRemoved));
+        // Before we remove the self-description, notify listeners (synchronizer -> remove assets from edc)
+        this.getListeners().forEach(listener -> listener.removed(aasUrl));
+        content.remove(aasUrl.toString());
     }
 }

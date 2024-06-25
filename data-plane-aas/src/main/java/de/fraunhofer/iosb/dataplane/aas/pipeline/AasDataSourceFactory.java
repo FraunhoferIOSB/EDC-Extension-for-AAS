@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.app.dataplane.aas.pipeline;
+package de.fraunhofer.iosb.dataplane.aas.pipeline;
 
-import de.fraunhofer.iosb.app.util.HttpRestClient;
-import org.eclipse.edc.connector.dataplane.http.params.HttpRequestFactory;
-import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
-import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParamsProvider;
+import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
+import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSourceFactory;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -26,21 +24,20 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.jetbrains.annotations.NotNull;
 
+
 /**
- * Inspired by {@link org.eclipse.edc.connector.dataplane.http.pipeline.HttpDataSourceFactory}
+ * Inspired by org.eclipse.edc.connector.dataplane.http.pipeline.HttpDataSourceFactory
  */
 public class AasDataSourceFactory implements DataSourceFactory {
 
     public static final String AAS_DATA_TYPE = "AasData";
 
     private final Monitor monitor;
-    private final HttpRequestParamsProvider requestParamsProvider;
-    private final HttpRequestFactory requestFactory;
+    private final AasDataProcessorFactory aasDataProcessorFactory;
 
-    public AasDataSourceFactory(HttpRequestParamsProvider requestParamsProvider, Monitor monitor) {
+    public AasDataSourceFactory(Monitor monitor, AasDataProcessorFactory aasDataProcessorFactory) {
         this.monitor = monitor;
-        this.requestParamsProvider = requestParamsProvider;
-        this.requestFactory = new HttpRequestFactory();
+        this.aasDataProcessorFactory = aasDataProcessorFactory;
     }
 
     @Override
@@ -50,26 +47,21 @@ public class AasDataSourceFactory implements DataSourceFactory {
 
     @Override
     public DataSource createSource(DataFlowStartMessage request) {
-        var dataAddress = HttpDataAddress.Builder.newInstance()
-                .copyFrom(request.getSourceDataAddress())
-                .build();
+        var dataAddress = AasDataAddress.Builder.newInstance().copyFrom(request.getSourceDataAddress()).build();
         return AasDataSource.Builder.newInstance()
-                .httpClient(HttpRestClient.getInstance())
+                .aasManipulator(aasDataProcessorFactory.processorFor(dataAddress.getBaseUrl()))
                 .monitor(monitor)
                 .requestId(request.getId())
-                .name(dataAddress.getName())
-                .params(requestParamsProvider.provideSourceParams(request))
-                .requestFactory(requestFactory)
+                .aasDataAddress(dataAddress)
                 .build();
     }
 
     @Override
     public @NotNull Result<Void> validateRequest(DataFlowStartMessage request) {
-        try {
-            createSource(request);
+        try (var ignored = createSource(request)) {
+            return Result.success();
         } catch (Exception e) {
-            return Result.failure("Failed to build HttpDataSource: " + e.getMessage());
+            return Result.failure("Failed to build AAS data source: " + e.getMessage());
         }
-        return Result.success();
     }
 }

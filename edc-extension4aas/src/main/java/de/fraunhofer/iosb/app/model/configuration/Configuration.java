@@ -18,10 +18,8 @@ package de.fraunhofer.iosb.app.model.configuration;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.net.URL;
-import java.util.Objects;
 
 /**
- * Singleton class.
  * The configuration of the application.
  */
 public class Configuration {
@@ -43,7 +41,7 @@ public class Configuration {
 
     @JsonProperty(SETTINGS_PREFIX + "syncPeriod")
     private int syncPeriod = 5; // Seconds
-    
+
     @JsonProperty(SETTINGS_PREFIX + "onlySubmodels")
     private boolean onlySubmodels = false;
 
@@ -57,7 +55,7 @@ public class Configuration {
     private String defaultContractPolicyPath;
 
     public static synchronized Configuration getInstance() {
-        if (Objects.isNull(instance)) {
+        if (instance == null) {
             instance = new Configuration();
         }
         return instance;
@@ -87,10 +85,6 @@ public class Configuration {
         return onlySubmodels;
     }
 
-    public void setOnlySubmodels(boolean onlySubmodels) {
-        this.onlySubmodels = onlySubmodels;
-    }
-
     public boolean isExposeSelfDescription() {
         return exposeSelfDescription;
     }
@@ -102,5 +96,4 @@ public class Configuration {
     public String getDefaultContractPolicyPath() {
         return defaultContractPolicyPath;
     }
-
 }

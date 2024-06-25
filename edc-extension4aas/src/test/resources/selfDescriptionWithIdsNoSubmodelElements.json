@@ -2,7 +2,7 @@
   "assetAdministrationShells": [
     {
       "idsContractId": "DEFAULT_CONTRACT2",
-      "idsAssetId": "1521042482",
+      "idsAssetId": "-1144635353",
       "idShort": "ExampleAAS",
       "id": "https://example.com/ids/sm/3122_5150_2042_4130",
       "assetInformation": {
@@ -15,7 +15,7 @@
   "submodels": [
     {
       "idsContractId": "DEFAULT_CONTRACT3",
-      "idsAssetId": "-195703650",
+      "idsAssetId": "-349724279",
       "idShort": "ExampleSubmodel1",
       "id": "https://example.org/submodel/1",
       "semanticId": {
@@ -30,7 +30,7 @@
     },
     {
       "idsContractId": "DEFAULT_CONTRACT4",
-      "idsAssetId": "-195703649",
+      "idsAssetId": "-349724278",
       "idShort": "ExampleSubmodel2",
       "id": "https://example.org/submodel/2"
     }
@@ -38,7 +38,7 @@
   "conceptDescriptions": [
     {
       "idsContractId": "DEFAULT_CONTRACT1",
-      "idsAssetId": "-2084733481",
+      "idsAssetId": "-62329332",
       "idShort": "ExampleConceptDescription",
       "embeddedDataSpecifications": [
         {

@@ -22,6 +22,11 @@ dependencies {
     implementation(project(":client"))
 
     implementation("$group:control-plane-core:$edcVersion")
+
+    // Used to signal the completion / failure of a transfer process
+    implementation("$group:control-plane-api:$edcVersion")
+    implementation("$group:control-plane-api-client:$edcVersion")
+
     implementation("$group:dsp:$edcVersion")
 
     // Identity and access management MOCK -> only for testing
@@ -29,13 +34,11 @@ dependencies {
 
     // Enables X-Api-Key auth
     implementation("$group:auth-tokenbased:$edcVersion")
-    implementation("$group:control-api-configuration:$edcVersion")
 
     // Read configuration values
     implementation("$group:configuration-filesystem:$edcVersion")
 
     // Data transfer (read from AAS service/write to HTTP endpoint)
-    implementation("$group:control-plane-api-client:$edcVersion")
     implementation("$group:data-plane-core:$edcVersion")
     implementation("$group:data-plane-http:$edcVersion")
     implementation("$group:data-plane-client:$edcVersion")

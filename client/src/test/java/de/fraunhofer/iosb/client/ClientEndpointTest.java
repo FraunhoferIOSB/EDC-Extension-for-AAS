@@ -20,8 +20,8 @@ import de.fraunhofer.iosb.api.PublicApiManagementService;
 import de.fraunhofer.iosb.client.datatransfer.DataTransferController;
 import de.fraunhofer.iosb.client.negotiation.NegotiationController;
 import de.fraunhofer.iosb.client.policy.PolicyController;
+import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
 import jakarta.ws.rs.core.Response;
-
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
@@ -73,11 +73,9 @@ public class ClientEndpointTest {
 
     private static URL url;
     private static ClientAndServer mockServer;
-
-    private ClientEndpoint clientEndpoint;
-
     private static PolicyDefinition mockPolicyDefinition;
     private static Catalog mockCatalog;
+    private ClientEndpoint clientEndpoint;
 
     @BeforeAll
     public static void initialize() throws IOException {
@@ -203,7 +201,7 @@ public class ClientEndpointTest {
     @Test
     public void getDataTest() {
         try {
-            clientEndpoint.getData(url, "test-agreement-id", "test-asset-id", url);
+            clientEndpoint.getData(url, "test-agreement-id", "test-asset-id", AasDataAddress.Builder.newInstance().baseUrl(url.toString()).build());
             fail();
         } catch (EdcException expected) {
         }
@@ -218,7 +216,7 @@ public class ClientEndpointTest {
     public void addAcceptedContractOffersTest() {
         var mockPolicyDefinitionsAsList = new ArrayList<PolicyDefinition>();
         mockPolicyDefinitionsAsList.add(mockPolicyDefinition); // ClientEndpoint creates ArrayList
-        var offers = new PolicyDefinition[]{mockPolicyDefinition};
+        var offers = new PolicyDefinition[] {mockPolicyDefinition};
 
         clientEndpoint.addAcceptedPolicyDefinitions(offers);
 
@@ -227,7 +225,7 @@ public class ClientEndpointTest {
 
     @Test
     public void updateAcceptedContractOfferTest() {
-        var offers = new PolicyDefinition[]{mockPolicyDefinition};
+        var offers = new PolicyDefinition[] {mockPolicyDefinition};
 
         clientEndpoint.addAcceptedPolicyDefinitions(offers);
 

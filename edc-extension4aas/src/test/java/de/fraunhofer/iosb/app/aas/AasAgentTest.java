@@ -15,9 +15,11 @@
  */
 package de.fraunhofer.iosb.app.aas;
 
+import de.fraunhofer.iosb.aas.impl.AllAasDataProcessorFactory;
 import de.fraunhofer.iosb.app.testutils.FileManager;
-import de.fraunhofer.iosb.app.util.Encoder;
-import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.DeserializationException;
+import de.fraunhofer.iosb.app.util.AssetAdministrationShellUtil;
+import de.fraunhofer.iosb.ssl.impl.DefaultSelfSignedCertificateRetriever;
+import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElement;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,11 +27,9 @@ import org.junit.jupiter.api.Test;
 import org.mockserver.integration.ClientAndServer;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
@@ -41,93 +41,16 @@ public class AasAgentTest {
 
     private static final int PORT = 42042;
     private static final String HTTP_LOCALHOST_8080 = "http://localhost:" + PORT;
-
-    private AasAgent aasAgent;
+    private static final String PATH_PREFIX = "/api/v3.0";
+    private static final String SUBMODELS = PATH_PREFIX + "/submodels";
+    private static final String SHELLS = PATH_PREFIX + "/shells";
+    private static final String CONCEPT_DESCRIPTIONS = PATH_PREFIX + "/concept-descriptions";
     private static ClientAndServer mockServer;
+    private AasAgent aasAgent;
 
     @BeforeAll
     public static void startMockServer() {
         mockServer = startClientAndServer(PORT);
-    }
-
-    @BeforeEach
-    public void initializeAasAgent() {
-        aasAgent = new AasAgent();
-        mockServer.reset();
-    }
-
-    @Test
-    public void testGetAasEnvWithUrls() throws IOException, DeserializationException {
-        var shells = FileManager.loadResource("shells.json");
-        var submodels = FileManager.loadResource("submodels.json");
-        var conceptDescriptions = FileManager.loadResource("conceptDescriptions.json");
-
-        // maybe replace with fa³st service
-        mockServer.when(request().withMethod("GET").withPath("/api/v3.0/shells")).respond(response().withBody(shells));
-        mockServer.when(request().withMethod("GET").withPath("/api/v3.0/submodels")).respond(response().withBody(submodels));
-        mockServer.when(request().withMethod("GET").withPath("/api/v3.0/concept-descriptions"))
-                .respond(response().withBody(conceptDescriptions));
-
-        var result = aasAgent.getAasEnvWithUrls(new URL(HTTP_LOCALHOST_8080), false);
-
-        // Test if URLs are valid
-        result.getAssetAdministrationShells().forEach(shell -> assertTrue(shell.getSourceUrl().contains(Encoder.encodeBase64(shell.getId()))));
-        result.getSubmodels().forEach(sm -> assertTrue(sm.getSourceUrl().contains(Encoder.encodeBase64(sm.getId()))));
-        result.getConceptDescriptions().forEach(cd -> assertTrue(cd.getSourceUrl().contains(Encoder.encodeBase64(cd.getId()))));
-    }
-
-    @Test
-    public void testGetAasEnvWithUrlsOnlySubmodels() throws IOException, DeserializationException {
-        var shells = FileManager.loadResource("shells.json");
-        var submodels = FileManager.loadResource("submodels.json");
-        var conceptDescriptions = FileManager.loadResource("conceptDescriptions.json");
-
-        mockServer.when(request().withMethod("GET").withPath("/api/v3.0/shells")).respond(response().withBody(shells));
-        mockServer.when(request().withMethod("GET").withPath("/api/v3.0/submodels")).respond(response().withBody(submodels));
-        mockServer.when(request().withMethod("GET").withPath("/api/v3.0/concept-descriptions"))
-                .respond(response().withBody(conceptDescriptions));
-
-        var result = aasAgent.getAasEnvWithUrls(new URL(HTTP_LOCALHOST_8080), true);
-
-        // Test if URLs are valid
-        result.getAssetAdministrationShells().forEach(shell -> assertTrue(shell.getSourceUrl().contains(Encoder.encodeBase64(shell.getId()))));
-        result.getSubmodels().forEach(sm -> assertTrue(sm.getSourceUrl().contains(Encoder.encodeBase64(sm.getId()))));
-        result.getConceptDescriptions().forEach(cd -> assertTrue(cd.getSourceUrl().contains(Encoder.encodeBase64(cd.getId()))));
-    }
-
-    @Test
-    public void testPutAasShell() throws MalformedURLException {
-        mockServer.when(request().withMethod("PUT").withPath("/api/v3.0/shells").withBody("raw_data_forwarded"))
-                .respond(response().withStatusCode(200));
-
-        var response = aasAgent.putModel(new URL(HTTP_LOCALHOST_8080 + "/api/v3.0/shells"),
-                "raw_data_forwarded");
-
-        // Check whether AAS agent forwards the raw data of a request
-        assertEquals(200, response.getStatus());
-    }
-
-    @Test
-    public void testPostAasSubmodel() throws MalformedURLException {
-        mockServer.when(request().withMethod("POST").withPath("/api/v3.0/submodels").withBody("raw_data_forwarded"))
-                .respond(response().withStatusCode(200));
-
-        var response = aasAgent.postModel(new URL(HTTP_LOCALHOST_8080 + "/api/v3.0/submodels"),
-                "raw_data_forwarded");
-
-        // Check whether AAS agent forwards the raw data of a request
-        assertEquals(200, response.getStatus());
-    }
-
-    @Test
-    public void testDeleteAasConceptDescription() throws MalformedURLException {
-        mockServer.when(request().withMethod("DELETE").withPath("/api/v3.0/concept-descriptions"))
-                .respond(response().withStatusCode(200));
-
-        var response = aasAgent.deleteModel(new URL(HTTP_LOCALHOST_8080 + "/api/v3.0/concept-descriptions"), null);
-
-        // Check whether AAS agent forwards the raw data of a request
-        assertEquals(200, response.getStatus());
     }
 
     @AfterAll
@@ -135,4 +58,42 @@ public class AasAgentTest {
         mockServer.stop();
     }
 
+    @BeforeEach
+    public void initialize() {
+        aasAgent = new AasAgent(new AllAasDataProcessorFactory(new DefaultSelfSignedCertificateRetriever()));
+        mockServer.reset();
+    }
+
+    @Test
+    public void testGetAasEnvWithUrls() throws IOException {
+        prepareServerResponse();
+
+        var result = aasAgent.getAasEnvWithUrls(new URL(HTTP_LOCALHOST_8080), false);
+
+        // Test if URLs are valid
+        AssetAdministrationShellUtil.getAllElements(result).forEach(elem -> assertEquals(HTTP_LOCALHOST_8080 + PATH_PREFIX, elem.getSourceUrl()));
+    }
+
+    @Test
+    public void testGetAasEnvWithUrlsOnlySubmodels() throws IOException {
+        prepareServerResponse();
+
+        var result = aasAgent.getAasEnvWithUrls(new URL(HTTP_LOCALHOST_8080), true);
+
+        // Test if URLs are valid
+        AssetAdministrationShellUtil.getAllElements(result).forEach(elem -> assertEquals(HTTP_LOCALHOST_8080 + PATH_PREFIX, elem.getSourceUrl()));
+
+        assertEquals(AssetAdministrationShellUtil.getAllElements(result).stream().filter(elem -> elem instanceof SubmodelElement).count(), 0);
+    }
+
+    private void prepareServerResponse() {
+        var shells = FileManager.loadResource("shells.json");
+        var submodels = FileManager.loadResource("submodels.json");
+        var conceptDescriptions = FileManager.loadResource("conceptDescriptions.json");
+
+        mockServer.when(request().withMethod("GET").withPath(SHELLS)).respond(response().withBody(shells));
+        mockServer.when(request().withMethod("GET").withPath(SUBMODELS)).respond(response().withBody(submodels));
+        mockServer.when(request().withMethod("GET").withPath(CONCEPT_DESCRIPTIONS))
+                .respond(response().withBody(conceptDescriptions));
+    }
 }

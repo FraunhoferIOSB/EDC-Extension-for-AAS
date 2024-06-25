@@ -30,6 +30,16 @@ public class CustomConceptDescription extends AssetAdministrationShellElement {
     protected String id;
     protected String idShort;
 
+    public static CustomConceptDescription fromConceptDescription(ConceptDescription from) {
+        final var result = new CustomConceptDescription();
+
+        result.setId(from.getId());
+        result.setIdShort(from.getIdShort());
+        result.setEmbeddedDataSpecifications(from.getEmbeddedDataSpecifications());
+
+        return result;
+    }
+
     public String getId() {
         return id;
     }
@@ -69,15 +79,5 @@ public class CustomConceptDescription extends AssetAdministrationShellElement {
         }
 
         return this.getIdShort().equals(other.getIdShort());
-    }
-
-    public static CustomConceptDescription fromConceptDescription(ConceptDescription from) {
-        final var result = new CustomConceptDescription();
-
-        result.setId(from.getId());
-        result.setIdShort(from.getIdShort());
-        result.setEmbeddedDataSpecifications(from.getEmbeddedDataSpecifications());
-
-        return result;
     }
 }

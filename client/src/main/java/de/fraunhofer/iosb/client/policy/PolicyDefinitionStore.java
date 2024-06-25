@@ -81,7 +81,7 @@ class PolicyDefinitionStore {
     /**
      * Update a policyDefinition
      *
-     * @param policyDefinition   The updated policyDefinition
+     * @param policyDefinition The updated policyDefinition
      * @return Optional containing updated policy definition or null
      */
     Optional<PolicyDefinition> updatePolicyDefinitions(PolicyDefinition policyDefinition) {

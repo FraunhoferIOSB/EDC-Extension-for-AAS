@@ -17,7 +17,6 @@ package de.fraunhofer.iosb.app.edc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
-import de.fraunhofer.iosb.app.Logger;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
@@ -27,6 +26,7 @@ import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionS
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 
@@ -53,16 +53,13 @@ public class ContractHandler {
     private static final String DEFAULT_ACCESS_POLICY_UID = "DEFAULT_ACCESS_POLICY";
     private static final String DEFAULT_CONTRACT_POLICY_UID = "DEFAULT_CONTRACT_POLICY";
     private static final String DEFAULT_CONTRACT_DEFINITION_UID = "DEFAULT_CONTRACT";
-
-    private long contractNumber = 0L;
-
     private final ContractDefinitionStore contractDefinitionStore;
     private final PolicyDefinitionStore policyDefinitionStore;
     private final Configuration configuration;
-    private final Logger logger;
+    private final Monitor monitor;
     private final ObjectReader objectReader;
-
     private final Policy defaultPolicy;
+    private long contractNumber = 0L;
 
     /**
      * Creates an instance of the ContractHandler class.
@@ -70,16 +67,16 @@ public class ContractHandler {
      * @param contractStore Needed to manage EDC contracts.
      * @param policyStore   Needed to manage EDC policies.
      */
-    public ContractHandler(ContractDefinitionStore contractStore, PolicyDefinitionStore policyStore) {
+    public ContractHandler(ContractDefinitionStore contractStore, PolicyDefinitionStore policyStore, Monitor monitor) {
         Objects.requireNonNull(contractStore, "ContractDefinitionStore");
         Objects.requireNonNull(policyStore, "PolicyDefinitionStore");
         this.contractDefinitionStore = contractStore;
         this.policyDefinitionStore = policyStore;
+        this.monitor = monitor;
 
         defaultPolicy = initializeDefaultPolicy();
 
         configuration = Configuration.getInstance();
-        logger = Logger.getInstance();
         objectReader = new ObjectMapper().readerFor(Policy.class);
     }
 
@@ -163,7 +160,7 @@ public class ContractHandler {
             Policy filePolicy = objectReader.readValue(Path.of(filePath).toFile());
             return Optional.of(filePolicy);
         } catch (IOException ioException) {
-            logger.severe(
+            monitor.severe(
                     format("Could not find a valid policy at path %s. Using internal default policy.",
                             filePath),
                     ioException);

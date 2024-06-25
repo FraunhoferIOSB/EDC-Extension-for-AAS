@@ -26,7 +26,11 @@ import java.util.stream.Collectors;
 import static java.lang.String.format;
 
 /**
- * Let other extensions add public endpoints.
+ * Extensions can register their public endpoints here.
+ * Requests to those endpoints will not need authentication.
+ * If multiple extensions handle their own public endpoints
+ * with separate AuthenticationRequestFilters, they will
+ * interfere with each other.
  */
 public class PublicApiManagementService {
 

@@ -15,7 +15,6 @@
  */
 package de.fraunhofer.iosb.app.aas;
 
-import de.fraunhofer.iosb.app.Logger;
 import de.fraunhofer.iosb.ilt.faaast.service.Service;
 import de.fraunhofer.iosb.ilt.faaast.service.config.CoreConfig;
 import de.fraunhofer.iosb.ilt.faaast.service.config.ServiceConfig;
@@ -24,6 +23,7 @@ import de.fraunhofer.iosb.ilt.faaast.service.messagebus.internal.MessageBusInter
 import de.fraunhofer.iosb.ilt.faaast.service.persistence.memory.PersistenceInMemoryConfig;
 import de.fraunhofer.iosb.ilt.faaast.service.starter.util.ServiceConfigHelper;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.io.IOException;
 import java.net.URL;
@@ -43,11 +43,11 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
     private static final String FAAAST_SERVICE_EXCEPTION_MESSAGE = "Exception thrown by FA³ST service.";
     private static final String LOCALHOST_URL = "https://localhost:";
 
-    private final Logger logger;
+    private final Monitor monitor;
     private final Map<URL, Service> faaastServiceRepository;
 
-    public FaaastServiceManager() {
-        logger = Logger.getInstance();
+    public FaaastServiceManager(Monitor monitor) {
+        this.monitor = monitor;
         faaastServiceRepository = new ConcurrentHashMap<>();
     }
 
@@ -58,7 +58,7 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
             throw new EdcException(format("Port is not valid: (%s).", port));
         }
 
-        logger.debug(format("Booting up FA³ST service using AAS model path (%s) and service port (%s).", aasModelPath,
+        monitor.debug(format("Booting up FA³ST service using AAS model path (%s) and service port (%s).", aasModelPath,
                 port));
 
         var serviceConfig = new ServiceConfig.Builder()
@@ -77,7 +77,7 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
             throw new EdcException(FAAAST_SERVICE_EXCEPTION_MESSAGE, faaastServiceException);
         }
 
-        logger.debug("Booted up FA³ST service.");
+        monitor.debug("Booted up FA³ST service.");
 
         faaastServiceRepository.put(new URL(LOCALHOST_URL + port), service);
 
@@ -96,12 +96,12 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
         var localFaaastServicePort = 0;
 
         if (isValidPort(port)) {
-            logger.debug(format("Booting up FA³ST service using AAS model path (%s), FA³ST config path (%s) and " +
+            monitor.debug(format("Booting up FA³ST service using AAS model path (%s), FA³ST config path (%s) and " +
                             "service port (%s).",
                     aasModelPath, configPath, port));
             localFaaastServicePort = port;
         } else {
-            logger.debug(format("Booting up FA³ST service using AAS model path (%s) and FA³ST config path (%s).",
+            monitor.debug(format("Booting up FA³ST service using AAS model path (%s) and FA³ST config path (%s).",
                     aasModelPath, configPath));
         }
 
@@ -134,7 +134,7 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
 
             var service = new Service(serviceConfig);
             service.start();
-            logger.debug("Booted up FA³ST service.");
+            monitor.debug("Booted up FA³ST service.");
 
             faaastServiceRepository.put(new URL(LOCALHOST_URL + localFaaastServicePort), service);
 
@@ -146,20 +146,21 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
 
     @Override
     public void stopServices() {
-        logger.debug("Shutting down all internally started FA³ST services...");
+        monitor.debug("Shutting down all internally started FA³ST services...");
         faaastServiceRepository.values().forEach(Service::stop);
     }
 
     @Override
     public void stopService(URL aasServiceUrl) {
         Objects.requireNonNull(aasServiceUrl);
-        logger.debug(format("Shutting down FA³ST service with URL %s...", aasServiceUrl));
+        monitor.debug(format("Shutting down FA³ST service with URL %s...", aasServiceUrl));
+
         var serviceToStop = faaastServiceRepository.get(aasServiceUrl);
         if (Objects.nonNull(serviceToStop)) {
             serviceToStop.stop();
             faaastServiceRepository.remove(aasServiceUrl);
         } else {
-            throw new IllegalArgumentException("This URL is not registered as a FA³ST service.");
+            monitor.debug("This URL was not registered as an internal FA³ST service.");
         }
     }
 

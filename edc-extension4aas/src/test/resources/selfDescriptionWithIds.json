@@ -2,7 +2,7 @@
   "assetAdministrationShells": [
     {
       "idsContractId": "DEFAULT_CONTRACT2",
-      "idsAssetId": "1521042482",
+      "idsAssetId": "-1144635353",
       "idShort": "ExampleAAS",
       "id": "https://example.com/ids/sm/3122_5150_2042_4130",
       "assetInformation": {
@@ -15,13 +15,13 @@
   "submodels": [
     {
       "idsContractId": "DEFAULT_CONTRACT3",
-      "idsAssetId": "-195703650",
+      "idsAssetId": "-349724279",
       "idShort": "ExampleSubmodel1",
       "id": "https://example.org/submodel/1",
       "submodelElements": [
         {
           "idsContractId": "DEFAULT_CONTRACT5",
-          "idsAssetId": "1974016668",
+          "idsAssetId": "592258157",
           "idShort": "IntegerValue"
         }
       ],
@@ -37,23 +37,23 @@
     },
     {
       "idsContractId": "DEFAULT_CONTRACT4",
-      "idsAssetId": "-195703649",
+      "idsAssetId": "-349724278",
       "idShort": "ExampleSubmodel2",
       "id": "https://example.org/submodel/2",
       "submodelElements": [
         {
           "idsContractId": "DEFAULT_CONTRACT8",
-          "idsAssetId": "-351731938",
+          "idsAssetId": "1045935567",
           "idShort": "ExampleCollection",
           "value": [
             {
               "idsContractId": "DEFAULT_CONTRACT6",
-              "idsAssetId": "-1502725331",
+              "idsAssetId": "947887260",
               "idShort": "CollectionEntry1"
             },
             {
               "idsContractId": "DEFAULT_CONTRACT7",
-              "idsAssetId": "-1502725330",
+              "idsAssetId": "947887261",
               "idShort": "CollectionEntry2"
             }
           ]
@@ -64,7 +64,7 @@
   "conceptDescriptions": [
     {
       "idsContractId": "DEFAULT_CONTRACT1",
-      "idsAssetId": "-2084733481",
+      "idsAssetId": "-62329332",
       "idShort": "ExampleConceptDescription",
       "embeddedDataSpecifications": [
         {

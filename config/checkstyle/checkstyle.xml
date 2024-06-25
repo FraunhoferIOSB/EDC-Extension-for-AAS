@@ -46,13 +46,11 @@
     </module>
 
     <!-- Checks for header format                                   -->
-    <!-- See https://checkstyle.org/config_header.html#RegexpHeader -->
-    <module name="RegexpHeader">
+    <!-- See https://checkstyle.org/checks/header/header.html#Header -->
+    <module name="Header">
         <property name="severity" value="warning"/>
         <property name="fileExtensions" value="java"/>
-        <property name="header"
-                  value="^/\*$\n^ \*  Copyright \(c\) 20\d\d((,| -) 20\d{2})? [A-Za-z].+\S$\n^ \*$\n^ \*  This program and the accompanying materials are made available under the$\n^ \*  terms of the Apache License, Version 2\.0 which is available at$\n^ \*  https://www\.apache\.org/licenses/LICENSE-2\.0$\n^ \*$\n^ \*  SPDX-License-Identifier: Apache-2\.0$\n^ \*$\n^ \*  Contributors:$\n^ \*       \S.*\S$\n^ \*$\n^ \*/$\n^$\n^package"/>
-        <property name="multiLines" value="11"/>
+        <property name="headerFile" value="config/checkstyle/license-header"/>
     </module>
 
     <module name="TreeWalker">

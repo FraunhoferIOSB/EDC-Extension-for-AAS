@@ -17,6 +17,7 @@ package de.fraunhofer.iosb.app.edc;
 
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
+import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -30,13 +31,13 @@ import static org.mockito.Mockito.verify;
 public class ContractHandlerTest {
 
     private static final String DEFAULT_CONTRACT_NAME = "DEFAULT_CONTRACT";
-    private ContractHandler contractHandler;
     private final ContractDefinitionStore mockedContractDefinitionStore = mock(ContractDefinitionStore.class);
     private final PolicyDefinitionStore mockedPolicyDefinitionStore = mock(PolicyDefinitionStore.class);
+    private ContractHandler contractHandler;
 
     @BeforeEach
     public void initializeAasAgent() {
-        contractHandler = new ContractHandler(mockedContractDefinitionStore, mockedPolicyDefinitionStore);
+        contractHandler = new ContractHandler(mockedContractDefinitionStore, mockedPolicyDefinitionStore, new ConsoleMonitor());
     }
 
     @Test

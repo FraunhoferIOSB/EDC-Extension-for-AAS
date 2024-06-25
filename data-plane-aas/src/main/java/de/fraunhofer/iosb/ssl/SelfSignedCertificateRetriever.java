@@ -13,20 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.app.util;
+package de.fraunhofer.iosb.ssl;
 
-import org.junit.jupiter.api.Test;
+import org.eclipse.edc.spi.result.Result;
 
-import static org.junit.jupiter.api.Assertions.fail;
+import java.net.URL;
+import java.security.cert.Certificate;
 
-public class EncoderTest {
+public interface SelfSignedCertificateRetriever {
 
-    @Test
-    public void testEncodeNull() {
-        try {
-            Encoder.encodeBase64(null);
-            fail("NullPointerException should have been thrown");
-        } catch (NullPointerException expected) {
-        }
+    default Result<Certificate[]> getSelfSignedCertificate(URL url) {
+        return Result.success(null);
     }
 }

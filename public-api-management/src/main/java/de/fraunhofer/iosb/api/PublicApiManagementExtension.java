@@ -49,9 +49,10 @@ public class PublicApiManagementExtension implements ServiceExtension {
         var monitor = context.getMonitor();
         var filter = new CustomAuthenticationRequestFilter(authenticationService, monitor);
 
+        // Register our filter at the EDC
         webService.registerResource(filter);
 
-        // Register this service to be accessible by other extensions
+        // Register this service to be accessible by other extensions via injection
         context.registerService(PublicApiManagementService.class, new PublicApiManagementService(filter, monitor));
     }
 }

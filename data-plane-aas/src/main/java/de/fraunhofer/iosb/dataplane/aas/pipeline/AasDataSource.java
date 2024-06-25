@@ -13,14 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.app.dataplane.aas.pipeline;
+package de.fraunhofer.iosb.dataplane.aas.pipeline;
 
-import de.fraunhofer.iosb.app.util.HttpRestClient;
+import de.fraunhofer.iosb.aas.AasDataProcessor;
+import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
 import okhttp3.MediaType;
 import okhttp3.ResponseBody;
-import org.eclipse.edc.connector.dataplane.http.params.HttpRequestFactory;
-import org.eclipse.edc.connector.dataplane.http.pipeline.HttpPart;
-import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParams;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.spi.EdcException;
@@ -34,46 +32,43 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
-import static org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress.OCTET_STREAM;
-import static org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult.error;
-import static org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult.success;
 
 /**
  * Data source for new FA³ST with possibly self-signed certificate.
- * Inspired by {@link org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress}
+ * Inspired by HttpDataAddress
  */
 public class AasDataSource implements DataSource {
+
     private static final int FORBIDDEN = 401;
     private static final int NOT_AUTHORIZED = 403;
     private static final int NOT_FOUND = 404;
-
-    private String name;
-    private HttpRequestParams params;
+    private static final String APPLICATION_JSON = "application/json";
+    private final AtomicReference<ResponseBodyStream> responseBodyStream = new AtomicReference<>();
     private String requestId;
     private Monitor monitor;
-    private HttpRestClient httpClient;
-    private HttpRequestFactory requestFactory;
-    private final AtomicReference<ResponseBodyStream> responseBodyStream = new AtomicReference<>();
+    private AasDataProcessor aasDataProcessor;
+    private AasDataAddress aasDataAddress;
 
     private AasDataSource() {
     }
 
     @Override
     public StreamResult<Stream<Part>> openPartStream() {
-        var request = requestFactory.toRequest(params);
-        monitor.debug(() -> "Executing HTTP request to FA³ST: " + request.url());
+
         try {
             // NB: Do not close the response as the body input stream needs to be read after this method returns. The response closes the body stream.
-            var response = httpClient.execute(request);
+            var response = aasDataProcessor.send(aasDataAddress);
+
             if (response.isSuccessful()) {
                 var body = response.body();
                 if (body == null) {
-                    throw new EdcException(format("Received empty response body transferring HTTP data for request %s: %s", requestId, response.code()));
+                    throw new EdcException(format("Received empty response body transferring AAS data for request %s: %s", requestId, response.code()));
                 }
-                var stream = body.byteStream();
-                responseBodyStream.set(new ResponseBodyStream(body, stream));
-                var mediaType = Optional.ofNullable(body.contentType()).map(MediaType::toString).orElse(OCTET_STREAM);
-                return success(Stream.of(new HttpPart(name, stream, mediaType)));
+                var bodyStream = body.byteStream();
+                responseBodyStream.set(new ResponseBodyStream(body, bodyStream));
+                var mediaType = Optional.ofNullable(body.contentType()).map(MediaType::toString).orElse(APPLICATION_JSON);
+                return StreamResult.success(Stream.of(new AasPart("AAS Part", bodyStream, mediaType)));
+
             } else {
                 try {
                     if (NOT_AUTHORIZED == response.code() || FORBIDDEN == response.code()) {
@@ -81,7 +76,7 @@ public class AasDataSource implements DataSource {
                     } else if (NOT_FOUND == response.code()) {
                         return StreamResult.notFound();
                     } else {
-                        return error(format("Received code transferring HTTP data: %s - %s.", response.code(), response.message()));
+                        return StreamResult.error(format("Received code transferring AAS data: %s - %s.", response.code(), response.message()));
                     }
                 } finally {
                     try {
@@ -91,10 +86,10 @@ public class AasDataSource implements DataSource {
                     }
                 }
             }
+
         } catch (IOException e) {
             throw new EdcException(e);
         }
-
     }
 
     @Override
@@ -105,34 +100,23 @@ public class AasDataSource implements DataSource {
             try {
                 bodyStream.stream().close();
             } catch (IOException e) {
-                // do nothing
+                // do nothing --> closing the response body should close the inputStream as well...
             }
         }
     }
 
     private record ResponseBodyStream(ResponseBody responseBody, InputStream stream) {
-
     }
 
     public static class Builder {
         private final AasDataSource dataSource;
 
-        public static Builder newInstance() {
-            return new Builder();
-        }
-
         private Builder() {
             dataSource = new AasDataSource();
         }
 
-        public Builder params(HttpRequestParams params) {
-            dataSource.params = params;
-            return this;
-        }
-
-        public Builder name(String name) {
-            dataSource.name = name;
-            return this;
+        public static Builder newInstance() {
+            return new Builder();
         }
 
         public Builder requestId(String requestId) {
@@ -140,8 +124,8 @@ public class AasDataSource implements DataSource {
             return this;
         }
 
-        public Builder httpClient(HttpRestClient httpClient) {
-            dataSource.httpClient = httpClient;
+        public Builder aasManipulator(AasDataProcessor aasDataProcessor) {
+            dataSource.aasDataProcessor = aasDataProcessor;
             return this;
         }
 
@@ -150,18 +134,21 @@ public class AasDataSource implements DataSource {
             return this;
         }
 
-        public Builder requestFactory(HttpRequestFactory requestFactory) {
-            dataSource.requestFactory = requestFactory;
+        public Builder aasDataAddress(AasDataAddress aasDataAddress) {
+            dataSource.aasDataAddress = aasDataAddress;
             return this;
         }
 
+
         public AasDataSource build() {
             Objects.requireNonNull(dataSource.requestId, "requestId");
-            Objects.requireNonNull(dataSource.httpClient, "httpClient");
+            Objects.requireNonNull(dataSource.aasDataProcessor, "httpClient");
             Objects.requireNonNull(dataSource.monitor, "monitor");
-            Objects.requireNonNull(dataSource.requestFactory, "requestFactory");
+            Objects.requireNonNull(dataSource.aasDataAddress, "aasDataAddress");
+
             return dataSource;
         }
+
     }
 
 }

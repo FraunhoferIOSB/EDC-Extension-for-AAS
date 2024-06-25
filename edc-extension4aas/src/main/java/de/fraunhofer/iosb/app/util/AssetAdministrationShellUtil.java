@@ -19,15 +19,18 @@ import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShellEnvironmen
 import de.fraunhofer.iosb.app.model.aas.CustomSubmodel;
 import de.fraunhofer.iosb.app.model.aas.CustomSubmodelElement;
 import de.fraunhofer.iosb.app.model.aas.CustomSubmodelElementCollection;
+import de.fraunhofer.iosb.app.model.aas.CustomSubmodelElementList;
 import de.fraunhofer.iosb.app.model.aas.IdsAssetElement;
 import org.eclipse.digitaltwin.aas4j.v3.model.Submodel;
 import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElement;
 import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElementCollection;
+import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElementList;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Stream;
 
 public final class AssetAdministrationShellUtil {
 
@@ -53,12 +56,16 @@ public final class AssetAdministrationShellUtil {
      * @return Flat list of IdsAssetElements from given environment
      */
     public static List<? extends IdsAssetElement> getAllElements(CustomAssetAdministrationShellEnvironment env) {
-        var allElements = new ArrayList<IdsAssetElement>();
-        allElements.addAll(env.getConceptDescriptions());
-        allElements.addAll(env.getAssetAdministrationShells());
-        allElements.addAll(env.getSubmodels());
-        env.getSubmodels().forEach(submodel -> allElements.addAll(AssetAdministrationShellUtil.getAllSubmodelElements(submodel)));
-        return allElements;
+        return Stream.of(env.getConceptDescriptions(),
+                        env.getAssetAdministrationShells(),
+                        env.getSubmodels(),
+                        env.getSubmodels()
+                                .stream()
+                                .map(AssetAdministrationShellUtil::getAllSubmodelElements)
+                                .flatMap(Collection::stream)
+                                .toList())
+                .flatMap(Collection::stream)
+                .toList();
     }
 
     /**
@@ -84,22 +91,23 @@ public final class AssetAdministrationShellUtil {
 
         Collection<CustomSubmodelElement> customSubmodelElements = new ArrayList<>();
         for (SubmodelElement submodelElement : submodelElements) {
+            CustomSubmodelElement toAdd;
+
             if (submodelElement instanceof SubmodelElementCollection) {
-                customSubmodelElements.add(
-                        new CustomSubmodelElementCollection(
-                                submodelElement.getIdShort(),
-                                unpackElements(((SubmodelElementCollection) submodelElement).getValue())));
+                toAdd = new CustomSubmodelElementCollection(
+                        submodelElement.getIdShort(),
+                        unpackElements(((SubmodelElementCollection) submodelElement).getValue()));
+            } else if (submodelElement instanceof SubmodelElementList) {
+                toAdd = new CustomSubmodelElementCollection(
+                        submodelElement.getIdShort(),
+                        unpackElements(((SubmodelElementList) submodelElement).getValue()));
             } else {
-                var customSubmodelElement = new CustomSubmodelElement();
-                customSubmodelElement.setIdShort(submodelElement.getIdShort());
-
-                if (Objects.nonNull(submodelElement.getSemanticId())) {
-                    customSubmodelElement
-                            .setSemanticId(submodelElement.getSemanticId());
-                }
-
-                customSubmodelElements.add(customSubmodelElement);
+                toAdd = new CustomSubmodelElement();
+                toAdd.setIdShort(submodelElement.getIdShort());
+                toAdd.setSemanticId(submodelElement.getSemanticId());
             }
+            customSubmodelElements.add(toAdd);
+
         }
         return customSubmodelElements;
     }
@@ -118,6 +126,9 @@ public final class AssetAdministrationShellUtil {
             if (submodelElement instanceof CustomSubmodelElementCollection) {
                 flatList.addAll(flattenElements(new ArrayList<>(),
                         ((CustomSubmodelElementCollection) submodelElement).getValue()));
+            } else if (submodelElement instanceof CustomSubmodelElementList) {
+                flatList.addAll(flattenElements(new ArrayList<>(),
+                        ((CustomSubmodelElementList) submodelElement).getValue()));
             }
 
             flatList.add(submodelElement);

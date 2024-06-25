@@ -27,10 +27,10 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 public class FileManager {
 
+    private static final File RESOURCES_DIRECTORY = new File("src/test/resources");
+
     private FileManager() {
     }
-
-    private static final File RESOURCES_DIRECTORY = new File("src/test/resources");
 
     public static String loadResource(String fileName) {
         try (FileInputStream x = new FileInputStream(new File(RESOURCES_DIRECTORY, fileName))) {

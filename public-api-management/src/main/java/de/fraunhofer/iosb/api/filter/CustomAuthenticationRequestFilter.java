@@ -55,12 +55,6 @@ public class CustomAuthenticationRequestFilter extends AuthenticationRequestFilt
     public void filter(ContainerRequestContext requestContext) {
         Objects.requireNonNull(requestContext);
         var requestedEndpoint = parseEndpoint(requestContext);
-        for (Endpoint endpoint : endpoints) {
-            if (endpoint.isCoveredBy(requestedEndpoint)) {
-                monitor.debug(format("CustomAuthenticationRequestFilter: Accepting request to open endpoint %s", endpoint.suffix()));
-                return;
-            }
-        }
         for (Endpoint endpoint : temporaryEndpoints) {
             if (endpoint.isCoveredBy(requestedEndpoint)) {
                 monitor.debug(format("CustomAuthenticationRequestFilter: Accepting request to open temporary endpoint %s", endpoint.suffix()));
@@ -69,6 +63,12 @@ public class CustomAuthenticationRequestFilter extends AuthenticationRequestFilt
             }
         }
 
+        for (Endpoint endpoint : endpoints) {
+            if (endpoint.isCoveredBy(requestedEndpoint)) {
+                monitor.debug(format("CustomAuthenticationRequestFilter: Accepting request to open endpoint %s", endpoint.suffix()));
+                return;
+            }
+        }
         super.filter(requestContext);
     }
 

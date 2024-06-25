@@ -31,12 +31,12 @@ public class Pair<T, U> {
         return first;
     }
 
-    public U getSecond() {
-        return second;
-    }
-
     public void setFirst(T t) {
         this.first = t;
+    }
+
+    public U getSecond() {
+        return second;
     }
 
     public void setSecond(U u) {

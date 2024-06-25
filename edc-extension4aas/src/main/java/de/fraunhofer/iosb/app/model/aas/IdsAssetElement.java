@@ -17,6 +17,7 @@ package de.fraunhofer.iosb.app.model.aas;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 
 /**
  * Combining EDC and AAS elements by creating an element with both values.
@@ -28,6 +29,8 @@ public class IdsAssetElement {
     protected String idsAssetId;
     @JsonIgnore // Do not print this in selfDescriptions
     protected String sourceUrl;
+    @JsonIgnore // Do not print this in selfDescriptions
+    protected Reference referenceChain;
 
     public String getIdsContractId() {
         return idsContractId;
@@ -53,4 +56,11 @@ public class IdsAssetElement {
         this.sourceUrl = sourceUrl;
     }
 
+    public Reference getReferenceChain() {
+        return referenceChain;
+    }
+
+    public void setReferenceChain(Reference referenceChain) {
+        this.referenceChain = referenceChain;
+    }
 }

@@ -18,34 +18,33 @@ val jupiterVersion: String by project
 val edcVersion: String by project
 
 dependencies {
+    // ---- CONTROL PLANE ----
+    implementation("$group:control-plane-core:$edcVersion")
     implementation(project(":edc-extension4aas"))
     implementation(project(":client"))
-
-    implementation("$group:control-plane-core:$edcVersion")
-
-    // Used to signal the completion / failure of a transfer process
+    // Communicate status of a transfer process w/ consumer
     implementation("$group:control-plane-api:$edcVersion")
     implementation("$group:control-plane-api-client:$edcVersion")
-
-    implementation("$group:dsp:$edcVersion")
-
+    implementation("$group:dsp:$edcVersion") // DSP protocol for negotiation and transfer
+    implementation("$group:http:$edcVersion") // WebService
     // Identity and access management MOCK -> only for testing
     implementation("$group:iam-mock:$edcVersion")
-
-    // Enables X-Api-Key auth
+    // X-Api-Key authentication
     implementation("$group:auth-tokenbased:$edcVersion")
-
     // Read configuration values
     implementation("$group:configuration-filesystem:$edcVersion")
+    // -----------------------
 
-    // Data transfer (read from AAS service/write to HTTP endpoint)
-    implementation("$group:data-plane-core:$edcVersion")
-    implementation("$group:data-plane-http:$edcVersion")
-    implementation("$group:data-plane-client:$edcVersion")
-    implementation("$group:data-plane-selector-core:$edcVersion")
-    implementation("$group:transfer-data-plane:$edcVersion")
+    // ---- DATA PLANE ----
+    implementation("$group:data-plane-core:$edcVersion") // PipelineService
+    implementation("$group:data-plane-http:$edcVersion") // Http Data Transfer
+    implementation("$group:data-plane-self-registration:$edcVersion") // Register DataPlane with PipelineService factories
+
+    implementation("$group:control-api-configuration:$edcVersion") // Needed for data-plane-self-registration
+    implementation("$group:data-plane-selector-core:$edcVersion") // Needed for data-plane-self-registration
+    implementation("$group:transfer-data-plane-signaling:$edcVersion") // Needed for data-plane-selector-core
+    // --------------------
 }
-
 
 application {
     mainClass.set("org.eclipse.edc.boot.system.runtime.BaseRuntime")

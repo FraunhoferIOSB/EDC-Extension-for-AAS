@@ -45,7 +45,7 @@ class TransferInitiator {
     private final URI ownUri;
 
     TransferInitiator(Config config, Monitor monitor,
-            TransferProcessManager transferProcessManager) {
+                      TransferProcessManager transferProcessManager) {
         this.monitor = monitor;
         this.ownUri = createOwnUriFromConfigurationValues(config);
         this.transferProcessManager = transferProcessManager;
@@ -74,7 +74,7 @@ class TransferInitiator {
                 .protocol(DATASPACE_PROTOCOL_HTTP)
                 .dataDestination(dataSinkAddress)
                 .contractId(agreementId)
-                .transferType("HTTP-PUSH")
+                .transferType(dataSinkAddress.getType() + "-PUSH")
                 .build();
 
         var transferProcessStatus = transferProcessManager.initiateConsumerRequest(transferRequest);

@@ -50,7 +50,7 @@ public class TransferInitiatorTest {
         var configMock = ConfigFactory.fromMap(Map.of("edc.dsp.callback.address", "http://localhost:4321/dsp",
                 "web.http.port", "8080", "web.http.path", "/api"));
 
-        transferInitiator = new TransferInitiator(configMock, mock(Monitor.class), mockTransferProcessManager);
+        transferInitiator = new TransferInitiator(mock(Monitor.class), configMock, () -> "localhost", mockTransferProcessManager);
 
         mockStatusResult = (StatusResult<TransferProcess>) mock(StatusResult.class);
 

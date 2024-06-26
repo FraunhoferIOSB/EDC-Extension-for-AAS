@@ -20,6 +20,7 @@ import de.fraunhofer.iosb.client.authentication.DataTransferEndpointManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.web.spi.WebService;
@@ -60,8 +61,8 @@ public class DataTransferController {
      *                                   consumer.
      */
     public DataTransferController(Monitor monitor, Config config, WebService webService,
-                                  PublicApiManagementService publicApiManagementService, TransferProcessManager transferProcessManager) {
-        this.transferInitiator = new TransferInitiator(config, monitor, transferProcessManager);
+                                  PublicApiManagementService publicApiManagementService, TransferProcessManager transferProcessManager, Hostname hostname) {
+        this.transferInitiator = new TransferInitiator(monitor, config, hostname, transferProcessManager);
         this.config = config.getConfig("edc.client");
         this.dataTransferEndpointManager = new DataTransferEndpointManager(publicApiManagementService);
         this.dataTransferObservable = new DataTransferObservable(monitor);

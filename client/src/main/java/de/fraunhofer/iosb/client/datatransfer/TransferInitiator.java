@@ -87,8 +87,8 @@ class TransferInitiator {
     private URI createOwnUriFromConfigurationValues(Config config, Hostname hostname) {
         try {
             // HTTPS requires this value. With this configuration variable set, the connector will run with HTTPS enabled
-            var uriString = "%s://%s:%s/%s/%s/%s".formatted(
-                    config.getString(HTTPS_KEYSTORE_PATH) == null ? Protocol.HTTP.name() : Protocol.HTTPS.name(),
+            var uriString = "%s://%s:%s%s/%s/%s".formatted(
+                    config.getString(HTTPS_KEYSTORE_PATH, null) == null ? Protocol.HTTP.name() : Protocol.HTTPS.name(),
                     hostname.get(),
                     config.getInteger(HTTP_PORT),
                     config.getString(HTTP_PATH),

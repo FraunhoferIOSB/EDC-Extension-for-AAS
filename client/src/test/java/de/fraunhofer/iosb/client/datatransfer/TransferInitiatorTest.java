@@ -62,7 +62,7 @@ public class TransferInitiatorTest {
         when(mockStatusResult.failed()).thenReturn(false);
 
         transferInitiator.initiateTransferProcess(new URL("http://provider-url:1234"), "test-agreement-id",
-                "test-asset", UUID.randomUUID().toString());
+                UUID.randomUUID().toString());
         verify(mockTransferProcessManager, times(1)).initiateConsumerRequest(any());
     }
 
@@ -70,8 +70,8 @@ public class TransferInitiatorTest {
     void testInitiateTransferProcessCustomDataAddress() throws MalformedURLException {
         when(mockStatusResult.failed()).thenReturn(false);
         var dataSink = HttpDataAddress.Builder.newInstance().baseUrl("http://example.com").build();
-        transferInitiator.initiateTransferProcess(new URL("http://provider-url:1234"), "test-agreement-id",
-                "test-asset", dataSink);
+        transferInitiator.initiateTransferProcess(new URL("http://provider-url:1234"),
+                "test-agreement-id", dataSink);
         verify(mockTransferProcessManager, times(1)).initiateConsumerRequest(any());
     }
 
@@ -80,7 +80,7 @@ public class TransferInitiatorTest {
         when(mockStatusResult.failed()).thenReturn(true);
         try {
             transferInitiator.initiateTransferProcess(new URL("http://provider-url:1234"), "test-agreement-id",
-                    "test-asset", UUID.randomUUID().toString());
+                    UUID.randomUUID().toString());
             fail();
         } catch (EdcException expected) {
         }

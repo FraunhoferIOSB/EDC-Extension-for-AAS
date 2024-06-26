@@ -16,7 +16,7 @@
 package de.fraunhofer.iosb.api;
 
 import de.fraunhofer.iosb.api.filter.CustomAuthenticationRequestFilter;
-import org.eclipse.edc.api.auth.spi.AuthenticationService;
+import org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
@@ -39,7 +39,7 @@ public class PublicApiManagementExtension implements ServiceExtension {
 
     // Our authentication request filter needs this service to work:
     @Inject
-    private AuthenticationService authenticationService;
+    private ApiAuthenticationRegistry apiAuthenticationRegistry;
     // To register our authentication request filter, we need:
     @Inject
     private WebService webService;
@@ -47,7 +47,7 @@ public class PublicApiManagementExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var monitor = context.getMonitor();
-        var filter = new CustomAuthenticationRequestFilter(authenticationService, monitor);
+        var filter = new CustomAuthenticationRequestFilter(apiAuthenticationRegistry, monitor);
 
         // Register our filter at the EDC
         webService.registerResource(filter);

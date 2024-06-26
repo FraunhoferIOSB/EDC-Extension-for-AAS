@@ -205,7 +205,7 @@ public class ClientEndpoint {
                     .build();
         }
 
-        return getData(counterPartyUrl, agreement.getId(), assetId, dataAddress);
+        return getData(counterPartyUrl, agreement.getId(), dataAddress);
     }
 
     /**
@@ -246,7 +246,6 @@ public class ClientEndpoint {
      *
      * @param providerUrl The data provider's url
      * @param agreementId The basis of the data transfer.
-     * @param assetId     The asset of which the data should be transferred
      * @param dataAddress URL of destination data sink.
      * @return On success, the data of the desired asset. Else, returns an error message.
      */
@@ -254,16 +253,13 @@ public class ClientEndpoint {
     @Path(TRANSFER_PATH)
     public Response getData(@QueryParam("providerUrl") URL providerUrl,
                             @QueryParam("agreementId") String agreementId,
-                            @QueryParam("assetId") String assetId,
                             DataAddress dataAddress) {
         monitor.debug(format("[Client] Received a %s GET request", TRANSFER_PATH));
         Objects.requireNonNull(providerUrl, "providerUrl must not be null");
         Objects.requireNonNull(agreementId, "agreementId must not be null");
-        Objects.requireNonNull(assetId, "assetId must not be null");
 
         try {
-            var data = transferController.initiateTransferProcess(providerUrl, agreementId, assetId,
-                    dataAddress);
+            var data = transferController.initiateTransferProcess(providerUrl, agreementId, dataAddress);
             if (Objects.isNull(dataAddress)) {
                 return Response.ok(data).build();
             } else {

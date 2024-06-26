@@ -201,7 +201,7 @@ public class ClientEndpointTest {
     @Test
     public void getDataTest() {
         try {
-            clientEndpoint.getData(url, "test-agreement-id", "test-asset-id", AasDataAddress.Builder.newInstance().baseUrl(url.toString()).build());
+            clientEndpoint.getData(url, "test-agreement-id", AasDataAddress.Builder.newInstance().baseUrl(url.toString()).build());
             fail();
         } catch (EdcException expected) {
         }

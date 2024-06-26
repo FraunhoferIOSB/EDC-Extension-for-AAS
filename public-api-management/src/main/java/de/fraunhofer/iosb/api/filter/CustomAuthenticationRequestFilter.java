@@ -19,7 +19,7 @@ import de.fraunhofer.iosb.api.model.Endpoint;
 import de.fraunhofer.iosb.api.model.HttpMethod;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import org.eclipse.edc.api.auth.spi.AuthenticationRequestFilter;
-import org.eclipse.edc.api.auth.spi.AuthenticationService;
+import org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.util.ArrayList;
@@ -40,8 +40,8 @@ public class CustomAuthenticationRequestFilter extends AuthenticationRequestFilt
     private final Collection<Endpoint> endpoints;
     private final Collection<Endpoint> temporaryEndpoints;
 
-    public CustomAuthenticationRequestFilter(AuthenticationService authenticationService, Monitor monitor) {
-        super(authenticationService);
+    public CustomAuthenticationRequestFilter(ApiAuthenticationRegistry apiAuthenticationRegistry, Monitor monitor) {
+        super(apiAuthenticationRegistry, "default");
         this.monitor = monitor;
         endpoints = new ArrayList<>();
         temporaryEndpoints = new ArrayList<>();

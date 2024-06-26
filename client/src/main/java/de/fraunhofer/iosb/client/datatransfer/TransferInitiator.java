@@ -45,13 +45,13 @@ class TransferInitiator {
     private final URI ownUri;
 
     TransferInitiator(Config config, Monitor monitor,
-                      TransferProcessManager transferProcessManager) {
+            TransferProcessManager transferProcessManager) {
         this.monitor = monitor;
         this.ownUri = createOwnUriFromConfigurationValues(config);
         this.transferProcessManager = transferProcessManager;
     }
 
-    void initiateTransferProcess(URL providerUrl, String agreementId, String assetId, String apiKey) {
+    void initiateTransferProcess(URL providerUrl, String agreementId, String apiKey) {
         if (Objects.isNull(ownUri)) {
             monitor.warning(
                     "Cannot transfer to own EDC since own URI could not be built while initializing client extension. Not continuing...");
@@ -63,18 +63,18 @@ class TransferInitiator {
                 .addAdditionalHeader(DATA_TRANSFER_API_KEY, apiKey) // API key for validation on consumer side
                 .build();
 
-        initiateTransferProcess(providerUrl, agreementId, assetId, dataDestination);
+        initiateTransferProcess(providerUrl, agreementId, dataDestination);
     }
 
-    void initiateTransferProcess(URL providerUrl, String agreementId, String assetId, DataAddress dataSinkAddress) {
+    void initiateTransferProcess(URL providerUrl, String agreementId, DataAddress dataSinkAddress) {
 
         var transferRequest = TransferRequest.Builder.newInstance()
                 .id(UUID.randomUUID().toString()) // this is not relevant, thus can be random
                 .counterPartyAddress(providerUrl.toString()) // the address of the provider connector
                 .protocol(DATASPACE_PROTOCOL_HTTP)
-                .assetId(assetId)
                 .dataDestination(dataSinkAddress)
                 .contractId(agreementId)
+                .transferType("HTTP-PUSH")
                 .build();
 
         var transferProcessStatus = transferProcessManager.initiateConsumerRequest(transferRequest);

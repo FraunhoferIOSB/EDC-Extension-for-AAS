@@ -20,6 +20,7 @@ import de.fraunhofer.iosb.client.authentication.DataTransferEndpointManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.web.spi.WebService;
@@ -60,8 +61,8 @@ public class DataTransferController {
      *                                   consumer.
      */
     public DataTransferController(Monitor monitor, Config config, WebService webService,
-                                  PublicApiManagementService publicApiManagementService, TransferProcessManager transferProcessManager) {
-        this.transferInitiator = new TransferInitiator(config, monitor, transferProcessManager);
+                                  PublicApiManagementService publicApiManagementService, TransferProcessManager transferProcessManager, Hostname hostname) {
+        this.transferInitiator = new TransferInitiator(monitor, config, hostname, transferProcessManager);
         this.config = config.getConfig("edc.client");
         this.dataTransferEndpointManager = new DataTransferEndpointManager(publicApiManagementService);
         this.dataTransferObservable = new DataTransferObservable(monitor);
@@ -75,15 +76,14 @@ public class DataTransferController {
      *
      * @param providerUrl     The provider from whom the data is to be fetched.
      * @param agreementId     Non-null ContractAgreement of the negotiation process.
-     * @param assetId         The asset to be fetched.
      * @param dataSinkAddress HTTPDataAddress the result of the transfer should be
      *                        sent to. (If null, send to extension and print in log)
      * @return A completable future whose result will be the data or an error message.
      * @throws InterruptedException If the data transfer was interrupted
      * @throws ExecutionException   If the data transfer process failed
      */
-    public String initiateTransferProcess(URL providerUrl, String agreementId, String assetId,
-                                          DataAddress dataSinkAddress) throws InterruptedException, ExecutionException {
+    public String initiateTransferProcess(URL providerUrl, String agreementId, DataAddress dataSinkAddress)
+            throws InterruptedException, ExecutionException {
         // Prepare for incoming data
         var dataFuture = dataTransferObservable.register(agreementId);
 
@@ -91,11 +91,11 @@ public class DataTransferController {
             var apiKey = UUID.randomUUID().toString();
             dataTransferEndpointManager.addTemporaryEndpoint(agreementId, DATA_TRANSFER_API_KEY, apiKey);
 
-            this.transferInitiator.initiateTransferProcess(providerUrl, agreementId, assetId, apiKey);
+            this.transferInitiator.initiateTransferProcess(providerUrl, agreementId, apiKey);
             return waitForData(dataFuture, agreementId);
         } else {
             // Send data to custom target url
-            this.transferInitiator.initiateTransferProcess(providerUrl, agreementId, assetId, dataSinkAddress);
+            this.transferInitiator.initiateTransferProcess(providerUrl, agreementId, dataSinkAddress);
             // Don't have to wait for data
             return null;
         }

@@ -21,6 +21,7 @@ import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.UriInfo;
 import org.eclipse.edc.api.auth.spi.AuthenticationService;
+import org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.web.spi.exception.AuthenticationFailedException;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,12 +44,13 @@ import static org.mockito.Mockito.when;
 class CustomAuthenticationRequestFilterTest {
 
     CustomAuthenticationRequestFilter customAuthenticationRequestFilter;
-    AuthenticationService mockAuthenticationService;
+    ApiAuthenticationRegistry mockApiAuthenticationRegistry;
 
     @BeforeEach
     void setUp() {
-        mockAuthenticationService = mock(AuthenticationService.class);
-        customAuthenticationRequestFilter = new CustomAuthenticationRequestFilter(mockAuthenticationService, mock(Monitor.class));
+        mockApiAuthenticationRegistry = mock(ApiAuthenticationRegistry.class);
+        when(mockApiAuthenticationRegistry.resolve(any())).thenReturn(mock(AuthenticationService.class));
+        customAuthenticationRequestFilter = new CustomAuthenticationRequestFilter(mockApiAuthenticationRegistry, mock(Monitor.class));
     }
 
     @SuppressWarnings("unchecked")
@@ -69,7 +71,7 @@ class CustomAuthenticationRequestFilterTest {
         when(mockRequest.getHeaders()).thenReturn(mockMultiValueMap);
 
         // This should not be called
-        when(mockAuthenticationService.isAuthenticated(any())).thenThrow(IllegalAccessError.class);
+        when(mockApiAuthenticationRegistry.resolve("default").isAuthenticated(any())).thenThrow(IllegalAccessError.class);
 
         // This should run through
         customAuthenticationRequestFilter.filter(mockRequest);
@@ -100,7 +102,7 @@ class CustomAuthenticationRequestFilterTest {
         } catch (AuthenticationFailedException expected) {
         }
         // This should be called once
-        verify(mockAuthenticationService, times(1)).isAuthenticated(any());
+        verify(mockApiAuthenticationRegistry.resolve("default"), times(1)).isAuthenticated(any());
     }
 
     @Test

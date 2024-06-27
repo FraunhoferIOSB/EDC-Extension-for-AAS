@@ -16,45 +16,49 @@
 package de.fraunhofer.iosb.client.datatransfer;
 
 import de.fraunhofer.iosb.client.ClientEndpoint;
-import jakarta.ws.rs.core.UriBuilder;
-import jakarta.ws.rs.core.UriBuilderException;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Objects;
-import java.util.UUID;
 
 import static de.fraunhofer.iosb.client.datatransfer.DataTransferController.DATA_TRANSFER_API_KEY;
-import static java.lang.String.format;
+import static java.lang.String.join;
 import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
+import static org.eclipse.edc.spi.types.domain.transfer.FlowType.PUSH;
 
 /**
  * Initiate transfer requests
  */
 class TransferInitiator {
 
-    private final TransferProcessManager transferProcessManager;
+    public static final String COULD_NOT_BUILD_URI_MESSAGE = "[Client] Could not build own URI, thus cannot transfer data to this EDC. Only data transfers to external endpoints are supported.";
+    public static final String HTTPS_KEYSTORE_PATH = "edc.web.https.keystore.path";
+    public static final String HTTP_PORT = "web.http.port";
+    public static final String HTTP_PATH = "web.http.path";
+
     private final Monitor monitor;
+    private final TransferProcessManager transferProcessManager;
     private final URI ownUri;
 
-    TransferInitiator(Config config, Monitor monitor,
+    TransferInitiator(Monitor monitor, Config config, Hostname hostname,
                       TransferProcessManager transferProcessManager) {
         this.monitor = monitor;
-        this.ownUri = createOwnUriFromConfigurationValues(config);
         this.transferProcessManager = transferProcessManager;
+        this.ownUri = createOwnUriFromConfigurationValues(config, hostname);
     }
 
-    void initiateTransferProcess(URL providerUrl, String agreementId, String assetId, String apiKey) {
+    void initiateTransferProcess(URL providerUrl, String agreementId, String apiKey) {
         if (Objects.isNull(ownUri)) {
-            monitor.warning(
-                    "Cannot transfer to own EDC since own URI could not be built while initializing client extension. Not continuing...");
+            monitor.severe(COULD_NOT_BUILD_URI_MESSAGE);
             return;
         }
         var dataDestination = HttpDataAddress.Builder.newInstance()
@@ -63,60 +67,40 @@ class TransferInitiator {
                 .addAdditionalHeader(DATA_TRANSFER_API_KEY, apiKey) // API key for validation on consumer side
                 .build();
 
-        initiateTransferProcess(providerUrl, agreementId, assetId, dataDestination);
+        initiateTransferProcess(providerUrl, agreementId, dataDestination);
     }
 
-    void initiateTransferProcess(URL providerUrl, String agreementId, String assetId, DataAddress dataSinkAddress) {
-
+    void initiateTransferProcess(URL providerUrl, String agreementId, DataAddress dataSinkAddress) {
         var transferRequest = TransferRequest.Builder.newInstance()
-                .id(UUID.randomUUID().toString()) // this is not relevant, thus can be random
-                .counterPartyAddress(providerUrl.toString()) // the address of the provider connector
                 .protocol(DATASPACE_PROTOCOL_HTTP)
-                .assetId(assetId)
-                .dataDestination(dataSinkAddress)
+                .counterPartyAddress(providerUrl.toString())
                 .contractId(agreementId)
+                .transferType(join("-", dataSinkAddress.getType(), PUSH.name()))
+                .dataDestination(dataSinkAddress)
                 .build();
 
-        var transferProcessStatus = transferProcessManager.initiateConsumerRequest(transferRequest);
-        if (transferProcessStatus.failed()) {
-            throw new EdcException(transferProcessStatus.getFailureDetail());
-        }
+        transferProcessManager
+                .initiateConsumerRequest(transferRequest)
+                .onFailure(failure -> monitor.severe(failure.getFailureDetail()));
     }
 
-    private URI createOwnUriFromConfigurationValues(Config config) {
-        String protocolAddressString;
-        int ownPort;
-        String ownPath;
+    private URI createOwnUriFromConfigurationValues(Config config, Hostname hostname) {
         try {
-            protocolAddressString = config.getString("edc.dsp.callback.address");
-            ownPort = config.getInteger("web.http.port", -1);
-            ownPath = config.getString("web.http.path", null);
-        } catch (EdcException noSettingFound) {
-            monitor.severe(
-                    format("[Client] Could not build own URI, thus cannot transfer data to this EDC. Only data transfers to external endpoints are supported. Exception message: %s",
-                            noSettingFound.getMessage()));
+            // HTTPS requires this value. With this configuration variable set, the connector will run with HTTPS enabled
+            var uriString = "%s://%s:%s%s/%s/%s".formatted(
+                    config.getString(HTTPS_KEYSTORE_PATH, null) == null ? Protocol.HTTP.name() : Protocol.HTTPS.name(),
+                    hostname.get(),
+                    config.getInteger(HTTP_PORT),
+                    config.getString(HTTP_PATH),
+                    ClientEndpoint.AUTOMATED_PATH,
+                    DataTransferEndpoint.RECEIVE_DATA_PATH);
+
+            return new URI(uriString);
+        } catch (URISyntaxException | EdcException couldNotBuildException) {
+            monitor.warning(COULD_NOT_BUILD_URI_MESSAGE, couldNotBuildException);
             return null;
         }
-
-        // Remove /dsp from URL
-        protocolAddressString = protocolAddressString.substring(0, protocolAddressString.length() - "/dsp".length());
-        try {
-            return UriBuilder
-                    .fromUri(protocolAddressString)
-                    .port(ownPort)
-                    .path(format(
-                            "%s/%s/%s",
-                            ownPath,
-                            ClientEndpoint.AUTOMATED_PATH,
-                            DataTransferEndpoint.RECEIVE_DATA_PATH))
-                    .build();
-
-        } catch (IllegalArgumentException | UriBuilderException ownUriBuilderException) {
-            monitor.severe(
-                    format("[Client] Could not build own URI, thus cannot transfer data to this EDC. Only data transfers to external endpoints are supported. Exception message: %s",
-                            ownUriBuilderException.getMessage()));
-        }
-        return null;
     }
 
+    private enum Protocol { HTTP, HTTPS }
 }

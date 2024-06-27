@@ -25,6 +25,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.Con
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
@@ -45,6 +46,8 @@ public class ClientExtension implements ServiceExtension {
     @Inject
     private ContractNegotiationStore contractNegotiationStore;
     @Inject
+    private Hostname hostname;
+    @Inject
     private TransferProcessManager transferProcessManager;
     @Inject
     private TypeTransformerRegistry transformer;
@@ -63,7 +66,7 @@ public class ClientExtension implements ServiceExtension {
 
         // This controller needs base config to read EDC's hostname + specific ports
         var dataTransferController = new DataTransferController(monitor, context.getConfig(), webService,
-                publicApiManagementService, transferProcessManager);
+                publicApiManagementService, transferProcessManager, hostname);
 
         webService.registerResource(new ClientEndpoint(monitor, negotiationController, policyController,
                 dataTransferController));

@@ -24,6 +24,9 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Optional;
+
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_ACCESS_SERVICE_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_DATA_SERVICE_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCT_FORMAT_ATTRIBUTE;
 
@@ -42,7 +45,12 @@ public class JsonObjectToDistributionTransformer extends AbstractJsonLdTransform
         var builder = Distribution.Builder.newInstance();
 
         transformMandatoryString(jsonObject.get(DCT_FORMAT_ATTRIBUTE), builder::format, context);
-        transformArrayOrObject(jsonObject.get(DCAT_DATA_SERVICE_ATTRIBUTE), DataService.class, builder::dataService, context);
+        transformArrayOrObject(
+                Optional.of(jsonObject.get(DCAT_ACCESS_SERVICE_ATTRIBUTE))
+                        .orElse(jsonObject.get(DCAT_DATA_SERVICE_ATTRIBUTE)),
+                DataService.class,
+                builder::dataService,
+                context);
 
         return builderResult(builder::build, context);
     }

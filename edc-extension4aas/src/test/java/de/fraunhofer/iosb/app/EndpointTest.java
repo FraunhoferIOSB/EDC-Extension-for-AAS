@@ -85,8 +85,8 @@ public class EndpointTest {
 
     @Test
     public void getSelfDescriptionTest() {
-        try (var response = endpoint.postAasService(url)) {
-            assertEquals("[]", endpoint.getSelfDescription(null).getEntity());
+        try (var ignored = endpoint.postAasService(url)) {
+            assertEquals("[]", endpoint.getSelfDescription(null).getEntity().toString());
         } catch (Exception e) {
             fail();
         }
@@ -133,7 +133,7 @@ public class EndpointTest {
 
     @Test
     public void postAasEnvironmentTest() {
-        endpoint.postAasEnvironment("src/test/resources/aasEnvironment.json", null, port);
+        endpoint.postAasEnvironment("src/test/resources/aasEnvironment.json", null, String.valueOf(port));
 
         assertNull(selfDescriptionRepo.getSelfDescription(url));
 
@@ -142,7 +142,7 @@ public class EndpointTest {
 
     @Test
     public void removeAasServiceTest() {
-        endpoint.postAasEnvironment("src/test/resources/aasEnvironment.json", null, port);
+        endpoint.postAasEnvironment("src/test/resources/aasEnvironment.json", null, String.valueOf(port));
 
         assertNull(selfDescriptionRepo.getSelfDescription(url));
 

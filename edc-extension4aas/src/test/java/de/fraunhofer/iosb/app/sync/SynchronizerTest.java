@@ -17,7 +17,6 @@ package de.fraunhofer.iosb.app.sync;
 
 import de.fraunhofer.iosb.aas.impl.AllAasDataProcessorFactory;
 import de.fraunhofer.iosb.app.controller.AasController;
-import de.fraunhofer.iosb.app.controller.ResourceController;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
 import de.fraunhofer.iosb.app.testutils.FileManager;
 import de.fraunhofer.iosb.app.testutils.StringMethods;
@@ -90,15 +89,16 @@ public class SynchronizerTest {
         var monitor = new ConsoleMonitor();
 
         selfDescriptionRepo = new SelfDescriptionRepository();
-        synchronizer = new Synchronizer(
-                selfDescriptionRepo,
-                new AasController(monitor, new AllAasDataProcessorFactory(new DefaultSelfSignedCertificateRetriever())),
-                new ResourceController(
-                        mock(AssetIndex.class),
-                        mock(ContractDefinitionStore.class),
-                        mock(PolicyDefinitionStore.class),
-                        monitor),
-                new AasServiceRegistry(new HashSet<>()));
+        synchronizer = new Synchronizer.SynchronizerBuilder()
+                .selfDescriptionRepository(selfDescriptionRepo)
+                .aasController(new AasController(monitor, new AllAasDataProcessorFactory(new DefaultSelfSignedCertificateRetriever())))
+                .assetIndex(mock(AssetIndex.class))
+                .contractStore(mock(ContractDefinitionStore.class))
+                .policyStore(mock(PolicyDefinitionStore.class))
+                .monitor(monitor)
+                .aasServiceRegistry(new AasServiceRegistry(new HashSet<>()))
+                .build();
+
         selfDescriptionRepo.registerListener(synchronizer);
         prepareDefaultMockedResponse();
     }

@@ -15,13 +15,9 @@
  */
 package de.fraunhofer.iosb.client;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iosb.client.datatransfer.DataTransferController;
 import de.fraunhofer.iosb.client.negotiation.NegotiationController;
 import de.fraunhofer.iosb.client.policy.PolicyController;
-import de.fraunhofer.iosb.client.util.Pair;
-import jakarta.json.Json;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -37,16 +33,16 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.Contr
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
-import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 
-import java.io.StringReader;
 import java.net.URL;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
-import static java.lang.String.format;
 import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 
 /**
@@ -66,32 +62,23 @@ public class ClientEndpoint {
     private static final String NEGOTIATE_PATH = "negotiate";
     private static final String TRANSFER_PATH = "transfer";
 
+    private static final String MISSING_QUERY_PARAMETER_MESSAGE = "Missing query parameter. Required parameters: %s";
+    private static final String MISSING_REQUEST_BODY_MESSAGE = "Missing request body of type %s";
+
     private final Monitor monitor;
 
     private final NegotiationController negotiationController;
     private final PolicyController policyController;
     private final DataTransferController transferController;
 
-    private final ObjectMapper objectMapper;
-
-    /**
-     * Initialize a client endpoint.
-     *
-     * @param monitor               Logging functionality
-     * @param policyController      Finds out policy for a given asset id and provider EDC url.
-     * @param negotiationController Send contract offer, negotiation status watch.
-     * @param transferController    Initiate transfer requests.
-     */
-    public ClientEndpoint(Monitor monitor,
-                          NegotiationController negotiationController,
-                          PolicyController policyController,
-                          DataTransferController transferController) {
+    private ClientEndpoint(Monitor monitor,
+                   NegotiationController negotiationController,
+                   PolicyController policyController,
+                   DataTransferController transferController) {
         this.monitor = monitor;
-
         this.policyController = policyController;
         this.negotiationController = negotiationController;
         this.transferController = transferController;
-        this.objectMapper = new ObjectMapper();
     }
 
     /**
@@ -107,49 +94,36 @@ public class ClientEndpoint {
     @GET
     @Path(OFFER_PATH)
     public Response getOffer(@QueryParam("providerUrl") URL providerUrl, @QueryParam("assetId") String assetId, @QueryParam("providerId") String counterPartyId) {
-        Objects.requireNonNull(assetId, "Asset ID must not be null");
-
-
-        monitor.debug(format("[Client] Received an %s GET request", OFFER_PATH));
-
-        if (Objects.isNull(providerUrl)) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Provider URL must not be null").build();
+        monitor.info("[Client] Received an %s GET request".formatted(OFFER_PATH));
+        if (Objects.isNull(assetId) || Objects.isNull(providerUrl)) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(MISSING_QUERY_PARAMETER_MESSAGE.formatted("assetId, providerId")).build();
         }
 
+        Dataset dataset;
         try {
-            var dataset = policyController.getDataset(counterPartyId, providerUrl, assetId);
-
-            var parsedResponse = buildResponseFrom(dataset);
-            return Response.ok(parsedResponse).build();
-
+            dataset = policyController.getDataset(counterPartyId, providerUrl, assetId);
         } catch (InterruptedException interruptedException) {
-            monitor.severe(format("[Client] Getting offer failed for provider %s and asset %s", providerUrl,
-                    assetId), interruptedException);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(interruptedException.getMessage())
+            monitor.severe("[Client] Getting offer failed for provider %s and asset %s"
+                    .formatted(providerUrl, assetId), interruptedException);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(interruptedException.getMessage())
                     .build();
-
-        } catch (JsonProcessingException policyWriteException) {
-            monitor.severe(format("[Client] Parsing policy failed for provider %s and asset %s", providerUrl,
-                    assetId), policyWriteException);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(policyWriteException.getMessage())
-                    .build();
-
         }
+
+        return Response.ok(buildResponseFrom(dataset)).build();
     }
 
-    private String buildResponseFrom(Dataset dataset) throws JsonProcessingException {
-        var offer = dataset.getOffers().entrySet().stream().findFirst().orElseThrow();
-
-        // Build negotiation request body for the user
-        var policyString = objectMapper.writeValueAsString(offer.getValue());
-        var policyJson = Json.createReader(new StringReader(policyString)).read();
-
-        return Json.createObjectBuilder()
-                .add("id", offer.getKey())
-                .add("policy", policyJson)
-                .add("assetId", offer.getValue().getTarget())
-                .build()
-                .toString();
+    private ContractOffer buildResponseFrom(Dataset dataset) {
+        return dataset.getOffers().entrySet().stream()
+                .findFirst()
+                .map(entry ->
+                        ContractOffer.Builder.newInstance()
+                                .id(entry.getKey())
+                                .policy(entry.getValue())
+                                .assetId(entry.getValue().getTarget())
+                                .build())
+                .orElseThrow(() -> new EdcException("Failed building response policyDefinition"));
     }
 
     /**
@@ -168,44 +142,38 @@ public class ClientEndpoint {
                                       @QueryParam("providerId") String counterPartyId,
                                       @QueryParam("assetId") String assetId,
                                       DataAddress dataAddress) {
-        monitor.debug(format("[Client] Received a %s POST request", NEGOTIATE_PATH));
-        Objects.requireNonNull(counterPartyUrl, "Provider URL must not be null");
-        Objects.requireNonNull(counterPartyId, "Provider ID must not be null");
-        Objects.requireNonNull(assetId, "Asset ID must not be null");
-
-        Pair<String, Policy> idPolicyPair; // id means contractOfferId
-        try {
-            idPolicyPair = policyController.getAcceptablePolicyForAssetId(counterPartyId, counterPartyUrl, assetId);
-        } catch (InterruptedException negotiationException) {
-            monitor.severe(format("[Client] Getting policies failed for provider %s and asset %s", counterPartyUrl,
-                    assetId), negotiationException);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(negotiationException.getMessage())
-                    .build();
+        monitor.info("[Client] Received a %s POST request".formatted(NEGOTIATE_PATH));
+        if (Objects.isNull(counterPartyUrl) || Objects.isNull(counterPartyId) || Objects.isNull(assetId)) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(MISSING_QUERY_PARAMETER_MESSAGE.formatted("providerUrl, counterPartyId, assetId")).build();
         }
 
-        var offer = ContractOffer.Builder.newInstance()
-                .id(idPolicyPair.getFirst())
-                .policy(idPolicyPair.getSecond())
-                .assetId(assetId)
-                .build();
+        Result<ContractOffer> contractOfferResult = policyController.getAcceptableContractOfferForAssetId(counterPartyId, counterPartyUrl, assetId);
+
+        if (contractOfferResult.failed()) {
+            monitor.severe("[Client] Getting policies failed for provider %s and asset %s: %s".formatted(
+                    counterPartyUrl, assetId, contractOfferResult.getFailureDetail()));
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(contractOfferResult.getFailureDetail())
+                    .build();
+        }
 
         var contractRequest = ContractRequest.Builder.newInstance()
                 .protocol(DATASPACE_PROTOCOL_HTTP)
                 .counterPartyAddress(counterPartyUrl.toString())
-                .contractOffer(offer)
+                .contractOffer(contractOfferResult.getContent())
                 .build();
-        ContractAgreement agreement;
 
-        try {
-            agreement = negotiationController.negotiateContract(contractRequest);
-        } catch (InterruptedException | ExecutionException negotiationException) {
-            monitor.severe(format("[Client] Negotiation failed for provider %s and contractOffer %s", counterPartyUrl,
-                    offer.getId()), negotiationException);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(negotiationException.getMessage())
-                    .build();
+        Result<ContractAgreement> agreementResult = negotiationController.negotiateContract(contractRequest);
+
+        if (agreementResult.failed()) {
+            monitor.severe("[Client] Negotiation failed for provider %s and contractOffer %s: %s".formatted(
+                    counterPartyUrl, contractOfferResult.getContent().getId(), agreementResult.getFailureDetail()));
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(agreementResult.getFailureDetail()).build();
         }
 
-        return getData(counterPartyUrl, agreement.getId(), dataAddress);
+        return getData(counterPartyUrl, agreementResult.getContent().getId(), dataAddress);
     }
 
     /**
@@ -218,25 +186,22 @@ public class ClientEndpoint {
     @POST
     @Path(NEGOTIATE_CONTRACT_PATH)
     public Response negotiateContract(ContractRequest contractRequest) {
-        monitor.debug(format("[Client] Received a %s POST request", NEGOTIATE_CONTRACT_PATH));
-        Objects.requireNonNull(contractRequest, "ContractRequest must not be null");
-        try {
-            var agreement = negotiationController.negotiateContract(contractRequest);
-            // Sanitize response (only ID is relevant here)
-            var agreementResponse = Json.createObjectBuilder()
-                    .add("agreement-id", agreement.getId())
-                    .build()
-                    .toString();
-            return Response.ok(agreementResponse).build();
-        } catch (InterruptedException | ExecutionException negotiationException) {
-            monitor.severe(
-                    format("[Client] Negotiation failed for provider %s and contractRequest %s",
-                            contractRequest.getProviderId(),
-                            contractRequest.getContractOffer().getId()),
-                    negotiationException);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(negotiationException.getMessage())
-                    .build();
+        monitor.info("[Client] Received a %s POST request".formatted(NEGOTIATE_CONTRACT_PATH));
+        if (Objects.isNull(contractRequest)) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(MISSING_REQUEST_BODY_MESSAGE.formatted("ContractRequest")).build();
         }
+
+        Result<ContractAgreement> agreementResult = negotiationController.negotiateContract(contractRequest);
+
+        if (agreementResult.failed()) {
+            monitor.severe("[Client] Negotiation failed for provider %s and contractOffer %s: %s".formatted(
+                    contractRequest.getProviderId(), contractRequest.getContractOffer().getId(), agreementResult.getFailureDetail()));
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(agreementResult.getFailureDetail()).build();
+        }
+
+        return Response.ok(Map.of("agreement-id", agreementResult.getContent().getId())).build();
     }
 
     /**
@@ -254,9 +219,11 @@ public class ClientEndpoint {
     public Response getData(@QueryParam("providerUrl") URL providerUrl,
                             @QueryParam("agreementId") String agreementId,
                             DataAddress dataAddress) {
-        monitor.debug(format("[Client] Received a %s GET request", TRANSFER_PATH));
-        Objects.requireNonNull(providerUrl, "providerUrl must not be null");
-        Objects.requireNonNull(agreementId, "agreementId must not be null");
+        monitor.info("[Client] Received a %s GET request".formatted(TRANSFER_PATH));
+        if (Objects.isNull(providerUrl) || Objects.isNull(agreementId)) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(MISSING_QUERY_PARAMETER_MESSAGE.formatted("providerUrl, agreementId")).build();
+        }
 
         try {
             var data = transferController.initiateTransferProcess(providerUrl, agreementId, dataAddress);
@@ -266,9 +233,10 @@ public class ClientEndpoint {
                 return Response.ok("Data transfer request sent.").build();
             }
         } catch (InterruptedException | ExecutionException negotiationException) {
-            monitor.severe(format("[Client] Data transfer failed for provider %s and agreementId %s", providerUrl,
+            monitor.severe("[Client] Data transfer failed for provider %s and agreementId %s".formatted(providerUrl,
                     agreementId), negotiationException);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(negotiationException.getMessage())
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(negotiationException.getMessage())
                     .build();
         }
     }
@@ -283,8 +251,11 @@ public class ClientEndpoint {
     @POST
     @Path(ACCEPTED_POLICIES_PATH)
     public Response addAcceptedPolicyDefinitions(PolicyDefinition[] policyDefinitions) {
-        monitor.debug(format("[Client] Received a %s POST request", ACCEPTED_POLICIES_PATH));
-        Objects.requireNonNull(policyDefinitions, "policyDefinitions (request body) must not be null");
+        monitor.info("[Client] Received a %s POST request".formatted(ACCEPTED_POLICIES_PATH));
+        if (Objects.isNull(policyDefinitions)) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(MISSING_REQUEST_BODY_MESSAGE.formatted("PolicyDefinition[]")).build();
+        }
 
         policyController.addAcceptedPolicyDefinitions(policyDefinitions);
         return Response.ok().build();
@@ -298,7 +269,7 @@ public class ClientEndpoint {
     @GET
     @Path(ACCEPTED_POLICIES_PATH)
     public Response getAcceptedPolicyDefinitions() {
-        monitor.debug(format("[Client] Received a %s GET request", ACCEPTED_POLICIES_PATH));
+        monitor.info("[Client] Received a %s GET request".formatted(ACCEPTED_POLICIES_PATH));
         return Response.ok(policyController.getAcceptedPolicyDefinitions()).build();
     }
 
@@ -311,12 +282,12 @@ public class ClientEndpoint {
     @DELETE
     @Path(ACCEPTED_POLICIES_PATH)
     public Response deleteAcceptedPolicyDefinition(@QueryParam("policyDefinitionId") String policyDefinitionId) {
-        monitor.debug(
-                format("[Client] Received a %s DELETE request for %s", ACCEPTED_POLICIES_PATH, policyDefinitionId));
-        Objects.requireNonNull(policyDefinitionId, "policyDefinitionId must not be null");
+        monitor.info("[Client] Received a %s DELETE request for %s".formatted(ACCEPTED_POLICIES_PATH, policyDefinitionId));
+        if (Objects.isNull(policyDefinitionId)) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(MISSING_QUERY_PARAMETER_MESSAGE.formatted("policyDefinitionId")).build();
+        }
 
         if (policyController.deleteAcceptedPolicyDefinition(policyDefinitionId).isPresent()) {
-            // Found policyDefinition with same ID
             return Response.ok(policyDefinitionId).build();
         }
         return Response.status(Response.Status.NOT_FOUND).entity("Unknown policyDefinitionId.").build();
@@ -332,13 +303,53 @@ public class ClientEndpoint {
     @PUT
     @Path(ACCEPTED_POLICIES_PATH)
     public Response updateAcceptedPolicyDefinition(PolicyDefinition policyDefinition) {
-        monitor.debug(format("[Client] Received a %s PUT request", ACCEPTED_POLICIES_PATH));
-        Objects.requireNonNull(policyDefinition, "policyDefinition (request body) must not be null");
+        monitor.info("[Client] Received a %s PUT request".formatted(ACCEPTED_POLICIES_PATH));
+        if (Objects.isNull(policyDefinition)) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(MISSING_REQUEST_BODY_MESSAGE.formatted("PolicyDefinition")).build();
+        }
 
         if (policyController.updateAcceptedPolicyDefinition(policyDefinition).isPresent()) {
-            // Found policyDefinition with same ID
             return Response.ok(policyDefinition.getId()).build();
         }
         return Response.status(Response.Status.NOT_FOUND).entity("Unknown policyDefinitionId.").build();
+    }
+
+    public static class Builder {
+        private Monitor monitor;
+        private NegotiationController negotiationController;
+        private PolicyController policyController;
+        private DataTransferController transferController;
+
+        private Builder() {
+        }
+
+        public static Builder newInstance() {
+            return new Builder();
+        }
+
+        public Builder monitor(Monitor monitor) {
+            this.monitor = monitor;
+            return this;
+        }
+
+        public Builder negotiationController(NegotiationController negotiationController) {
+            this.negotiationController = negotiationController;
+            return this;
+        }
+
+        public Builder policyController(PolicyController policyController) {
+            this.policyController = policyController;
+            return this;
+        }
+
+        public Builder transferController(DataTransferController transferController) {
+            this.transferController = transferController;
+            return this;
+        }
+
+        public ClientEndpoint build() {
+            return new ClientEndpoint(monitor, negotiationController, policyController, transferController);
+        }
+
     }
 }

@@ -59,17 +59,33 @@ public class ClientExtension implements ServiceExtension {
         var monitor = context.getMonitor();
         var config = context.getConfig("edc.client");
 
-        var policyController = new PolicyController(monitor, catalogService, transformer, config);
+        var negotiationController = new NegotiationController(
+                consumerNegotiationManager,
+                contractNegotiationObservable,
+                contractNegotiationStore,
+                config);
 
-        var negotiationController = new NegotiationController(consumerNegotiationManager,
-                contractNegotiationObservable, contractNegotiationStore, config);
+        var transferController = new DataTransferController(
+                monitor,
+                context.getConfig(),
+                webService,
+                publicApiManagementService,
+                transferProcessManager,
+                hostname);
 
-        // This controller needs base config to read EDC's hostname + specific ports
-        var dataTransferController = new DataTransferController(monitor, context.getConfig(), webService,
-                publicApiManagementService, transferProcessManager, hostname);
+        var policyController = new PolicyController(
+                monitor,
+                catalogService,
+                transformer,
+                config);
 
-        webService.registerResource(new ClientEndpoint(monitor, negotiationController, policyController,
-                dataTransferController));
+        webService.registerResource(
+                ClientEndpoint.Builder.newInstance()
+                        .monitor(monitor)
+                        .negotiationController(negotiationController)
+                        .transferController(transferController)
+                        .policyController(policyController)
+                        .build());
     }
 
 }

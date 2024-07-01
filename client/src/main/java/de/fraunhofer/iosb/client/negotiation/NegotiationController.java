@@ -21,7 +21,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.Con
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest;
-import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.configuration.Config;
 
 import java.util.Objects;
@@ -29,8 +29,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-
-import static java.lang.String.format;
 
 
 /**
@@ -58,38 +56,34 @@ public class NegotiationController {
         observable.registerListener(listener);
     }
 
-    public ContractAgreement negotiateContract(ContractRequest contractRequest)
-            throws InterruptedException, ExecutionException {
-
+    public Result<ContractAgreement> negotiateContract(ContractRequest contractRequest) {
         var negotiationStatusResult = negotiator.negotiate(contractRequest);
         if (!negotiationStatusResult.succeeded()) {
-            throw new EdcException(negotiationStatusResult.getFailureDetail());
+            return Result.failure(negotiationStatusResult.getFailureDetail());
         }
+
         var negotiation = negotiationStatusResult.getContent();
         if (Objects.nonNull(negotiation.getContractAgreement())) {
-            return negotiationStatusResult.getContent().getContractAgreement();
+            return Result.success(negotiationStatusResult.getContent().getContractAgreement());
         } else {
             return waitForAgreement(negotiation.getId());
         }
     }
 
 
-    private ContractAgreement waitForAgreement(String negotiationId) throws InterruptedException, ExecutionException {
+    private Result<ContractAgreement> waitForAgreement(String negotiationId) {
         var agreementFuture = new CompletableFuture<ContractNegotiation>();
-        var timeout = config.getInteger("waitForAgreementTimeout",
-                WAIT_FOR_AGREEMENT_TIMEOUT_DEFAULT);
+        var timeout = config.getInteger("waitForAgreementTimeout", WAIT_FOR_AGREEMENT_TIMEOUT_DEFAULT);
 
         listener.addListener(negotiationId, agreementFuture);
-
+        ContractNegotiation negotiation;
         try {
-            var negotiation = agreementFuture.get(timeout, TimeUnit.SECONDS);
-            listener.removeListener(negotiationId);
-
-            return negotiation.getContractAgreement();
-        } catch (TimeoutException agreementTimeout) {
-            throw new EdcException(
-                    format("[Client] Agreement negotiation timed out for negotiation id: %s", negotiationId),
-                    agreementTimeout);
+            negotiation = agreementFuture.get(timeout, TimeUnit.SECONDS);
+        } catch (TimeoutException | InterruptedException | ExecutionException waitForAgreementException) {
+            return Result.failure("Exception thrown while waiting for agreement: %s".formatted(waitForAgreementException.getMessage()));
         }
+
+        listener.removeListener(negotiationId);
+        return Result.success(negotiation.getContractAgreement());
     }
 }

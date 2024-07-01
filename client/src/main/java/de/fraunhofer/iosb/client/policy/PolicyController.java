@@ -15,12 +15,12 @@
  */
 package de.fraunhofer.iosb.client.policy;
 
-import de.fraunhofer.iosb.client.util.Pair;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService;
-import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
@@ -63,13 +63,9 @@ public class PolicyController {
      * @param counterPartyUrl Provider of the asset. (url)
      * @param assetId         Asset ID of the asset whose contract should be fetched.
      * @return One policyDefinition offered by the provider for the given assetId.
-     * @throws InterruptedException Thread for agreementId was waiting, sleeping, or
-     *                              otherwise occupied, and was
-     *                              interrupted.
      */
-    public Pair<String, Policy> getAcceptablePolicyForAssetId(String counterPartyId, URL counterPartyUrl, String assetId)
-            throws InterruptedException {
-        return policyService.getAcceptablePolicyForAssetId(counterPartyId, counterPartyUrl, assetId);
+    public Result<ContractOffer> getAcceptableContractOfferForAssetId(String counterPartyId, URL counterPartyUrl, String assetId) {
+        return policyService.getAcceptableContractOfferForAssetId(counterPartyId, counterPartyUrl, assetId);
     }
 
     public void addAcceptedPolicyDefinitions(PolicyDefinition[] policyDefinitions) {

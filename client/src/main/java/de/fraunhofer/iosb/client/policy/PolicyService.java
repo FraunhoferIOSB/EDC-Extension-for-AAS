@@ -20,11 +20,11 @@ import de.fraunhofer.iosb.client.policy.transform.JsonObjectToCatalogTransformer
 import de.fraunhofer.iosb.client.policy.transform.JsonObjectToDataServiceTransformer;
 import de.fraunhofer.iosb.client.policy.transform.JsonObjectToDatasetTransformer;
 import de.fraunhofer.iosb.client.policy.transform.JsonObjectToDistributionTransformer;
-import de.fraunhofer.iosb.client.util.Pair;
 import jakarta.json.Json;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService;
 import org.eclipse.edc.connector.controlplane.transform.odrl.OdrlTransformersFactory;
 import org.eclipse.edc.connector.core.agent.NoOpParticipantIdMapper;
@@ -35,7 +35,10 @@ import org.eclipse.edc.policy.model.Rule;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.response.ResponseFailure;
 import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.spi.result.Failure;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.jetbrains.annotations.NotNull;
 
@@ -43,7 +46,6 @@ import java.io.ByteArrayInputStream;
 import java.net.URL;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -80,7 +82,6 @@ class PolicyService {
                   PolicyServiceConfig config, PolicyDefinitionStore policyDefinitionStore, Monitor monitor) {
         this.catalogService = catalogService;
         this.transformer = transformer;
-
         this.config = config;
         this.policyDefinitionStore = policyDefinitionStore;
 
@@ -94,7 +95,7 @@ class PolicyService {
                 counterPartyId, // why do we even need a provider id when we have the url...
                 counterPartyUrl.toString(),
                 DATASPACE_PROTOCOL_HTTP,
-                QuerySpec.Builder.newInstance()
+                QuerySpec.none().toBuilder()
                         .filter(criterion(Asset.PROPERTY_ID, "=", assetId))
                         .build());
 
@@ -109,29 +110,17 @@ class PolicyService {
                     timeoutCatalogFutureGetException);
         }
 
-        if (catalogResponse.failed()) {
-            throw new EdcException(format(CATALOG_RETRIEVAL_FAILURE_MSG, counterPartyUrl,
-                    catalogResponse.getFailureMessages()));
-        }
+        var jsonObject = catalogResponse
+                .map(catalogBytes -> Json.createReader(new ByteArrayInputStream(catalogResponse.getContent())).readObject())
+                .map(jsonLdExpander::expand)
+                .orElseThrow((ResponseFailure f) -> formException(counterPartyUrl, f));
 
-        var catalogJson = Json.createReader(new ByteArrayInputStream(catalogResponse.getContent()))
-                .readObject();
+        var datasets = jsonObject
+                .map(expanded -> transformer.transform(expanded, Catalog.class))
+                .orElseThrow((Failure f) -> formException(counterPartyUrl, f))
+                .map(Catalog::getDatasets)
+                .orElseThrow((Failure f) -> formException(counterPartyUrl, f));
 
-        var catalogJsonExpansionResult = jsonLdExpander.expand(catalogJson);
-
-        if (catalogJsonExpansionResult.failed()) {
-            throw new EdcException(format(CATALOG_RETRIEVAL_FAILURE_MSG, counterPartyUrl,
-                    catalogJsonExpansionResult.getFailureMessages()));
-        }
-
-        var catalogResult = transformer.transform(catalogJsonExpansionResult.getContent(), Catalog.class);
-
-        if (catalogResult.failed()) {
-            throw new EdcException(format(CATALOG_RETRIEVAL_FAILURE_MSG, counterPartyUrl,
-                    catalogResult.getFailureMessages()));
-        }
-
-        var datasets = catalogResult.getContent().getDatasets();
         if (Objects.isNull(datasets) || datasets.size() != 1) {
             throw new AmbiguousOrNullException(
                     format("Multiple or no policyDefinitions were found for assetId %s!",
@@ -141,28 +130,32 @@ class PolicyService {
         return datasets.get(0);
     }
 
-    Pair<String, Policy> getAcceptablePolicyForAssetId(String counterPartyId, URL providerUrl, String assetId)
-            throws InterruptedException {
-        var dataset = getDatasetForAssetId(counterPartyId, providerUrl, assetId);
+    private EdcException formException(URL counterPartyUrl, Failure f) {
+        return new EdcException(format(CATALOG_RETRIEVAL_FAILURE_MSG, counterPartyUrl, f.getMessages()));
+    }
 
-        Map.Entry<String, Policy> acceptablePolicy;
-        if (config.isAcceptAllProviderOffers()) {
-            acceptablePolicy = dataset.getOffers().entrySet().stream()
-                    .findAny()
-                    .orElseThrow();
-
-        } else if (dataset.getOffers().values().stream().anyMatch(this::matchesOwnPolicyDefinitions)) {
-            acceptablePolicy = dataset.getOffers().entrySet().stream()
-                    .filter(entry -> matchesOwnPolicyDefinitions(entry.getValue()))
-                    .findAny()
-                    .orElseThrow();
-
-        } else {
-            throw new EdcException("Could not find any acceptable policyDefinition");
+    Result<ContractOffer> getAcceptableContractOfferForAssetId(String counterPartyId, URL providerUrl, String assetId) {
+        Dataset dataset;
+        try {
+            dataset = getDatasetForAssetId(counterPartyId, providerUrl, assetId);
+        } catch (InterruptedException interruptedException) {
+            return Result.failure(interruptedException.getMessage());
         }
 
-        return new Pair.PairBuilder<String, Policy>()
-                .first(acceptablePolicy.getKey()).second(acceptablePolicy.getValue()).build();
+        var acceptablePolicy = dataset.getOffers()
+                .entrySet().stream()
+                .filter(entry -> config.isAcceptAllProviderOffers() || matchesOwnPolicyDefinitions(entry.getValue()))
+                .findAny();
+
+        return acceptablePolicy.map(stringPolicyEntry ->
+                        Result.success(ContractOffer.Builder.newInstance()
+                                .id(stringPolicyEntry.getKey())
+                                .policy(stringPolicyEntry.getValue())
+                                .assetId(assetId)
+                                .build()))
+                .orElseGet(() ->
+                        Result.failure("Could not find any acceptable policyDefinition"));
+
     }
 
     private boolean matchesOwnPolicyDefinitions(Policy policy) {
@@ -187,7 +180,7 @@ class PolicyService {
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList());
 
-        return firstRules.stream().anyMatch(
+        return firstRules.stream().allMatch(
                 firstRule -> secondRules.stream()
                         .anyMatch(secondRule -> !ruleEquality(firstRule, secondRule)));
     }

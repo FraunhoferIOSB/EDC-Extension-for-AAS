@@ -160,7 +160,7 @@ public class PolicyServiceTest {
     }
 
     @Test
-    void getAcceptablePolicyForAssetIdTest() throws InterruptedException {
+    void getAcceptableContractOfferForAssetIdTest() throws InterruptedException {
         var shouldPolicy = Policy.Builder.newInstance().build();
         var dataset = Dataset.Builder.newInstance()
                 .offer("test-offer-id", shouldPolicy).build();
@@ -171,19 +171,19 @@ public class PolicyServiceTest {
                 .getDatasetForAssetId("test-counter-party-id", testUrl, "test-asset-id");
         when(config.isAcceptAllProviderOffers()).thenReturn(true);
 
-        var resultPolicy = policyServiceSpy.getAcceptablePolicyForAssetId("test-counter-party-id", testUrl, "test-asset-id");
-        assertEquals(shouldPolicy, resultPolicy.getSecond());
-        assertEquals("test-offer-id", resultPolicy.getFirst());
+        var resultPolicy = policyServiceSpy.getAcceptableContractOfferForAssetId("test-counter-party-id", testUrl, "test-asset-id");
+        assertEquals(shouldPolicy, resultPolicy.getContent().getPolicy());
+        assertEquals("test-offer-id", resultPolicy.getContent().getId());
     }
 
     @Test
-    void getAcceptablePolicyForAssetIdEmptyPolicyListTest() throws InterruptedException {
+    void getAcceptablePolicyForAssetIdEmptyContractOfferListTest() throws InterruptedException {
         // mock getDatasetMethod
         var policyServiceSpy = spy(policyService);
         Mockito.doReturn(Dataset.Builder.newInstance().build()).when(policyServiceSpy).getDatasetForAssetId("test-counter-party-id", testUrl, "test-asset-id");
 
         try {
-            policyServiceSpy.getAcceptablePolicyForAssetId("test-counter-party-id", testUrl, "test-asset-id");
+            policyServiceSpy.getAcceptableContractOfferForAssetId("test-counter-party-id", testUrl, "test-asset-id");
         } catch (EdcException expected) {
             assertEquals("Could not find any acceptable policyDefinition", expected.getMessage());
         }
@@ -191,22 +191,22 @@ public class PolicyServiceTest {
     }
 
     @Test
-    void getAcceptablePolicyForAssetIdAcceptAllOffersTest() {
+    void getAcceptableContractOfferForAssetIdAcceptAllOffersTest() {
         //TODO
     }
 
     @Test
-    void getAcceptablePolicyForAssetIdAcceptFromAcceptedListTest() {
+    void getAcceptableContractOfferForAssetIdAcceptFromAcceptedListTest() {
         //TODO
     }
 
     @Test
-    void getAcceptablePolicyForAssetIdNoAcceptablePolicyTest() {
+    void getAcceptablePolicyForAssetIdNoAcceptableContractOfferTest() {
         //TODO
     }
 
     @Test
-    void getAcceptablePolicyForAssetIdTimeoutTest() {
+    void getAcceptableContractOfferForAssetIdTimeoutTest() {
         //TODO
     }
 

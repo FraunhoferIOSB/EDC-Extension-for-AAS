@@ -58,7 +58,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeoutException;
 
 import static java.lang.String.format;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -99,24 +98,27 @@ public class ClientEndpointTest {
 
     @BeforeEach
     public void setup() throws IOException {
-        clientEndpoint = new ClientEndpoint(monitor,
-                new NegotiationController(
+        clientEndpoint = ClientEndpoint.Builder.newInstance()
+                .monitor(monitor)
+                .negotiationController(new NegotiationController(
                         mockConsumerNegotiationManager(),
                         mock(ContractNegotiationObservable.class),
                         mock(ContractNegotiationStore.class),
-                        mockConfig()),
-                new PolicyController(
-                        monitor,
-                        mockCatalogService(),
-                        mockTransformer(),
-                        mock(Config.class)),
-                new DataTransferController(
+                        mockConfig()))
+                .policyController(
+                        new PolicyController(
+                                monitor,
+                                mockCatalogService(),
+                                mockTransformer(),
+                                mock(Config.class)))
+                .transferController(new DataTransferController(
                         mock(Monitor.class),
                         mockConfig(),
                         mock(WebService.class),
                         mock(PublicApiManagementService.class),
                         mockTransferProcessManager(),
-                        () -> "localhost"));
+                        () -> "localhost"))
+                .build();
     }
 
     private Config mockConfig() {
@@ -172,7 +174,7 @@ public class ClientEndpointTest {
 
     @Test
     public void negotiateContractTest() {
-        try (var ignored = clientEndpoint.negotiateContract(
+        try (var resultResponse = clientEndpoint.negotiateContract(
                 ContractRequest.Builder.newInstance()
                         .counterPartyAddress(url.toString())
                         .contractOffer(
@@ -183,11 +185,8 @@ public class ClientEndpointTest {
                                         .build())
                         .protocol("dataspace-protocol-http")
                         .build())) {
-            fail();
-        } catch (EdcException expected) {
-            if (!(expected.getCause().getClass().equals(TimeoutException.class) &&
-                    expected.getMessage().contains("Agreement"))) {
-                fail(); // This must fail because of agreement timeout.
+            if ((resultResponse.getStatus() != Response.Status.INTERNAL_SERVER_ERROR.getStatusCode())) {
+                fail();
             }
         }
     }

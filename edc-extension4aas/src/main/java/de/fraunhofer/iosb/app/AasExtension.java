@@ -54,14 +54,13 @@ public class AasExtension implements ServiceExtension {
     public static final String NAME = "EDC4AAS Extension";
 
     private static final String SETTINGS_PREFIX = "edc.aas";
-
+    private final ScheduledExecutorService syncExecutor = new ScheduledThreadPoolExecutor(1);
     @Inject
     private AasDataProcessorFactory aasDataProcessorFactory;
     @Inject // Register AAS services (with self-signed certs) to allow communication
     private AasServiceRegistry aasServiceRegistry;
     @Inject // Register public endpoints
     private PublicApiManagementService publicApiManagementService;
-
     @Inject
     private AssetIndex assetIndex;
     @Inject
@@ -70,10 +69,6 @@ public class AasExtension implements ServiceExtension {
     private PolicyDefinitionStore policyDefinitionStore;
     @Inject // Register http endpoint at EDC
     private WebService webService;
-
-    // Our executor shall also
-    private final ScheduledExecutorService syncExecutor = new ScheduledThreadPoolExecutor(1);
-
     private AasController aasController;
 
     @Override

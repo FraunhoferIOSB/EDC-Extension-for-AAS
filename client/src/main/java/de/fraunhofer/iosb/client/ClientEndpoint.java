@@ -15,6 +15,9 @@
  */
 package de.fraunhofer.iosb.client;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iosb.client.datatransfer.DataTransferController;
 import de.fraunhofer.iosb.client.negotiation.NegotiationController;
 import de.fraunhofer.iosb.client.policy.PolicyController;
@@ -71,14 +74,19 @@ public class ClientEndpoint {
     private final PolicyController policyController;
     private final DataTransferController transferController;
 
+    private final ObjectMapper nonNullNonEmptyObjectMapper;
+
     private ClientEndpoint(Monitor monitor,
-                   NegotiationController negotiationController,
-                   PolicyController policyController,
-                   DataTransferController transferController) {
+                           NegotiationController negotiationController,
+                           PolicyController policyController,
+                           DataTransferController transferController) {
         this.monitor = monitor;
         this.policyController = policyController;
         this.negotiationController = negotiationController;
         this.transferController = transferController;
+        nonNullNonEmptyObjectMapper = new ObjectMapper()
+                .setSerializationInclusion(JsonInclude.Include.NON_NULL)
+                .setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
     }
 
     /**
@@ -111,7 +119,12 @@ public class ClientEndpoint {
                     .build();
         }
 
-        return Response.ok(buildResponseFrom(dataset)).build();
+        try {
+            return Response.ok(nonNullNonEmptyObjectMapper.writeValueAsString(buildResponseFrom(dataset))).build();
+        } catch (JsonProcessingException e) {
+            return Response.serverError().entity("Could not serialize contractOffer").build();
+        }
+
     }
 
     private ContractOffer buildResponseFrom(Dataset dataset) {

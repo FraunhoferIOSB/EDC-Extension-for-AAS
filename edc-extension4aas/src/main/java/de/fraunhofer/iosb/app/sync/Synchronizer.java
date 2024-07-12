@@ -28,7 +28,11 @@ import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
 import de.fraunhofer.iosb.app.util.AssetAdministrationShellUtil;
 import de.fraunhofer.iosb.registry.AasServiceRegistry;
 import jakarta.ws.rs.core.MediaType;
+import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
+import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
+import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -41,24 +45,33 @@ import static java.lang.String.format;
 
 
 /**
- * Synchronize registered AAS services with local self-descriptions and
- * assetIndex/contractStore.
+ * Synchronize registered AAS services with local
+ * self-descriptions and assetIndex/contractStore.
  */
 public class Synchronizer implements SelfDescriptionChangeListener {
 
+    // Main objective of Synchronizer is making sure SelfDescription and EDC asset store state are valid
     private final SelfDescriptionRepository selfDescriptionRepository;
-    private final AasController aasController;
     private final ResourceController resourceController;
-    private final Configuration configuration;
+    // Communication with AAS of any type
+    private final AasController aasController;
+
+    private final boolean onlySubmodels;
     private final AasServiceRegistry aasServiceRegistry;
 
-    public Synchronizer(SelfDescriptionRepository selfDescriptionRepository,
-                        AasController aasController, ResourceController resourceController, AasServiceRegistry aasServiceRegistry) {
+    private Synchronizer(SelfDescriptionRepository selfDescriptionRepository,
+                         AasController aasController,
+                         AssetIndex assetIndex,
+                         ContractDefinitionStore contractStore,
+                         PolicyDefinitionStore policyStore,
+                         Monitor monitor,
+                         AasServiceRegistry aasServiceRegistry) {
         this.selfDescriptionRepository = selfDescriptionRepository;
         this.aasController = aasController;
-        this.resourceController = resourceController;
         this.aasServiceRegistry = aasServiceRegistry;
-        this.configuration = Configuration.getInstance();
+
+        this.onlySubmodels = Configuration.getInstance().isOnlySubmodels();
+        this.resourceController = new ResourceController(assetIndex, contractStore, policyStore, monitor);
     }
 
     /**
@@ -66,9 +79,9 @@ public class Synchronizer implements SelfDescriptionChangeListener {
      * AssetIndex/ContractStore
      */
     public void synchronize() {
-        for (var selfDescription : selfDescriptionRepository.getAllSelfDescriptions()) {
+        for (var selfDescription : selfDescriptionRepository.getAllSelfDescriptions().keySet()) {
             try {
-                synchronize(new URL(selfDescription.getKey()));
+                synchronize(new URL(selfDescription));
             } catch (MalformedURLException e) {
                 throw new EdcException("AAS URL malformed while synchronizing", e);
             }
@@ -76,7 +89,6 @@ public class Synchronizer implements SelfDescriptionChangeListener {
     }
 
     private void synchronize(URL aasServiceUrl) {
-        var onlySubmodels = configuration.isOnlySubmodels();
 
         var oldSelfDescription = selfDescriptionRepository.getSelfDescription(aasServiceUrl);
 
@@ -84,7 +96,7 @@ public class Synchronizer implements SelfDescriptionChangeListener {
                 new CustomAssetAdministrationShellEnvironment() :
                 oldSelfDescription.getEnvironment();
 
-        var newEnvironment = fetchCurrentAasModel(aasServiceUrl, onlySubmodels);
+        var newEnvironment = fetchCurrentAasModel(aasServiceUrl);
 
         // Check whether any element was added or removed.
         // - Added elements need idsContractId/idsAssetId
@@ -97,7 +109,7 @@ public class Synchronizer implements SelfDescriptionChangeListener {
         selfDescriptionRepository.updateSelfDescription(aasServiceUrl, newEnvironment);
     }
 
-    private CustomAssetAdministrationShellEnvironment fetchCurrentAasModel(URL aasServiceUrl, boolean onlySubmodels) {
+    private CustomAssetAdministrationShellEnvironment fetchCurrentAasModel(URL aasServiceUrl) {
         CustomAssetAdministrationShellEnvironment newEnvironment;
 
         try { // Fetch current AAS model from AAS service
@@ -183,10 +195,6 @@ public class Synchronizer implements SelfDescriptionChangeListener {
         });
     }
 
-    private void removeAssetsContracts(List<? extends IdsAssetElement> elements) {
-        elements.forEach(element -> resourceController.deleteAssetAndContracts(element.getIdsAssetId()));
-    }
-
     @Override
     public void created(URL aasUrl) {
         var registrationResult = aasServiceRegistry.register(aasUrl.toString());
@@ -201,10 +209,65 @@ public class Synchronizer implements SelfDescriptionChangeListener {
 
     @Override
     public void removed(URL removed) {
-        var allElements = AssetAdministrationShellUtil.getAllElements(selfDescriptionRepository.getSelfDescription(removed).getEnvironment());
-        removeAssetsContracts(allElements);
+        AssetAdministrationShellUtil.getAllElements(selfDescriptionRepository.getSelfDescription(removed).getEnvironment())
+                .forEach(element -> resourceController.deleteAssetAndContracts(element.getIdsAssetId()));
 
         aasServiceRegistry.unregister(removed.toString());
     }
 
+    public static class SynchronizerBuilder {
+        private SelfDescriptionRepository selfDescriptionRepository;
+        private AasController aasController;
+        private AssetIndex assetIndex;
+        private ContractDefinitionStore contractStore;
+        private PolicyDefinitionStore policyStore;
+        private Monitor monitor;
+        private AasServiceRegistry aasServiceRegistry;
+
+        public SynchronizerBuilder selfDescriptionRepository(SelfDescriptionRepository selfDescriptionRepository) {
+            this.selfDescriptionRepository = selfDescriptionRepository;
+            return this;
+        }
+
+        public SynchronizerBuilder aasController(AasController aasController) {
+            this.aasController = aasController;
+            return this;
+        }
+
+        public SynchronizerBuilder assetIndex(AssetIndex assetIndex) {
+            this.assetIndex = assetIndex;
+            return this;
+        }
+
+        public SynchronizerBuilder contractStore(ContractDefinitionStore contractStore) {
+            this.contractStore = contractStore;
+            return this;
+        }
+
+        public SynchronizerBuilder policyStore(PolicyDefinitionStore policyStore) {
+            this.policyStore = policyStore;
+            return this;
+        }
+
+        public SynchronizerBuilder monitor(Monitor monitor) {
+            this.monitor = monitor;
+            return this;
+        }
+
+        public SynchronizerBuilder aasServiceRegistry(AasServiceRegistry aasServiceRegistry) {
+            this.aasServiceRegistry = aasServiceRegistry;
+            return this;
+        }
+
+        public Synchronizer build() {
+            Objects.requireNonNull(selfDescriptionRepository, "selfDescriptionRepository");
+            Objects.requireNonNull(aasController, "aasController");
+            Objects.requireNonNull(assetIndex, "assetIndex");
+            Objects.requireNonNull(contractStore, "contractStore");
+            Objects.requireNonNull(policyStore, "policyStore");
+            Objects.requireNonNull(monitor, "monitor");
+            Objects.requireNonNull(aasServiceRegistry, "aasServiceRegistry");
+            return new Synchronizer(selfDescriptionRepository, aasController, assetIndex, contractStore, policyStore, monitor, aasServiceRegistry);
+        }
+    }
 }

@@ -20,7 +20,6 @@ import de.fraunhofer.iosb.api.PublicApiManagementService;
 import de.fraunhofer.iosb.api.model.HttpMethod;
 import de.fraunhofer.iosb.app.controller.AasController;
 import de.fraunhofer.iosb.app.controller.ConfigurationController;
-import de.fraunhofer.iosb.app.controller.ResourceController;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
 import de.fraunhofer.iosb.app.sync.Synchronizer;
@@ -28,6 +27,7 @@ import de.fraunhofer.iosb.registry.AasServiceRegistry;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
+import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -48,32 +48,32 @@ import java.util.concurrent.TimeUnit;
 /**
  * EDC Extension supporting usage of Asset Administration Shells.
  */
+@Extension(value = AasExtension.NAME)
 public class AasExtension implements ServiceExtension {
 
+    public static final String NAME = "EDC4AAS Extension";
 
     private static final String SETTINGS_PREFIX = "edc.aas";
+    private final ScheduledExecutorService syncExecutor = new ScheduledThreadPoolExecutor(1);
     @Inject
     private AasDataProcessorFactory aasDataProcessorFactory;
-    @Inject // Register AAS services with self-signed certs to communicate with them
+    @Inject // Register AAS services (with self-signed certs) to allow communication
     private AasServiceRegistry aasServiceRegistry;
     @Inject // Register public endpoints
     private PublicApiManagementService publicApiManagementService;
-    @Inject // Create / manage EDC assets
+    @Inject
     private AssetIndex assetIndex;
-    @Inject // Create / manage EDC contracts
-    private ContractDefinitionStore contractStore;
+    @Inject
+    private ContractDefinitionStore contractDefinitionStore;
     @Inject // Create / manage EDC policies
-    private PolicyDefinitionStore policyStore;
+    private PolicyDefinitionStore policyDefinitionStore;
     @Inject // Register http endpoint at EDC
     private WebService webService;
-
-    private Monitor monitor;
-    private ScheduledExecutorService syncExecutor;
     private AasController aasController;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        this.monitor = context.getMonitor().withPrefix("EDC4AAS");
+        var monitor = context.getMonitor().withPrefix(NAME);
 
         var configurationController = new ConfigurationController(context.getConfig(SETTINGS_PREFIX), monitor);
 
@@ -83,9 +83,12 @@ public class AasExtension implements ServiceExtension {
         var endpoint = new Endpoint(selfDescriptionRepository, this.aasController, configurationController, monitor);
 
         // Initialize/Start synchronizer, start AAS services defined in configuration
-        initializeSynchronizer(selfDescriptionRepository);
+        var synchronizer = initializeSynchronizer(selfDescriptionRepository, monitor);
+
+        selfDescriptionRepository.registerListener(synchronizer);
+
         // This makes the connector shutdown if an exception occurs while starting config services
-        registerServicesByConfig(selfDescriptionRepository);
+        registerAasServicesByConfig(selfDescriptionRepository);
 
         // Add public endpoint if wanted by config
         if (Configuration.getInstance().isExposeSelfDescription()) {
@@ -95,7 +98,7 @@ public class AasExtension implements ServiceExtension {
         webService.registerResource(endpoint);
     }
 
-    private void registerServicesByConfig(SelfDescriptionRepository selfDescriptionRepository) {
+    private void registerAasServicesByConfig(SelfDescriptionRepository selfDescriptionRepository) {
         var configInstance = Configuration.getInstance();
 
         if (Objects.nonNull(configInstance.getRemoteAasLocation())) {
@@ -126,24 +129,24 @@ public class AasExtension implements ServiceExtension {
         selfDescriptionRepository.createSelfDescription(serviceUrl);
     }
 
-    private void initializeSynchronizer(SelfDescriptionRepository selfDescriptionRepository) {
-        var synchronizer = new Synchronizer(selfDescriptionRepository, aasController,
-                new ResourceController(assetIndex, contractStore, policyStore, monitor),
-                aasServiceRegistry);
-        selfDescriptionRepository.registerListener(synchronizer);
+    private Synchronizer initializeSynchronizer(SelfDescriptionRepository selfDescriptionRepository, Monitor monitor) {
+        var synchronizer = new Synchronizer.SynchronizerBuilder()
+                .selfDescriptionRepository(selfDescriptionRepository)
+                .aasController(aasController)
+                .assetIndex(assetIndex)
+                .contractStore(contractDefinitionStore)
+                .policyStore(policyDefinitionStore)
+                .monitor(monitor)
+                .aasServiceRegistry(aasServiceRegistry)
+                .build();
 
-        // Task: get all AAS service URLs, synchronize EDC and AAS
-        syncExecutor = new ScheduledThreadPoolExecutor(1);
-        syncExecutor.scheduleAtFixedRate(synchronizer::synchronize, 1,
-                Configuration.getInstance().getSyncPeriod(), TimeUnit.SECONDS);
+        syncExecutor.scheduleAtFixedRate(synchronizer::synchronize, 1, Configuration.getInstance().getSyncPeriod(), TimeUnit.SECONDS);
+        return synchronizer;
     }
 
     @Override
     public void shutdown() {
-        monitor.info("Shutting down EDC4AAS extension...");
-        if (syncExecutor != null) {
-            syncExecutor.shutdown();
-        }
+        // Gracefully shutdown AAS services
         aasController.stopServices();
     }
 }

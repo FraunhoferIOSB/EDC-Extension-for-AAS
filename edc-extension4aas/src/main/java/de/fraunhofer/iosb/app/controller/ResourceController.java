@@ -42,14 +42,14 @@ public class ResourceController {
      * Registers resource at EDC with default contract, return contract id of new
      * asset
      *
-     * @param linkToResource Link to resource to be registered
+     * @param sourceUrl      URL to resource to be registered
      * @param referenceChain To create the full access url dynamically this reference chain is passed
      * @param name           The name of the asset (e.g., idShort)
      * @param contentType    Content behind the sourceUrl
      * @return contract id
      */
-    public Pair<String, String> createResource(String linkToResource, Reference referenceChain, String name, String contentType) {
-        var assetId = resourceAgent.createAsset(linkToResource, referenceChain, name, contentType);
+    public Pair<String, String> createResource(String sourceUrl, Reference referenceChain, String name, String contentType) {
+        var assetId = resourceAgent.createAsset(sourceUrl, referenceChain, name, contentType);
         var contractId = contractHandler.registerAssetToDefaultContract(assetId);
         return new Pair<>(assetId, contractId);
     }

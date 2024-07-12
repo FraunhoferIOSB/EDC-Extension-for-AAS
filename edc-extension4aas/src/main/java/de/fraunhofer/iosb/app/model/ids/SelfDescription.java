@@ -15,6 +15,7 @@
  */
 package de.fraunhofer.iosb.app.model.ids;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -27,15 +28,16 @@ import java.util.Objects;
 /**
  * Self-description holding the structure of an AAS model
  */
+@JsonInclude(Include.NON_NULL)
 public class SelfDescription {
 
     private final CustomAssetAdministrationShellEnvironment aasEnv; // enriched with contractIds
     private final ObjectMapper objectMapper;
 
-    public SelfDescription(CustomAssetAdministrationShellEnvironment newSelfDescription) {
-        Objects.requireNonNull(newSelfDescription);
+    public SelfDescription(CustomAssetAdministrationShellEnvironment environment) {
+        Objects.requireNonNull(environment);
 
-        this.aasEnv = newSelfDescription;
+        this.aasEnv = environment;
         this.objectMapper = new ObjectMapper();
         objectMapper.setSerializationInclusion(Include.NON_NULL);
     }
@@ -46,23 +48,24 @@ public class SelfDescription {
      */
     @Override
     public String toString() {
-        String aasEnvString;
         try {
-            aasEnvString = objectMapper.writeValueAsString(aasEnv);
+            return objectMapper.writeValueAsString(aasEnv);
         } catch (JsonProcessingException e) {
             throw new EdcException("Could not serialize self description", e);
         }
-        return aasEnvString;
     }
 
+    /**
+     * Converts this SelfDescription to a JsonNode
+     *
+     * @return JsonNode representation of this SelfDescription.
+     */
     public JsonNode toJsonNode() {
-        JsonNode aasEnvString;
         try {
-            aasEnvString = objectMapper.readTree(this.toString());
+            return objectMapper.readTree(this.toString());
         } catch (JsonProcessingException e) {
-            throw new EdcException("Could not serialize self description", e);
+            throw new EdcException("Could not convert SelfDescription to JsonNode", e);
         }
-        return aasEnvString;
     }
 
     /**

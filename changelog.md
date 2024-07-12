@@ -2,17 +2,20 @@
 
 ## Current development version
 
-Compatibility: **Eclipse Dataspace Connector v0.7.0**
+Compatibility: **Eclipse Dataspace Connector v0.8.0**
 
 **New Features**
 
-* Dynamical building of AAS access URLs using Reference Chains [Submodel x, Collection y, Element z]
-* Accepting self-signed certificates (only possible for own AAS services) now
-  optional (`edc.dataplane.aas.acceptSelfSignedCertificates`)
+* Dynamically building AAS access URLs using Reference Chains [Submodel x, Collection y, Element z], a concept from AAS
+  the specification
+* Accepting self-signed certificates now
+  optional (`edc.dataplane.aas.acceptOwnSelfSignedCertificates`, `edc.dataplane.aas.acceptAllSelfSignedCertificates`)
 * SubmodelElementList is now a model element inside the SelfDescription (AASv3 change)
 
 * New extension: data-plane-aas
     * Provides custom AAS data source and data sink
+    * Communicate with AAS over AASDataAddress (see above, reference chains)
+    * Allow communication with AAS with self-signed TLS certificates (configurable)
 
 **Bugfixes**
 

@@ -23,6 +23,9 @@ import de.fraunhofer.iosb.dataplane.aas.pipeline.AasDataSourceFactory;
 import de.fraunhofer.iosb.registry.AasServiceRegistry;
 import de.fraunhofer.iosb.ssl.impl.DefaultSelfSignedCertificateRetriever;
 import de.fraunhofer.iosb.ssl.impl.NoOpSelfSignedCertificateRetriever;
+import dev.failsafe.RetryPolicy;
+import okhttp3.OkHttpClient;
+import okhttp3.Response;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -58,6 +61,10 @@ public class DataPlaneAasExtension implements ServiceExtension {
 
     @Inject
     private PipelineService pipelineService;
+    @Inject
+    private OkHttpClient okHttpClient;
+    @Inject
+    private RetryPolicy<Response> retryPolicy;
 
     public void initialize(ServiceExtensionContext context) {
         var monitor = context.getMonitor();
@@ -72,8 +79,8 @@ public class DataPlaneAasExtension implements ServiceExtension {
         var registeredServices = (ownSelfSigned || allSelfSigned) ? new HashSet<String>() : null;
 
         var aasDataProcessorFactory = allSelfSigned ?
-                new AllAasDataProcessorFactory(retriever) :
-                new RegisteredAasDataProcessorFactory(retriever, registeredServices);
+                new AllAasDataProcessorFactory(retriever, okHttpClient, retryPolicy, monitor) :
+                new RegisteredAasDataProcessorFactory(retriever, registeredServices, okHttpClient, retryPolicy, monitor);
 
         context.registerService(AasDataProcessorFactory.class, aasDataProcessorFactory);
 

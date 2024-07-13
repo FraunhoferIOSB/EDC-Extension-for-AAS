@@ -55,8 +55,8 @@ public class AasExtensionTest {
     }
 
     @Test
-    public void initializeTest() {
+    public void testInitialize() {
         // See if initialization works
-        extension.initialize(this.context);
+        extension.initialize(context);
     }
 }

@@ -22,7 +22,9 @@ import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
 import de.fraunhofer.iosb.app.testutils.FileManager;
 import de.fraunhofer.iosb.ssl.impl.NoOpSelfSignedCertificateRetriever;
+import dev.failsafe.RetryPolicy;
 import jakarta.ws.rs.core.Response;
+import okhttp3.OkHttpClient;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.junit.jupiter.api.AfterEach;
@@ -66,7 +68,7 @@ public class EndpointTest {
     public void setupEndpoint() {
         var monitor = new ConsoleMonitor();
         selfDescriptionRepo = new SelfDescriptionRepository();
-        aasController = new AasController(monitor, new AllAasDataProcessorFactory(new NoOpSelfSignedCertificateRetriever()));
+        aasController = new AasController(monitor, new AllAasDataProcessorFactory(new NoOpSelfSignedCertificateRetriever(), new OkHttpClient(), RetryPolicy.ofDefaults(), new ConsoleMonitor()));
         endpoint = new Endpoint(
                 selfDescriptionRepo,
                 aasController,

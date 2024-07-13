@@ -47,8 +47,9 @@ public class AasDataAddress extends DataAddress {
     public static final String REFERENCE_CHAIN = "referenceChain";
     public static final String BASE_URL = "https://w3id.org/edc/v0.0.1/ns/baseUrl";
 
-    private static final String METHOD = "method";
     private static final String ADDITIONAL_HEADER = "header:";
+    private static final String METHOD = "method";
+    private static final String QUERY_PARAMS = "queryParams";
 
     private AasDataAddress() {
         super();
@@ -60,16 +61,24 @@ public class AasDataAddress extends DataAddress {
         return getStringProperty(BASE_URL);
     }
 
+    @JsonIgnore
     public String getMethod() {
         return getStringProperty(METHOD);
     }
 
+    @JsonIgnore
     public Map<String, String> getAdditionalHeaders() {
         return getProperties().entrySet().stream()
                 .filter(entry -> entry.getKey().startsWith(ADDITIONAL_HEADER))
                 .collect(toMap(headerName -> headerName.getKey().replace(ADDITIONAL_HEADER, ""), headerValue -> (String) headerValue.getValue()));
     }
 
+    /**
+     * Example: ReferenceChain: [Submodel x, SubmodelElementCollection y, SubmodelElement z]
+     * --> path: submodels/base64(x)/submodel-elements/y.z
+     *
+     * @return Path correlating to reference chain stored in this DataAddress
+     */
     public String referenceChainAsPath() {
         StringBuilder urlBuilder = new StringBuilder();
 
@@ -133,6 +142,11 @@ public class AasDataAddress extends DataAddress {
 
         public Builder baseUrl(String baseUrl) {
             this.property(BASE_URL, baseUrl);
+            return this;
+        }
+
+        public Builder queryParams(String queryParams) {
+            this.property(QUERY_PARAMS, queryParams);
             return this;
         }
 

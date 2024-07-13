@@ -16,7 +16,12 @@
 package de.fraunhofer.iosb.aas;
 
 import de.fraunhofer.iosb.ssl.SelfSignedCertificateRetriever;
+import dev.failsafe.RetryPolicy;
+import okhttp3.OkHttpClient;
+import okhttp3.Response;
+import org.eclipse.edc.http.client.EdcHttpClientImpl;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 
 import java.net.MalformedURLException;
@@ -31,9 +36,20 @@ public abstract class AasDataProcessorFactory {
 
     private static final String HTTPS = "HTTPS";
     protected final SelfSignedCertificateRetriever retriever;
+    // EDC provided fields. Use for non-self-signed certificates
+    private final OkHttpClient edcOkHttpClient;
+    private final RetryPolicy<Response> edcRetryPolicy;
+    private final Monitor monitor;
 
-    public AasDataProcessorFactory(SelfSignedCertificateRetriever retriever) {
+    public AasDataProcessorFactory(SelfSignedCertificateRetriever retriever,
+                                   OkHttpClient edcOkHttpClient,
+                                   RetryPolicy<Response> edcRetryPolicy,
+                                   Monitor monitor) {
         this.retriever = retriever;
+
+        this.monitor = monitor;
+        this.edcOkHttpClient = edcOkHttpClient;
+        this.edcRetryPolicy = edcRetryPolicy;
     }
 
     /**
@@ -55,7 +71,11 @@ public abstract class AasDataProcessorFactory {
         var certResult = getCertificates(aasUrl);
 
         try {
-            return new AasDataProcessor(clientFor(certResult.getContent()));
+            return new AasDataProcessor(
+                    new EdcHttpClientImpl(
+                            certResult.getContent() == null ? edcOkHttpClient : clientFor(certResult.getContent()),
+                            edcRetryPolicy,
+                            monitor));
         } catch (KeyStoreException e) {
             throw new EdcException(e);
         }

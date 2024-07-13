@@ -31,13 +31,7 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult.failure;
 
 /**
- * Retrieve the parts from dataSource and send them given
- * the HttpRequestParams and EdcExtension custom http client.
- * This works similarly to HttpDataSink but uses a custom
- * HttpClient accepting certain self-signed certificates.
- * TODO Since foreign AAS services should have valid certificates
- * TODO this sink will probably not be needed in the future
- * TODO (Unless we want to send data to completely untrusted servers)
+ * Retrieves the parts from dataSource and send them given the aas data processor.
  */
 public class AasDataSink implements DataSink {
 

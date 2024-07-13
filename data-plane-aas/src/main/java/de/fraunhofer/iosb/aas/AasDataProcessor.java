@@ -19,11 +19,12 @@ import de.fraunhofer.iosb.dataplane.aas.pipeline.AasTransferRequestBody;
 import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
 import okhttp3.Headers;
 import okhttp3.HttpUrl;
-import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.internal.http.HttpMethod;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource.Part;
+import org.eclipse.edc.http.spi.EdcHttpClient;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -33,9 +34,9 @@ import java.nio.charset.StandardCharsets;
  */
 public class AasDataProcessor {
 
-    private final OkHttpClient httpClient;
+    private final EdcHttpClient httpClient;
 
-    public AasDataProcessor(OkHttpClient httpClient) {
+    AasDataProcessor(EdcHttpClient httpClient) {
         this.httpClient = httpClient;
     }
 
@@ -46,7 +47,7 @@ public class AasDataProcessor {
      * @return Response by the AAS service.
      * @throws IOException If communication with AAS service fails.
      */
-    public Response send(AasDataAddress aasDataAddress) throws IOException {
+    public Response send(@NotNull AasDataAddress aasDataAddress) throws IOException {
         return send(aasDataAddress, (byte[]) null, null);
     }
 
@@ -55,11 +56,11 @@ public class AasDataProcessor {
      *
      * @param aasDataAddress The address of the AAS service.
      * @param body           The data to be sent.
-     * @param mediaType      MediaType of the data to be sent.
+     * @param mediaType      MediaType of the data to be sent. (only relevant if body != null)
      * @return Response by the AAS service.
      * @throws IOException If communication with AAS service fails.
      */
-    public Response send(AasDataAddress aasDataAddress, String body, String mediaType) throws IOException {
+    public Response send(@NotNull AasDataAddress aasDataAddress, String body, String mediaType) throws IOException {
         var bytes = body == null ? null : body.getBytes(StandardCharsets.UTF_8);
         return send(aasDataAddress, bytes, mediaType);
     }
@@ -72,13 +73,13 @@ public class AasDataProcessor {
      * @return Response by the AAS service.
      * @throws IOException If communication with AAS service fails.
      */
-    public Response send(AasDataAddress aasDataAddress, Part part) throws IOException {
+    public Response send(@NotNull AasDataAddress aasDataAddress, @NotNull  Part part) throws IOException {
         var bytes = part.openStream().readAllBytes();
 
         return send(aasDataAddress, bytes, part.mediaType());
     }
 
-    private Response send(AasDataAddress aasDataAddress, byte[] bytes, String mediaType) throws IOException {
+    private Response send( AasDataAddress aasDataAddress, byte[] bytes, String mediaType) throws IOException {
         var requestBody = new AasTransferRequestBody(bytes, mediaType);
 
         var request = new Request.Builder().method(
@@ -91,6 +92,6 @@ public class AasDataProcessor {
                 .headers(Headers.of(aasDataAddress.getAdditionalHeaders()))
                 .build();
 
-        return httpClient.newCall(request).execute();
+        return httpClient.execute(request);
     }
 }

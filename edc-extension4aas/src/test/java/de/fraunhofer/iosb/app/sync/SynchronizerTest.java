@@ -21,7 +21,9 @@ import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
 import de.fraunhofer.iosb.app.testutils.FileManager;
 import de.fraunhofer.iosb.app.testutils.StringMethods;
 import de.fraunhofer.iosb.registry.AasServiceRegistry;
-import de.fraunhofer.iosb.ssl.impl.DefaultSelfSignedCertificateRetriever;
+import de.fraunhofer.iosb.ssl.impl.NoOpSelfSignedCertificateRetriever;
+import dev.failsafe.RetryPolicy;
+import okhttp3.OkHttpClient;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
@@ -91,7 +93,12 @@ public class SynchronizerTest {
         selfDescriptionRepo = new SelfDescriptionRepository();
         synchronizer = new Synchronizer.SynchronizerBuilder()
                 .selfDescriptionRepository(selfDescriptionRepo)
-                .aasController(new AasController(monitor, new AllAasDataProcessorFactory(new DefaultSelfSignedCertificateRetriever())))
+                .aasController(new AasController(monitor,
+                        new AllAasDataProcessorFactory(
+                                new NoOpSelfSignedCertificateRetriever(),
+                                new OkHttpClient(),
+                                RetryPolicy.ofDefaults(),
+                                new ConsoleMonitor())))
                 .assetIndex(mock(AssetIndex.class))
                 .contractStore(mock(ContractDefinitionStore.class))
                 .policyStore(mock(PolicyDefinitionStore.class))

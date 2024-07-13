@@ -17,6 +17,7 @@ package de.fraunhofer.iosb.aas.http;
 
 import okhttp3.OkHttpClient;
 import org.eclipse.edc.spi.EdcException;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.security.KeyManagementException;
@@ -30,14 +31,12 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
-
+/**
+ * Provides OkHttpClient instance allowing communication to a remote service with the given certificate.
+ */
 public class HttpClientProvider {
 
-    public static OkHttpClient clientFor(Certificate[] certificateChain) throws KeyStoreException {
-        if (certificateChain == null) {
-            return new OkHttpClient();
-        }
-
+    public static OkHttpClient clientFor(@NotNull Certificate[] certificateChain) throws KeyStoreException {
         var keyStore = createAndPopulateKeyStore(certificateChain);
 
         TrustManager[] trustManagers;

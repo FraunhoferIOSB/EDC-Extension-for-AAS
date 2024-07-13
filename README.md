@@ -16,11 +16,11 @@ model via the EDC.
 
 The repository contains several material:
 
-- `client`: Source code for the client extension (automated contract negotiation)
+- `client`: The client extension: Automated contract negotiation from HTTP endpoints
 - `config`: Checkstyle files for code formatting
 - `data-plane-aas`: AAS data plane implementation (following HTTP data plane)
-- `edc-extension4aas`: Source code for the AAS extension
-- `example`: Example use case for the edc-extension4aas and client extension with a preconfigured EDC launcher.
+- `edc-extension4aas`: The AAS extension
+- `example`: Example use case for the AAS extension with a preconfigured EDC launcher.
 - `public-api-management`: Managing outward facing endpoints (http) which require no authentication
 
 <!-- ------------------Template Section --------------------------- -->
@@ -114,7 +114,7 @@ In this section, dependencies from EDC and third-party are listed. (Implementati
 | Name                                      | Description                                                                        |
 |:------------------------------------------|:-----------------------------------------------------------------------------------|
 | org.eclipse.edc:data-plane-spi            | Data-plane functionality                                                           |
-| org.eclipse.edc:http-spi                  | OkHttp3 Fields                                                                     |
+| org.eclipse.edc:lib                       | OkHttp3 Fields + EdcHttpClient implementation                                      |
 | org.eclipse.digitaltwin.aas4j:aas4j-model | [Eclipse AAS4J java model](https://github.com/eclipse-aas4j/aas4j/tree/main/model) |
 
 #### Public API Management Extension

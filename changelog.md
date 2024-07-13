@@ -16,6 +16,7 @@ Compatibility: **Eclipse Dataspace Connector v0.8.0**
     * Provides custom AAS data source and data sink
     * Communicate with AAS over AASDataAddress (see above, reference chains)
     * Allow communication with AAS with self-signed TLS certificates (configurable)
+    * Use default EdcHttpClient if not self-signed
 
 **Bugfixes**
 

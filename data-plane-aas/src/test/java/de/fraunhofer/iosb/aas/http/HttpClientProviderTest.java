@@ -15,7 +15,7 @@
  */
 package de.fraunhofer.iosb.aas.http;
 
-import de.fraunhofer.iosb.testutils.SelfSignedCertificateProvider;
+import de.fraunhofer.iosb.testutils.CertificateUtils;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -27,7 +27,7 @@ class HttpClientProviderTest {
 
     @Test
     void testClientFor() throws IOException, KeyStoreException {
-        assertNotNull(HttpClientProvider.clientFor(SelfSignedCertificateProvider.getSelfSignedCertificate()));
+        assertNotNull(HttpClientProvider.clientFor(CertificateUtils.getSelfSignedCertificate()));
     }
 
 }

@@ -18,7 +18,6 @@ package de.fraunhofer.iosb.app.aas;
 import de.fraunhofer.iosb.aas.impl.AllAasDataProcessorFactory;
 import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
 import de.fraunhofer.iosb.ssl.impl.DefaultSelfSignedCertificateRetriever;
-import de.fraunhofer.iosb.ssl.impl.NoOpSelfSignedCertificateRetriever;
 import dev.failsafe.RetryPolicy;
 import jakarta.ws.rs.HttpMethod;
 import jakarta.ws.rs.core.Response;

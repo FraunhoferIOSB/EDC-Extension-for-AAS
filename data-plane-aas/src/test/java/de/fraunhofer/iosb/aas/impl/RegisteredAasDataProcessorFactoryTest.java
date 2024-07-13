@@ -19,7 +19,7 @@ import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
 import de.fraunhofer.iosb.ilt.faaast.service.exception.EndpointException;
 import de.fraunhofer.iosb.ilt.faaast.service.exception.MessageBusException;
 import de.fraunhofer.iosb.ssl.impl.DefaultSelfSignedCertificateRetriever;
-import de.fraunhofer.iosb.testutils.SelfSignedCertificateProvider;
+import de.fraunhofer.iosb.testutils.CertificateUtils;
 import dev.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultReference;
@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.util.HashSet;
 import javax.net.ssl.SSLException;
 
+import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -41,8 +42,8 @@ class RegisteredAasDataProcessorFactoryTest {
         var registeredServices = new HashSet<String>();
         var testSubject = new RegisteredAasDataProcessorFactory(new DefaultSelfSignedCertificateRetriever(), registeredServices, new OkHttpClient(), RetryPolicy.ofDefaults(), new ConsoleMonitor());
 
-        var port = 54239;
-        var foreignService = SelfSignedCertificateProvider.getService(port);
+        var port = getFreePort();
+        var foreignService = CertificateUtils.getFaaastService(port);
         var baseUrl = "https://localhost:%s".formatted(port);
         foreignService.start();
         registeredServices.add(baseUrl);
@@ -66,8 +67,8 @@ class RegisteredAasDataProcessorFactoryTest {
         var registeredServices = new HashSet<String>();
         var testSubject = new RegisteredAasDataProcessorFactory(new DefaultSelfSignedCertificateRetriever(), registeredServices, new OkHttpClient(), RetryPolicy.ofDefaults(), new ConsoleMonitor());
 
-        var port = 54239;
-        var foreignService = SelfSignedCertificateProvider.getService(port);
+        var port = getFreePort();
+        var foreignService = CertificateUtils.getFaaastService(port);
         var baseUrl = "https://localhost:%s".formatted(port);
         foreignService.start();
 

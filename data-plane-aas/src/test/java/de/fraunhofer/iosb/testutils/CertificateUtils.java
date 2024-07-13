@@ -31,14 +31,16 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.security.cert.Certificate;
 
-public class SelfSignedCertificateProvider {
+import static org.eclipse.edc.util.io.Ports.getFreePort;
 
-    private SelfSignedCertificateProvider() {
+public class CertificateUtils {
+
+    private CertificateUtils() {
     }
 
     public static Certificate[] getSelfSignedCertificate() throws IOException {
-        var port = 49687;
-        Service service = getService(49687);
+        var port = getFreePort();
+        Service service = getFaaastService(port);
         try {
             service.start();
         } catch (Exception faaastServiceException) {
@@ -53,7 +55,7 @@ public class SelfSignedCertificateProvider {
         return certResult.getContent();
     }
 
-    public static Service getService(int port) {
+    public static Service getFaaastService(int port) {
         var serviceConfig = new ServiceConfig.Builder()
                 .core(new CoreConfig.Builder().requestHandlerThreadPoolSize(2).build())
                 .endpoint(new HttpEndpointConfig.Builder().port(port).build())

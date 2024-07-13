@@ -79,7 +79,7 @@ public class AasDataProcessor {
         return send(aasDataAddress, bytes, part.mediaType());
     }
 
-    private Response send( AasDataAddress aasDataAddress, byte[] bytes, String mediaType) throws IOException {
+    private Response send(AasDataAddress aasDataAddress, byte[] bytes, String mediaType) throws IOException {
         var requestBody = new AasTransferRequestBody(bytes, mediaType);
 
         var request = new Request.Builder().method(

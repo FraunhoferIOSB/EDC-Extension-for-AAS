@@ -21,6 +21,7 @@ import org.eclipse.edc.spi.observe.ObservableImpl;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Self-description repository, also an observable so that on removal
@@ -33,6 +34,10 @@ public class SelfDescriptionRepository extends ObservableImpl<SelfDescriptionCha
     public SelfDescriptionRepository() {
         super();
         content = new HashMap<>();
+    }
+
+    public Set<String> getAllServiceUrls() {
+        return content.keySet();
     }
 
     public Map<String, SelfDescription> getAllSelfDescriptions() {

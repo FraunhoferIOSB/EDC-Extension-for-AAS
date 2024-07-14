@@ -17,6 +17,10 @@ package de.fraunhofer.iosb.aas.impl;
 
 import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
 import de.fraunhofer.iosb.ssl.SelfSignedCertificateRetriever;
+import dev.failsafe.RetryPolicy;
+import okhttp3.OkHttpClient;
+import okhttp3.Response;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 
 import java.net.URL;
@@ -25,9 +29,8 @@ import java.security.cert.Certificate;
 
 public class AllAasDataProcessorFactory extends AasDataProcessorFactory {
 
-
-    public AllAasDataProcessorFactory(SelfSignedCertificateRetriever retriever) {
-        super(retriever);
+    public AllAasDataProcessorFactory(SelfSignedCertificateRetriever retriever, OkHttpClient edcOkHttpClient, RetryPolicy<Response> edcRetryPolicy, Monitor monitor) {
+        super(retriever, edcOkHttpClient, edcRetryPolicy, monitor);
     }
 
     @Override

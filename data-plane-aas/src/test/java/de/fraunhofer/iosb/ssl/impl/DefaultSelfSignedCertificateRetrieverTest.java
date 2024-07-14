@@ -30,6 +30,7 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.List;
 
+import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -44,7 +45,7 @@ class DefaultSelfSignedCertificateRetrieverTest {
 
     @Test
     void getSelfSignedCertificate() throws IOException {
-        var port = 12345;
+        var port = getFreePort();
         var serviceConfig = new ServiceConfig.Builder()
                 .core(new CoreConfig.Builder().requestHandlerThreadPoolSize(2).build())
                 .endpoint(new HttpEndpointConfig.Builder().port(port).build())

@@ -57,7 +57,7 @@ public class CustomAuthenticationRequestFilter extends AuthenticationRequestFilt
         var requestedEndpoint = parseEndpoint(requestContext);
         for (Endpoint endpoint : temporaryEndpoints) {
             if (endpoint.isCoveredBy(requestedEndpoint)) {
-                monitor.debug(format("CustomAuthenticationRequestFilter: Accepting request to open temporary endpoint %s", endpoint.suffix()));
+                monitor.debug(format("CustomAuthenticationRequestFilter: Accepting request to public temporary endpoint %s", endpoint.suffix()));
                 temporaryEndpoints.remove(endpoint);
                 return;
             }
@@ -65,7 +65,7 @@ public class CustomAuthenticationRequestFilter extends AuthenticationRequestFilt
 
         for (Endpoint endpoint : endpoints) {
             if (endpoint.isCoveredBy(requestedEndpoint)) {
-                monitor.debug(format("CustomAuthenticationRequestFilter: Accepting request to open endpoint %s", endpoint.suffix()));
+                monitor.debug(format("CustomAuthenticationRequestFilter: Accepting request to public endpoint %s", endpoint.suffix()));
                 return;
             }
         }

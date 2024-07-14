@@ -46,12 +46,15 @@ public class AasDataSinkFactory implements DataSinkFactory {
 
     @Override
     public DataSink createSink(DataFlowStartMessage request) {
-        var dataAddress = AasDataAddress.Builder.newInstance().copyFrom(request.getDestinationDataAddress()).build();
+        var dataAddress = AasDataAddress.Builder.newInstance()
+                .copyFrom(request.getDestinationDataAddress())
+                .build();
         return AasDataSink.Builder.newInstance()
-                .aasManipulator(aasDataProcessorFactory.processorFor(dataAddress.getBaseUrl()))
+                .aasManipulator(aasDataProcessorFactory)
                 .monitor(monitor)
                 .aasDataAddress(dataAddress)
                 .build();
+
     }
 
     @Override

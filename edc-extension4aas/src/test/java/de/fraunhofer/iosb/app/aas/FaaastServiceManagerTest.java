@@ -18,8 +18,10 @@ package de.fraunhofer.iosb.app.aas;
 import de.fraunhofer.iosb.aas.impl.AllAasDataProcessorFactory;
 import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
 import de.fraunhofer.iosb.ssl.impl.DefaultSelfSignedCertificateRetriever;
+import dev.failsafe.RetryPolicy;
 import jakarta.ws.rs.HttpMethod;
 import jakarta.ws.rs.core.Response;
+import okhttp3.OkHttpClient;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.junit.jupiter.api.AfterEach;
@@ -46,16 +48,19 @@ public class FaaastServiceManagerTest {
     @Test
     public void startServiceTest() throws IOException, URISyntaxException {
         var url = startService();
-
-        assertEquals(Response.Status.OK.getStatusCode(), new AllAasDataProcessorFactory(new DefaultSelfSignedCertificateRetriever())
-                .processorFor(url.toString())
+        var factory = new AllAasDataProcessorFactory(
+                new DefaultSelfSignedCertificateRetriever(),
+                new OkHttpClient(),
+                RetryPolicy.ofDefaults(),
+                new ConsoleMonitor());
+        try (var response = factory.processorFor(url.toString()).getContent()
                 .send(AasDataAddress.Builder.newInstance()
                                 .method(HttpMethod.GET)
                                 .baseUrl(url.toURI().resolve("/api/v3.0/shells").toString())
                                 .build(),
-                        null,
-                        null)
-                .code());
+                        null, null)) {
+            assertEquals(Response.Status.OK.getStatusCode(), response.code());
+        }
     }
 
     @Test

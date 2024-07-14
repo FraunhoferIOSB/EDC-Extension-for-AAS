@@ -17,6 +17,10 @@ package de.fraunhofer.iosb.aas.impl;
 
 import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
 import de.fraunhofer.iosb.ssl.SelfSignedCertificateRetriever;
+import dev.failsafe.RetryPolicy;
+import okhttp3.OkHttpClient;
+import okhttp3.Response;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,8 +32,8 @@ public class RegisteredAasDataProcessorFactory extends AasDataProcessorFactory {
 
     private final Set<String> registeredAasServices;
 
-    public RegisteredAasDataProcessorFactory(SelfSignedCertificateRetriever retriever, @Nullable Set<String> registeredAasServices) {
-        super(retriever);
+    public RegisteredAasDataProcessorFactory(SelfSignedCertificateRetriever retriever, @Nullable Set<String> registeredAasServices, OkHttpClient edcOkHttpClient, RetryPolicy<Response> edcRetryPolicy, Monitor monitor) {
+        super(retriever, edcOkHttpClient, edcRetryPolicy, monitor);
         this.registeredAasServices = registeredAasServices;
     }
 

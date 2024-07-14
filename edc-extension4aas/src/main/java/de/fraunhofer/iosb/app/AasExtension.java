@@ -23,6 +23,7 @@ import de.fraunhofer.iosb.app.controller.ConfigurationController;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
 import de.fraunhofer.iosb.app.sync.Synchronizer;
+import de.fraunhofer.iosb.app.util.VariableRateScheduler;
 import de.fraunhofer.iosb.registry.AasServiceRegistry;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
@@ -41,9 +42,6 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 /**
  * EDC Extension supporting usage of Asset Administration Shells.
@@ -54,7 +52,6 @@ public class AasExtension implements ServiceExtension {
     public static final String NAME = "EDC4AAS Extension";
 
     private static final String SETTINGS_PREFIX = "edc.aas";
-    private final ScheduledExecutorService syncExecutor = new ScheduledThreadPoolExecutor(1);
     @Inject
     private AasDataProcessorFactory aasDataProcessorFactory;
     @Inject // Register AAS services (with self-signed certs) to allow communication
@@ -98,6 +95,21 @@ public class AasExtension implements ServiceExtension {
         webService.registerResource(endpoint);
     }
 
+    private Synchronizer initializeSynchronizer(SelfDescriptionRepository selfDescriptionRepository, Monitor monitor) {
+        var synchronizer = Synchronizer.Builder.getInstance()
+                .selfDescriptionRepository(selfDescriptionRepository)
+                .aasController(aasController)
+                .assetIndex(assetIndex)
+                .contractStore(contractDefinitionStore)
+                .policyStore(policyDefinitionStore)
+                .monitor(monitor)
+                .aasServiceRegistry(aasServiceRegistry)
+                .build();
+
+        new VariableRateScheduler(1).scheduleAtVariableRate(synchronizer, () -> Configuration.getInstance().getSyncPeriod());
+        return synchronizer;
+    }
+
     private void registerAasServicesByConfig(SelfDescriptionRepository selfDescriptionRepository) {
         var configInstance = Configuration.getInstance();
 
@@ -129,24 +141,9 @@ public class AasExtension implements ServiceExtension {
         selfDescriptionRepository.createSelfDescription(serviceUrl);
     }
 
-    private Synchronizer initializeSynchronizer(SelfDescriptionRepository selfDescriptionRepository, Monitor monitor) {
-        var synchronizer = new Synchronizer.SynchronizerBuilder()
-                .selfDescriptionRepository(selfDescriptionRepository)
-                .aasController(aasController)
-                .assetIndex(assetIndex)
-                .contractStore(contractDefinitionStore)
-                .policyStore(policyDefinitionStore)
-                .monitor(monitor)
-                .aasServiceRegistry(aasServiceRegistry)
-                .build();
-
-        syncExecutor.scheduleAtFixedRate(synchronizer::synchronize, 1, Configuration.getInstance().getSyncPeriod(), TimeUnit.SECONDS);
-        return synchronizer;
-    }
-
     @Override
     public void shutdown() {
-        // Gracefully shutdown AAS services
+        // Gracefully stop AAS services
         aasController.stopServices();
     }
 }

@@ -21,7 +21,9 @@ import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
 import de.fraunhofer.iosb.app.testutils.FileManager;
 import de.fraunhofer.iosb.app.testutils.StringMethods;
 import de.fraunhofer.iosb.registry.AasServiceRegistry;
-import de.fraunhofer.iosb.ssl.impl.DefaultSelfSignedCertificateRetriever;
+import de.fraunhofer.iosb.ssl.impl.NoOpSelfSignedCertificateRetriever;
+import dev.failsafe.RetryPolicy;
+import okhttp3.OkHttpClient;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
@@ -89,9 +91,14 @@ public class SynchronizerTest {
         var monitor = new ConsoleMonitor();
 
         selfDescriptionRepo = new SelfDescriptionRepository();
-        synchronizer = new Synchronizer.SynchronizerBuilder()
+        synchronizer = Synchronizer.Builder.getInstance()
                 .selfDescriptionRepository(selfDescriptionRepo)
-                .aasController(new AasController(monitor, new AllAasDataProcessorFactory(new DefaultSelfSignedCertificateRetriever())))
+                .aasController(new AasController(monitor,
+                        new AllAasDataProcessorFactory(
+                                new NoOpSelfSignedCertificateRetriever(),
+                                new OkHttpClient(),
+                                RetryPolicy.ofDefaults(),
+                                new ConsoleMonitor())))
                 .assetIndex(mock(AssetIndex.class))
                 .contractStore(mock(ContractDefinitionStore.class))
                 .policyStore(mock(PolicyDefinitionStore.class))
@@ -128,7 +135,7 @@ public class SynchronizerTest {
                 selfDescriptionRepo.getSelfDescription(url).toString());
 
         prepareRemovedSubmodelMockedResponse();
-        synchronizer.synchronize();
+        synchronizer.run();
         StringMethods.assertEqualsIgnoreWhiteSpace(
                 Objects.requireNonNull(FileManager.loadResource("selfDescriptionWithIdsNoSubmodelElements.json")),
                 selfDescriptionRepo.getSelfDescription(url).toString());
@@ -142,7 +149,7 @@ public class SynchronizerTest {
                 selfDescriptionRepo.getSelfDescription(url).toString());
 
         prepareAddedSubmodelElementMockedResponse();
-        synchronizer.synchronize();
+        synchronizer.run();
         StringMethods.assertEqualsIgnoreWhiteSpace(
                 Objects.requireNonNull(FileManager.loadResource("selfDescriptionWithIdsOneSubmodelOneSubmodelElementMore.json")),
                 selfDescriptionRepo.getSelfDescription(url).toString());
@@ -156,7 +163,7 @@ public class SynchronizerTest {
                 selfDescriptionRepo.getSelfDescription(url).toString());
 
         prepareEmptyMockedResponse();
-        synchronizer.synchronize();
+        synchronizer.run();
         StringMethods.assertEqualsIgnoreWhiteSpace("{}",
                 selfDescriptionRepo.getSelfDescription(url).toString());
     }

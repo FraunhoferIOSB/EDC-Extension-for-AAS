@@ -19,7 +19,10 @@ import de.fraunhofer.iosb.aas.impl.AllAasDataProcessorFactory;
 import de.fraunhofer.iosb.app.testutils.FileManager;
 import de.fraunhofer.iosb.app.util.AssetAdministrationShellUtil;
 import de.fraunhofer.iosb.ssl.impl.DefaultSelfSignedCertificateRetriever;
+import dev.failsafe.RetryPolicy;
+import okhttp3.OkHttpClient;
 import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElement;
+import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -60,7 +63,7 @@ public class AasAgentTest {
 
     @BeforeEach
     public void initialize() {
-        aasAgent = new AasAgent(new AllAasDataProcessorFactory(new DefaultSelfSignedCertificateRetriever()));
+        aasAgent = new AasAgent(new AllAasDataProcessorFactory(new DefaultSelfSignedCertificateRetriever(), new OkHttpClient(), RetryPolicy.ofDefaults(), new ConsoleMonitor()));
         mockServer.reset();
     }
 

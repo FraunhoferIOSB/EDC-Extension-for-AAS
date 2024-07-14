@@ -11,6 +11,7 @@ Compatibility: **Eclipse Dataspace Connector v0.8.0**
 * Accepting self-signed certificates now
   optional (`edc.dataplane.aas.acceptOwnSelfSignedCertificates`, `edc.dataplane.aas.acceptAllSelfSignedCertificates`)
 * SubmodelElementList is now a model element inside the SelfDescription (AASv3 change)
+* Synchronizer rate can now be changed at runtime via configuration updates (time unit still in seconds)
 
 * New extension: data-plane-aas
     * Provides custom AAS data source and data sink

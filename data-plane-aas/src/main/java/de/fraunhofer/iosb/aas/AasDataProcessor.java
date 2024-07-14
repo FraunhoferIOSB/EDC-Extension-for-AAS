@@ -73,7 +73,7 @@ public class AasDataProcessor {
      * @return Response by the AAS service.
      * @throws IOException If communication with AAS service fails.
      */
-    public Response send(@NotNull AasDataAddress aasDataAddress, @NotNull  Part part) throws IOException {
+    public Response send(@NotNull AasDataAddress aasDataAddress, @NotNull Part part) throws IOException {
         var bytes = part.openStream().readAllBytes();
 
         return send(aasDataAddress, bytes, part.mediaType());

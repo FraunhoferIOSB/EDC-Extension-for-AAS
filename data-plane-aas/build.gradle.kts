@@ -12,7 +12,7 @@ val mockitoVersion: String by project
 repositories { mavenCentral() }
 
 dependencies {
-    implementation("$group:data-plane-spi:${edcVersion}"){
+    implementation("$group:data-plane-spi:${edcVersion}") {
         exclude(group = "dev.failsafe", module = "failsafe")
         exclude(group = group, module = "policy-model")
     }

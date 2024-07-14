@@ -16,6 +16,7 @@
 package de.fraunhofer.iosb.aas;
 
 import de.fraunhofer.iosb.aas.impl.AllAasDataProcessorFactory;
+import de.fraunhofer.iosb.dataplane.aas.pipeline.AasPart;
 import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
 import de.fraunhofer.iosb.ilt.faaast.service.Service;
 import de.fraunhofer.iosb.ilt.faaast.service.exception.EndpointException;
@@ -23,6 +24,7 @@ import de.fraunhofer.iosb.ilt.faaast.service.exception.MessageBusException;
 import de.fraunhofer.iosb.ssl.impl.DefaultSelfSignedCertificateRetriever;
 import de.fraunhofer.iosb.testutils.CertificateUtils;
 import dev.failsafe.RetryPolicy;
+import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultKey;
@@ -33,17 +35,18 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 import static org.eclipse.edc.util.io.Ports.getFreePort;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 
 class AasDataProcessorTest {
 
-    private String aasUrl;
-
     AasDataProcessor testSubject;
     Service aasService;
+    private String aasUrl;
 
     @BeforeEach
     void setUp() throws MessageBusException, EndpointException {
@@ -63,20 +66,23 @@ class AasDataProcessorTest {
 
     @Test
     void testSendAddressOnly() throws IOException {
-        // TODO
         try (var response = testSubject.send(getAddress())) {
-            response.code();
+            assertEquals(404, response.code());
         }
     }
 
     @Test
-    void testSendWithBody() {
-        // TODO
+    void testSendWithBody() throws IOException {
+        try (var response = testSubject.send(getAddress(), "testBody", MediaType.get("application/json").toString())) {
+            assertEquals(404, response.code());
+        }
     }
 
     @Test
-    void testSendWithPart() {
-        // TODO
+    void testSendWithPart() throws IOException {
+        try (var response = testSubject.send(getAddress(), new AasPart("test", InputStream.nullInputStream(), MediaType.get("application/json").toString()))) {
+            assertEquals(404, response.code());
+        }
     }
 
     @AfterEach

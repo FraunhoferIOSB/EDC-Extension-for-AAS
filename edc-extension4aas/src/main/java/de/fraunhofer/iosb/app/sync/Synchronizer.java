@@ -32,6 +32,7 @@ import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.io.IOException;
@@ -48,7 +49,7 @@ import static java.lang.String.format;
  * Synchronize registered AAS services with local
  * self-descriptions and assetIndex/contractStore.
  */
-public class Synchronizer implements SelfDescriptionChangeListener {
+public class Synchronizer implements SelfDescriptionChangeListener, Runnable {
 
     // Main objective of Synchronizer is making sure SelfDescription and EDC asset store state are valid
     private final SelfDescriptionRepository selfDescriptionRepository;
@@ -75,15 +76,15 @@ public class Synchronizer implements SelfDescriptionChangeListener {
     }
 
     /**
-     * Synchronize AAS services with self-description and EDC
-     * AssetIndex/ContractStore
+     * Synchronize AAS services with self-description and EDC AssetIndex/ContractStore
      */
-    public void synchronize() {
-        for (var selfDescription : selfDescriptionRepository.getAllSelfDescriptions().keySet()) {
+    @Override
+    public void run() {
+        for (var selfDescription : selfDescriptionRepository.getAllServiceUrls()) {
             try {
                 synchronize(new URL(selfDescription));
-            } catch (MalformedURLException e) {
-                throw new EdcException("AAS URL malformed while synchronizing", e);
+            } catch (MalformedURLException aasServiceUrlWrong) {
+                throw new EdcException("AAS URL could not be created while synchronizing", aasServiceUrlWrong);
             }
         }
     }
@@ -215,7 +216,7 @@ public class Synchronizer implements SelfDescriptionChangeListener {
         aasServiceRegistry.unregister(removed.toString());
     }
 
-    public static class SynchronizerBuilder {
+    public static class Builder {
         private SelfDescriptionRepository selfDescriptionRepository;
         private AasController aasController;
         private AssetIndex assetIndex;
@@ -224,37 +225,44 @@ public class Synchronizer implements SelfDescriptionChangeListener {
         private Monitor monitor;
         private AasServiceRegistry aasServiceRegistry;
 
-        public SynchronizerBuilder selfDescriptionRepository(SelfDescriptionRepository selfDescriptionRepository) {
+        private Builder() {
+        }
+
+        public static Builder getInstance() {
+            return new Builder();
+        }
+
+        public Builder selfDescriptionRepository(SelfDescriptionRepository selfDescriptionRepository) {
             this.selfDescriptionRepository = selfDescriptionRepository;
             return this;
         }
 
-        public SynchronizerBuilder aasController(AasController aasController) {
+        public Builder aasController(AasController aasController) {
             this.aasController = aasController;
             return this;
         }
 
-        public SynchronizerBuilder assetIndex(AssetIndex assetIndex) {
+        public Builder assetIndex(AssetIndex assetIndex) {
             this.assetIndex = assetIndex;
             return this;
         }
 
-        public SynchronizerBuilder contractStore(ContractDefinitionStore contractStore) {
+        public Builder contractStore(ContractDefinitionStore contractStore) {
             this.contractStore = contractStore;
             return this;
         }
 
-        public SynchronizerBuilder policyStore(PolicyDefinitionStore policyStore) {
+        public Builder policyStore(PolicyDefinitionStore policyStore) {
             this.policyStore = policyStore;
             return this;
         }
 
-        public SynchronizerBuilder monitor(Monitor monitor) {
+        public Builder monitor(Monitor monitor) {
             this.monitor = monitor;
             return this;
         }
 
-        public SynchronizerBuilder aasServiceRegistry(AasServiceRegistry aasServiceRegistry) {
+        public Builder aasServiceRegistry(AasServiceRegistry aasServiceRegistry) {
             this.aasServiceRegistry = aasServiceRegistry;
             return this;
         }

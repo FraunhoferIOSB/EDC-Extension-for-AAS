@@ -91,7 +91,7 @@ public class SynchronizerTest {
         var monitor = new ConsoleMonitor();
 
         selfDescriptionRepo = new SelfDescriptionRepository();
-        synchronizer = new Synchronizer.SynchronizerBuilder()
+        synchronizer = Synchronizer.Builder.getInstance()
                 .selfDescriptionRepository(selfDescriptionRepo)
                 .aasController(new AasController(monitor,
                         new AllAasDataProcessorFactory(

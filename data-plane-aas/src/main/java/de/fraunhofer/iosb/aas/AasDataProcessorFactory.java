@@ -20,7 +20,6 @@ import dev.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
 import okhttp3.Response;
 import org.eclipse.edc.http.client.EdcHttpClientImpl;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 
@@ -30,7 +29,6 @@ import java.security.KeyStoreException;
 import java.security.cert.Certificate;
 
 import static de.fraunhofer.iosb.aas.http.HttpClientProvider.clientFor;
-import static java.lang.String.format;
 
 public abstract class AasDataProcessorFactory {
 
@@ -60,24 +58,24 @@ public abstract class AasDataProcessorFactory {
      * @param urlString URL of AAS service.
      * @return AAS Processor allowing communication with AAS service using AAS data addresses
      */
-    public AasDataProcessor processorFor(String urlString) {
+    public Result<AasDataProcessor> processorFor(String urlString) {
         URL aasUrl;
         try {
             aasUrl = new URL(urlString);
         } catch (MalformedURLException malformedUrlException) {
-            throw new EdcException("Malformed URL for AAS manipulator", malformedUrlException);
+            return Result.failure(malformedUrlException.getMessage());
         }
 
         var certResult = getCertificates(aasUrl);
 
         try {
-            return new AasDataProcessor(
+            return Result.success(new AasDataProcessor(
                     new EdcHttpClientImpl(
                             certResult.getContent() == null ? edcOkHttpClient : clientFor(certResult.getContent()),
                             edcRetryPolicy,
-                            monitor));
-        } catch (KeyStoreException e) {
-            throw new EdcException(e);
+                            monitor)));
+        } catch (KeyStoreException keyStoreException) {
+            return Result.failure(keyStoreException.getMessage());
         }
     }
 
@@ -92,8 +90,8 @@ public abstract class AasDataProcessorFactory {
         var certsResult = retriever.getSelfSignedCertificate(url);
 
         if (certsResult.failed() && !certsResult.getFailureMessages().contains("trusted")) {
-            throw new EdcException(format("Certificates were neither trusted nor self-signed: %s",
-                    certsResult.getFailureMessages()));
+            return Result.failure("Certificates were neither trusted nor self-signed: %s"
+                    .formatted(certsResult.getFailureMessages()));
         }
 
         return certsResult;

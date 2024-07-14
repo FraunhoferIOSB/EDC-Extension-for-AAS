@@ -58,7 +58,7 @@ class AasDataProcessorTest {
                 mock(OkHttpClient.class),
                 RetryPolicy.ofDefaults(),
                 new ConsoleMonitor())
-                .processorFor(aasUrl);
+                .processorFor(aasUrl).getContent();
     }
 
     @Test

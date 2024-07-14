@@ -15,10 +15,11 @@
  */
 package de.fraunhofer.iosb.dataplane.aas.pipeline;
 
-import de.fraunhofer.iosb.aas.AasDataProcessor;
+import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
 import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSink;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamFailure;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.AbstractResult;
@@ -35,9 +36,13 @@ import static org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult.fail
  */
 public class AasDataSink implements DataSink {
 
-    private AasDataProcessor aasDataProcessor;
+    private AasDataProcessorFactory aasDataProcessorFactory;
     private AasDataAddress aasDataAddress;
     private Monitor monitor;
+
+    private AasDataSink() {
+
+    }
 
     @Override
     public CompletableFuture<StreamResult<Object>> transfer(DataSource dataSource) {
@@ -54,14 +59,20 @@ public class AasDataSink implements DataSink {
     }
 
     private StreamResult<Object> transferPart(DataSource.Part part) {
+        var aasDataProcessor = aasDataProcessorFactory.processorFor(aasDataAddress.getBaseUrl());
 
-        monitor.debug(() -> "Executing HTTP request to AAS service: " + aasDataAddress.getBaseUrl());
+        if (aasDataProcessor.failed()) {
+            monitor.severe("Error writing HTTP data %s to endpoint %s:\n%s".formatted(part.name(), aasDataAddress.getBaseUrl(),
+                    aasDataProcessor.getFailureMessages()));
 
-        try (var response = aasDataProcessor.send(aasDataAddress, part)) {
+            return StreamResult.failure(new StreamFailure(aasDataProcessor.getFailureMessages(), StreamFailure.Reason.GENERAL_ERROR));
+        }
+
+        try (var response = aasDataProcessor.getContent().send(aasDataAddress, part)) {
             return StreamResult.success("DataTransfer completed. Response from consumer: " + response.body());
         } catch (IOException e) {
             var errorMessage = "IOException while data transferring to AAS: " + e.getMessage();
-            monitor.severe(() -> errorMessage);
+            monitor.severe(() -> errorMessage, e);
             return StreamResult.error(errorMessage);
         }
 
@@ -83,8 +94,8 @@ public class AasDataSink implements DataSink {
             return this;
         }
 
-        public Builder aasManipulator(AasDataProcessor aasDataProcessor) {
-            dataSink.aasDataProcessor = aasDataProcessor;
+        public Builder aasManipulator(AasDataProcessorFactory aasDataProcessor) {
+            dataSink.aasDataProcessorFactory = aasDataProcessor;
             return this;
         }
 
@@ -94,7 +105,7 @@ public class AasDataSink implements DataSink {
         }
 
         public AasDataSink build() {
-            Objects.requireNonNull(dataSink.aasDataProcessor, "aasManipulator");
+            Objects.requireNonNull(dataSink.aasDataProcessorFactory, "aasManipulator");
             Objects.requireNonNull(dataSink.aasDataAddress, "aasDataAddress");
             return dataSink;
         }

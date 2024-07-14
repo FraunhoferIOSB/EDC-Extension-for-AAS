@@ -135,7 +135,7 @@ public class SynchronizerTest {
                 selfDescriptionRepo.getSelfDescription(url).toString());
 
         prepareRemovedSubmodelMockedResponse();
-        synchronizer.synchronize();
+        synchronizer.run();
         StringMethods.assertEqualsIgnoreWhiteSpace(
                 Objects.requireNonNull(FileManager.loadResource("selfDescriptionWithIdsNoSubmodelElements.json")),
                 selfDescriptionRepo.getSelfDescription(url).toString());
@@ -149,7 +149,7 @@ public class SynchronizerTest {
                 selfDescriptionRepo.getSelfDescription(url).toString());
 
         prepareAddedSubmodelElementMockedResponse();
-        synchronizer.synchronize();
+        synchronizer.run();
         StringMethods.assertEqualsIgnoreWhiteSpace(
                 Objects.requireNonNull(FileManager.loadResource("selfDescriptionWithIdsOneSubmodelOneSubmodelElementMore.json")),
                 selfDescriptionRepo.getSelfDescription(url).toString());
@@ -163,7 +163,7 @@ public class SynchronizerTest {
                 selfDescriptionRepo.getSelfDescription(url).toString());
 
         prepareEmptyMockedResponse();
-        synchronizer.synchronize();
+        synchronizer.run();
         StringMethods.assertEqualsIgnoreWhiteSpace("{}",
                 selfDescriptionRepo.getSelfDescription(url).toString());
     }

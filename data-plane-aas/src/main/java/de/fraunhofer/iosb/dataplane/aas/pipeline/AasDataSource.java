@@ -15,11 +15,12 @@
  */
 package de.fraunhofer.iosb.dataplane.aas.pipeline;
 
-import de.fraunhofer.iosb.aas.AasDataProcessor;
+import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
 import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
 import okhttp3.MediaType;
 import okhttp3.ResponseBody;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;
+import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamFailure;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -46,7 +47,7 @@ public class AasDataSource implements DataSource {
     private final AtomicReference<ResponseBodyStream> responseBodyStream = new AtomicReference<>();
     private String requestId;
     private Monitor monitor;
-    private AasDataProcessor aasDataProcessor;
+    private AasDataProcessorFactory aasDataProcessorFactory;
     private AasDataAddress aasDataAddress;
 
     private AasDataSource() {
@@ -55,9 +56,15 @@ public class AasDataSource implements DataSource {
     @Override
     public StreamResult<Stream<Part>> openPartStream() {
 
+        var aasDataProcessor = aasDataProcessorFactory.processorFor(aasDataAddress.getBaseUrl());
+
+        if (aasDataProcessor.failed()) {
+            return StreamResult.failure(new StreamFailure(aasDataProcessor.getFailureMessages(), StreamFailure.Reason.GENERAL_ERROR));
+        }
+
         try {
             // NB: Do not close the response as the body input stream needs to be read after this method returns. The response closes the body stream.
-            var response = aasDataProcessor.send(aasDataAddress);
+            var response = aasDataProcessor.getContent().send(aasDataAddress);
 
             if (response.isSuccessful()) {
                 var body = response.body();
@@ -124,8 +131,8 @@ public class AasDataSource implements DataSource {
             return this;
         }
 
-        public Builder aasManipulator(AasDataProcessor aasDataProcessor) {
-            dataSource.aasDataProcessor = aasDataProcessor;
+        public Builder aasDataProcessorFactory(AasDataProcessorFactory aasDataProcessor) {
+            dataSource.aasDataProcessorFactory = aasDataProcessor;
             return this;
         }
 
@@ -142,7 +149,7 @@ public class AasDataSource implements DataSource {
 
         public AasDataSource build() {
             Objects.requireNonNull(dataSource.requestId, "requestId");
-            Objects.requireNonNull(dataSource.aasDataProcessor, "httpClient");
+            Objects.requireNonNull(dataSource.aasDataProcessorFactory, "httpClient");
             Objects.requireNonNull(dataSource.monitor, "monitor");
             Objects.requireNonNull(dataSource.aasDataAddress, "aasDataAddress");
 

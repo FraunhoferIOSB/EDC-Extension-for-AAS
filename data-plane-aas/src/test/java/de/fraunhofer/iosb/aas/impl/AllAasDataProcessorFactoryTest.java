@@ -30,6 +30,7 @@ import java.io.IOException;
 
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 
 class AllAasDataProcessorFactoryTest {
@@ -45,7 +46,11 @@ class AllAasDataProcessorFactoryTest {
         // If this fails, certificate could not be retrieved from foreignService
         var processor = testSubject.processorFor(baseUrl);
 
-        try (var response = processor.send(AasDataAddress.Builder.newInstance()
+        if (processor.failed()) {
+            fail();
+        }
+
+        try (var response = processor.getContent().send(AasDataAddress.Builder.newInstance()
                 .baseUrl(baseUrl)
                 .method("GET")
                 .referenceChain(new DefaultReference())

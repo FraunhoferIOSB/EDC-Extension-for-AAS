@@ -49,7 +49,7 @@ public class AasDataSourceFactory implements DataSourceFactory {
     public DataSource createSource(DataFlowStartMessage request) {
         var dataAddress = AasDataAddress.Builder.newInstance().copyFrom(request.getSourceDataAddress()).build();
         return AasDataSource.Builder.newInstance()
-                .aasManipulator(aasDataProcessorFactory.processorFor(dataAddress.getBaseUrl()))
+                .aasDataProcessorFactory(aasDataProcessorFactory)
                 .monitor(monitor)
                 .requestId(request.getId())
                 .aasDataAddress(dataAddress)

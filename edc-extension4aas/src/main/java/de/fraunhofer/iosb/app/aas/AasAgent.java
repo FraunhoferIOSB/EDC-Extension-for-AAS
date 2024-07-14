@@ -121,6 +121,7 @@ public class AasAgent {
 
     private okhttp3.Response executeRequest(URL aasServiceUrl) throws IOException {
         return aasDataProcessorFactory.processorFor(aasServiceUrl.toString())
+                .getContent()
                 .send(AasDataAddress.Builder
                         .newInstance()
                         .method(GET)

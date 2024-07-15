@@ -16,11 +16,11 @@
 package de.fraunhofer.iosb.client.policy;
 
 import de.fraunhofer.iosb.client.exception.AmbiguousOrNullException;
-import de.fraunhofer.iosb.client.policy.transform.JsonObjectToCatalogTransformer;
-import de.fraunhofer.iosb.client.policy.transform.JsonObjectToDataServiceTransformer;
-import de.fraunhofer.iosb.client.policy.transform.JsonObjectToDatasetTransformer;
-import de.fraunhofer.iosb.client.policy.transform.JsonObjectToDistributionTransformer;
 import jakarta.json.Json;
+import org.eclipse.edc.catalog.transform.JsonObjectToCatalogTransformer;
+import org.eclipse.edc.catalog.transform.JsonObjectToDataServiceTransformer;
+import org.eclipse.edc.catalog.transform.JsonObjectToDatasetTransformer;
+import org.eclipse.edc.catalog.transform.JsonObjectToDistributionTransformer;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
@@ -84,10 +84,7 @@ class PolicyService {
         this.transformer = transformer;
         this.config = config;
         this.policyDefinitionStore = policyDefinitionStore;
-
         this.jsonLdExpander = new TitaniumJsonLd(monitor);
-
-        registerTransformers();
     }
 
     Dataset getDatasetForAssetId(@NotNull String counterPartyId, @NotNull URL counterPartyUrl, @NotNull String assetId) throws InterruptedException {
@@ -188,18 +185,6 @@ class PolicyService {
     private <T extends Rule> boolean ruleEquality(T first, T second) {
         return Objects.equals(first.getAction(), second.getAction()) && Objects.equals(first.getConstraints(),
                 second.getConstraints());
-    }
-
-    /* Re-activate transformers that were deleted in EDC after version 0.6.0
-     *  Also activate other transformers needed for PolicyService but not registered in the right place
-     */
-    private void registerTransformers() {
-        transformer.register(new JsonObjectToCatalogTransformer());
-        transformer.register(new JsonObjectToDatasetTransformer());
-        transformer.register(new JsonObjectToDataServiceTransformer());
-        transformer.register(new JsonObjectToDistributionTransformer());
-        OdrlTransformersFactory.jsonObjectToOdrlTransformers(new NoOpParticipantIdMapper())
-                .forEach(transformer::register);
     }
 
 }

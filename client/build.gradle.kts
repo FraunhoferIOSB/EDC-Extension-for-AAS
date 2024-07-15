@@ -21,6 +21,7 @@ dependencies {
     implementation(project(":data-plane-aas"))
 
     implementation("$group:connector-core:$edcVersion") // PolicyService
+    implementation("$group:federated-catalog-core:$edcVersion") // Transformers
     implementation("$group:control-plane-contract:$edcVersion") // Observe contract negotiations
     implementation("$group:control-plane-transform:$edcVersion") // Type transformers
     implementation("$group:data-plane-http-spi:$edcVersion") // EDC HttpDataAddress

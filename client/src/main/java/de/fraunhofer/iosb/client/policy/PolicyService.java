@@ -17,17 +17,11 @@ package de.fraunhofer.iosb.client.policy;
 
 import de.fraunhofer.iosb.client.exception.AmbiguousOrNullException;
 import jakarta.json.Json;
-import org.eclipse.edc.catalog.transform.JsonObjectToCatalogTransformer;
-import org.eclipse.edc.catalog.transform.JsonObjectToDataServiceTransformer;
-import org.eclipse.edc.catalog.transform.JsonObjectToDatasetTransformer;
-import org.eclipse.edc.catalog.transform.JsonObjectToDistributionTransformer;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService;
-import org.eclipse.edc.connector.controlplane.transform.odrl.OdrlTransformersFactory;
-import org.eclipse.edc.connector.core.agent.NoOpParticipantIdMapper;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.policy.model.Policy;

@@ -9,9 +9,9 @@ services:
       - "8182:8182"
       - "8282:8282"
     environment:
-      EDC_FS_CONFIG: /resources/docker-provider.properties
+      EDC_FS_CONFIG: /configurations/docker-provider.properties
     volumes:
-      - ./configurations:/resources
+      - ./configurations:/configurations
       - ./resources:/resources
   consumer:
     image: edc-aas-extension:latest

@@ -16,84 +16,82 @@
 package de.fraunhofer.iosb.aas.impl;
 
 import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
+import de.fraunhofer.iosb.ilt.faaast.service.assetconnection.AssetConnectionException;
+import de.fraunhofer.iosb.ilt.faaast.service.exception.ConfigurationException;
 import de.fraunhofer.iosb.ilt.faaast.service.exception.EndpointException;
 import de.fraunhofer.iosb.ilt.faaast.service.exception.MessageBusException;
 import de.fraunhofer.iosb.ssl.impl.DefaultSelfSignedCertificateRetriever;
-import de.fraunhofer.iosb.testutils.CertificateUtils;
+import de.fraunhofer.iosb.testutils.TestUtils;
 import dev.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultReference;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.junit.jupiter.api.Test;
 
+import javax.net.ssl.SSLException;
 import java.io.IOException;
 import java.util.HashSet;
-import javax.net.ssl.SSLException;
 
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.Mockito.mock;
 
 class RegisteredAasDataProcessorFactoryTest {
 
-
     @Test
-    void testSendOwn() throws MessageBusException, EndpointException, IOException {
+    void testSendRegistered() throws IOException {
         var registeredServices = new HashSet<String>();
-        var testSubject = new RegisteredAasDataProcessorFactory(new DefaultSelfSignedCertificateRetriever(), registeredServices, new OkHttpClient(), RetryPolicy.ofDefaults(), new ConsoleMonitor());
+        var testSubject = new RegisteredAasDataProcessorFactory(new DefaultSelfSignedCertificateRetriever(),
+                registeredServices, mock(OkHttpClient.class), RetryPolicy.ofDefaults(), new ConsoleMonitor());
 
         var port = getFreePort();
-        var foreignService = CertificateUtils.getFaaastService(port);
-        var baseUrl = "https://localhost:%s".formatted(port);
-        foreignService.start();
-        registeredServices.add(baseUrl);
-        // If this fails, certificate could not be retrieved from foreignService
-        var processor = testSubject.processorFor(baseUrl);
+        var baseUrl = (System.getProperty("os.name").contains("Windows") ?
+                "https://127.0.0.1:%s" : "https://localhost:%s").formatted(port);
 
-        if (processor.failed()) {
-            fail();
-        }
+        try (var ignored = new TestUtils().startFaaastService(port)) {
+            registeredServices.add(baseUrl);
+            var processor = testSubject.processorFor(baseUrl);
+            var response = processor.getContent().send(getDataAddress(baseUrl)); // processor == null --> Failed
+            // getting self-signed cert
 
-        try (var response = processor.getContent().send(AasDataAddress.Builder.newInstance()
-                .baseUrl(baseUrl)
-                .method("GET")
-                .referenceChain(new DefaultReference())
-                .build())) {
             // This means the HTTP request went through --> no certificate problems etc.
             assertNotEquals(500, response.code());
-            foreignService.stop();
+        } catch (MessageBusException | EndpointException | ConfigurationException | AssetConnectionException e) {
+            fail("Failed starting FA³ST service");
         }
     }
 
     @Test
-    void testSendForeign() throws MessageBusException, EndpointException, IOException {
+    void testSendForeign() throws IOException {
         // We trust no service's self-signed certificate
         var registeredServices = new HashSet<String>();
-        var testSubject = new RegisteredAasDataProcessorFactory(new DefaultSelfSignedCertificateRetriever(), registeredServices, new OkHttpClient(), RetryPolicy.ofDefaults(), new ConsoleMonitor());
+        var testSubject = new RegisteredAasDataProcessorFactory(new DefaultSelfSignedCertificateRetriever(),
+                registeredServices, new OkHttpClient(), RetryPolicy.ofDefaults(), new ConsoleMonitor());
 
         var port = getFreePort();
-        var foreignService = CertificateUtils.getFaaastService(port);
-        var baseUrl = "https://localhost:%s".formatted(port);
-        foreignService.start();
+        var baseUrl = "https://127.0.0.1:%s".formatted(port);
 
-        // If this fails, certificate could not be retrieved from foreignService
-        var processor = testSubject.processorFor(baseUrl);
+        try (var ignored = new TestUtils().startFaaastService(port)) {
+            // If this fails, certificate could not be retrieved from foreignService
+            var processor = testSubject.processorFor(baseUrl);
 
-        if (processor.failed()) {
-            fail();
+            processor.getContent().send(getDataAddress(baseUrl));
+
+            fail("Certificate error expected since EdcHttpClient is used here which does not accept self-signed " +
+                    "certificates.");
+        } catch (SSLException sslException) {
+            // self-signed
+        } catch (MessageBusException | EndpointException | ConfigurationException | AssetConnectionException e) {
+            fail("Failed starting FA³ST service");
         }
+    }
 
-        try (var response = processor.getContent().send(AasDataAddress.Builder.newInstance()
+    private AasDataAddress getDataAddress(String baseUrl) {
+        return AasDataAddress.Builder.newInstance()
                 .baseUrl(baseUrl)
                 .method("GET")
                 .referenceChain(new DefaultReference())
-                .build())) {
-            // Here, a certificate error should pop up since we would use EdcHttpClient here which does not accept foreignService.
-            assertNotEquals(500, response.code());
-            foreignService.stop();
-            fail();
-        } catch (SSLException sslException) {
-            // self-signed
-        }
+                .build();
     }
 }

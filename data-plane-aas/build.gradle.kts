@@ -8,6 +8,7 @@ val aas4jVersion: String by project
 val faaastVersion: String by project
 val jupiterVersion: String by project
 val mockitoVersion: String by project
+val mockserverVersion: String by project
 
 repositories { mavenCentral() }
 
@@ -27,6 +28,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
     testImplementation("de.fraunhofer.iosb.ilt.faaast.service:starter:${faaastVersion}")
     testImplementation("org.mockito:mockito-core:${mockitoVersion}")
+    testImplementation("org.mock-server:mockserver-junit-jupiter:${mockserverVersion}")
 }
 
 tasks.test { useJUnitPlatform() }

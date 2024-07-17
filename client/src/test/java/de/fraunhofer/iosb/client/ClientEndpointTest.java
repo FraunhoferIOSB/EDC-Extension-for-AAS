@@ -47,7 +47,6 @@ import org.eclipse.edc.web.spi.WebService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockserver.integration.ClientAndServer;
 
@@ -199,13 +198,11 @@ public class ClientEndpointTest {
         }
     }
 
-    @Disabled("Does not throw an exception anymore")
     @Test
     public void getDataTest() {
-        try {
-            clientEndpoint.getData(url, "test-agreement-id", AasDataAddress.Builder.newInstance().baseUrl(url.toString()).build());
-            fail();
-        } catch (EdcException expected) {
+        var dataAddress = AasDataAddress.Builder.newInstance().baseUrl(url.toString()).build();
+        try (var response = clientEndpoint.getData(url, "test-agreement-id", dataAddress)) {
+            assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
         }
     }
 
@@ -218,7 +215,7 @@ public class ClientEndpointTest {
     public void addAcceptedContractOffersTest() {
         var mockPolicyDefinitionsAsList = new ArrayList<PolicyDefinition>();
         mockPolicyDefinitionsAsList.add(mockPolicyDefinition); // ClientEndpoint creates ArrayList
-        var offers = new PolicyDefinition[] {mockPolicyDefinition};
+        var offers = new PolicyDefinition[]{mockPolicyDefinition};
 
         clientEndpoint.addAcceptedPolicyDefinitions(offers);
 
@@ -227,7 +224,7 @@ public class ClientEndpointTest {
 
     @Test
     public void updateAcceptedContractOfferTest() {
-        var offers = new PolicyDefinition[] {mockPolicyDefinition};
+        var offers = new PolicyDefinition[]{mockPolicyDefinition};
 
         clientEndpoint.addAcceptedPolicyDefinitions(offers);
 

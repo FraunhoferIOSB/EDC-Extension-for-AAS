@@ -18,6 +18,7 @@ package de.fraunhofer.iosb.ssl.impl;
 import de.fraunhofer.iosb.ssl.SelfSignedCertificateRetriever;
 import org.eclipse.edc.spi.result.Result;
 
+import javax.net.ssl.*;
 import java.io.IOException;
 import java.net.URL;
 import java.security.KeyManagementException;
@@ -28,15 +29,8 @@ import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.X509Certificate;
 import java.util.List;
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLPeerUnverifiedException;
-import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 
 import static java.lang.String.format;
-
 
 /**
  * Retrieve certificates of an online service by its URL.
@@ -46,7 +40,7 @@ import static java.lang.String.format;
  */
 public class DefaultSelfSignedCertificateRetriever implements SelfSignedCertificateRetriever {
 
-    private static final TrustManager[] TRUST_ALL_MANAGER = new TrustManager[] {
+    private static final TrustManager[] TRUST_ALL_MANAGER = new TrustManager[]{
             new X509TrustManager() {
                 public X509Certificate[] getAcceptedIssuers() {
                     return null;
@@ -85,9 +79,7 @@ public class DefaultSelfSignedCertificateRetriever implements SelfSignedCertific
             sslContext = SSLContext.getInstance("TLS");
             sslContext.init(null, TRUST_ALL_MANAGER, new SecureRandom());
         } catch (NoSuchAlgorithmException | KeyManagementException generalSecurityException) {
-            return Result.failure(List.of(
-                    format("Could not retrieve certificates for %s", url),
-                    generalSecurityException.getMessage()));
+            return Result.failure(List.of(generalSecurityException.getMessage()));
         }
 
         HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory());
@@ -99,6 +91,7 @@ public class DefaultSelfSignedCertificateRetriever implements SelfSignedCertific
         } catch (IOException e) {
             return Result.failure(List.of(e.getMessage()));
         }
+
         X509Certificate[] certs;
         try {
             certs = (X509Certificate[]) conn.getServerCertificates();

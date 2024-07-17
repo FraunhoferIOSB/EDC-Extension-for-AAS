@@ -15,15 +15,15 @@
  */
 package de.fraunhofer.iosb.app.testutils;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class StringMethods {
 
     public static void assertEqualsIgnoreWhiteSpace(String expected, String actual) {
         assertTrue(expected != null || actual == null);
         assertNotNull(actual);
-        assertEquals(expected.replaceAll(" +", "").replaceAll("\n", ""), actual.replaceAll(" +", "").replaceAll("\n", ""));
+
+        assertEquals(expected.replaceAll(" +", "").replaceAll("\r", "").replaceAll("\n",
+                ""), actual.replaceAll(" +", "").replaceAll("\r", "").replaceAll("\n", ""));
     }
 }

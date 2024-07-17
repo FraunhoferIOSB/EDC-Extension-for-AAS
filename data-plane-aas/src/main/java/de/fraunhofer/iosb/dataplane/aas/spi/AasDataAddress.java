@@ -74,10 +74,11 @@ public class AasDataAddress extends DataAddress {
     }
 
     /**
+     * Builds and returns the HTTP URL path required to access this AAS data at the AAS service.
      * Example: ReferenceChain: [Submodel x, SubmodelElementCollection y, SubmodelElement z]
      * --> path: submodels/base64(x)/submodel-elements/y.z
      *
-     * @return Path correlating to reference chain stored in this DataAddress
+     * @return Path correlating to reference chain stored in this DataAddress (no leading '/').
      */
     public String referenceChainAsPath() {
         StringBuilder urlBuilder = new StringBuilder();

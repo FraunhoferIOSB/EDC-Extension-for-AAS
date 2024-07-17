@@ -16,10 +16,12 @@
 package de.fraunhofer.iosb.aas.impl;
 
 import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
+import de.fraunhofer.iosb.ilt.faaast.service.assetconnection.AssetConnectionException;
+import de.fraunhofer.iosb.ilt.faaast.service.exception.ConfigurationException;
 import de.fraunhofer.iosb.ilt.faaast.service.exception.EndpointException;
 import de.fraunhofer.iosb.ilt.faaast.service.exception.MessageBusException;
 import de.fraunhofer.iosb.ssl.impl.DefaultSelfSignedCertificateRetriever;
-import de.fraunhofer.iosb.testutils.CertificateUtils;
+import de.fraunhofer.iosb.testutils.TestUtils;
 import dev.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultReference;
@@ -36,28 +38,30 @@ import static org.mockito.Mockito.mock;
 class AllAasDataProcessorFactoryTest {
 
     @Test
-    void testSendForeign() throws MessageBusException, EndpointException, IOException {
-        var testSubject = new AllAasDataProcessorFactory(new DefaultSelfSignedCertificateRetriever(), mock(OkHttpClient.class), RetryPolicy.ofDefaults(), new ConsoleMonitor());
-        var port = getFreePort();
-        var foreignService = CertificateUtils.getFaaastService(port);
-        var baseUrl = "https://localhost:%s".formatted(port);
-        foreignService.start();
+    void testSendForeign() throws IOException {
+        var testSubject = new AllAasDataProcessorFactory(new DefaultSelfSignedCertificateRetriever(),
+                mock(OkHttpClient.class), RetryPolicy.ofDefaults(), new ConsoleMonitor());
+        var port = getFreePort(443);
+        var baseUrl = (System.getProperty("os.name").contains("Windows") ?
+                "https://127.0.0.1:%s" : "https://localhost:%s").formatted(port);
 
-        // If this fails, certificate could not be retrieved from foreignService
-        var processor = testSubject.processorFor(baseUrl);
+        try (var ignored = new TestUtils().startFaaastService(port)) {
+            // If this fails, certificate could not be retrieved from foreignService
+            var processor = testSubject.processorFor(baseUrl);
 
-        if (processor.failed()) {
-            fail();
+            var response = processor.getContent().send(getDataAddress(baseUrl));
+            // This means the HTTP request went through --> no certificate problems etc.
+            assertNotEquals(500, response.code());
+        } catch (MessageBusException | EndpointException | ConfigurationException | AssetConnectionException e) {
+            fail("Failed starting FA³ST service");
         }
+    }
 
-        try (var response = processor.getContent().send(AasDataAddress.Builder.newInstance()
+    private AasDataAddress getDataAddress(String baseUrl) {
+        return AasDataAddress.Builder.newInstance()
                 .baseUrl(baseUrl)
                 .method("GET")
                 .referenceChain(new DefaultReference())
-                .build())) {
-            // This means the HTTP request went through --> no certificate problems etc.
-            assertNotEquals(500, response.code());
-            foreignService.stop();
-        }
+                .build();
     }
 }

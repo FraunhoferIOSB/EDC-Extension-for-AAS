@@ -29,6 +29,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
@@ -48,15 +49,21 @@ public class FaaastServiceManagerTest {
     @Test
     public void startServiceTest() throws IOException, URISyntaxException {
         var url = startService();
+        String urlString = url.toString();
+
+        if (System.getProperty("os.name").startsWith("Windows")) {
+            urlString = url.toString().replace("localhost", "127.0.0.1");
+        }
+
         var factory = new AllAasDataProcessorFactory(
                 new DefaultSelfSignedCertificateRetriever(),
                 new OkHttpClient(),
                 RetryPolicy.ofDefaults(),
                 new ConsoleMonitor());
-        try (var response = factory.processorFor(url.toString()).getContent()
+        try (var response = factory.processorFor(urlString).getContent()
                 .send(AasDataAddress.Builder.newInstance()
                                 .method(HttpMethod.GET)
-                                .baseUrl(url.toURI().resolve("/api/v3.0/shells").toString())
+                                .baseUrl(new URI(urlString).resolve("/api/v3.0/shells").toString())
                                 .build(),
                         null, null)) {
             assertEquals(Response.Status.OK.getStatusCode(), response.code());

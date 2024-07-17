@@ -18,92 +18,100 @@ package de.fraunhofer.iosb.aas;
 import de.fraunhofer.iosb.aas.impl.AllAasDataProcessorFactory;
 import de.fraunhofer.iosb.dataplane.aas.pipeline.AasPart;
 import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
-import de.fraunhofer.iosb.ilt.faaast.service.Service;
 import de.fraunhofer.iosb.ilt.faaast.service.exception.EndpointException;
 import de.fraunhofer.iosb.ilt.faaast.service.exception.MessageBusException;
 import de.fraunhofer.iosb.ssl.impl.DefaultSelfSignedCertificateRetriever;
-import de.fraunhofer.iosb.testutils.CertificateUtils;
+import de.fraunhofer.iosb.testutils.TestUtils;
 import dev.failsafe.RetryPolicy;
+import jakarta.ws.rs.HttpMethod;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultKey;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultReference;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
+import org.mockserver.integration.ClientAndServer;
+import org.mockserver.netty.MockServer;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.UUID;
 
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.mockserver.integration.ClientAndServer.startClientAndServer;
+import static org.mockserver.model.HttpRequest.request;
+import static org.mockserver.model.HttpResponse.response;
 
 class AasDataProcessorTest {
 
-    AasDataProcessor testSubject;
-    Service aasService;
-    private String aasUrl;
+    static AasDataProcessor testSubject;
+    static ClientAndServer mockServer;
+    static String aasUrl;
 
-    @BeforeEach
-    void setUp() throws MessageBusException, EndpointException {
+    @BeforeAll
+    static void beforeAll() {
         var port = getFreePort();
-        aasUrl = "https://localhost:%s".formatted(port);
-
-        aasService = CertificateUtils.getFaaastService(port);
-        aasService.start();
-
+        mockServer = startClientAndServer(port);
+        aasUrl = "https://localhost:%s/api/v3.0".formatted(mockServer.getPort());
 
         testSubject = new AllAasDataProcessorFactory(new DefaultSelfSignedCertificateRetriever(),
                 mock(OkHttpClient.class),
                 RetryPolicy.ofDefaults(),
                 new ConsoleMonitor())
                 .processorFor(aasUrl).getContent();
+
+    }
+
+    @BeforeEach
+    void setUp() {
+        mockServer.reset();
+        mockServer.when(request().withMethod("GET")).respond(response().withStatusCode(234));
     }
 
     @Test
     void testSendAddressOnly() throws IOException {
         try (var response = testSubject.send(getAddress())) {
-            assertEquals(404, response.code());
+            assertEquals(234, response.code());
         }
     }
 
     @Test
     void testSendWithBody() throws IOException {
         try (var response = testSubject.send(getAddress(), "testBody", MediaType.get("application/json").toString())) {
-            assertEquals(404, response.code());
+            assertEquals(234, response.code());
         }
     }
 
     @Test
     void testSendWithPart() throws IOException {
-        try (var response = testSubject.send(getAddress(), new AasPart("test", InputStream.nullInputStream(), MediaType.get("application/json").toString()))) {
-            assertEquals(404, response.code());
+        try (var response = testSubject.send(getAddress(), new AasPart("test", InputStream.nullInputStream(),
+                MediaType.get("application/json").toString()))) {
+            assertEquals(234, response.code());
         }
     }
 
-    @AfterEach
-    void tearDown() {
-        aasService.stop();
+    @AfterAll
+    static void tearDown() {
+        mockServer.stop();
     }
 
     private AasDataAddress getAddress() {
         return AasDataAddress.Builder.newInstance()
                 .baseUrl(aasUrl)
-                .method("GET")
+                .method(HttpMethod.GET)
                 .referenceChain(
                         new DefaultReference.Builder()
                                 .keys(List.of(
                                         new DefaultKey.Builder()
                                                 .type(KeyTypes.ASSET_ADMINISTRATION_SHELL)
-                                                .value("xyz")
-                                                .build()
-                                ))
-                                .build()
-                )
+                                                .value(UUID.randomUUID().toString())
+                                                .build()))
+                                .build())
                 .build();
     }
 }

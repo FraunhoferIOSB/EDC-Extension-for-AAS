@@ -58,7 +58,7 @@ docker-compose up
 The EDC and its extensions can be configured with a `.properties` file. In `example/resources/configurations` there are
 a few examples of configurations.
 
-For a list of config values provided by the extension, check the [Extension's README](../README.md#configurations).
+For a list of config values provided by the extension, check the [Extension's README](../README.md#Configuration-Values).
 
 A few basic EDC config values:
 

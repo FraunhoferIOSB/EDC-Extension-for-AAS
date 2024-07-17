@@ -15,12 +15,9 @@
  */
 package de.fraunhofer.iosb.aas.http;
 
-import de.fraunhofer.iosb.ilt.faaast.service.exception.EndpointException;
-import de.fraunhofer.iosb.ilt.faaast.service.exception.MessageBusException;
 import de.fraunhofer.iosb.testutils.TestUtils;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
 import java.security.KeyStoreException;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;

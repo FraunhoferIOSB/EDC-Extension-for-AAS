@@ -30,8 +30,6 @@ import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
-import static java.lang.String.format;
-
 /**
  * Retrieve certificates of an online service by its URL.
  * This should only be used for explicitly known services and URLs!

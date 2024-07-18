@@ -24,6 +24,8 @@ public class StringMethods {
     public static void assertEqualsIgnoreWhiteSpace(String expected, String actual) {
         assertTrue(expected != null || actual == null);
         assertNotNull(actual);
-        assertEquals(expected.replaceAll(" +", "").replaceAll("\n", ""), actual.replaceAll(" +", "").replaceAll("\n", ""));
+
+        assertEquals(expected.replaceAll(" +", "").replaceAll("\r", "").replaceAll("\n",
+                ""), actual.replaceAll(" +", "").replaceAll("\r", "").replaceAll("\n", ""));
     }
 }

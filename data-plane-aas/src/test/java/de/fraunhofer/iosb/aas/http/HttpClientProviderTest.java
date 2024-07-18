@@ -15,10 +15,9 @@
  */
 package de.fraunhofer.iosb.aas.http;
 
-import de.fraunhofer.iosb.testutils.CertificateUtils;
+import de.fraunhofer.iosb.testutils.TestUtils;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
 import java.security.KeyStoreException;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -26,8 +25,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 class HttpClientProviderTest {
 
     @Test
-    void testClientFor() throws IOException, KeyStoreException {
-        assertNotNull(HttpClientProvider.clientFor(CertificateUtils.getSelfSignedCertificate()));
+    void testClientFor() throws KeyStoreException {
+        assertNotNull(HttpClientProvider.clientFor(new TestUtils().getSelfSignedCertificate()));
     }
 
 }

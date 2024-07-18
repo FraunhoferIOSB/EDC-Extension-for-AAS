@@ -17,61 +17,72 @@ package de.fraunhofer.iosb.testutils;
 
 import de.fraunhofer.iosb.ilt.faaast.service.Service;
 import de.fraunhofer.iosb.ilt.faaast.service.assetconnection.AssetConnectionException;
-import de.fraunhofer.iosb.ilt.faaast.service.config.CoreConfig;
 import de.fraunhofer.iosb.ilt.faaast.service.config.ServiceConfig;
 import de.fraunhofer.iosb.ilt.faaast.service.endpoint.http.HttpEndpointConfig;
 import de.fraunhofer.iosb.ilt.faaast.service.exception.ConfigurationException;
-import de.fraunhofer.iosb.ilt.faaast.service.messagebus.internal.MessageBusInternalConfig;
+import de.fraunhofer.iosb.ilt.faaast.service.exception.EndpointException;
+import de.fraunhofer.iosb.ilt.faaast.service.exception.MessageBusException;
 import de.fraunhofer.iosb.ilt.faaast.service.persistence.memory.PersistenceInMemoryConfig;
 import de.fraunhofer.iosb.ilt.faaast.service.starter.util.ServiceConfigHelper;
 import de.fraunhofer.iosb.ssl.impl.DefaultSelfSignedCertificateRetriever;
 
-import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.security.cert.Certificate;
 
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 
-public class CertificateUtils {
+public class TestUtils {
 
-    private CertificateUtils() {
-    }
-
-    public static Certificate[] getSelfSignedCertificate() throws IOException {
+    public Certificate[] getSelfSignedCertificate() {
         var port = getFreePort();
-        Service service = getFaaastService(port);
-        try {
-            service.start();
-        } catch (Exception faaastServiceException) {
-            throw new RuntimeException(faaastServiceException);
+
+        try (var ignored = startFaaastService(port)) {
+            var url = new URL("https://localhost:" + port);
+            var certResult = new DefaultSelfSignedCertificateRetriever().getSelfSignedCertificate(url);
+            return certResult.getContent();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
-
-        var url = new URL("https://localhost:" + port);
-        var certResult = new DefaultSelfSignedCertificateRetriever().getSelfSignedCertificate(url);
-
-        service.stop();
-
-        return certResult.getContent();
     }
 
-    public static Service getFaaastService(int port) {
+    /**
+     * Returns autocloseable handle to FA³ST service
+     *
+     * @param port port for FA³ST to use
+     * @return AutoCloseable handle on FA³ST service
+     */
+    public ServiceHandle startFaaastService(int port) throws ConfigurationException, AssetConnectionException, MessageBusException, EndpointException {
         var serviceConfig = new ServiceConfig.Builder()
-                .core(new CoreConfig.Builder().requestHandlerThreadPoolSize(2).build())
                 .endpoint(new HttpEndpointConfig.Builder().port(port).build())
                 .persistence(PersistenceInMemoryConfig.builder()
                         .initialModelFile(Path.of("src/test/resources/aasEnvironment.json")
                                 .toFile())
                         .build())
-                .messageBus(new MessageBusInternalConfig())
                 .build();
+
         ServiceConfigHelper.autoComplete(serviceConfig);
 
-        try {
-            return new Service(serviceConfig);
-        } catch (ConfigurationException | AssetConnectionException e) {
-            throw new RuntimeException(e);
-        }
+        return new ServiceHandle(new Service(serviceConfig));
     }
 
+    /**
+     * AutoCloseable handle on FA³ST service. Service gets started on object creation and stopped on object destruction
+     */
+    public static class ServiceHandle implements AutoCloseable {
+
+        private final Service service;
+
+        ServiceHandle(Service service) throws MessageBusException, EndpointException {
+            this.service = service;
+            this.service.start();
+        }
+
+        @Override
+        public void close() {
+            if (service != null) {
+                service.stop();
+            }
+        }
+    }
 }

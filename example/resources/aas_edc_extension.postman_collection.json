@@ -339,6 +339,32 @@
           "response": []
         },
         {
+          "name": "Change synchronization rate",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"edc.aas.syncPeriod\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{provider}}/config",
+              "host": [
+                "{{provider}}"
+              ],
+              "path": [
+                "config"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
           "name": "Register AAS service by file",
           "request": {
             "method": "POST",
@@ -557,6 +583,38 @@
           "response": []
         }
       ]
+    },
+    {
+      "name": "Docker Automated Negotiation",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{consumer}}/automated/negotiate?providerUrl=http://provider:8282/dsp&providerId=provider&assetId={{asset-id}}",
+          "host": [
+            "{{consumer}}"
+          ],
+          "path": [
+            "automated",
+            "negotiate"
+          ],
+          "query": [
+            {
+              "key": "providerUrl",
+              "value": "http://provider:8282/dsp"
+            },
+            {
+              "key": "providerId",
+              "value": "provider"
+            },
+            {
+              "key": "assetId",
+              "value": "{{asset-id}}"
+            }
+          ]
+        }
+      },
+      "response": []
     }
   ],
   "auth": {

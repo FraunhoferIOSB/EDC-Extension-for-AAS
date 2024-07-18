@@ -43,18 +43,15 @@ java "-Dedc.fs.config=./example/configurations/provider.properties" -jar ./examp
 
 After building the extension as seen above, a docker image can be built with
 
-1. `cd ./example`
-2. `docker build -t edc-aas-extension:latest .`
-3. `mkdir workdir`
-4. Create configuration under `./workdir/config.properties`
-5. Add additional files under `./workdir` (Fitting to your paths in config.properties)
-6. Run
-   with `docker run -i -v $PWD/workdir:/workdir/ -e EDC_FS_CONFIG=/workdir/config.properties edc-extension4aas:latest`
+1. Go to example folder: `cd example`
+2. Create docker image: `docker build -t edc-extension4aas:latest .`
+3. Run
+   with `docker run -i -v $PWD/configurations:/configurations/ -v $PWD/resources:/resources/ -e EDC_FS_CONFIG=/configurations/docker-provider.properties edc-extension4aas:latest`
 
 This docker image can be run individually or **inside a docker-compose file**:
 
 ```sh
-docker-compose up
+docker compose up (Alternatively: docker-compose up)
 ```
 
 ## Configuration
@@ -62,7 +59,8 @@ docker-compose up
 The EDC and its extensions can be configured with a `.properties` file. In `example/resources/configurations` there are
 a few examples of configurations.
 
-For a list of config values provided by the extension, check the [Extension's README](../README.md#configurations).
+For a list of config values provided by the extension, check
+the [Extension's README](../README.md#Configuration-Values).
 
 A few basic EDC config values:
 

@@ -80,7 +80,6 @@ public class HttpClientProvider {
         }
 
         // Add each certificate for each service to the KeyStore
-
         for (var cert : certs) {
             keyStore.setCertificateEntry(String.valueOf(cert.hashCode()), cert);
         }

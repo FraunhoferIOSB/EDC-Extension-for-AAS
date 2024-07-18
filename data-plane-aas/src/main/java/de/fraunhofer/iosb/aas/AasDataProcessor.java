@@ -80,15 +80,19 @@ public class AasDataProcessor {
     }
 
     private Response send(AasDataAddress aasDataAddress, byte[] bytes, String mediaType) throws IOException {
+        var requestUrl = HttpUrl.get(aasDataAddress.getBaseUrl())
+                .newBuilder()
+                .addPathSegments(aasDataAddress.referenceChainAsPath())
+                .build()
+                .url();
+
         var requestBody = new AasTransferRequestBody(bytes, mediaType);
 
-        var request = new Request.Builder().method(
+        var request = new Request.Builder()
+                .method(
                         aasDataAddress.getMethod(),
                         HttpMethod.permitsRequestBody(aasDataAddress.getMethod()) ? requestBody : null)
-                .url(HttpUrl.get(aasDataAddress.getBaseUrl())
-                        .newBuilder()
-                        .addPathSegments(aasDataAddress.referenceChainAsPath())
-                        .build())
+                .url(requestUrl) // .url(HttpUrl) is marked as "internal"
                 .headers(Headers.of(aasDataAddress.getAdditionalHeaders()))
                 .build();
 

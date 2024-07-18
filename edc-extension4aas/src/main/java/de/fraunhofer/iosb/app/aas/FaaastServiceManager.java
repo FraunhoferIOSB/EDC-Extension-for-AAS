@@ -17,13 +17,11 @@ package de.fraunhofer.iosb.app.aas;
 
 import de.fraunhofer.iosb.ilt.faaast.service.Service;
 import de.fraunhofer.iosb.ilt.faaast.service.assetconnection.AssetConnectionException;
-import de.fraunhofer.iosb.ilt.faaast.service.config.CoreConfig;
 import de.fraunhofer.iosb.ilt.faaast.service.config.ServiceConfig;
 import de.fraunhofer.iosb.ilt.faaast.service.endpoint.http.HttpEndpointConfig;
 import de.fraunhofer.iosb.ilt.faaast.service.exception.ConfigurationException;
 import de.fraunhofer.iosb.ilt.faaast.service.exception.EndpointException;
 import de.fraunhofer.iosb.ilt.faaast.service.exception.MessageBusException;
-import de.fraunhofer.iosb.ilt.faaast.service.messagebus.internal.MessageBusInternalConfig;
 import de.fraunhofer.iosb.ilt.faaast.service.persistence.memory.PersistenceInMemoryConfig;
 import de.fraunhofer.iosb.ilt.faaast.service.starter.util.ServiceConfigHelper;
 import org.eclipse.edc.spi.EdcException;
@@ -66,11 +64,10 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
                 port));
 
         var serviceConfig = new ServiceConfig.Builder()
-                .core(new CoreConfig.Builder().requestHandlerThreadPoolSize(2).build())
                 .endpoint(new HttpEndpointConfig.Builder().port(port).build())
                 .persistence(PersistenceInMemoryConfig.builder().initialModelFile(aasModelPath.toFile()).build())
-                .messageBus(new MessageBusInternalConfig())
                 .build();
+
         ServiceConfigHelper.autoComplete(serviceConfig);
 
         Service service;
@@ -83,9 +80,10 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
 
         monitor.debug("Booted up FA³ST service.");
 
-        faaastServiceRepository.put(new URL(LOCALHOST_URL + port), service);
+        var faaastUrl = new URL(LOCALHOST_URL.concat(String.valueOf(port)));
 
-        return new URL(LOCALHOST_URL + port);
+        faaastServiceRepository.put(faaastUrl, service);
+        return faaastUrl;
     }
 
     @Override

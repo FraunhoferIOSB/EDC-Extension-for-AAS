@@ -18,12 +18,10 @@ package de.fraunhofer.iosb.client.datatransfer;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.net.MalformedURLException;
@@ -31,7 +29,6 @@ import java.net.URL;
 import java.util.Map;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -50,7 +47,8 @@ public class TransferInitiatorTest {
     void initializeContractOfferService() {
         var configMock = ConfigFactory.fromMap(Map.of("web.http.port", "8080", "web.http.path", "/api"));
 
-        transferInitiator = new TransferInitiator(mock(Monitor.class), configMock, () -> "localhost", mockTransferProcessManager);
+        transferInitiator = new TransferInitiator(mock(Monitor.class), configMock, () -> "localhost",
+                mockTransferProcessManager);
 
         mockStatusResult = (StatusResult<TransferProcess>) mock(StatusResult.class);
 
@@ -69,21 +67,9 @@ public class TransferInitiatorTest {
     @Test
     void testInitiateTransferProcessCustomDataAddress() throws MalformedURLException {
         when(mockStatusResult.failed()).thenReturn(false);
-        var dataSink = HttpDataAddress.Builder.newInstance().baseUrl("http://example.com").build();
+        var dataSink = HttpDataAddress.Builder.newInstance().baseUrl("https://example.com").build();
         transferInitiator.initiateTransferProcess(new URL("http://provider-url:1234"),
                 "test-agreement-id", dataSink);
         verify(mockTransferProcessManager, times(1)).initiateConsumerRequest(any());
-    }
-
-    @Disabled("Does not throw an exception anymore")
-    @Test
-    void testInitiateTransferProcessThrowsEdcExceptionOnFailedTransferInitiation() throws MalformedURLException {
-        when(mockStatusResult.failed()).thenReturn(true);
-        try {
-            transferInitiator.initiateTransferProcess(new URL("http://provider-url:1234"), "test-agreement-id",
-                    UUID.randomUUID().toString());
-            fail();
-        } catch (EdcException expected) {
-        }
     }
 }

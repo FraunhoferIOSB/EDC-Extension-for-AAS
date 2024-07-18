@@ -2,25 +2,25 @@ version: "3.9"
 
 services:
   provider:
-    image: edc-aas-extension:latest
+    image: edc-extension4aas:latest
     ports:
       - "8181:8181"
       - "8281:8281"
       - "8182:8182"
       - "8282:8282"
     environment:
-      EDC_FS_CONFIG: /resources/docker-provider.properties
+      EDC_FS_CONFIG: /configurations/docker-provider.properties
     volumes:
-      - ./configurations:/resources
+      - ./configurations:/configurations
       - ./resources:/resources
   consumer:
-    image: edc-aas-extension:latest
+    image: edc-extension4aas:latest
     ports:
       - "9191:9191"
       - "9291:9291"
       - "9192:9192"
       - "9292:9292"
     environment:
-      EDC_FS_CONFIG: /resources/docker-consumer.properties
+      EDC_FS_CONFIG: /configurations/docker-consumer.properties
     volumes:
-      - ./configurations:/resources
+      - ./configurations:/configurations

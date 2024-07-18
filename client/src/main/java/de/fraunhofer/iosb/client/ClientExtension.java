@@ -19,11 +19,17 @@ import de.fraunhofer.iosb.api.PublicApiManagementService;
 import de.fraunhofer.iosb.client.datatransfer.DataTransferController;
 import de.fraunhofer.iosb.client.negotiation.NegotiationController;
 import de.fraunhofer.iosb.client.policy.PolicyController;
+import org.eclipse.edc.catalog.transform.JsonObjectToCatalogTransformer;
+import org.eclipse.edc.catalog.transform.JsonObjectToDataServiceTransformer;
+import org.eclipse.edc.catalog.transform.JsonObjectToDatasetTransformer;
+import org.eclipse.edc.catalog.transform.JsonObjectToDistributionTransformer;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager;
+import org.eclipse.edc.connector.controlplane.transform.odrl.OdrlTransformersFactory;
+import org.eclipse.edc.connector.core.agent.NoOpParticipantIdMapper;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -58,6 +64,7 @@ public class ClientExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var monitor = context.getMonitor();
         var config = context.getConfig("edc.client");
+        registerTransformers();
 
         var negotiationController = new NegotiationController(
                 consumerNegotiationManager,
@@ -88,4 +95,16 @@ public class ClientExtension implements ServiceExtension {
                         .build());
     }
 
+    /*
+     * Re-activate transformers that were deleted in EDC after version 0.6.0
+     * Also activate other transformers needed for PolicyService but not registered in the right place
+     */
+    private void registerTransformers() {
+        transformer.register(new JsonObjectToCatalogTransformer());
+        transformer.register(new JsonObjectToDatasetTransformer());
+        transformer.register(new JsonObjectToDataServiceTransformer());
+        transformer.register(new JsonObjectToDistributionTransformer());
+        OdrlTransformersFactory.jsonObjectToOdrlTransformers(new NoOpParticipantIdMapper())
+                .forEach(transformer::register);
+    }
 }

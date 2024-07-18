@@ -28,9 +28,9 @@ import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultReference;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.junit.jupiter.api.Test;
 
-import javax.net.ssl.SSLException;
 import java.io.IOException;
 import java.util.HashSet;
+import javax.net.ssl.SSLException;
 
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;

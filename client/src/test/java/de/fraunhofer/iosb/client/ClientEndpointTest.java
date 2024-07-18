@@ -215,7 +215,7 @@ public class ClientEndpointTest {
     public void addAcceptedContractOffersTest() {
         var mockPolicyDefinitionsAsList = new ArrayList<PolicyDefinition>();
         mockPolicyDefinitionsAsList.add(mockPolicyDefinition); // ClientEndpoint creates ArrayList
-        var offers = new PolicyDefinition[]{mockPolicyDefinition};
+        var offers = new PolicyDefinition[] {mockPolicyDefinition};
 
         clientEndpoint.addAcceptedPolicyDefinitions(offers);
 
@@ -224,7 +224,7 @@ public class ClientEndpointTest {
 
     @Test
     public void updateAcceptedContractOfferTest() {
-        var offers = new PolicyDefinition[]{mockPolicyDefinition};
+        var offers = new PolicyDefinition[] {mockPolicyDefinition};
 
         clientEndpoint.addAcceptedPolicyDefinitions(offers);
 

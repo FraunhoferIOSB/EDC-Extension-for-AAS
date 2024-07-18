@@ -29,13 +29,15 @@ import java.security.cert.Certificate;
 import java.util.List;
 
 import static org.eclipse.edc.util.io.Ports.getFreePort;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 class DefaultSelfSignedCertificateRetrieverTest {
 
     private static final String LOCALHOST_URL =
             System.getProperty("os.name").contains("Windows") ?
-            "https://127.0.0.1:" : "https://localhost:";
+                    "https://127.0.0.1:" : "https://localhost:";
 
     private static final String VALID = "https://google.com";
     private static final String EXPIRED = "https://expired.badssl.com";

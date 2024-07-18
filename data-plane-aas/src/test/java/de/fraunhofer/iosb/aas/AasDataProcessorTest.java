@@ -65,6 +65,11 @@ class AasDataProcessorTest {
 
     }
 
+    @AfterAll
+    static void tearDown() {
+        mockServer.stop();
+    }
+
     @BeforeEach
     void setUp() {
         mockServer.reset();
@@ -91,11 +96,6 @@ class AasDataProcessorTest {
                 MediaType.get("application/json").toString()))) {
             assertEquals(234, response.code());
         }
-    }
-
-    @AfterAll
-    static void tearDown() {
-        mockServer.stop();
     }
 
     private AasDataAddress getAddress() {

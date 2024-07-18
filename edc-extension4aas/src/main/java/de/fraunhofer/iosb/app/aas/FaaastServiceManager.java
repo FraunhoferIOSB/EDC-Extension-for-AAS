@@ -66,11 +66,10 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
                 port));
 
         var serviceConfig = new ServiceConfig.Builder()
-                .core(new CoreConfig.Builder().requestHandlerThreadPoolSize(2).build())
                 .endpoint(new HttpEndpointConfig.Builder().port(port).build())
                 .persistence(PersistenceInMemoryConfig.builder().initialModelFile(aasModelPath.toFile()).build())
-                .messageBus(new MessageBusInternalConfig())
                 .build();
+
         ServiceConfigHelper.autoComplete(serviceConfig);
 
         Service service;
@@ -83,9 +82,10 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
 
         monitor.debug("Booted up FA³ST service.");
 
-        faaastServiceRepository.put(new URL(LOCALHOST_URL + port), service);
+        var faaastUrl = new URL(LOCALHOST_URL.concat(String.valueOf(port)));
 
-        return new URL(LOCALHOST_URL + port);
+        faaastServiceRepository.put(faaastUrl, service);
+        return faaastUrl;
     }
 
     @Override

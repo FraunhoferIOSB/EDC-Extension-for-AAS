@@ -6,13 +6,6 @@ RUN apt update && apt install curl -y
 
 WORKDIR /app
 
-# Copy AAS model
-# COPY ./resources/model.aasx /app/model.aasx
-# Copy FA³ST config
-# COPY ./resources/demoConfig.json /app/demoConfig.json
-# Copy config
-# COPY ./configurations /configurations
-# COPY ./resources /resources
 # Copy jar
 COPY ./build/libs/dataspace-connector.jar /app
 

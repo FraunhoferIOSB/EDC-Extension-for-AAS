@@ -15,8 +15,6 @@
  */
 package de.fraunhofer.iosb.app.model.ids;
 
-import java.net.URL;
-
 public interface SelfDescriptionChangeListener {
 
     /**

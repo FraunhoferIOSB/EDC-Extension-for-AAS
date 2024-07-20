@@ -15,8 +15,6 @@
  */
 package de.fraunhofer.iosb.app.edc;
 
-import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
-import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 
@@ -31,35 +29,13 @@ public class ResourceHandler {
         this.assetIndex = assetIndex;
     }
 
-    public void createAsset(Asset asset) {
-        assetIndex.create(asset);
-    }
-
     /**
      * Registers an asset at the EDC.
      *
-     * @param sourceUrl   Data of the asset
-     * @param name        The name of the asset (e.g., idShort)
-     * @param contentType Content behind the sourceUrl
-     * @return asset ID of created asset
+     * @param asset The asset
      */
-    public String createAsset(String sourceUrl, Reference referenceChain, String name, String contentType) {
-        var dataAddress = AasDataAddress.Builder.newInstance()
-                .baseUrl(sourceUrl)
-                .referenceChain(referenceChain)
-                .method("GET")
-                .build();
-
-        var assetId = createAssetId(dataAddress.referenceChainAsPath());
-
-        var asset = Asset.Builder.newInstance()
-                .id(assetId)
-                .name(name)
-                .contentType(contentType)
-                .dataAddress(dataAddress)
-                .build();
+    public void createAsset(Asset asset) {
         assetIndex.create(asset);
-        return assetId;
     }
 
     /**
@@ -69,9 +45,5 @@ public class ResourceHandler {
      */
     public void deleteAsset(String assetId) {
         assetIndex.deleteById(assetId);
-    }
-
-    private String createAssetId(String sourceUrl) {
-        return String.valueOf(sourceUrl.hashCode());
     }
 }

@@ -17,13 +17,13 @@ package de.fraunhofer.iosb.app.aas;
 
 import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
 import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
+import okhttp3.Response;
 import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShell;
 import org.eclipse.digitaltwin.aas4j.v3.model.ConceptDescription;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
 import org.eclipse.digitaltwin.aas4j.v3.model.Submodel;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultEnvironment;
 import org.eclipse.edc.spi.EdcException;
-import okhttp3.Response;
 
 import java.io.IOException;
 import java.net.URISyntaxException;

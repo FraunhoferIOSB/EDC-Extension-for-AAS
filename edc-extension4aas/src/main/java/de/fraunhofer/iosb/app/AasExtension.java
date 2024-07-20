@@ -15,10 +15,6 @@
  */
 package de.fraunhofer.iosb.app;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
 import de.fraunhofer.iosb.api.PublicApiManagementService;
 import de.fraunhofer.iosb.api.model.HttpMethod;
@@ -30,20 +26,10 @@ import de.fraunhofer.iosb.app.sync.SynchronizationManager;
 import de.fraunhofer.iosb.app.sync.SynchronizerRepository;
 import de.fraunhofer.iosb.app.sync.impl.ServiceSynchronizer;
 import de.fraunhofer.iosb.app.util.VariableRateScheduler;
-import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
-import de.fraunhofer.iosb.ilt.faaast.service.assetconnection.AssetConnectionException;
-import de.fraunhofer.iosb.ilt.faaast.service.exception.ConfigurationException;
 import de.fraunhofer.iosb.registry.AasServiceRegistry;
-import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
-import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
-import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
-import org.eclipse.edc.policy.model.Action;
-import org.eclipse.edc.policy.model.Duty;
-import org.eclipse.edc.policy.model.Permission;
-import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.EdcException;
@@ -53,7 +39,6 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.web.spi.WebService;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.List;

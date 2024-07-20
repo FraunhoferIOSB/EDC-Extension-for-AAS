@@ -14,8 +14,8 @@ Compatibility: **Eclipse Dataspace Connector v0.8.0**
 
 **Miscellaneous**
 
-* This extension does not use custom AAS models for internal persistence any longer
-    * Instead, the nested structure of the AAS environment is now stored inside an Asset.
+* The extension does not use custom AAS models for internal persistence any longer
+    * Instead, the nested structure of the AAS environment is now stored inside an asset.
     * The nested asset is kept by the extension and fed to the assetIndex (and contractStore)
     * On environment updates, this nested asset is updated and these updates are propagated to the EDC components as
       described above.

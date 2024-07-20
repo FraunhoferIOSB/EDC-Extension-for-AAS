@@ -27,7 +27,6 @@ import org.mockserver.integration.ClientAndServer;
 import java.io.IOException;
 import java.net.URL;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
@@ -64,7 +63,7 @@ public class AasAgentTest {
 
     @Disabled("TODO fix this test")
     @Test
-    public void testGetAasEnvironment() throws IOException {
+    public void testGetAasEnvironment() {
         prepareServerResponse();
 
         //var result = aasAgent.getAasEnvironment(new URL(HTTP_LOCALHOST_8080), false);

@@ -30,11 +30,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractD
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.matchers.Times;
 

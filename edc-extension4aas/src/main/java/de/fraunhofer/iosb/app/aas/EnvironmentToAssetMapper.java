@@ -14,6 +14,7 @@ import java.util.*;
  * Create a mapping from an AAS environment to EDC assets.
  * This is not a holistic transformation but rather maps some
  * key elements and creates appropriate data address and assetId.
+ * TODO maybe find a better name
  */
 public class EnvironmentToAssetMapper {
     private final URL accessUrl;
@@ -45,6 +46,28 @@ public class EnvironmentToAssetMapper {
                 .build();
     }
 
+    private <T extends Referable> Asset.Builder mapReferableToAssetBuilder(T referable) {
+        return Asset.Builder.newInstance()
+                .properties(Map.of(
+                        "idShort", referable.getIdShort(),
+                        "name", referable.getDisplayName(),
+                        "description", referable.getDescription()));
+    }
+
+    private <T extends Identifiable> Asset.Builder mapIdentifiableToAssetBuilder(T identifiable) {
+        var admin = Optional.ofNullable(identifiable.getAdministration())
+                .orElse(new DefaultAdministrativeInformation.Builder().build());
+        var version = null != admin.getVersion() && null != admin.getRevision() ?
+                String.valueOf(admin.getVersion()).concat(":").concat(String.valueOf(admin.getRevision())) : null;
+
+        return mapReferableToAssetBuilder(identifiable)
+                .id(String.valueOf(identifiable.getId().hashCode()))
+                .version(version)
+                .contentType("application/json")
+                .properties(Map.of(
+                        "id", identifiable.getId(),
+                        "embeddedDataSpecifications", admin.getEmbeddedDataSpecifications()));
+    }
 
     /* May contain traces of recursion */
     private <T extends SubmodelElement> Asset mapSubmodelElementToAsset(Reference parentReference, T submodelElement) {
@@ -54,16 +77,13 @@ public class EnvironmentToAssetMapper {
                 .map(elem -> mapSubmodelElementToAsset(reference, elem))
                 .toList();
 
-        return Asset.Builder.newInstance()
+        return mapReferableToAssetBuilder(submodelElement)
                 .id(String.valueOf(submodelElement.getIdShort().hashCode()))
                 .contentType("application/json")
                 .properties(Map.of(
-                        "idShort", submodelElement.getIdShort(),
                         "embeddedDataSpecifications", submodelElement.getEmbeddedDataSpecifications(),
                         "semanticId", submodelElement.getSemanticId(),
-                        "value", children,
-                        "name", submodelElement.getDisplayName(),
-                        "description", submodelElement.getDescription()))
+                        "value", children))
                 .dataAddress(AasDataAddress.Builder.newInstance()
                         .baseUrl(accessUrl.toString())
                         .referenceChain(reference)
@@ -81,28 +101,8 @@ public class EnvironmentToAssetMapper {
         }
     }
 
-    private <T extends Identifiable> Asset mapIdentifiableToAsset(T identifiable) {
-        var admin = Optional.ofNullable(identifiable.getAdministration())
-                .orElse(new DefaultAdministrativeInformation.Builder().build());
-        var version = null != admin.getVersion() && null != admin.getRevision() ?
-                String.valueOf(admin.getVersion()).concat(":").concat(String.valueOf(admin.getRevision())) : null;
-
-        return Asset.Builder.newInstance()
-                .id(String.valueOf(identifiable.getId().hashCode()))
-                .version(version)
-                .contentType("application/json")
-                .properties(Map.of(
-                        "idShort", identifiable.getIdShort(),
-                        "id", identifiable.getId(),
-                        "embeddedDataSpecifications", admin.getEmbeddedDataSpecifications(),
-                        "name", identifiable.getDisplayName(),
-                        "description", identifiable.getDescription()))
-                .build();
-    }
-
     private Asset mapShellToAsset(AssetAdministrationShell shell) {
-        return mapIdentifiableToAsset(shell)
-                .toBuilder()
+        return mapIdentifiableToAssetBuilder(shell)
                 .dataAddress(AasDataAddress.Builder.newInstance()
                         .baseUrl(accessUrl.toString())
                         .referenceChain(createReference(KeyTypes.ASSET_ADMINISTRATION_SHELL, shell.getId()))
@@ -111,8 +111,7 @@ public class EnvironmentToAssetMapper {
     }
 
     private Asset mapConceptDescriptionToAsset(ConceptDescription conceptDescription) {
-        return mapIdentifiableToAsset(conceptDescription)
-                .toBuilder()
+        return mapIdentifiableToAssetBuilder(conceptDescription)
                 .dataAddress(AasDataAddress.Builder.newInstance()
                         .baseUrl(accessUrl.toString())
                         .referenceChain(createReference(KeyTypes.CONCEPT_DESCRIPTION, conceptDescription.getId()))
@@ -128,8 +127,7 @@ public class EnvironmentToAssetMapper {
                     .map(elem -> mapSubmodelElementToAsset(reference, elem))
                     .toList();
         }
-        return mapIdentifiableToAsset(submodel)
-                .toBuilder()
+        return mapIdentifiableToAssetBuilder(submodel)
                 .properties(Map.of(
                         "semanticId", submodel.getSemanticId(),
                         "submodelElements", children))

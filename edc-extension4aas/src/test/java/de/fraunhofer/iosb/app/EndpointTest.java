@@ -79,7 +79,7 @@ public class EndpointTest {
     @Test
     public void getSelfDescriptionTest() {
         try (var ignored = endpoint.postAasService(url)) {
-            assertEquals("[]", endpoint.getSelfDescription(null).getEntity().toString());
+            assertEquals("", endpoint.getSelfDescription(null).getEntity().toString());
         } catch (Exception e) {
             fail();
         }

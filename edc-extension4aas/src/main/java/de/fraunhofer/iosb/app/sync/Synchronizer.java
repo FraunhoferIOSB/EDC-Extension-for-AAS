@@ -17,264 +17,37 @@ package de.fraunhofer.iosb.app.sync;
 
 import de.fraunhofer.iosb.app.controller.AasController;
 import de.fraunhofer.iosb.app.controller.ResourceController;
-import de.fraunhofer.iosb.app.model.aas.AssetAdministrationShellElement;
-import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShellEnvironment;
-import de.fraunhofer.iosb.app.model.aas.CustomSubmodel;
-import de.fraunhofer.iosb.app.model.aas.CustomSubmodelElement;
-import de.fraunhofer.iosb.app.model.aas.IdsAssetElement;
-import de.fraunhofer.iosb.app.model.configuration.Configuration;
-import de.fraunhofer.iosb.app.model.ids.SelfDescriptionChangeListener;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
-import de.fraunhofer.iosb.app.util.AssetAdministrationShellUtil;
-import de.fraunhofer.iosb.registry.AasServiceRegistry;
-import jakarta.ws.rs.core.MediaType;
-import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
-import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
-import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
-import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.monitor.Monitor;
+import de.fraunhofer.iosb.app.util.AssetUtil;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
 
-import static java.lang.String.format;
+import static de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository.SelfDescriptionSourceType;
 
 
 /**
  * Synchronize registered AAS services with local
  * self-descriptions and assetIndex/contractStore.
  */
-public class Synchronizer implements SelfDescriptionChangeListener, Runnable {
+public abstract class Synchronizer {
 
-    // Main objective of Synchronizer is making sure SelfDescription and EDC asset store state are valid
-    private final SelfDescriptionRepository selfDescriptionRepository;
-    private final ResourceController resourceController;
-    // Communication with AAS of any type
-    private final AasController aasController;
+    protected final SelfDescriptionRepository selfDescriptionRepository;
+    protected final ResourceController resourceController;
+    protected final AasController aasController;
 
-    private final boolean onlySubmodels;
-    private final AasServiceRegistry aasServiceRegistry;
-
-    private Synchronizer(SelfDescriptionRepository selfDescriptionRepository,
-                         AasController aasController,
-                         AssetIndex assetIndex,
-                         ContractDefinitionStore contractStore,
-                         PolicyDefinitionStore policyStore,
-                         Monitor monitor,
-                         AasServiceRegistry aasServiceRegistry) {
+    protected Synchronizer(SelfDescriptionRepository selfDescriptionRepository, ResourceController resourceController,
+                           AasController aasController) {
         this.selfDescriptionRepository = selfDescriptionRepository;
+        this.resourceController = resourceController;
         this.aasController = aasController;
-        this.aasServiceRegistry = aasServiceRegistry;
-
-        this.onlySubmodels = Configuration.getInstance().isOnlySubmodels();
-        this.resourceController = new ResourceController(assetIndex, contractStore, policyStore, monitor);
     }
 
-    /**
-     * Synchronize AAS services with self-description and EDC AssetIndex/ContractStore
-     */
-    @Override
-    public void run() {
-        for (var selfDescription : selfDescriptionRepository.getAllServiceUrls()) {
-            try {
-                synchronize(new URL(selfDescription));
-            } catch (MalformedURLException aasServiceUrlWrong) {
-                throw new EdcException("AAS URL could not be created while synchronizing", aasServiceUrlWrong);
-            }
-        }
-    }
+    public abstract SelfDescriptionSourceType supportedType();
 
-    private void synchronize(URL aasServiceUrl) {
+    public abstract void synchronize(URL aasServiceUrl);
 
-        var oldSelfDescription = selfDescriptionRepository.getSelfDescription(aasServiceUrl);
-
-        var oldEnvironment = Objects.isNull(oldSelfDescription) ?
-                new CustomAssetAdministrationShellEnvironment() :
-                oldSelfDescription.getEnvironment();
-
-        var newEnvironment = fetchCurrentAasModel(aasServiceUrl);
-
-        // Check whether any element was added or removed.
-        // - Added elements need idsContractId/idsAssetId
-        // - Existing elements are copied into newEnvironment
-        syncShell(newEnvironment, oldEnvironment);
-        syncConceptDescription(newEnvironment, oldEnvironment);
-        syncSubmodel(newEnvironment, oldEnvironment);
-
-        addNewElements(newEnvironment);
-        selfDescriptionRepository.updateSelfDescription(aasServiceUrl, newEnvironment);
-    }
-
-    private CustomAssetAdministrationShellEnvironment fetchCurrentAasModel(URL aasServiceUrl) {
-        CustomAssetAdministrationShellEnvironment newEnvironment;
-
-        try { // Fetch current AAS model from AAS service
-            newEnvironment = aasController.getAasModelWithUrls(aasServiceUrl, onlySubmodels);
-        } catch (IOException aasServiceUnreachableException) {
-            throw new EdcException(format("Could not reach AAS service (%s): %s", aasServiceUrl,
-                    aasServiceUnreachableException.getMessage()), aasServiceUnreachableException);
-        }
-        return newEnvironment;
-    }
-
-    private void addNewElements(CustomAssetAdministrationShellEnvironment newEnvironment) {
-        var envElements = AssetAdministrationShellUtil.getAllElements(newEnvironment);
-        addAssetsContracts(envElements.stream().filter(
-                        element -> Objects.isNull(element.getIdsAssetId()) || Objects.isNull(element.getIdsContractId()))
-                .toList());
-    }
-
-    private void syncShell(CustomAssetAdministrationShellEnvironment newEnvironment,
-                           CustomAssetAdministrationShellEnvironment oldEnvironment) {
-        var oldShells = oldEnvironment.getAssetAdministrationShells();
-        newEnvironment.getAssetAdministrationShells().replaceAll(
-                shell -> oldShells.contains(shell)
-                        ? oldShells.get(oldShells.indexOf(shell))
-                        : shell);
-    }
-
-    private void syncConceptDescription(CustomAssetAdministrationShellEnvironment newEnvironment,
-                                        CustomAssetAdministrationShellEnvironment oldEnvironment) {
-        var oldConceptDescriptions = oldEnvironment.getConceptDescriptions();
-        newEnvironment.getConceptDescriptions().replaceAll(
-                conceptDescription -> oldConceptDescriptions.contains(conceptDescription)
-                        ? oldConceptDescriptions.get(oldConceptDescriptions.indexOf(conceptDescription))
-                        : conceptDescription);
-    }
-
-    private void syncSubmodel(CustomAssetAdministrationShellEnvironment newEnvironment,
-                              CustomAssetAdministrationShellEnvironment oldEnvironment) {
-        var oldSubmodels = oldEnvironment.getSubmodels();
-        newEnvironment.getSubmodels().forEach(submodel -> {
-            CustomSubmodel oldSubmodel;
-            if (oldSubmodels.contains(submodel)) {
-                oldSubmodel = oldSubmodels.get(oldSubmodels.indexOf(submodel));
-            } else {
-                oldSubmodel = oldSubmodels.stream().filter(
-                                submodel::equals)
-                        .findFirst().orElse(null);
-                if (Objects.isNull(oldSubmodel)) {
-                    return;
-                }
-            }
-
-            submodel.setIdsAssetId(oldSubmodel.getIdsAssetId());
-            submodel.setIdsContractId(oldSubmodel.getIdsContractId());
-            var allElements = AssetAdministrationShellUtil.getAllSubmodelElements(submodel);
-            var allOldElements = AssetAdministrationShellUtil.getAllSubmodelElements(oldSubmodel);
-            syncSubmodelElements(allElements, allOldElements);
-        });
-    }
-
-    private void syncSubmodelElements(Collection<CustomSubmodelElement> allElements,
-                                      Collection<CustomSubmodelElement> allOldElements) {
-        allElements.stream()
-                .filter(allOldElements::contains)
-                .forEach(element -> {
-                    var oldElement = allOldElements.stream()
-                            .filter(oldElementTest -> oldElementTest.equals(element)).findFirst().orElse(element);
-                    element.setIdsAssetId(oldElement.getIdsAssetId());
-                    element.setIdsContractId(oldElement.getIdsContractId());
-                });
-    }
-
-    private void addAssetsContracts(List<? extends IdsAssetElement> elements) {
-        // Add each AAS element to EDC AssetIndex, giving it a contract
-        elements.forEach(element -> {
-            // Version unknown, MediaType is "application/json" by default
-            var assetContractPair = resourceController.createResource(element.getSourceUrl(),
-                    element.getReferenceChain(),
-                    ((AssetAdministrationShellElement) element).getIdShort(),
-                    MediaType.APPLICATION_JSON);
-            element.setIdsAssetId(assetContractPair.first());
-            element.setIdsContractId(assetContractPair.second());
-        });
-    }
-
-    @Override
-    public void created(URL aasUrl) {
-        var registrationResult = aasServiceRegistry.register(aasUrl.toString());
-        if (registrationResult.failed()) {
-            throw new EdcException(format("Could not synchronize with %s: %s",
-                    aasUrl,
-                    registrationResult.getFailureMessages()));
-        }
-
-        synchronize(aasUrl);
-    }
-
-    @Override
-    public void removed(URL removed) {
-        AssetAdministrationShellUtil.getAllElements(selfDescriptionRepository.getSelfDescription(removed).getEnvironment())
-                .forEach(element -> resourceController.deleteAssetAndContracts(element.getIdsAssetId()));
-
-        aasServiceRegistry.unregister(removed.toString());
-    }
-
-    public static class Builder {
-        private SelfDescriptionRepository selfDescriptionRepository;
-        private AasController aasController;
-        private AssetIndex assetIndex;
-        private ContractDefinitionStore contractStore;
-        private PolicyDefinitionStore policyStore;
-        private Monitor monitor;
-        private AasServiceRegistry aasServiceRegistry;
-
-        private Builder() {
-        }
-
-        public static Builder getInstance() {
-            return new Builder();
-        }
-
-        public Builder selfDescriptionRepository(SelfDescriptionRepository selfDescriptionRepository) {
-            this.selfDescriptionRepository = selfDescriptionRepository;
-            return this;
-        }
-
-        public Builder aasController(AasController aasController) {
-            this.aasController = aasController;
-            return this;
-        }
-
-        public Builder assetIndex(AssetIndex assetIndex) {
-            this.assetIndex = assetIndex;
-            return this;
-        }
-
-        public Builder contractStore(ContractDefinitionStore contractStore) {
-            this.contractStore = contractStore;
-            return this;
-        }
-
-        public Builder policyStore(PolicyDefinitionStore policyStore) {
-            this.policyStore = policyStore;
-            return this;
-        }
-
-        public Builder monitor(Monitor monitor) {
-            this.monitor = monitor;
-            return this;
-        }
-
-        public Builder aasServiceRegistry(AasServiceRegistry aasServiceRegistry) {
-            this.aasServiceRegistry = aasServiceRegistry;
-            return this;
-        }
-
-        public Synchronizer build() {
-            Objects.requireNonNull(selfDescriptionRepository, "selfDescriptionRepository");
-            Objects.requireNonNull(aasController, "aasController");
-            Objects.requireNonNull(assetIndex, "assetIndex");
-            Objects.requireNonNull(contractStore, "contractStore");
-            Objects.requireNonNull(policyStore, "policyStore");
-            Objects.requireNonNull(monitor, "monitor");
-            Objects.requireNonNull(aasServiceRegistry, "aasServiceRegistry");
-            return new Synchronizer(selfDescriptionRepository, aasController, assetIndex, contractStore, policyStore, monitor, aasServiceRegistry);
-        }
+    void remove(URL toRemove) {
+        AssetUtil.flatMapAssets(selfDescriptionRepository.getSelfDescription(toRemove))
+                .forEach(element -> resourceController.deleteAssetAndContracts(element.getId()));
     }
 }

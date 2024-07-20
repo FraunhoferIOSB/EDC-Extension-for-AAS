@@ -15,13 +15,13 @@
  */
 package de.fraunhofer.iosb.app.model.ids;
 
-import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShellEnvironment;
+import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.spi.observe.ObservableImpl;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Self-description repository, also an observable so that on removal
@@ -29,18 +29,18 @@ import java.util.Set;
  */
 public class SelfDescriptionRepository extends ObservableImpl<SelfDescriptionChangeListener> {
 
-    private final Map<String, SelfDescription> content;
+    private final Map<SelfDescriptionMetaInformation, Asset> content;
 
     public SelfDescriptionRepository() {
         super();
         content = new HashMap<>();
     }
 
-    public Set<String> getAllServiceUrls() {
+    public Set<SelfDescriptionMetaInformation> getAllSelfDescriptionMetaInformation() {
         return content.keySet();
     }
 
-    public Map<String, SelfDescription> getAllSelfDescriptions() {
+    public Map<SelfDescriptionMetaInformation, Asset> getAllSelfDescriptions() {
         return content;
     }
 
@@ -48,10 +48,10 @@ public class SelfDescriptionRepository extends ObservableImpl<SelfDescriptionCha
      * Return self-description associated with this URL
      *
      * @param aasUrl URL determining self description to be returned
-     * @return self-description associated with AAS URL
+     * @return self-description asset associated with AAS URL or null
      */
-    public SelfDescription getSelfDescription(URL aasUrl) {
-        return content.get(aasUrl.toString());
+    public @Nullable Asset getSelfDescription(URL aasUrl) {
+        return content.get(findByUrl(aasUrl));
     }
 
     /**
@@ -59,11 +59,14 @@ public class SelfDescriptionRepository extends ObservableImpl<SelfDescriptionCha
      * This will indirectly call the synchronizer to fetch the AAS
      * service's contents and build the self-description from it.
      *
-     * @param aasUrl The URL of the AAS service.
+     * @param url  URL of self-description to be created
+     * @param type Type of self-description to be created
      */
-    public void createSelfDescription(URL aasUrl) {
-        content.put(aasUrl.toString(), null);
-        this.getListeners().forEach(listener -> listener.created(aasUrl));
+    public void createSelfDescription(URL url, SelfDescriptionSourceType type) {
+        var metaInformation = new SelfDescriptionMetaInformation(url, type);
+
+        content.put(metaInformation, null);
+        this.getListeners().forEach(listener -> listener.created(metaInformation));
     }
 
     /**
@@ -73,18 +76,43 @@ public class SelfDescriptionRepository extends ObservableImpl<SelfDescriptionCha
      * @param newEnvironment updated environment from which self-description is
      *                       created
      */
-    public void updateSelfDescription(URL aasUrl, CustomAssetAdministrationShellEnvironment newEnvironment) {
-        content.put(aasUrl.toString(), new SelfDescription(newEnvironment));
+    public void updateSelfDescription(URL aasUrl, Asset newEnvironment) {
+        content.put(findByUrl(aasUrl), newEnvironment);
+    }
+
+    private SelfDescriptionMetaInformation findByUrl(URL url) {
+        return content.keySet().stream()
+                .filter(entry -> entry.url().toString().equals(url.toString()))
+                .findFirst()
+                .orElse(null);
     }
 
     /**
      * Remove self-description and notify listeners.
      *
-     * @param aasUrl URL of self-description to be updated
+     * @param url URL of self-description to be updated
      */
-    public void removeSelfDescription(URL aasUrl) {
+    public void removeSelfDescription(URL url) {
+        var metaInformation = findByUrl(url);
         // Before we remove the self-description, notify listeners (synchronizer -> remove assets from edc)
-        this.getListeners().forEach(listener -> listener.removed(aasUrl));
-        content.remove(aasUrl.toString());
+        this.getListeners().forEach(listener -> listener.removed(metaInformation));
+        content.remove(metaInformation);
+    }
+
+    public enum SelfDescriptionSourceType {SERVICE, REGISTRY}
+
+    public record SelfDescriptionMetaInformation(URL url, SelfDescriptionSourceType type) {
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            SelfDescriptionMetaInformation that = (SelfDescriptionMetaInformation) o;
+            return Objects.equals(url, that.url) && type == that.type;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(url, type);
+        }
     }
 }

@@ -31,6 +31,10 @@ public class ResourceHandler {
         this.assetIndex = assetIndex;
     }
 
+    public void createAsset(Asset asset) {
+        assetIndex.create(asset);
+    }
+
     /**
      * Registers an asset at the EDC.
      *

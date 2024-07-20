@@ -6,6 +6,31 @@ Compatibility: **Eclipse Dataspace Connector v0.8.0**
 
 **New Features**
 
+* Support of FA³ST Registry
+    * Add a FA³ST Registry by URL
+    * Registered AAS services will be registered at the EDC as Assets with default contracts
+
+**Bugfixes**
+
+**Miscellaneous**
+
+* This extension does not use custom AAS models for internal persistence any longer
+    * Instead, the nested structure of the AAS environment is now stored inside an Asset.
+    * The nested asset is kept by the extension and fed to the assetIndex (and contractStore)
+    * On environment updates, this nested asset is updated and these updates are propagated to the EDC components as
+      described above.
+    * This makes the extension not rely on custom data classes which can be invalidated through an update of AAS or EDC
+    * It also makes (de)serialization of AAS environments easier
+* Updated FA³ST to version v1.1.0
+* Removed custom dependency injection because of transitive dependency issue from FA³ST service
+    * This was in `example/build.gradle.kts`
+
+## V2.1.1
+
+This version is compatible to **Eclipse Dataspace Connector v0.8.0**
+
+**New Features**
+
 * Dynamically building AAS access URLs using Reference Chains [Submodel x, Collection y, Element z], a concept from AAS
   the specification
 * Accepting self-signed certificates now
@@ -25,6 +50,8 @@ Compatibility: **Eclipse Dataspace Connector v0.8.0**
   possible
 * Unregistering an external AAS service no longer throws IllegalArgumentException
 * DataTransfer with AAS DataSource no longer throws IOException: closed
+* Test runs on Microsoft's OS no longer fail
+* Update older docker example files to support new version of extension
 
 **Miscellaneous**
 

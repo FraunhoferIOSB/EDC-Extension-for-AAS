@@ -22,15 +22,15 @@ public interface SelfDescriptionChangeListener {
     /**
      * Called when a self-description was created
      *
-     * @param aasUrl The URL of the newly registered AAS service
+     * @param metaInformation The URL and type of the newly registered AAS service
      */
-    void created(URL aasUrl);
+    void created(SelfDescriptionRepository.SelfDescriptionMetaInformation metaInformation);
 
     /**
      * Called when a self-description was removed
      *
-     * @param removed The URL of the unregistered AAS service
+     * @param metaInformation The URL and type of the unregistered AAS service
      */
-    void removed(URL removed);
+    void removed(SelfDescriptionRepository.SelfDescriptionMetaInformation metaInformation);
 
 }

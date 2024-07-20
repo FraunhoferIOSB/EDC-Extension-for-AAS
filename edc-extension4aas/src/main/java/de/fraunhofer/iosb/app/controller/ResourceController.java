@@ -17,12 +17,13 @@ package de.fraunhofer.iosb.app.controller;
 
 import de.fraunhofer.iosb.app.edc.ContractHandler;
 import de.fraunhofer.iosb.app.edc.ResourceHandler;
-import de.fraunhofer.iosb.app.util.Pair;
-import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
+import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.spi.monitor.Monitor;
+
+import java.util.Collection;
 
 /**
  * Controls communication with EDC (EDC contracts and EDC assets)
@@ -39,19 +40,15 @@ public class ResourceController {
     }
 
     /**
-     * Registers resource at EDC with default contract, return contract id of new
-     * asset
+     * Registers resources at EDC with default contract
      *
-     * @param sourceUrl      URL to resource to be registered
-     * @param referenceChain To create the full access url dynamically this reference chain is passed
-     * @param name           The name of the asset (e.g., idShort)
-     * @param contentType    Content behind the sourceUrl
-     * @return contract id
+     * @param assets Assets to be registered
      */
-    public Pair<String, String> createResource(String sourceUrl, Reference referenceChain, String name, String contentType) {
-        var assetId = resourceAgent.createAsset(sourceUrl, referenceChain, name, contentType);
-        var contractId = contractHandler.registerAssetToDefaultContract(assetId);
-        return new Pair<>(assetId, contractId);
+    public void createResources(Collection<Asset> assets) {
+        assets.forEach(asset -> {
+            resourceAgent.createAsset(asset);
+            contractHandler.registerAssetToDefaultContract(asset.getId());
+        });
     }
 
     /**

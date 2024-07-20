@@ -96,7 +96,7 @@ public class AasDataAddress extends DataAddress {
                     urlBuilder.append("concept-descriptions/").append(Encoder.encodeBase64(key.getValue()));
                     break;
                 case SUBMODEL_ELEMENT:
-                case SUBMODEL_ELEMENT_COLLECTION:
+                case SUBMODEL_ELEMENT_COLLECTION: // TODO remove iff new impl
                 case SUBMODEL_ELEMENT_LIST:
                     if (urlBuilder.indexOf("/submodel-elements/") == -1) {
                         urlBuilder.append("/submodel-elements/");

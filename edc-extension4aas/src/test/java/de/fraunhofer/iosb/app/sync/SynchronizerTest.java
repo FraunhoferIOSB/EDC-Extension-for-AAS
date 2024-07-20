@@ -18,6 +18,7 @@ package de.fraunhofer.iosb.app.sync;
 import de.fraunhofer.iosb.aas.impl.AllAasDataProcessorFactory;
 import de.fraunhofer.iosb.app.controller.AasController;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
+import de.fraunhofer.iosb.app.sync.impl.ServiceSynchronizer;
 import de.fraunhofer.iosb.app.testutils.FileManager;
 import de.fraunhofer.iosb.app.testutils.StringMethods;
 import de.fraunhofer.iosb.registry.AasServiceRegistry;
@@ -65,7 +66,7 @@ public class SynchronizerTest {
     private final String oneSubmodelOneSubmodelElementMore = FileManager
             .loadResource("oneSubmodelOneSubmodelElementMore.json");
     private final String conceptDescriptions = FileManager.loadResource("conceptDescriptions.json");
-    private Synchronizer synchronizer;
+    private SynchronizationManager synchronizationManager;
     private SelfDescriptionRepository selfDescriptionRepo;
 
     @BeforeAll
@@ -88,12 +89,16 @@ public class SynchronizerTest {
 
     @BeforeEach
     public void setupSynchronizer() {
-        var monitor = new ConsoleMonitor();
-
+        var synchronizerRepository = new SynchronizerRepository();
         selfDescriptionRepo = new SelfDescriptionRepository();
-        synchronizer = Synchronizer.Builder.getInstance()
+        synchronizationManager = SynchronizationManager.Builder.getInstance()
                 .selfDescriptionRepository(selfDescriptionRepo)
-                .aasController(new AasController(monitor,
+                .aasServiceRegistry(new AasServiceRegistry(new HashSet<>()))
+                .synchronizerRepository(synchronizerRepository)
+                .build();
+
+        synchronizerRepository.registerSynchronizer(ServiceSynchronizer.Builder.getInstance()
+                .aasController(new AasController(new ConsoleMonitor(),
                         new AllAasDataProcessorFactory(
                                 new NoOpSelfSignedCertificateRetriever(),
                                 new OkHttpClient(),
@@ -102,11 +107,11 @@ public class SynchronizerTest {
                 .assetIndex(mock(AssetIndex.class))
                 .contractStore(mock(ContractDefinitionStore.class))
                 .policyStore(mock(PolicyDefinitionStore.class))
-                .monitor(monitor)
-                .aasServiceRegistry(new AasServiceRegistry(new HashSet<>()))
-                .build();
+                .monitor(new ConsoleMonitor())
+                        .selfDescriptionRepository(selfDescriptionRepo)
+                .build());
 
-        selfDescriptionRepo.registerListener(synchronizer);
+        selfDescriptionRepo.registerListener(synchronizationManager);
         prepareDefaultMockedResponse();
     }
 
@@ -120,7 +125,7 @@ public class SynchronizerTest {
      */
     @Test
     public void synchronizationInitializeTest() {
-        selfDescriptionRepo.createSelfDescription(url);
+        selfDescriptionRepo.createSelfDescription(url, SelfDescriptionRepository.SelfDescriptionSourceType.SERVICE);
 
         StringMethods.assertEqualsIgnoreWhiteSpace(
                 Objects.requireNonNull(FileManager.loadResource("selfDescriptionWithIds.json")),
@@ -129,13 +134,13 @@ public class SynchronizerTest {
 
     @Test
     public void synchronizationRemoveAllSubmodelElementsTest() {
-        selfDescriptionRepo.createSelfDescription(url);
+        selfDescriptionRepo.createSelfDescription(url, SelfDescriptionRepository.SelfDescriptionSourceType.SERVICE);
         StringMethods.assertEqualsIgnoreWhiteSpace(
                 Objects.requireNonNull(FileManager.loadResource("selfDescriptionWithIds.json")),
                 selfDescriptionRepo.getSelfDescription(url).toString());
 
         prepareRemovedSubmodelMockedResponse();
-        synchronizer.run();
+        synchronizationManager.run();
         StringMethods.assertEqualsIgnoreWhiteSpace(
                 Objects.requireNonNull(FileManager.loadResource("selfDescriptionWithIdsNoSubmodelElements.json")),
                 selfDescriptionRepo.getSelfDescription(url).toString());
@@ -143,13 +148,13 @@ public class SynchronizerTest {
 
     @Test
     public void synchronizationAddOneSubmodelElementTest() {
-        selfDescriptionRepo.createSelfDescription(url);
+        selfDescriptionRepo.createSelfDescription(url, SelfDescriptionRepository.SelfDescriptionSourceType.SERVICE);
         StringMethods.assertEqualsIgnoreWhiteSpace(
                 Objects.requireNonNull(FileManager.loadResource("selfDescriptionWithIds.json")),
                 selfDescriptionRepo.getSelfDescription(url).toString());
 
         prepareAddedSubmodelElementMockedResponse();
-        synchronizer.run();
+        synchronizationManager.run();
         StringMethods.assertEqualsIgnoreWhiteSpace(
                 Objects.requireNonNull(FileManager.loadResource("selfDescriptionWithIdsOneSubmodelOneSubmodelElementMore.json")),
                 selfDescriptionRepo.getSelfDescription(url).toString());
@@ -157,20 +162,20 @@ public class SynchronizerTest {
 
     @Test
     public void synchronizationRemoveAllTest() {
-        selfDescriptionRepo.createSelfDescription(url);
+        selfDescriptionRepo.createSelfDescription(url, SelfDescriptionRepository.SelfDescriptionSourceType.SERVICE);
         StringMethods.assertEqualsIgnoreWhiteSpace(
                 Objects.requireNonNull(FileManager.loadResource("selfDescriptionWithIds.json")),
                 selfDescriptionRepo.getSelfDescription(url).toString());
 
         prepareEmptyMockedResponse();
-        synchronizer.run();
+        synchronizationManager.run();
         StringMethods.assertEqualsIgnoreWhiteSpace("{}",
                 selfDescriptionRepo.getSelfDescription(url).toString());
     }
 
     @Test
     public void synchronizationRemoveAasTest() {
-        selfDescriptionRepo.createSelfDescription(url);
+        selfDescriptionRepo.createSelfDescription(url, SelfDescriptionRepository.SelfDescriptionSourceType.SERVICE);
         StringMethods.assertEqualsIgnoreWhiteSpace(
                 Objects.requireNonNull(FileManager.loadResource("selfDescriptionWithIds.json")),
                 selfDescriptionRepo.getSelfDescription(url).toString());
@@ -183,7 +188,7 @@ public class SynchronizerTest {
     public void aasServiceNotAvailableTest() {
         mockServer.stop();
         try {
-            selfDescriptionRepo.createSelfDescription(url);
+            selfDescriptionRepo.createSelfDescription(url, SelfDescriptionRepository.SelfDescriptionSourceType.SERVICE);
             fail("AAS service not available, self description should not be created");
         } catch (EdcException expected) {
         }

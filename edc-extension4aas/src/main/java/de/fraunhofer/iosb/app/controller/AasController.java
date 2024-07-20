@@ -19,7 +19,7 @@ import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
 import de.fraunhofer.iosb.app.aas.AasAgent;
 import de.fraunhofer.iosb.app.aas.AssetAdministrationShellServiceManager;
 import de.fraunhofer.iosb.app.aas.FaaastServiceManager;
-import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShellEnvironment;
+import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
 import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.io.IOException;
@@ -52,15 +52,13 @@ public class AasController {
      * each AAS element in the sourceUrl field.
      *
      * @param aasServiceUrl url of the service
-     * @param onlySubmodels Don't get shells, concept descriptions, submodel elements
      * @return aasServiceUrl's model, in self-description form
      * @throws IOException Communication with AAS service failed
      */
-    public CustomAssetAdministrationShellEnvironment getAasModelWithUrls(URL aasServiceUrl, boolean onlySubmodels)
+    public Environment getAasModelWithUrls(URL aasServiceUrl)
             throws IOException {
         Objects.requireNonNull(aasServiceUrl);
-
-        return aasAgent.getAasEnvWithUrls(aasServiceUrl, onlySubmodels);
+        return aasAgent.getAasEnvironment(aasServiceUrl);
     }
 
     /**

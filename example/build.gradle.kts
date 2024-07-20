@@ -14,7 +14,6 @@ plugins {
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
-val jupiterVersion: String by project
 val edcVersion: String by project
 
 dependencies {
@@ -59,19 +58,4 @@ tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
 
 repositories {
     mavenCentral()
-}
-
-configurations.all {
-    resolutionStrategy.eachDependency {
-        if (requested.module.toString() == "com.google.inject:guice") {
-            artifactSelection {
-                selectArtifact(DependencyArtifact.DEFAULT_TYPE, null, null)
-            }
-        }
-        if (requested.module.toString() == "org.yaml:snakeyaml") {
-            artifactSelection {
-                selectArtifact(DependencyArtifact.DEFAULT_TYPE, null, null)
-            }
-        }
-    }
 }

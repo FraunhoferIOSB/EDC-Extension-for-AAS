@@ -16,12 +16,14 @@
 package de.fraunhofer.iosb.app.aas;
 
 import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
-import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShell;
-import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShellEnvironment;
-import de.fraunhofer.iosb.app.model.aas.CustomConceptDescription;
-import de.fraunhofer.iosb.app.model.aas.CustomSubmodel;
 import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
+import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShell;
+import org.eclipse.digitaltwin.aas4j.v3.model.ConceptDescription;
+import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
+import org.eclipse.digitaltwin.aas4j.v3.model.Submodel;
+import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultEnvironment;
 import org.eclipse.edc.spi.EdcException;
+import okhttp3.Response;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -53,20 +55,20 @@ public class AasAgent {
      * @param aasServiceUrl AAS service to be updated
      * @return AAS model enriched with each elements access URL as string in assetId field.
      */
-    public CustomAssetAdministrationShellEnvironment getAasEnvWithUrls(URL aasServiceUrl, boolean onlySubmodels)
+    public Environment getAasEnvironment(URL aasServiceUrl)
             throws IOException {
         var aasServiceUrlString = format("%s/api/v3.0", aasServiceUrl);
         modelParser = new ModelParser(aasServiceUrlString);
 
-        return readEnvironment(aasServiceUrl, onlySubmodels);
+        return readEnvironment(aasServiceUrl);
     }
 
     /**
      * Returns the AAS environment.
      */
-    private CustomAssetAdministrationShellEnvironment readEnvironment(URL aasServiceUrl, boolean onlySubmodels)
+    private Environment readEnvironment(URL aasServiceUrl)
             throws IOException {
-        var aasEnv = new CustomAssetAdministrationShellEnvironment();
+        var aasEnv = new DefaultEnvironment();
 
         URL submodelUrl;
         URL shellsUrl;
@@ -81,15 +83,14 @@ public class AasAgent {
                     resolveUriException);
         }
 
-        aasEnv.setSubmodels(readSubmodels(submodelUrl, onlySubmodels));
-        if (!onlySubmodels) {
-            aasEnv.setAssetAdministrationShells(readShells(shellsUrl));
-            aasEnv.setConceptDescriptions(readConceptDescriptions(conceptDescriptionsUrl));
-        }
+        aasEnv.setSubmodels(readSubmodels(submodelUrl));
+        aasEnv.setAssetAdministrationShells(readShells(shellsUrl));
+        aasEnv.setConceptDescriptions(readConceptDescriptions(conceptDescriptionsUrl));
+
         return aasEnv;
     }
 
-    private List<CustomConceptDescription> readConceptDescriptions(URL conceptDescriptionsUrl) throws IOException {
+    private List<ConceptDescription> readConceptDescriptions(URL conceptDescriptionsUrl) throws IOException {
         try (var response = executeRequest(conceptDescriptionsUrl)) {
             var body = response.body();
             if (body == null || response.code() == INTERNAL_SERVER_ERROR) {
@@ -99,7 +100,7 @@ public class AasAgent {
         }
     }
 
-    private List<CustomAssetAdministrationShell> readShells(URL shellsUrl) throws IOException {
+    private List<AssetAdministrationShell> readShells(URL shellsUrl) throws IOException {
         try (var response = executeRequest(shellsUrl)) {
             var body = response.body();
             if (body == null || response.code() == INTERNAL_SERVER_ERROR) {
@@ -109,17 +110,17 @@ public class AasAgent {
         }
     }
 
-    private List<CustomSubmodel> readSubmodels(URL submodelUrl, boolean onlySubmodels) throws IOException {
+    private List<Submodel> readSubmodels(URL submodelUrl) throws IOException {
         try (var response = executeRequest(submodelUrl)) {
             var body = response.body();
             if (body == null || response.code() == INTERNAL_SERVER_ERROR) {
                 throw new EdcException("Received empty body for submodel request");
             }
-            return modelParser.parseSubmodels(body.string(), onlySubmodels);
+            return modelParser.parseSubmodels(body.string());
         }
     }
 
-    private okhttp3.Response executeRequest(URL aasServiceUrl) throws IOException {
+    private Response executeRequest(URL aasServiceUrl) throws IOException {
         return aasDataProcessorFactory.processorFor(aasServiceUrl.toString())
                 .getContent()
                 .send(AasDataAddress.Builder

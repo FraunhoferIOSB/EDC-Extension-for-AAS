@@ -54,6 +54,8 @@ This docker image can be run individually or **inside a docker-compose file**:
 docker compose up (Alternatively: docker-compose up)
 ```
 
+When using Docker, the pre-defined variables in the Postman Collection for the provider should be changed from "localhost" to "provider", i.e. http://provider:8282/dsp instead of http://localhost:8282/dsp
+
 ## Configuration
 
 The EDC and its extensions can be configured with a `.properties` file. In `example/resources/configurations` there are

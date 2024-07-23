@@ -587,7 +587,7 @@
     {
       "name": "Docker Automated Negotiation",
       "request": {
-        "method": "GET",
+        "method": "POST",
         "header": [],
         "url": {
           "raw": "{{consumer}}/automated/negotiate?providerUrl=http://provider:8282/dsp&providerId=provider&assetId={{asset-id}}",

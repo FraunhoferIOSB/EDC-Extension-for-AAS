@@ -184,3 +184,5 @@ Features in development:
   see: https://github.com/FraunhoferIOSB/EDC-Extension-for-AAS-Dashboard) &#x2713;
 - AAS data-plane for EDC &#x2713;
 - Docker Hub container deployment
+- Support for AAS Registries: Share all AAS from AAS Registry
+- Client DPP Viewer: Directly view the requested DPP (AAS format)

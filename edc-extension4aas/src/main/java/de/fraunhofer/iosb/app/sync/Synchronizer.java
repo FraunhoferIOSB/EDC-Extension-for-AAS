@@ -15,39 +15,38 @@
  */
 package de.fraunhofer.iosb.app.sync;
 
-import de.fraunhofer.iosb.app.controller.AasController;
-import de.fraunhofer.iosb.app.controller.ResourceController;
-import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
+import de.fraunhofer.iosb.app.pipeline.PipelineStep;
 import de.fraunhofer.iosb.app.util.AssetUtil;
+import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 
-import java.net.URL;
-
-import static de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository.SelfDescriptionSourceType;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 
 /**
- * Synchronize registered AAS services with local
- * self-descriptions and assetIndex/contractStore.
+ * ChangeSet is independent of AAS services.
+ * Synchronizer shrunk down to just calculate changes in old and new assets
  */
-public abstract class Synchronizer {
+public class Synchronizer extends PipelineStep<Map<Asset, Asset>, ChangeSet<Asset, String>> {
 
-    protected final SelfDescriptionRepository selfDescriptionRepository;
-    protected final ResourceController resourceController;
-    protected final AasController aasController;
-
-    protected Synchronizer(SelfDescriptionRepository selfDescriptionRepository, ResourceController resourceController,
-                           AasController aasController) {
-        this.selfDescriptionRepository = selfDescriptionRepository;
-        this.resourceController = resourceController;
-        this.aasController = aasController;
+    public Synchronizer() {
     }
 
-    public abstract SelfDescriptionSourceType supportedType();
 
-    public abstract void synchronize(URL aasServiceUrl);
+    @Override
+    public ChangeSet<Asset, String> execute(Map<Asset, Asset> oldAndNewAssets) throws Exception {
+        List<String> toRemove = new ArrayList<>();
+        List<Asset> toAdd = new ArrayList<>();
 
-    void remove(URL toRemove) {
-        AssetUtil.flatMapAssets(selfDescriptionRepository.getSelfDescription(toRemove))
-                .forEach(element -> resourceController.deleteAssetAndContracts(element.getId()));
+        for (var entry : oldAndNewAssets.entrySet()) {
+            var oldEnvironment = AssetUtil.flatMapAssets(entry.getKey());
+            var newEnvironment = AssetUtil.flatMapAssets(entry.getValue());
+
+            toRemove.addAll(oldEnvironment.stream().filter(oldElement -> !newEnvironment.contains(oldElement)).map(Asset::getId).toList());
+            toAdd.addAll(newEnvironment.stream().filter(newElement -> !oldEnvironment.contains(newElement)).toList());
+        }
+
+        return new ChangeSet.Builder<Asset, String>().add(toAdd).remove(toRemove).build();
     }
 }

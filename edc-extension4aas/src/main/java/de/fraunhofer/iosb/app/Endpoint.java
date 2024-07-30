@@ -74,7 +74,7 @@ public class Endpoint {
         if (Objects.isNull(aasServiceUrl)) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Missing query parameter 'url'").build();
         }
-        if (Objects.nonNull(selfDescriptionRepository.getSelfDescription(aasServiceUrl))) {
+        if (Objects.nonNull(selfDescriptionRepository.getSelfDescriptionAsset(aasServiceUrl.toString()))) {
             return Response.status(Status.CONFLICT).entity("A service with this URL is already registered.").build();
         }
         selfDescriptionRepository.createSelfDescription(aasServiceUrl,
@@ -144,13 +144,13 @@ public class Endpoint {
             return Response.status(Response.Status.BAD_REQUEST).entity("Missing query parameter 'url'").build();
         }
 
-        if (Objects.isNull(selfDescriptionRepository.getSelfDescription(aasServiceUrl))) {
+        if (Objects.isNull(selfDescriptionRepository.getSelfDescriptionAsset(aasServiceUrl.toString()))) {
             return Response.status(Status.NOT_FOUND).entity("Service was not registered to EDC").build();
         }
 
         // Stop AAS Service if started internally
         aasController.stopAssetAdministrationShellService(aasServiceUrl);
-        selfDescriptionRepository.removeSelfDescription(aasServiceUrl);
+        selfDescriptionRepository.removeSelfDescription(aasServiceUrl.toString());
 
         return Response.ok("Unregistered client from EDC").build();
     }
@@ -174,7 +174,7 @@ public class Endpoint {
             return Response.ok(sdArrayNode).build();
         } else {
             monitor.debug("Received a self description GET request for %s".formatted(aasServiceUrl));
-            var selfDescriptionAsset = selfDescriptionRepository.getSelfDescription(aasServiceUrl);
+            var selfDescriptionAsset = selfDescriptionRepository.getSelfDescriptionAsset(aasServiceUrl.toString());
             if (Objects.nonNull(selfDescriptionAsset)) {
                 return Response.ok(SelfDescriptionSerializer.assetToString(selfDescriptionAsset)).build();
             } else {

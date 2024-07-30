@@ -13,27 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.app.controller;
+package de.fraunhofer.iosb.app.pipeline;
 
-import de.fraunhofer.iosb.app.RequestType;
-import jakarta.ws.rs.core.Response;
+import java.util.List;
+import java.util.function.Function;
 
-import java.net.URL;
+public abstract class PipelineStep<T, U> implements Function<T, PipelineResult<U>> {
 
-/**
- * A controller interface.
- */
-public interface Controllable {
+    private Class<U> myClass;
+    private Class<T> input;
 
-    /**
-     * Handles a request of type {@link RequestType}.
-     *
-     * @param requestType The request type
-     * @param requestData String array containing the request body as first and
-     *                    request parameters as second element.
-     * @return A response object according to {@link jakarta.ws.rs.core.Response
-     * Response}
-     */
-    Response handleRequest(RequestType requestType, URL url, String... requestData);
+    @Override
+    public PipelineResult<U> apply(final T t) {
+        try {
+            return PipelineResult.success(execute(t));
+        } catch (Exception e) {
+            return PipelineResult.failure(new PipelineFailure(List.of(e.getMessage()), e));
+        }
+    }
+
+    public abstract U execute(T t) throws Exception;
+
+    public boolean canHandle(Class<?> input) {
+        return myClass.equals(input);
+    }
+
+    public Class<T> getInput() {
+        return input;
+    }
 
 }

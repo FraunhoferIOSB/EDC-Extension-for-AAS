@@ -17,12 +17,13 @@ package de.fraunhofer.iosb.app.model.ids;
 
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.spi.observe.ObservableImpl;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -50,10 +51,10 @@ public class SelfDescriptionRepository extends ObservableImpl<SelfDescriptionCha
      * Return self-description associated with this URL
      *
      * @param aasUrl URL determining self description to be returned
-     * @return self-description asset associated with AAS URL or null
+     * @return self-description asset associated with AAS URL or empty asset
      */
-    public @Nullable Asset getSelfDescription(URL aasUrl) {
-        return content.get(findByUrl(aasUrl));
+    public @NotNull Asset getSelfDescriptionAsset(String aasUrl) {
+        return Optional.of(content.get(findByUrl(aasUrl))).orElse(Asset.Builder.newInstance().build());
     }
 
     /**
@@ -78,13 +79,13 @@ public class SelfDescriptionRepository extends ObservableImpl<SelfDescriptionCha
      * @param newEnvironment updated environment from which self-description is
      *                       created
      */
-    public void updateSelfDescription(URL aasUrl, Asset newEnvironment) {
+    public void updateSelfDescription(String aasUrl, Asset newEnvironment) {
         content.put(findByUrl(aasUrl), newEnvironment);
     }
 
-    private SelfDescriptionMetaInformation findByUrl(URL url) {
+    private SelfDescriptionMetaInformation findByUrl(String url) {
         return content.keySet().stream()
-                .filter(entry -> entry.url().toString().equals(url.toString()))
+                .filter(entry -> entry.url().toString().equals(url))
                 .findFirst()
                 .orElse(null);
     }
@@ -94,14 +95,14 @@ public class SelfDescriptionRepository extends ObservableImpl<SelfDescriptionCha
      *
      * @param url URL of self-description to be updated
      */
-    public void removeSelfDescription(URL url) {
+    public void removeSelfDescription(String url) {
         var metaInformation = findByUrl(url);
         // Before we remove the self-description, notify listeners (synchronizer -> remove assets from edc)
         this.getListeners().forEach(listener -> listener.removed(metaInformation));
         content.remove(metaInformation);
     }
 
-    public enum SelfDescriptionSourceType {SERVICE, REGISTRY}
+    public enum SelfDescriptionSourceType { SERVICE, REGISTRY }
 
     public record SelfDescriptionMetaInformation(URL url, SelfDescriptionSourceType type) {
         @Override

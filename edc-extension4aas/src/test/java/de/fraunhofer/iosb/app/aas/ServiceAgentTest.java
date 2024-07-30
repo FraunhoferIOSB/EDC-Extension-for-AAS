@@ -16,12 +16,17 @@
 package de.fraunhofer.iosb.app.aas;
 
 import de.fraunhofer.iosb.aas.impl.AllAasDataProcessorFactory;
+import de.fraunhofer.iosb.app.aas.agent.impl.ServiceAgent;
 import de.fraunhofer.iosb.app.testutils.FileManager;
 import de.fraunhofer.iosb.ssl.impl.DefaultSelfSignedCertificateRetriever;
 import dev.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.mockserver.integration.ClientAndServer;
 
 import java.io.IOException;
@@ -34,7 +39,7 @@ import static org.mockserver.model.HttpResponse.response;
 /**
  * Testing AAS Agent. Using mocked AAS service (HTTP endpoints)
  */
-public class AasAgentTest {
+public class ServiceAgentTest {
 
     private static final int PORT = 42042;
     private static final String HTTP_LOCALHOST_8080 = "http://localhost:" + PORT;
@@ -43,7 +48,7 @@ public class AasAgentTest {
     private static final String SHELLS = PATH_PREFIX + "/shells";
     private static final String CONCEPT_DESCRIPTIONS = PATH_PREFIX + "/concept-descriptions";
     private static ClientAndServer mockServer;
-    private AasAgent aasAgent;
+    private ServiceAgent serviceAgent;
 
     @BeforeAll
     public static void startMockServer() {
@@ -57,7 +62,7 @@ public class AasAgentTest {
 
     @BeforeEach
     public void initialize() {
-        aasAgent = new AasAgent(new AllAasDataProcessorFactory(new DefaultSelfSignedCertificateRetriever(), new OkHttpClient(), RetryPolicy.ofDefaults(), new ConsoleMonitor()));
+        serviceAgent = new ServiceAgent(new AllAasDataProcessorFactory(new DefaultSelfSignedCertificateRetriever(), new OkHttpClient(), RetryPolicy.ofDefaults(), new ConsoleMonitor()));
         mockServer.reset();
     }
 
@@ -77,7 +82,7 @@ public class AasAgentTest {
     public void testGetAasEnvironmentOnlySubmodels() throws IOException {
         prepareServerResponse();
 
-        var result = aasAgent.getAasEnvironment(new URL(HTTP_LOCALHOST_8080));
+        var result = serviceAgent.execute(new URL(HTTP_LOCALHOST_8080));
 
         // Test if URLs are valid
         //AssetUtil.flatMapAssets(result).forEach(elem -> assertEquals(HTTP_LOCALHOST_8080 + PATH_PREFIX, elem.getSourceUrl()));

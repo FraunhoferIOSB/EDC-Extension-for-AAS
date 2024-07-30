@@ -15,11 +15,11 @@
  */
 package de.fraunhofer.iosb.app.controller;
 
-import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
-import de.fraunhofer.iosb.app.aas.AasAgent;
 import de.fraunhofer.iosb.app.aas.AssetAdministrationShellServiceManager;
 import de.fraunhofer.iosb.app.aas.FaaastServiceManager;
-import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
+import de.fraunhofer.iosb.app.model.ids.SelfDescriptionChangeListener;
+import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
+import de.fraunhofer.iosb.registry.AasServiceRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.io.IOException;
@@ -33,33 +33,18 @@ import static java.lang.String.format;
  * Handles requests regarding the Asset Administration Shells registered to this
  * extension
  */
-public class AasController {
+public class AasController implements SelfDescriptionChangeListener {
 
-    private final AasAgent aasAgent;
     private final AssetAdministrationShellServiceManager aasServiceManager;
     private final Monitor monitor;
+    private final AasServiceRegistry serviceRegistry;
 
-    public AasController(Monitor monitor, AasDataProcessorFactory aasDataProcessorFactory) {
+    public AasController(AasServiceRegistry aasServiceRegistry, Monitor monitor) {
         this.monitor = monitor;
-
-        aasAgent = new AasAgent(aasDataProcessorFactory);
         aasServiceManager = new FaaastServiceManager(monitor);
+        serviceRegistry = aasServiceRegistry;
     }
 
-    /**
-     * Returns the AAS model of the AAS service behind the aasServiceUrl, as a
-     * self-description (see model/aas/*). This model has the access URL of
-     * each AAS element in the sourceUrl field.
-     *
-     * @param aasServiceUrl url of the service
-     * @return aasServiceUrl's model, in self-description form
-     * @throws IOException Communication with AAS service failed
-     */
-    public Environment getAasModelWithUrls(URL aasServiceUrl)
-            throws IOException {
-        Objects.requireNonNull(aasServiceUrl);
-        return aasAgent.getAasEnvironment(aasServiceUrl);
-    }
 
     /**
      * Starts an AAS service internally
@@ -107,4 +92,15 @@ public class AasController {
         monitor.info("Shutting down all AAS services...");
         aasServiceManager.stopServices();
     }
+
+    @Override
+    public void created(SelfDescriptionRepository.SelfDescriptionMetaInformation metaInformation) {
+        serviceRegistry.register(metaInformation.url().toString());
+    }
+
+    @Override
+    public void removed(SelfDescriptionRepository.SelfDescriptionMetaInformation metaInformation) {
+        serviceRegistry.unregister(metaInformation.url().toString());
+    }
+
 }

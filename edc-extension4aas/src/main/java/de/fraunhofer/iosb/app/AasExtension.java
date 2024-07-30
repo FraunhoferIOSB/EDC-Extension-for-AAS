@@ -18,13 +18,20 @@ package de.fraunhofer.iosb.app;
 import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
 import de.fraunhofer.iosb.api.PublicApiManagementService;
 import de.fraunhofer.iosb.api.model.HttpMethod;
+import de.fraunhofer.iosb.app.aas.EnvironmentToAssetMapper;
+import de.fraunhofer.iosb.app.aas.agent.AasAgentSelector;
+import de.fraunhofer.iosb.app.aas.agent.impl.RegistryAgent;
+import de.fraunhofer.iosb.app.aas.agent.impl.ServiceAgent;
 import de.fraunhofer.iosb.app.controller.AasController;
 import de.fraunhofer.iosb.app.controller.ConfigurationController;
+import de.fraunhofer.iosb.app.edc.asset.AssetRegistrar;
+import de.fraunhofer.iosb.app.edc.contract.ContractRegistrar;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
+import de.fraunhofer.iosb.app.model.ids.SelfDescriptionChangeListener;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
-import de.fraunhofer.iosb.app.sync.SynchronizationManager;
-import de.fraunhofer.iosb.app.sync.SynchronizerRepository;
-import de.fraunhofer.iosb.app.sync.impl.ServiceSynchronizer;
+import de.fraunhofer.iosb.app.model.ids.SelfDescriptionUpdater;
+import de.fraunhofer.iosb.app.pipeline.AssetAdministrationShellRegistrationPipeline;
+import de.fraunhofer.iosb.app.sync.Synchronizer;
 import de.fraunhofer.iosb.app.util.VariableRateScheduler;
 import de.fraunhofer.iosb.registry.AasServiceRegistry;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
@@ -44,6 +51,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * EDC Extension supporting usage of Asset Administration Shells.
@@ -75,17 +83,12 @@ public class AasExtension implements ServiceExtension {
         var monitor = context.getMonitor().withPrefix(NAME);
         var configurationController = new ConfigurationController(context.getConfig(SETTINGS_PREFIX), monitor);
 
-        // Distribute controllers, repository
+        aasController = new AasController(aasServiceRegistry, monitor);
         var selfDescriptionRepository = new SelfDescriptionRepository();
-        aasController = new AasController(monitor, aasDataProcessorFactory);
 
-        // Initialize/Start synchronizationManager, start AAS services defined in configuration
-        var synchronizationManager = initializeSynchronizerManager(selfDescriptionRepository, monitor);
-
-        selfDescriptionRepository.registerListener(synchronizationManager);
-
-        // This makes the connector shutdown if an exception occurs while starting config services
         registerAasServicesByConfig(selfDescriptionRepository);
+
+        initializePipeline(selfDescriptionRepository, monitor);
 
         // Add public endpoint if wanted by config
         if (Configuration.getInstance().isExposeSelfDescription()) {
@@ -96,29 +99,20 @@ public class AasExtension implements ServiceExtension {
         webService.registerResource(configurationController);
     }
 
+    private void initializePipeline(SelfDescriptionRepository selfDescriptionRepository,
+                                    Monitor monitor) {
+        var aasRegistrationPipeline = new AssetAdministrationShellRegistrationPipeline.Builder<Void, Void>()
+                .supplier(selfDescriptionRepository::getAllSelfDescriptionMetaInformation)
+                .step(new AasAgentSelector(Set.of(new ServiceAgent(aasDataProcessorFactory), new RegistryAgent(aasDataProcessorFactory))))
+                .step(new EnvironmentToAssetMapper(Configuration.getInstance().isOnlySubmodels()))
+                .step(new SelfDescriptionUpdater(selfDescriptionRepository))
+                .step(new Synchronizer())
+                .step(new AssetRegistrar(assetIndex))
+                .step(new ContractRegistrar(contractDefinitionStore, policyDefinitionStore, monitor))
+                .build();
 
-    private SynchronizationManager initializeSynchronizerManager(SelfDescriptionRepository selfDescriptionRepository,
-                                                                 Monitor monitor) {
-        var synchronizerRepository = new SynchronizerRepository();
-        var synchronizationManager =
-                SynchronizationManager.Builder.getInstance()
-                        .selfDescriptionRepository(selfDescriptionRepository)
-                        .aasServiceRegistry(aasServiceRegistry)
-                        .synchronizerRepository(synchronizerRepository)
-                        .build();
-
-        synchronizerRepository.registerSynchronizer(ServiceSynchronizer.Builder.getInstance()
-                .aasController(aasController)
-                .policyStore(policyDefinitionStore)
-                .contractStore(contractDefinitionStore)
-                .assetIndex(assetIndex)
-                .monitor(monitor)
-                .selfDescriptionRepository(selfDescriptionRepository)
-                .build());
-
-        new VariableRateScheduler(1).scheduleAtVariableRate(synchronizationManager,
+        new VariableRateScheduler(1).scheduleAtVariableRate(aasRegistrationPipeline,
                 () -> Configuration.getInstance().getSyncPeriod());
-        return synchronizationManager;
     }
 
     private void registerAasServicesByConfig(SelfDescriptionRepository selfDescriptionRepository) {
@@ -160,4 +154,6 @@ public class AasExtension implements ServiceExtension {
         // Gracefully stop AAS services
         aasController.stopServices();
     }
+
 }
+

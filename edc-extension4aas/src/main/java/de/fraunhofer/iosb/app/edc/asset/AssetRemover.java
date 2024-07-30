@@ -13,29 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.app.edc;
+package de.fraunhofer.iosb.app.edc.asset;
 
-import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
+import de.fraunhofer.iosb.app.pipeline.PipelineStep;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
+import org.eclipse.edc.spi.EdcException;
 
-/**
- * Internal communication with EDC. Manages EDC assets and contracts.
- */
-public class ResourceHandler {
+public class AssetRemover extends PipelineStep<String, Void> {
 
     private final AssetIndex assetIndex;
 
-    public ResourceHandler(AssetIndex assetIndex) {
+    public AssetRemover(AssetIndex assetIndex) {
         this.assetIndex = assetIndex;
-    }
-
-    /**
-     * Registers an asset at the EDC.
-     *
-     * @param asset The asset
-     */
-    public void createAsset(Asset asset) {
-        assetIndex.create(asset);
     }
 
     /**
@@ -43,7 +32,15 @@ public class ResourceHandler {
      *
      * @param assetId asset id
      */
-    public void deleteAsset(String assetId) {
-        assetIndex.deleteById(assetId);
+    @Override
+    public Void execute(String assetId) throws Exception {
+        var storeResult = assetIndex.deleteById(assetId);
+        if (storeResult.succeeded()) {
+            return null;
+        } else {
+            throw new EdcException("Could not delete asset %s. %s".formatted(assetId, storeResult.getFailure().getMessages()));
+        }
     }
+
+
 }

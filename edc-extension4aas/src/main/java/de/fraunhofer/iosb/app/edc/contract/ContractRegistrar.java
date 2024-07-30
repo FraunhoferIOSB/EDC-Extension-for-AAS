@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.app.edc;
+package de.fraunhofer.iosb.app.edc.contract;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
+import de.fraunhofer.iosb.app.pipeline.PipelineStep;
+import de.fraunhofer.iosb.app.sync.ChangeSet;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
@@ -26,12 +28,15 @@ import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionS
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.AbstractResult;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -48,7 +53,7 @@ import static java.lang.String.format;
  * the difference between Access-/Contract-Policy, see
  * {@link ContractDefinition} documentation.
  */
-public class ContractHandler {
+public class ContractRegistrar extends PipelineStep<ChangeSet<String, String>, Void> {
 
     private static final String DEFAULT_ACCESS_POLICY_UID = "DEFAULT_ACCESS_POLICY";
     private static final String DEFAULT_CONTRACT_POLICY_UID = "DEFAULT_CONTRACT_POLICY";
@@ -67,7 +72,7 @@ public class ContractHandler {
      * @param contractStore Needed to manage EDC contracts.
      * @param policyStore   Needed to manage EDC policies.
      */
-    public ContractHandler(ContractDefinitionStore contractStore, PolicyDefinitionStore policyStore, Monitor monitor) {
+    public ContractRegistrar(ContractDefinitionStore contractStore, PolicyDefinitionStore policyStore, Monitor monitor) {
         Objects.requireNonNull(contractStore, "ContractDefinitionStore");
         Objects.requireNonNull(policyStore, "PolicyDefinitionStore");
         this.contractDefinitionStore = contractStore;
@@ -82,40 +87,19 @@ public class ContractHandler {
 
     /**
      * Registers the given assetId to the default contract with the default access and contract policies.
+     * TODO FIX DOC
      *
-     * @param assetId The asset ID
+     * @param stringStringChangeSet The asset ID.
      * @return Contract id of contract this assetId was registered to.
      */
-    public String registerAssetToDefaultContract(String assetId) {
-        Objects.requireNonNull(assetId);
-        return createDefaultContract(assetId);
+    @Override
+    public Void execute(ChangeSet<String, String> stringStringChangeSet) throws Exception {
+        stringStringChangeSet.toAdd().forEach(this::createDefaultContract);
+        stringStringChangeSet.toRemove().forEach(this::removeContract);
+        return null;
     }
 
-    /**
-     * Deletes any contract linked to a given assetId.
-     *
-     * @param assetId Asset ID
-     */
-    public void deleteContractsWithAssetId(String assetId) {
-        var assetFilterExpression = new Criterion(Asset.PROPERTY_ID, "=", assetId);
-        var queryAssetFilter = QuerySpec.Builder.newInstance().filter(List.of(assetFilterExpression)).build();
-
-        contractDefinitionStore.findAll(queryAssetFilter)
-                .forEach(contract -> contractDefinitionStore.deleteById(contract.getId()));
-    }
-
-
-    private Policy initializeDefaultPolicy() {
-        return Policy.Builder.newInstance()
-                .permission(Permission.Builder.newInstance()
-                        .action(Action.Builder.newInstance().type("USE").build())
-                        .build())
-                .assigner("provider") // as this is just an example policy, assigner can be generic
-                .build();
-    }
-
-
-    private String createDefaultContract(String assetId) {
+    private void createDefaultContract(String assetId) {
         contractNumber++;
         var accessPolicyId = DEFAULT_ACCESS_POLICY_UID + contractNumber;
         var contractPolicyId = DEFAULT_CONTRACT_POLICY_UID + contractNumber;
@@ -147,9 +131,24 @@ public class ContractHandler {
                 .build();
 
         contractDefinitionStore.save(defaultContractDefinition);
-
-        return contractDefinitionId;
     }
+
+    private void removeContract(String assetId) {
+        var assetFilterExpression = new Criterion(Asset.PROPERTY_ID, "=", assetId);
+        var queryAssetFilter = QuerySpec.Builder.newInstance().filter(List.of(assetFilterExpression)).build();
+
+        var failures = contractDefinitionStore.findAll(queryAssetFilter)
+                .map(contract -> contractDefinitionStore.deleteById(contract.getId()))
+                .filter(AbstractResult::failed)
+                .map(AbstractResult::getFailureMessages)
+                .flatMap(Collection::stream)
+                .toList();
+        if (!failures.isEmpty()) {
+            throw new EdcException("Could not delete contracts for %s. %s".formatted(assetId, failures.toArray()));
+        }
+
+    }
+
 
     private Optional<Policy> getPolicyDefinitionFromFile(String filePath) {
         if (Objects.isNull(filePath)) {
@@ -167,4 +166,14 @@ public class ContractHandler {
             return Optional.empty();
         }
     }
+
+    private Policy initializeDefaultPolicy() {
+        return Policy.Builder.newInstance()
+                .permission(Permission.Builder.newInstance()
+                        .action(Action.Builder.newInstance().type("USE").build())
+                        .build())
+                .assigner("provider") // as this is just an example policy, assigner can be generic
+                .build();
+    }
+
 }

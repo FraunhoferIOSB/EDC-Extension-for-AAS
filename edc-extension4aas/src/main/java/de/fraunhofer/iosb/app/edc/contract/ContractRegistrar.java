@@ -17,10 +17,11 @@ package de.fraunhofer.iosb.app.edc.contract;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
+import de.fraunhofer.iosb.app.model.ChangeSet;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
+import de.fraunhofer.iosb.app.pipeline.PipelineFailure;
 import de.fraunhofer.iosb.app.pipeline.PipelineResult;
 import de.fraunhofer.iosb.app.pipeline.PipelineStep;
-import de.fraunhofer.iosb.app.sync.ChangeSet;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
@@ -29,18 +30,19 @@ import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionS
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.AbstractResult;
+import org.eclipse.edc.spi.result.Failure;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
@@ -73,7 +75,8 @@ public class ContractRegistrar extends PipelineStep<ChangeSet<String, String>, V
      * @param contractStore Needed to manage EDC contracts.
      * @param policyStore   Needed to manage EDC policies.
      */
-    public ContractRegistrar(ContractDefinitionStore contractStore, PolicyDefinitionStore policyStore, Monitor monitor) {
+    public ContractRegistrar(ContractDefinitionStore contractStore, PolicyDefinitionStore policyStore,
+                             Monitor monitor) {
         Objects.requireNonNull(contractStore, "ContractDefinitionStore");
         Objects.requireNonNull(policyStore, "PolicyDefinitionStore");
         this.contractDefinitionStore = contractStore;
@@ -87,20 +90,39 @@ public class ContractRegistrar extends PipelineStep<ChangeSet<String, String>, V
     }
 
     /**
-     * Registers the given assetId to the default contract with the default access and contract policies.
-     * TODO FIX DOC
+     * Adds/removes contracts for the asset IDs in the changeSet.
+     * Registers the given assetIDs to the default contract with the default access and contract policies.
      *
-     * @param stringStringChangeSet The asset ID.
-     * @return Contract id of contract this assetId was registered to.
+     * @param changeSet The asset IDs to add / remove contracts with
+     * @return void
      */
     @Override
-    public PipelineResult<Void> execute(ChangeSet<String, String> stringStringChangeSet) throws Exception {
-        stringStringChangeSet.toAdd().forEach(this::createDefaultContract);
-        stringStringChangeSet.toRemove().forEach(this::removeContract);
+    public PipelineResult<Void> apply(ChangeSet<String, String> changeSet) {
+        var addedResults = changeSet.toAdd().stream().map(this::createDefaultContract).toList();
+        var removedResults = changeSet.toRemove().stream().map(this::removeContract).toList();
+
+        if (addedResults.stream().anyMatch(AbstractResult::failed) || removedResults.stream().anyMatch(AbstractResult::failed)) {
+            var addedFailureMessages = addedResults.stream()
+                    .filter(AbstractResult::failed)
+                    .map(AbstractResult::getFailure)
+                    .map(Failure::getMessages)
+                    .flatMap(List::stream)
+                    .collect(Collectors.toCollection(ArrayList::new));
+
+            var removedFailureMessages = removedResults.stream()
+                    .filter(AbstractResult::failed)
+                    .map(AbstractResult::getFailure)
+                    .map(Failure::getMessages)
+                    .flatMap(List::stream)
+                    .toList();
+
+            addedFailureMessages.addAll(removedFailureMessages);
+            return PipelineResult.failure(PipelineFailure.warning(addedFailureMessages));
+        }
         return PipelineResult.success(null);
     }
 
-    private void createDefaultContract(String assetId) {
+    private PipelineResult<Void> createDefaultContract(String assetId) {
         contractNumber++;
         var accessPolicyId = DEFAULT_ACCESS_POLICY_UID + contractNumber;
         var contractPolicyId = DEFAULT_CONTRACT_POLICY_UID + contractNumber;
@@ -121,8 +143,14 @@ public class ContractRegistrar extends PipelineStep<ChangeSet<String, String>, V
                 .policy(defaultContractPolicy.withTarget(assetId))
                 .build();
 
-        policyDefinitionStore.create(defaultAccessPolicyDefinition);
-        policyDefinitionStore.create(defaultContractPolicyDefinition);
+        var accessPolicyResult = policyDefinitionStore.create(defaultAccessPolicyDefinition);
+        var contractPolicyResult = policyDefinitionStore.create(defaultContractPolicyDefinition);
+
+        if (accessPolicyResult.failed()) {
+            return PipelineResult.from(accessPolicyResult).withContent(null);
+        } else if (contractPolicyResult.failed()) {
+            return PipelineResult.from(contractPolicyResult).withContent(null);
+        }
 
         var defaultContractDefinition = ContractDefinition.Builder.newInstance()
                 .id(contractDefinitionId)
@@ -131,23 +159,29 @@ public class ContractRegistrar extends PipelineStep<ChangeSet<String, String>, V
                 .assetsSelectorCriterion(Criterion.criterion(Asset.PROPERTY_ID, "=", assetId))
                 .build();
 
-        contractDefinitionStore.save(defaultContractDefinition);
+        return PipelineResult.from(contractDefinitionStore.save(defaultContractDefinition));
     }
 
-    private void removeContract(String assetId) {
+    private PipelineResult<Void> removeContract(String assetId) {
         var assetFilterExpression = new Criterion(Asset.PROPERTY_ID, "=", assetId);
         var queryAssetFilter = QuerySpec.Builder.newInstance().filter(List.of(assetFilterExpression)).build();
 
-        var failures = contractDefinitionStore.findAll(queryAssetFilter)
+        var removeResult = contractDefinitionStore.findAll(queryAssetFilter)
                 .map(contract -> contractDefinitionStore.deleteById(contract.getId()))
-                .filter(AbstractResult::failed)
-                .map(AbstractResult::getFailureMessages)
-                .flatMap(Collection::stream)
-                .toList();
-        if (!failures.isEmpty()) {
-            throw new EdcException("Could not delete contracts for %s. %s".formatted(assetId, failures.toArray()));
+                .filter(AbstractResult::failed).toList();
+
+        if (!removeResult.isEmpty()) {
+            // Not being able to remove a contract can be considered a fatal error
+            return PipelineResult.failure(
+                    PipelineFailure.fatal(
+                            removeResult.stream()
+                                    .filter(AbstractResult::failed)
+                                    .map(AbstractResult::getFailureMessages)
+                                    .flatMap(List::stream)
+                                    .toList()));
         }
 
+        return PipelineResult.success(null);
     }
 
 

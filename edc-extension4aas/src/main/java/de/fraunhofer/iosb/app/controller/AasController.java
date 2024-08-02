@@ -18,8 +18,8 @@ package de.fraunhofer.iosb.app.controller;
 import de.fraunhofer.iosb.app.aas.AssetAdministrationShellServiceManager;
 import de.fraunhofer.iosb.app.aas.FaaastServiceManager;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionChangeListener;
-import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
 import de.fraunhofer.iosb.registry.AasServiceRegistry;
+import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.io.IOException;
@@ -27,6 +27,7 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.Objects;
 
+import static de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository.SelfDescriptionMetaInformation;
 import static java.lang.String.format;
 
 /**
@@ -44,7 +45,6 @@ public class AasController implements SelfDescriptionChangeListener {
         aasServiceManager = new FaaastServiceManager(monitor);
         serviceRegistry = aasServiceRegistry;
     }
-
 
     /**
      * Starts an AAS service internally
@@ -80,7 +80,7 @@ public class AasController implements SelfDescriptionChangeListener {
      *
      * @param aasServiceUrl URL of service to be stopped
      */
-    public void stopAssetAdministrationShellService(URL aasServiceUrl) {
+    public void stopService(URL aasServiceUrl) {
         monitor.info(format("Shutting down AAS service with URL %s...", aasServiceUrl.toString()));
         aasServiceManager.stopService(aasServiceUrl);
     }
@@ -94,12 +94,12 @@ public class AasController implements SelfDescriptionChangeListener {
     }
 
     @Override
-    public void created(SelfDescriptionRepository.SelfDescriptionMetaInformation metaInformation) {
+    public void created(SelfDescriptionMetaInformation metaInformation) {
         serviceRegistry.register(metaInformation.url().toString());
     }
 
     @Override
-    public void removed(SelfDescriptionRepository.SelfDescriptionMetaInformation metaInformation) {
+    public void removed(SelfDescriptionMetaInformation metaInformation, Asset asset) {
         serviceRegistry.unregister(metaInformation.url().toString());
     }
 

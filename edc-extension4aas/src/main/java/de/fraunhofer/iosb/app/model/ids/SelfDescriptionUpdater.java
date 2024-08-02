@@ -41,11 +41,12 @@ public class SelfDescriptionUpdater extends PipelineStep<Map<String, Asset>, Map
      * @return ID of old asset and new asset for synchronizer to create changeSet
      */
     @Override
-    public PipelineResult<Map<Asset, Asset>> execute(Map<String, Asset> registered) throws Exception {
+    public PipelineResult<Map<Asset, Asset>> apply(Map<String, Asset> registered) {
         Map<Asset, Asset> result = new HashMap<>();
 
         for (var entry : registered.entrySet()) {
-            var existingAsset = Optional.ofNullable(selfDescriptionRepository.getSelfDescriptionAsset(entry.getKey())).orElse(Asset.Builder.newInstance().build());
+            var existingAsset =
+                    Optional.ofNullable(selfDescriptionRepository.getSelfDescriptionAsset(entry.getKey())).orElse(Asset.Builder.newInstance().build());
             result.put(existingAsset, entry.getValue());
             selfDescriptionRepository.updateSelfDescription(entry.getKey(), entry.getValue());
         }

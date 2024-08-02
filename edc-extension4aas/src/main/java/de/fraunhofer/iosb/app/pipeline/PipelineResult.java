@@ -16,6 +16,7 @@
 package de.fraunhofer.iosb.app.pipeline;
 
 import org.eclipse.edc.spi.result.AbstractResult;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,17 +34,45 @@ public class PipelineResult<T> extends AbstractResult<T, PipelineFailure, Pipeli
         return new PipelineResult<>(null, failure);
     }
 
-    public static <T> PipelineResult<T> recoverableFailure(@NotNull final T content, PipelineFailure failure) {
-        if (failure.getFailureType().equals(PipelineFailure.PipelineFailureType.FATAL)) {
+    /**
+     * Can be recovered / ignored. Can be used if content is still usable.
+     *
+     * @param content Potentially corrupted / malformed result content
+     * @param failure PipelineFailure
+     * @param <T>     Content type
+     * @return the PipelineResult containing failure and content
+     */
+    public static <T> PipelineResult<T> negligibleFailure(@NotNull final T content, PipelineFailure failure) {
+        if (failure.getFailureType().equals(PipelineFailure.Type.FATAL)) {
             throw new IllegalStateException("Can not instantiate recoverable failure with failure signal FATAL");
         }
-        return new PipelineResult<>(null, failure);
+        return new PipelineResult<>(content, failure);
+    }
+
+    public static <T> PipelineResult<T> from(StoreResult<T> storeResult) {
+        if (storeResult.succeeded()) {
+            return success(storeResult.getContent());
+        }
+        return switch (storeResult.getFailure().getReason()) {
+            case ALREADY_EXISTS -> failure(PipelineFailure.info(storeResult.getFailureMessages()));
+            case DUPLICATE_KEYS, NOT_FOUND -> failure(PipelineFailure.warning(storeResult.getFailureMessages()));
+            case GENERAL_ERROR, ALREADY_LEASED -> failure(PipelineFailure.fatal(storeResult.getFailureMessages()));
+        };
+    }
+
+    public <N> PipelineResult<N> withContent(N content) {
+        if (this.succeeded()) {
+            return success(content);
+        } else {
+            return negligibleFailure(content, this.getFailure());
+        }
     }
 
     @NotNull
     @SuppressWarnings("unchecked")
     @Override
-    protected <R1 extends AbstractResult<C1, PipelineFailure, R1>, C1> R1 newInstance(@Nullable C1 content, @Nullable PipelineFailure pipelineFailure) {
+    protected <R1 extends AbstractResult<C1, PipelineFailure, R1>, C1> R1 newInstance(@Nullable C1 content,
+                                                                                      @Nullable PipelineFailure pipelineFailure) {
         return (R1) new PipelineResult<>(content, pipelineFailure);
     }
 }

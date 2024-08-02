@@ -15,6 +15,7 @@
  */
 package de.fraunhofer.iosb.app.sync;
 
+import de.fraunhofer.iosb.app.model.ChangeSet;
 import de.fraunhofer.iosb.app.pipeline.PipelineResult;
 import de.fraunhofer.iosb.app.pipeline.PipelineStep;
 import de.fraunhofer.iosb.app.util.AssetUtil;
@@ -44,10 +45,11 @@ public class Synchronizer extends PipelineStep<Map<Asset, Asset>, ChangeSet<Asse
      *
      * @param oldAndNewAssets For n AAS services, the currently stored environment
      *                        and the new one, both in the form of assets.
-     * @return For the n AAS services the asset containing assets to be added and the assetIDs of the assets to be removed
+     * @return For the n AAS services the asset containing assets to be added and the assetIDs of the assets to be
+     * removed
      */
     @Override
-    public PipelineResult<ChangeSet<Asset, String>> execute(Map<Asset, Asset> oldAndNewAssets) {
+    public PipelineResult<ChangeSet<Asset, String>> apply(Map<Asset, Asset> oldAndNewAssets) {
         List<String> toRemove = new ArrayList<>();
         List<Asset> toAdd = new ArrayList<>();
 
@@ -55,14 +57,14 @@ public class Synchronizer extends PipelineStep<Map<Asset, Asset>, ChangeSet<Asse
             var oldEnvironment = AssetUtil.flatMapAssets(entry.getKey());
             var newEnvironment = AssetUtil.flatMapAssets(entry.getValue());
 
-            toRemove.addAll(oldEnvironment.stream().filter(oldElement -> notContains(newEnvironment, oldElement)).map(Asset::getId).toList());
-            toAdd.addAll(newEnvironment.stream().filter(newElement -> notContains(oldEnvironment, newElement)).toList());
+            toRemove.addAll(oldEnvironment.stream().filter(oldElement -> absent(newEnvironment, oldElement)).map(Asset::getId).toList());
+            toAdd.addAll(newEnvironment.stream().filter(newElement -> absent(oldEnvironment, newElement)).toList());
         }
 
         return PipelineResult.success(new ChangeSet.Builder<Asset, String>().add(toAdd).remove(toRemove).build());
     }
 
-    private boolean notContains(Collection<Asset> assets, Asset asset) {
+    private boolean absent(Collection<Asset> assets, Asset asset) {
         return assets.stream().noneMatch(a -> a.getId().equals(asset.getId()));
     }
 }

@@ -24,6 +24,7 @@ import de.fraunhofer.iosb.app.aas.agent.impl.RegistryAgent;
 import de.fraunhofer.iosb.app.aas.agent.impl.ServiceAgent;
 import de.fraunhofer.iosb.app.controller.AasController;
 import de.fraunhofer.iosb.app.controller.ConfigurationController;
+import de.fraunhofer.iosb.app.edc.CleanUpService;
 import de.fraunhofer.iosb.app.edc.asset.AssetRegistrar;
 import de.fraunhofer.iosb.app.edc.contract.ContractRegistrar;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
@@ -84,6 +85,7 @@ public class AasExtension implements ServiceExtension {
 
         aasController = new AasController(aasServiceRegistry, monitor);
         var selfDescriptionRepository = new SelfDescriptionRepository();
+        selfDescriptionRepository.registerListener(aasController);
 
         registerAasServicesByConfig(selfDescriptionRepository);
 
@@ -94,6 +96,15 @@ public class AasExtension implements ServiceExtension {
             publicApiManagementService.addEndpoints(List.of(new de.fraunhofer.iosb.api.model.Endpoint(Endpoint.SELF_DESCRIPTION_PATH, HttpMethod.GET, Map.of())));
         }
 
+        var cleanUpService = new CleanUpService.Builder()
+                .assetIndex(assetIndex)
+                .monitor(monitor)
+                .contractDefinitionStore(contractDefinitionStore)
+                .policyDefinitionStore(policyDefinitionStore)
+                .build();
+
+        selfDescriptionRepository.registerListener(cleanUpService);
+
         webService.registerResource(new Endpoint(selfDescriptionRepository, aasController, monitor));
         webService.registerResource(configurationController);
     }
@@ -101,8 +112,10 @@ public class AasExtension implements ServiceExtension {
     private void initializePipeline(SelfDescriptionRepository selfDescriptionRepository,
                                     Monitor monitor) {
         var aasRegistrationPipeline = new Pipeline.Builder<Void, Void>()
+                .monitor(monitor)
                 .supplier(selfDescriptionRepository::getAllSelfDescriptionMetaInformation)
-                .step(new AasAgentSelector(Set.of(new ServiceAgent(aasDataProcessorFactory), new RegistryAgent(aasDataProcessorFactory))))
+                .step(new AasAgentSelector(Set.of(new ServiceAgent(aasDataProcessorFactory),
+                        new RegistryAgent(aasDataProcessorFactory))))
                 .step(new EnvironmentToAssetMapper(Configuration.getInstance().isOnlySubmodels()))
                 .step(new SelfDescriptionUpdater(selfDescriptionRepository))
                 .step(new Synchronizer())

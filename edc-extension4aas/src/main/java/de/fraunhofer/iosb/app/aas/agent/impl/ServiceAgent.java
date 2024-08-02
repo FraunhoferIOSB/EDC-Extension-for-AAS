@@ -50,25 +50,21 @@ public class ServiceAgent extends AasAgent {
     }
 
     /**
-     * Returns AAS environment fetched from the AAS service.
+     * Returns an AAS service's environment.
      *
-     * @param url AAS service to be updated
+     * @param url The AAS service's access URL
      * @return A map with one entry. This entry is the access url and environment of the service
      */
     @Override
-    public PipelineResult<Map<String, Environment>> execute(URL url) {
+    public PipelineResult<Map<String, Environment>> apply(URL url) {
         try {
             return PipelineResult.success(Map.of(url.toString(), readEnvironment(url)));
         } catch (IOException e) {
-            return PipelineResult.failure(new PipelineFailure(List.of(e.getMessage()), PipelineFailure.PipelineFailureType.FATAL));
+            return PipelineResult.failure(PipelineFailure.fatal(List.of(e.getMessage())));
         }
     }
 
-    /**
-     * Returns the AAS environment.
-     */
-    private Environment readEnvironment(URL aasServiceUrl)
-            throws IOException {
+    private Environment readEnvironment(URL aasServiceUrl) throws IOException {
         URL submodelUrl;
         URL shellsUrl;
         URL conceptDescriptionsUrl;

@@ -21,20 +21,42 @@ import java.util.List;
 
 public class PipelineFailure extends Failure {
 
-    private final PipelineFailureType failureType;
+    private final Type failureType;
 
-    public PipelineFailure(List<String> messages, PipelineFailureType failureType) {
+    private PipelineFailure(List<String> messages, Type failureType) {
         super(messages);
         this.failureType = failureType;
     }
 
+    public static PipelineFailure fatal(List<String> messages) {
+        return new PipelineFailure(messages, Type.FATAL);
+    }
 
-    public PipelineFailureType getFailureType() {
+    public static PipelineFailure warning(List<String> messages) {
+        return new PipelineFailure(messages, Type.WARNING);
+    }
+
+    public static PipelineFailure info(List<String> messages) {
+        return new PipelineFailure(messages, Type.INFO);
+    }
+
+    Type getFailureType() {
         return failureType;
     }
 
-    public enum PipelineFailureType {
-        FATAL, WARNING, INFO
+    enum Type {
+        /**
+         * Cannot continue computation (halts pipeline)
+         */
+        FATAL,
+        /**
+         * Something bad happened
+         */
+        WARNING,
+        /**
+         * Something unexpected happened
+         */
+        INFO
     }
 
 }

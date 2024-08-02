@@ -22,11 +22,7 @@ import de.fraunhofer.iosb.ssl.impl.DefaultSelfSignedCertificateRetriever;
 import dev.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.mockserver.integration.ClientAndServer;
 
 import java.io.IOException;
@@ -62,7 +58,8 @@ public class ServiceAgentTest {
 
     @BeforeEach
     public void initialize() {
-        serviceAgent = new ServiceAgent(new AllAasDataProcessorFactory(new DefaultSelfSignedCertificateRetriever(), new OkHttpClient(), RetryPolicy.ofDefaults(), new ConsoleMonitor()));
+        serviceAgent = new ServiceAgent(new AllAasDataProcessorFactory(new DefaultSelfSignedCertificateRetriever(),
+                new OkHttpClient(), RetryPolicy.ofDefaults(), new ConsoleMonitor()));
         mockServer.reset();
     }
 
@@ -74,7 +71,8 @@ public class ServiceAgentTest {
         //var result = aasAgent.getAasEnvironment(new URL(HTTP_LOCALHOST_8080), false);
 
         // Test if URLs are valid
-        // AssetAdministrationShellUtil.getAllElements(result).forEach(elem -> assertEquals(HTTP_LOCALHOST_8080 + PATH_PREFIX, elem.getSourceUrl()));
+        // AssetAdministrationShellUtil.getAllElements(result).forEach(elem -> assertEquals(HTTP_LOCALHOST_8080 +
+        // PATH_PREFIX, elem.getSourceUrl()));
     }
 
     @Disabled("TODO fix this test")
@@ -82,12 +80,14 @@ public class ServiceAgentTest {
     public void testGetAasEnvironmentOnlySubmodels() throws IOException {
         prepareServerResponse();
 
-        var result = serviceAgent.execute(new URL(HTTP_LOCALHOST_8080));
+        var result = serviceAgent.apply(new URL(HTTP_LOCALHOST_8080));
 
         // Test if URLs are valid
-        //AssetUtil.flatMapAssets(result).forEach(elem -> assertEquals(HTTP_LOCALHOST_8080 + PATH_PREFIX, elem.getSourceUrl()));
+        //AssetUtil.flatMapAssets(result).forEach(elem -> assertEquals(HTTP_LOCALHOST_8080 + PATH_PREFIX, elem
+        // .getSourceUrl()));
 
-        //assertEquals(AssetAdministrationShellUtil.getAllElements(result).stream().filter(elem -> elem instanceof SubmodelElement).count(), 0);
+        //assertEquals(AssetAdministrationShellUtil.getAllElements(result).stream().filter(elem -> elem instanceof
+        // SubmodelElement).count(), 0);
     }
 
     private void prepareServerResponse() {

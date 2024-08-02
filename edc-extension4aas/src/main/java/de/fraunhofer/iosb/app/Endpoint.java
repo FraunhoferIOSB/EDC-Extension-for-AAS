@@ -18,13 +18,7 @@ package de.fraunhofer.iosb.app;
 import de.fraunhofer.iosb.app.controller.AasController;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionSerializer;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.DELETE;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
@@ -49,6 +43,7 @@ public class Endpoint {
 
     public static final String SELF_DESCRIPTION_PATH = "selfDescription";
     private static final String SERVICE_PATH = "service";
+    private static final String REGISTRY_PATH = "registry";
     private static final String ENVIRONMENT_PATH = "environment";
 
     private final Monitor monitor;
@@ -68,22 +63,43 @@ public class Endpoint {
     }
 
     /**
+     * Register a remote AAS registry to this extension
+     *
+     * @param registryUrl The URL of the new AAS registry
+     * @return Response
+     */
+    @POST
+    @Path(REGISTRY_PATH)
+    public Response postAasRegistry(@QueryParam("url") URL registryUrl) {
+        monitor.info("Received a client POST request");
+        if (Objects.isNull(registryUrl)) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("Missing query parameter 'url'").build();
+        }
+        if (Objects.nonNull(selfDescriptionRepository.getSelfDescriptionAsset(registryUrl.toString()))) {
+            return Response.status(Status.CONFLICT).entity("A service with this URL is already registered.").build();
+        }
+        selfDescriptionRepository.createSelfDescription(registryUrl,
+                SelfDescriptionRepository.SelfDescriptionSourceType.SERVICE);
+        return Response.ok("Registered new client at EDC").build();
+    }
+
+    /**
      * Register a remote AAS service (e.g., FA³ST) to this extension
      *
-     * @param aasServiceUrl The URL of the new AAS client
+     * @param serviceUrl The URL of the new AAS client
      * @return Response
      */
     @POST
     @Path(SERVICE_PATH)
-    public Response postAasService(@QueryParam("url") URL aasServiceUrl) {
+    public Response postAasService(@QueryParam("url") URL serviceUrl) {
         monitor.info("Received a client POST request");
-        if (Objects.isNull(aasServiceUrl)) {
+        if (Objects.isNull(serviceUrl)) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Missing query parameter 'url'").build();
         }
-        if (Objects.nonNull(selfDescriptionRepository.getSelfDescriptionAsset(aasServiceUrl.toString()))) {
+        if (Objects.nonNull(selfDescriptionRepository.getSelfDescriptionAsset(serviceUrl.toString()))) {
             return Response.status(Status.CONFLICT).entity("A service with this URL is already registered.").build();
         }
-        selfDescriptionRepository.createSelfDescription(aasServiceUrl,
+        selfDescriptionRepository.createSelfDescription(serviceUrl,
                 SelfDescriptionRepository.SelfDescriptionSourceType.SERVICE);
         return Response.ok("Registered new client at EDC").build();
     }
@@ -155,7 +171,7 @@ public class Endpoint {
         }
 
         // Stop AAS Service if started internally
-        aasController.stopAssetAdministrationShellService(aasServiceUrl);
+        aasController.stopService(aasServiceUrl);
         selfDescriptionRepository.removeSelfDescription(aasServiceUrl.toString());
 
         return Response.ok("Unregistered client from EDC").build();

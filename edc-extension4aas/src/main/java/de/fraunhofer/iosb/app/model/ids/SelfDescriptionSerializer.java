@@ -28,7 +28,8 @@ import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.PROP
 
 public class SelfDescriptionSerializer {
 
-    private static final String[] SKIPPED_FIELDS = new String[] {"dataAddress", "privateProperties", "createdAt", PROPERTY_ID};
+    private static final String[] SKIPPED_FIELDS = new String[]{"dataAddress", "privateProperties", "createdAt",
+            PROPERTY_ID};
     private static final ObjectWriter OBJECT_WRITER = createObjectWriter();
 
     private SelfDescriptionSerializer() {
@@ -73,10 +74,12 @@ public class SelfDescriptionSerializer {
     }
 
     // TODO putting on hold until I get feedback
-    /*private static class AssetSerializer extends JsonSerializer<Asset> {
+    /*
+    private static class AssetSerializer extends JsonSerializer<Asset> {
 
         @Override
-        public void serialize(Asset asset, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
+        public void serialize(Asset asset, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws
+         IOException {
             ObjectMapper mapper = (ObjectMapper) jsonGenerator.getCodec();
             mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
             mapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);

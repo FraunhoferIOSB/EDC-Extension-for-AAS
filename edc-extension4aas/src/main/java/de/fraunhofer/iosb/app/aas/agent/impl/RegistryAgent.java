@@ -20,12 +20,7 @@ import de.fraunhofer.iosb.app.aas.agent.AasAgent;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
 import de.fraunhofer.iosb.app.pipeline.PipelineFailure;
 import de.fraunhofer.iosb.app.pipeline.PipelineResult;
-import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShell;
-import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShellDescriptor;
-import org.eclipse.digitaltwin.aas4j.v3.model.Endpoint;
-import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
-import org.eclipse.digitaltwin.aas4j.v3.model.Submodel;
-import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelDescriptor;
+import org.eclipse.digitaltwin.aas4j.v3.model.*;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultEnvironment;
 import org.eclipse.edc.spi.EdcException;
 import org.jetbrains.annotations.NotNull;
@@ -34,13 +29,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
@@ -57,11 +46,11 @@ public class RegistryAgent extends AasAgent {
     }
 
     @Override
-    public PipelineResult<Map<String, Environment>> execute(URL url) {
+    public PipelineResult<Map<String, Environment>> apply(URL url) {
         try {
             return PipelineResult.success(readEnvironment(url));
         } catch (IOException e) {
-            return PipelineResult.failure(new PipelineFailure(List.of(e.getMessage()), PipelineFailure.PipelineFailureType.FATAL));
+            return PipelineResult.failure(PipelineFailure.fatal(List.of(e.getMessage())));
         }
     }
 
@@ -113,13 +102,13 @@ public class RegistryAgent extends AasAgent {
 
     private List<URL> sortByHostAndPort(List<String> urls) {
         return urls.stream().map(spec -> {
-            try {
-                return new URL(spec);
-            } catch (MalformedURLException e) {
-                // Don't go forward with this registry element
-                return null;
-            }
-        })
+                    try {
+                        return new URL(spec);
+                    } catch (MalformedURLException e) {
+                        // Don't go forward with this registry element
+                        return null;
+                    }
+                })
                 .collect(Collectors.toCollection(ArrayList::new))
                 .stream().sorted(Comparator.comparing(URL::getHost).thenComparingInt(URL::getPort)).toList();
     }
@@ -137,7 +126,7 @@ public class RegistryAgent extends AasAgent {
                 .toList();
     }
 
-    private @NotNull List<String> getShellEndpoints(Collection<AssetAdministrationShellDescriptor> shellDescriptors) throws IOException {
+    private @NotNull List<String> getShellEndpoints(Collection<AssetAdministrationShellDescriptor> shellDescriptors) {
         return shellDescriptors.stream()
                 .map(descriptor -> descriptor.getEndpoints().stream()
                         .filter(endpoint ->

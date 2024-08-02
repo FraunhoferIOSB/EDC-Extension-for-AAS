@@ -44,6 +44,8 @@ public class AssetUtil {
 
         var submodels = getChildren(environmentAsset, "submodels");
         assets.addAll(submodels);
+
+        // Recursively flatten submodel element structure
         assets.addAll(submodels.stream()
                 .map(submodel -> getChildren(submodel, "submodelElements"))
                 .flatMap(Collection::stream)

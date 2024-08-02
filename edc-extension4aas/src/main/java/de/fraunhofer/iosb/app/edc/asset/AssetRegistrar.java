@@ -15,10 +15,10 @@
  */
 package de.fraunhofer.iosb.app.edc.asset;
 
+import de.fraunhofer.iosb.app.model.ChangeSet;
 import de.fraunhofer.iosb.app.pipeline.PipelineFailure;
 import de.fraunhofer.iosb.app.pipeline.PipelineResult;
 import de.fraunhofer.iosb.app.pipeline.PipelineStep;
-import de.fraunhofer.iosb.app.sync.ChangeSet;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -46,18 +46,29 @@ public class AssetRegistrar extends PipelineStep<ChangeSet<Asset, String>, Chang
      * @return Asset IDs of all the added/removed assets
      */
     @Override
-    public PipelineResult<ChangeSet<String, String>> execute(ChangeSet<Asset, String> changeSet) {
+    public PipelineResult<ChangeSet<String, String>> apply(ChangeSet<Asset, String> changeSet) {
         var added = changeSet.toAdd().stream().map(this::createAsset).toList();
         var removed = changeSet.toRemove().stream().map(this::removeAsset).toList();
 
         var changeSetIds = new ChangeSet.Builder<String, String>()
-                .add(added.stream().filter(AbstractResult::succeeded).map(AbstractResult::getContent).toList())
-                .remove(removed.stream().filter(AbstractResult::succeeded).map(AbstractResult::getContent).toList()).build();
+                .add(added.stream()
+                        .filter(AbstractResult::succeeded)
+                        .map(AbstractResult::getContent)
+                        .toList())
+                .remove(removed.stream()
+                        .filter(AbstractResult::succeeded)
+                        .map(AbstractResult::getContent)
+                        .toList())
+                .build();
+
+        if (!changeSetIds.toAdd().isEmpty() || !changeSetIds.toRemove().isEmpty()) {
+            monitor.info("Added %s, removed %s assets".formatted(changeSetIds.toAdd().size(),
+                    changeSetIds.toRemove().size()));
+        }
 
         if (added.stream().anyMatch(AbstractResult::failed) || removed.stream().anyMatch(AbstractResult::failed)) {
-            return PipelineResult.recoverableFailure(changeSetIds, new PipelineFailure(added.stream().filter(AbstractResult::failed).map(AbstractResult::getFailureMessages).flatMap(List::stream).toList(), PipelineFailure.PipelineFailureType.WARNING));
-        } else {
-            monitor.debug("Added %s, removed %s assets".formatted(changeSetIds.toAdd().size(), changeSetIds.toRemove().size()));
+            return PipelineResult.negligibleFailure(changeSetIds,
+                    PipelineFailure.warning(added.stream().filter(AbstractResult::failed).map(AbstractResult::getFailureMessages).flatMap(List::stream).toList()));
         }
 
         return PipelineResult.success(changeSetIds);
@@ -65,17 +76,11 @@ public class AssetRegistrar extends PipelineStep<ChangeSet<Asset, String>, Chang
 
     private PipelineResult<String> createAsset(Asset asset) {
         var storeResult = assetIndex.create(asset);
-        if (storeResult.succeeded()) {
-            return PipelineResult.success(asset.getId());
-        }
-        return PipelineResult.failure(new PipelineFailure(storeResult.getFailure().getMessages(), PipelineFailure.PipelineFailureType.WARNING));
+        return PipelineResult.from(storeResult).withContent(asset.getId());
     }
 
     private PipelineResult<String> removeAsset(String assetId) {
         var storeResult = assetIndex.deleteById(assetId);
-        if (storeResult.succeeded()) {
-            return PipelineResult.success(assetId);
-        }
-        return PipelineResult.failure(new PipelineFailure(storeResult.getFailure().getMessages(), PipelineFailure.PipelineFailureType.WARNING));
+        return PipelineResult.from(storeResult).withContent(assetId);
     }
 }

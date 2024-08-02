@@ -26,11 +26,10 @@ public abstract class PipelineStep<T, U> implements Function<T, PipelineResult<U
     @Override
     public PipelineResult<U> apply(final T t) {
         try {
-            return execute(t);
+            return this.apply(t);
         } catch (Exception e) {
-            return PipelineResult.failure(new PipelineFailure(List.of(e.getMessage()), PipelineFailure.PipelineFailureType.WARNING));
+            // If the pipeline step can't recover from its exception we should halt the pipeline
+            return PipelineResult.failure(PipelineFailure.fatal(List.of(e.getMessage())));
         }
     }
-
-    public abstract PipelineResult<U> execute(T t) throws Exception;
 }

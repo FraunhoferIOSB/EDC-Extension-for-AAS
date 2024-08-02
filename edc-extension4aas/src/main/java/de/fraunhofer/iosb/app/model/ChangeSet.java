@@ -13,13 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.app.sync;
-
-import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
+package de.fraunhofer.iosb.app.model;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 public class ChangeSet<A, R> {
 
@@ -48,12 +45,12 @@ public class ChangeSet<A, R> {
             toAdd = new ArrayList<>();
         }
 
-        public Builder<A, R> remove(List<R> remove) {
+        public Builder<A, R> remove(Collection<R> remove) {
             toRemove.addAll(remove);
             return this;
         }
 
-        public Builder<A, R> add(List<A> add) {
+        public Builder<A, R> add(Collection<A> add) {
             toAdd.addAll(add);
             return this;
         }

@@ -29,9 +29,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Not mocking the controllers this endpoint uses, as the mocking/validation

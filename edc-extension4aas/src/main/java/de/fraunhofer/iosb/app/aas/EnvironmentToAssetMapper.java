@@ -18,29 +18,13 @@ package de.fraunhofer.iosb.app.aas;
 import de.fraunhofer.iosb.app.pipeline.PipelineResult;
 import de.fraunhofer.iosb.app.pipeline.PipelineStep;
 import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
-import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShell;
-import org.eclipse.digitaltwin.aas4j.v3.model.ConceptDescription;
-import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
-import org.eclipse.digitaltwin.aas4j.v3.model.Identifiable;
-import org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes;
-import org.eclipse.digitaltwin.aas4j.v3.model.Referable;
-import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
-import org.eclipse.digitaltwin.aas4j.v3.model.Submodel;
-import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElement;
-import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElementCollection;
-import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElementList;
+import org.eclipse.digitaltwin.aas4j.v3.model.*;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultAdministrativeInformation;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultKey;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultReference;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -65,7 +49,7 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<String, Environme
      * @return Asset as described above
      */
     @Override
-    public PipelineResult<Map<String, Asset>> execute(Map<String, Environment> environments) {
+    public PipelineResult<Map<String, Asset>> apply(Map<String, Environment> environments) {
         return PipelineResult.success(environments.entrySet().stream()
                 .map(entry -> executeSingle(entry.getKey(), entry.getValue()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
@@ -73,7 +57,8 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<String, Environme
 
     public Map.Entry<String, Asset> executeSingle(String accessUrl, Environment environment) {
         var assetBuilder = Asset.Builder.newInstance().property("submodels",
-                environment.getSubmodels().stream().map((Submodel submodel) -> mapSubmodelToAsset(submodel, accessUrl)).toList());
+                environment.getSubmodels().stream().map((Submodel submodel) -> mapSubmodelToAsset(submodel,
+                        accessUrl)).toList());
         if (onlySubmodels) {
             return new AbstractMap.SimpleEntry<>(accessUrl, assetBuilder.build());
         }
@@ -110,24 +95,27 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<String, Environme
     }
 
     /* May contain traces of recursion */
-    private <T extends SubmodelElement> Asset mapSubmodelElementToAsset(Reference parentReference, T submodelElement, String accessUrl) {
+    private <T extends SubmodelElement> Asset mapSubmodelElementToAsset(Reference parentReference, T submodelElement,
+                                                                        String accessUrl) {
         var reference = createReference(submodelElement.getIdShort(), parentReference);
 
         var children = getContainerElements(submodelElement).stream()
                 .map(elem -> mapSubmodelElementToAsset(reference, elem, accessUrl))
                 .toList();
 
+        var dataAddress = AasDataAddress.Builder.newInstance()
+                .baseUrl(accessUrl)
+                .referenceChain(reference)
+                .build();
+
         return mapReferableToAssetBuilder(submodelElement)
-                .id(String.valueOf(submodelElement.getIdShort().hashCode()))
+                .id(String.valueOf(dataAddress.referenceChainAsPath().hashCode()))
                 .contentType("application/json")
                 .properties(Map.of(
                         "embeddedDataSpecifications", submodelElement.getEmbeddedDataSpecifications(),
                         "semanticId", submodelElement.getSemanticId(),
                         "value", children))
-                .dataAddress(AasDataAddress.Builder.newInstance()
-                        .baseUrl(accessUrl)
-                        .referenceChain(reference)
-                        .build())
+                .dataAddress(dataAddress)
                 .build();
     }
 

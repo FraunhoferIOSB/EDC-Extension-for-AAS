@@ -19,5 +19,5 @@ import org.junit.jupiter.api.Disabled;
 
 @Disabled("Too many changes to adapt this test. Need to make new tests")
 public class SynchronizerTest {
-    
+
 }

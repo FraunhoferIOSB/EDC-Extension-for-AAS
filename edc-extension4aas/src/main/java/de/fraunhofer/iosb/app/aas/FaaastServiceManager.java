@@ -109,7 +109,8 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
 
         try {
             var serviceConfig = ServiceConfigHelper.load(configPath.toFile());
-            var isEndpointsNull = Objects.isNull(serviceConfig.getEndpoints()); // Remove auto generated httpEndpoint later...
+            var isEndpointsNull = Objects.isNull(serviceConfig.getEndpoints()); // Remove auto generated httpEndpoint
+            // later...
 
             if (localFaaastServicePort != 0) {
                 if (isEndpointsNull) {
@@ -140,7 +141,8 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
 
             faaastServiceRepository.put(new URL(LOCALHOST_URL + localFaaastServicePort), service);
 
-        } catch (MessageBusException | EndpointException | AssetConnectionException | ConfigurationException faaastServiceException) {
+        } catch (MessageBusException | EndpointException | AssetConnectionException |
+                 ConfigurationException faaastServiceException) {
             throw new EdcException(FAAAST_SERVICE_EXCEPTION_MESSAGE, faaastServiceException);
         }
         return new URL(LOCALHOST_URL + localFaaastServicePort);

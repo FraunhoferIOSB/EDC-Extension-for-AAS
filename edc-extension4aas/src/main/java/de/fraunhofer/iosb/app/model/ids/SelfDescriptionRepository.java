@@ -32,9 +32,11 @@ import java.util.Set;
 public class SelfDescriptionRepository extends ObservableImpl<SelfDescriptionChangeListener> {
 
     private final Map<SelfDescriptionMetaInformation, Asset> content;
+    private final Map<String, Set<String>> registries;
 
     public SelfDescriptionRepository() {
         super();
+        this.registries = new HashMap<>();
         content = new HashMap<>();
     }
 
@@ -96,12 +98,21 @@ public class SelfDescriptionRepository extends ObservableImpl<SelfDescriptionCha
      */
     public void removeSelfDescription(String url) {
         var metaInformation = findByUrl(url);
-        // Before we remove the self-description, notify listeners (synchronizer -> remove assets from edc)
-        this.getListeners().forEach(listener -> listener.removed(metaInformation));
+        // Before we remove the self-description, notify listeners (remove assets/contracts from edc)
+        this.getListeners().forEach(listener -> listener.removed(metaInformation, content.get(metaInformation)));
         content.remove(metaInformation);
     }
 
-    public enum SelfDescriptionSourceType { SERVICE, REGISTRY }
+    public enum SelfDescriptionSourceType {
+        /**
+         * An AAS service such as FA³ST
+         */
+        SERVICE,
+        /**
+         * An AAS registry as specified in AAS documents
+         */
+        REGISTRY
+    }
 
     public record SelfDescriptionMetaInformation(URL url, SelfDescriptionSourceType type) {
         @Override

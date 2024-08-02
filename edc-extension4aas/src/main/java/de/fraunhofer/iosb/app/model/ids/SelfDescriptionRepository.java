@@ -17,13 +17,12 @@ package de.fraunhofer.iosb.app.model.ids;
 
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.spi.observe.ObservableImpl;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -53,8 +52,8 @@ public class SelfDescriptionRepository extends ObservableImpl<SelfDescriptionCha
      * @param aasUrl URL determining self description to be returned
      * @return self-description asset associated with AAS URL or empty asset
      */
-    public @NotNull Asset getSelfDescriptionAsset(String aasUrl) {
-        return Optional.of(content.get(findByUrl(aasUrl))).orElse(Asset.Builder.newInstance().build());
+    public @Nullable Asset getSelfDescriptionAsset(String aasUrl) {
+        return content.get(findByUrl(aasUrl));
     }
 
     /**

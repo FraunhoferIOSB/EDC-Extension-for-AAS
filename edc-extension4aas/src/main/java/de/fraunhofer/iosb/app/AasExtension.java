@@ -27,10 +27,9 @@ import de.fraunhofer.iosb.app.controller.ConfigurationController;
 import de.fraunhofer.iosb.app.edc.asset.AssetRegistrar;
 import de.fraunhofer.iosb.app.edc.contract.ContractRegistrar;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
-import de.fraunhofer.iosb.app.model.ids.SelfDescriptionChangeListener;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionUpdater;
-import de.fraunhofer.iosb.app.pipeline.AssetAdministrationShellRegistrationPipeline;
+import de.fraunhofer.iosb.app.pipeline.Pipeline;
 import de.fraunhofer.iosb.app.sync.Synchronizer;
 import de.fraunhofer.iosb.app.util.VariableRateScheduler;
 import de.fraunhofer.iosb.registry.AasServiceRegistry;
@@ -101,13 +100,13 @@ public class AasExtension implements ServiceExtension {
 
     private void initializePipeline(SelfDescriptionRepository selfDescriptionRepository,
                                     Monitor monitor) {
-        var aasRegistrationPipeline = new AssetAdministrationShellRegistrationPipeline.Builder<Void, Void>()
+        var aasRegistrationPipeline = new Pipeline.Builder<Void, Void>()
                 .supplier(selfDescriptionRepository::getAllSelfDescriptionMetaInformation)
                 .step(new AasAgentSelector(Set.of(new ServiceAgent(aasDataProcessorFactory), new RegistryAgent(aasDataProcessorFactory))))
                 .step(new EnvironmentToAssetMapper(Configuration.getInstance().isOnlySubmodels()))
                 .step(new SelfDescriptionUpdater(selfDescriptionRepository))
                 .step(new Synchronizer())
-                .step(new AssetRegistrar(assetIndex))
+                .step(new AssetRegistrar(assetIndex, monitor))
                 .step(new ContractRegistrar(contractDefinitionStore, policyDefinitionStore, monitor))
                 .build();
 

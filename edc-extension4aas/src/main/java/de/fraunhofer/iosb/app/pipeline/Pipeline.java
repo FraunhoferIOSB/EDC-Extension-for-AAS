@@ -16,17 +16,23 @@
 package de.fraunhofer.iosb.app.pipeline;
 
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.monitor.ConsoleMonitor;
+import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Supplier;
 
-public class AssetAdministrationShellRegistrationPipeline<I, O> implements Runnable {
+public class Pipeline<I, O> implements Runnable {
 
     private final List<PipelineStep<?, ?>> pipelineSteps;
+    private final Monitor monitor;
 
-    AssetAdministrationShellRegistrationPipeline(List<PipelineStep<?, ?>> pipelineSteps) {
+
+    Pipeline(List<PipelineStep<?, ?>> pipelineSteps, Monitor monitor) {
         this.pipelineSteps = pipelineSteps;
+        this.monitor = monitor;
     }
 
     @SuppressWarnings("unchecked")
@@ -37,7 +43,20 @@ public class AssetAdministrationShellRegistrationPipeline<I, O> implements Runna
             if (result.succeeded()) {
                 intermediateResult = result.getContent();
             } else {
-                throw new EdcException("Pipeline step failed");
+                switch (result.getFailure().getFailureType()) {
+                    case FATAL:
+                        throw new EdcException("Pipeline received a fatal error: %s".formatted(result.getFailure().getMessages()));
+                    case WARNING:
+                        monitor.warning("Pipeline received a warning from a pipeline step: %s".formatted(result.getFailure().getMessages()));
+                        intermediateResult = result.getContent();
+                        continue;
+                    case INFO:
+                        monitor.info("Pipeline received info from a pipeline step: %s".formatted(result.getFailure().getMessages()));
+                        intermediateResult = result.getContent();
+                        continue;
+                    default:
+                        throw new IllegalStateException("Unexpected failure type: " + result.getFailure().getFailureType());
+                }
             }
         }
         return (O) intermediateResult;
@@ -45,23 +64,20 @@ public class AssetAdministrationShellRegistrationPipeline<I, O> implements Runna
 
     @Override
     public void run() {
-        if (!pipelineSteps.isEmpty() && pipelineSteps.get(0).getInput().equals(Void.class)) {
-            execute(null);
-        } else {
-            throw new IllegalArgumentException("Cannot start this pipeline without any input");
-        }
+        execute(null);
     }
 
     public static class Builder<I, O> {
 
-        private final List<PipelineStep<?, ?>> pipelineSteps;
-
-        public Builder() {
-            pipelineSteps = new ArrayList<>();
-        }
+        private Monitor monitor;
+        private final List<PipelineStep<?, ?>> steps;
 
         private Builder(List<PipelineStep<?, ?>> instance) {
-            pipelineSteps = instance;
+            steps = instance;
+        }
+
+        public Builder() {
+            this(new ArrayList<>());
         }
 
         /**
@@ -72,28 +88,28 @@ public class AssetAdministrationShellRegistrationPipeline<I, O> implements Runna
             // Transform supplier to function ignoring input
             var step = new PipelineStep<O, N>() {
                 @Override
-                public N execute(O o) {
-                    return supplier.get();
+                public PipelineResult<N> execute(O o) {
+                    return PipelineResult.success(supplier.get());
                 }
             };
 
             return step(step);
         }
 
-        public <N> Builder<I, N> step(PipelineStep<O, N> step) {
-            var canHandle = pipelineSteps.get(pipelineSteps.size() - 1).canHandle(step.getInput());
-
-            if (canHandle) {
-                pipelineSteps.add(step);
-                return new Builder<I, N>(pipelineSteps);
-            }
-
-            throw new EdcException("Output of this step does not match output type of last step");
+        public Builder<I, O> monitor(Monitor monitor) {
+            this.monitor = monitor;
+            return this;
         }
 
-        public AssetAdministrationShellRegistrationPipeline<I, O> build() {
+        public <N> Builder<I, N> step(PipelineStep<O, N> step) {
+            steps.add(step);
+            return new Builder<I, N>(steps);
+        }
+
+        public Pipeline<I, O> build() {
+            monitor = Objects.requireNonNullElse(monitor, new ConsoleMonitor());
             // From the build process we know that PipelineSteps has I and O as input/output
-            return new AssetAdministrationShellRegistrationPipeline<>(pipelineSteps);
+            return new Pipeline<>(steps, monitor);
         }
     }
 

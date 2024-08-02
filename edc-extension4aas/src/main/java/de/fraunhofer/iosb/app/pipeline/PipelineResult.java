@@ -16,7 +16,6 @@
 package de.fraunhofer.iosb.app.pipeline;
 
 import org.eclipse.edc.spi.result.AbstractResult;
-import org.eclipse.edc.spi.result.Failure;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,11 +25,18 @@ public class PipelineResult<T> extends AbstractResult<T, PipelineFailure, Pipeli
         super(content, failure);
     }
 
-    public static <T> PipelineResult<T> success(@NotNull final T content) {
+    public static <T> PipelineResult<T> success(@Nullable final T content) {
         return new PipelineResult<>(content, null);
     }
 
     public static <U> PipelineResult<U> failure(PipelineFailure failure) {
+        return new PipelineResult<>(null, failure);
+    }
+
+    public static <T> PipelineResult<T> recoverableFailure(@NotNull final T content, PipelineFailure failure) {
+        if (failure.getFailureType().equals(PipelineFailure.PipelineFailureType.FATAL)) {
+            throw new IllegalStateException("Can not instantiate recoverable failure with failure signal FATAL");
+        }
         return new PipelineResult<>(null, failure);
     }
 

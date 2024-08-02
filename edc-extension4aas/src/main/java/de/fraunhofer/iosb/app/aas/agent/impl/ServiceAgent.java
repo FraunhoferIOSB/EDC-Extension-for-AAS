@@ -18,6 +18,8 @@ package de.fraunhofer.iosb.app.aas.agent.impl;
 import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
 import de.fraunhofer.iosb.app.aas.agent.AasAgent;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
+import de.fraunhofer.iosb.app.pipeline.PipelineFailure;
+import de.fraunhofer.iosb.app.pipeline.PipelineResult;
 import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShell;
 import org.eclipse.digitaltwin.aas4j.v3.model.ConceptDescription;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
@@ -28,6 +30,7 @@ import org.eclipse.edc.spi.EdcException;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.List;
 import java.util.Map;
 
 import static java.lang.String.format;
@@ -53,8 +56,12 @@ public class ServiceAgent extends AasAgent {
      * @return A map with one entry. This entry is the access url and environment of the service
      */
     @Override
-    public Map<String, Environment> execute(URL url) throws IOException {
-        return Map.of(url.toString(), readEnvironment(url));
+    public PipelineResult<Map<String, Environment>> execute(URL url) {
+        try {
+            return PipelineResult.success(Map.of(url.toString(), readEnvironment(url)));
+        } catch (IOException e) {
+            return PipelineResult.failure(new PipelineFailure(List.of(e.getMessage()), PipelineFailure.PipelineFailureType.FATAL));
+        }
     }
 
     /**

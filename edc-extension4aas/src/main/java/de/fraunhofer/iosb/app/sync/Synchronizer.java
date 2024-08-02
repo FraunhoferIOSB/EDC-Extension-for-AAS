@@ -15,27 +15,39 @@
  */
 package de.fraunhofer.iosb.app.sync;
 
+import de.fraunhofer.iosb.app.pipeline.PipelineResult;
 import de.fraunhofer.iosb.app.pipeline.PipelineStep;
 import de.fraunhofer.iosb.app.util.AssetUtil;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 
 /**
- * ChangeSet is independent of AAS services.
- * Synchronizer shrunk down to just calculate changes in old and new assets
+ * A synchronizer gets as input two assets:
+ * - The asset holding the currently stored assets for an AAS service
+ * and a more current asset built from the AAS environment.
+ * The synchronizer now checks which assets got added / removed
+ * since the last synchronization and passes them on to the next pipeline step as a ChangeSet
+ * consisting of the new assets and the IDs of the assets to be removed.
  */
 public class Synchronizer extends PipelineStep<Map<Asset, Asset>, ChangeSet<Asset, String>> {
 
     public Synchronizer() {
     }
 
-
+    /**
+     * Finds out which assets are to be removed / added based on a more current environment from the AAS.
+     *
+     * @param oldAndNewAssets For n AAS services, the currently stored environment
+     *                        and the new one, both in the form of assets.
+     * @return For the n AAS services the asset containing assets to be added and the assetIDs of the assets to be removed
+     */
     @Override
-    public ChangeSet<Asset, String> execute(Map<Asset, Asset> oldAndNewAssets) throws Exception {
+    public PipelineResult<ChangeSet<Asset, String>> execute(Map<Asset, Asset> oldAndNewAssets) {
         List<String> toRemove = new ArrayList<>();
         List<Asset> toAdd = new ArrayList<>();
 
@@ -43,10 +55,14 @@ public class Synchronizer extends PipelineStep<Map<Asset, Asset>, ChangeSet<Asse
             var oldEnvironment = AssetUtil.flatMapAssets(entry.getKey());
             var newEnvironment = AssetUtil.flatMapAssets(entry.getValue());
 
-            toRemove.addAll(oldEnvironment.stream().filter(oldElement -> !newEnvironment.contains(oldElement)).map(Asset::getId).toList());
-            toAdd.addAll(newEnvironment.stream().filter(newElement -> !oldEnvironment.contains(newElement)).toList());
+            toRemove.addAll(oldEnvironment.stream().filter(oldElement -> notContains(newEnvironment, oldElement)).map(Asset::getId).toList());
+            toAdd.addAll(newEnvironment.stream().filter(newElement -> notContains(oldEnvironment, newElement)).toList());
         }
 
-        return new ChangeSet.Builder<Asset, String>().add(toAdd).remove(toRemove).build();
+        return PipelineResult.success(new ChangeSet.Builder<Asset, String>().add(toAdd).remove(toRemove).build());
+    }
+
+    private boolean notContains(Collection<Asset> assets, Asset asset) {
+        return assets.stream().noneMatch(a -> a.getId().equals(asset.getId()));
     }
 }

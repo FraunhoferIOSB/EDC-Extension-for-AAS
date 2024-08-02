@@ -18,6 +18,7 @@ package de.fraunhofer.iosb.app.edc.contract;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
+import de.fraunhofer.iosb.app.pipeline.PipelineResult;
 import de.fraunhofer.iosb.app.pipeline.PipelineStep;
 import de.fraunhofer.iosb.app.sync.ChangeSet;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
@@ -93,10 +94,10 @@ public class ContractRegistrar extends PipelineStep<ChangeSet<String, String>, V
      * @return Contract id of contract this assetId was registered to.
      */
     @Override
-    public Void execute(ChangeSet<String, String> stringStringChangeSet) throws Exception {
+    public PipelineResult<Void> execute(ChangeSet<String, String> stringStringChangeSet) throws Exception {
         stringStringChangeSet.toAdd().forEach(this::createDefaultContract);
         stringStringChangeSet.toRemove().forEach(this::removeContract);
-        return null;
+        return PipelineResult.success(null);
     }
 
     private void createDefaultContract(String assetId) {

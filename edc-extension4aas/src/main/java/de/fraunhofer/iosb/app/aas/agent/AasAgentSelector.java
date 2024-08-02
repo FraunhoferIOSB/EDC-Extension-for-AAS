@@ -16,14 +16,18 @@
 package de.fraunhofer.iosb.app.aas.agent;
 
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
+import de.fraunhofer.iosb.app.pipeline.PipelineFailure;
+import de.fraunhofer.iosb.app.pipeline.PipelineResult;
 import de.fraunhofer.iosb.app.pipeline.PipelineStep;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.result.AbstractResult;
 
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class AasAgentSelector extends PipelineStep<Set<SelfDescriptionRepository.SelfDescriptionMetaInformation>, Map<String, Environment>> {
 
@@ -34,19 +38,33 @@ public class AasAgentSelector extends PipelineStep<Set<SelfDescriptionRepository
     }
 
     @Override
-    public Map<String, Environment> execute(Set<SelfDescriptionRepository.SelfDescriptionMetaInformation> metaInformation) throws Exception {
-        var results = new HashMap<String, Environment>();
-        for (var info : metaInformation) {
-            results.putAll(executeSingle(info));
+    public PipelineResult<Map<String, Environment>> execute(Set<SelfDescriptionRepository.SelfDescriptionMetaInformation> metaInformation) throws Exception {
+
+        var results = metaInformation.stream().map(this::executeSingle).toList();
+
+        if (results.stream().anyMatch(AbstractResult::failed)) {
+            return PipelineResult.failure(
+                    new PipelineFailure(results.stream().map(res -> res.getFailure().getMessages()).flatMap(List::stream).toList(),
+                            PipelineFailure.PipelineFailureType.FATAL));
         }
-        return results;
+
+
+        return PipelineResult.success(results.stream()
+                .filter(AbstractResult::succeeded)
+                .map(AbstractResult::getContent)
+                .flatMap(m -> m.entrySet().stream())
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
     }
 
-    public Map<String, Environment> executeSingle(SelfDescriptionRepository.SelfDescriptionMetaInformation metaInformation) throws Exception {
+    public PipelineResult<Map<String, Environment>> executeSingle(SelfDescriptionRepository.SelfDescriptionMetaInformation metaInformation) {
         var agent = agents.stream().filter(item -> metaInformation.type().equals(item.supportedType())).findAny();
 
         if (agent.isPresent()) {
-            return agent.get().execute(metaInformation.url());
+            try {
+                return agent.get().execute(metaInformation.url());
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         } else {
             throw new EdcException("No AAS agent for type %s found".formatted(metaInformation.type()));
         }

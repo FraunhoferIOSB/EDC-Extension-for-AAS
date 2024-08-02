@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.List;
 
 public class AssetUtil {
+
     private AssetUtil() {
         throw new RuntimeException("Utility class");
     }

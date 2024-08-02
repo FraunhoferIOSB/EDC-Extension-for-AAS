@@ -2,8 +2,6 @@ package de.fraunhofer.iosb.app.model.ids;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 class SelfDescriptionRepositoryTest {
 
     @Test

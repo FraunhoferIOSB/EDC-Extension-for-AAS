@@ -20,26 +20,17 @@ import java.util.function.Function;
 
 public abstract class PipelineStep<T, U> implements Function<T, PipelineResult<U>> {
 
-    private Class<U> myClass;
-    private Class<T> input;
+    protected PipelineStep() {
+    }
 
     @Override
     public PipelineResult<U> apply(final T t) {
         try {
-            return PipelineResult.success(execute(t));
+            return execute(t);
         } catch (Exception e) {
-            return PipelineResult.failure(new PipelineFailure(List.of(e.getMessage()), e));
+            return PipelineResult.failure(new PipelineFailure(List.of(e.getMessage()), PipelineFailure.PipelineFailureType.WARNING));
         }
     }
 
-    public abstract U execute(T t) throws Exception;
-
-    public boolean canHandle(Class<?> input) {
-        return myClass.equals(input);
-    }
-
-    public Class<T> getInput() {
-        return input;
-    }
-
+    public abstract PipelineResult<U> execute(T t) throws Exception;
 }

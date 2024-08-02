@@ -18,6 +18,8 @@ package de.fraunhofer.iosb.app.aas.agent.impl;
 import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
 import de.fraunhofer.iosb.app.aas.agent.AasAgent;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
+import de.fraunhofer.iosb.app.pipeline.PipelineFailure;
+import de.fraunhofer.iosb.app.pipeline.PipelineResult;
 import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShell;
 import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShellDescriptor;
 import org.eclipse.digitaltwin.aas4j.v3.model.Endpoint;
@@ -55,8 +57,12 @@ public class RegistryAgent extends AasAgent {
     }
 
     @Override
-    public Map<String, Environment> execute(URL url) throws IOException {
-        return readEnvironment(url);
+    public PipelineResult<Map<String, Environment>> execute(URL url) {
+        try {
+            return PipelineResult.success(readEnvironment(url));
+        } catch (IOException e) {
+            return PipelineResult.failure(new PipelineFailure(List.of(e.getMessage()), PipelineFailure.PipelineFailureType.FATAL));
+        }
     }
 
     private Map<String, Environment> readEnvironment(URL url) throws IOException {

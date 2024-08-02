@@ -15,6 +15,7 @@
  */
 package de.fraunhofer.iosb.app.aas;
 
+import de.fraunhofer.iosb.app.pipeline.PipelineResult;
 import de.fraunhofer.iosb.app.pipeline.PipelineStep;
 import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
 import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShell;
@@ -56,11 +57,6 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<String, Environme
         this.onlySubmodels = onlySubmodels;
     }
 
-    @Deprecated(since = "Replacing with pipeline")
-    public Asset map(String accessUrl, Environment environment) {
-        return executeSingle(accessUrl, environment).getValue();
-    }
-
     /**
      * Create a nested EDC asset from this environment structure. The top level asset is just to hold the shells,
      * submodels and concept descriptions and should not be added to assetIndex.
@@ -69,10 +65,10 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<String, Environme
      * @return Asset as described above
      */
     @Override
-    public Map<String, Asset> execute(Map<String, Environment> environments) {
-        return environments.entrySet().stream()
+    public PipelineResult<Map<String, Asset>> execute(Map<String, Environment> environments) {
+        return PipelineResult.success(environments.entrySet().stream()
                 .map(entry -> executeSingle(entry.getKey(), entry.getValue()))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
     }
 
     public Map.Entry<String, Asset> executeSingle(String accessUrl, Environment environment) {

@@ -20,7 +20,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
 import de.fraunhofer.iosb.app.pipeline.PipelineStep;
 import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
+import okhttp3.MediaType;
+import okhttp3.Request;
 import okhttp3.Response;
+import okhttp3.ResponseBody;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.DeserializationException;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.json.JsonDeserializer;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
@@ -58,10 +61,11 @@ public abstract class AasAgent extends PipelineStep<URL, Map<String, Environment
 
     protected <T> List<T> readElement(URL accessUrl, Class<T> clazz) throws IOException {
         try (var response = executeRequest(accessUrl)) {
-            var body = response.body();
-            if (body == null || response.code() == INTERNAL_SERVER_ERROR) {
+            if (response == null || response.body() == null || response.code() == INTERNAL_SERVER_ERROR) {
                 throw new EdcException("Received empty body for %s request".formatted(clazz.getName()));
             }
+            var body = response.body();
+
             return readList(body.string(), clazz);
         }
     }
@@ -78,13 +82,22 @@ public abstract class AasAgent extends PipelineStep<URL, Map<String, Environment
 
 
     protected Response executeRequest(URL aasServiceUrl) throws IOException {
-        return aasDataProcessorFactory.processorFor(aasServiceUrl.toString())
-                .getContent()
+        var processor = aasDataProcessorFactory.processorFor(aasServiceUrl.toString());
+
+        if (processor.failed()) {
+            return new Response.Builder()
+                    .code(500)
+                    .body(ResponseBody.create(String.valueOf(processor.getFailure()), MediaType.get("application/json"
+                    )))
+                    .request(new Request.Builder().url("").build())
+                    .build();
+        }
+        return processor.getContent()
                 .send(AasDataAddress.Builder
                         .newInstance()
                         .method(GET)
                         .baseUrl(aasServiceUrl.toString())
                         .build());
-    }
 
+    }
 }

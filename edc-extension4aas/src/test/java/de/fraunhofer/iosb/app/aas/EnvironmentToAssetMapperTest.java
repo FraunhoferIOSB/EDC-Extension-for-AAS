@@ -42,6 +42,9 @@ class EnvironmentToAssetMapperTest {
         testSubject = new EnvironmentToAssetMapper(() -> this.onlySubmodelsDecider);
     }
 
+    // TODO test apply but only part of the environments are correct.
+    // TODO Then filtered version and failure messages should be correct.
+
     @Test
     void testApply() {
         var env = createEnvironment();

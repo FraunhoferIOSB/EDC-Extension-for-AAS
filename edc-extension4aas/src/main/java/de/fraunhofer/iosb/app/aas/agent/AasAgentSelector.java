@@ -20,22 +20,24 @@ import de.fraunhofer.iosb.app.pipeline.PipelineResult;
 import de.fraunhofer.iosb.app.pipeline.PipelineStep;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
 import org.eclipse.edc.spi.result.AbstractResult;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository.SelfDescriptionMetaInformation;
 
+
+/**
+ * Selects adequate AAS agent from collection of agents best fitting for the given input type
+ */
 public class AasAgentSelector extends PipelineStep<Set<SelfDescriptionMetaInformation>,
         Map<String, Environment>> {
 
-    private final Collection<AasAgent> agents;
+    private final Collection<AasAgent> agents = new ArrayList<>();
 
-    public AasAgentSelector(Collection<AasAgent> agents) {
-        this.agents = agents;
+    public AasAgentSelector(@NotNull Collection<AasAgent> agents) {
+        this.agents.addAll(agents);
     }
 
     @Override
@@ -47,14 +49,13 @@ public class AasAgentSelector extends PipelineStep<Set<SelfDescriptionMetaInform
             return PipelineResult.failure(
                     PipelineFailure.fatal(
                             results.stream()
-                                    .map(res -> res.getFailure().getMessages())
+                                    .map(AbstractResult::getFailureMessages)
                                     .flatMap(List::stream)
                                     .toList()));
         }
 
         return PipelineResult.success(
                 results.stream()
-                        .filter(AbstractResult::succeeded)
                         .map(AbstractResult::getContent)
                         .flatMap(m -> m.entrySet().stream())
                         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));

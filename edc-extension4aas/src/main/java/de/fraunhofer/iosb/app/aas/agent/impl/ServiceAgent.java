@@ -59,7 +59,7 @@ public class ServiceAgent extends AasAgent {
     public PipelineResult<Map<String, Environment>> apply(URL url) {
         try {
             return PipelineResult.success(Map.of(url.toString(), readEnvironment(url)));
-        } catch (IOException e) {
+        } catch (EdcException | IOException e) {
             return PipelineResult.failure(PipelineFailure.fatal(List.of(e.getMessage())));
         }
     }

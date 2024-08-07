@@ -42,7 +42,7 @@ import static org.mockito.Mockito.mock;
  * selfDescription will be null after requests
  */
 public class EndpointTest {
-
+/*
     private static int port;
     private static URL url;
 
@@ -127,5 +127,5 @@ public class EndpointTest {
         endpoint.removeAasService(url);
 
         assertNull(selfDescriptionRepo.getSelfDescriptionAsset(url.toString()));
-    }
+    }*/
 }

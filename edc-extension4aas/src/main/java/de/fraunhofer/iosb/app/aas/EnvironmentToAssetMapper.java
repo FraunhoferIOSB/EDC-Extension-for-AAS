@@ -15,6 +15,7 @@
  */
 package de.fraunhofer.iosb.app.aas;
 
+import de.fraunhofer.iosb.app.pipeline.PipelineFailure;
 import de.fraunhofer.iosb.app.pipeline.PipelineResult;
 import de.fraunhofer.iosb.app.pipeline.PipelineStep;
 import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
@@ -33,9 +34,11 @@ import java.util.stream.Collectors;
  * This is not a holistic transformation but rather maps some
  * key elements and creates appropriate data address and assetId.
  * TODO Putting env -> map -> asset on ice for now
- * TODO accessUrl as argument is not good
  */
 public class EnvironmentToAssetMapper extends PipelineStep<Map<String, Environment>, Map<String, Asset>> {
+    private static final String CONCEPT_DESCRIPTIONS = "conceptDescriptions";
+    private static final String SHELLS = "shells";
+    private static final String SUBMODELS = "submodels";
     private final Supplier<Boolean> onlySubmodelsDecision;
 
     public EnvironmentToAssetMapper(Supplier<Boolean> onlySubmodelsDecision) {
@@ -44,38 +47,65 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<String, Environme
 
     /**
      * Create a nested EDC asset from this environment structure. The top level asset is just to hold the shells,
-     * submodels and concept descriptions and should not be added to assetIndex.
+     * submodels and concept descriptions and should not be added to the edc.
      *
      * @param environments AAS environments to transform to asset
      * @return Asset as described above
      */
     @Override
     public PipelineResult<Map<String, Asset>> apply(Map<String, Environment> environments) {
-        return PipelineResult.success(environments.entrySet().stream()
-                .map(entry -> executeSingle(entry.getKey(), entry.getValue()))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+        var results = environments.entrySet().stream()
+                .map(entry -> executeSingle(entry.getKey(), entry.getValue())).toList();
+
+        if (results.stream().anyMatch(PipelineResult::failed)) {
+            return PipelineResult.negligibleFailure(
+                    results.stream()
+                            .filter(PipelineResult::succeeded)
+                            .map(PipelineResult::getContent)
+                            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)),
+                    PipelineFailure.warning(
+                            results.stream()
+                                    .filter(PipelineResult::failed)
+                                    .map(PipelineResult::getFailureMessages)
+                                    .flatMap(List::stream)
+                                    .toList()));
+        }
+
+        return PipelineResult.success(
+                results.stream()
+                        .map(PipelineResult::getContent)
+                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
     }
 
-    public Map.Entry<String, Asset> executeSingle(String accessUrl, Environment environment) {
-        var assetBuilder = Asset.Builder.newInstance().property("submodels",
+    public PipelineResult<Map.Entry<String, Asset>> executeSingle(String accessUrl, Environment environment) {
+        if (accessUrl == null || environment == null) {
+            return PipelineResult.failure(PipelineFailure.fatal(
+                    List.of("Mapping failure for accessUrl %s and environment %s"
+                            .formatted(accessUrl, environment))));
+        }
+
+        var assetBuilder = Asset.Builder.newInstance().property(SUBMODELS,
                 environment.getSubmodels().stream().map((Submodel submodel) -> mapSubmodelToAsset(submodel,
                         accessUrl)).toList());
+
         if (onlySubmodelsDecision.get()) {
-            return new AbstractMap.SimpleEntry<>(accessUrl, assetBuilder.build());
+            assetBuilder.property(SHELLS, List.of());
+            assetBuilder.property(CONCEPT_DESCRIPTIONS, List.of());
+            return PipelineResult.success(new AbstractMap.SimpleEntry<>(accessUrl, assetBuilder.build()));
         }
-        return new AbstractMap.SimpleEntry<>(accessUrl,
+        return PipelineResult.success(new AbstractMap.SimpleEntry<>(accessUrl,
                 assetBuilder
-                        .property("shells",
+                        .property(SHELLS,
                                 environment.getAssetAdministrationShells().stream().map((AssetAdministrationShell shell) -> mapShellToAsset(shell, accessUrl)).toList())
-                        .property("conceptDescriptions",
+                        .property(CONCEPT_DESCRIPTIONS,
                                 environment.getConceptDescriptions().stream().map((ConceptDescription conceptDescription) -> mapConceptDescriptionToAsset(conceptDescription, accessUrl)).toList())
-                        .build());
+                        .build()));
     }
 
     private <T extends Referable> Asset.Builder mapReferableToAssetBuilder(T referable) {
         return Asset.Builder.newInstance()
                 .properties(Map.of(
-                        "idShort", referable.getIdShort(),
+                        "idShort", Optional.ofNullable(referable.getIdShort()).orElse(""),
                         "name", referable.getDisplayName(),
                         "description", referable.getDescription()));
     }
@@ -158,7 +188,9 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<String, Environme
         }
         return mapIdentifiableToAssetBuilder(submodel)
                 .properties(Map.of(
-                        "semanticId", submodel.getSemanticId(),
+                        "semanticId",
+                        Optional.ofNullable(submodel.getSemanticId())
+                                .orElse(new DefaultReference.Builder().build()),
                         "submodelElements", children))
                 .dataAddress(AasDataAddress.Builder.newInstance()
                         .baseUrl(accessUrl).referenceChain(reference)

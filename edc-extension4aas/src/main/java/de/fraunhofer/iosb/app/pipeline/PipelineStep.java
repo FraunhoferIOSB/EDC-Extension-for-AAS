@@ -34,7 +34,7 @@ public abstract class PipelineStep<T, U> implements Function<T, PipelineResult<U
     }
 
     public static <T, U> PipelineStep<T, U> create(Function<T, U> func) {
-        return new PipelineStep<T, U>() {
+        return new PipelineStep<>() {
             @Override
             public PipelineResult<U> apply(T t) {
                 return PipelineResult.success(func.apply(t));

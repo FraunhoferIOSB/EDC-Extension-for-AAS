@@ -17,6 +17,8 @@ package de.fraunhofer.iosb.app.model.ids;
 
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 
+import static de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository.SelfDescriptionMetaInformation;
+
 public interface SelfDescriptionChangeListener {
 
     /**
@@ -24,14 +26,14 @@ public interface SelfDescriptionChangeListener {
      *
      * @param metaInformation The URL and type of the newly registered AAS service
      */
-    void created(SelfDescriptionRepository.SelfDescriptionMetaInformation metaInformation);
+    void created(SelfDescriptionMetaInformation metaInformation);
 
     /**
      * Called when a self-description was removed
      *
      * @param metaInformation The URL and type of the unregistered AAS service
-     * @param toBeRemoved Asset to be removed
+     * @param toBeRemoved     Asset to be removed
      */
-    void removed(SelfDescriptionRepository.SelfDescriptionMetaInformation metaInformation, Asset toBeRemoved);
+    void removed(SelfDescriptionMetaInformation metaInformation, Asset toBeRemoved);
 
 }

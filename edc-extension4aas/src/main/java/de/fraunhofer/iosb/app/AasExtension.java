@@ -24,6 +24,7 @@ import de.fraunhofer.iosb.app.aas.agent.impl.RegistryAgent;
 import de.fraunhofer.iosb.app.aas.agent.impl.ServiceAgent;
 import de.fraunhofer.iosb.app.controller.AasController;
 import de.fraunhofer.iosb.app.controller.ConfigurationController;
+import de.fraunhofer.iosb.app.controller.SelfDescriptionController;
 import de.fraunhofer.iosb.app.edc.CleanUpService;
 import de.fraunhofer.iosb.app.edc.asset.AssetRegistrar;
 import de.fraunhofer.iosb.app.edc.contract.ContractRegistrar;
@@ -52,6 +53,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+
+import static de.fraunhofer.iosb.app.controller.SelfDescriptionController.SELF_DESCRIPTION_PATH;
 
 /**
  * EDC Extension supporting usage of Asset Administration Shells.
@@ -83,38 +86,48 @@ public class AasExtension implements ServiceExtension {
         var monitor = context.getMonitor().withPrefix(NAME);
         webService.registerResource(new ConfigurationController(context.getConfig(SETTINGS_PREFIX), monitor));
 
-        aasController = new AasController(aasServiceRegistry, assetIndex, contractDefinitionStore, monitor, policyDefinitionStore);
+        aasController = new AasController(aasServiceRegistry, monitor);
         var selfDescriptionRepository = new SelfDescriptionRepository();
-        selfDescriptionRepository.registerListener(aasController);
 
+        selfDescriptionRepository.registerListener(
+                CleanUpService.Builder.newInstance()
+                        .assetIndex(assetIndex)
+                        .policyDefinitionStore(policyDefinitionStore)
+                        .monitor(monitor)
+                        .contractDefinitionStore(contractDefinitionStore)
+                        .build()
+        );
+
+        selfDescriptionRepository.registerListener(aasController);
         registerAasServicesByConfig(selfDescriptionRepository);
 
-        initializePipeline(selfDescriptionRepository, monitor);
+        var pipeline = createSynchronizerPipeline(selfDescriptionRepository, monitor);
+        new VariableRateScheduler(1).scheduleAtVariableRate(pipeline,
+                () -> Configuration.getInstance().getSyncPeriod());
 
         // Add public endpoint if wanted by config
         if (Configuration.getInstance().isExposeSelfDescription()) {
-            publicApiManagementService.addEndpoints(List.of(new de.fraunhofer.iosb.api.model.Endpoint(Endpoint.SELF_DESCRIPTION_PATH, HttpMethod.GET, Map.of())));
+            publicApiManagementService.addEndpoints(List.of(new de.fraunhofer.iosb.api.model.Endpoint(SELF_DESCRIPTION_PATH, HttpMethod.GET, Map.of())));
         }
-        
+
+        webService.registerResource(new SelfDescriptionController(monitor, selfDescriptionRepository));
         webService.registerResource(new Endpoint(selfDescriptionRepository, aasController, monitor));
     }
 
-    private void initializePipeline(SelfDescriptionRepository selfDescriptionRepository,
-                                    Monitor monitor) {
-        var aasRegistrationPipeline = new Pipeline.Builder<Void, Void>()
+
+    private Pipeline<Void, Void> createSynchronizerPipeline(SelfDescriptionRepository repo, Monitor monitor) {
+        return new Pipeline.Builder<Void, Void>()
                 .monitor(monitor)
-                .supplier(selfDescriptionRepository::getAllSelfDescriptionMetaInformation)
+                .supplier(repo::getAllSelfDescriptionMetaInformation)
                 .step(new AasAgentSelector(Set.of(new ServiceAgent(aasDataProcessorFactory),
                         new RegistryAgent(aasDataProcessorFactory))))
                 .step(new EnvironmentToAssetMapper(() -> Configuration.getInstance().isOnlySubmodels()))
-                .step(new SelfDescriptionUpdater(selfDescriptionRepository))
+                .step(new SelfDescriptionUpdater(repo))
                 .step(new Synchronizer())
                 .step(new AssetRegistrar(assetIndex, monitor))
                 .step(new ContractRegistrar(contractDefinitionStore, policyDefinitionStore, monitor))
                 .build();
 
-        new VariableRateScheduler(1).scheduleAtVariableRate(aasRegistrationPipeline,
-                () -> Configuration.getInstance().getSyncPeriod());
     }
 
     private void registerAasServicesByConfig(SelfDescriptionRepository selfDescriptionRepository) {

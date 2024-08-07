@@ -17,18 +17,9 @@ package de.fraunhofer.iosb.app.controller;
 
 import de.fraunhofer.iosb.app.aas.AssetAdministrationShellServiceManager;
 import de.fraunhofer.iosb.app.aas.FaaastServiceManager;
-import de.fraunhofer.iosb.app.edc.asset.AssetRegistrar;
-import de.fraunhofer.iosb.app.edc.contract.ContractRegistrar;
-import de.fraunhofer.iosb.app.model.ChangeSet;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionChangeListener;
-import de.fraunhofer.iosb.app.pipeline.Pipeline;
-import de.fraunhofer.iosb.app.pipeline.PipelineStep;
-import de.fraunhofer.iosb.app.util.AssetUtil;
 import de.fraunhofer.iosb.registry.AasServiceRegistry;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
-import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
-import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
-import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.io.IOException;
@@ -48,30 +39,21 @@ public class AasController implements SelfDescriptionChangeListener {
     private final AssetAdministrationShellServiceManager aasServiceManager;
     private final Monitor monitor;
     private final AasServiceRegistry serviceRegistry;
-    private final Pipeline<Asset, Void> cleanUpPipeline;
 
+    /**
+     * Class constructor
+     *
+     * @param aasServiceRegistry Allow communication for locally started and remotely registered AAS
+     *                           clients/registries if they provide self-signed certificates
+     * @param monitor            Logging
+     */
     public AasController(AasServiceRegistry aasServiceRegistry,
-                         AssetIndex assetIndex,
-                         ContractDefinitionStore contractDefinitionStore,
-                         Monitor monitor,
-                         PolicyDefinitionStore policyDefinitionStore) {
+                         Monitor monitor) {
         this.monitor = monitor;
         serviceRegistry = aasServiceRegistry;
-
         aasServiceManager = new FaaastServiceManager(monitor);
-
-        this.cleanUpPipeline = new Pipeline.Builder<Asset, ChangeSet<Asset, String>>()
-                .initialStep(PipelineStep.create(asset -> new ChangeSet.Builder<Asset, String>()
-                        .remove(AssetUtil
-                                .flatMapAssets(asset).stream()
-                                .map(Asset::getId)
-                                .toList())
-                        .build()))
-                .step(new AssetRegistrar(assetIndex, monitor))
-                .step(new ContractRegistrar(contractDefinitionStore, policyDefinitionStore, monitor))
-                .monitor(monitor)
-                .build();
     }
+
 
     /**
      * Starts an AAS service internally
@@ -128,7 +110,6 @@ public class AasController implements SelfDescriptionChangeListener {
     @Override
     public void removed(SelfDescriptionMetaInformation metaInformation, Asset asset) {
         serviceRegistry.unregister(metaInformation.url().toString());
-        // Remove all assets, contracts
-        cleanUpPipeline.execute(asset);
+        stopService(metaInformation.url());
     }
 }

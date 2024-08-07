@@ -21,6 +21,7 @@ import de.fraunhofer.iosb.app.model.ChangeSet;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionChangeListener;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
 import de.fraunhofer.iosb.app.pipeline.Pipeline;
+import de.fraunhofer.iosb.app.pipeline.PipelineStep;
 import de.fraunhofer.iosb.app.util.AssetUtil;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
@@ -28,37 +29,28 @@ import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractD
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.spi.monitor.Monitor;
 
+import java.util.Objects;
+
 
 /**
  * Holds a pipeline for removing assets and contracts.
  */
 public class CleanUpService implements SelfDescriptionChangeListener {
 
-    private final Pipeline<ChangeSet<Asset, String>, Void> pipeline;
+    private final Pipeline<Asset, Void> pipeline;
 
-    public CleanUpService(AssetIndex assetIndex, Monitor monitor, ContractDefinitionStore contractDefinitionStore,
-                          PolicyDefinitionStore policyDefinitionStore) {
-
-        this.pipeline = new Pipeline.Builder<ChangeSet<Asset, String>, ChangeSet<String, String>>()
-                .initialStep(new AssetRegistrar(assetIndex, monitor))
-                .step(new ContractRegistrar(contractDefinitionStore, policyDefinitionStore, monitor))
-                .monitor(monitor)
-                .build();
+    CleanUpService(Pipeline<Asset, Void> pipeline) {
+        this.pipeline = pipeline;
     }
 
     @Override
     public void removed(SelfDescriptionRepository.SelfDescriptionMetaInformation metaInformation, Asset toBeRemoved) {
-        pipeline.execute(
-                new ChangeSet.Builder<Asset, String>()
-                        .remove(AssetUtil.flatMapAssets(toBeRemoved).stream()
-                                .map(Asset::getId)
-                                .toList())
-                        .build());
+        pipeline.execute(toBeRemoved);
     }
 
     @Override
     public void created(SelfDescriptionRepository.SelfDescriptionMetaInformation metaInformation) {
-        // ignore
+        // ignored
     }
 
     public static class Builder {
@@ -66,6 +58,13 @@ public class CleanUpService implements SelfDescriptionChangeListener {
         private Monitor monitor;
         private ContractDefinitionStore contractDefinitionStore;
         private PolicyDefinitionStore policyDefinitionStore;
+
+        private Builder() {
+        }
+
+        public static Builder newInstance() {
+            return new Builder();
+        }
 
         public Builder assetIndex(AssetIndex assetIndex) {
             this.assetIndex = assetIndex;
@@ -88,8 +87,24 @@ public class CleanUpService implements SelfDescriptionChangeListener {
         }
 
         public CleanUpService build() {
-            return new CleanUpService(assetIndex, monitor, contractDefinitionStore, policyDefinitionStore);
+            Objects.requireNonNull(assetIndex);
+            Objects.requireNonNull(contractDefinitionStore);
+            Objects.requireNonNull(monitor);
+            Objects.requireNonNull(policyDefinitionStore);
+
+            var pipeline = new Pipeline.Builder<Asset, ChangeSet<Asset, String>>()
+                    .initialStep(PipelineStep.create(asset -> new ChangeSet.Builder<Asset, String>()
+                            .remove(AssetUtil
+                                    .flatMapAssets(asset).stream()
+                                    .map(Asset::getId)
+                                    .toList())
+                            .build()))
+                    .step(new AssetRegistrar(assetIndex, monitor))
+                    .step(new ContractRegistrar(contractDefinitionStore, policyDefinitionStore, monitor))
+                    .monitor(monitor)
+                    .build();
+
+            return new CleanUpService(pipeline);
         }
     }
-
 }

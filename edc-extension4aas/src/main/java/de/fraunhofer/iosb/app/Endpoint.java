@@ -17,7 +17,6 @@ package de.fraunhofer.iosb.app;
 
 import de.fraunhofer.iosb.app.controller.AasController;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
-import de.fraunhofer.iosb.app.model.ids.SelfDescriptionSerializer;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -29,19 +28,17 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.file.InvalidPathException;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
-import static java.lang.String.format;
+import static de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository.SelfDescriptionSourceType;
 
 /**
- * Delegates (HTTP) Requests to controllers.
+ * Delegates requests to controllers.
  */
 @Consumes({MediaType.APPLICATION_JSON, MediaType.WILDCARD})
 @Produces({MediaType.APPLICATION_JSON})
 @Path("/")
 public class Endpoint {
 
-    public static final String SELF_DESCRIPTION_PATH = "selfDescription";
     private static final String SERVICE_PATH = "service";
     private static final String REGISTRY_PATH = "registry";
     private static final String ENVIRONMENT_PATH = "environment";
@@ -55,6 +52,7 @@ public class Endpoint {
      *
      * @param selfDescriptionRepository Manage self descriptions
      * @param aasController             Communication with AAS services
+     * @param monitor                   Logs
      */
     public Endpoint(SelfDescriptionRepository selfDescriptionRepository, AasController aasController, Monitor monitor) {
         this.monitor = monitor;
@@ -63,57 +61,61 @@ public class Endpoint {
     }
 
     /**
-     * Register a remote AAS registry to this extension
+     * Register an AAS registry to this extension
      *
-     * @param registryUrl The URL of the new AAS registry
-     * @return Response
+     * @param registryUrl The URL of the AAS registry
+     * @return Appropriate response regarding input format & current state
      */
     @POST
     @Path(REGISTRY_PATH)
-    public Response postAasRegistry(@QueryParam("url") URL registryUrl) {
-        monitor.info("Received a client POST request");
-        if (Objects.isNull(registryUrl)) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Missing query parameter 'url'").build();
-        }
-        if (Objects.nonNull(selfDescriptionRepository.getSelfDescriptionAsset(registryUrl.toString()))) {
-            return Response.status(Status.CONFLICT).entity("A service with this URL is already registered.").build();
-        }
-        selfDescriptionRepository.createSelfDescription(registryUrl,
-                SelfDescriptionRepository.SelfDescriptionSourceType.SERVICE);
-        return Response.ok("Registered new client at EDC").build();
+    public Response createRegistry(@QueryParam("url") URL registryUrl) {
+        return createEntity(registryUrl, SelfDescriptionSourceType.REGISTRY);
     }
 
     /**
-     * Register a remote AAS service (e.g., FA³ST) to this extension
+     * Register an AAS service (e.g., FA³ST) to this extension
      *
-     * @param serviceUrl The URL of the new AAS client
-     * @return Response
+     * @param serviceUrl The URL of the AAS client
+     * @return Appropriate response regarding input format & current state
      */
     @POST
     @Path(SERVICE_PATH)
-    public Response postAasService(@QueryParam("url") URL serviceUrl) {
-        monitor.info("Received a client POST request");
-        if (Objects.isNull(serviceUrl)) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Missing query parameter 'url'").build();
-        }
-        if (Objects.nonNull(selfDescriptionRepository.getSelfDescriptionAsset(serviceUrl.toString()))) {
-            return Response.status(Status.CONFLICT).entity("A service with this URL is already registered.").build();
-        }
-        selfDescriptionRepository.createSelfDescription(serviceUrl,
-                SelfDescriptionRepository.SelfDescriptionSourceType.SERVICE);
-        return Response.ok("Registered new client at EDC").build();
+    public Response createService(@QueryParam("url") URL serviceUrl) {
+        return createEntity(serviceUrl, SelfDescriptionSourceType.SERVICE);
     }
+
+    /**
+     * Unregister an AAS registry from this extension
+     *
+     * @param registryUrl The URL of the registry
+     * @return Response "ok" containing status message
+     */
+    @DELETE
+    @Path(REGISTRY_PATH)
+    public Response removeRegistry(@QueryParam("url") URL registryUrl) {
+        return removeEntity(registryUrl, SelfDescriptionSourceType.REGISTRY);
+    }
+
+    /**
+     * Unregister an AAS service (e.g., FA³ST) from this extension
+     *
+     * @param serviceUrl The URL of the AAS client
+     * @return Response "ok" containing status message
+     */
+    @DELETE
+    @Path(SERVICE_PATH)
+    public Response removeService(@QueryParam("url") URL serviceUrl) {
+        return removeEntity(serviceUrl, SelfDescriptionSourceType.SERVICE);
+    }
+
 
     /**
      * Create a new AAS service. Either (http) port or AAS config path must be given
      * to ensure communication with the AAS service.
      *
      * @param pathToEnvironment                    Path to new AAS environment
-     *                                             (required)
      * @param port                                 Port of service to be created
-     *                                             (optional)
      * @param pathToAssetAdministrationShellConfig Path of AAS configuration file
-     *                                             (optional)
      * @return Response containing new AAS URL or error code
      */
     @POST
@@ -144,66 +146,47 @@ public class Endpoint {
                     .build();
         } catch (IOException | EdcException aasServiceException) {
             monitor.severe("Could not start AAS service.", aasServiceException);
-            return Response.serverError().entity("Could not start AAS service. Check connector logs for details").build();
+            return Response.serverError().entity("Could not start AAS service. Check logs for details").build();
         }
 
-        selfDescriptionRepository.createSelfDescription(newAssetAdministrationShellUrl,
-                SelfDescriptionRepository.SelfDescriptionSourceType.SERVICE);
-        return Response.status(Status.CREATED).entity(newAssetAdministrationShellUrl).build();
-    }
-
-    /**
-     * Unregister an AAS service (e.g., FA³ST) from this extension
-     *
-     * @param aasServiceUrl The URL of the new AAS client
-     * @return Response "ok" containing status message
-     */
-    @DELETE
-    @Path(SERVICE_PATH)
-    public Response removeAasService(@QueryParam("url") URL aasServiceUrl) {
-        monitor.info("Received a client DELETE request");
-        if (Objects.isNull(aasServiceUrl)) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Missing query parameter 'url'").build();
-        }
-
-        if (Objects.isNull(selfDescriptionRepository.getSelfDescriptionAsset(aasServiceUrl.toString()))) {
-            return Response.status(Status.NOT_FOUND).entity("Service was not registered to EDC").build();
-        }
-
-        // Stop AAS Service if started internally
-        aasController.stopService(aasServiceUrl);
-        selfDescriptionRepository.removeSelfDescription(aasServiceUrl.toString());
-
-        return Response.ok("Unregistered client from EDC").build();
-    }
-
-    /**
-     * Print self-descriptions of AAS environments registered at this EDC. If no
-     * query parameter is given, print all self-descriptions available.
-     *
-     * @param aasServiceUrl Specify an AAS environment by its service
-     * @return Self description(s)
-     */
-    @GET
-    @Path(SELF_DESCRIPTION_PATH)
-    public Response getSelfDescription(@QueryParam("aasService") URL aasServiceUrl) {
-        if (Objects.isNull(aasServiceUrl)) {
-            monitor.debug("Received a self description GET request");
-
-            var sdArrayNode = selfDescriptionRepository.getAllSelfDescriptions().values()
-                    .stream().filter(Objects::nonNull).map(SelfDescriptionSerializer::assetToString).collect(Collectors.joining(","));
-
-            return Response.ok(sdArrayNode).build();
-        } else {
-            monitor.debug("Received a self description GET request for %s".formatted(aasServiceUrl));
-            var selfDescriptionAsset = selfDescriptionRepository.getSelfDescriptionAsset(aasServiceUrl.toString());
-            if (Objects.nonNull(selfDescriptionAsset)) {
-                return Response.ok(SelfDescriptionSerializer.assetToString(selfDescriptionAsset)).build();
+        try (var creationResponse = createEntity(newAssetAdministrationShellUrl, SelfDescriptionSourceType.SERVICE)) {
+            if (creationResponse.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
+                return Response.status(Status.CREATED).entity(newAssetAdministrationShellUrl).build();
             } else {
-                monitor.warning(format("Self description with URL %s not found.", aasServiceUrl));
-                return Response.status(Status.NOT_FOUND).build();
+                aasController.stopService(newAssetAdministrationShellUrl);
+                return creationResponse;
             }
         }
     }
 
+
+    private Response createEntity(URL url, SelfDescriptionSourceType type) {
+        monitor.info("Received a %s POST request".formatted(type));
+
+        if (Objects.isNull(url)) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("Missing query parameter 'url'").build();
+        }
+        if (Objects.nonNull(selfDescriptionRepository.getSelfDescriptionAsset(url.toString()))) {
+            return Response.status(Status.CONFLICT).entity("AAS %s with this URL is already registered.".formatted(type)).build();
+        }
+
+        selfDescriptionRepository.createSelfDescription(url, type);
+        return Response.status(Status.CREATED).entity("Registered new AAS %s at EDC".formatted(type)).build();
+    }
+
+    private Response removeEntity(URL url, SelfDescriptionSourceType type) {
+        monitor.info("Received a %s DELETE request".formatted(type));
+        if (Objects.isNull(url)) {
+            return Response.status(Status.BAD_REQUEST).entity("Missing query parameter 'url'").build();
+        }
+
+        if (Objects.isNull(selfDescriptionRepository.getSelfDescriptionAsset(url.toString()))) {
+            return Response.status(Status.NOT_FOUND).entity("AAS %s was not registered to EDC".formatted(type)).build();
+        }
+
+        // Stop AAS Service if started internally
+        selfDescriptionRepository.removeSelfDescription(url.toString());
+
+        return Response.ok("Removed %s from EDC".formatted(type)).build();
+    }
 }

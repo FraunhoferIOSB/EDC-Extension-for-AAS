@@ -32,11 +32,9 @@ import java.util.Set;
 public class SelfDescriptionRepository extends ObservableImpl<SelfDescriptionChangeListener> {
 
     private final Map<SelfDescriptionMetaInformation, Asset> content;
-    private final Map<String, Set<String>> registries;
 
     public SelfDescriptionRepository() {
         super();
-        this.registries = new HashMap<>();
         content = new HashMap<>();
     }
 
@@ -90,6 +88,7 @@ public class SelfDescriptionRepository extends ObservableImpl<SelfDescriptionCha
                 .findFirst()
                 .orElse(null);
     }
+
 
     /**
      * Remove self-description and notify listeners.

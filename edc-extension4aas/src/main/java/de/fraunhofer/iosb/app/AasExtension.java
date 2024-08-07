@@ -81,9 +81,9 @@ public class AasExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var monitor = context.getMonitor().withPrefix(NAME);
-        var configurationController = new ConfigurationController(context.getConfig(SETTINGS_PREFIX), monitor);
+        webService.registerResource(new ConfigurationController(context.getConfig(SETTINGS_PREFIX), monitor));
 
-        aasController = new AasController(aasServiceRegistry, monitor);
+        aasController = new AasController(aasServiceRegistry, assetIndex, contractDefinitionStore, monitor, policyDefinitionStore);
         var selfDescriptionRepository = new SelfDescriptionRepository();
         selfDescriptionRepository.registerListener(aasController);
 
@@ -95,18 +95,8 @@ public class AasExtension implements ServiceExtension {
         if (Configuration.getInstance().isExposeSelfDescription()) {
             publicApiManagementService.addEndpoints(List.of(new de.fraunhofer.iosb.api.model.Endpoint(Endpoint.SELF_DESCRIPTION_PATH, HttpMethod.GET, Map.of())));
         }
-
-        var cleanUpService = new CleanUpService.Builder()
-                .assetIndex(assetIndex)
-                .monitor(monitor)
-                .contractDefinitionStore(contractDefinitionStore)
-                .policyDefinitionStore(policyDefinitionStore)
-                .build();
-
-        selfDescriptionRepository.registerListener(cleanUpService);
-
+        
         webService.registerResource(new Endpoint(selfDescriptionRepository, aasController, monitor));
-        webService.registerResource(configurationController);
     }
 
     private void initializePipeline(SelfDescriptionRepository selfDescriptionRepository,
@@ -116,7 +106,7 @@ public class AasExtension implements ServiceExtension {
                 .supplier(selfDescriptionRepository::getAllSelfDescriptionMetaInformation)
                 .step(new AasAgentSelector(Set.of(new ServiceAgent(aasDataProcessorFactory),
                         new RegistryAgent(aasDataProcessorFactory))))
-                .step(new EnvironmentToAssetMapper(Configuration.getInstance().isOnlySubmodels()))
+                .step(new EnvironmentToAssetMapper(() -> Configuration.getInstance().isOnlySubmodels()))
                 .step(new SelfDescriptionUpdater(selfDescriptionRepository))
                 .step(new Synchronizer())
                 .step(new AssetRegistrar(assetIndex, monitor))

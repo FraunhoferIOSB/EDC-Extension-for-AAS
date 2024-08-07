@@ -32,4 +32,13 @@ public abstract class PipelineStep<T, U> implements Function<T, PipelineResult<U
             return PipelineResult.failure(PipelineFailure.fatal(List.of(e.getMessage())));
         }
     }
+
+    public static <T, U> PipelineStep<T, U> create(Function<T, U> func) {
+        return new PipelineStep<T, U>() {
+            @Override
+            public PipelineResult<U> apply(T t) {
+                return PipelineResult.success(func.apply(t));
+            }
+        };
+    }
 }

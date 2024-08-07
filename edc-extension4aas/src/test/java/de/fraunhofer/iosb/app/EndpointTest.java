@@ -19,6 +19,9 @@ import de.fraunhofer.iosb.app.controller.AasController;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
 import de.fraunhofer.iosb.registry.AasServiceRegistry;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
+import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
+import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -30,6 +33,7 @@ import java.net.URL;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
 
 /**
  * Not mocking the controllers this endpoint uses, as the mocking/validation
@@ -57,7 +61,11 @@ public class EndpointTest {
     public void setupEndpoint() {
         var monitor = new ConsoleMonitor();
         selfDescriptionRepo = new SelfDescriptionRepository();
-        aasController = new AasController(new AasServiceRegistry(Set.of()), monitor);
+        aasController = new AasController(new AasServiceRegistry(Set.of()),
+                mock(AssetIndex.class),
+                mock(ContractDefinitionStore.class),
+                monitor,
+                mock(PolicyDefinitionStore.class));
         endpoint = new Endpoint(
                 selfDescriptionRepo,
                 aasController,

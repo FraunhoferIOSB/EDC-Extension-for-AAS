@@ -25,6 +25,7 @@ import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultReference;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -35,10 +36,10 @@ import java.util.stream.Collectors;
  * TODO accessUrl as argument is not good
  */
 public class EnvironmentToAssetMapper extends PipelineStep<Map<String, Environment>, Map<String, Asset>> {
-    private final boolean onlySubmodels;
+    private final Supplier<Boolean> onlySubmodelsDecision;
 
-    public EnvironmentToAssetMapper(boolean onlySubmodels) {
-        this.onlySubmodels = onlySubmodels;
+    public EnvironmentToAssetMapper(Supplier<Boolean> onlySubmodelsDecision) {
+        this.onlySubmodelsDecision = onlySubmodelsDecision;
     }
 
     /**
@@ -59,7 +60,7 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<String, Environme
         var assetBuilder = Asset.Builder.newInstance().property("submodels",
                 environment.getSubmodels().stream().map((Submodel submodel) -> mapSubmodelToAsset(submodel,
                         accessUrl)).toList());
-        if (onlySubmodels) {
+        if (onlySubmodelsDecision.get()) {
             return new AbstractMap.SimpleEntry<>(accessUrl, assetBuilder.build());
         }
         return new AbstractMap.SimpleEntry<>(accessUrl,
@@ -150,7 +151,7 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<String, Environme
     private Asset mapSubmodelToAsset(Submodel submodel, String accessUrl) {
         var reference = createReference(KeyTypes.SUBMODEL, submodel.getId());
         List<Asset> children = new ArrayList<>();
-        if (!onlySubmodels) {
+        if (!onlySubmodelsDecision.get()) {
             children = submodel.getSubmodelElements().stream()
                     .map(elem -> mapSubmodelElementToAsset(reference, elem, accessUrl))
                     .toList();

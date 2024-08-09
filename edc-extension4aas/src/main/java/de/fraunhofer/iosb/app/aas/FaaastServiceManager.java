@@ -43,7 +43,8 @@ import static java.lang.String.format;
 public class FaaastServiceManager implements AssetAdministrationShellServiceManager {
 
     private static final String FAAAST_SERVICE_EXCEPTION_MESSAGE = "Exception thrown by FA³ST service.";
-    private static final String LOCALHOST_URL = "https://localhost:";
+    private static final String LOCALHOST_URL = System.getProperty("os.name").contains("Windows") ?
+            "https://127.0.0.1:" : "https://localhost:";
 
     private final Monitor monitor;
     private final Map<URL, Service> faaastServiceRepository;

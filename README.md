@@ -181,8 +181,8 @@ In this section, dependencies from EDC and third-party are listed. (Implementati
 Features in development:
 
 - Graphical interface to simplify providing and requesting AAS (
-  see: https://github.com/FraunhoferIOSB/EDC-Extension-for-AAS-Dashboard) &#x2713;
+  see: https://github.com/FraunhoferIOSB/EDC-Extension-for-AAS-Dashboard) (&#x2713; update required)
 - AAS data-plane for EDC &#x2713;
-- Docker Hub container deployment
+- Docker Hub container deployment &#x2713;
 - Support for AAS Registries: Share all AAS from AAS Registry
 - Client DPP Viewer: Directly view the requested DPP (AAS format)

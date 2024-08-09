@@ -41,21 +41,24 @@ java "-Dedc.fs.config=./example/configurations/provider.properties" -jar ./examp
 
 ### Alternative: docker & docker-compose
 
-After building the extension as seen above, a docker image can be built with
+You can directly start a provider and consumer EDC with the AAS extension built-in with docker-compose:
+
+1. Go to example folder: `cd example`
+2. `docker compose up` (Alternatively: `docker-compose up`)
+
+
+If you prefer to built a docker image, it can be built after building the extension as seen above:
 
 1. Go to example folder: `cd example`
 2. Create docker image: `docker build -t edc-extension4aas:latest .`
 3. Run
    with `docker run -i -v $PWD/configurations:/configurations/ -v $PWD/resources:/resources/ -e EDC_FS_CONFIG=/configurations/docker-provider.properties edc-extension4aas:latest`
 
-This docker image can be run individually or **inside a docker-compose file**:
-
-```sh
-docker compose up (Alternatively: docker-compose up)
-```
+This docker image can be run individually or **from the docker-compose file**.
 
 When using Docker, the pre-defined variables in the Postman Collection for the provider should be changed from "localhost" to "provider", i.e. http://provider:8282/dsp instead of http://localhost:8282/dsp
 
+Additionally, new AASX or JSON model files should be placed in the resources folder beforehand, since the docker container does not have access to your local files.
 ## Configuration
 
 The EDC and its extensions can be configured with a `.properties` file. In `example/resources/configurations` there are

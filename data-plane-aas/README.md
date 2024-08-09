@@ -8,6 +8,7 @@ This custom data-plane adds a configuration option to accept self-signed company
 Default values:
 
 `edc.dataplane.aas.acceptAllSelfSignedCertificates=False`
+
 `edc.dataplane.aas.acceptOwnSelfSignedCertificates=True`
 ## Roadmap
 

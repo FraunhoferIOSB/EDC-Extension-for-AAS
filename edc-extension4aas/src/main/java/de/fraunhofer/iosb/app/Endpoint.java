@@ -17,7 +17,12 @@ package de.fraunhofer.iosb.app;
 
 import de.fraunhofer.iosb.app.controller.AasController;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
@@ -30,6 +35,8 @@ import java.nio.file.InvalidPathException;
 import java.util.Objects;
 
 import static de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository.SelfDescriptionSourceType;
+import static de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository.SelfDescriptionSourceType.REGISTRY;
+import static de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository.SelfDescriptionSourceType.SERVICE;
 
 /**
  * Delegates requests to controllers.
@@ -69,7 +76,7 @@ public class Endpoint {
     @POST
     @Path(REGISTRY_PATH)
     public Response createRegistry(@QueryParam("url") URL registryUrl) {
-        return createEntity(registryUrl, SelfDescriptionSourceType.REGISTRY);
+        return createEntity(registryUrl, REGISTRY);
     }
 
     /**
@@ -81,7 +88,7 @@ public class Endpoint {
     @POST
     @Path(SERVICE_PATH)
     public Response createService(@QueryParam("url") URL serviceUrl) {
-        return createEntity(serviceUrl, SelfDescriptionSourceType.SERVICE);
+        return createEntity(serviceUrl, SERVICE);
     }
 
     /**
@@ -93,7 +100,7 @@ public class Endpoint {
     @DELETE
     @Path(REGISTRY_PATH)
     public Response removeRegistry(@QueryParam("url") URL registryUrl) {
-        return removeEntity(registryUrl, SelfDescriptionSourceType.REGISTRY);
+        return removeEntity(registryUrl, REGISTRY);
     }
 
     /**
@@ -105,7 +112,7 @@ public class Endpoint {
     @DELETE
     @Path(SERVICE_PATH)
     public Response removeService(@QueryParam("url") URL serviceUrl) {
-        return removeEntity(serviceUrl, SelfDescriptionSourceType.SERVICE);
+        return removeEntity(serviceUrl, SERVICE);
     }
 
 
@@ -123,7 +130,7 @@ public class Endpoint {
     public Response postAasEnvironment(@QueryParam("environment") String pathToEnvironment,
                                        @QueryParam("config") String pathToAssetAdministrationShellConfig,
                                        @QueryParam("port") String port) {
-        monitor.info("Received an environment POST request");
+        monitor.info("POST /environment");
         if (Objects.isNull(pathToEnvironment)) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Missing query parameter 'environment'").build();
         } else if (!port.matches("\\d+")) {
@@ -149,7 +156,7 @@ public class Endpoint {
             return Response.serverError().entity("Could not start AAS service. Check logs for details").build();
         }
 
-        try (var creationResponse = createEntity(newAssetAdministrationShellUrl, SelfDescriptionSourceType.SERVICE)) {
+        try (var creationResponse = createEntity(newAssetAdministrationShellUrl, SERVICE)) {
             if (creationResponse.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
                 return Response.status(Status.CREATED).entity(newAssetAdministrationShellUrl).build();
             } else {
@@ -159,34 +166,35 @@ public class Endpoint {
         }
     }
 
+    private Response createEntity(URL accessUrl, SelfDescriptionSourceType type) {
+        monitor.info("POST /%s".formatted(type));
 
-    private Response createEntity(URL url, SelfDescriptionSourceType type) {
-        monitor.info("Received a %s POST request".formatted(type));
-
-        if (Objects.isNull(url)) {
+        if (Objects.isNull(accessUrl)) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Missing query parameter 'url'").build();
         }
-        if (Objects.nonNull(selfDescriptionRepository.getSelfDescriptionAsset(url.toString()))) {
-            return Response.status(Status.CONFLICT).entity("AAS %s with this URL is already registered.".formatted(type)).build();
+
+        if (SERVICE.equals(type) && selfDescriptionRepository.createService(accessUrl) ||
+                REGISTRY.equals(type) && selfDescriptionRepository.createRegistry(accessUrl)) {
+            return Response.status(Status.CREATED).entity("Registered new AAS %s at EDC".formatted(type)).build();
         }
 
-        selfDescriptionRepository.createSelfDescription(url, type);
-        return Response.status(Status.CREATED).entity("Registered new AAS %s at EDC".formatted(type)).build();
+        return Response.status(Status.CONFLICT).entity("AAS %s with this URL is already registered.".formatted(type)).build();
     }
 
-    private Response removeEntity(URL url, SelfDescriptionSourceType type) {
-        monitor.info("Received a %s DELETE request".formatted(type));
-        if (Objects.isNull(url)) {
+    private Response removeEntity(URL accessUrl, SelfDescriptionSourceType type) {
+        monitor.info("DELETE /%s".formatted(type));
+        if (Objects.isNull(accessUrl)) {
             return Response.status(Status.BAD_REQUEST).entity("Missing query parameter 'url'").build();
         }
 
-        if (Objects.isNull(selfDescriptionRepository.getSelfDescriptionAsset(url.toString()))) {
-            return Response.status(Status.NOT_FOUND).entity("AAS %s was not registered to EDC".formatted(type)).build();
+        if (SERVICE.equals(type)) {
+            selfDescriptionRepository.removeService(accessUrl);
+        } else if (REGISTRY.equals(type)) {
+            selfDescriptionRepository.removeRegistry(accessUrl);
+        } else {
+            throw new IllegalArgumentException("Unknown type: %s".formatted(type));
         }
-
-        // Stop AAS Service if started internally
-        selfDescriptionRepository.removeSelfDescription(url.toString());
-
+        
         return Response.ok("Removed %s from EDC".formatted(type)).build();
     }
 }

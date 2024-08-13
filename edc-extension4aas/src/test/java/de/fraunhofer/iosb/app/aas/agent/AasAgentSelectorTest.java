@@ -5,6 +5,7 @@ import de.fraunhofer.iosb.aas.impl.AllAasDataProcessorFactory;
 import de.fraunhofer.iosb.app.aas.agent.impl.RegistryAgent;
 import de.fraunhofer.iosb.app.aas.agent.impl.ServiceAgent;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
+import de.fraunhofer.iosb.registry.AasServiceRegistry;
 import de.fraunhofer.iosb.ssl.SelfSignedCertificateRetriever;
 import dev.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
@@ -52,7 +53,7 @@ class AasAgentSelectorTest {
 
     @Test
     void testWrongAgent() {
-        testSubject = new AasAgentSelector(List.of(new RegistryAgent(mock(AasDataProcessorFactory.class))));
+        testSubject = new AasAgentSelector(List.of(new RegistryAgent(mock(AasDataProcessorFactory.class), mock(AasServiceRegistry.class))));
 
         var result = testSubject.executeSingle(new SelfDescriptionRepository.SelfDescriptionMetaInformation(accessUrl,
                 SelfDescriptionRepository.SelfDescriptionSourceType.SERVICE));

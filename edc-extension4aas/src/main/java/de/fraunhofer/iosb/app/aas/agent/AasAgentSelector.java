@@ -22,7 +22,12 @@ import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
 import org.eclipse.edc.spi.result.AbstractResult;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository.SelfDescriptionMetaInformation;
@@ -32,7 +37,7 @@ import static de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository.SelfDes
  * Selects adequate AAS agent from collection of agents best fitting for the given input type
  */
 public class AasAgentSelector extends PipelineStep<Set<SelfDescriptionMetaInformation>,
-        Map<String, Environment>> {
+        Map<URL, Environment>> {
 
     private final Collection<AasAgent> agents = new ArrayList<>();
 
@@ -41,8 +46,8 @@ public class AasAgentSelector extends PipelineStep<Set<SelfDescriptionMetaInform
     }
 
     @Override
-    public PipelineResult<Map<String, Environment>> apply(Set<SelfDescriptionMetaInformation> metaInformation) {
-
+    public PipelineResult<Map<URL, Environment>> apply(Set<SelfDescriptionMetaInformation> metaInformation) {
+        // First, exclude registries' services from the synchronization process. Otherwise, all the services stored in the registries would get treated as normal services.
         var results = metaInformation.stream().map(this::executeSingle).toList();
 
         if (results.stream().anyMatch(AbstractResult::failed)) {
@@ -61,7 +66,7 @@ public class AasAgentSelector extends PipelineStep<Set<SelfDescriptionMetaInform
                         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
     }
 
-    public PipelineResult<Map<String, Environment>> executeSingle(SelfDescriptionMetaInformation metaInformation) {
+    public PipelineResult<Map<URL, Environment>> executeSingle(SelfDescriptionMetaInformation metaInformation) {
         var agent = agents.stream().filter(item -> metaInformation.type().equals(item.supportedType())).findAny();
 
         if (agent.isPresent()) {

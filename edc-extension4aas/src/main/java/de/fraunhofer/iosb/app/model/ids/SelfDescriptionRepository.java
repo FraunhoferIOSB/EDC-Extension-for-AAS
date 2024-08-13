@@ -15,15 +15,21 @@
  */
 package de.fraunhofer.iosb.app.model.ids;
 
+import de.fraunhofer.iosb.app.model.aas.Registry;
+import de.fraunhofer.iosb.app.model.aas.Service;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.spi.observe.ObservableImpl;
-import org.jetbrains.annotations.Nullable;
 
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import javax.annotation.Nullable;
+
+import static de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository.SelfDescriptionSourceType.REGISTRY;
+import static de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository.SelfDescriptionSourceType.SERVICE;
 
 /**
  * Self-description repository, also an observable so that on removal
@@ -31,75 +37,124 @@ import java.util.Set;
  */
 public class SelfDescriptionRepository extends ObservableImpl<SelfDescriptionChangeListener> {
 
-    private final Map<SelfDescriptionMetaInformation, Asset> content;
+    private final Collection<Service> services;
+    private final Collection<Registry> registries;
 
     public SelfDescriptionRepository() {
         super();
-        content = new HashMap<>();
+        services = new HashSet<>();
+        registries = new HashSet<>();
     }
 
     public Set<SelfDescriptionMetaInformation> getAllSelfDescriptionMetaInformation() {
-        return content.keySet();
+        var selfDescriptions = new HashSet<SelfDescriptionMetaInformation>();
+        services.forEach(service -> selfDescriptions.add(new SelfDescriptionMetaInformation(service.accessUrl(), SERVICE)));
+        registries.forEach(registry -> selfDescriptions.add(new SelfDescriptionMetaInformation(registry.accessUrl(), REGISTRY)));
+
+        return selfDescriptions;
     }
 
-    public Map<SelfDescriptionMetaInformation, Asset> getAllSelfDescriptions() {
-        return content;
+    public Collection<Asset> getAllEnvironments() {
+        var environments = new ArrayList<Asset>();
+        environments.addAll(services.stream().map(Service::environment).collect(ArrayList::new, ArrayList::add, ArrayList::addAll));
+        environments.addAll(registries.stream().map(Registry::services).flatMap(Collection::stream).map(Service::environment).toList());
+        return environments;
     }
 
-    /**
-     * Return self-description associated with this URL
-     *
-     * @param aasUrl URL determining self description to be returned
-     * @return self-description asset associated with AAS URL or empty asset
-     */
-    public @Nullable Asset getSelfDescriptionAsset(String aasUrl) {
-        return content.get(findByUrl(aasUrl));
+    public Collection<Asset> getEnvironments(String accessUrl) {
+        var environments = new ArrayList<Asset>();
+        environments.addAll(services.stream().filter(service -> service.accessUrl().toString().equals(accessUrl)).map(Service::environment).collect(ArrayList::new, ArrayList::add, ArrayList::addAll));
+        environments.addAll(registries.stream().filter(registry -> registry.accessUrl().toString().equals(accessUrl)).map(Registry::services).flatMap(Collection::stream).map(Service::environment).toList());
+        return environments;
     }
 
-    /**
-     * Create entry for a self-description.
-     * This will indirectly call the synchronizer to fetch the AAS
-     * service's contents and build the self-description from it.
-     *
-     * @param url  URL of self-description to be created
-     * @param type Type of self-description to be created
-     */
-    public void createSelfDescription(URL url, SelfDescriptionSourceType type) {
-        var metaInformation = new SelfDescriptionMetaInformation(url, type);
-
-        content.put(metaInformation, null);
-        this.getListeners().forEach(listener -> listener.created(metaInformation));
+    public @Nullable Registry getOfferingRegistry(Service service) {
+        // TODO what if more than one registries offer this service / service is also registered as standalone?
+        return registries.stream().filter(reg -> reg.offers(service)).findFirst().orElseThrow();
     }
 
     /**
-     * Update self description.
+     * Adds a new service to the repository with the given url.
      *
-     * @param aasUrl         URL of self-description to be updated
-     * @param newEnvironment updated environment from which self-description is
-     *                       created
+     * @param accessUrl Access URL of the new service.
+     * @return True if created, else false.
      */
-    public void updateSelfDescription(String aasUrl, Asset newEnvironment) {
-        content.put(findByUrl(aasUrl), newEnvironment);
-    }
+    public boolean createService(URL accessUrl) {
+        var service = new Service(accessUrl, null);
 
-    private SelfDescriptionMetaInformation findByUrl(String url) {
-        return content.keySet().stream()
-                .filter(entry -> entry.url().toString().equals(url))
-                .findFirst()
-                .orElse(null);
+        if (services.add(service)) {
+            invokeForEach(listener -> listener.created(service));
+            return true;
+        }
+        return false;
     }
-
 
     /**
-     * Remove self-description and notify listeners.
+     * Adds a new registry to the repository with the given url.
      *
-     * @param url URL of self-description to be updated
+     * @param accessUrl Access URL of the new registry.
+     * @return True if created, else false.
      */
-    public void removeSelfDescription(String url) {
-        var metaInformation = findByUrl(url);
+    public boolean createRegistry(URL accessUrl) {
+        var registry = new Registry(accessUrl, null);
+
+        if (registries.add(registry)) {
+            invokeForEach(listener -> listener.created(registry));
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Update a service. Services are identified by their accessUrls.
+     *
+     * @param service Service to update.
+     */
+    public void updateService(Service service) {
+        services.remove(service);
+        services.add(service);
+    }
+
+    /**
+     * Update a registry. Registries are identified by their accessUrls
+     *
+     * @param toUpdate Registry with new content
+     */
+    public void updateRegistry(Registry toUpdate) {
+        registries.remove(toUpdate);
+        registries.add(toUpdate);
+    }
+
+    /**
+     * Remove service and notify listeners.
+     *
+     * @param accessUrl URL of service to be removed
+     */
+    public void removeService(URL accessUrl) {
         // Before we remove the self-description, notify listeners (remove assets/contracts from edc)
-        this.getListeners().forEach(listener -> listener.removed(metaInformation, content.get(metaInformation)));
-        content.remove(metaInformation);
+        services.stream()
+                .filter(service -> service.accessUrl().toString().equals(accessUrl.toString()))
+                .findFirst()
+                .ifPresent(service -> {
+                    services.remove(service);
+                    invokeForEach(listener -> listener.removed(service));
+                });
+    }
+
+    /**
+     * Remove registry and notify listeners.
+     *
+     * @param accessUrl URL of registry to be removed
+     */
+    public void removeRegistry(URL accessUrl) {
+        // Before we remove the self-description, notify listeners (remove assets/contracts from edc)
+        registries.stream()
+                .filter(registry -> registry.accessUrl().toString().equals(accessUrl.toString()))
+                .findFirst()
+                .ifPresent(registry -> {
+                    registries.remove(registry);
+                    invokeForEach(listener -> listener.removed(registry));
+                });
     }
 
     public enum SelfDescriptionSourceType {

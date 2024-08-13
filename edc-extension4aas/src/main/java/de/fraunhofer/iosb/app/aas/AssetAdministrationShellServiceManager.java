@@ -20,7 +20,7 @@ import java.net.URL;
 import java.nio.file.Path;
 
 /**
- * Manages a specific type of AAS service like e.g., FA³ST, BaSyx
+ * Manages a specific type of AAS services like e.g., FA³ST, BaSyx
  */
 public interface AssetAdministrationShellServiceManager {
 

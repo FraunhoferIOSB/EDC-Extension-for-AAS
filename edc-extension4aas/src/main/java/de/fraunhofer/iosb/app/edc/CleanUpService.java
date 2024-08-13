@@ -18,8 +18,9 @@ package de.fraunhofer.iosb.app.edc;
 import de.fraunhofer.iosb.app.edc.asset.AssetRegistrar;
 import de.fraunhofer.iosb.app.edc.contract.ContractRegistrar;
 import de.fraunhofer.iosb.app.model.ChangeSet;
+import de.fraunhofer.iosb.app.model.aas.Registry;
+import de.fraunhofer.iosb.app.model.aas.Service;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionChangeListener;
-import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
 import de.fraunhofer.iosb.app.pipeline.Pipeline;
 import de.fraunhofer.iosb.app.pipeline.PipelineStep;
 import de.fraunhofer.iosb.app.util.AssetUtil;
@@ -37,20 +38,22 @@ import java.util.Objects;
  */
 public class CleanUpService implements SelfDescriptionChangeListener {
 
-    private final Pipeline<Asset, Void> pipeline;
+    private final Pipeline<Asset, Void> servicePipeline;
 
-    CleanUpService(Pipeline<Asset, Void> pipeline) {
-        this.pipeline = pipeline;
+    CleanUpService(Pipeline<Asset, Void> servicePipeline) {
+        this.servicePipeline = servicePipeline;
     }
 
     @Override
-    public void removed(SelfDescriptionRepository.SelfDescriptionMetaInformation metaInformation, Asset toBeRemoved) {
-        pipeline.execute(toBeRemoved);
+    public void removed(Service service) {
+        servicePipeline.execute(service.environment());
     }
 
     @Override
-    public void created(SelfDescriptionRepository.SelfDescriptionMetaInformation metaInformation) {
-        // ignored
+    public void removed(Registry registry) {
+        registry.services().stream()
+                .map(Service::environment)
+                .forEach(servicePipeline::execute);
     }
 
     public static class Builder {

@@ -15,18 +15,22 @@
  */
 package de.fraunhofer.iosb.app.model.ids;
 
+import de.fraunhofer.iosb.app.model.aas.Registry;
+import de.fraunhofer.iosb.app.model.aas.Service;
+import de.fraunhofer.iosb.app.pipeline.PipelineFailure;
 import de.fraunhofer.iosb.app.pipeline.PipelineResult;
 import de.fraunhofer.iosb.app.pipeline.PipelineStep;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * TODO correct package?
  */
-public class SelfDescriptionUpdater extends PipelineStep<Map<String, Asset>, Map<Asset, Asset>> {
+public class SelfDescriptionUpdater extends PipelineStep<Collection<Service>, Map<Asset, Asset>> {
 
     private final SelfDescriptionRepository selfDescriptionRepository;
 
@@ -35,21 +39,35 @@ public class SelfDescriptionUpdater extends PipelineStep<Map<String, Asset>, Map
     }
 
     /**
-     * Checks new Assets into self-description repository
+     * For each service incoming: First, check if the service is offered by a registry.
+     * If it is, then the updated environment asset is stored within the registry.
+     * Else, store as standalone service.
      *
-     * @param registered URL and asset for each registered AAS service
+     * @param services URLs and updated assets of all services
      * @return ID of old asset and new asset for synchronizer to create changeSet
      */
     @Override
-    public PipelineResult<Map<Asset, Asset>> apply(Map<String, Asset> registered) {
+    public PipelineResult<Map<Asset, Asset>> apply(Collection<Service> services) {
         Map<Asset, Asset> result = new HashMap<>();
 
-        for (var entry : registered.entrySet()) {
-            var existingAsset =
-                    Optional.ofNullable(selfDescriptionRepository.getSelfDescriptionAsset(entry.getKey())).orElse(Asset.Builder.newInstance().build());
-            result.put(existingAsset, entry.getValue());
-            selfDescriptionRepository.updateSelfDescription(entry.getKey(), entry.getValue());
+        // Check for registries
+        for (Service service : services) {
+            var registry = selfDescriptionRepository.getOfferingRegistry(service);
+            if (registry != null) {
+                var newServices = registry.services();
+                // Update the offered service.
+                if (newServices.remove(service) || newServices.add(service)) {
+                    selfDescriptionRepository.updateRegistry(new Registry(registry.accessUrl(), newServices));
+                } else {
+                    return PipelineResult.failure(
+                            PipelineFailure.fatal(
+                                    List.of("Could not update a registry with url %s"
+                                            .formatted(registry.accessUrl()))));
+                }
+            }
         }
+
+        services.forEach(selfDescriptionRepository::updateService);
 
         return PipelineResult.success(result);
     }

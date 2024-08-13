@@ -17,9 +17,10 @@ package de.fraunhofer.iosb.app.controller;
 
 import de.fraunhofer.iosb.app.aas.AssetAdministrationShellServiceManager;
 import de.fraunhofer.iosb.app.aas.FaaastServiceManager;
+import de.fraunhofer.iosb.app.model.aas.Registry;
+import de.fraunhofer.iosb.app.model.aas.Service;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionChangeListener;
 import de.fraunhofer.iosb.registry.AasServiceRegistry;
-import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.io.IOException;
@@ -27,7 +28,6 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.Objects;
 
-import static de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository.SelfDescriptionMetaInformation;
 import static java.lang.String.format;
 
 /**
@@ -53,7 +53,6 @@ public class AasController implements SelfDescriptionChangeListener {
         serviceRegistry = aasServiceRegistry;
         aasServiceManager = new FaaastServiceManager(monitor);
     }
-
 
     /**
      * Starts an AAS service internally
@@ -103,13 +102,23 @@ public class AasController implements SelfDescriptionChangeListener {
     }
 
     @Override
-    public void created(SelfDescriptionMetaInformation metaInformation) {
-        serviceRegistry.register(metaInformation.url().toString());
+    public void created(Service service) {
+        serviceRegistry.register(service.accessUrl().toString());
     }
 
     @Override
-    public void removed(SelfDescriptionMetaInformation metaInformation, Asset asset) {
-        serviceRegistry.unregister(metaInformation.url().toString());
-        stopService(metaInformation.url());
+    public void created(Registry registry) {
+        serviceRegistry.register(registry.accessUrl().toString());
+    }
+
+    @Override
+    public void removed(Service service) {
+        serviceRegistry.unregister(service.accessUrl().toString());
+        stopService(service.accessUrl());
+    }
+
+    @Override
+    public void removed(Registry registry) {
+        serviceRegistry.unregister(registry.accessUrl().toString());
     }
 }

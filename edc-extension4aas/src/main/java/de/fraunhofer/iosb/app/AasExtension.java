@@ -41,7 +41,6 @@ import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionS
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.web.spi.WebService;
@@ -101,8 +100,19 @@ public class AasExtension implements ServiceExtension {
         selfDescriptionRepository.registerListener(aasController);
         registerAasServicesByConfig(selfDescriptionRepository);
 
-        var pipeline = createSynchronizerPipeline(selfDescriptionRepository, monitor);
-        new VariableRateScheduler(1).scheduleAtVariableRate(pipeline,
+        var serviceSynchronization = new Pipeline.Builder<Void, Void>()
+                .monitor(monitor)
+                .supplier(selfDescriptionRepository::getAllSelfDescriptionMetaInformation)
+                .step(new AasAgentSelector(Set.of(new ServiceAgent(aasDataProcessorFactory),
+                        new RegistryAgent(aasDataProcessorFactory, aasServiceRegistry))))
+                .step(new EnvironmentToAssetMapper(() -> Configuration.getInstance().isOnlySubmodels()))
+                .step(new SelfDescriptionUpdater(selfDescriptionRepository))
+                .step(new Synchronizer())
+                .step(new AssetRegistrar(assetIndex, monitor))
+                .step(new ContractRegistrar(contractDefinitionStore, policyDefinitionStore, monitor))
+                .build();
+
+        new VariableRateScheduler(1).scheduleAtVariableRate(serviceSynchronization,
                 () -> Configuration.getInstance().getSyncPeriod());
 
         // Add public endpoint if wanted by config
@@ -114,28 +124,11 @@ public class AasExtension implements ServiceExtension {
         webService.registerResource(new Endpoint(selfDescriptionRepository, aasController, monitor));
     }
 
-
-    private Pipeline<Void, Void> createSynchronizerPipeline(SelfDescriptionRepository repo, Monitor monitor) {
-        return new Pipeline.Builder<Void, Void>()
-                .monitor(monitor)
-                .supplier(repo::getAllSelfDescriptionMetaInformation)
-                .step(new AasAgentSelector(Set.of(new ServiceAgent(aasDataProcessorFactory),
-                        new RegistryAgent(aasDataProcessorFactory))))
-                .step(new EnvironmentToAssetMapper(() -> Configuration.getInstance().isOnlySubmodels()))
-                .step(new SelfDescriptionUpdater(repo))
-                .step(new Synchronizer())
-                .step(new AssetRegistrar(assetIndex, monitor))
-                .step(new ContractRegistrar(contractDefinitionStore, policyDefinitionStore, monitor))
-                .build();
-
-    }
-
     private void registerAasServicesByConfig(SelfDescriptionRepository selfDescriptionRepository) {
         var configInstance = Configuration.getInstance();
 
         if (Objects.nonNull(configInstance.getRemoteAasLocation())) {
-            selfDescriptionRepository.createSelfDescription(configInstance.getRemoteAasLocation(),
-                    SelfDescriptionRepository.SelfDescriptionSourceType.SERVICE);
+            selfDescriptionRepository.createService(configInstance.getRemoteAasLocation());
         }
 
         if (Objects.isNull(configInstance.getLocalAasModelPath())) {
@@ -154,14 +147,12 @@ public class AasExtension implements ServiceExtension {
                     Path.of(configInstance.getLocalAasModelPath()),
                     configInstance.getLocalAasServicePort(),
                     aasConfigPath);
-
         } catch (IOException startAssetAdministrationShellException) {
             throw new EdcException("Could not start AAS service provided by configuration",
                     startAssetAdministrationShellException);
         }
 
-        selfDescriptionRepository.createSelfDescription(serviceUrl,
-                SelfDescriptionRepository.SelfDescriptionSourceType.SERVICE);
+        selfDescriptionRepository.createService(serviceUrl);
     }
 
     @Override

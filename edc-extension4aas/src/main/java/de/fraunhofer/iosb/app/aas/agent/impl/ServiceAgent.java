@@ -56,9 +56,9 @@ public class ServiceAgent extends AasAgent {
      * @return A map with one entry. This entry is the access url and environment of the service
      */
     @Override
-    public PipelineResult<Map<String, Environment>> apply(URL url) {
+    public PipelineResult<Map<URL, Environment>> apply(URL url) {
         try {
-            return PipelineResult.success(Map.of(url.toString(), readEnvironment(url)));
+            return PipelineResult.success(Map.of(url, readEnvironment(url)));
         } catch (EdcException | IOException e) {
             return PipelineResult.failure(PipelineFailure.fatal(List.of(e.getMessage())));
         }
@@ -79,9 +79,9 @@ public class ServiceAgent extends AasAgent {
         }
 
         return new DefaultEnvironment.Builder()
-                .assetAdministrationShells(readElement(shellsUrl, AssetAdministrationShell.class).stream().toList())
-                .submodels(readElement(submodelUrl, Submodel.class).stream().toList())
-                .conceptDescriptions(readElement(conceptDescriptionsUrl, ConceptDescription.class).stream().toList()).build();
+                .assetAdministrationShells(readElements(shellsUrl, AssetAdministrationShell.class).stream().toList())
+                .submodels(readElements(submodelUrl, Submodel.class).stream().toList())
+                .conceptDescriptions(readElements(conceptDescriptionsUrl, ConceptDescription.class).stream().toList()).build();
 
     }
 

@@ -19,7 +19,9 @@ import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionSerializer;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.spi.monitor.Monitor;
 
@@ -32,6 +34,7 @@ import static de.fraunhofer.iosb.app.controller.SelfDescriptionController.SELF_D
 /**
  * Handles requests to the selfDescription endpoint.
  */
+@Produces({MediaType.APPLICATION_JSON})
 @Path(SELF_DESCRIPTION_PATH)
 public class SelfDescriptionController {
 
@@ -41,6 +44,8 @@ public class SelfDescriptionController {
     private final SelfDescriptionRepository selfDescriptionRepository;
 
     /**
+     * Class constructor
+     *
      * @param monitor                   Logs
      * @param selfDescriptionRepository Manage self descriptions
      */
@@ -61,15 +66,20 @@ public class SelfDescriptionController {
         if (Objects.isNull(aasServiceUrl)) {
             monitor.debug("Received a self description GET request");
 
-            var sdArrayNode = selfDescriptionRepository.getAllSelfDescriptions().values()
-                    .stream().filter(Objects::nonNull).map(SelfDescriptionSerializer::assetToString).collect(Collectors.joining(","));
+            var selfDescriptionString = selfDescriptionRepository.getAllEnvironments().stream()
+                    .filter(Objects::nonNull)
+                    .map(SelfDescriptionSerializer::assetToString)
+                    .collect(Collectors.joining(","));
 
-            return Response.ok(sdArrayNode).build();
+            return Response.ok(selfDescriptionString).build();
         } else {
             monitor.debug("Received a self description GET request for %s".formatted(aasServiceUrl));
-            var selfDescriptionAsset = selfDescriptionRepository.getSelfDescriptionAsset(aasServiceUrl.toString());
-            if (Objects.nonNull(selfDescriptionAsset)) {
-                return Response.ok(SelfDescriptionSerializer.assetToString(selfDescriptionAsset)).build();
+            var selfDescriptionString = selfDescriptionRepository.getEnvironments(aasServiceUrl.toString()).stream()
+                    .filter(Objects::nonNull)
+                    .map(SelfDescriptionSerializer::assetToString)
+                    .collect(Collectors.joining(","));
+            if (!selfDescriptionString.isEmpty()) {
+                return Response.ok(selfDescriptionString).build();
             } else {
                 monitor.warning("Self description with URL %s not found.".formatted(aasServiceUrl));
                 return Response.status(Response.Status.NOT_FOUND).build();

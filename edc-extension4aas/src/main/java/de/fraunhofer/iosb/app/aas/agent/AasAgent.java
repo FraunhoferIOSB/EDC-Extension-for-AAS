@@ -45,7 +45,7 @@ import static java.lang.String.format;
 /**
  * Fetching an AAS environment from AAS service or AAS registry providers.
  */
-public abstract class AasAgent extends PipelineStep<URL, Map<String, Environment>> {
+public abstract class AasAgent extends PipelineStep<URL, Map<URL, Environment>> {
 
     protected static final int INTERNAL_SERVER_ERROR = 500;
 
@@ -59,7 +59,7 @@ public abstract class AasAgent extends PipelineStep<URL, Map<String, Environment
 
     public abstract SelfDescriptionSourceType supportedType();
 
-    protected <T> List<T> readElement(URL accessUrl, Class<T> clazz) throws IOException {
+    protected <T> List<T> readElements(URL accessUrl, Class<T> clazz) throws IOException {
         try (var response = executeRequest(accessUrl)) {
             if (response == null || response.body() == null || response.code() == INTERNAL_SERVER_ERROR) {
                 throw new EdcException("Received empty body for %s request".formatted(clazz.getName()));
@@ -73,6 +73,7 @@ public abstract class AasAgent extends PipelineStep<URL, Map<String, Environment
     private <T> @NotNull List<T> readList(@Nullable String serialized, Class<T> clazz) {
         try {
             var responseJson = objectMapper.readTree(serialized).get("result");
+            var xd = Optional.ofNullable(jsonDeserializer.readList(responseJson, clazz)).orElse(new ArrayList<>()); // TODO
             return Optional.ofNullable(jsonDeserializer.readList(responseJson, clazz))
                     .orElse(new ArrayList<>());
         } catch (JsonProcessingException | DeserializationException e) {

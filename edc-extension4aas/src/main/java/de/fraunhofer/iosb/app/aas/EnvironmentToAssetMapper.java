@@ -15,17 +15,34 @@
  */
 package de.fraunhofer.iosb.app.aas;
 
+import de.fraunhofer.iosb.app.model.aas.Service;
 import de.fraunhofer.iosb.app.pipeline.PipelineFailure;
 import de.fraunhofer.iosb.app.pipeline.PipelineResult;
 import de.fraunhofer.iosb.app.pipeline.PipelineStep;
 import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
-import org.eclipse.digitaltwin.aas4j.v3.model.*;
+import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShell;
+import org.eclipse.digitaltwin.aas4j.v3.model.ConceptDescription;
+import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
+import org.eclipse.digitaltwin.aas4j.v3.model.Identifiable;
+import org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes;
+import org.eclipse.digitaltwin.aas4j.v3.model.Referable;
+import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
+import org.eclipse.digitaltwin.aas4j.v3.model.Submodel;
+import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElement;
+import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElementCollection;
+import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElementList;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultAdministrativeInformation;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultKey;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultReference;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 
-import java.util.*;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -35,7 +52,7 @@ import java.util.stream.Collectors;
  * key elements and creates appropriate data address and assetId.
  * TODO Putting env -> map -> asset on ice for now
  */
-public class EnvironmentToAssetMapper extends PipelineStep<Map<String, Environment>, Map<String, Asset>> {
+public class EnvironmentToAssetMapper extends PipelineStep<Map<URL, Environment>, Collection<Service>> {
     private static final String CONCEPT_DESCRIPTIONS = "conceptDescriptions";
     private static final String SHELLS = "shells";
     private static final String SUBMODELS = "submodels";
@@ -53,16 +70,18 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<String, Environme
      * @return Asset as described above
      */
     @Override
-    public PipelineResult<Map<String, Asset>> apply(Map<String, Environment> environments) {
+    public PipelineResult<Collection<Service>> apply(Map<URL, Environment> environments) {
         var results = environments.entrySet().stream()
                 .map(entry -> executeSingle(entry.getKey(), entry.getValue())).toList();
 
+        var correctResults = results.stream()
+                .filter(PipelineResult::succeeded)
+                .map(PipelineResult::getContent)
+                .collect(Collectors.toCollection(ArrayList::new));
+
         if (results.stream().anyMatch(PipelineResult::failed)) {
             return PipelineResult.negligibleFailure(
-                    results.stream()
-                            .filter(PipelineResult::succeeded)
-                            .map(PipelineResult::getContent)
-                            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)),
+                    correctResults,
                     PipelineFailure.warning(
                             results.stream()
                                     .filter(PipelineResult::failed)
@@ -71,13 +90,10 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<String, Environme
                                     .toList()));
         }
 
-        return PipelineResult.success(
-                results.stream()
-                        .map(PipelineResult::getContent)
-                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+        return PipelineResult.success(correctResults);
     }
 
-    public PipelineResult<Map.Entry<String, Asset>> executeSingle(String accessUrl, Environment environment) {
+    public PipelineResult<Service> executeSingle(URL accessUrl, Environment environment) {
         if (accessUrl == null || environment == null) {
             return PipelineResult.failure(PipelineFailure.fatal(
                     List.of("Mapping failure for accessUrl %s and environment %s"
@@ -86,19 +102,19 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<String, Environme
 
         var assetBuilder = Asset.Builder.newInstance().property(SUBMODELS,
                 environment.getSubmodels().stream().map((Submodel submodel) -> mapSubmodelToAsset(submodel,
-                        accessUrl)).toList());
+                        accessUrl.toString())).toList());
 
         if (onlySubmodelsDecision.get()) {
             assetBuilder.property(SHELLS, List.of());
             assetBuilder.property(CONCEPT_DESCRIPTIONS, List.of());
-            return PipelineResult.success(new AbstractMap.SimpleEntry<>(accessUrl, assetBuilder.build()));
+            return PipelineResult.success(new Service(accessUrl, assetBuilder.build()));
         }
-        return PipelineResult.success(new AbstractMap.SimpleEntry<>(accessUrl,
+        return PipelineResult.success(new Service(accessUrl,
                 assetBuilder
                         .property(SHELLS,
-                                environment.getAssetAdministrationShells().stream().map((AssetAdministrationShell shell) -> mapShellToAsset(shell, accessUrl)).toList())
+                                environment.getAssetAdministrationShells().stream().map((AssetAdministrationShell shell) -> mapShellToAsset(shell, accessUrl.toString())).toList())
                         .property(CONCEPT_DESCRIPTIONS,
-                                environment.getConceptDescriptions().stream().map((ConceptDescription conceptDescription) -> mapConceptDescriptionToAsset(conceptDescription, accessUrl)).toList())
+                                environment.getConceptDescriptions().stream().map((ConceptDescription conceptDescription) -> mapConceptDescriptionToAsset(conceptDescription, accessUrl.toString())).toList())
                         .build()));
     }
 

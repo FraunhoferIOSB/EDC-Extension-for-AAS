@@ -24,11 +24,13 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 
+import java.util.Map;
+
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.PROPERTY_ID;
 
 public class SelfDescriptionSerializer {
 
-    private static final String[] SKIPPED_FIELDS = new String[]{"dataAddress", "privateProperties", "createdAt",
+    private static final String[] SKIPPED_FIELDS = new String[] {"dataAddress", "privateProperties", "createdAt",
             PROPERTY_ID};
     private static final ObjectWriter OBJECT_WRITER = createObjectWriter();
 
@@ -44,7 +46,11 @@ public class SelfDescriptionSerializer {
      */
     public static String assetToString(Asset asset) {
         try {
-            return OBJECT_WRITER.writeValueAsString(asset);
+            var environmentList = Map.of(
+                    "shells", asset.getProperty("shells"),
+                    "submodels", asset.getProperty("submodels"),
+                    "conceptDescriptions", asset.getProperty("conceptDescriptions"));
+            return OBJECT_WRITER.writeValueAsString(environmentList);
         } catch (JsonProcessingException e) {
             return "";
         }

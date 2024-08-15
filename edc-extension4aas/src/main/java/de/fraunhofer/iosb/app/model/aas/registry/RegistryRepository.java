@@ -81,21 +81,6 @@ public class RegistryRepository extends ObservableImpl<SelfDescriptionChangeList
     }
 
     /**
-     * Returns the registry that this service is registered under.
-     * If this service is registered under multiple registries,
-     * the first one found is returned.
-     *
-     * @param service The service possibly registered at a registry.
-     * @return The first found offering registry or null.
-     */
-    public @Nullable Registry getOffering(Service service) {
-        return registries.stream()
-                .filter(reg -> reg.offers(service))
-                .findFirst()
-                .orElse(null);
-    }
-
-    /**
      * Update a registry. Registries are identified by their accessUrls
      *
      * @param toUpdate Registry with new content

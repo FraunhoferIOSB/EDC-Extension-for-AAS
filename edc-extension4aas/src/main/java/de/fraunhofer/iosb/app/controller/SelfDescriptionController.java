@@ -83,11 +83,10 @@ public class SelfDescriptionController {
                     .map(SelfDescriptionSerializer::assetToString)
                     .toList());
 
-            return Response.ok(services.stream().reduce("%s,%s"::formatted).orElse(null)).build();
+            return Response.ok("[%s]".formatted(services.stream().reduce("%s,%s"::formatted).orElse(null))).build();
 
         } else {
             monitor.debug("GET /selfDescription/%s".formatted(aasServiceUrl));
-            // TODO find registry or service of interest. Is this even wanted? I think user should not know about accessURL of services?
             var selfDescriptionString = SelfDescriptionSerializer.assetToString(serviceRepository.getEnvironment(aasServiceUrl));
             if (!selfDescriptionString.isEmpty()) {
                 return Response.ok(selfDescriptionString).build();

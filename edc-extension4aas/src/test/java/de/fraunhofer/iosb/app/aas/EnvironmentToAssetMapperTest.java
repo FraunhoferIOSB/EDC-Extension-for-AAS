@@ -1,5 +1,21 @@
+/*
+ * Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
+ * Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
+ * Forschung e.V.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package de.fraunhofer.iosb.app.aas;
 
+import de.fraunhofer.iosb.app.model.aas.Service;
 import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
 import de.fraunhofer.iosb.util.Encoder;
 import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShell;
@@ -14,11 +30,15 @@ import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Do not test for empty Shell, Submodel, ConceptDescription inside an environment since the default implementation
@@ -33,8 +53,11 @@ class EnvironmentToAssetMapperTest {
 
     // Change for test case if needed
     private boolean onlySubmodelsDecider;
-    private final String accessUrl = "http://localhost:1234";
+    private final URL accessUrl = new URL("http://localhost:1234");
     private final List<Object> emptyList = List.of();
+
+    EnvironmentToAssetMapperTest() throws MalformedURLException {
+    }
 
     @BeforeEach
     void setUp() {
@@ -51,7 +74,13 @@ class EnvironmentToAssetMapperTest {
         var result = testSubject.apply(Map.of(accessUrl, env));
         assertTrue(result.succeeded());
         assertNotNull(result.getContent());
-        var envAsset = result.getContent().get(accessUrl);
+        var envAsset = result.getContent().stream()
+                .filter(service -> service
+                        .accessUrl().toString()
+                        .equals(accessUrl.toString()))
+                .map(Service::environment)
+                .findFirst()
+                .orElseThrow();
 
         assertNotNull(envAsset);
 
@@ -108,9 +137,9 @@ class EnvironmentToAssetMapperTest {
     void testEmptyEnvironment() {
         var result = testSubject.executeSingle(accessUrl, new DefaultEnvironment()).getContent();
 
-        assertEquals(emptyList, result.getValue().getProperty(SUBMODELS));
-        assertEquals(emptyList, result.getValue().getProperty(SHELLS));
-        assertEquals(emptyList, result.getValue().getProperty(CONCEPT_DESCRIPTIONS));
+        assertEquals(emptyList, result.environment().getProperty(SUBMODELS));
+        assertEquals(emptyList, result.environment().getProperty(SHELLS));
+        assertEquals(emptyList, result.environment().getProperty(CONCEPT_DESCRIPTIONS));
     }
 
     @Test
@@ -122,9 +151,9 @@ class EnvironmentToAssetMapperTest {
         var result = testSubject.executeSingle(accessUrl, env).getContent();
 
         assertEquals(env.getSubmodels().stream().map(Submodel::getId).map(String::hashCode).map(String::valueOf).toList(),
-                getChildren(result.getValue(), SUBMODELS).stream().map(Asset::getId).toList());
-        assertEquals(emptyList, result.getValue().getProperty(SHELLS));
-        assertEquals(emptyList, result.getValue().getProperty(CONCEPT_DESCRIPTIONS));
+                getChildren(result.environment(), SUBMODELS).stream().map(Asset::getId).toList());
+        assertEquals(emptyList, result.environment().getProperty(SHELLS));
+        assertEquals(emptyList, result.environment().getProperty(CONCEPT_DESCRIPTIONS));
     }
 
     @Test
@@ -135,7 +164,7 @@ class EnvironmentToAssetMapperTest {
 
         assertTrue(result.succeeded());
 
-        var res = result.getContent().getValue();
+        var res = result.getContent().environment();
 
         assertEquals(env.getSubmodels().stream()
                         .map(Submodel::getId)
@@ -170,19 +199,19 @@ class EnvironmentToAssetMapperTest {
         var env = createEnvironment();
         var result = testSubject.executeSingle(accessUrl, env).getContent();
         var shellDataAddress =
-                (AasDataAddress) getChildren(result.getValue(), SHELLS).stream().map(Asset::getDataAddress).toList().get(0);
+                (AasDataAddress) getChildren(result.environment(), SHELLS).stream().map(Asset::getDataAddress).toList().get(0);
         var submodelDataAddress =
-                (AasDataAddress) getChildren(result.getValue(), SUBMODELS).stream().map(Asset::getDataAddress).toList().get(0);
+                (AasDataAddress) getChildren(result.environment(), SUBMODELS).stream().map(Asset::getDataAddress).toList().get(0);
         var conceptDescriptionDataAddress =
-                (AasDataAddress) getChildren(result.getValue(), CONCEPT_DESCRIPTIONS).stream().map(Asset::getDataAddress).toList().get(0);
+                (AasDataAddress) getChildren(result.environment(), CONCEPT_DESCRIPTIONS).stream().map(Asset::getDataAddress).toList().get(0);
 
-        assertEquals(accessUrl, shellDataAddress.getBaseUrl());
+        assertEquals(accessUrl.toString(), shellDataAddress.getBaseUrl());
         assertEquals("%s/%s".formatted(SHELLS, Encoder.encodeBase64(env.getAssetAdministrationShells().get(0).getId())),
                 shellDataAddress.referenceChainAsPath());
-        assertEquals(accessUrl, submodelDataAddress.getBaseUrl());
+        assertEquals(accessUrl.toString(), submodelDataAddress.getBaseUrl());
         assertEquals("%s/%s".formatted(SUBMODELS, Encoder.encodeBase64(env.getSubmodels().get(0).getId())),
                 submodelDataAddress.referenceChainAsPath());
-        assertEquals(accessUrl, conceptDescriptionDataAddress.getBaseUrl());
+        assertEquals(accessUrl.toString(), conceptDescriptionDataAddress.getBaseUrl());
         assertEquals("concept-descriptions/%s".formatted(Encoder.encodeBase64(env.getConceptDescriptions().get(0).getId())),
                 conceptDescriptionDataAddress.referenceChainAsPath());
     }

@@ -36,7 +36,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static de.fraunhofer.iosb.app.model.ids.ServiceRepository.SelfDescriptionSourceType;
 import static jakarta.ws.rs.HttpMethod.GET;
 import static java.lang.String.format;
 
@@ -55,9 +54,7 @@ public abstract class AasAgent<T> extends PipelineStep<URL, T> {
         this.aasDataProcessorFactory = aasDataProcessorFactory;
     }
 
-    public abstract SelfDescriptionSourceType supportedType();
-
-    protected <T> List<T> readElements(URL accessUrl, Class<T> clazz) throws IOException {
+    protected <K> List<K> readElements(URL accessUrl, Class<K> clazz) throws IOException {
         try (var response = executeRequest(accessUrl)) {
             if (response == null || response.body() == null || response.code() == INTERNAL_SERVER_ERROR) {
                 throw new EdcException("Received empty body for %s request".formatted(clazz.getName()));
@@ -68,7 +65,7 @@ public abstract class AasAgent<T> extends PipelineStep<URL, T> {
         }
     }
 
-    private <T> @NotNull List<T> readList(@Nullable String serialized, Class<T> clazz) {
+    private <K> @NotNull List<K> readList(@Nullable String serialized, Class<K> clazz) {
         try {
             var responseJson = objectMapper.readTree(serialized).get("result");
             return Optional.ofNullable(jsonDeserializer.readList(responseJson, clazz))

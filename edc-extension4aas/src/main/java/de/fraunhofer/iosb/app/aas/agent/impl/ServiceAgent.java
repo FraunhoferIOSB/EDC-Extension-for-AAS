@@ -17,7 +17,6 @@ package de.fraunhofer.iosb.app.aas.agent.impl;
 
 import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
 import de.fraunhofer.iosb.app.aas.agent.AasAgent;
-import de.fraunhofer.iosb.app.model.ids.ServiceRepository;
 import de.fraunhofer.iosb.app.pipeline.PipelineFailure;
 import de.fraunhofer.iosb.app.pipeline.PipelineResult;
 import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShell;
@@ -41,11 +40,6 @@ public class ServiceAgent extends AasAgent<Environment> {
 
     public ServiceAgent(AasDataProcessorFactory aasDataProcessorFactory) {
         super(aasDataProcessorFactory);
-    }
-
-    @Override
-    public ServiceRepository.SelfDescriptionSourceType supportedType() {
-        return ServiceRepository.SelfDescriptionSourceType.SERVICE;
     }
 
     /**

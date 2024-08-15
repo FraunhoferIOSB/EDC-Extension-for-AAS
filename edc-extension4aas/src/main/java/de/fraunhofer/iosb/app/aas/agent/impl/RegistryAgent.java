@@ -17,7 +17,6 @@ package de.fraunhofer.iosb.app.aas.agent.impl;
 
 import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
 import de.fraunhofer.iosb.app.aas.agent.AasAgent;
-import de.fraunhofer.iosb.app.model.ids.ServiceRepository;
 import de.fraunhofer.iosb.app.pipeline.PipelineFailure;
 import de.fraunhofer.iosb.app.pipeline.PipelineResult;
 import de.fraunhofer.iosb.registry.AasServiceRegistry;
@@ -35,7 +34,6 @@ import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultKey;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultReference;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultSubmodel;
 import org.eclipse.edc.spi.EdcException;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -49,6 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 
 import static java.lang.String.format;
 
@@ -65,11 +64,6 @@ public class RegistryAgent extends AasAgent<Map<URL, Environment>> {
     public RegistryAgent(AasDataProcessorFactory aasDataProcessorFactory, AasServiceRegistry aasServiceRegistry) {
         super(aasDataProcessorFactory);
         this.aasServiceRegistry = aasServiceRegistry;
-    }
-
-    @Override
-    public ServiceRepository.SelfDescriptionSourceType supportedType() {
-        return ServiceRepository.SelfDescriptionSourceType.REGISTRY;
     }
 
     @Override
@@ -206,11 +200,12 @@ public class RegistryAgent extends AasAgent<Map<URL, Environment>> {
                 return null;
             }
         })
-                .collect(Collectors.toCollection(ArrayList::new))
-                .stream().sorted(Comparator.comparing(URL::getHost).thenComparingInt(URL::getPort)).toList();
+                .collect(Collectors.toCollection(ArrayList::new)).stream()
+                .sorted(Comparator.comparing(URL::getHost).thenComparingInt(URL::getPort))
+                .toList();
     }
 
-    private @NotNull List<String> getSubmodelEndpoints(Collection<SubmodelDescriptor> submodelDescriptors) {
+    private @Nonnull List<String> getSubmodelEndpoints(Collection<SubmodelDescriptor> submodelDescriptors) {
         return submodelDescriptors.stream()
                 .map(descriptor -> descriptor.getEndpoints().stream()
                         .filter(endpoint ->
@@ -223,7 +218,7 @@ public class RegistryAgent extends AasAgent<Map<URL, Environment>> {
                 .toList();
     }
 
-    private @NotNull List<String> getShellEndpoints(Collection<AssetAdministrationShellDescriptor> shellDescriptors) {
+    private @Nonnull List<String> getShellEndpoints(Collection<AssetAdministrationShellDescriptor> shellDescriptors) {
         return shellDescriptors.stream()
                 .map(descriptor -> descriptor.getEndpoints().stream()
                         .filter(endpoint ->

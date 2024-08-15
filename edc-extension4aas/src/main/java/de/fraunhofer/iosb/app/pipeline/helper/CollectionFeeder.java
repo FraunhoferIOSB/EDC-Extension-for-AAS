@@ -15,7 +15,6 @@
  */
 package de.fraunhofer.iosb.app.pipeline.helper;
 
-import de.fraunhofer.iosb.app.pipeline.PipelineFailure;
 import de.fraunhofer.iosb.app.pipeline.PipelineResult;
 import de.fraunhofer.iosb.app.pipeline.PipelineStep;
 
@@ -23,10 +22,8 @@ import java.util.Collection;
 import java.util.Objects;
 import java.util.function.Function;
 
-import static de.fraunhofer.iosb.app.pipeline.util.PipelineUtils.collectFailureMessages;
 import static de.fraunhofer.iosb.app.pipeline.util.PipelineUtils.extractContents;
 import static de.fraunhofer.iosb.app.pipeline.util.PipelineUtils.handleError;
-import static de.fraunhofer.iosb.app.pipeline.util.PipelineUtils.maxFailure;
 
 public class CollectionFeeder<T, U> extends PipelineStep<Collection<T>, Collection<U>> {
 

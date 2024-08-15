@@ -15,26 +15,6 @@
  */
 package de.fraunhofer.iosb.app;
 
-import de.fraunhofer.iosb.app.controller.AasController;
-import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
-import de.fraunhofer.iosb.registry.AasServiceRegistry;
-import jakarta.ws.rs.core.Response;
-import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
-import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
-import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
-import org.eclipse.edc.spi.monitor.ConsoleMonitor;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.mock;
-
 /**
  * Not mocking the controllers this endpoint uses, as the mocking/validation
  * process would be pretty complex. Mocking the AAS service instead.

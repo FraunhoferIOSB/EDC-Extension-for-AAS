@@ -118,7 +118,7 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<URL, Environment>
                         .build()));
     }
 
-    private <T extends Referable> Asset.Builder mapReferableToAssetBuilder(T referable) {
+    private <R extends Referable> Asset.Builder mapReferableToAssetBuilder(R referable) {
         return Asset.Builder.newInstance()
                 .properties(Map.of(
                         "idShort", Optional.ofNullable(referable.getIdShort()).orElse(""),
@@ -126,14 +126,13 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<URL, Environment>
                         "description", referable.getDescription()));
     }
 
-    private <T extends Identifiable> Asset.Builder mapIdentifiableToAssetBuilder(T identifiable) {
+    private <I extends Identifiable> Asset.Builder mapIdentifiableToAssetBuilder(I identifiable) {
         var admin = Optional.ofNullable(identifiable.getAdministration())
                 .orElse(new DefaultAdministrativeInformation.Builder().build());
         var version = null != admin.getVersion() && null != admin.getRevision() ?
                 String.valueOf(admin.getVersion()).concat(":").concat(String.valueOf(admin.getRevision())) : null;
 
         return mapReferableToAssetBuilder(identifiable)
-                .id(String.valueOf(identifiable.getId().hashCode()))
                 .version(version)
                 .contentType("application/json")
                 .properties(Map.of(
@@ -142,7 +141,7 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<URL, Environment>
     }
 
     /* May contain traces of recursion */
-    private <T extends SubmodelElement> Asset mapSubmodelElementToAsset(Reference parentReference, T submodelElement,
+    private <E extends SubmodelElement> Asset mapSubmodelElementToAsset(Reference parentReference, E submodelElement,
                                                                         String accessUrl) {
         var reference = createReference(submodelElement.getIdShort(), parentReference);
 
@@ -156,7 +155,7 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<URL, Environment>
                 .build();
 
         return mapReferableToAssetBuilder(submodelElement)
-                .id(String.valueOf(dataAddress.referenceChainAsPath().hashCode()))
+                .id(String.valueOf("%s:%s".formatted(accessUrl, dataAddress.referenceChainAsPath()).hashCode()))
                 .contentType("application/json")
                 .properties(Map.of(
                         "embeddedDataSpecifications", submodelElement.getEmbeddedDataSpecifications(),
@@ -177,20 +176,26 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<URL, Environment>
     }
 
     private Asset mapShellToAsset(AssetAdministrationShell shell, String accessUrl) {
+        var dataAddress = AasDataAddress.Builder.newInstance()
+                .baseUrl(accessUrl)
+                .referenceChain(createReference(KeyTypes.ASSET_ADMINISTRATION_SHELL, shell.getId()))
+                .build();
+
         return mapIdentifiableToAssetBuilder(shell)
-                .dataAddress(AasDataAddress.Builder.newInstance()
-                        .baseUrl(accessUrl)
-                        .referenceChain(createReference(KeyTypes.ASSET_ADMINISTRATION_SHELL, shell.getId()))
-                        .build())
+                .id(String.valueOf("%s:%s".formatted(accessUrl, dataAddress.referenceChainAsPath()).hashCode()))
+                .dataAddress(dataAddress)
                 .build();
     }
 
     private Asset mapConceptDescriptionToAsset(ConceptDescription conceptDescription, String accessUrl) {
+        var dataAddress = AasDataAddress.Builder.newInstance()
+                .baseUrl(accessUrl)
+                .referenceChain(createReference(KeyTypes.CONCEPT_DESCRIPTION, conceptDescription.getId()))
+                .build();
+
         return mapIdentifiableToAssetBuilder(conceptDescription)
-                .dataAddress(AasDataAddress.Builder.newInstance()
-                        .baseUrl(accessUrl)
-                        .referenceChain(createReference(KeyTypes.CONCEPT_DESCRIPTION, conceptDescription.getId()))
-                        .build())
+                .id(String.valueOf("%s:%s".formatted(accessUrl, dataAddress.referenceChainAsPath()).hashCode()))
+                .dataAddress(dataAddress)
                 .build();
     }
 
@@ -202,15 +207,19 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<URL, Environment>
                     .map(elem -> mapSubmodelElementToAsset(reference, elem, accessUrl))
                     .toList();
         }
+
+        var dataAddress = AasDataAddress.Builder.newInstance()
+                .baseUrl(accessUrl).referenceChain(reference)
+                .build();
+
         return mapIdentifiableToAssetBuilder(submodel)
+                .id(String.valueOf("%s:%s".formatted(accessUrl, dataAddress.referenceChainAsPath()).hashCode()))
                 .properties(Map.of(
                         "semanticId",
                         Optional.ofNullable(submodel.getSemanticId())
                                 .orElse(new DefaultReference.Builder().build()),
                         "submodelElements", children))
-                .dataAddress(AasDataAddress.Builder.newInstance()
-                        .baseUrl(accessUrl).referenceChain(reference)
-                        .build())
+                .dataAddress(dataAddress)
                 .build();
     }
 

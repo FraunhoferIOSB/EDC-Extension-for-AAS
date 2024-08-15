@@ -18,8 +18,8 @@ package de.fraunhofer.iosb.app.edc;
 import de.fraunhofer.iosb.app.edc.asset.AssetRegistrar;
 import de.fraunhofer.iosb.app.edc.contract.ContractRegistrar;
 import de.fraunhofer.iosb.app.model.ChangeSet;
-import de.fraunhofer.iosb.app.model.aas.Registry;
 import de.fraunhofer.iosb.app.model.aas.Service;
+import de.fraunhofer.iosb.app.model.aas.registry.Registry;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionChangeListener;
 import de.fraunhofer.iosb.app.pipeline.Pipeline;
 import de.fraunhofer.iosb.app.pipeline.PipelineStep;
@@ -28,6 +28,7 @@ import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
+import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.util.Objects;
@@ -75,7 +76,7 @@ public class CleanUpService implements SelfDescriptionChangeListener {
         }
 
         public Builder monitor(Monitor monitor) {
-            this.monitor = monitor;
+            this.monitor = monitor.withPrefix("CleanUpService");
             return this;
         }
 
@@ -92,8 +93,10 @@ public class CleanUpService implements SelfDescriptionChangeListener {
         public CleanUpService build() {
             Objects.requireNonNull(assetIndex);
             Objects.requireNonNull(contractDefinitionStore);
-            Objects.requireNonNull(monitor);
             Objects.requireNonNull(policyDefinitionStore);
+
+            monitor = Objects.requireNonNullElseGet(monitor,
+                    () -> new ConsoleMonitor(this.getClass().getName(), ConsoleMonitor.Level.INFO));
 
             var pipeline = new Pipeline.Builder<Asset, ChangeSet<Asset, String>>()
                     .initialStep(PipelineStep.create(asset -> new ChangeSet.Builder<Asset, String>()
@@ -102,6 +105,10 @@ public class CleanUpService implements SelfDescriptionChangeListener {
                                     .map(Asset::getId)
                                     .toList())
                             .build()))
+                    .step(PipelineStep.create(input -> {
+                        monitor.debug("Started pipeline for %s assets.".formatted(input.toRemove().size()));
+                        return input;
+                    }))
                     .step(new AssetRegistrar(assetIndex, monitor))
                     .step(new ContractRegistrar(contractDefinitionStore, policyDefinitionStore, monitor))
                     .monitor(monitor)

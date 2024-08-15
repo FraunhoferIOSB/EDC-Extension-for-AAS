@@ -16,7 +16,8 @@
 package de.fraunhofer.iosb.app;
 
 import de.fraunhofer.iosb.app.controller.AasController;
-import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
+import de.fraunhofer.iosb.app.model.aas.registry.RegistryRepository;
+import de.fraunhofer.iosb.app.model.ids.ServiceRepository;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.POST;
@@ -34,9 +35,9 @@ import java.net.URL;
 import java.nio.file.InvalidPathException;
 import java.util.Objects;
 
-import static de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository.SelfDescriptionSourceType;
-import static de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository.SelfDescriptionSourceType.REGISTRY;
-import static de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository.SelfDescriptionSourceType.SERVICE;
+import static de.fraunhofer.iosb.app.model.ids.ServiceRepository.SelfDescriptionSourceType;
+import static de.fraunhofer.iosb.app.model.ids.ServiceRepository.SelfDescriptionSourceType.REGISTRY;
+import static de.fraunhofer.iosb.app.model.ids.ServiceRepository.SelfDescriptionSourceType.SERVICE;
 
 /**
  * Delegates requests to controllers.
@@ -52,18 +53,22 @@ public class Endpoint {
 
     private final Monitor monitor;
     private final AasController aasController;
-    private final SelfDescriptionRepository selfDescriptionRepository;
+    private final RegistryRepository registryRepository;
+    private final ServiceRepository serviceRepository;
 
     /**
      * Class constructor
      *
-     * @param selfDescriptionRepository Manage self descriptions
-     * @param aasController             Communication with AAS services
-     * @param monitor                   Logs
+     * @param serviceRepository  Manage AAS services
+     * @param registryRepository Manage AAS registries
+     * @param aasController      Communication with AAS services
+     * @param monitor            Logs
      */
-    public Endpoint(SelfDescriptionRepository selfDescriptionRepository, AasController aasController, Monitor monitor) {
+    public Endpoint(ServiceRepository serviceRepository, RegistryRepository registryRepository,
+                    AasController aasController, Monitor monitor) {
+        this.registryRepository = registryRepository;
         this.monitor = monitor;
-        this.selfDescriptionRepository = Objects.requireNonNull(selfDescriptionRepository);
+        this.serviceRepository = Objects.requireNonNull(serviceRepository);
         this.aasController = Objects.requireNonNull(aasController);
     }
 
@@ -173,8 +178,8 @@ public class Endpoint {
             return Response.status(Response.Status.BAD_REQUEST).entity("Missing query parameter 'url'").build();
         }
 
-        if (SERVICE.equals(type) && selfDescriptionRepository.createService(accessUrl) ||
-                REGISTRY.equals(type) && selfDescriptionRepository.createRegistry(accessUrl)) {
+        if (SERVICE.equals(type) && serviceRepository.createService(accessUrl) ||
+                REGISTRY.equals(type) && registryRepository.create(accessUrl)) {
             return Response.status(Status.CREATED).entity("Registered new AAS %s at EDC".formatted(type)).build();
         }
 
@@ -188,13 +193,13 @@ public class Endpoint {
         }
 
         if (SERVICE.equals(type)) {
-            selfDescriptionRepository.removeService(accessUrl);
+            serviceRepository.delete(accessUrl);
         } else if (REGISTRY.equals(type)) {
-            selfDescriptionRepository.removeRegistry(accessUrl);
+            registryRepository.delete(accessUrl);
         } else {
             throw new IllegalArgumentException("Unknown type: %s".formatted(type));
         }
-        
+
         return Response.ok("Removed %s from EDC".formatted(type)).build();
     }
 }

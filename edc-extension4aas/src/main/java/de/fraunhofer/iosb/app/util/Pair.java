@@ -13,28 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.app.model.aas;
+package de.fraunhofer.iosb.app.util;
 
-import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
-
-import java.net.URL;
-import java.util.Objects;
-
-public record Service(URL accessUrl, Asset environment) {
-
-    /**
-     * Only checks for accessUrl!
-     */
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Service service = (Service) o;
-        return Objects.equals(accessUrl, service.accessUrl);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(accessUrl);
-    }
+/**
+ * Why this over Map.Entry?
+ * - It is OO
+ * - Supports more than one null value for "first" (this is compared to a standard map as its competitor)
+ */
+public record Pair<T, U>(T first, U second) {
 }

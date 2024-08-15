@@ -17,7 +17,7 @@ package de.fraunhofer.iosb.app.aas.agent.impl;
 
 import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
 import de.fraunhofer.iosb.app.aas.agent.AasAgent;
-import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
+import de.fraunhofer.iosb.app.model.ids.ServiceRepository;
 import de.fraunhofer.iosb.app.pipeline.PipelineFailure;
 import de.fraunhofer.iosb.app.pipeline.PipelineResult;
 import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShell;
@@ -31,22 +31,21 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.List;
-import java.util.Map;
 
 import static java.lang.String.format;
 
 /**
  * Communicating with AAS service
  */
-public class ServiceAgent extends AasAgent {
+public class ServiceAgent extends AasAgent<Environment> {
 
     public ServiceAgent(AasDataProcessorFactory aasDataProcessorFactory) {
         super(aasDataProcessorFactory);
     }
 
     @Override
-    public SelfDescriptionRepository.SelfDescriptionSourceType supportedType() {
-        return SelfDescriptionRepository.SelfDescriptionSourceType.SERVICE;
+    public ServiceRepository.SelfDescriptionSourceType supportedType() {
+        return ServiceRepository.SelfDescriptionSourceType.SERVICE;
     }
 
     /**
@@ -56,9 +55,9 @@ public class ServiceAgent extends AasAgent {
      * @return A map with one entry. This entry is the access url and environment of the service
      */
     @Override
-    public PipelineResult<Map<URL, Environment>> apply(URL url) {
+    public PipelineResult<Environment> apply(URL url) {
         try {
-            return PipelineResult.success(Map.of(url, readEnvironment(url)));
+            return PipelineResult.success(readEnvironment(url));
         } catch (EdcException | IOException e) {
             return PipelineResult.failure(PipelineFailure.fatal(List.of(e.getMessage())));
         }

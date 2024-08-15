@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.app.model.aas;
+package de.fraunhofer.iosb.app.model.aas.registry;
+
+import de.fraunhofer.iosb.app.model.aas.Service;
 
 import java.net.URL;
 import java.util.Collection;

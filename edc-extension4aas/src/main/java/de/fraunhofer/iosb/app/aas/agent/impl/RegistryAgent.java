@@ -17,7 +17,7 @@ package de.fraunhofer.iosb.app.aas.agent.impl;
 
 import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
 import de.fraunhofer.iosb.app.aas.agent.AasAgent;
-import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
+import de.fraunhofer.iosb.app.model.ids.ServiceRepository;
 import de.fraunhofer.iosb.app.pipeline.PipelineFailure;
 import de.fraunhofer.iosb.app.pipeline.PipelineResult;
 import de.fraunhofer.iosb.registry.AasServiceRegistry;
@@ -52,7 +52,7 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
-public class RegistryAgent extends AasAgent {
+public class RegistryAgent extends AasAgent<Map<URL, Environment>> {
 
     private final AasServiceRegistry aasServiceRegistry;
 
@@ -68,8 +68,8 @@ public class RegistryAgent extends AasAgent {
     }
 
     @Override
-    public SelfDescriptionRepository.SelfDescriptionSourceType supportedType() {
-        return SelfDescriptionRepository.SelfDescriptionSourceType.REGISTRY;
+    public ServiceRepository.SelfDescriptionSourceType supportedType() {
+        return ServiceRepository.SelfDescriptionSourceType.REGISTRY;
     }
 
     @Override

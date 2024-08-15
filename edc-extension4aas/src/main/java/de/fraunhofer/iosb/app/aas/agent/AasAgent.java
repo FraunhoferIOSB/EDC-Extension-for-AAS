@@ -26,7 +26,6 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.DeserializationException;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.json.JsonDeserializer;
-import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
 import org.eclipse.edc.spi.EdcException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,17 +34,16 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
-import static de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository.SelfDescriptionSourceType;
+import static de.fraunhofer.iosb.app.model.ids.ServiceRepository.SelfDescriptionSourceType;
 import static jakarta.ws.rs.HttpMethod.GET;
 import static java.lang.String.format;
 
 /**
  * Fetching an AAS environment from AAS service or AAS registry providers.
  */
-public abstract class AasAgent extends PipelineStep<URL, Map<URL, Environment>> {
+public abstract class AasAgent<T> extends PipelineStep<URL, T> {
 
     protected static final int INTERNAL_SERVER_ERROR = 500;
 
@@ -73,7 +71,6 @@ public abstract class AasAgent extends PipelineStep<URL, Map<URL, Environment>> 
     private <T> @NotNull List<T> readList(@Nullable String serialized, Class<T> clazz) {
         try {
             var responseJson = objectMapper.readTree(serialized).get("result");
-            var xd = Optional.ofNullable(jsonDeserializer.readList(responseJson, clazz)).orElse(new ArrayList<>()); // TODO
             return Optional.ofNullable(jsonDeserializer.readList(responseJson, clazz))
                     .orElse(new ArrayList<>());
         } catch (JsonProcessingException | DeserializationException e) {
@@ -81,8 +78,7 @@ public abstract class AasAgent extends PipelineStep<URL, Map<URL, Environment>> 
         }
     }
 
-
-    protected Response executeRequest(URL aasServiceUrl) throws IOException {
+    private Response executeRequest(URL aasServiceUrl) throws IOException {
         var processor = aasDataProcessorFactory.processorFor(aasServiceUrl.toString());
 
         if (processor.failed()) {

@@ -15,8 +15,10 @@
  */
 package de.fraunhofer.iosb.app.controller;
 
-import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
+import de.fraunhofer.iosb.app.model.aas.Service;
+import de.fraunhofer.iosb.app.model.aas.registry.RegistryRepository;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionSerializer;
+import de.fraunhofer.iosb.app.model.ids.ServiceRepository;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
@@ -26,6 +28,7 @@ import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -41,17 +44,19 @@ public class SelfDescriptionController {
     public static final String SELF_DESCRIPTION_PATH = "selfDescription";
 
     private final Monitor monitor;
-    private final SelfDescriptionRepository selfDescriptionRepository;
+    private final ServiceRepository serviceRepository;
+    private final RegistryRepository registryRepository;
 
     /**
      * Class constructor
      *
-     * @param monitor                   Logs
-     * @param selfDescriptionRepository Manage self descriptions
+     * @param monitor           Logs
+     * @param serviceRepository Manage self descriptions
      */
-    public SelfDescriptionController(Monitor monitor, SelfDescriptionRepository selfDescriptionRepository) {
+    public SelfDescriptionController(Monitor monitor, ServiceRepository serviceRepository, RegistryRepository registryRepository) {
         this.monitor = monitor;
-        this.selfDescriptionRepository = selfDescriptionRepository;
+        this.serviceRepository = serviceRepository;
+        this.registryRepository = registryRepository;
     }
 
     /**
@@ -64,20 +69,26 @@ public class SelfDescriptionController {
     @GET
     public Response getSelfDescription(@QueryParam("aasService") URL aasServiceUrl) {
         if (Objects.isNull(aasServiceUrl)) {
-            monitor.debug("Received a self description GET request");
+            monitor.debug("GET /selfDescription");
 
-            var selfDescriptionString = selfDescriptionRepository.getAllEnvironments().stream()
+            var services = serviceRepository.getAllEnvironments().stream()
                     .filter(Objects::nonNull)
                     .map(SelfDescriptionSerializer::assetToString)
-                    .collect(Collectors.joining(","));
+                    .collect(Collectors.toCollection(ArrayList::new));
 
-            return Response.ok(selfDescriptionString).build();
+            services.addAll(registryRepository.getAllEnvironments().stream()
+                    .filter(Objects::nonNull)
+                    .map(Service::environment)
+                    .filter(Objects::nonNull)
+                    .map(SelfDescriptionSerializer::assetToString)
+                    .toList());
+
+            return Response.ok(services.stream().reduce("%s,%s"::formatted).orElse(null)).build();
+
         } else {
-            monitor.debug("Received a self description GET request for %s".formatted(aasServiceUrl));
-            var selfDescriptionString = selfDescriptionRepository.getEnvironments(aasServiceUrl.toString()).stream()
-                    .filter(Objects::nonNull)
-                    .map(SelfDescriptionSerializer::assetToString)
-                    .collect(Collectors.joining(","));
+            monitor.debug("GET /selfDescription/%s".formatted(aasServiceUrl));
+            // TODO find registry or service of interest. Is this even wanted? I think user should not know about accessURL of services?
+            var selfDescriptionString = SelfDescriptionSerializer.assetToString(serviceRepository.getEnvironment(aasServiceUrl));
             if (!selfDescriptionString.isEmpty()) {
                 return Response.ok(selfDescriptionString).build();
             } else {

@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.app.model.ids;
+package de.fraunhofer.iosb.app.model.aas.service;
 
-import de.fraunhofer.iosb.app.model.aas.Service;
+import de.fraunhofer.iosb.app.model.ids.SelfDescriptionChangeListener;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.spi.observe.ObservableImpl;
 

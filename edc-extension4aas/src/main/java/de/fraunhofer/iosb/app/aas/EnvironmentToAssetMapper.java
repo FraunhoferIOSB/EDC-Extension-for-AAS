@@ -15,7 +15,7 @@
  */
 package de.fraunhofer.iosb.app.aas;
 
-import de.fraunhofer.iosb.app.model.aas.Service;
+import de.fraunhofer.iosb.app.model.aas.service.Service;
 import de.fraunhofer.iosb.app.pipeline.PipelineFailure;
 import de.fraunhofer.iosb.app.pipeline.PipelineResult;
 import de.fraunhofer.iosb.app.pipeline.PipelineStep;

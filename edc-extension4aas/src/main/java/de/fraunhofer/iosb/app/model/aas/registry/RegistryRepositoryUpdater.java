@@ -15,24 +15,25 @@
  */
 package de.fraunhofer.iosb.app.model.aas.registry;
 
-import de.fraunhofer.iosb.app.model.aas.Service;
+import de.fraunhofer.iosb.app.model.aas.service.Service;
 import de.fraunhofer.iosb.app.pipeline.PipelineResult;
 import de.fraunhofer.iosb.app.pipeline.PipelineStep;
 import de.fraunhofer.iosb.app.util.Pair;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import javax.annotation.Nonnull;
 
-public class RegistryUpdater extends PipelineStep<Map<URL, Collection<Service>>, Collection<Pair<Asset, Asset>>> {
+/**
+ * Update a registry
+ */
+public class RegistryRepositoryUpdater extends PipelineStep<Collection<Registry>, Collection<Pair<Asset, Asset>>> {
     private final RegistryRepository registryRepository;
 
-    public RegistryUpdater(RegistryRepository registryRepository) {
+    public RegistryRepositoryUpdater(RegistryRepository registryRepository) {
         this.registryRepository = registryRepository;
     }
 
@@ -43,13 +44,19 @@ public class RegistryUpdater extends PipelineStep<Map<URL, Collection<Service>>,
      * @return Old and new asset of each registry for synchronizer to create changeSet
      */
     @Override
-    public PipelineResult<Collection<Pair<Asset, Asset>>> apply(Map<URL, Collection<Service>> registries) {
+    public PipelineResult<Collection<Pair<Asset, Asset>>> apply(Collection<Registry> registries) {
         Collection<Pair<Asset, Asset>> result = new ArrayList<>();
-        registries.forEach((registryUrl, services) -> {
-            var storedEnvironments = Optional.ofNullable(registryRepository.getEnvironments(registryUrl)).orElse(List.of());
-            services.forEach(service -> result.add(new Pair<>(getCorresponding(storedEnvironments, service).environment(), service.environment())));
+        registries.forEach(registry -> {
+            var storedEnvironments = Optional.ofNullable(registryRepository.getEnvironments(registry.accessUrl())).orElse(List.of());
 
-            registryRepository.update(new Registry(registryUrl, services));
+            Optional.ofNullable(registry.services())
+                    .orElse(List.of())
+                    .forEach(service ->
+                            result.add(new Pair<>(
+                                    getCorresponding(storedEnvironments, service).environment(),
+                                    service.environment())));
+
+            registryRepository.update(registry);
         });
 
         return PipelineResult.success(result);

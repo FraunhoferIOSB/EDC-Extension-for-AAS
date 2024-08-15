@@ -15,7 +15,7 @@
  */
 package de.fraunhofer.iosb.app.model.aas.registry;
 
-import de.fraunhofer.iosb.app.model.aas.Service;
+import de.fraunhofer.iosb.app.model.aas.service.Service;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionChangeListener;
 import org.eclipse.edc.spi.observe.ObservableImpl;
 

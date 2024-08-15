@@ -27,20 +27,27 @@ import org.eclipse.edc.spi.result.AbstractResult;
 import java.util.List;
 
 /**
- * Adds / Removes assets given a ChangeSet of Assets and AssetIDs. Passes the assetIDs on to the next pipelineStep.
+ * Adds and removes assets given a change set of assets and asset IDs.
+ * Passes the asset IDs of both the added and removed on to the next pipeline step.
  */
 public class AssetRegistrar extends PipelineStep<ChangeSet<Asset, String>, ChangeSet<String, String>> {
 
     private final AssetIndex assetIndex;
     private final Monitor monitor;
 
+    /**
+     * Class constructor
+     *
+     * @param assetIndex Add / remove assets from the EDC asset index.
+     * @param monitor    Debug log message on how many assets were added/removed (only if >0)
+     */
     public AssetRegistrar(AssetIndex assetIndex, Monitor monitor) {
         this.assetIndex = assetIndex;
         this.monitor = monitor;
     }
 
     /**
-     * Adds/Removes assets from the given ChangeSet.
+     * Adds/Removes assets given the change set.
      *
      * @param changeSet Assets to add/remove.
      * @return Asset IDs of all the added/removed assets
@@ -62,7 +69,7 @@ public class AssetRegistrar extends PipelineStep<ChangeSet<Asset, String>, Chang
                 .build();
 
         if (!changeSetIds.toAdd().isEmpty() || !changeSetIds.toRemove().isEmpty()) {
-            monitor.info("Added %s, removed %s assets".formatted(changeSetIds.toAdd().size(),
+            monitor.debug("Added %s, removed %s assets".formatted(changeSetIds.toAdd().size(),
                     changeSetIds.toRemove().size()));
         }
 

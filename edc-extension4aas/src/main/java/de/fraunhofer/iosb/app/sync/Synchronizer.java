@@ -24,6 +24,7 @@ import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Objects;
 
 
 /**
@@ -40,11 +41,14 @@ public class Synchronizer extends PipelineStep<Collection<Pair<Asset, Asset>>, C
     }
 
     /**
-     * Finds out which assets are to be removed / added based on a more current environment from the AAS.
+     * Receives pairs of AAS environment assets and computes their deltas,
+     * i.e. what needs to be removed and added to get from the first environment to the second.
+     * The first environment is here the currently stored environment (AssetIndex) and the second is the new one,
+     * from the AAS service / registry
      *
-     * @param oldAndNewAssets For n AAS services, the currently stored environment
-     *                        and the new one, both in the form of assets.
-     * @return For the n AAS services the asset containing assets to be added and the assetIDs of the assets to be removed
+     * @param oldAndNewAssets For n AAS services/registries, the currently stored environment and the new one,
+     *                        both in the form of assets.
+     * @return A changeset containing a collection of assets to be added and a collection of assetIds to be removed.
      */
     @Override
     public PipelineResult<ChangeSet<Asset, String>> apply(Collection<Pair<Asset, Asset>> oldAndNewAssets) {
@@ -52,10 +56,11 @@ public class Synchronizer extends PipelineStep<Collection<Pair<Asset, Asset>>, C
         Collection<Asset> toAdd = new ArrayList<>();
 
         for (var entry : oldAndNewAssets) {
-            var oldEnvironment = entry.first() != null ? AssetUtil.flatMapAssets(entry.first()) : new ArrayList<Asset>();
             // New environment cannot be null.
-            var newEnvironment = AssetUtil.flatMapAssets(entry.second());
+            Objects.requireNonNull(entry.second());
+            var oldEnvironment = entry.first() != null ? AssetUtil.flatMapAssets(entry.first()) : new ArrayList<Asset>();
 
+            var newEnvironment = AssetUtil.flatMapAssets(entry.second());
 
             toRemove.addAll(oldEnvironment.stream().filter(oldElement -> absent(newEnvironment, oldElement)).map(Asset::getId).toList());
             toAdd.addAll(newEnvironment.stream().filter(newElement -> absent(oldEnvironment, newElement)).toList());

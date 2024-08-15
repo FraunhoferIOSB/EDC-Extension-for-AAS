@@ -17,7 +17,7 @@ package de.fraunhofer.iosb.app;
 
 import de.fraunhofer.iosb.app.controller.AasController;
 import de.fraunhofer.iosb.app.model.aas.registry.RegistryRepository;
-import de.fraunhofer.iosb.app.model.ids.ServiceRepository;
+import de.fraunhofer.iosb.app.model.aas.service.ServiceRepository;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.POST;
@@ -35,9 +35,9 @@ import java.net.URL;
 import java.nio.file.InvalidPathException;
 import java.util.Objects;
 
-import static de.fraunhofer.iosb.app.model.ids.ServiceRepository.SelfDescriptionSourceType;
-import static de.fraunhofer.iosb.app.model.ids.ServiceRepository.SelfDescriptionSourceType.REGISTRY;
-import static de.fraunhofer.iosb.app.model.ids.ServiceRepository.SelfDescriptionSourceType.SERVICE;
+import static de.fraunhofer.iosb.app.model.aas.service.ServiceRepository.SelfDescriptionSourceType;
+import static de.fraunhofer.iosb.app.model.aas.service.ServiceRepository.SelfDescriptionSourceType.REGISTRY;
+import static de.fraunhofer.iosb.app.model.aas.service.ServiceRepository.SelfDescriptionSourceType.SERVICE;
 
 /**
  * Delegates requests to controllers.

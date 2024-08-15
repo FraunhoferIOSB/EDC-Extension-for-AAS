@@ -15,19 +15,32 @@
  */
 package de.fraunhofer.iosb.app.model.aas.registry;
 
-import de.fraunhofer.iosb.app.model.aas.Service;
+import de.fraunhofer.iosb.app.model.aas.service.Service;
 
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Collection;
 import java.util.Objects;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
-public record Registry(URL accessUrl, Collection<Service> services) {
+/**
+ * An AAS registry as seen in <a href="https://github.com/fraunhoferIOSB/FAAAST-registry">FA³ST Registry</a>
+ *
+ * @param accessUrl URL for accessing the registry.
+ * @param services  The AAS services offered by this registry.
+ */
+public record Registry(@Nonnull URL accessUrl, @Nullable Collection<Service> services) {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Registry registry = (Registry) o;
-        return Objects.equals(accessUrl, registry.accessUrl);
+        try {
+            return Objects.equals(accessUrl.toURI(), registry.accessUrl.toURI());
+        } catch (URISyntaxException e) {
+            return false;
+        }
     }
 
     @Override

@@ -13,13 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.app.model.aas;
+package de.fraunhofer.iosb.app.model.aas.service;
 
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Objects;
 
+/**
+ * An AAS service as seen in <a href="https://github.com/FraunhoferIOSB/FAAAST-Service">FA³ST Service</a>
+ *
+ * @param accessUrl   URL for accessing the service.
+ * @param environment The AAS environment in asset form.
+ */
 public record Service(URL accessUrl, Asset environment) {
 
     /**
@@ -30,7 +37,11 @@ public record Service(URL accessUrl, Asset environment) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Service service = (Service) o;
-        return Objects.equals(accessUrl, service.accessUrl);
+        try {
+            return Objects.equals(accessUrl.toURI(), service.accessUrl.toURI());
+        } catch (URISyntaxException e) {
+            return false;
+        }
     }
 
     @Override

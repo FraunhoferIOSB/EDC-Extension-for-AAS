@@ -18,7 +18,7 @@ package de.fraunhofer.iosb.app.edc;
 import de.fraunhofer.iosb.app.edc.asset.AssetRegistrar;
 import de.fraunhofer.iosb.app.edc.contract.ContractRegistrar;
 import de.fraunhofer.iosb.app.model.ChangeSet;
-import de.fraunhofer.iosb.app.model.aas.Service;
+import de.fraunhofer.iosb.app.model.aas.service.Service;
 import de.fraunhofer.iosb.app.model.aas.registry.Registry;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionChangeListener;
 import de.fraunhofer.iosb.app.pipeline.Pipeline;
@@ -35,13 +35,14 @@ import java.util.Objects;
 
 
 /**
- * Holds a pipeline for removing assets and contracts.
+ * Listens for removals of registries and services from the EDC.
+ * If a registry or service is removed from the EDC, the CleanUpService will remove any EDC assets and contracts associated with it.
  */
 public class CleanUpService implements SelfDescriptionChangeListener {
 
     private final Pipeline<Asset, Void> servicePipeline;
 
-    CleanUpService(Pipeline<Asset, Void> servicePipeline) {
+    private CleanUpService(Pipeline<Asset, Void> servicePipeline) {
         this.servicePipeline = servicePipeline;
     }
 
@@ -70,31 +71,39 @@ public class CleanUpService implements SelfDescriptionChangeListener {
             return new Builder();
         }
 
+        /**
+         * Removal of assets after unregistering a service / registry.
+         */
         public Builder assetIndex(AssetIndex assetIndex) {
             this.assetIndex = assetIndex;
             return this;
         }
 
+        /**
+         * Logging capabilities for the pipeline
+         */
         public Builder monitor(Monitor monitor) {
             this.monitor = monitor.withPrefix("CleanUpService");
             return this;
         }
 
+        /**
+         * Removal of contracts after unregistering a service / registry.
+         */
         public Builder contractDefinitionStore(ContractDefinitionStore contractDefinitionStore) {
             this.contractDefinitionStore = contractDefinitionStore;
             return this;
         }
 
+        /**
+         * Removal of loose policies after unregistering a service / registry.
+         */
         public Builder policyDefinitionStore(PolicyDefinitionStore policyDefinitionStore) {
             this.policyDefinitionStore = policyDefinitionStore;
             return this;
         }
 
         public CleanUpService build() {
-            Objects.requireNonNull(assetIndex);
-            Objects.requireNonNull(contractDefinitionStore);
-            Objects.requireNonNull(policyDefinitionStore);
-
             monitor = Objects.requireNonNullElseGet(monitor,
                     () -> new ConsoleMonitor(this.getClass().getName(), ConsoleMonitor.Level.INFO));
 
@@ -109,8 +118,11 @@ public class CleanUpService implements SelfDescriptionChangeListener {
                         monitor.debug("Started pipeline for %s assets.".formatted(input.toRemove().size()));
                         return input;
                     }))
-                    .step(new AssetRegistrar(assetIndex, monitor))
-                    .step(new ContractRegistrar(contractDefinitionStore, policyDefinitionStore, monitor))
+                    .step(new AssetRegistrar(Objects.requireNonNull(assetIndex), monitor))
+                    .step(new ContractRegistrar(
+                            Objects.requireNonNull(contractDefinitionStore),
+                            Objects.requireNonNull(policyDefinitionStore),
+                            monitor))
                     .monitor(monitor)
                     .build();
 

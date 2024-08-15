@@ -27,11 +27,12 @@ import de.fraunhofer.iosb.app.controller.SelfDescriptionController;
 import de.fraunhofer.iosb.app.edc.CleanUpService;
 import de.fraunhofer.iosb.app.edc.asset.AssetRegistrar;
 import de.fraunhofer.iosb.app.edc.contract.ContractRegistrar;
+import de.fraunhofer.iosb.app.model.aas.registry.Registry;
 import de.fraunhofer.iosb.app.model.aas.registry.RegistryRepository;
-import de.fraunhofer.iosb.app.model.aas.registry.RegistryUpdater;
+import de.fraunhofer.iosb.app.model.aas.registry.RegistryRepositoryUpdater;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
-import de.fraunhofer.iosb.app.model.ids.SelfDescriptionUpdater;
-import de.fraunhofer.iosb.app.model.ids.ServiceRepository;
+import de.fraunhofer.iosb.app.model.aas.service.ServiceRepositoryUpdater;
+import de.fraunhofer.iosb.app.model.aas.service.ServiceRepository;
 import de.fraunhofer.iosb.app.pipeline.Pipeline;
 import de.fraunhofer.iosb.app.pipeline.PipelineFailure;
 import de.fraunhofer.iosb.app.pipeline.PipelineStep;
@@ -54,6 +55,7 @@ import org.eclipse.edc.web.spi.WebService;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -74,7 +76,7 @@ public class AasExtension implements ServiceExtension {
     @Inject
     private AasDataProcessorFactory aasDataProcessorFactory;
     @Inject // Register AAS services (with self-signed certs) to allow communication
-    private AasServiceRegistry aasServiceRegistry;
+    private AasServiceRegistry foreignServerRegistry;
     @Inject // Register public endpoints
     private PublicApiManagementService publicApiManagementService;
     @Inject
@@ -92,7 +94,7 @@ public class AasExtension implements ServiceExtension {
         var monitor = context.getMonitor().withPrefix(NAME);
         webService.registerResource(new ConfigurationController(context.getConfig(SETTINGS_PREFIX), monitor));
 
-        aasController = new AasController(aasServiceRegistry, monitor);
+        aasController = new AasController(foreignServerRegistry, monitor);
         var serviceRepository = new ServiceRepository();
         var registryRepository = new RegistryRepository();
 
@@ -117,7 +119,7 @@ public class AasExtension implements ServiceExtension {
                 .step(new CollectionFeeder<>(reachabilityCheck))
                 .step(new InputOutputZipper<>(new ServiceAgent(aasDataProcessorFactory), identity()))
                 .step(new EnvironmentToAssetMapper(() -> Configuration.getInstance().isOnlySubmodels()))
-                .step(new CollectionFeeder<>(new SelfDescriptionUpdater(serviceRepository)))
+                .step(new CollectionFeeder<>(new ServiceRepositoryUpdater(serviceRepository)))
                 .step(new Synchronizer())
                 .step(new AssetRegistrar(assetIndex, monitor))
                 .step(new ContractRegistrar(contractDefinitionStore, policyDefinitionStore, monitor))
@@ -130,13 +132,16 @@ public class AasExtension implements ServiceExtension {
                 .monitor(monitor.withPrefix("Registry Synchronization Pipeline"))
                 .supplier(registryRepository::getAllUrls)
                 .step(new CollectionFeeder<>(reachabilityCheck))
-                .step(new InputOutputZipper<>(new RegistryAgent(aasDataProcessorFactory, aasServiceRegistry), identity()))
+                .step(new InputOutputZipper<>(new RegistryAgent(aasDataProcessorFactory, foreignServerRegistry), identity()))
                 .step(new MapValueProcessor<>(
                         new EnvironmentToAssetMapper(() -> Configuration.getInstance().isOnlySubmodels()),
                         // Remove fatal results from further processing
                         result -> result.failed() && result.getFailure().getFailureType().equals(PipelineFailure.Type.FATAL) ? null : result)
                 )
-                .step(new RegistryUpdater(registryRepository))
+                .step(PipelineStep.create(registriesMap -> (Collection<Registry>) registriesMap.entrySet().stream()
+                        .map(registry -> new Registry(registry.getKey(), registry.getValue()))
+                        .toList()))
+                .step(new RegistryRepositoryUpdater(registryRepository))
                 .step(new Synchronizer())
                 .step(new AssetRegistrar(assetIndex, monitor))
                 .step(new ContractRegistrar(contractDefinitionStore, policyDefinitionStore, monitor))

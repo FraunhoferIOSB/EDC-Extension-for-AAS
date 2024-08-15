@@ -15,7 +15,7 @@
  */
 package de.fraunhofer.iosb.app.aas;
 
-import de.fraunhofer.iosb.app.model.aas.Service;
+import de.fraunhofer.iosb.app.model.aas.service.Service;
 import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
 import de.fraunhofer.iosb.util.Encoder;
 import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShell;

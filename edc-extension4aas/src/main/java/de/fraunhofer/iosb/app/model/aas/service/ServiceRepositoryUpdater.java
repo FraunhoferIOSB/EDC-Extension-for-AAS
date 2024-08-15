@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.app.model.ids;
+package de.fraunhofer.iosb.app.model.aas.service;
 
-import de.fraunhofer.iosb.app.model.aas.Service;
 import de.fraunhofer.iosb.app.pipeline.PipelineResult;
 import de.fraunhofer.iosb.app.pipeline.PipelineStep;
 import de.fraunhofer.iosb.app.util.Pair;
@@ -24,11 +23,11 @@ import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 /**
  * TODO correct package?
  */
-public class SelfDescriptionUpdater extends PipelineStep<Service, Pair<Asset, Asset>> {
+public class ServiceRepositoryUpdater extends PipelineStep<Service, Pair<Asset, Asset>> {
 
     private final ServiceRepository selfDescriptionRepository;
 
-    public SelfDescriptionUpdater(ServiceRepository selfDescriptionRepository) {
+    public ServiceRepositoryUpdater(ServiceRepository selfDescriptionRepository) {
         this.selfDescriptionRepository = selfDescriptionRepository;
     }
 

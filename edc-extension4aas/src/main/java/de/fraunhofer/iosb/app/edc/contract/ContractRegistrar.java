@@ -70,17 +70,15 @@ public class ContractRegistrar extends PipelineStep<ChangeSet<String, String>, V
     private long contractNumber = 0L;
 
     /**
-     * Creates an instance of the ContractHandler class.
+     * Class constructor
      *
-     * @param contractStore Needed to manage EDC contracts.
-     * @param policyStore   Needed to manage EDC policies.
+     * @param contractStore Add/remove EDC contracts.
+     * @param policyStore   Add/remove EDC policies.
      */
     public ContractRegistrar(ContractDefinitionStore contractStore, PolicyDefinitionStore policyStore,
                              Monitor monitor) {
-        Objects.requireNonNull(contractStore, "ContractDefinitionStore");
-        Objects.requireNonNull(policyStore, "PolicyDefinitionStore");
-        this.contractDefinitionStore = contractStore;
-        this.policyDefinitionStore = policyStore;
+        this.contractDefinitionStore = Objects.requireNonNull(contractStore, "ContractDefinitionStore");
+        this.policyDefinitionStore = Objects.requireNonNull(policyStore, "PolicyDefinitionStore");
         this.monitor = monitor;
 
         defaultPolicy = initializeDefaultPolicy();
@@ -91,10 +89,10 @@ public class ContractRegistrar extends PipelineStep<ChangeSet<String, String>, V
 
     /**
      * Adds/removes contracts for the asset IDs in the changeSet.
-     * Registers the given assetIDs to the default contract with the default access and contract policies.
+     * Registers the given asset IDs to the default contract with the default access and contract policies.
      *
      * @param changeSet The asset IDs to add / remove contracts with
-     * @return void
+     * @return No content, possibly a PipelineFailure.
      */
     @Override
     public PipelineResult<Void> apply(ChangeSet<String, String> changeSet) {

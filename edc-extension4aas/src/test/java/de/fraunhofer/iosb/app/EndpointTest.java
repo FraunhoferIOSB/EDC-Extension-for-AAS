@@ -15,6 +15,23 @@
  */
 package de.fraunhofer.iosb.app;
 
+import de.fraunhofer.iosb.app.controller.AasController;
+import de.fraunhofer.iosb.app.model.aas.registry.RegistryRepository;
+import de.fraunhofer.iosb.app.model.aas.service.ServiceRepository;
+import de.fraunhofer.iosb.registry.AasServiceRegistry;
+import org.eclipse.edc.spi.monitor.ConsoleMonitor;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Set;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+
 /**
  * Not mocking the controllers this endpoint uses, as the mocking/validation
  * process would be pretty complex. Mocking the AAS service instead.
@@ -22,13 +39,14 @@ package de.fraunhofer.iosb.app;
  * selfDescription will be null after requests
  */
 public class EndpointTest {
-/*
+
     private static int port;
     private static URL url;
 
     private Endpoint endpoint;
 
-    private SelfDescriptionRepository selfDescriptionRepo;
+    private ServiceRepository serviceRepo;
+    private RegistryRepository registryRepo;
     private AasController aasController;
 
     @BeforeAll
@@ -40,14 +58,12 @@ public class EndpointTest {
     @BeforeEach
     public void setupEndpoint() {
         var monitor = new ConsoleMonitor();
-        selfDescriptionRepo = new SelfDescriptionRepository();
-        aasController = new AasController(new AasServiceRegistry(Set.of()),
-                mock(AssetIndex.class),
-                mock(ContractDefinitionStore.class),
-                monitor,
-                mock(PolicyDefinitionStore.class));
+        serviceRepo = new ServiceRepository();
+        registryRepo = new RegistryRepository();
+        aasController = new AasController(new AasServiceRegistry(Set.of()), monitor);
         endpoint = new Endpoint(
-                selfDescriptionRepo,
+                serviceRepo,
+                registryRepo,
                 aasController,
                 monitor);
     }
@@ -58,54 +74,40 @@ public class EndpointTest {
     }
 
     @Test
-    public void getSelfDescriptionWithParamTest() {
-        assertEquals(Response.Status.NOT_FOUND.getStatusCode(), endpoint.getSelfDescription(url).getStatus());
-    }
-
-    @Test
-    public void getSelfDescriptionTest() {
-        try (var ignored = endpoint.postAasService(url)) {
-            assertEquals("", endpoint.getSelfDescription(null).getEntity().toString());
-        } catch (Exception e) {
-            fail();
-        }
-    }
-
-    @Test
     public void postFalseAasServiceTest() throws MalformedURLException {
-        assertEquals(0, selfDescriptionRepo.getAllSelfDescriptions().size());
+        assertEquals(0, serviceRepo.getAllEnvironments().size());
 
-        endpoint.postAasService(new URL("http://example.com/aas"));
+        endpoint.createService(new URL("http://example.com/aas"));
 
         // No selfDescription has been added, but the URL will still be periodically
         // polled until the service is deleted via http request again or any AAS output
         // is returned by the URL.
-        assertEquals(1, selfDescriptionRepo.getAllSelfDescriptions().size());
+        assertEquals(1, serviceRepo.getAllEnvironments().size());
     }
 
     @Test
     public void postAasServiceTest() {
-        endpoint.postAasService(url);
-        assertNull(selfDescriptionRepo.getSelfDescriptionAsset(url.toString()));
+        endpoint.removeService(url);
+        assertNull(serviceRepo.getEnvironment(url));
     }
 
     @Test
     public void postAasEnvironmentTest() {
         endpoint.postAasEnvironment("src/test/resources/aasEnvironment.json", null, String.valueOf(port));
 
-        assertNull(selfDescriptionRepo.getSelfDescriptionAsset(url.toString()));
+        assertNull(serviceRepo.getEnvironment(url));
 
-        endpoint.removeAasService(url);
+        endpoint.removeService(url);
     }
 
     @Test
     public void removeAasServiceTest() {
         endpoint.postAasEnvironment("src/test/resources/aasEnvironment.json", null, String.valueOf(port));
 
-        assertNull(selfDescriptionRepo.getSelfDescriptionAsset(url.toString()));
+        assertNull(serviceRepo.getEnvironment(url));
 
-        endpoint.removeAasService(url);
+        endpoint.removeService(url);
 
-        assertNull(selfDescriptionRepo.getSelfDescriptionAsset(url.toString()));
-    }*/
+        assertNull(serviceRepo.getEnvironment(url));
+    }
 }

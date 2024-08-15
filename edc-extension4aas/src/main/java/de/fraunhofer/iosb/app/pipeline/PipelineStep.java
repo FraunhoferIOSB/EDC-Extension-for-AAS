@@ -15,24 +15,27 @@
  */
 package de.fraunhofer.iosb.app.pipeline;
 
-import java.util.List;
 import java.util.function.Function;
 
+/**
+ * A pipeline step is a part of a pipeline which receives input of type T and produces an output of type PipelineResult< U >
+ *
+ * @param <T> Input type of the pipeline step
+ * @param <U> Output type of the pipeline step
+ */
 public abstract class PipelineStep<T, U> implements Function<T, PipelineResult<U>> {
 
     protected PipelineStep() {
     }
 
-    @Override
-    public PipelineResult<U> apply(final T t) {
-        try {
-            return this.apply(t);
-        } catch (Exception e) {
-            // If the pipeline step can't recover from its exception we should halt the pipeline
-            return PipelineResult.failure(PipelineFailure.fatal(List.of(e.getMessage())));
-        }
-    }
-
+    /**
+     * Create an ad-hoc pipeline step.
+     *
+     * @param func The function this pipeline step should execute
+     * @param <T>  The input type of the step
+     * @param <U>  The output type of the step
+     * @return The new pipeline step.
+     */
     public static <T, U> PipelineStep<T, U> create(Function<T, U> func) {
         return new PipelineStep<>() {
             @Override

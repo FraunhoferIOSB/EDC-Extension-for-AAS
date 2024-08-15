@@ -30,6 +30,16 @@ import java.util.stream.Collectors;
 import static de.fraunhofer.iosb.app.pipeline.util.PipelineUtils.extractContents;
 import static de.fraunhofer.iosb.app.pipeline.util.PipelineUtils.handleError;
 
+/**
+ * Apply a pipeline step to the input collection and zip input/processed pairs as outputs.
+ * Additionally, operations can be performed on the input.
+ * Example: A list of URLs, fetch the corresponding websites and return URL as string and website.
+ * Input: < URL >. Output < String, String >. keyManipulator: URL::toString
+ *
+ * @param <T> The input type
+ * @param <U> The type of the transformed input
+ * @param <V> The processed type
+ */
 public class InputOutputZipper<T, U, V> extends PipelineStep<Collection<T>, Map<U, V>> {
 
     private final PipelineStep<T, V> processor;

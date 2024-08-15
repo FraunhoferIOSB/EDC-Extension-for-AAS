@@ -28,35 +28,60 @@ public class PipelineFailure extends Failure {
         this.failureType = failureType;
     }
 
+    /**
+     * Create a fatal PipelineFailure. {@link Type#FATAL}
+     *
+     * @param messages Messages to display by a failure handling mechanism.
+     * @return A new fatal PipelineFailure
+     */
     public static PipelineFailure fatal(List<String> messages) {
         return new PipelineFailure(messages, Type.FATAL);
     }
 
+    /**
+     * Create a warning PipelineFailure. {@link Type#WARNING}
+     *
+     * @param messages Messages to display by a failure handling mechanism.
+     * @return A new warning PipelineFailure
+     */
     public static PipelineFailure warning(List<String> messages) {
         return new PipelineFailure(messages, Type.WARNING);
     }
 
+    /**
+     * Create an informational PipelineFailure. {@link Type#INFO}
+     *
+     * @param messages Messages to display by a failure handling mechanism.
+     * @return A new informational PipelineFailure
+     */
     public static PipelineFailure info(List<String> messages) {
         return new PipelineFailure(messages, Type.INFO);
     }
 
+    /**
+     * Get the failure type of this PipelineFailure.
+     *
+     * @return One of {@link Type}
+     */
     public Type getFailureType() {
         return failureType;
     }
 
+    /**
+     * One of {@link Type#FATAL}, {@link Type#WARNING}, or {@link Type#INFO}
+     */
     public enum Type {
         /**
          * Cannot continue computation (halts pipeline)
          */
         FATAL,
         /**
-         * Something bad happened
+         * Something unexpected happened
          */
         WARNING,
         /**
-         * Something unexpected happened
+         * Something happened
          */
         INFO
     }
-
 }

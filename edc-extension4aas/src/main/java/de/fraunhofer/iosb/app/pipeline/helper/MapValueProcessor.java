@@ -27,37 +27,51 @@ import java.util.function.Function;
 
 import static de.fraunhofer.iosb.app.pipeline.util.PipelineUtils.handleError;
 
+/**
+ * Process the values of the input map only. The result is a map with following structure: (input_key, processed_value)
+ *
+ * @param <T> Input and output map key type, not to be processed.
+ * @param <U> Input map value type, to be processed by the processor.
+ * @param <V> Output map value type, result type of the processor.
+ */
 public class MapValueProcessor<T, U, V> extends PipelineStep<Map<T, U>, Map<T, V>> {
 
     private final PipelineStep<U, V> processor;
-    private final Function<PipelineResult<V>, PipelineResult<V>> failureHandling;
+    private final Function<PipelineResult<V>, PipelineResult<V>> additionalFailureHandling;
 
+    /**
+     * Initializes a map value processor with default failure handling.
+     *
+     * @param processor Process each value from the input map.
+     */
     public MapValueProcessor(PipelineStep<U, V> processor) {
         this.processor = processor;
-        this.failureHandling = Function.identity();
+        this.additionalFailureHandling = Function.identity();
     }
 
     /**
      * Class constructor with additional failure handling possibility.
+     * The failureHandling function is called before it is known that a PipelineResult has failed.
      *
-     * @param processor Process each input.
-     * @param failureHandling Handle failures explicitly.
+     * @param processor Process each value from the input map.
+     * @param additionalFailureHandling Handle failures explicitly.
      */
-    public MapValueProcessor(PipelineStep<U, V> processor, Function<PipelineResult<V>, PipelineResult<V>> failureHandling) {
+    public MapValueProcessor(PipelineStep<U, V> processor, Function<PipelineResult<V>, PipelineResult<V>> additionalFailureHandling) {
         this.processor = processor;
-        this.failureHandling = failureHandling;
+        this.additionalFailureHandling = additionalFailureHandling;
     }
 
     @Override
     public PipelineResult<Map<T, V>> apply(Map<T, U> tuMap) {
-        // Map<T, PResult<V>> -> PResult<Map<T, V>>
         List<PipelineResult<V>> results = new LinkedList<>();
         var contents = new HashMap<T, V>();
         tuMap.forEach((t, u) -> {
             var processingResult = processor.apply(u);
-            var failureHandledResult = failureHandling.apply(processingResult);
-            results.add(failureHandledResult);
-            if (failureHandledResult != null && processingResult.getContent() != null) {
+            if (processingResult.failed()) {
+                processingResult = additionalFailureHandling.apply(processingResult);
+            }
+            results.add(processingResult);
+            if (processingResult != null && processingResult.getContent() != null) {
                 contents.put(t, processingResult.getContent());
             }
         });

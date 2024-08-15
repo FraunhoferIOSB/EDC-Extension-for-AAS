@@ -20,6 +20,11 @@ import org.eclipse.edc.spi.result.StoreResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Returned by any PipelineStep inside a {@link Pipeline}. Can have content even in failure scenarios (not if failure is fatal).
+ *
+ * @param <T> Content type
+ */
 public class PipelineResult<T> extends AbstractResult<T, PipelineFailure, PipelineResult<T>> {
 
     protected PipelineResult(@Nullable final T content, @Nullable final PipelineFailure failure) {
@@ -30,6 +35,13 @@ public class PipelineResult<T> extends AbstractResult<T, PipelineFailure, Pipeli
         return new PipelineResult<>(content, null);
     }
 
+    /**
+     * An irrecoverable failure. This means that the pipeline step produced an erroneous result or nothing at all.
+     *
+     * @param failure The failure containing messages and a failure type.
+     * @param <U>     The content type if the pipeline step succeeded.
+     * @return The created PipelineResult.
+     */
     public static <U> PipelineResult<U> failure(PipelineFailure failure) {
         return new PipelineResult<>(null, failure);
     }
@@ -42,13 +54,20 @@ public class PipelineResult<T> extends AbstractResult<T, PipelineFailure, Pipeli
      * @param <T>     Content type
      * @return the PipelineResult containing failure and content
      */
-    public static <T> PipelineResult<T> negligibleFailure(@NotNull final T content, PipelineFailure failure) {
+    public static <T> PipelineResult<T> recoverableFailure(@NotNull final T content, PipelineFailure failure) {
         if (failure.getFailureType().equals(PipelineFailure.Type.FATAL)) {
             throw new IllegalStateException("Can not instantiate recoverable failure with failure signal FATAL");
         }
         return new PipelineResult<>(content, failure);
     }
 
+    /**
+     * Create a pipeline result from a store result. Useful if an operation to, for example, the AssetIndex is forwarded as a pipeline result.
+     *
+     * @param storeResult The corresponding store result.
+     * @param <T>         The content type of the store result and the resulting pipeline result
+     * @return A pipeline result with the same content or failure messages and a mapping of {@link org.eclipse.edc.spi.result.StoreFailure.Reason} to {@link PipelineFailure.Type}
+     */
     public static <T> PipelineResult<T> from(StoreResult<T> storeResult) {
         if (storeResult.succeeded()) {
             return success(storeResult.getContent());
@@ -60,11 +79,18 @@ public class PipelineResult<T> extends AbstractResult<T, PipelineFailure, Pipeli
         };
     }
 
+    /**
+     * Return the same pipeline result with new content. The new content can also have a new type.
+     *
+     * @param content The new content with possibly a new type.
+     * @param <N>     The possibly new content type.
+     * @return A pipeline result with new content
+     */
     public <N> PipelineResult<N> withContent(N content) {
         if (this.succeeded()) {
             return success(content);
         } else {
-            return negligibleFailure(content, this.getFailure());
+            return recoverableFailure(content, this.getFailure());
         }
     }
 

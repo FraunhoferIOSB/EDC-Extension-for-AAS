@@ -26,34 +26,67 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+/**
+ * Utility class with error handling, failure message collecting and content extracting capabilities for collections of pipeline results.
+ */
 public class PipelineUtils {
 
     private PipelineUtils() {
         throw new RuntimeException("Utility class");
     }
 
+    /**
+     * Handles errors of a collection of pipeline results.
+     * <p>
+     * <b>If no failure occurred, null is returned!</b>
+     * <li>The pipeline result will have as error type the gravest of errors occurring in the input result collection.</li>
+     * <li>The pipeline result will have as failure message all the failure messages of the input results.</li>
+     * <li>The pipeline result will have as content the content from the input pipeline results if no fatal error occurred.</li>
+     *
+     * @param results  Pipeline result collection containing zero, one or multiple failures.
+     * @param <U>      The content type
+     * @return The pipeline result as described above, or null.
+     */
+    public static <U> PipelineResult<Collection<U>> handleError(Collection<PipelineResult<U>> results) {
+        PipelineResult<Collection<U>> pipeResult = null;
+        if (results.stream().anyMatch(PipelineResult::failed)) {
+            var failureMessages = collectFailureMessages(results);
+            pipeResult = switch (maxFailure(results)) {
+                case FATAL -> PipelineResult.failure(PipelineFailure.fatal(failureMessages));
+                case WARNING -> PipelineResult.recoverableFailure(extractContents(results), PipelineFailure.warning(failureMessages));
+                case INFO -> PipelineResult.recoverableFailure(extractContents(results), PipelineFailure.info(failureMessages));
+            };
+        }
+        return pipeResult;
+    }
+
+    /**
+     * Handles errors of a collection of pipeline results.
+     * <p>
+     * <b>If no failure occurred, null is returned!</b>
+     * <li>The pipeline result will have as error type the gravest of errors occurring in the input result collection.</li>
+     * <li>The pipeline result will have as failure message all the failure messages of the input results.</li>
+     * <li>The pipeline result will have as content the content from the input parameters if no fatal error occurred.</li>
+     *
+     * @param results  Pipeline result collection containing zero, one or multiple failures.
+     * @param contents Contents of the input pipeline results which are to be returned in the pipeline result.
+     * @param <U>      The content type
+     * @param <V>      The Content type
+     * @return The pipeline result as described above, or null.
+     */
     public static <U, V> PipelineResult<V> handleError(Collection<PipelineResult<U>> results, V contents) {
         PipelineResult<V> pipeResult = null;
         if (results.stream().anyMatch(PipelineResult::failed)) {
             var failureMessages = collectFailureMessages(results);
             pipeResult = switch (maxFailure(results)) {
                 case FATAL -> PipelineResult.failure(PipelineFailure.fatal(failureMessages));
-                case WARNING -> PipelineResult.negligibleFailure(contents, PipelineFailure.warning(failureMessages));
-                case INFO -> PipelineResult.negligibleFailure(contents, PipelineFailure.info(failureMessages));
+                case WARNING -> PipelineResult.recoverableFailure(contents, PipelineFailure.warning(failureMessages));
+                case INFO -> PipelineResult.recoverableFailure(contents, PipelineFailure.info(failureMessages));
             };
         }
         return pipeResult;
     }
 
-    public static <U> List<String> collectFailureMessages(Collection<PipelineResult<U>> results) {
-        return results.stream()
-                .map(AbstractResult::getFailure)
-                .filter(Objects::nonNull)
-                .map(Failure::getMessages)
-                .filter(Objects::nonNull)
-                .flatMap(Collection::stream)
-                .toList();
-    }
 
     /**
      * Get non-null contents from the results.
@@ -69,7 +102,17 @@ public class PipelineUtils {
                 .collect(Collectors.toCollection(ArrayList::new));
     }
 
-    public static <U> PipelineFailure.Type maxFailure(Collection<PipelineResult<U>> failures) {
+    private static <U> List<String> collectFailureMessages(Collection<PipelineResult<U>> results) {
+        return results.stream()
+                .map(AbstractResult::getFailure)
+                .filter(Objects::nonNull)
+                .map(Failure::getMessages)
+                .filter(Objects::nonNull)
+                .flatMap(Collection::stream)
+                .toList();
+    }
+
+    private static <U> PipelineFailure.Type maxFailure(Collection<PipelineResult<U>> failures) {
         var failureTypes = failures.stream()
                 .map(AbstractResult::getFailure)
                 .filter(Objects::nonNull)

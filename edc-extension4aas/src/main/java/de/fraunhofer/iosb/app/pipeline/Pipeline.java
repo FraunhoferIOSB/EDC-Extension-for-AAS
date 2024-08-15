@@ -65,7 +65,7 @@ public class Pipeline<I, O> implements Runnable {
      * or return an acceptable result for the next PipelineStep.
      * The content of the result can be modified by overriding handlePipelineFailure()
      * <p>
-     * The default implementation is to throw an exception on FATAL failures and log + return result else
+     * The default implementation is to log + throw an exception on FATAL failures and log + return result else
      *
      * @param step   The failed PipelineStep
      * @param result The result coming from the failed PipelineStep
@@ -82,7 +82,9 @@ public class Pipeline<I, O> implements Runnable {
     private void doHandle(PipelineFailure failure) {
         switch (failure.getFailureType()) {
             case FATAL:
-                throw new EdcException("Pipeline received a fatal error: %s".formatted(failure.getMessages()));
+                var message = "Pipeline received a fatal error: %s".formatted(failure.getMessages());
+                monitor.severe(message);
+                throw new EdcException(message);
             case WARNING:
                 monitor.warning("Pipeline received a warning from a pipeline step: %s".formatted(failure.getMessages()));
                 break;
@@ -117,7 +119,8 @@ public class Pipeline<I, O> implements Runnable {
         }
 
         /**
-         * Append supplier to pipeline. This step will ignore previous step's output if any.
+         * Append supplier to pipeline. This step will ignore output of previous step if any.
+         * This can be used as the entry into a pipeline
          */
         public <N> Builder<I, N> supplier(Supplier<N> supplier) {
             // Transform supplier to function ignoring input
@@ -131,6 +134,9 @@ public class Pipeline<I, O> implements Runnable {
             return step(step);
         }
 
+        /**
+         * Add initial step for type clarity of the building process.
+         */
         public Builder<I, O> initialStep(PipelineStep<I, O> step) {
             steps.add(step);
             return this;
@@ -149,6 +155,11 @@ public class Pipeline<I, O> implements Runnable {
             return new Builder<>(steps);
         }
 
+        /**
+         * A monitor for error logging.
+         *
+         * @return builder
+         */
         public Builder<I, O> monitor(Monitor monitor) {
             this.monitor = monitor;
             return this;

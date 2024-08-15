@@ -17,6 +17,7 @@ package de.fraunhofer.iosb.app.pipeline.helper;
 
 import de.fraunhofer.iosb.app.pipeline.PipelineResult;
 import de.fraunhofer.iosb.app.pipeline.PipelineStep;
+import de.fraunhofer.iosb.app.pipeline.util.PipelineUtils;
 
 import java.util.Collection;
 import java.util.Objects;
@@ -32,7 +33,7 @@ public class CollectionFeeder<T, U> extends PipelineStep<Collection<T>, Collecti
 
     public CollectionFeeder(final PipelineStep<T, U> processor) {
         this.processor = processor;
-        this.failureHandling = results -> handleError(results, extractContents(results));
+        this.failureHandling = PipelineUtils::handleError;
     }
 
     public CollectionFeeder(final PipelineStep<T, U> processor,

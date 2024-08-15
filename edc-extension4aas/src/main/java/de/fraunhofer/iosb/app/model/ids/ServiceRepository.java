@@ -63,7 +63,7 @@ public class ServiceRepository extends ObservableImpl<SelfDescriptionChangeListe
      * @param accessUrl Access URL of the new service.
      * @return True if created, else false.
      */
-    public boolean createService(URL accessUrl) {
+    public boolean create(URL accessUrl) {
         var service = new Service(accessUrl, null);
 
         if (services.add(service)) {

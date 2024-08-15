@@ -31,6 +31,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static de.fraunhofer.iosb.app.controller.SelfDescriptionController.SELF_DESCRIPTION_PATH;
 
@@ -83,17 +84,28 @@ public class SelfDescriptionController {
                     .map(SelfDescriptionSerializer::assetToString)
                     .toList());
 
-            return Response.ok("[%s]".formatted(services.stream().reduce("%s,%s"::formatted).orElse(null))).build();
+            return Response.ok(intoJsonArray(services.stream())).build();
 
         } else {
             monitor.debug("GET /selfDescription/%s".formatted(aasServiceUrl));
-            var selfDescriptionString = SelfDescriptionSerializer.assetToString(serviceRepository.getEnvironment(aasServiceUrl));
-            if (!selfDescriptionString.isEmpty()) {
-                return Response.ok(selfDescriptionString).build();
-            } else {
-                monitor.warning("Self description with URL %s not found.".formatted(aasServiceUrl));
-                return Response.status(Response.Status.NOT_FOUND).build();
+
+            var registry = registryRepository.getEnvironments(aasServiceUrl);
+            if (registry != null) {
+                return Response.ok(intoJsonArray(registry.stream().map(Service::environment).map(SelfDescriptionSerializer::assetToString))).build();
             }
+
+            var service = serviceRepository.getEnvironment(aasServiceUrl);
+
+            if (service != null) {
+                return Response.ok(SelfDescriptionSerializer.assetToString(service)).build();
+            }
+
+            monitor.warning("URL %s not found.".formatted(aasServiceUrl));
+            return Response.status(Response.Status.NOT_FOUND).build();
         }
+    }
+
+    private String intoJsonArray(Stream<String> contents) {
+        return "[%s]".formatted(contents.reduce("%s,%s"::formatted).orElse(null));
     }
 }

@@ -34,14 +34,4 @@ public record Registry(URL accessUrl, Collection<Service> services) {
     public int hashCode() {
         return Objects.hashCode(accessUrl);
     }
-
-    /**
-     * Returns whether this registry offers that service.
-     *
-     * @param service Service that is or isn't offered.
-     * @return If it is offered
-     */
-    public boolean offers(Service service) {
-        return services.contains(service);
-    }
 }

@@ -120,7 +120,6 @@ public class Endpoint {
         return removeEntity(serviceUrl, SERVICE);
     }
 
-
     /**
      * Create a new AAS service. Either (http) port or AAS config path must be given
      * to ensure communication with the AAS service.
@@ -178,7 +177,7 @@ public class Endpoint {
             return Response.status(Response.Status.BAD_REQUEST).entity("Missing query parameter 'url'").build();
         }
 
-        if (SERVICE.equals(type) && serviceRepository.createService(accessUrl) ||
+        if (SERVICE.equals(type) && serviceRepository.create(accessUrl) ||
                 REGISTRY.equals(type) && registryRepository.create(accessUrl)) {
             return Response.status(Status.CREATED).entity("Registered new AAS %s at EDC".formatted(type)).build();
         }

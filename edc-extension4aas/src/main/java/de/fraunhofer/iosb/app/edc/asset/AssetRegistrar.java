@@ -67,7 +67,7 @@ public class AssetRegistrar extends PipelineStep<ChangeSet<Asset, String>, Chang
         }
 
         if (added.stream().anyMatch(AbstractResult::failed) || removed.stream().anyMatch(AbstractResult::failed)) {
-            return PipelineResult.negligibleFailure(changeSetIds,
+            return PipelineResult.recoverableFailure(changeSetIds,
                     PipelineFailure.warning(added.stream().filter(AbstractResult::failed).map(AbstractResult::getFailureMessages).flatMap(List::stream).toList()));
         }
 

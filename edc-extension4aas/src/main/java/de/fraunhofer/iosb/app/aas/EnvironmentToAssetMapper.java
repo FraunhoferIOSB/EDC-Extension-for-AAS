@@ -50,7 +50,6 @@ import java.util.stream.Collectors;
  * Create a mapping from an AAS environment to EDC assets.
  * This is not a holistic transformation but rather maps some
  * key elements and creates appropriate data address and assetId.
- * TODO Putting env -> map -> asset on ice for now
  */
 public class EnvironmentToAssetMapper extends PipelineStep<Map<URL, Environment>, Collection<Service>> {
     private static final String CONCEPT_DESCRIPTIONS = "conceptDescriptions";
@@ -80,7 +79,7 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<URL, Environment>
                 .collect(Collectors.toCollection(ArrayList::new));
 
         if (results.stream().anyMatch(PipelineResult::failed)) {
-            return PipelineResult.negligibleFailure(
+            return PipelineResult.recoverableFailure(
                     correctResults,
                     PipelineFailure.warning(
                             results.stream()

@@ -45,7 +45,6 @@ public class RegistryUpdater extends PipelineStep<Map<URL, Collection<Service>>,
     @Override
     public PipelineResult<Collection<Pair<Asset, Asset>>> apply(Map<URL, Collection<Service>> registries) {
         Collection<Pair<Asset, Asset>> result = new ArrayList<>();
-        // TODO problem: what if the stored env is null? Null key only exists once in map
         registries.forEach((registryUrl, services) -> {
             var storedEnvironments = Optional.ofNullable(registryRepository.getEnvironments(registryUrl)).orElse(List.of());
             services.forEach(service -> result.add(new Pair<>(getCorresponding(storedEnvironments, service).environment(), service.environment())));

@@ -57,10 +57,10 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.Function;
 
 import static de.fraunhofer.iosb.app.controller.SelfDescriptionController.SELF_DESCRIPTION_PATH;
 import static de.fraunhofer.iosb.app.util.InetTools.pingHost;
+import static java.util.function.Function.identity;
 
 /**
  * EDC Extension supporting usage of Asset Administration Shells.
@@ -115,7 +115,7 @@ public class AasExtension implements ServiceExtension {
                 .monitor(monitor.withPrefix("Service Synchronization Pipeline"))
                 .supplier(serviceRepository::getAllServiceAccessUrls)
                 .step(new CollectionFeeder<>(reachabilityCheck))
-                .step(new InputOutputZipper<>(new ServiceAgent(aasDataProcessorFactory), Function.identity()))
+                .step(new InputOutputZipper<>(new ServiceAgent(aasDataProcessorFactory), identity()))
                 .step(new EnvironmentToAssetMapper(() -> Configuration.getInstance().isOnlySubmodels()))
                 .step(new CollectionFeeder<>(new SelfDescriptionUpdater(serviceRepository)))
                 .step(new Synchronizer())
@@ -130,7 +130,7 @@ public class AasExtension implements ServiceExtension {
                 .monitor(monitor.withPrefix("Registry Synchronization Pipeline"))
                 .supplier(registryRepository::getAllUrls)
                 .step(new CollectionFeeder<>(reachabilityCheck))
-                .step(new InputOutputZipper<>(new RegistryAgent(aasDataProcessorFactory, aasServiceRegistry), Function.identity()))
+                .step(new InputOutputZipper<>(new RegistryAgent(aasDataProcessorFactory, aasServiceRegistry), identity()))
                 .step(new MapValueProcessor<>(
                         new EnvironmentToAssetMapper(() -> Configuration.getInstance().isOnlySubmodels()),
                         // Remove fatal results from further processing
@@ -168,7 +168,7 @@ public class AasExtension implements ServiceExtension {
         var configInstance = Configuration.getInstance();
 
         if (Objects.nonNull(configInstance.getRemoteAasLocation())) {
-            selfDescriptionRepository.createService(configInstance.getRemoteAasLocation());
+            selfDescriptionRepository.create(configInstance.getRemoteAasLocation());
         }
 
         if (Objects.isNull(configInstance.getLocalAasModelPath())) {
@@ -192,7 +192,7 @@ public class AasExtension implements ServiceExtension {
                     startAssetAdministrationShellException);
         }
 
-        selfDescriptionRepository.createService(serviceUrl);
+        selfDescriptionRepository.create(serviceUrl);
     }
 
     @Override

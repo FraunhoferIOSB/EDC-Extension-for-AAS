@@ -20,6 +20,7 @@ import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import javax.annotation.Nonnull;
 
 public class AssetUtil {
 
@@ -38,7 +39,7 @@ public class AssetUtil {
      * @param environmentAsset Representing the environment
      * @return Flattened collection of all assets
      */
-    public static Collection<Asset> flatMapAssets(Asset environmentAsset) {
+    public static Collection<Asset> flatMapAssets(@Nonnull Asset environmentAsset) {
         var assets = getChildren(environmentAsset, "shells");
         assets.addAll(getChildren(environmentAsset, "conceptDescriptions"));
 

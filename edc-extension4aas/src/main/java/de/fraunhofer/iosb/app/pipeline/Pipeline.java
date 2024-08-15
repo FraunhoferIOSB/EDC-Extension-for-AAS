@@ -155,7 +155,7 @@ public class Pipeline<I, O> implements Runnable {
         }
 
         public Pipeline<I, O> build() {
-            monitor = Objects.requireNonNullElse(monitor, new ConsoleMonitor());
+            monitor = Objects.requireNonNullElseGet(monitor, ConsoleMonitor::new);
             // From the build process we know that PipelineSteps has I and O as input/output
             return new Pipeline<>(steps, monitor);
         }

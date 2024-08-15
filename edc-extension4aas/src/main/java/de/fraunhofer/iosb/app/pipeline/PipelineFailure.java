@@ -40,11 +40,11 @@ public class PipelineFailure extends Failure {
         return new PipelineFailure(messages, Type.INFO);
     }
 
-    Type getFailureType() {
+    public Type getFailureType() {
         return failureType;
     }
 
-    enum Type {
+    public enum Type {
         /**
          * Cannot continue computation (halts pipeline)
          */

@@ -15,6 +15,9 @@
  */
 package de.fraunhofer.iosb.app.util;
 
+import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.monitor.Monitor;
+
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
@@ -24,13 +27,16 @@ import java.util.function.Supplier;
  */
 public class VariableRateScheduler extends ScheduledThreadPoolExecutor {
 
+    private final Monitor monitor;
+
     /**
      * Initialize a VariableRateScheduler, a subtype of the {@link java.util.concurrent.ScheduledThreadPoolExecutor}.
      *
      * @param corePoolSize Same as in the superclass.
      */
-    public VariableRateScheduler(int corePoolSize) {
+    public VariableRateScheduler(int corePoolSize, Monitor monitor) {
         super(corePoolSize);
+        this.monitor = monitor;
     }
 
     /**
@@ -41,7 +47,12 @@ public class VariableRateScheduler extends ScheduledThreadPoolExecutor {
      */
     public void scheduleAtVariableRate(Runnable runnable, Supplier<Integer> rateSupplier) {
         schedule(() -> {
-            runnable.run();
+            try {
+                runnable.run();
+            } catch (Exception e) {
+                monitor.severe("VariableRateScheduler stopped execution.", e);
+                throw new EdcException(e);
+            }
             scheduleAtVariableRate(runnable, rateSupplier);
         }, (long) rateSupplier.get(), TimeUnit.SECONDS);
     }

@@ -15,8 +15,8 @@
  */
 package de.fraunhofer.iosb.app.model.ids;
 
-import de.fraunhofer.iosb.app.model.aas.Registry;
 import de.fraunhofer.iosb.app.model.aas.Service;
+import de.fraunhofer.iosb.app.model.aas.registry.Registry;
 
 public interface SelfDescriptionChangeListener {
 

@@ -18,8 +18,8 @@ package de.fraunhofer.iosb.app.edc;
 import de.fraunhofer.iosb.app.edc.asset.AssetRegistrar;
 import de.fraunhofer.iosb.app.edc.contract.ContractRegistrar;
 import de.fraunhofer.iosb.app.model.ChangeSet;
-import de.fraunhofer.iosb.app.model.aas.service.Service;
 import de.fraunhofer.iosb.app.model.aas.registry.Registry;
+import de.fraunhofer.iosb.app.model.aas.service.Service;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionChangeListener;
 import de.fraunhofer.iosb.app.pipeline.Pipeline;
 import de.fraunhofer.iosb.app.pipeline.PipelineStep;
@@ -31,7 +31,9 @@ import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionS
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.monitor.Monitor;
 
+import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 
 /**
@@ -53,7 +55,8 @@ public class CleanUpService implements SelfDescriptionChangeListener {
 
     @Override
     public void removed(Registry registry) {
-        registry.services().stream()
+        Optional.ofNullable(registry.services())
+                .orElse(List.of()).stream()
                 .map(Service::environment)
                 .forEach(servicePipeline::execute);
     }

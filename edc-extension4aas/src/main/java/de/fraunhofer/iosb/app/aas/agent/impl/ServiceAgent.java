@@ -31,12 +31,14 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.List;
 
-import static java.lang.String.format;
-
 /**
  * Communicating with AAS service
  */
 public class ServiceAgent extends AasAgent<Environment> {
+
+    public static final String SUBMODELS_PATH = "/api/v3.0/submodels";
+    public static final String SHELLS_PATH = "/api/v3.0/shells";
+    public static final String CONCEPT_DESCRIPTIONS_PATH = "/api/v3.0/concept-descriptions";
 
     public ServiceAgent(AasDataProcessorFactory aasDataProcessorFactory) {
         super(aasDataProcessorFactory);
@@ -52,31 +54,19 @@ public class ServiceAgent extends AasAgent<Environment> {
     public PipelineResult<Environment> apply(URL url) {
         try {
             return PipelineResult.success(readEnvironment(url));
-        } catch (EdcException | IOException e) {
+        } catch (EdcException | IOException | URISyntaxException e) {
             return PipelineResult.failure(PipelineFailure.fatal(List.of(e.getMessage())));
         }
     }
 
-    private Environment readEnvironment(URL aasServiceUrl) throws IOException {
-        URL submodelUrl;
-        URL shellsUrl;
-        URL conceptDescriptionsUrl;
-        try {
-            submodelUrl = aasServiceUrl.toURI().resolve("/api/v3.0/submodels").toURL();
-            shellsUrl = aasServiceUrl.toURI().resolve("/api/v3.0/shells").toURL();
-            conceptDescriptionsUrl = aasServiceUrl.toURI().resolve("/api/v3.0/concept-descriptions").toURL();
-        } catch (URISyntaxException resolveUriException) {
-            throw new EdcException(
-                    format("Error while building URLs for reading from the AAS service at %s", aasServiceUrl),
-                    resolveUriException);
-        }
+    private Environment readEnvironment(URL aasServiceUrl) throws IOException, URISyntaxException {
+        var submodelUrl = aasServiceUrl.toURI().resolve(SUBMODELS_PATH).toURL();
+        var shellsUrl = aasServiceUrl.toURI().resolve(SHELLS_PATH).toURL();
+        var conceptDescriptionsUrl = aasServiceUrl.toURI().resolve(CONCEPT_DESCRIPTIONS_PATH).toURL();
 
         return new DefaultEnvironment.Builder()
                 .assetAdministrationShells(readElements(shellsUrl, AssetAdministrationShell.class).stream().toList())
                 .submodels(readElements(submodelUrl, Submodel.class).stream().toList())
                 .conceptDescriptions(readElements(conceptDescriptionsUrl, ConceptDescription.class).stream().toList()).build();
-
     }
-
-
 }

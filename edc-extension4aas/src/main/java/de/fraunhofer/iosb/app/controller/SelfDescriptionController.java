@@ -15,10 +15,10 @@
  */
 package de.fraunhofer.iosb.app.controller;
 
-import de.fraunhofer.iosb.app.model.aas.service.Service;
 import de.fraunhofer.iosb.app.model.aas.registry.RegistryRepository;
-import de.fraunhofer.iosb.app.model.ids.SelfDescriptionSerializer;
+import de.fraunhofer.iosb.app.model.aas.service.Service;
 import de.fraunhofer.iosb.app.model.aas.service.ServiceRepository;
+import de.fraunhofer.iosb.app.model.ids.SelfDescriptionSerializer;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;

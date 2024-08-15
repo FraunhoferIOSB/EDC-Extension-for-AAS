@@ -17,8 +17,8 @@ package de.fraunhofer.iosb.app.controller;
 
 import de.fraunhofer.iosb.app.aas.AssetAdministrationShellServiceManager;
 import de.fraunhofer.iosb.app.aas.FaaastServiceManager;
-import de.fraunhofer.iosb.app.model.aas.service.Service;
 import de.fraunhofer.iosb.app.model.aas.registry.Registry;
+import de.fraunhofer.iosb.app.model.aas.service.Service;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionChangeListener;
 import de.fraunhofer.iosb.registry.AasServiceRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;

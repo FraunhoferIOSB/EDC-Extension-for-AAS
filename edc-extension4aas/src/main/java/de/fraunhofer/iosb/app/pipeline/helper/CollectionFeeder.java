@@ -24,7 +24,6 @@ import java.util.Objects;
 import java.util.function.Function;
 
 import static de.fraunhofer.iosb.app.pipeline.util.PipelineUtils.extractContents;
-import static de.fraunhofer.iosb.app.pipeline.util.PipelineUtils.handleError;
 
 public class CollectionFeeder<T, U> extends PipelineStep<Collection<T>, Collection<U>> {
 

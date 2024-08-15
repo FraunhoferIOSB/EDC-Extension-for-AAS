@@ -49,10 +49,11 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 
-import static java.lang.String.format;
-
 public class RegistryAgent extends AasAgent<Map<URL, Environment>> {
 
+    public static final String SUBMODEL_DESCRIPTORS_PATH = "/api/v3.0/submodel-descriptors";
+    public static final String SHELL_DESCRIPTORS_PATH = "/api/v3.0/shell-descriptors";
+    public static final String SHELL_DIRECT_ENDPOINT = "AAS-3.0";
     private final AasServiceRegistry aasServiceRegistry;
 
     /**
@@ -67,31 +68,24 @@ public class RegistryAgent extends AasAgent<Map<URL, Environment>> {
     }
 
     @Override
-    public PipelineResult<Map<URL, Environment>> apply(URL url) {
+    public PipelineResult<Map<URL, Environment>> apply(@Nonnull URL url) {
         try {
             return PipelineResult.success(readEnvironment(url));
-        } catch (IOException e) {
+        } catch (EdcException | IOException | URISyntaxException e) {
             return PipelineResult.failure(PipelineFailure.fatal(List.of(e.getMessage())));
         }
     }
 
-    private Map<URL, Environment> readEnvironment(URL url) throws IOException {
-
-        URL submodelDescriptorsUrl;
-        URL shellDescriptorsUrl;
-        try {
-            submodelDescriptorsUrl = url.toURI().resolve("/api/v3.0/submodel-descriptors").toURL();
-            shellDescriptorsUrl = url.toURI().resolve("/api/v3.0/shell-descriptors").toURL();
-        } catch (URISyntaxException resolveUriException) {
-            throw new EdcException(
-                    format("Error while building URLs for reading from the AAS service at %s", url),
-                    resolveUriException);
-        }
+    private Map<URL, Environment> readEnvironment(URL url) throws IOException, URISyntaxException {
+        var submodelDescriptorsUrl = url.toURI().resolve(SUBMODEL_DESCRIPTORS_PATH).toURL();
+        var shellDescriptorsUrl = url.toURI().resolve(SHELL_DESCRIPTORS_PATH).toURL();
 
         Map<URL, DefaultEnvironment.Builder> environmentsByUrl = new HashMap<>();
 
         // TODO somehow, the "submodelDescriptors" field in AASDescriptor is not filled. source name is "submodels"
         var shellDescriptors = readElements(shellDescriptorsUrl, AssetAdministrationShellDescriptor.class);
+        var submodelDescriptors = readElements(submodelDescriptorsUrl, SubmodelDescriptor.class);
+
         var shellEndpointUrlsSorted = sortByHostAndPort(getShellEndpoints(shellDescriptors));
 
         for (URL shellUrl : shellEndpointUrlsSorted) {
@@ -111,7 +105,6 @@ public class RegistryAgent extends AasAgent<Map<URL, Environment>> {
             }
         }
 
-        var submodelDescriptors = readElements(submodelDescriptorsUrl, SubmodelDescriptor.class);
         var submodelEndpointUrlsSorted = sortByHostAndPort(getSubmodelEndpoints(submodelDescriptors));
 
         for (URL submodelUrl : submodelEndpointUrlsSorted) {
@@ -220,16 +213,17 @@ public class RegistryAgent extends AasAgent<Map<URL, Environment>> {
 
     private @Nonnull List<String> getShellEndpoints(Collection<AssetAdministrationShellDescriptor> shellDescriptors) {
         return shellDescriptors.stream()
-                .map(descriptor -> descriptor.getEndpoints().stream()
-                        .filter(endpoint ->
-                                endpoint.getProtocolInformation().getEndpointProtocol().equals("HTTPS") ||
-                                        endpoint.getProtocolInformation().getEndpointProtocol().equals("HTTP"))
-                        // There is also AAS-REPOSITORY-3.0 which gives us the general /shells endpoint
-                        .filter(endpoint -> endpoint.get_interface().equals("AAS-3.0"))
-                        .map(Endpoint::getProtocolInformation)
-                        .map(ProtocolInformation::getHref)
-                        .filter(Objects::nonNull)
-                        .toList())
+                .map(descriptor ->
+                        descriptor.getEndpoints().stream()
+                                // There is also AAS-REPOSITORY-3.0 which gives us the general /shells endpoint
+                                .filter(endpoint ->
+                                        endpoint.get_interface().equals(SHELL_DIRECT_ENDPOINT) && (
+                                                endpoint.getProtocolInformation().getEndpointProtocol().equals("HTTPS") ||
+                                                        endpoint.getProtocolInformation().getEndpointProtocol().equals("HTTP")))
+                                .map(Endpoint::getProtocolInformation)
+                                .map(ProtocolInformation::getHref)
+                                .filter(Objects::nonNull)
+                                .toList())
                 .flatMap(Collection::stream)
                 .toList();
     }
@@ -237,5 +231,4 @@ public class RegistryAgent extends AasAgent<Map<URL, Environment>> {
     private URL getBaseUrl(URL url) throws MalformedURLException {
         return new URL(url.getProtocol() + "://" + url.getHost() + (url.getPort() != -1 ? ":" + url.getPort() : ""));
     }
-
 }

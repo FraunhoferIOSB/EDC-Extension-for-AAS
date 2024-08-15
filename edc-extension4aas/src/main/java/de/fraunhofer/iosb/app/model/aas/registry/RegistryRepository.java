@@ -23,6 +23,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.function.Predicate;
 import javax.annotation.Nullable;
 
@@ -112,6 +113,7 @@ public class RegistryRepository extends ObservableImpl<SelfDescriptionChangeList
         return registries.stream()
                 .filter(registryPredicate)
                 .map(Registry::services)
+                .filter(Objects::nonNull)
                 .flatMap(Collection::stream)
                 .toList();
     }

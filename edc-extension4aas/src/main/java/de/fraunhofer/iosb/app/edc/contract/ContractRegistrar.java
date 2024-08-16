@@ -38,10 +38,7 @@ import org.eclipse.edc.spi.result.Failure;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
@@ -58,16 +55,12 @@ import static java.lang.String.format;
  */
 public class ContractRegistrar extends PipelineStep<ChangeSet<String, String>, Void> {
 
-    private static final String DEFAULT_ACCESS_POLICY_UID = "DEFAULT_ACCESS_POLICY";
-    private static final String DEFAULT_CONTRACT_POLICY_UID = "DEFAULT_CONTRACT_POLICY";
-    private static final String DEFAULT_CONTRACT_DEFINITION_UID = "DEFAULT_CONTRACT";
     private final ContractDefinitionStore contractDefinitionStore;
     private final PolicyDefinitionStore policyDefinitionStore;
     private final Configuration configuration;
     private final Monitor monitor;
     private final ObjectReader objectReader;
     private final Policy defaultPolicy;
-    private long contractNumber = 0L;
 
     /**
      * Class constructor
@@ -77,8 +70,8 @@ public class ContractRegistrar extends PipelineStep<ChangeSet<String, String>, V
      */
     public ContractRegistrar(ContractDefinitionStore contractStore, PolicyDefinitionStore policyStore,
                              Monitor monitor) {
-        this.contractDefinitionStore = Objects.requireNonNull(contractStore, "ContractDefinitionStore");
-        this.policyDefinitionStore = Objects.requireNonNull(policyStore, "PolicyDefinitionStore");
+        this.contractDefinitionStore = Objects.requireNonNull(contractStore);
+        this.policyDefinitionStore = Objects.requireNonNull(policyStore);
         this.monitor = monitor;
 
         defaultPolicy = initializeDefaultPolicy();
@@ -121,11 +114,6 @@ public class ContractRegistrar extends PipelineStep<ChangeSet<String, String>, V
     }
 
     private PipelineResult<Void> createDefaultContract(String assetId) {
-        contractNumber++;
-        var accessPolicyId = DEFAULT_ACCESS_POLICY_UID + contractNumber;
-        var contractPolicyId = DEFAULT_CONTRACT_POLICY_UID + contractNumber;
-        var contractDefinitionId = DEFAULT_CONTRACT_DEFINITION_UID + contractNumber;
-
         var defaultAccessPolicyPath = configuration.getDefaultAccessPolicyPath();
         var defaultContractPolicyPath = configuration.getDefaultContractPolicyPath();
 
@@ -133,11 +121,11 @@ public class ContractRegistrar extends PipelineStep<ChangeSet<String, String>, V
         var defaultContractPolicy = getPolicyDefinitionFromFile(defaultContractPolicyPath).orElse(defaultPolicy);
 
         var defaultAccessPolicyDefinition = PolicyDefinition.Builder.newInstance()
-                .id(accessPolicyId)
+                .id(UUID.randomUUID().toString())
                 .policy(defaultAccessPolicy.withTarget(assetId))
                 .build();
         var defaultContractPolicyDefinition = PolicyDefinition.Builder.newInstance()
-                .id(contractPolicyId)
+                .id(UUID.randomUUID().toString())
                 .policy(defaultContractPolicy.withTarget(assetId))
                 .build();
 
@@ -151,9 +139,9 @@ public class ContractRegistrar extends PipelineStep<ChangeSet<String, String>, V
         }
 
         var defaultContractDefinition = ContractDefinition.Builder.newInstance()
-                .id(contractDefinitionId)
-                .accessPolicyId(accessPolicyId)
-                .contractPolicyId(contractPolicyId)
+                .id(UUID.randomUUID().toString())
+                .accessPolicyId(defaultAccessPolicyDefinition.getId())
+                .contractPolicyId(defaultContractPolicyDefinition.getId())
                 .assetsSelectorCriterion(Criterion.criterion(Asset.PROPERTY_ID, "=", assetId))
                 .build();
 

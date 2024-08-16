@@ -89,7 +89,7 @@ public class AasController implements SelfDescriptionChangeListener {
      * @param aasServiceUrl URL of service to be stopped
      */
     public void stopService(URL aasServiceUrl) {
-        monitor.info(format("Shutting down AAS service with URL %s...", aasServiceUrl.toString()));
+        monitor.info("Stopping AAS service with URL %s".formatted(aasServiceUrl.toString()));
         aasServiceManager.stopService(aasServiceUrl);
     }
 

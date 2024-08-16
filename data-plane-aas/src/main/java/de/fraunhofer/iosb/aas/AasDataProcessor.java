@@ -82,7 +82,7 @@ public class AasDataProcessor {
     private Response send(AasDataAddress aasDataAddress, byte[] bytes, String mediaType) throws IOException {
         var requestUrlBuilder = HttpUrl.get(aasDataAddress.getBaseUrl()).newBuilder();
         if (!aasDataAddress.referenceChainAsPath().isEmpty()) {
-            requestUrlBuilder.addPathSegment(aasDataAddress.referenceChainAsPath());
+            requestUrlBuilder.addPathSegments(aasDataAddress.referenceChainAsPath());
         }
 
         var requestUrl  = requestUrlBuilder.build().url();

@@ -44,9 +44,11 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
 
     private static final String FAAAST_SERVICE_EXCEPTION_MESSAGE = "Exception thrown by FA³ST service.";
     private static final String LOCALHOST_URL = "https://localhost:";
+    public static final String NO_ENDPOINT_DEFINED_EXCEPTION_MESSAGE = "No HTTP endpoint has been defined in this " +
+            "configuration. Not starting FA³ST service.";
 
     private final Monitor monitor;
-    private final Map<URL, Service> faaastServiceRepository;
+    private final Map<String, Service> faaastServiceRepository;
 
     public FaaastServiceManager(Monitor monitor) {
         this.monitor = monitor;
@@ -80,10 +82,10 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
 
         monitor.debug("Booted up FA³ST service.");
 
-        var faaastUrl = new URL(LOCALHOST_URL.concat(String.valueOf(port)));
+        var faaastUrl = LOCALHOST_URL.concat(String.valueOf(port));
 
         faaastServiceRepository.put(faaastUrl, service);
-        return faaastUrl;
+        return new URL(faaastUrl);
     }
 
     @Override
@@ -98,13 +100,12 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
         var localFaaastServicePort = 0;
 
         if (isValidPort(port)) {
-            monitor.debug(format("Booting up FA³ST service using AAS model path (%s), FA³ST config path (%s) and " +
-                            "service port (%s).",
-                    aasModelPath, configPath, port));
+            monitor.debug("Starting FA³ST service using model (%s), config (%s) and port (%s)."
+                    .formatted(aasModelPath, configPath, port));
             localFaaastServicePort = port;
         } else {
-            monitor.debug(format("Booting up FA³ST service using AAS model path (%s) and FA³ST config path (%s).",
-                    aasModelPath, configPath));
+            monitor.debug("Starting FA³ST service using model (%s) and config (%s)."
+                    .formatted(aasModelPath, configPath));
         }
 
         try {
@@ -121,8 +122,11 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
                     serviceConfig.setEndpoints(endpoints);
                 }
             } else {
-                var httpEndpointConfig =
-                        serviceConfig.getEndpoints().stream().filter(ep -> ep instanceof HttpEndpointConfig).findAny().orElseThrow();
+                var httpEndpointConfig = serviceConfig.getEndpoints().stream()
+                        .filter(ep -> ep instanceof HttpEndpointConfig)
+                        .findAny()
+                        .orElseThrow(() -> new IllegalArgumentException(NO_ENDPOINT_DEFINED_EXCEPTION_MESSAGE));
+
                 localFaaastServicePort = ((HttpEndpointConfig) httpEndpointConfig).getPort();
             }
 
@@ -132,14 +136,14 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
             // If localFaaastServicePort is unchanged, no valid HTTP Endpoint was found/created.
             if (localFaaastServicePort == 0) {
                 throw new IllegalArgumentException(
-                        "No HTTP endpoint has been defined in this configuration. Not booting up FA³ST service.");
+                        NO_ENDPOINT_DEFINED_EXCEPTION_MESSAGE);
             }
 
             var service = new Service(serviceConfig);
             service.start();
-            monitor.debug("Booted up FA³ST service.");
+            monitor.debug("Started FA³ST service.");
 
-            faaastServiceRepository.put(new URL(LOCALHOST_URL + localFaaastServicePort), service);
+            faaastServiceRepository.put(LOCALHOST_URL.concat(String.valueOf(localFaaastServicePort)), service);
 
         } catch (MessageBusException | EndpointException | AssetConnectionException |
                  ConfigurationException faaastServiceException) {
@@ -159,10 +163,10 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
         Objects.requireNonNull(aasServiceUrl);
         monitor.debug(format("Shutting down FA³ST service with URL %s...", aasServiceUrl));
 
-        var serviceToStop = faaastServiceRepository.get(aasServiceUrl);
+        var serviceToStop = faaastServiceRepository.get(aasServiceUrl.toString());
         if (Objects.nonNull(serviceToStop)) {
             serviceToStop.stop();
-            faaastServiceRepository.remove(aasServiceUrl);
+            faaastServiceRepository.remove(aasServiceUrl.toString());
         } else {
             monitor.debug("This URL was not registered as an internal FA³ST service.");
         }

@@ -55,6 +55,7 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<URL, Environment>
     private static final String CONCEPT_DESCRIPTIONS = "conceptDescriptions";
     private static final String SHELLS = "shells";
     private static final String SUBMODELS = "submodels";
+    private static final String AAS_V3_PREFIX = "/api/v3.0";
     private final Supplier<Boolean> onlySubmodelsDecision;
 
     public EnvironmentToAssetMapper(Supplier<Boolean> onlySubmodelsDecision) {
@@ -99,9 +100,13 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<URL, Environment>
                             .formatted(accessUrl, environment))));
         }
 
-        var assetBuilder = Asset.Builder.newInstance().property(SUBMODELS,
-                environment.getSubmodels().stream().map((Submodel submodel) -> mapSubmodelToAsset(submodel,
-                        accessUrl.toString())).toList());
+        var assetBuilder = Asset.Builder.newInstance();
+        // Add the /api/v3.0 prefix to each element since this is AAS spec
+        var accessUrlV3 = accessUrl.toString().concat(AAS_V3_PREFIX);
+        // Submodels
+        assetBuilder.property(SUBMODELS, environment.getSubmodels().stream()
+                        .map(submodel -> mapSubmodelToAsset(submodel, accessUrlV3))
+                        .toList());
 
         if (onlySubmodelsDecision.get()) {
             assetBuilder.property(SHELLS, List.of());
@@ -111,9 +116,9 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<URL, Environment>
         return PipelineResult.success(new Service(accessUrl,
                 assetBuilder
                         .property(SHELLS,
-                                environment.getAssetAdministrationShells().stream().map((AssetAdministrationShell shell) -> mapShellToAsset(shell, accessUrl.toString())).toList())
+                                environment.getAssetAdministrationShells().stream().map((AssetAdministrationShell shell) -> mapShellToAsset(shell, accessUrlV3)).toList())
                         .property(CONCEPT_DESCRIPTIONS,
-                                environment.getConceptDescriptions().stream().map((ConceptDescription conceptDescription) -> mapConceptDescriptionToAsset(conceptDescription, accessUrl.toString())).toList())
+                                environment.getConceptDescriptions().stream().map((ConceptDescription conceptDescription) -> mapConceptDescriptionToAsset(conceptDescription, accessUrlV3)).toList())
                         .build()));
     }
 

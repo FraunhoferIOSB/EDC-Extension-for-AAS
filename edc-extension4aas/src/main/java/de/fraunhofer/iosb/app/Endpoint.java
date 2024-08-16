@@ -28,6 +28,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.io.IOException;
@@ -66,9 +67,9 @@ public class Endpoint {
      */
     public Endpoint(ServiceRepository serviceRepository, RegistryRepository registryRepository,
                     AasController aasController, Monitor monitor) {
-        this.registryRepository = registryRepository;
-        this.monitor = monitor;
+        this.monitor = Objects.requireNonNullElseGet(monitor, ConsoleMonitor::new);
         this.serviceRepository = Objects.requireNonNull(serviceRepository);
+        this.registryRepository = Objects.requireNonNull(registryRepository);
         this.aasController = Objects.requireNonNull(aasController);
     }
 
@@ -76,7 +77,7 @@ public class Endpoint {
      * Register an AAS registry to this extension
      *
      * @param registryUrl The URL of the AAS registry
-     * @return Appropriate response regarding input format & current state
+     * @return Status message about the success of this operation.
      */
     @POST
     @Path(REGISTRY_PATH)
@@ -85,10 +86,10 @@ public class Endpoint {
     }
 
     /**
-     * Register an AAS service (e.g., FA³ST) to this extension
+     * Register an AAS service to this extension
      *
-     * @param serviceUrl The URL of the AAS client
-     * @return Appropriate response regarding input format & current state
+     * @param serviceUrl The URL of the AAS service
+     * @return Status message about the success of this operation.
      */
     @POST
     @Path(SERVICE_PATH)
@@ -100,7 +101,7 @@ public class Endpoint {
      * Unregister an AAS registry from this extension
      *
      * @param registryUrl The URL of the registry
-     * @return Response "ok" containing status message
+     * @return Status message about the success of this operation.
      */
     @DELETE
     @Path(REGISTRY_PATH)
@@ -112,7 +113,7 @@ public class Endpoint {
      * Unregister an AAS service (e.g., FA³ST) from this extension
      *
      * @param serviceUrl The URL of the AAS client
-     * @return Response "ok" containing status message
+     * @return Status message about the success of this operation.
      */
     @DELETE
     @Path(SERVICE_PATH)
@@ -124,31 +125,30 @@ public class Endpoint {
      * Create a new AAS service. Either (http) port or AAS config path must be given
      * to ensure communication with the AAS service.
      *
-     * @param pathToEnvironment                    Path to new AAS environment
-     * @param port                                 Port of service to be created
-     * @param pathToAssetAdministrationShellConfig Path of AAS configuration file
+     * @param pathToEnvironment Path to new AAS environment
+     * @param port              Port of service to be created
+     * @param pathToConfig      Path of AAS configuration file
      * @return Response containing new AAS URL or error code
      */
     @POST
     @Path(ENVIRONMENT_PATH)
     public Response postAasEnvironment(@QueryParam("environment") String pathToEnvironment,
-                                       @QueryParam("config") String pathToAssetAdministrationShellConfig,
+                                       @QueryParam("config") String pathToConfig,
                                        @QueryParam("port") String port) {
-        monitor.info("POST /environment");
+        monitor.debug("POST /environment");
         if (Objects.isNull(pathToEnvironment)) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Missing query parameter 'environment'").build();
         } else if (!port.matches("\\d+")) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Query parameter 'port' must be a valid port " +
-                    "number").build();
+            return Response.status(Response.Status.BAD_REQUEST).entity("Query parameter 'port' must be valid").build();
         }
 
-        URL newAssetAdministrationShellUrl;
+        URL serviceAccessUrl;
         try {
             var environmentPath = java.nio.file.Path.of(pathToEnvironment);
-            var aasConfigPath = Objects.isNull(pathToAssetAdministrationShellConfig) ?
-                    null : java.nio.file.Path.of(pathToAssetAdministrationShellConfig);
+            var aasConfigPath = Objects.isNull(pathToConfig) ?
+                    null : java.nio.file.Path.of(pathToConfig);
 
-            newAssetAdministrationShellUrl = aasController.startService(environmentPath, Integer.parseInt(port),
+            serviceAccessUrl = aasController.startService(environmentPath, Integer.parseInt(port),
                     aasConfigPath);
 
         } catch (InvalidPathException invalidPathException) {
@@ -160,18 +160,19 @@ public class Endpoint {
             return Response.serverError().entity("Could not start AAS service. Check logs for details").build();
         }
 
-        try (var creationResponse = createEntity(newAssetAdministrationShellUrl, SERVICE)) {
+        // From here, do the same as if it were a remote service.
+        try (var creationResponse = createEntity(serviceAccessUrl, SERVICE)) {
             if (creationResponse.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
-                return Response.status(Status.CREATED).entity(newAssetAdministrationShellUrl).build();
+                return Response.status(Status.CREATED).entity(serviceAccessUrl).build();
             } else {
-                aasController.stopService(newAssetAdministrationShellUrl);
+                aasController.stopService(serviceAccessUrl);
                 return creationResponse;
             }
         }
     }
 
     private Response createEntity(URL accessUrl, SelfDescriptionSourceType type) {
-        monitor.info("POST /%s".formatted(type));
+        monitor.debug("POST /%s".formatted(type));
 
         if (Objects.isNull(accessUrl)) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Missing query parameter 'url'").build();
@@ -186,7 +187,7 @@ public class Endpoint {
     }
 
     private Response removeEntity(URL accessUrl, SelfDescriptionSourceType type) {
-        monitor.info("DELETE /%s".formatted(type));
+        monitor.debug("DELETE /%s".formatted(type));
         if (Objects.isNull(accessUrl)) {
             return Response.status(Status.BAD_REQUEST).entity("Missing query parameter 'url'").build();
         }
@@ -199,6 +200,6 @@ public class Endpoint {
             throw new IllegalArgumentException("Unknown type: %s".formatted(type));
         }
 
-        return Response.ok("Removed %s from EDC".formatted(type)).build();
+        return Response.ok("Removed %s from EDC".formatted(String.valueOf(type).toLowerCase())).build();
     }
 }

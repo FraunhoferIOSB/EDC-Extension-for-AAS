@@ -191,9 +191,11 @@ public class ContractRegistrar extends PipelineStep<ChangeSet<String, String>, V
     private Policy initializeDefaultPolicy() {
         return Policy.Builder.newInstance()
                 .permission(Permission.Builder.newInstance()
-                        .action(Action.Builder.newInstance().type("USE").build())
+                        .action(Action.Builder.newInstance()
+                                .type("USE")
+                                .build())
                         .build())
-                .assigner("provider") // as this is just an example policy, assigner can be generic
+                .assigner("provider")
                 .build();
     }
 

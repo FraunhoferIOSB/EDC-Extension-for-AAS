@@ -17,6 +17,7 @@ package de.fraunhofer.iosb.app.model;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Objects;
 
 public class ChangeSet<A, R> {
 
@@ -34,6 +35,24 @@ public class ChangeSet<A, R> {
 
     public Collection<R> toRemove() {
         return toRemove;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ChangeSet<?, ?> changeSet = (ChangeSet<?, ?>) o;
+        return Objects.equals(toRemove, changeSet.toRemove) && Objects.equals(toAdd, changeSet.toAdd);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(toRemove, toAdd);
+    }
+
+    @Override
+    public String toString() {
+        return "ChangeSet{to remove=%s, to add=%s}".formatted(toRemove, toAdd);
     }
 
     public static class Builder<A, R> {

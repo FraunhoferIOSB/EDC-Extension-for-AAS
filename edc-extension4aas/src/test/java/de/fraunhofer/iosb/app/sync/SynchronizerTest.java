@@ -15,9 +15,35 @@
  */
 package de.fraunhofer.iosb.app.sync;
 
-import org.junit.jupiter.api.Disabled;
+import de.fraunhofer.iosb.app.model.ChangeSet;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-@Disabled("Too many changes to adapt this test. Need to make new tests")
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 public class SynchronizerTest {
+
+    private Synchronizer testSubject;
+
+    @BeforeEach
+    public void setUp() {
+        testSubject = new Synchronizer();
+    }
+
+    @Test
+    void testApplyNull() {
+        assertTrue(testSubject.apply(null).failed());
+    }
+
+    @Test
+    void testApplyEmpty() {
+        var result = testSubject.apply(List.of());
+        assertTrue(result.succeeded());
+
+        assertEquals(new ChangeSet.Builder<>().build(), result.getContent());
+    }
 
 }

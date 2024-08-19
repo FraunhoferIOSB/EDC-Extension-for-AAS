@@ -16,6 +16,7 @@
 package de.fraunhofer.iosb.app.sync;
 
 import de.fraunhofer.iosb.app.model.ChangeSet;
+import de.fraunhofer.iosb.app.pipeline.PipelineFailure;
 import de.fraunhofer.iosb.app.pipeline.PipelineResult;
 import de.fraunhofer.iosb.app.pipeline.PipelineStep;
 import de.fraunhofer.iosb.app.util.AssetUtil;
@@ -24,6 +25,7 @@ import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 
 
@@ -52,6 +54,10 @@ public class Synchronizer extends PipelineStep<Collection<Pair<Asset, Asset>>, C
      */
     @Override
     public PipelineResult<ChangeSet<Asset, String>> apply(Collection<Pair<Asset, Asset>> oldAndNewAssets) {
+        if (oldAndNewAssets == null) {
+            return PipelineResult.failure(PipelineFailure.warning(List.of("Empty input for synchronizer")));
+        }
+
         Collection<String> toRemove = new ArrayList<>();
         Collection<Asset> toAdd = new ArrayList<>();
 

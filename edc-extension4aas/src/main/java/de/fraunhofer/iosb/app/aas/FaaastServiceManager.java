@@ -166,10 +166,10 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
         Objects.requireNonNull(aasServiceUrl);
         monitor.debug(format("Shutting down FA³ST service with URL %s...", aasServiceUrl));
 
-        var serviceToStop = faaastServiceRepository.get(aasServiceUrl.toString());
+        var serviceToStop = faaastServiceRepository.get(new AasAccessUrl(aasServiceUrl));
         if (Objects.nonNull(serviceToStop)) {
             serviceToStop.stop();
-            faaastServiceRepository.remove(aasServiceUrl.toString());
+            faaastServiceRepository.remove(new AasAccessUrl(aasServiceUrl));
         } else {
             monitor.debug("This URL was not registered as an internal FA³ST service.");
         }

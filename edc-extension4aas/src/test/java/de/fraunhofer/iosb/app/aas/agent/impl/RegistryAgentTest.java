@@ -16,20 +16,16 @@
 package de.fraunhofer.iosb.app.aas.agent.impl;
 
 import de.fraunhofer.iosb.aas.impl.AllAasDataProcessorFactory;
-import de.fraunhofer.iosb.ilt.faaast.service.model.descriptor.AssetAdministrationShellDescriptor;
-import de.fraunhofer.iosb.ilt.faaast.service.model.descriptor.impl.DefaultAssetAdministrationShellDescriptor;
-import de.fraunhofer.iosb.ilt.faaast.service.model.descriptor.impl.DefaultEndpoint;
-import de.fraunhofer.iosb.ilt.faaast.service.model.descriptor.impl.DefaultProtocolInformation;
+import de.fraunhofer.iosb.app.model.aas.AasAccessUrl;
 import de.fraunhofer.iosb.registry.AasServiceRegistry;
 import de.fraunhofer.iosb.ssl.impl.NoOpSelfSignedCertificateRetriever;
 import dev.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.SerializationException;
-import org.eclipse.digitaltwin.aas4j.v3.dataformat.json.JsonSerializer;
-import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelDescriptor;
-import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultAdministrativeInformation;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.model.HttpResponse;
@@ -37,23 +33,35 @@ import org.mockserver.model.HttpResponse;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashSet;
+import java.util.Optional;
 
+import static de.fraunhofer.iosb.api.model.HttpMethod.GET;
+import static de.fraunhofer.iosb.app.aas.agent.impl.RegistryAgent.SHELL_DESCRIPTORS_PATH;
+import static de.fraunhofer.iosb.app.aas.agent.impl.RegistryAgent.SUBMODEL_DESCRIPTORS_PATH;
 import static de.fraunhofer.iosb.app.pipeline.PipelineFailure.Type.FATAL;
+import static de.fraunhofer.iosb.app.testutils.AasCreator.getEmptyShellDescriptor;
+import static de.fraunhofer.iosb.app.testutils.AasCreator.getEmptySubmodelDescriptor;
+import static de.fraunhofer.iosb.app.testutils.AasCreator.getShellDescriptor;
+import static de.fraunhofer.iosb.app.testutils.AasCreator.getSubmodelDescriptor;
+import static de.fraunhofer.iosb.app.testutils.StringMethods.resultOf;
+import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.model.HttpRequest.request;
 
 class RegistryAgentTest {
-    private static final int PORT = 42042;
-    private static final String HTTP_LOCALHOST_8080 = "http://localhost:%s".formatted(PORT);
+    private static final int PORT = getFreePort();
+    private final URL accessUrl = new URL("http://localhost:%s".formatted(PORT));
     private static ClientAndServer mockServer;
 
-    RegistryAgent testSubject;
+    private static RegistryAgent testSubject;
 
-    @BeforeEach
-    void setUp() {
+    RegistryAgentTest() throws MalformedURLException {
+    }
 
+    @BeforeAll
+    static void setUp() {
         testSubject = new RegistryAgent(
                 new AllAasDataProcessorFactory(
                         new NoOpSelfSignedCertificateRetriever(),
@@ -64,45 +72,141 @@ class RegistryAgentTest {
                 new AasServiceRegistry(
                         new HashSet<>())
         );
+
+        mockServer = startClientAndServer(PORT);
+    }
+
+    @AfterEach
+    void tearDown() {
+        mockServer.reset();
+    }
+
+    @AfterAll
+    static void shutdown() {
+        mockServer.stop();
     }
 
     @Test
-    void testApplyShellDescriptor() throws MalformedURLException, SerializationException {
-        try (var mockServer = startMockRegistryServer()) {
-            mockServer.when(
-                            request().withMethod("GET").withPath("/api/v3.0/shell-descriptors"))
-                    .respond(
-                            HttpResponse.response().withBody(
-                                    new JsonSerializer().write(
-                                            createAasDescriptor())
-                            )
-                    );
+    void testApplyEmptyShellDescriptor() throws SerializationException, MalformedURLException {
+        var shellDescriptor = getEmptyShellDescriptor();
 
-            var result = testSubject.apply(new URL(HTTP_LOCALHOST_8080));
+        mockServer.when(request()
+                        .withMethod(GET.toString())
+                        .withPath(SHELL_DESCRIPTORS_PATH))
+                .respond(HttpResponse.response()
+                        .withBody(resultOf(shellDescriptor)));
 
-            // TODO test with real shell descriptor.
-            var body = result.getContent();
-        }
+        var result = testSubject.apply(accessUrl);
+
+        assertTrue(result.succeeded());
+
+        var bodyAsEnvironment = result.getContent();
+
+        assertEquals(1, bodyAsEnvironment.size());
+
+        var env = bodyAsEnvironment.get(new AasAccessUrl(new URL("https://localhost:12345")));
+
+        var shell = Optional.ofNullable(env.getAssetAdministrationShells().get(0)).orElseThrow();
+
+        assertEquals(shellDescriptor.getIdShort(), shell.getIdShort());
+        assertEquals(shellDescriptor.getId(), shell.getId());
+        assertEquals(shellDescriptor.getAdministration(), shell.getAdministration());
+        assertEquals(shellDescriptor.getAssetType(), shell.getAssetInformation().getAssetType());
+        assertEquals(shellDescriptor.getAssetKind(), shell.getAssetInformation().getAssetKind());
     }
 
-    void testApplySubmodelDescriptor() throws MalformedURLException, SerializationException {
-        try (var mockServer = startMockRegistryServer()) {
-            mockServer.when(
-                            request().withMethod("GET").withPath("/api/v3.0/submodel-descriptors"))
-                    .respond(
-                            HttpResponse.response().withBody(
-                                    new JsonSerializer().write(
-                                            createSubmodelDescriptor())
-                            )
-                    );
+    @Test
+    void testApplyShellDescriptor() throws SerializationException, MalformedURLException {
+        var shellDescriptor = getShellDescriptor();
 
-            var result = testSubject.apply(new URL(HTTP_LOCALHOST_8080));
+        mockServer.when(request()
+                        .withMethod(GET.toString())
+                        .withPath(SHELL_DESCRIPTORS_PATH))
+                .respond(HttpResponse.response()
+                        .withBody(resultOf(shellDescriptor)));
 
-            // TODO test with real submodel descriptor.
-            var body = result.getContent();
-        }
+        var result = testSubject.apply(accessUrl);
+
+        assertTrue(result.succeeded());
+
+        var bodyAsEnvironment = result.getContent();
+
+        assertEquals(1, bodyAsEnvironment.size());
+
+        var env = bodyAsEnvironment.get(new AasAccessUrl(new URL("https://localhost:12345")));
+
+        var shell = Optional.ofNullable(env.getAssetAdministrationShells().get(0)).orElseThrow();
+
+        assertEquals(shellDescriptor.getIdShort(), shell.getIdShort());
+        assertEquals(shellDescriptor.getId(), shell.getId());
+        assertEquals(shellDescriptor.getAdministration(), shell.getAdministration());
+        assertEquals(shellDescriptor.getAssetType(), shell.getAssetInformation().getAssetType());
+        assertEquals(shellDescriptor.getAssetKind(), shell.getAssetInformation().getAssetKind());
     }
 
+    @Test
+    void testApplyEmptySubmodelDescriptor() throws SerializationException, MalformedURLException {
+        var submodelDescriptor = getEmptySubmodelDescriptor();
+
+        mockServer.when(request()
+                        .withMethod(GET.toString())
+                        .withPath(SUBMODEL_DESCRIPTORS_PATH))
+                .respond(HttpResponse.response()
+                        .withBody(resultOf(submodelDescriptor)));
+
+        var result = testSubject.apply(accessUrl);
+
+        assertTrue(result.succeeded());
+
+        var bodyAsEnvironment = result.getContent();
+
+        assertEquals(1, bodyAsEnvironment.size());
+
+        var submodel = Optional.ofNullable(Optional
+                        .ofNullable(bodyAsEnvironment.get(new AasAccessUrl(new URL("https://localhost:12345"))))
+                        .orElseThrow()
+                        .getSubmodels()
+                        .get(0))
+                .orElseThrow();
+
+        assertEquals(submodelDescriptor.getIdShort(), submodel.getIdShort());
+        assertEquals(submodelDescriptor.getId(), submodel.getId());
+        assertEquals(submodelDescriptor.getAdministration(), submodel.getAdministration());
+        assertEquals(submodelDescriptor.getDescription(), submodel.getDescription());
+        assertEquals(submodelDescriptor.getSemanticId(), submodel.getSemanticId());
+    }
+
+    @Test
+    void testApplySubmodelDescriptor() throws SerializationException, MalformedURLException {
+        var submodelDescriptor = getSubmodelDescriptor();
+
+        mockServer.when(request()
+                        .withMethod(GET.toString())
+                        .withPath(SUBMODEL_DESCRIPTORS_PATH))
+                .respond(HttpResponse.response()
+                        .withBody(resultOf(submodelDescriptor)));
+
+        var result = testSubject.apply(accessUrl);
+
+        assertTrue(result.succeeded());
+
+        var bodyAsEnvironment = result.getContent();
+
+        assertEquals(1, bodyAsEnvironment.size());
+
+        var submodel = Optional.ofNullable(Optional
+                        .ofNullable(bodyAsEnvironment.get(new AasAccessUrl(new URL("https://localhost:12345"))))
+                        .orElseThrow()
+                        .getSubmodels()
+                        .get(0))
+                .orElseThrow();
+
+        assertEquals(submodelDescriptor.getIdShort(), submodel.getIdShort());
+        assertEquals(submodelDescriptor.getId(), submodel.getId());
+        assertEquals(submodelDescriptor.getAdministration(), submodel.getAdministration());
+        assertEquals(submodelDescriptor.getDescription(), submodel.getDescription());
+        assertEquals(submodelDescriptor.getSemanticId(), submodel.getSemanticId());
+    }
 
     @Test
     void testApplyNotActuallyRegistry() throws MalformedURLException {
@@ -112,34 +216,11 @@ class RegistryAgentTest {
         assertEquals(FATAL, result.getFailure().getFailureType());
     }
 
-
     @Test
     void testApplyUnreachableRegistry() throws MalformedURLException {
         var result = testSubject.apply(new URL("http://anonymous.invalid"));
 
         assertTrue(result.failed());
         assertEquals(FATAL, result.getFailure().getFailureType());
-    }
-
-    private ClientAndServer startMockRegistryServer() {
-        return startClientAndServer(PORT);
-    }
-
-    private SubmodelDescriptor createSubmodelDescriptor() {
-        return null;
-    }
-
-    private AssetAdministrationShellDescriptor createAasDescriptor() {
-        return new DefaultAssetAdministrationShellDescriptor.Builder()
-                .administration(new DefaultAdministrativeInformation.Builder().build())
-                .endpoint(new DefaultEndpoint.Builder()
-                        ._interface("AAS-3.0")
-                        .protocolInformation(
-                                new DefaultProtocolInformation.Builder()
-                                        .endpointProtocol("HTTPS")
-                                        .href("https://localhost:54321")
-                                        .build())
-                        .build())
-                .build();
     }
 }

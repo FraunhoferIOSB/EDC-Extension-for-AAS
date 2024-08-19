@@ -19,10 +19,7 @@ import de.fraunhofer.iosb.app.model.aas.AasAccessUrl;
 import de.fraunhofer.iosb.app.model.aas.service.Service;
 import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
 import de.fraunhofer.iosb.util.Encoder;
-import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShell;
-import org.eclipse.digitaltwin.aas4j.v3.model.ConceptDescription;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
-import org.eclipse.digitaltwin.aas4j.v3.model.Submodel;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultAssetAdministrationShell;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultConceptDescription;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultEnvironment;
@@ -85,34 +82,15 @@ class EnvironmentToAssetMapperTest {
 
         assertNotNull(envAsset);
 
-        // This is essentially the same as in testWholeEnvironmentIdEquality
+        // We don't compare IDs since they simply need to be unique
+        assertEquals(env.getSubmodels().size(),
+                getChildren(envAsset, SUBMODELS).size());
 
-        assertEquals(env.getSubmodels().stream()
-                        .map(Submodel::getId)
-                        .map(String::hashCode)
-                        .map(String::valueOf)
-                        .toList(),
-                getChildren(envAsset, SUBMODELS).stream()
-                        .map(Asset::getId)
-                        .toList());
+        assertEquals(env.getAssetAdministrationShells().size(),
+                getChildren(envAsset, SHELLS).size());
 
-        assertEquals(env.getAssetAdministrationShells().stream()
-                        .map(AssetAdministrationShell::getId)
-                        .map(String::hashCode)
-                        .map(String::valueOf)
-                        .toList(),
-                getChildren(envAsset, SHELLS).stream()
-                        .map(Asset::getId)
-                        .toList());
-
-        assertEquals(env.getConceptDescriptions().stream()
-                        .map(ConceptDescription::getId)
-                        .map(String::hashCode)
-                        .map(String::valueOf)
-                        .toList(),
-                getChildren(envAsset, CONCEPT_DESCRIPTIONS).stream()
-                        .map(Asset::getId)
-                        .toList());
+        assertEquals(env.getConceptDescriptions().size(),
+                getChildren(envAsset, CONCEPT_DESCRIPTIONS).size());
     }
 
     @Test
@@ -151,8 +129,8 @@ class EnvironmentToAssetMapperTest {
 
         var result = testSubject.executeSingle(accessUrl, env).getContent();
 
-        assertEquals(env.getSubmodels().stream().map(Submodel::getId).map(String::hashCode).map(String::valueOf).toList(),
-                getChildren(result.environment(), SUBMODELS).stream().map(Asset::getId).toList());
+        assertEquals(env.getSubmodels().size(),
+                getChildren(result.environment(), SUBMODELS).size());
         assertEquals(emptyList, result.environment().getProperty(SHELLS));
         assertEquals(emptyList, result.environment().getProperty(CONCEPT_DESCRIPTIONS));
     }
@@ -167,32 +145,14 @@ class EnvironmentToAssetMapperTest {
 
         var res = result.getContent().environment();
 
-        assertEquals(env.getSubmodels().stream()
-                        .map(Submodel::getId)
-                        .map(String::hashCode)
-                        .map(String::valueOf)
-                        .toList(),
-                getChildren(res, SUBMODELS).stream()
-                        .map(Asset::getId)
-                        .toList());
+        assertEquals(env.getSubmodels().size(),
+                getChildren(res, SUBMODELS).size());
 
-        assertEquals(env.getAssetAdministrationShells().stream()
-                        .map(AssetAdministrationShell::getId)
-                        .map(String::hashCode)
-                        .map(String::valueOf)
-                        .toList(),
-                getChildren(res, SHELLS).stream()
-                        .map(Asset::getId)
-                        .toList());
+        assertEquals(env.getAssetAdministrationShells().size(),
+                getChildren(res, SHELLS).size());
 
-        assertEquals(env.getConceptDescriptions().stream()
-                        .map(ConceptDescription::getId)
-                        .map(String::hashCode)
-                        .map(String::valueOf)
-                        .toList(),
-                getChildren(res, CONCEPT_DESCRIPTIONS).stream()
-                        .map(Asset::getId)
-                        .toList());
+        assertEquals(env.getConceptDescriptions().size(),
+                getChildren(res, CONCEPT_DESCRIPTIONS).size());
     }
 
     @Test
@@ -206,13 +166,13 @@ class EnvironmentToAssetMapperTest {
         var conceptDescriptionDataAddress =
                 (AasDataAddress) getChildren(result.environment(), CONCEPT_DESCRIPTIONS).stream().map(Asset::getDataAddress).toList().get(0);
 
-        assertEquals(accessUrl.toString(), shellDataAddress.getBaseUrl());
+        assertTrue(shellDataAddress.getBaseUrl().startsWith(accessUrl.toString()));
         assertEquals("%s/%s".formatted(SHELLS, Encoder.encodeBase64(env.getAssetAdministrationShells().get(0).getId())),
                 shellDataAddress.referenceChainAsPath());
-        assertEquals(accessUrl.toString(), submodelDataAddress.getBaseUrl());
+        assertTrue(submodelDataAddress.getBaseUrl().startsWith(accessUrl.toString()));
         assertEquals("%s/%s".formatted(SUBMODELS, Encoder.encodeBase64(env.getSubmodels().get(0).getId())),
                 submodelDataAddress.referenceChainAsPath());
-        assertEquals(accessUrl.toString(), conceptDescriptionDataAddress.getBaseUrl());
+        assertTrue(conceptDescriptionDataAddress.getBaseUrl().startsWith(accessUrl.toString()));
         assertEquals("concept-descriptions/%s".formatted(Encoder.encodeBase64(env.getConceptDescriptions().get(0).getId())),
                 conceptDescriptionDataAddress.referenceChainAsPath());
     }

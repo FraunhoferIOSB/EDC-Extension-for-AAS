@@ -28,8 +28,10 @@ import org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes;
 import org.eclipse.digitaltwin.aas4j.v3.model.ProtocolInformation;
 import org.eclipse.digitaltwin.aas4j.v3.model.Submodel;
 import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelDescriptor;
+import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultAdministrativeInformation;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultAssetAdministrationShell;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultAssetInformation;
+import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultEmbeddedDataSpecification;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultEnvironment;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultKey;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultReference;
@@ -47,6 +49,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 
@@ -55,6 +58,8 @@ public class RegistryAgent extends AasAgent<Map<AasAccessUrl, Environment>> {
     public static final String SUBMODEL_DESCRIPTORS_PATH = "/api/v3.0/submodel-descriptors";
     public static final String SHELL_DESCRIPTORS_PATH = "/api/v3.0/shell-descriptors";
     public static final String SHELL_DIRECT_ENDPOINT = "AAS-3.0";
+    public static final String SUBMODEL_DIRECT_ENDPOINT = "SUBMODEL-3.0";
+
     private final AasServiceRegistry aasServiceRegistry;
 
     /**
@@ -83,11 +88,15 @@ public class RegistryAgent extends AasAgent<Map<AasAccessUrl, Environment>> {
 
         Map<AasAccessUrl, DefaultEnvironment.Builder> environmentsByUrl = new HashMap<>();
 
-        // TODO somehow, the "submodelDescriptors" field in AASDescriptor is not filled. source name is "submodels"
         var shellDescriptors = readElements(shellDescriptorsUrl, AssetAdministrationShellDescriptor.class);
         var submodelDescriptors = readElements(submodelDescriptorsUrl, SubmodelDescriptor.class);
 
-        var shellEndpointUrlsSorted = sortByHostAndPort(getShellEndpoints(shellDescriptors));
+        var shellEndpointUrlsSorted = sortByHostAndPort(getEndpointUrls(
+                shellDescriptors.stream()
+                        .map(AssetAdministrationShellDescriptor::getEndpoints)
+                        .flatMap(Collection::stream)
+                        .toList(),
+                SHELL_DIRECT_ENDPOINT));
 
         for (URL shellUrl : shellEndpointUrlsSorted) {
             // Still need to register AAS services for possible data transfer!!!
@@ -106,7 +115,12 @@ public class RegistryAgent extends AasAgent<Map<AasAccessUrl, Environment>> {
             }
         }
 
-        var submodelEndpointUrlsSorted = sortByHostAndPort(getSubmodelEndpoints(submodelDescriptors));
+        var submodelEndpointUrlsSorted = sortByHostAndPort(getEndpointUrls(
+                submodelDescriptors.stream()
+                        .map(SubmodelDescriptor::getEndpoints)
+                        .flatMap(Collection::stream)
+                        .toList(),
+                SUBMODEL_DIRECT_ENDPOINT));
 
         for (URL submodelUrl : submodelEndpointUrlsSorted) {
             // Still need to register AAS services for possible data transfer!!!
@@ -123,12 +137,20 @@ public class RegistryAgent extends AasAgent<Map<AasAccessUrl, Environment>> {
             }
         }
 
-        return environmentsByUrl.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().build()));
+        // Build environments and return
+        return environmentsByUrl.entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue()
+                        .build()));
     }
 
     private Submodel asSubmodel(SubmodelDescriptor submodelDescriptor) {
         return new DefaultSubmodel.Builder()
-                .embeddedDataSpecifications(submodelDescriptor.getAdministration().getEmbeddedDataSpecifications())
+                .embeddedDataSpecifications(
+                        Optional.ofNullable(submodelDescriptor.getAdministration())
+                                .orElse(new DefaultAdministrativeInformation.Builder()
+                                        .embeddedDataSpecifications(new DefaultEmbeddedDataSpecification())
+                                        .build())
+                                .getEmbeddedDataSpecifications())
                 .extensions(submodelDescriptor.getExtensions())
                 .semanticId(submodelDescriptor.getSemanticId())
                 .supplementalSemanticIds(submodelDescriptor.getSupplementalSemanticId())
@@ -171,61 +193,36 @@ public class RegistryAgent extends AasAgent<Map<AasAccessUrl, Environment>> {
         envBuilder.assetAdministrationShells(aasBuilder.build());
 
         descriptor.getSubmodelDescriptors().stream()
-                .map(submodelDescriptor -> new DefaultSubmodel.Builder()
-                        .administration(submodelDescriptor.getAdministration())
-                        .description(submodelDescriptor.getDescription())
-                        .displayName(submodelDescriptor.getDisplayName())
-                        .embeddedDataSpecifications(submodelDescriptor.getAdministration().getEmbeddedDataSpecifications())
-                        .extensions(submodelDescriptor.getExtensions())
-                        .idShort(submodelDescriptor.getIdShort())
-                        .id(submodelDescriptor.getId())
-                        .build())
+                .map(this::asSubmodel)
                 .forEach(envBuilder::submodels);
 
         return envBuilder.build();
     }
 
     private List<URL> sortByHostAndPort(List<String> urls) {
-        return urls.stream().map(spec -> {
-            try {
-                return new URL(spec);
-            } catch (MalformedURLException e) {
-                // Don't go forward with this registry element
-                return null;
-            }
-        })
+        return urls.stream().map(RegistryAgent::convertToUrl)
                 .collect(Collectors.toCollection(ArrayList::new)).stream()
                 .sorted(Comparator.comparing(URL::getHost).thenComparingInt(URL::getPort))
                 .toList();
     }
 
-    private @Nonnull List<String> getSubmodelEndpoints(Collection<SubmodelDescriptor> submodelDescriptors) {
-        return submodelDescriptors.stream()
-                .map(descriptor -> descriptor.getEndpoints().stream()
-                        .filter(endpoint ->
-                                endpoint.getProtocolInformation().getEndpointProtocol().equals("HTTPS") ||
-                                        endpoint.getProtocolInformation().getEndpointProtocol().equals("HTTP"))
-                        .map(Endpoint::get_interface)
-                        .filter(Objects::nonNull)
-                        .toList())
-                .flatMap(Collection::stream)
-                .toList();
+    private static URL convertToUrl(String spec) {
+        try {
+            return new URL(spec);
+        } catch (MalformedURLException e) {
+            return null;
+        }
     }
 
-    private @Nonnull List<String> getShellEndpoints(Collection<AssetAdministrationShellDescriptor> shellDescriptors) {
-        return shellDescriptors.stream()
-                .map(descriptor ->
-                        descriptor.getEndpoints().stream()
-                                // There is also AAS-REPOSITORY-3.0 which gives us the general /shells endpoint
-                                .filter(endpoint ->
-                                        endpoint.get_interface().equals(SHELL_DIRECT_ENDPOINT) && (
-                                                endpoint.getProtocolInformation().getEndpointProtocol().equals("HTTPS") ||
-                                                        endpoint.getProtocolInformation().getEndpointProtocol().equals("HTTP")))
-                                .map(Endpoint::getProtocolInformation)
-                                .map(ProtocolInformation::getHref)
-                                .filter(Objects::nonNull)
-                                .toList())
-                .flatMap(Collection::stream)
+    private @Nonnull List<String> getEndpointUrls(Collection<Endpoint> endpoints, String identifier) {
+        return endpoints.stream()
+                .filter(endpoint ->
+                        endpoint.get_interface().equals(identifier) && (
+                                endpoint.getProtocolInformation().getEndpointProtocol().equals("HTTPS") ||
+                                        endpoint.getProtocolInformation().getEndpointProtocol().equals("HTTP")))
+                .map(Endpoint::getProtocolInformation)
+                .map(ProtocolInformation::getHref)
+                .filter(Objects::nonNull)
                 .toList();
     }
 

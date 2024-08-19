@@ -15,6 +15,7 @@
  */
 package de.fraunhofer.iosb.app.aas;
 
+import de.fraunhofer.iosb.app.model.aas.AasAccessUrl;
 import de.fraunhofer.iosb.ilt.faaast.service.Service;
 import de.fraunhofer.iosb.ilt.faaast.service.assetconnection.AssetConnectionException;
 import de.fraunhofer.iosb.ilt.faaast.service.config.ServiceConfig;
@@ -48,7 +49,7 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
             "configuration. Not starting FA³ST service.";
 
     private final Monitor monitor;
-    private final Map<String, Service> faaastServiceRepository;
+    private final Map<AasAccessUrl, Service> faaastServiceRepository;
 
     public FaaastServiceManager(Monitor monitor) {
         this.monitor = monitor;
@@ -82,10 +83,10 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
 
         monitor.debug("Booted up FA³ST service.");
 
-        var faaastUrl = LOCALHOST_URL.concat(String.valueOf(port));
+        var faaastUrl = new URL(LOCALHOST_URL.concat(String.valueOf(port)));
 
-        faaastServiceRepository.put(faaastUrl, service);
-        return new URL(faaastUrl);
+        faaastServiceRepository.put(new AasAccessUrl(faaastUrl), service);
+        return faaastUrl;
     }
 
     @Override
@@ -143,13 +144,15 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
             service.start();
             monitor.debug("Started FA³ST service.");
 
-            faaastServiceRepository.put(LOCALHOST_URL.concat(String.valueOf(localFaaastServicePort)), service);
+            var url = new URL(LOCALHOST_URL.concat(String.valueOf(localFaaastServicePort)));
 
+            faaastServiceRepository.put(new AasAccessUrl(url), service);
+
+            return url;
         } catch (MessageBusException | EndpointException | AssetConnectionException |
                  ConfigurationException faaastServiceException) {
             throw new EdcException(FAAAST_SERVICE_EXCEPTION_MESSAGE, faaastServiceException);
         }
-        return new URL(LOCALHOST_URL + localFaaastServicePort);
     }
 
     @Override

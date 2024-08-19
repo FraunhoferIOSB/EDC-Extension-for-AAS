@@ -15,6 +15,7 @@
  */
 package de.fraunhofer.iosb.app.aas;
 
+import de.fraunhofer.iosb.app.model.aas.AasAccessUrl;
 import de.fraunhofer.iosb.app.model.aas.service.Service;
 import de.fraunhofer.iosb.app.pipeline.PipelineFailure;
 import de.fraunhofer.iosb.app.pipeline.PipelineResult;
@@ -51,7 +52,7 @@ import java.util.stream.Collectors;
  * This is not a holistic transformation but rather maps some
  * key elements and creates appropriate data address and assetId.
  */
-public class EnvironmentToAssetMapper extends PipelineStep<Map<URL, Environment>, Collection<Service>> {
+public class EnvironmentToAssetMapper extends PipelineStep<Map<AasAccessUrl, Environment>, Collection<Service>> {
     private static final String CONCEPT_DESCRIPTIONS = "conceptDescriptions";
     private static final String SHELLS = "shells";
     private static final String SUBMODELS = "submodels";
@@ -70,9 +71,9 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<URL, Environment>
      * @return Asset as described above
      */
     @Override
-    public PipelineResult<Collection<Service>> apply(Map<URL, Environment> environments) {
+    public PipelineResult<Collection<Service>> apply(Map<AasAccessUrl, Environment> environments) {
         var results = environments.entrySet().stream()
-                .map(entry -> executeSingle(entry.getKey(), entry.getValue())).toList();
+                .map(entry -> executeSingle(entry.getKey().url(), entry.getValue())).toList();
 
         var correctResults = results.stream()
                 .filter(PipelineResult::succeeded)

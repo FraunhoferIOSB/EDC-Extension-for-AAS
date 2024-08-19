@@ -15,6 +15,7 @@
  */
 package de.fraunhofer.iosb.app.model.aas.registry;
 
+import de.fraunhofer.iosb.app.model.aas.AasAccessUrl;
 import de.fraunhofer.iosb.app.model.aas.service.Service;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionChangeListener;
 import org.eclipse.edc.spi.observe.ObservableImpl;
@@ -42,7 +43,7 @@ public class RegistryRepository extends ObservableImpl<SelfDescriptionChangeList
      * @return True if created, else false.
      */
     public boolean create(URL accessUrl) {
-        var registry = new Registry(accessUrl, new ArrayList<>());
+        var registry = new Registry(new AasAccessUrl(accessUrl), new ArrayList<>());
 
         if (registries.add(registry)) {
             invokeForEach(listener -> listener.created(registry));
@@ -57,7 +58,10 @@ public class RegistryRepository extends ObservableImpl<SelfDescriptionChangeList
      * @return URLs of all registries currently stored.
      */
     public Collection<URL> getAllUrls() {
-        return registries.stream().map(Registry::accessUrl).toList();
+        return registries.stream()
+                .map(Registry::accessUrl)
+                .map(AasAccessUrl::url)
+                .toList();
     }
 
     /**

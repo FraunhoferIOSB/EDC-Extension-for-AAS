@@ -13,34 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.app.model.aas.registry;
+package de.fraunhofer.iosb.app.model.aas;
 
-import de.fraunhofer.iosb.app.model.aas.AasAccessUrl;
-import de.fraunhofer.iosb.app.model.aas.service.Service;
-
-import java.util.Collection;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Objects;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 /**
- * An AAS registry as seen in <a href="https://github.com/fraunhoferIOSB/FAAAST-registry">FA³ST Registry</a>
- *
- * @param accessUrl URL for accessing the registry.
- * @param services  The AAS services offered by this registry.
+ * URL wrapper with equals method appropriate for AAS service access URLs
  */
-public record Registry(@Nonnull AasAccessUrl accessUrl, @Nullable Collection<Service> services) {
+public record AasAccessUrl(URL url) {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Registry registry = (Registry) o;
+        AasAccessUrl that = (AasAccessUrl) o;
 
-        return Objects.equals(accessUrl, registry.accessUrl);
+        try {
+            return Objects.equals(url.toURI(), that.url.toURI());
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(accessUrl);
+        return Objects.hashCode(url);
+    }
+
+    @Override
+    public String toString() {
+        return "AAS Access URL{url=%s}".formatted(url);
     }
 }

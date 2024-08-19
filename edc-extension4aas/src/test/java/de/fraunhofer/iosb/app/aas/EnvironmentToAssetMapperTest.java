@@ -15,6 +15,7 @@
  */
 package de.fraunhofer.iosb.app.aas;
 
+import de.fraunhofer.iosb.app.model.aas.AasAccessUrl;
 import de.fraunhofer.iosb.app.model.aas.service.Service;
 import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
 import de.fraunhofer.iosb.util.Encoder;
@@ -71,7 +72,7 @@ class EnvironmentToAssetMapperTest {
     @Test
     void testApply() {
         var env = createEnvironment();
-        var result = testSubject.apply(Map.of(accessUrl, env));
+        var result = testSubject.apply(Map.of(new AasAccessUrl(accessUrl), env));
         assertTrue(result.succeeded());
         assertNotNull(result.getContent());
         var envAsset = result.getContent().stream()

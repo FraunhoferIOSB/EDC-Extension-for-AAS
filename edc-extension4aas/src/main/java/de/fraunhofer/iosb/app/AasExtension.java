@@ -27,6 +27,7 @@ import de.fraunhofer.iosb.app.controller.SelfDescriptionController;
 import de.fraunhofer.iosb.app.edc.CleanUpService;
 import de.fraunhofer.iosb.app.edc.asset.AssetRegistrar;
 import de.fraunhofer.iosb.app.edc.contract.ContractRegistrar;
+import de.fraunhofer.iosb.app.model.aas.AasAccessUrl;
 import de.fraunhofer.iosb.app.model.aas.registry.Registry;
 import de.fraunhofer.iosb.app.model.aas.registry.RegistryRepository;
 import de.fraunhofer.iosb.app.model.aas.registry.RegistryRepositoryUpdater;
@@ -62,7 +63,6 @@ import java.util.Objects;
 
 import static de.fraunhofer.iosb.app.controller.SelfDescriptionController.SELF_DESCRIPTION_PATH;
 import static de.fraunhofer.iosb.app.util.InetTools.pingHost;
-import static java.util.function.Function.identity;
 
 /**
  * EDC Extension supporting usage of Asset Administration Shells.
@@ -117,7 +117,7 @@ public class AasExtension implements ServiceExtension {
                 .monitor(monitor.withPrefix("Service Synchronization Pipeline"))
                 .supplier(serviceRepository::getAllServiceAccessUrls)
                 .step(new CollectionFeeder<>(reachabilityCheck))
-                .step(new InputOutputZipper<>(new ServiceAgent(aasDataProcessorFactory), identity()))
+                .step(new InputOutputZipper<>(new ServiceAgent(aasDataProcessorFactory), AasAccessUrl::new))
                 .step(new EnvironmentToAssetMapper(() -> Configuration.getInstance().isOnlySubmodels()))
                 .step(new CollectionFeeder<>(new ServiceRepositoryUpdater(serviceRepository)))
                 .step(new Synchronizer())
@@ -132,7 +132,7 @@ public class AasExtension implements ServiceExtension {
                 .monitor(monitor.withPrefix("Registry Synchronization Pipeline"))
                 .supplier(registryRepository::getAllUrls)
                 .step(new CollectionFeeder<>(reachabilityCheck))
-                .step(new InputOutputZipper<>(new RegistryAgent(aasDataProcessorFactory, foreignServerRegistry), identity()))
+                .step(new InputOutputZipper<>(new RegistryAgent(aasDataProcessorFactory, foreignServerRegistry), AasAccessUrl::new))
                 .step(new MapValueProcessor<>(
                         new EnvironmentToAssetMapper(() -> Configuration.getInstance().isOnlySubmodels()),
                         // Remove fatal results from further processing

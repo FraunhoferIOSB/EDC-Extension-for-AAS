@@ -17,6 +17,7 @@ package de.fraunhofer.iosb.app.aas.agent.impl;
 
 import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
 import de.fraunhofer.iosb.app.aas.agent.AasAgent;
+import de.fraunhofer.iosb.app.model.aas.AasAccessUrl;
 import de.fraunhofer.iosb.app.pipeline.PipelineFailure;
 import de.fraunhofer.iosb.app.pipeline.PipelineResult;
 import de.fraunhofer.iosb.registry.AasServiceRegistry;
@@ -49,7 +50,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 
-public class RegistryAgent extends AasAgent<Map<URL, Environment>> {
+public class RegistryAgent extends AasAgent<Map<AasAccessUrl, Environment>> {
 
     public static final String SUBMODEL_DESCRIPTORS_PATH = "/api/v3.0/submodel-descriptors";
     public static final String SHELL_DESCRIPTORS_PATH = "/api/v3.0/shell-descriptors";
@@ -68,7 +69,7 @@ public class RegistryAgent extends AasAgent<Map<URL, Environment>> {
     }
 
     @Override
-    public PipelineResult<Map<URL, Environment>> apply(@Nonnull URL url) {
+    public PipelineResult<Map<AasAccessUrl, Environment>> apply(@Nonnull URL url) {
         try {
             return PipelineResult.success(readEnvironment(url));
         } catch (EdcException | IOException | URISyntaxException e) {
@@ -76,11 +77,11 @@ public class RegistryAgent extends AasAgent<Map<URL, Environment>> {
         }
     }
 
-    private Map<URL, Environment> readEnvironment(URL url) throws IOException, URISyntaxException {
+    private Map<AasAccessUrl, Environment> readEnvironment(URL url) throws IOException, URISyntaxException {
         var submodelDescriptorsUrl = url.toURI().resolve(SUBMODEL_DESCRIPTORS_PATH).toURL();
         var shellDescriptorsUrl = url.toURI().resolve(SHELL_DESCRIPTORS_PATH).toURL();
 
-        Map<URL, DefaultEnvironment.Builder> environmentsByUrl = new HashMap<>();
+        Map<AasAccessUrl, DefaultEnvironment.Builder> environmentsByUrl = new HashMap<>();
 
         // TODO somehow, the "submodelDescriptors" field in AASDescriptor is not filled. source name is "submodels"
         var shellDescriptors = readElements(shellDescriptorsUrl, AssetAdministrationShellDescriptor.class);
@@ -96,12 +97,12 @@ public class RegistryAgent extends AasAgent<Map<URL, Environment>> {
 
                 var descriptorAsEnvironment = asEnvironment(descriptor);
 
-                var envBuilder = environmentsByUrl.getOrDefault(baseUrl, new DefaultEnvironment.Builder());
+                var envBuilder = environmentsByUrl.getOrDefault(new AasAccessUrl(baseUrl), new DefaultEnvironment.Builder());
 
                 descriptorAsEnvironment.getAssetAdministrationShells().forEach(envBuilder::assetAdministrationShells);
                 descriptorAsEnvironment.getSubmodels().forEach(envBuilder::submodels);
 
-                environmentsByUrl.put(baseUrl, envBuilder);
+                environmentsByUrl.put(new AasAccessUrl(baseUrl), envBuilder);
             }
         }
 
@@ -115,10 +116,10 @@ public class RegistryAgent extends AasAgent<Map<URL, Environment>> {
 
                 var descriptorAsSubmodel = asSubmodel(descriptor);
 
-                var envBuilder = environmentsByUrl.getOrDefault(baseUrl, new DefaultEnvironment.Builder());
+                var envBuilder = environmentsByUrl.getOrDefault(new AasAccessUrl(baseUrl), new DefaultEnvironment.Builder());
 
                 envBuilder.submodels(descriptorAsSubmodel);
-                environmentsByUrl.put(baseUrl, envBuilder);
+                environmentsByUrl.put(new AasAccessUrl(baseUrl), envBuilder);
             }
         }
 

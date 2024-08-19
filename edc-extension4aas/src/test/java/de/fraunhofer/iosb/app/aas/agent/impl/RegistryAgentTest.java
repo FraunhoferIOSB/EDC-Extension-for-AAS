@@ -35,7 +35,6 @@ import org.mockserver.integration.ClientAndServer;
 import org.mockserver.model.HttpResponse;
 
 import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.HashSet;
 
@@ -53,7 +52,7 @@ class RegistryAgentTest {
     RegistryAgent testSubject;
 
     @BeforeEach
-    void setUp() throws URISyntaxException {
+    void setUp() {
 
         testSubject = new RegistryAgent(
                 new AllAasDataProcessorFactory(

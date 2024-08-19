@@ -48,7 +48,9 @@ import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 /**
  * We assume here that catalogService does not return null objects as well as null catalogs inside their return value.
@@ -209,7 +211,7 @@ public class PolicyServiceTest {
     }
 
     @Test
-    void getAcceptablePolicyForAssetIdExceptionbyGetDatasetTest() {
+    void getAcceptablePolicyForAssetIdExceptionByGetDatasetTest() {
         //TODO
     }
 }

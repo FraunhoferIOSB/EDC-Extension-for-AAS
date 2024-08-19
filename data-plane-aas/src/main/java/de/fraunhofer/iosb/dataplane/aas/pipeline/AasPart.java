@@ -25,11 +25,6 @@ import java.io.InputStream;
 public record AasPart(String name, InputStream content, String mediaType) implements DataSource.Part {
 
     @Override
-    public long size() {
-        return SIZE_UNKNOWN;
-    }
-
-    @Override
     public InputStream openStream() {
         return content;
     }

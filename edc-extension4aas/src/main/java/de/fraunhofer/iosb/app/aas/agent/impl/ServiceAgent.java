@@ -45,7 +45,7 @@ public class ServiceAgent extends AasAgent<Environment> {
     }
 
     /**
-     * Returns an AAS service's environment.
+     * Returns the environment of an AAS service.
      *
      * @param url The AAS service's access URL
      * @return A map with one entry. This entry is the access url and environment of the service

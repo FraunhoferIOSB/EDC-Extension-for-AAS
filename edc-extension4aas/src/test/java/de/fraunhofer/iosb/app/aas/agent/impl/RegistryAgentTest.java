@@ -39,10 +39,10 @@ import static de.fraunhofer.iosb.api.model.HttpMethod.GET;
 import static de.fraunhofer.iosb.app.aas.agent.impl.RegistryAgent.SHELL_DESCRIPTORS_PATH;
 import static de.fraunhofer.iosb.app.aas.agent.impl.RegistryAgent.SUBMODEL_DESCRIPTORS_PATH;
 import static de.fraunhofer.iosb.app.pipeline.PipelineFailure.Type.FATAL;
-import static de.fraunhofer.iosb.app.testutils.AasCreator.getEmptyShellDescriptor;
-import static de.fraunhofer.iosb.app.testutils.AasCreator.getEmptySubmodelDescriptor;
-import static de.fraunhofer.iosb.app.testutils.AasCreator.getShellDescriptor;
-import static de.fraunhofer.iosb.app.testutils.AasCreator.getSubmodelDescriptor;
+import static de.fraunhofer.iosb.app.testutils.RegistryElementCreator.getEmptyShellDescriptor;
+import static de.fraunhofer.iosb.app.testutils.RegistryElementCreator.getEmptySubmodelDescriptor;
+import static de.fraunhofer.iosb.app.testutils.RegistryElementCreator.getShellDescriptor;
+import static de.fraunhofer.iosb.app.testutils.RegistryElementCreator.getSubmodelDescriptor;
 import static de.fraunhofer.iosb.app.testutils.StringMethods.resultOf;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -52,7 +52,7 @@ import static org.mockserver.model.HttpRequest.request;
 
 class RegistryAgentTest {
     private static final int PORT = getFreePort();
-    private final URL accessUrl = new URL("http://localhost:%s".formatted(PORT));
+    private final URL mockServerUrl = new URL("http://localhost:%s".formatted(PORT));
     private static ClientAndServer mockServer;
 
     private static RegistryAgent testSubject;
@@ -96,7 +96,7 @@ class RegistryAgentTest {
                 .respond(HttpResponse.response()
                         .withBody(resultOf(shellDescriptor)));
 
-        var result = testSubject.apply(accessUrl);
+        var result = testSubject.apply(mockServerUrl);
 
         assertTrue(result.succeeded());
 
@@ -104,6 +104,7 @@ class RegistryAgentTest {
 
         assertEquals(1, bodyAsEnvironment.size());
 
+        // We know the endpoint url from getEmptyShellDescriptor()...
         var env = bodyAsEnvironment.get(new AasAccessUrl(new URL("https://localhost:12345")));
 
         var shell = Optional.ofNullable(env.getAssetAdministrationShells().get(0)).orElseThrow();
@@ -125,7 +126,7 @@ class RegistryAgentTest {
                 .respond(HttpResponse.response()
                         .withBody(resultOf(shellDescriptor)));
 
-        var result = testSubject.apply(accessUrl);
+        var result = testSubject.apply(mockServerUrl);
 
         assertTrue(result.succeeded());
 
@@ -154,7 +155,7 @@ class RegistryAgentTest {
                 .respond(HttpResponse.response()
                         .withBody(resultOf(submodelDescriptor)));
 
-        var result = testSubject.apply(accessUrl);
+        var result = testSubject.apply(mockServerUrl);
 
         assertTrue(result.succeeded());
 
@@ -186,7 +187,7 @@ class RegistryAgentTest {
                 .respond(HttpResponse.response()
                         .withBody(resultOf(submodelDescriptor)));
 
-        var result = testSubject.apply(accessUrl);
+        var result = testSubject.apply(mockServerUrl);
 
         assertTrue(result.succeeded());
 

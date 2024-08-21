@@ -15,18 +15,33 @@
  */
 package de.fraunhofer.iosb.app.sync;
 
+import de.fraunhofer.iosb.app.aas.EnvironmentToAssetMapper;
 import de.fraunhofer.iosb.app.model.ChangeSet;
+import de.fraunhofer.iosb.app.util.Pair;
+import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.List;
 
+import static de.fraunhofer.iosb.app.testutils.AasCreator.getEmptyEnvironment;
+import static de.fraunhofer.iosb.app.testutils.AasCreator.getEnvironment;
+import static de.fraunhofer.iosb.app.util.AssetUtil.flatMapAssets;
+import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class SynchronizerTest {
 
+    private final URL accessUrl = new URL("https://localhost:%s".formatted(getFreePort()));
+
     private Synchronizer testSubject;
+
+    public SynchronizerTest() throws MalformedURLException {
+    }
 
     @BeforeEach
     public void setUp() {
@@ -46,4 +61,46 @@ public class SynchronizerTest {
         assertEquals(new ChangeSet.Builder<>().build(), result.getContent());
     }
 
+    @Test
+    void testApplyNewService() {
+        var oldEnvironment = getEmptyEnvironment();
+        var newEnvironment = getEnvironment();
+
+        var oldEnvironmentAsset = new EnvironmentToAssetMapper(() -> false).executeSingle(accessUrl, oldEnvironment);
+        var newEnvironmentAsset = new EnvironmentToAssetMapper(() -> false).executeSingle(accessUrl, newEnvironment);
+
+        var pair = new Pair<>(oldEnvironmentAsset.getContent().environment(), newEnvironmentAsset.getContent().environment());
+
+        var result = testSubject.apply(List.of(pair));
+
+        assertTrue(result.succeeded());
+        assertNotNull(result.getContent());
+
+        var shouldBe = new ChangeSet.Builder<Asset, String>()
+                .add(flatMapAssets(newEnvironmentAsset.getContent().environment())).build();
+
+        assertEquals(shouldBe, result.getContent());
+    }
+
+
+    @Test
+    void testApplyRemoveSubmodel() {
+        var oldEnvironment = getEnvironment();
+        var newEnvironment = getEnvironment();
+
+        var oldEnvironmentAsset = new EnvironmentToAssetMapper(() -> false).executeSingle(accessUrl, oldEnvironment);
+        var newEnvironmentAsset = new EnvironmentToAssetMapper(() -> false).executeSingle(accessUrl, newEnvironment);
+
+        var pair = new Pair<>(oldEnvironmentAsset.getContent().environment(), newEnvironmentAsset.getContent().environment());
+
+        var result = testSubject.apply(List.of(pair));
+
+        assertTrue(result.succeeded());
+        assertNotNull(result.getContent());
+
+        var shouldBe = new ChangeSet.Builder<Asset, String>()
+                .add(flatMapAssets(newEnvironmentAsset.getContent().environment())).build();
+
+        assertEquals(shouldBe, result.getContent());
+    }
 }

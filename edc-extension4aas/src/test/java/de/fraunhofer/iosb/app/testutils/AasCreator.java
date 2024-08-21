@@ -16,44 +16,37 @@
 package de.fraunhofer.iosb.app.testutils;
 
 import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShell;
-import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShellDescriptor;
 import org.eclipse.digitaltwin.aas4j.v3.model.AssetKind;
 import org.eclipse.digitaltwin.aas4j.v3.model.ConceptDescription;
 import org.eclipse.digitaltwin.aas4j.v3.model.DataTypeDefXsd;
 import org.eclipse.digitaltwin.aas4j.v3.model.DataTypeIec61360;
-import org.eclipse.digitaltwin.aas4j.v3.model.Endpoint;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
 import org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes;
 import org.eclipse.digitaltwin.aas4j.v3.model.ModellingKind;
 import org.eclipse.digitaltwin.aas4j.v3.model.Property;
 import org.eclipse.digitaltwin.aas4j.v3.model.ReferenceTypes;
 import org.eclipse.digitaltwin.aas4j.v3.model.Submodel;
-import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelDescriptor;
 import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElementCollection;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultAdministrativeInformation;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultAssetAdministrationShell;
-import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultAssetAdministrationShellDescriptor;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultAssetInformation;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultConceptDescription;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultDataSpecificationIec61360;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultEmbeddedDataSpecification;
-import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultEndpoint;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultEnvironment;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultExtension;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultKey;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultLangStringNameType;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultLangStringTextType;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultProperty;
-import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultProtocolInformation;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultReference;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultSpecificAssetId;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultSubmodel;
-import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultSubmodelDescriptor;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultSubmodelElementCollection;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.function.Function;
 
 /**
  * Create AAS elements with default values.
@@ -64,87 +57,8 @@ public class AasCreator {
         throw new RuntimeException("Utility class");
     }
 
-    public static SubmodelDescriptor getEmptySubmodelDescriptor() {
-        return new DefaultSubmodelDescriptor.Builder()
-                .endpoints(getEndpoints(uuid(), "SUBMODEL"))
-                .build();
-    }
-
-    public static SubmodelDescriptor getSubmodelDescriptor() {
-        return getSubmodelDescriptor(uuid());
-    }
-
-    public static SubmodelDescriptor getSubmodelDescriptor(String id) {
-        return new DefaultSubmodelDescriptor.Builder()
-                .administration(getAdministrativeInformation(id))
-                .endpoints(getEndpoints(id, "SUBMODEL"))
-                .id(id)
-                .idShort(id)
-                .description(getLangStringTextType(id))
-                .displayName(getLangStringNameType())
-                .extensions(getExtensions(id))
-                .semanticId(getReference(id))
-                .build();
-    }
-
-    public static AssetAdministrationShellDescriptor getEmptyShellDescriptor() {
-        return new DefaultAssetAdministrationShellDescriptor.Builder()
-                .endpoints(getEndpoints(uuid(), "AAS"))
-                .build();
-    }
-
-    public static AssetAdministrationShellDescriptor getShellDescriptor() {
-        return getShellDescriptor(uuid());
-    }
-
-    public static AssetAdministrationShellDescriptor getShellDescriptor(String id) {
-        Function<String, String> nameSupplier = str -> str.concat(" shell descriptor");
-        return new DefaultAssetAdministrationShellDescriptor.Builder()
-                .administration(getAdministrativeInformation(id))
-                .assetKind(AssetKind.INSTANCE)
-                .assetType(nameSupplier.apply("Asset Type"))
-                .endpoints(getEndpoints(id, "AAS"))
-                .globalAssetId(nameSupplier.apply("Global Asset Id"))
-                .id(id)
-                .idShort(id)
-                .specificAssetIds(new DefaultSpecificAssetId.Builder().build())
-                .submodelDescriptors(new DefaultSubmodelDescriptor.Builder().build())
-                .description(getLangStringTextType(id))
-                .displayName(getLangStringNameType())
-                .extensions(getExtensions(id))
-                .build();
-    }
-
-    private static List<Endpoint> getEndpoints(String id, String type) {
-        return List.of(
-                new DefaultEndpoint.Builder()
-                        ._interface("%s-3.0".formatted(type))
-                        .protocolInformation(new DefaultProtocolInformation.Builder()
-                                .href("https://localhost:12345")
-                                .endpointProtocol("HTTPS")
-                                .endpointProtocolVersion("4.2")
-                                .subprotocol(id)
-                                .build())
-                        .build(),
-                new DefaultEndpoint.Builder()
-                        ._interface("%s-REPOSITORY-3.0".formatted(type))
-                        .protocolInformation(new DefaultProtocolInformation.Builder()
-                                .href("http://localhost:420")
-                                .endpointProtocol("HTTP")
-                                .endpointProtocolVersion("1.0")
-                                .subprotocol(id)
-                                .build())
-                        .build(),
-                new DefaultEndpoint.Builder()
-                        ._interface("FTP")
-                        .protocolInformation(new DefaultProtocolInformation.Builder()
-                                .href("http://localhost:420")
-                                .endpointProtocol("HTTP")
-                                .endpointProtocolVersion("0.98")
-                                .subprotocol(id)
-                                .build())
-                        .build()
-        );
+    public static Environment getEmptyEnvironment() {
+        return new DefaultEnvironment.Builder().build();
     }
 
     public static Environment getEnvironment() {
@@ -172,7 +86,7 @@ public class AasCreator {
                 .build();
     }
 
-    private static DefaultExtension getExtensions(String id) {
+    static DefaultExtension getExtensions(String id) {
         return new DefaultExtension.Builder()
                 .name(id)
                 .value(id)
@@ -239,7 +153,7 @@ public class AasCreator {
     public static SubmodelElementCollection getSubmodelElementCollection(int level, String id) {
         var smcBuilder = new DefaultSubmodelElementCollection.Builder()
                 .idShort(id)
-                .value(List.of(getProperty(), getProperty()))
+                .value(new ArrayList<>(List.of(getProperty(), getProperty())))
                 .category("SubmodelElementCollection category")
                 .embeddedDataSpecifications(getEmbeddedDataSpecifications(id))
                 .description(new DefaultLangStringTextType.Builder().text("SubmodelElementCollection description").language("en").build());
@@ -264,7 +178,7 @@ public class AasCreator {
                 .build();
     }
 
-    private static DefaultReference getReference(String id) {
+    static DefaultReference getReference(String id) {
         return new DefaultReference.Builder()
                 .type(ReferenceTypes.EXTERNAL_REFERENCE)
                 .keys(new DefaultKey.Builder()
@@ -274,27 +188,27 @@ public class AasCreator {
                 .build();
     }
 
-    private static DefaultLangStringNameType getLangStringNameType() {
+    static DefaultLangStringNameType getLangStringNameType() {
         return new DefaultLangStringNameType.Builder()
                 .language("en")
                 .text("Display Name AAS")
                 .build();
     }
 
-    private static DefaultLangStringTextType getLangStringTextType(String type) {
+    static DefaultLangStringTextType getLangStringTextType(String type) {
         return new DefaultLangStringTextType.Builder()
                 .language("en")
                 .text("Description %s".formatted(type))
                 .build();
     }
 
-    private static DefaultAdministrativeInformation getAdministrativeInformation(String id) {
+    static DefaultAdministrativeInformation getAdministrativeInformation(String id) {
         return new DefaultAdministrativeInformation.Builder()
                 .embeddedDataSpecifications(getEmbeddedDataSpecifications(id))
                 .build();
     }
 
-    private static DefaultEmbeddedDataSpecification getEmbeddedDataSpecifications(String id) {
+    static DefaultEmbeddedDataSpecification getEmbeddedDataSpecifications(String id) {
         return new DefaultEmbeddedDataSpecification.Builder()
                 .dataSpecificationContent(new DefaultDataSpecificationIec61360.Builder()
                         .dataType(DataTypeIec61360.STRING)
@@ -302,7 +216,7 @@ public class AasCreator {
                         .build()).build();
     }
 
-    private static String uuid() {
+    static String uuid() {
         return UUID.randomUUID().toString();
     }
 }

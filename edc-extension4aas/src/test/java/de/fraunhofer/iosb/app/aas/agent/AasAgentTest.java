@@ -27,7 +27,7 @@ class AasAgentTest {
 
     @Test
     void initializeTest() {
-
+        // Abstract class. Try to instantiate with empty override of method
         new AasAgent<>(mock(AasDataProcessorFactory.class)) {
             @Override
             public PipelineResult<Object> apply(URL url) {

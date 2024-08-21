@@ -18,6 +18,8 @@ package de.fraunhofer.iosb.app.testutils;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.SerializationException;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.json.JsonSerializer;
 
+import java.util.Collection;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -34,5 +36,9 @@ public class StringMethods {
 
     public static String resultOf(Object content) throws SerializationException {
         return "{\"result\":[%s]}".formatted(new JsonSerializer().write(content));
+    }
+
+    public static String resultOfCollection(Collection<?> content) throws SerializationException {
+        return "{\"result\":%s}".formatted(new JsonSerializer().write(content));
     }
 }

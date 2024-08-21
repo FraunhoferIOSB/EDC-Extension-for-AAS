@@ -30,8 +30,10 @@ import org.junit.jupiter.api.Test;
 import org.mockserver.integration.ClientAndServer;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 
+import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
@@ -41,8 +43,9 @@ import static org.mockserver.model.HttpResponse.response;
  */
 public class ServiceAgentTest {
 
-    private static final int PORT = 42042;
-    private static final String HTTP_LOCALHOST_8080 = "http://localhost:" + PORT;
+    static int freePort = getFreePort();
+    private final URL accessUrl = new URL("https://localhost:%s".formatted(freePort));
+
     private static final String PATH_PREFIX = "/api/v3.0";
     private static final String SUBMODELS = PATH_PREFIX + "/submodels";
     private static final String SHELLS = PATH_PREFIX + "/shells";
@@ -50,9 +53,12 @@ public class ServiceAgentTest {
     private static ClientAndServer mockServer;
     private ServiceAgent serviceAgent;
 
+    public ServiceAgentTest() throws MalformedURLException {
+    }
+
     @BeforeAll
     public static void startMockServer() {
-        mockServer = startClientAndServer(PORT);
+        mockServer = startClientAndServer(freePort);
     }
 
     @AfterAll
@@ -84,7 +90,7 @@ public class ServiceAgentTest {
     public void testGetAasEnvironmentOnlySubmodels() throws IOException {
         prepareServerResponse();
 
-        var result = serviceAgent.apply(new URL(HTTP_LOCALHOST_8080));
+        var result = serviceAgent.apply(accessUrl);
 
         // Test if URLs are valid
         //AssetUtil.flatMapAssets(result).forEach(elem -> assertEquals(HTTP_LOCALHOST_8080 + PATH_PREFIX, elem

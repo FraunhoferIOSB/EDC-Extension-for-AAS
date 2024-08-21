@@ -18,19 +18,26 @@ package de.fraunhofer.iosb.app;
 import de.fraunhofer.iosb.app.controller.AasController;
 import de.fraunhofer.iosb.app.model.aas.registry.RegistryRepository;
 import de.fraunhofer.iosb.app.model.aas.service.ServiceRepository;
-import de.fraunhofer.iosb.registry.AasServiceRegistry;
+import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Set;
 
+import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
+import static jakarta.ws.rs.core.Response.Status.CREATED;
+import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Not mocking the controllers this endpoint uses, as the mocking/validation
@@ -40,74 +47,140 @@ import static org.junit.jupiter.api.Assertions.assertNull;
  */
 public class EndpointTest {
 
-    private static int port;
-    private static URL url;
+    private final URL url = new URL("https://localhost:%s".formatted(getFreePort()));
 
-    private Endpoint endpoint;
+    private Endpoint testSubject;
 
-    private ServiceRepository serviceRepo;
-    private RegistryRepository registryRepo;
-    private AasController aasController;
+    private ServiceRepository serviceRepositoryMock;
+    private RegistryRepository registryRepositoryMock;
+    private AasController aasControllerMock;
 
-    @BeforeAll
-    public static void initialize() throws MalformedURLException {
-        port = 8080;
-        url = new URL("http://localhost:%s".formatted(port));
+    public EndpointTest() throws MalformedURLException {
     }
 
     @BeforeEach
     public void setupEndpoint() {
         var monitor = new ConsoleMonitor();
-        serviceRepo = new ServiceRepository();
-        registryRepo = new RegistryRepository();
-        aasController = new AasController(new AasServiceRegistry(Set.of()), monitor);
-        endpoint = new Endpoint(
-                serviceRepo,
-                registryRepo,
-                aasController,
-                monitor);
-    }
-
-    @AfterEach
-    public void shutdown() {
-        aasController.stopServices();
+        serviceRepositoryMock = mock(ServiceRepository.class);
+        registryRepositoryMock = mock(RegistryRepository.class);
+        aasControllerMock = mock(AasController.class);
+        testSubject = new Endpoint(serviceRepositoryMock, registryRepositoryMock,
+                aasControllerMock, monitor);
     }
 
     @Test
-    public void postFalseAasServiceTest() throws MalformedURLException {
-        assertEquals(0, serviceRepo.getAllEnvironments().size());
+    void testCreateRegistry() {
+        when(registryRepositoryMock.create(any())).thenReturn(true);
 
-        endpoint.createService(new URL("http://example.com/aas"));
-
-        // No selfDescription has been added, but the URL will still be periodically
-        // polled until the service is deleted via http request again or any AAS output
-        // is returned by the URL.
-        assertEquals(1, serviceRepo.getAllEnvironments().size());
+        try (var response = testSubject.createRegistry(url)) {
+            assertEquals(Response.Status.CREATED.getStatusCode(),
+                    response.getStatusInfo().getStatusCode());
+        }
+        verify(registryRepositoryMock, times(1)).create(any());
     }
 
     @Test
-    public void postAasServiceTest() {
-        endpoint.removeService(url);
-        assertNull(serviceRepo.getEnvironment(url));
+    void testCreateService() {
+        when(serviceRepositoryMock.create(any())).thenReturn(true);
+
+        try (var response = testSubject.createService(url)) {
+            assertEquals(Response.Status.CREATED.getStatusCode(),
+                    response.getStatusInfo().getStatusCode());
+        }
+
+        verify(serviceRepositoryMock, times(1)).create(any());
     }
 
     @Test
-    public void postAasEnvironmentTest() {
-        endpoint.postAasEnvironment("src/test/resources/aasEnvironment.json", null, String.valueOf(port));
+    void testRemoveService() {
+        try (var response = testSubject.removeService(url)) {
+            assertEquals(Response.Status.NO_CONTENT.getStatusCode(),
+                    response.getStatusInfo().getStatusCode());
+        }
 
-        assertNull(serviceRepo.getEnvironment(url));
-
-        endpoint.removeService(url);
+        verify(serviceRepositoryMock, times(1)).delete(any());
     }
 
     @Test
-    public void removeAasServiceTest() {
-        endpoint.postAasEnvironment("src/test/resources/aasEnvironment.json", null, String.valueOf(port));
+    void testRemoveRegistry() {
+        doThrow(IllegalAccessError.class).when(aasControllerMock).stopService(any());
+        try (var response = testSubject.removeRegistry(url)) {
+            assertEquals(Response.Status.NO_CONTENT.getStatusCode(),
+                    response.getStatusInfo().getStatusCode());
+        }
+        verify(registryRepositoryMock, times(1)).delete(any());
+    }
 
-        assertNull(serviceRepo.getEnvironment(url));
+    @Test
+    void testCreateRegistryNullValue() {
+        when(registryRepositoryMock.create(any())).thenThrow(IllegalAccessError.class);
+        try (var response = testSubject.createRegistry(null)) {
+            assertEquals(BAD_REQUEST.getStatusCode(),
+                    response.getStatusInfo().getStatusCode());
+        }
 
-        endpoint.removeService(url);
+        assertEquals(0, registryRepositoryMock.getAllEnvironments().size());
+    }
 
-        assertNull(serviceRepo.getEnvironment(url));
+    @Test
+    void testCreateServiceNullValue() {
+        when(serviceRepositoryMock.create(any())).thenThrow(IllegalAccessError.class);
+        try (var response = testSubject.createService(null)) {
+            assertEquals(BAD_REQUEST.getStatusCode(),
+                    response.getStatusInfo().getStatusCode());
+        }
+
+        assertEquals(0, serviceRepositoryMock.getAllEnvironments().size());
+    }
+
+    @Test
+    void testRemoveServiceNullValue() {
+        doThrow(IllegalAccessError.class).when(serviceRepositoryMock).delete(any());
+        doThrow(IllegalAccessError.class).when(aasControllerMock).stopService(any());
+        try (var response = testSubject.removeService(null)) {
+            assertEquals(BAD_REQUEST.getStatusCode(),
+                    response.getStatusInfo().getStatusCode());
+        }
+    }
+
+    @Test
+    void testRemoveRegistryNullValue() {
+        doThrow(IllegalAccessError.class).when(registryRepositoryMock).delete(any());
+        doThrow(IllegalAccessError.class).when(aasControllerMock).stopService(any());
+        try (var response = testSubject.removeRegistry(null)) {
+            assertEquals(BAD_REQUEST.getStatusCode(),
+                    response.getStatusInfo().getStatusCode());
+        }
+    }
+
+    @Test
+    void testPostAasEnvironmentNullEnvironment() throws IOException {
+        when(aasControllerMock.startService(any(), any(Integer.class), any())).thenThrow(IllegalAccessError.class);
+
+        try (var response = testSubject.postAasEnvironment(null, "", 0)) {
+            assertEquals(BAD_REQUEST.getStatusCode(), response.getStatusInfo().getStatusCode());
+        }
+    }
+
+    @Test
+    void testPostAasEnvironmentNullConfig() throws IOException {
+        // This is allowed
+        when(aasControllerMock.startService(any(), any(Integer.class), any())).thenReturn(url);
+        when(serviceRepositoryMock.create(any())).thenReturn(true);
+
+        try (var response = testSubject.postAasEnvironment(".", null, 0)) {
+            assertEquals(CREATED.getStatusCode(), response.getStatusInfo().getStatusCode());
+        }
+    }
+
+    @Test
+    void testPostAasEnvironmentInvalidPort() throws IOException {
+        // This is allowed (in endpoint, aasServiceManager should throw IllegalArgumentException)
+        when(aasControllerMock.startService(any(), any(Integer.class), any())).thenThrow(IOException.class);
+        when(serviceRepositoryMock.create(any())).thenReturn(true);
+
+        try (var response = testSubject.postAasEnvironment(".", "", -42)) {
+            assertEquals(INTERNAL_SERVER_ERROR.getStatusCode(), response.getStatusInfo().getStatusCode());
+        }
     }
 }

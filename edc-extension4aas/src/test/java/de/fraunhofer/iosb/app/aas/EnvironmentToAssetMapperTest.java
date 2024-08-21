@@ -17,25 +17,26 @@ package de.fraunhofer.iosb.app.aas;
 
 import de.fraunhofer.iosb.app.model.aas.AasAccessUrl;
 import de.fraunhofer.iosb.app.model.aas.service.Service;
+import de.fraunhofer.iosb.app.pipeline.PipelineFailure;
 import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
 import de.fraunhofer.iosb.util.Encoder;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
-import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultAssetAdministrationShell;
-import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultConceptDescription;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultEnvironment;
-import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultSubmodel;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
+import static de.fraunhofer.iosb.app.testutils.AasCreator.getEmptyEnvironment;
+import static de.fraunhofer.iosb.app.testutils.AasCreator.getEnvironment;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -48,10 +49,10 @@ class EnvironmentToAssetMapperTest {
     public static final String SHELLS = "shells";
     public static final String SUBMODELS = "submodels";
     private EnvironmentToAssetMapper testSubject;
+    private final URL accessUrl = new URL("http://localhost:%s".formatted(12345));
 
     // Change for test case if needed
     private boolean onlySubmodelsDecider;
-    private final URL accessUrl = new URL("http://localhost:1234");
     private final List<Object> emptyList = List.of();
 
     EnvironmentToAssetMapperTest() throws MalformedURLException {
@@ -63,12 +64,53 @@ class EnvironmentToAssetMapperTest {
         testSubject = new EnvironmentToAssetMapper(() -> this.onlySubmodelsDecider);
     }
 
-    // TODO test apply but only part of the environments are correct.
-    // TODO Then filtered version and failure messages should be correct.
+    @Test
+    void testApplyNullEnvironment() throws MalformedURLException {
+        var environment = getEnvironment();
+        var realEnvironmentAccessUrl = new URL("https://example.com");
+
+        var input = new HashMap<AasAccessUrl, Environment>();
+        input.put(toAasAccessUrl(realEnvironmentAccessUrl), environment);
+        input.put(toAasAccessUrl(accessUrl), null);
+
+        var result = testSubject.apply(input);
+
+        // Since there are null keys / null values, the pipeline should halt.
+        assertTrue(result.failed());
+        assertEquals(PipelineFailure.Type.WARNING, result.getFailure().getFailureType());
+        assertNotNull(result.getContent().stream()
+                .filter(service -> service.accessUrl().toString()
+                        .equals(realEnvironmentAccessUrl.toString())).findFirst().orElseThrow().environment());
+
+        assertNull(result.getContent().stream()
+                .filter(service -> service.accessUrl().toString().equals(accessUrl.toString()))
+                .findFirst().orElse(new Service(null, null))
+                .environment());
+    }
+
+    @Test
+    void testApplyFaultyInput() throws MalformedURLException {
+        var environment = getEnvironment();
+        var emptyEnvironment = getEmptyEnvironment();
+
+        var input = new HashMap<>(Map.of(toAasAccessUrl(accessUrl), environment, toAasAccessUrl(new URL("http://localhost:8080")), emptyEnvironment));
+        input.put(toAasAccessUrl(accessUrl), null);
+        input.put(null, environment);
+
+        var result = testSubject.apply(input);
+
+        // Since there are null keys / null values, the pipeline should halt.
+        assertTrue(result.failed());
+        assertEquals(PipelineFailure.Type.FATAL, result.getFailure().getFailureType());
+    }
+
+    private AasAccessUrl toAasAccessUrl(URL url) {
+        return new AasAccessUrl(url);
+    }
 
     @Test
     void testApply() {
-        var env = createEnvironment();
+        var env = getEnvironment();
         var result = testSubject.apply(Map.of(new AasAccessUrl(accessUrl), env));
         assertTrue(result.succeeded());
         assertNotNull(result.getContent());
@@ -125,7 +167,7 @@ class EnvironmentToAssetMapperTest {
     void testOnlySubmodels() {
         onlySubmodelsDecider = true;
 
-        var env = createEnvironment();
+        var env = getEnvironment();
 
         var result = testSubject.executeSingle(accessUrl, env).getContent();
 
@@ -137,7 +179,7 @@ class EnvironmentToAssetMapperTest {
 
     @Test
     void testWholeEnvironmentIdEquality() {
-        var env = createEnvironment();
+        var env = getEnvironment();
 
         var result = testSubject.executeSingle(accessUrl, env);
 
@@ -157,7 +199,7 @@ class EnvironmentToAssetMapperTest {
 
     @Test
     void testCorrectAccessUrls() {
-        var env = createEnvironment();
+        var env = getEnvironment();
         var result = testSubject.executeSingle(accessUrl, env).getContent();
         var shellDataAddress =
                 (AasDataAddress) getChildren(result.environment(), SHELLS).stream().map(Asset::getDataAddress).toList().get(0);
@@ -182,17 +224,4 @@ class EnvironmentToAssetMapperTest {
         return (List<Asset>) parent.getProperty(name);
     }
 
-    private Environment createEnvironment() {
-        return new DefaultEnvironment.Builder()
-                .submodels(
-                        new DefaultSubmodel.Builder()
-                                .id(UUID.randomUUID().toString()).build())
-                .assetAdministrationShells(
-                        new DefaultAssetAdministrationShell.Builder()
-                                .id(UUID.randomUUID().toString()).build())
-                .conceptDescriptions(
-                        new DefaultConceptDescription.Builder().id(
-                                UUID.randomUUID().toString()).build())
-                .build();
-    }
 }

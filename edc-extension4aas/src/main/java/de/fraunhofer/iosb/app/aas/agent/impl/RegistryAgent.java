@@ -55,8 +55,8 @@ import javax.annotation.Nonnull;
 
 public class RegistryAgent extends AasAgent<Map<AasAccessUrl, Environment>> {
 
-    public static final String SUBMODEL_DESCRIPTORS_PATH = "/api/v3.0/submodel-descriptors";
-    public static final String SHELL_DESCRIPTORS_PATH = "/api/v3.0/shell-descriptors";
+    public static final String SUBMODEL_DESCRIPTORS_PATH = "%s/submodel-descriptors".formatted(AAS_V3_PREFIX);
+    public static final String SHELL_DESCRIPTORS_PATH = "%s/shell-descriptors".formatted(AAS_V3_PREFIX);
     public static final String SHELL_DIRECT_ENDPOINT = "AAS-3.0";
     public static final String SUBMODEL_DIRECT_ENDPOINT = "SUBMODEL-3.0";
 
@@ -78,7 +78,7 @@ public class RegistryAgent extends AasAgent<Map<AasAccessUrl, Environment>> {
         try {
             return PipelineResult.success(readEnvironment(url));
         } catch (EdcException | IOException | URISyntaxException e) {
-            return PipelineResult.failure(PipelineFailure.fatal(List.of(e.getMessage())));
+            return PipelineResult.failure(PipelineFailure.fatal(List.of(e.getClass().getName(), e.getMessage())));
         }
     }
 

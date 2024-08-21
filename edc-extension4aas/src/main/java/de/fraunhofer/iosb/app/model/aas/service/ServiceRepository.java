@@ -42,19 +42,37 @@ public class ServiceRepository extends ObservableImpl<SelfDescriptionChangeListe
         return services.stream().map(Service::accessUrl).toList();
     }
 
+
+    /**
+     * Returns the environments offered by all stored AAS services.
+     * If a stored AAS service has no environment, the element is filtered out.
+     *
+     * @return All environments currently stored for all registered AAS services.
+     */
     public Collection<Asset> getAllEnvironments() {
-        return services.stream().map(Service::environment).toList();
+        return services.stream()
+                .map(Service::environment)
+                .filter(Objects::nonNull)
+                .toList();
     }
 
+    /**
+     * Returns the environment offered by the AAS service with the given URL.
+     * If the stored AAS service has no environment, null is returned.
+     * If no AAS service is stored for the given serviceUrl, an IllegalArgumentException is thrown.
+     *
+     * @param serviceUrl The service URL for which the environment is to be returned.
+     * @return The AAS environment in form of an EDC Asset.
+     */
     public @Nullable Asset getEnvironment(URL serviceUrl) {
         return services.stream()
                 .filter(service ->
                         service.accessUrl().toString()
                                 .equals(serviceUrl.toString()))
-                .map(Service::environment)
-                .filter(Objects::nonNull)
-                .findFirst()
-                .orElse(null);
+                .findAny()
+                .orElseThrow(() ->
+                        new IllegalArgumentException("AAS service with URL %s not found".formatted(serviceUrl)))
+                .environment();
     }
 
     /**

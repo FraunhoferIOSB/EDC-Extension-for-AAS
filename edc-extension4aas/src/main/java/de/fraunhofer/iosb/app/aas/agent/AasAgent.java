@@ -44,6 +44,8 @@ import static java.lang.String.format;
  */
 public abstract class AasAgent<T> extends PipelineStep<URL, T> {
 
+    public static final String AAS_V3_PREFIX = "/api/v3.0";
+
     protected static final int INTERNAL_SERVER_ERROR = 500;
 
     private final AasDataProcessorFactory aasDataProcessorFactory;
@@ -56,8 +58,8 @@ public abstract class AasAgent<T> extends PipelineStep<URL, T> {
 
     protected <K> List<K> readElements(URL accessUrl, Class<K> clazz) throws IOException {
         try (var response = executeRequest(accessUrl)) {
-            if (response == null || response.body() == null || response.code() == INTERNAL_SERVER_ERROR) {
-                throw new EdcException("Received empty body for %s request".formatted(clazz.getName()));
+            if (response == null || response.body() == null || !response.isSuccessful()) {
+                throw new EdcException("Request for %s failed".formatted(clazz.getName()));
             }
             var body = response.body();
 

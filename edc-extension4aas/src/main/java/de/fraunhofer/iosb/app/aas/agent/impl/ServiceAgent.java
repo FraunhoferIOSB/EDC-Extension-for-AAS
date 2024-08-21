@@ -36,9 +36,9 @@ import java.util.List;
  */
 public class ServiceAgent extends AasAgent<Environment> {
 
-    public static final String SUBMODELS_PATH = "/api/v3.0/submodels";
-    public static final String SHELLS_PATH = "/api/v3.0/shells";
-    public static final String CONCEPT_DESCRIPTIONS_PATH = "/api/v3.0/concept-descriptions";
+    public static final String SUBMODELS_PATH = "%s/submodels".formatted(AAS_V3_PREFIX);
+    public static final String SHELLS_PATH = "%s/shells".formatted(AAS_V3_PREFIX);
+    public static final String CONCEPT_DESCRIPTIONS_PATH = "%s/concept-descriptions".formatted(AAS_V3_PREFIX);
 
     public ServiceAgent(AasDataProcessorFactory aasDataProcessorFactory) {
         super(aasDataProcessorFactory);
@@ -55,7 +55,7 @@ public class ServiceAgent extends AasAgent<Environment> {
         try {
             return PipelineResult.success(readEnvironment(url));
         } catch (EdcException | IOException | URISyntaxException e) {
-            return PipelineResult.failure(PipelineFailure.fatal(List.of(e.getMessage())));
+            return PipelineResult.failure(PipelineFailure.fatal(List.of(e.getClass().getName(), e.getMessage())));
         }
     }
 

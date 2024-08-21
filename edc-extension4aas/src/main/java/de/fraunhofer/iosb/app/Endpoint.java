@@ -33,8 +33,8 @@ import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.io.IOException;
 import java.net.URL;
-import java.nio.file.InvalidPathException;
 import java.util.Objects;
+import javax.annotation.Nullable;
 
 import static de.fraunhofer.iosb.app.model.aas.service.ServiceRepository.SelfDescriptionSourceType;
 import static de.fraunhofer.iosb.app.model.aas.service.ServiceRepository.SelfDescriptionSourceType.REGISTRY;
@@ -82,6 +82,7 @@ public class Endpoint {
     @POST
     @Path(REGISTRY_PATH)
     public Response createRegistry(@QueryParam("url") URL registryUrl) {
+        monitor.debug("POST /%s".formatted(REGISTRY_PATH));
         return createEntity(registryUrl, REGISTRY);
     }
 
@@ -94,6 +95,7 @@ public class Endpoint {
     @POST
     @Path(SERVICE_PATH)
     public Response createService(@QueryParam("url") URL serviceUrl) {
+        monitor.debug("POST /%s".formatted(SERVICE_PATH));
         return createEntity(serviceUrl, SERVICE);
     }
 
@@ -106,6 +108,7 @@ public class Endpoint {
     @DELETE
     @Path(REGISTRY_PATH)
     public Response removeRegistry(@QueryParam("url") URL registryUrl) {
+        monitor.debug("DELETE /%s".formatted(REGISTRY_PATH));
         return removeEntity(registryUrl, REGISTRY);
     }
 
@@ -118,6 +121,7 @@ public class Endpoint {
     @DELETE
     @Path(SERVICE_PATH)
     public Response removeService(@QueryParam("url") URL serviceUrl) {
+        monitor.debug("DELETE /%s".formatted(SERVICE_PATH));
         return removeEntity(serviceUrl, SERVICE);
     }
 
@@ -134,27 +138,20 @@ public class Endpoint {
     @Path(ENVIRONMENT_PATH)
     public Response postAasEnvironment(@QueryParam("environment") String pathToEnvironment,
                                        @QueryParam("config") String pathToConfig,
-                                       @QueryParam("port") String port) {
+                                       @QueryParam("port") int port) {
         monitor.debug("POST /environment");
         if (Objects.isNull(pathToEnvironment)) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Missing query parameter 'environment'").build();
-        } else if (!port.matches("\\d+")) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Query parameter 'port' must be valid").build();
+            return Response.status(Status.BAD_REQUEST).entity("Missing query parameter 'environment'").build();
         }
+
+        var environmentPath = fromString(pathToEnvironment);
+        var aasConfigPath = fromString(pathToConfig);
 
         URL serviceAccessUrl;
         try {
-            var environmentPath = java.nio.file.Path.of(pathToEnvironment);
-            var aasConfigPath = Objects.isNull(pathToConfig) ?
-                    null : java.nio.file.Path.of(pathToConfig);
-
-            serviceAccessUrl = aasController.startService(environmentPath, Integer.parseInt(port),
-                    aasConfigPath);
-
-        } catch (InvalidPathException invalidPathException) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("Could not resolve path %s".formatted(invalidPathException.getInput()))
-                    .build();
+            serviceAccessUrl = aasController.startService(environmentPath, port, aasConfigPath);
+        } catch (IllegalArgumentException illegalArgumentException) {
+            return Response.status(Status.BAD_REQUEST).entity(illegalArgumentException.getMessage()).build();
         } catch (IOException | EdcException aasServiceException) {
             monitor.severe("Could not start AAS service.", aasServiceException);
             return Response.serverError().entity("Could not start AAS service. Check logs for details").build();
@@ -162,7 +159,7 @@ public class Endpoint {
 
         // From here, do the same as if it were a remote service.
         try (var creationResponse = createEntity(serviceAccessUrl, SERVICE)) {
-            if (creationResponse.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
+            if (creationResponse.getStatusInfo().getFamily().equals(Status.Family.SUCCESSFUL)) {
                 return Response.status(Status.CREATED).entity(serviceAccessUrl).build();
             } else {
                 aasController.stopService(serviceAccessUrl);
@@ -171,9 +168,14 @@ public class Endpoint {
         }
     }
 
-    private Response createEntity(URL accessUrl, SelfDescriptionSourceType type) {
-        monitor.debug("POST /%s".formatted(type));
+    private @Nullable java.nio.file.Path fromString(String pathAsString) {
+        if (pathAsString == null) {
+            return null;
+        }
+        return java.nio.file.Path.of(pathAsString);
+    }
 
+    private Response createEntity(URL accessUrl, SelfDescriptionSourceType type) {
         if (Objects.isNull(accessUrl)) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Missing query parameter 'url'").build();
         }
@@ -183,11 +185,13 @@ public class Endpoint {
             return Response.status(Status.CREATED).entity("Registered new AAS %s at EDC".formatted(type)).build();
         }
 
-        return Response.status(Status.CONFLICT).entity("AAS %s with this URL is already registered.".formatted(type)).build();
+        return Response.status(Status.CONFLICT)
+                .entity("AAS %s with this URL is already registered."
+                        .formatted(type.toString().toLowerCase()))
+                .build();
     }
 
     private Response removeEntity(URL accessUrl, SelfDescriptionSourceType type) {
-        monitor.debug("DELETE /%s".formatted(type));
         if (Objects.isNull(accessUrl)) {
             return Response.status(Status.BAD_REQUEST).entity("Missing query parameter 'url'").build();
         }
@@ -199,7 +203,7 @@ public class Endpoint {
         } else {
             throw new IllegalArgumentException("Unknown type: %s".formatted(type));
         }
-
-        return Response.ok("Removed %s from EDC".formatted(String.valueOf(type).toLowerCase())).build();
+        // Return 204 (https://www.rfc-editor.org/rfc/rfc9110.html#section-9.3.5)
+        return Response.noContent().build();
     }
 }

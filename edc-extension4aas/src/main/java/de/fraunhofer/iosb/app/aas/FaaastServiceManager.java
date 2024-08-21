@@ -27,26 +27,27 @@ import de.fraunhofer.iosb.ilt.faaast.service.persistence.memory.PersistenceInMem
 import de.fraunhofer.iosb.ilt.faaast.service.starter.util.ServiceConfigHelper;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.net.ConnectException;
+import java.net.Socket;
 import java.net.URL;
 import java.nio.file.Path;
-import java.util.List;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-
-import static java.lang.String.format;
 
 /**
  * Manages internally created FA³ST instances.
  */
 public class FaaastServiceManager implements AssetAdministrationShellServiceManager {
 
-    private static final String FAAAST_SERVICE_EXCEPTION_MESSAGE = "Exception thrown by FA³ST service.";
-    private static final String LOCALHOST_URL = "https://localhost:";
-    public static final String NO_ENDPOINT_DEFINED_EXCEPTION_MESSAGE = "No HTTP endpoint has been defined in this " +
-            "configuration. Not starting FA³ST service.";
+    private static final String FAST = "FA³ST";
+    private static final String FAAAST_SERVICE_EXCEPTION_MESSAGE = "Exception thrown by %s service.".formatted(FAST);
+    public static final String NO_ENDPOINT_DEFINED_EXCEPTION_MESSAGE = "No valid HTTP endpoint could be defined in this configuration.";
 
     private final Monitor monitor;
     private final Map<AasAccessUrl, Service> faaastServiceRepository;
@@ -59,34 +60,8 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
     @Override
     public URL startService(Path aasModelPath, int port) throws IOException {
         Objects.requireNonNull(aasModelPath);
-        if (!isValidPort(port)) {
-            throw new EdcException(format("Port is not valid: (%s).", port));
-        }
+        return startService(aasModelPath, null, port);
 
-        monitor.debug(format("Booting up FA³ST service using AAS model path (%s) and service port (%s).", aasModelPath,
-                port));
-
-        var serviceConfig = new ServiceConfig.Builder()
-                .endpoint(new HttpEndpointConfig.Builder().port(port).build())
-                .persistence(PersistenceInMemoryConfig.builder().initialModelFile(aasModelPath.toFile()).build())
-                .build();
-
-        ServiceConfigHelper.autoComplete(serviceConfig);
-
-        Service service;
-        try {
-            service = new Service(serviceConfig);
-            service.start();
-        } catch (Exception faaastServiceException) {
-            throw new EdcException(FAAAST_SERVICE_EXCEPTION_MESSAGE, faaastServiceException);
-        }
-
-        monitor.debug("Booted up FA³ST service.");
-
-        var faaastUrl = new URL(LOCALHOST_URL.concat(String.valueOf(port)));
-
-        faaastServiceRepository.put(new AasAccessUrl(faaastUrl), service);
-        return faaastUrl;
     }
 
     @Override
@@ -98,80 +73,95 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
 
     @Override
     public URL startService(Path aasModelPath, Path configPath, int port) throws IOException {
-        var localFaaastServicePort = 0;
+        var serviceConfig = getConfig(aasModelPath, configPath, port);
 
-        if (isValidPort(port)) {
-            monitor.debug("Starting FA³ST service using model (%s), config (%s) and port (%s)."
-                    .formatted(aasModelPath, configPath, port));
-            localFaaastServicePort = port;
-        } else {
-            monitor.debug("Starting FA³ST service using model (%s) and config (%s)."
-                    .formatted(aasModelPath, configPath));
-        }
+        var service = createAndStartService(serviceConfig);
 
-        try {
-            var serviceConfig = ServiceConfigHelper.load(configPath.toFile());
-            var isEndpointsNull = Objects.isNull(serviceConfig.getEndpoints()); // Remove auto generated httpEndpoint
-            // later...
+        var httpEndpoint = (HttpEndpointConfig) serviceConfig.getEndpoints().stream()
+                .filter(e -> e instanceof HttpEndpointConfig)
+                .findAny()
+                .orElseThrow(() -> new IllegalArgumentException(NO_ENDPOINT_DEFINED_EXCEPTION_MESSAGE));
 
-            if (localFaaastServicePort != 0) {
-                if (isEndpointsNull) {
-                    serviceConfig.setEndpoints(List.of(HttpEndpointConfig.builder().port(port).build()));
-                } else {
-                    var endpoints = serviceConfig.getEndpoints();
-                    endpoints.add(HttpEndpointConfig.builder().port(port).build());
-                    serviceConfig.setEndpoints(endpoints);
-                }
-            } else {
-                var httpEndpointConfig = serviceConfig.getEndpoints().stream()
-                        .filter(ep -> ep instanceof HttpEndpointConfig)
-                        .findAny()
-                        .orElseThrow(() -> new IllegalArgumentException(NO_ENDPOINT_DEFINED_EXCEPTION_MESSAGE));
+        var urlSpec = "http"
+                .concat(httpEndpoint.isSslEnabled() ? "s" : "")
+                .concat("://")
+                .concat(httpEndpoint.getHostname())
+                .concat(":")
+                .concat(String.valueOf(httpEndpoint.getPort()));
 
-                localFaaastServicePort = ((HttpEndpointConfig) httpEndpointConfig).getPort();
-            }
+        var serviceAccessUrl = new URL(urlSpec);
+        faaastServiceRepository.put(new AasAccessUrl(serviceAccessUrl), service);
+        monitor.debug("Started %s service with access URL: %s.".formatted(FAST, serviceAccessUrl));
 
-            serviceConfig.setPersistence(PersistenceInMemoryConfig.builder().initialModelFile(aasModelPath.toFile()).build());
-            ServiceConfigHelper.autoComplete(serviceConfig);
-
-            // If localFaaastServicePort is unchanged, no valid HTTP Endpoint was found/created.
-            if (localFaaastServicePort == 0) {
-                throw new IllegalArgumentException(
-                        NO_ENDPOINT_DEFINED_EXCEPTION_MESSAGE);
-            }
-
-            var service = new Service(serviceConfig);
-            service.start();
-            monitor.debug("Started FA³ST service.");
-
-            var url = new URL(LOCALHOST_URL.concat(String.valueOf(localFaaastServicePort)));
-
-            faaastServiceRepository.put(new AasAccessUrl(url), service);
-
-            return url;
-        } catch (MessageBusException | EndpointException | AssetConnectionException |
-                 ConfigurationException faaastServiceException) {
-            throw new EdcException(FAAAST_SERVICE_EXCEPTION_MESSAGE, faaastServiceException);
-        }
+        return serviceAccessUrl;
     }
 
     @Override
     public void stopServices() {
-        monitor.debug("Shutting down all internally started FA³ST services...");
         faaastServiceRepository.values().forEach(Service::stop);
+        monitor.info("Stopped all internally started %s services...".formatted(FAST));
     }
 
     @Override
     public void stopService(URL aasServiceUrl) {
         Objects.requireNonNull(aasServiceUrl);
-        monitor.debug(format("Shutting down FA³ST service with URL %s...", aasServiceUrl));
+        monitor.debug("Shutting down %s service with URL %s...".formatted(FAST, aasServiceUrl));
 
         var serviceToStop = faaastServiceRepository.get(new AasAccessUrl(aasServiceUrl));
         if (Objects.nonNull(serviceToStop)) {
             serviceToStop.stop();
             faaastServiceRepository.remove(new AasAccessUrl(aasServiceUrl));
         } else {
-            monitor.debug("This URL was not registered as an internal FA³ST service.");
+            monitor.debug("This URL was not registered as an internal %s service.".formatted(FAST));
+        }
+    }
+
+    private static @NotNull Service createAndStartService(ServiceConfig serviceConfig) {
+        Service service;
+        try {
+            service = new Service(serviceConfig);
+        } catch (AssetConnectionException | ConfigurationException faaastServiceException) {
+            throw new EdcException(FAAAST_SERVICE_EXCEPTION_MESSAGE, faaastServiceException);
+        }
+
+        try {
+            service.start();
+        } catch (MessageBusException | EndpointException faaastServiceException) {
+            throw new EdcException(FAAAST_SERVICE_EXCEPTION_MESSAGE, faaastServiceException);
+        }
+        return service;
+    }
+
+    private ServiceConfig getConfig(Path aasModelPath, Path configPath, int port) throws IOException {
+        var serviceConfig = configPath == null ?
+                new ServiceConfig() :
+                ServiceConfigHelper.load(configPath.toFile());
+
+        if (isValidPort(port) && available(port)) {
+            var endpoints = Optional.ofNullable(serviceConfig.getEndpoints()).orElse(new ArrayList<>());
+
+            endpoints.add(HttpEndpointConfig.builder().port(port).build());
+
+            serviceConfig.setEndpoints(endpoints);
+        }
+
+        // Set model
+        serviceConfig.setPersistence(PersistenceInMemoryConfig.builder().initialModelFile(aasModelPath.toFile()).build());
+
+        // Autocomplete: If undefined, add HTTPS endpoint (port 443)
+        ServiceConfigHelper.autoComplete(serviceConfig);
+        return serviceConfig;
+    }
+
+    private boolean available(int port) throws IllegalStateException {
+        try (Socket ignored = new Socket("localhost", port)) {
+            // Connected to some service -> unavailable
+            monitor.info("Port %s is unavailable.".formatted(port));
+            return false;
+        } catch (ConnectException e) {
+            return true;
+        } catch (IOException e) {
+            throw new IllegalStateException("Error while trying to check open port", e);
         }
     }
 

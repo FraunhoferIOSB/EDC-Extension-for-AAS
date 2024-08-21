@@ -28,8 +28,6 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.Objects;
 
-import static java.lang.String.format;
-
 /**
  * Handles requests regarding the Asset Administration Shells registered to this
  * extension
@@ -57,27 +55,27 @@ public class AasController implements SelfDescriptionChangeListener {
     /**
      * Starts an AAS service internally
      *
-     * @param aasModelPath   AAS Environment for the AAS service
-     * @param aasServicePort AAS service's exposed HTTP port for communication
-     *                       with this extension
-     * @param aasConfigPath  AAS config (optional)
+     * @param model  AAS Environment for the AAS service
+     * @param port   AAS service's exposed HTTP port for communication
+     *               with this extension
+     * @param config AAS config (optional)
      * @return The URL of the new service or null on error
      * @throws IOException If the URL creation fails
      */
-    public URL startService(Path aasModelPath, int aasServicePort, Path aasConfigPath) throws IOException {
-        Objects.requireNonNull(aasModelPath);
+    public URL startService(Path model, int port, Path config) throws IOException {
+        Objects.requireNonNull(model);
 
         URL serviceUrl;
-        if (Objects.isNull(aasConfigPath)) {
-            monitor.info(format(
-                    "Booting up AAS service given AAS model path (%s)\n and service port (%s)\n...",
-                    aasModelPath, aasServicePort));
-            serviceUrl = aasServiceManager.startService(aasModelPath, aasServicePort);
+        if (config == null && port != 0) {
+            monitor.info("Starting AAS service with AAS model (%s) and service port (%s)."
+                    .formatted(model, port));
+            serviceUrl = aasServiceManager.startService(model, port);
+        } else if (config != null) {
+            monitor.info("Starting AAS service with AAS model (%s) and service config (%s)."
+                    .formatted(model, config));
+            serviceUrl = aasServiceManager.startService(model, config);
         } else {
-            monitor.info(format(
-                    "Booting up AAS service given AAS model path (%s)\n and service config path (%s)...",
-                    aasModelPath, aasConfigPath));
-            serviceUrl = aasServiceManager.startService(aasModelPath, aasConfigPath, aasServicePort);
+            throw new IllegalArgumentException("Config or port must be specified.");
         }
 
         return serviceUrl;
@@ -97,7 +95,7 @@ public class AasController implements SelfDescriptionChangeListener {
      * Stops all internally started AAS services
      */
     public void stopServices() {
-        monitor.info("Shutting down all AAS services...");
+        monitor.info("Stopping all internally started AAS services...");
         aasServiceManager.stopServices();
     }
 

@@ -33,6 +33,7 @@ import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElement;
 import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElementCollection;
 import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElementList;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultAdministrativeInformation;
+import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultEmbeddedDataSpecification;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultKey;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultReference;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
@@ -43,9 +44,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
+
+import static de.fraunhofer.iosb.app.aas.agent.AasAgent.AAS_V3_PREFIX;
+import static de.fraunhofer.iosb.app.pipeline.util.PipelineUtils.extractContents;
+import static de.fraunhofer.iosb.app.pipeline.util.PipelineUtils.handleError;
 
 /**
  * Create a mapping from an AAS environment to EDC assets.
@@ -56,7 +61,6 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<AasAccessUrl, Env
     private static final String CONCEPT_DESCRIPTIONS = "conceptDescriptions";
     private static final String SHELLS = "shells";
     private static final String SUBMODELS = "submodels";
-    private static final String AAS_V3_PREFIX = "/api/v3.0";
     private final Supplier<Boolean> onlySubmodelsDecision;
 
     public EnvironmentToAssetMapper(Supplier<Boolean> onlySubmodelsDecision) {
@@ -73,32 +77,25 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<AasAccessUrl, Env
     @Override
     public PipelineResult<Collection<Service>> apply(Map<AasAccessUrl, Environment> environments) {
         var results = environments.entrySet().stream()
-                .map(entry -> executeSingle(entry.getKey().url(), entry.getValue())).toList();
+                .map(entry -> executeSingle(
+                        Optional.ofNullable(entry.getKey())
+                                .orElse(new AasAccessUrl(null))
+                                .url(),
+                        entry.getValue())).toList();
 
-        var correctResults = results.stream()
-                .filter(PipelineResult::succeeded)
-                .map(PipelineResult::getContent)
-                .collect(Collectors.toCollection(ArrayList::new));
+        var contents = extractContents(results);
 
-        if (results.stream().anyMatch(PipelineResult::failed)) {
-            return PipelineResult.recoverableFailure(
-                    correctResults,
-                    PipelineFailure.warning(
-                            results.stream()
-                                    .filter(PipelineResult::failed)
-                                    .map(PipelineResult::getFailureMessages)
-                                    .flatMap(List::stream)
-                                    .toList()));
-        }
-
-        return PipelineResult.success(correctResults);
+        return Objects.requireNonNullElseGet(handleError(results, contents), () -> PipelineResult.success(contents));
     }
 
     public PipelineResult<Service> executeSingle(URL accessUrl, Environment environment) {
-        if (accessUrl == null || environment == null) {
+        if (accessUrl == null) {
             return PipelineResult.failure(PipelineFailure.fatal(
-                    List.of("Mapping failure for accessUrl %s and environment %s"
-                            .formatted(accessUrl, environment))));
+                    List.of("Mapping failure: accessUrl is null")));
+        } else if (environment == null) {
+            return PipelineResult.recoverableFailure(new Service(accessUrl, null),
+                    PipelineFailure.warning(List.of("Mapping failure for accessUrl %s: environment is null"
+                            .formatted(accessUrl))));
         }
 
         var assetBuilder = Asset.Builder.newInstance();
@@ -106,8 +103,8 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<AasAccessUrl, Env
         var accessUrlV3 = accessUrl.toString().concat(AAS_V3_PREFIX);
         // Submodels
         assetBuilder.property(SUBMODELS, environment.getSubmodels().stream()
-                        .map(submodel -> mapSubmodelToAsset(submodel, accessUrlV3))
-                        .toList());
+                .map(submodel -> mapSubmodelToAsset(submodel, accessUrlV3))
+                .toList());
 
         if (onlySubmodelsDecision.get()) {
             assetBuilder.property(SHELLS, List.of());
@@ -117,9 +114,13 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<AasAccessUrl, Env
         return PipelineResult.success(new Service(accessUrl,
                 assetBuilder
                         .property(SHELLS,
-                                environment.getAssetAdministrationShells().stream().map((AssetAdministrationShell shell) -> mapShellToAsset(shell, accessUrlV3)).toList())
+                                environment.getAssetAdministrationShells().stream()
+                                        .map((AssetAdministrationShell shell) -> mapShellToAsset(shell, accessUrlV3))
+                                        .toList())
                         .property(CONCEPT_DESCRIPTIONS,
-                                environment.getConceptDescriptions().stream().map((ConceptDescription conceptDescription) -> mapConceptDescriptionToAsset(conceptDescription, accessUrlV3)).toList())
+                                environment.getConceptDescriptions().stream()
+                                        .map((ConceptDescription conceptDescription) -> mapConceptDescriptionToAsset(conceptDescription, accessUrlV3))
+                                        .toList())
                         .build()));
     }
 
@@ -163,8 +164,12 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<AasAccessUrl, Env
                 .id(String.valueOf("%s:%s".formatted(accessUrl, dataAddress.referenceChainAsPath()).hashCode()))
                 .contentType("application/json")
                 .properties(Map.of(
-                        "embeddedDataSpecifications", submodelElement.getEmbeddedDataSpecifications(),
-                        "semanticId", submodelElement.getSemanticId(),
+                        "embeddedDataSpecifications",
+                        Optional.ofNullable(submodelElement.getEmbeddedDataSpecifications())
+                                .orElse(List.of(new DefaultEmbeddedDataSpecification())),
+                        "semanticId",
+                        Optional.ofNullable(submodelElement.getSemanticId())
+                                .orElse(new DefaultReference()),
                         "value", children))
                 .dataAddress(dataAddress)
                 .build();

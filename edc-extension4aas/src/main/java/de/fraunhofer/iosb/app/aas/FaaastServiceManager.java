@@ -47,8 +47,8 @@ import static de.fraunhofer.iosb.ilt.faaast.service.util.HostnameUtil.LOCALHOST;
  */
 public class FaaastServiceManager implements AssetAdministrationShellServiceManager {
 
-    private static final String FAST = "FA³ST";
-    private static final String FAAAST_SERVICE_EXCEPTION_MESSAGE = "Exception thrown by %s service.".formatted(FAST);
+    private static final String FAAAST = "FA³ST";
+    private static final String GENERIC_EXCEPTION_MESSAGE = "Exception thrown by %s service.".formatted(FAAAST);
     public static final String NO_ENDPOINT_DEFINED_EXCEPTION_MESSAGE = "No valid HTTP endpoint could be defined in this configuration.";
 
     private final Monitor monitor;
@@ -93,7 +93,7 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
 
         var serviceAccessUrl = new URL(urlSpec);
         faaastServiceRepository.put(new AasAccessUrl(serviceAccessUrl), service);
-        monitor.debug("Started %s service with access URL: %s.".formatted(FAST, serviceAccessUrl));
+        monitor.debug("Started %s service with access URL: %s.".formatted(FAAAST, serviceAccessUrl));
 
         return serviceAccessUrl;
     }
@@ -101,40 +101,40 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
     @Override
     public void stopServices() {
         faaastServiceRepository.values().forEach(Service::stop);
-        monitor.info("Stopped all internally started %s services...".formatted(FAST));
+        monitor.info("Stopped all internally started %s services...".formatted(FAAAST));
     }
 
     @Override
     public void stopService(URL aasServiceUrl) {
         Objects.requireNonNull(aasServiceUrl);
-        monitor.debug("Shutting down %s service with URL %s...".formatted(FAST, aasServiceUrl));
+        monitor.debug("Shutting down %s service with URL %s...".formatted(FAAAST, aasServiceUrl));
 
         var serviceToStop = faaastServiceRepository.get(new AasAccessUrl(aasServiceUrl));
         if (Objects.nonNull(serviceToStop)) {
             serviceToStop.stop();
             faaastServiceRepository.remove(new AasAccessUrl(aasServiceUrl));
         } else {
-            monitor.debug("This URL was not registered as an internal %s service.".formatted(FAST));
+            monitor.debug("This URL was not registered as an internal %s service.".formatted(FAAAST));
         }
     }
 
-    private static @NotNull Service createAndStartService(ServiceConfig serviceConfig) {
+    private @NotNull Service createAndStartService(ServiceConfig serviceConfig) {
         Service service;
         try {
             service = new Service(serviceConfig);
         } catch (AssetConnectionException | ConfigurationException faaastServiceException) {
-            throw new EdcException(FAAAST_SERVICE_EXCEPTION_MESSAGE, faaastServiceException);
+            throw new EdcException(GENERIC_EXCEPTION_MESSAGE, faaastServiceException);
         }
 
         try {
             service.start();
         } catch (MessageBusException | EndpointException faaastServiceException) {
-            throw new EdcException(FAAAST_SERVICE_EXCEPTION_MESSAGE, faaastServiceException);
+            throw new EdcException(GENERIC_EXCEPTION_MESSAGE, faaastServiceException);
         }
         return service;
     }
 
-    private ServiceConfig getConfig(Path aasModelPath, Path configPath, int port) throws IOException {
+    private @NotNull ServiceConfig getConfig(Path aasModelPath, Path configPath, int port) throws IOException {
         var serviceConfig = configPath == null ?
                 new ServiceConfig() :
                 ServiceConfigHelper.load(configPath.toFile());

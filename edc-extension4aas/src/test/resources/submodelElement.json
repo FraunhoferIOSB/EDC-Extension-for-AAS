@@ -1,7 +1,0 @@
-{
-  "category": "PARAMETER",
-  "idShort": "IntegerValue",
-  "valueType": "xs:integer",
-  "value": "5000",
-  "modelType": "Property"
-}

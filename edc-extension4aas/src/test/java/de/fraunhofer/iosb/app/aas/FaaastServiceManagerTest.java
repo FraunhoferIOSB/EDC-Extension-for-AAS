@@ -39,11 +39,11 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 public class FaaastServiceManagerTest {
 
-    private AssetAdministrationShellServiceManager faaastServiceManager;
+    private AssetAdministrationShellServiceManager testSubject;
 
     @BeforeEach
     public void initializeFaaastServiceManager() {
-        faaastServiceManager = new FaaastServiceManager(new ConsoleMonitor());
+        testSubject = new FaaastServiceManager(new ConsoleMonitor());
     }
 
     @Test
@@ -73,7 +73,7 @@ public class FaaastServiceManagerTest {
     @Test
     public void startServiceFalsePathTest() throws IOException {
         try {
-            faaastServiceManager.startService(Path.of("fake-path"), 12345);
+            testSubject.startService(Path.of("fake-path"), 12345);
             fail("EdcException should have been thrown");
         } catch (EdcException expected) {
         }
@@ -83,14 +83,14 @@ public class FaaastServiceManagerTest {
     public void startServiceOverwritePortTest() throws IOException {
         Path testPath = Path.of("./src/test/resources/aasEnvironment.json");
         // Fa³st config path irrelevant, configHelper creates new config with port 8080
-        var response = faaastServiceManager.startService(testPath, testPath, 12345);
+        var response = testSubject.startService(testPath, testPath, 12345);
         assertEquals(12345, response.getPort());
     }
 
     @Test
     public void startServiceFalsePortTest() throws IOException {
         try {
-            faaastServiceManager.startService(Path.of("./src/test/resources/aasEnvironment.json"), -800);
+            testSubject.startService(Path.of("./src/test/resources/aasEnvironment.json"), -800);
             fail("EdcException should have been thrown");
         } catch (EdcException expected) {
         }
@@ -99,7 +99,7 @@ public class FaaastServiceManagerTest {
     @Test
     public void stopServicesEmptyRepositoryTest() {
         try {
-            faaastServiceManager.stopServices();
+            testSubject.stopServices();
         } catch (Exception failed) {
             fail("This operation must not fail");
         }
@@ -108,7 +108,7 @@ public class FaaastServiceManagerTest {
     @Test
     public void stopServiceEmptyRepositoryTest() {
         try {
-            faaastServiceManager.stopService(new URL("http://does-not-exist.com:1234/aas"));
+            testSubject.stopService(new URL("http://does-not-exist.com:1234/aas"));
         } catch (Exception unexpectedException) {
             fail();
         }
@@ -116,16 +116,16 @@ public class FaaastServiceManagerTest {
 
     @Test
     public void stopServiceTest() throws IOException {
-        faaastServiceManager.stopService(startService());
+        testSubject.stopService(startService());
     }
 
     private URL startService() throws IOException {
-        return faaastServiceManager.startService(Path.of("./src/test/resources/aasEnvironment.json"),
+        return testSubject.startService(Path.of("./src/test/resources/aasEnvironment.json"),
                 8080);
     }
 
     @AfterEach
     public void stopServices() {
-        faaastServiceManager.stopServices();
+        testSubject.stopServices();
     }
 }

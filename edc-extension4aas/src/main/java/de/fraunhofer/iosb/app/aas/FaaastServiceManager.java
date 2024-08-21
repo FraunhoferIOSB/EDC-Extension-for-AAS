@@ -40,6 +40,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static de.fraunhofer.iosb.ilt.faaast.service.util.HostnameUtil.LOCALHOST;
+
 /**
  * Manages internally created FA³ST instances.
  */
@@ -85,7 +87,7 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
         var urlSpec = "http"
                 .concat(httpEndpoint.isSslEnabled() ? "s" : "")
                 .concat("://")
-                .concat(httpEndpoint.getHostname())
+                .concat(Optional.ofNullable(httpEndpoint.getHostname()).orElse(LOCALHOST))
                 .concat(":")
                 .concat(String.valueOf(httpEndpoint.getPort()));
 

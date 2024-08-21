@@ -35,7 +35,7 @@ public class StringMethods {
     }
 
     public static String resultOf(Object content) throws SerializationException {
-        return "{\"result\":[%s]}".formatted(new JsonSerializer().write(content));
+        return "{\"result\":[%s]}".formatted(content == null ? "" : new JsonSerializer().write(content));
     }
 
     public static String resultOfCollection(Collection<?> content) throws SerializationException {

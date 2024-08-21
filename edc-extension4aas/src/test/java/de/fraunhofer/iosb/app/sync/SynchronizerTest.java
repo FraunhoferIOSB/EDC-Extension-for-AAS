@@ -18,17 +18,21 @@ package de.fraunhofer.iosb.app.sync;
 import de.fraunhofer.iosb.app.aas.EnvironmentToAssetMapper;
 import de.fraunhofer.iosb.app.model.ChangeSet;
 import de.fraunhofer.iosb.app.util.Pair;
+import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultEnvironment;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 
 import static de.fraunhofer.iosb.app.testutils.AasCreator.getEmptyEnvironment;
+import static de.fraunhofer.iosb.app.testutils.AasCreator.getEmptySubmodel;
 import static de.fraunhofer.iosb.app.testutils.AasCreator.getEnvironment;
 import static de.fraunhofer.iosb.app.util.AssetUtil.flatMapAssets;
+import static de.fraunhofer.iosb.app.util.AssetUtil.getChildren;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -82,11 +86,22 @@ public class SynchronizerTest {
         assertEquals(shouldBe, result.getContent());
     }
 
-
     @Test
     void testApplyRemoveSubmodel() {
         var oldEnvironment = getEnvironment();
-        var newEnvironment = getEnvironment();
+        var oldSubmodels = new ArrayList<>(oldEnvironment.getSubmodels());
+        var emptySubmodel = getEmptySubmodel();
+        oldSubmodels.add(emptySubmodel);
+        oldEnvironment.setSubmodels(oldSubmodels);
+
+        var updatedSubmodels = new ArrayList<>(oldEnvironment.getSubmodels());
+        updatedSubmodels.remove(emptySubmodel);
+
+        var newEnvironment = new DefaultEnvironment.Builder()
+                .assetAdministrationShells(oldEnvironment.getAssetAdministrationShells())
+                .submodels(updatedSubmodels)
+                .conceptDescriptions(oldEnvironment.getConceptDescriptions())
+                .build();
 
         var oldEnvironmentAsset = new EnvironmentToAssetMapper(() -> false).executeSingle(accessUrl, oldEnvironment);
         var newEnvironmentAsset = new EnvironmentToAssetMapper(() -> false).executeSingle(accessUrl, newEnvironment);
@@ -98,9 +113,11 @@ public class SynchronizerTest {
         assertTrue(result.succeeded());
         assertNotNull(result.getContent());
 
-        var shouldBe = new ChangeSet.Builder<Asset, String>()
-                .add(flatMapAssets(newEnvironmentAsset.getContent().environment())).build();
+        var emptySubmodelId = getChildren(oldEnvironmentAsset.getContent().environment(), "submodels").stream()
+                .filter(asset -> asset.getProperty("idShort").equals(emptySubmodel.getIdShort()))
+                .findFirst().orElseThrow()
+                .getId();
 
-        assertEquals(shouldBe, result.getContent());
+        assertTrue(result.getContent().toRemove().stream().anyMatch(emptySubmodelId::equals));
     }
 }

@@ -127,6 +127,11 @@ public class AasCreator {
                 .build();
     }
 
+    public static Submodel getEmptySubmodel() {
+        return new DefaultSubmodel.Builder()
+                .id(uuid())
+                .idShort(uuid()).build();
+    }
 
     public static Submodel getSubmodel() {
         return getSubmodel(uuid());

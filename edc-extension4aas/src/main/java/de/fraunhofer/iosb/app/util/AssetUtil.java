@@ -58,7 +58,7 @@ public class AssetUtil {
     }
 
     @SuppressWarnings("unchecked") // I checked
-    private static Collection<Asset> getChildren(Asset parent, String childPropertyName) {
+    public static Collection<Asset> getChildren(Asset parent, String childPropertyName) {
         var childrenMaybe = parent.getProperty(childPropertyName);
         if (childrenMaybe instanceof List && !((List<?>) childrenMaybe).isEmpty() && ((List<?>) childrenMaybe).get(0) instanceof Asset) {
             return new ArrayList<>((List<Asset>) childrenMaybe);

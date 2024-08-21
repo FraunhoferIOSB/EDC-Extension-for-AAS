@@ -78,36 +78,4 @@ public class SelfDescriptionSerializer {
     @JsonFilter("assetFilter")
     private abstract static class AssetFilterMixin {
     }
-
-    // TODO putting on hold until I get feedback
-    /*
-    private static class AssetSerializer extends JsonSerializer<Asset> {
-
-        @Override
-        public void serialize(Asset asset, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws
-         IOException {
-            ObjectMapper mapper = (ObjectMapper) jsonGenerator.getCodec();
-            mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-            mapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
-
-            // Set skipped fields
-            mapper.addMixIn(Asset.class, AssetFilterMixin.class);
-            var filter = new SimpleFilterProvider()
-                    .addFilter("assetFilter", SimpleBeanPropertyFilter.serializeAllExcept(SKIPPED_FIELDS));
-            mapper.setFilterProvider(filter);
-
-            ObjectNode node = mapper.valueToTree(asset);
-
-            // Remove EDC id which appears twice in each asset
-            if (node.has("properties")) {
-                var properties = ((ObjectNode) node.get("properties"));
-                properties.remove(PROPERTY_ID);
-                var contentType = properties.remove(PROPERTY_CONTENT_TYPE);
-                properties.putIfAbsent("contenttype", contentType);
-            }
-
-            // Write the modified node
-            jsonGenerator.writeTree(node);
-        }
-    }*/
 }

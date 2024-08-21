@@ -96,6 +96,8 @@ class RegistryAgentTest {
                 .respond(HttpResponse.response()
                         .withBody(resultOf(shellDescriptor)));
 
+        mockEmptySubmodelRequest();
+
         var result = testSubject.apply(mockServerUrl);
 
         assertTrue(result.succeeded());
@@ -126,6 +128,8 @@ class RegistryAgentTest {
                 .respond(HttpResponse.response()
                         .withBody(resultOf(shellDescriptor)));
 
+        mockEmptySubmodelRequest();
+
         var result = testSubject.apply(mockServerUrl);
 
         assertTrue(result.succeeded());
@@ -148,6 +152,8 @@ class RegistryAgentTest {
     @Test
     void testApplyEmptySubmodelDescriptor() throws SerializationException, MalformedURLException {
         var submodelDescriptor = getEmptySubmodelDescriptor();
+
+        mockEmptyShellRequest();
 
         mockServer.when(request()
                         .withMethod(GET.toString())
@@ -180,6 +186,8 @@ class RegistryAgentTest {
     @Test
     void testApplySubmodelDescriptor() throws SerializationException, MalformedURLException {
         var submodelDescriptor = getSubmodelDescriptor();
+
+        mockEmptyShellRequest();
 
         mockServer.when(request()
                         .withMethod(GET.toString())
@@ -223,5 +231,21 @@ class RegistryAgentTest {
 
         assertTrue(result.failed());
         assertEquals(FATAL, result.getFailure().getFailureType());
+    }
+
+    private void mockEmptyShellRequest() throws SerializationException {
+        mockServer.when(request()
+                        .withMethod(GET.toString())
+                        .withPath(SHELL_DESCRIPTORS_PATH))
+                .respond(HttpResponse.response()
+                        .withBody(resultOf(null)));
+    }
+
+    private void mockEmptySubmodelRequest() throws SerializationException {
+        mockServer.when(request()
+                        .withMethod(GET.toString())
+                        .withPath(SUBMODEL_DESCRIPTORS_PATH))
+                .respond(HttpResponse.response()
+                        .withBody(resultOf(null)));
     }
 }

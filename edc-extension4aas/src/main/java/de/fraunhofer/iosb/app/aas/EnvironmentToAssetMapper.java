@@ -37,6 +37,7 @@ import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultEmbeddedDataSpecificat
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultKey;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultReference;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
+import org.jetbrains.annotations.NotNull;
 
 import java.net.URL;
 import java.util.ArrayList;
@@ -161,7 +162,7 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<AasAccessUrl, Env
                 .build();
 
         return mapReferableToAssetBuilder(submodelElement)
-                .id(String.valueOf("%s:%s".formatted(accessUrl, dataAddress.referenceChainAsPath()).hashCode()))
+                .id(getId(accessUrl, dataAddress))
                 .contentType("application/json")
                 .properties(Map.of(
                         "embeddedDataSpecifications",
@@ -173,6 +174,10 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<AasAccessUrl, Env
                         "value", children))
                 .dataAddress(dataAddress)
                 .build();
+    }
+
+    private static @NotNull String getId(String accessUrl, AasDataAddress dataAddress) {
+        return String.valueOf("%s:%s".formatted(accessUrl, dataAddress.referenceChainAsPath()).hashCode());
     }
 
     private <T extends SubmodelElement> Collection<SubmodelElement> getContainerElements(T submodelElement) {
@@ -192,7 +197,7 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<AasAccessUrl, Env
                 .build();
 
         return mapIdentifiableToAssetBuilder(shell)
-                .id(String.valueOf("%s:%s".formatted(accessUrl, dataAddress.referenceChainAsPath()).hashCode()))
+                .id(getId(accessUrl, dataAddress))
                 .dataAddress(dataAddress)
                 .build();
     }
@@ -204,7 +209,7 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<AasAccessUrl, Env
                 .build();
 
         return mapIdentifiableToAssetBuilder(conceptDescription)
-                .id(String.valueOf("%s:%s".formatted(accessUrl, dataAddress.referenceChainAsPath()).hashCode()))
+                .id(getId(accessUrl, dataAddress))
                 .dataAddress(dataAddress)
                 .build();
     }
@@ -223,7 +228,7 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<AasAccessUrl, Env
                 .build();
 
         return mapIdentifiableToAssetBuilder(submodel)
-                .id(String.valueOf("%s:%s".formatted(accessUrl, dataAddress.referenceChainAsPath()).hashCode()))
+                .id(getId(accessUrl, dataAddress))
                 .properties(Map.of(
                         "semanticId",
                         Optional.ofNullable(submodel.getSemanticId())

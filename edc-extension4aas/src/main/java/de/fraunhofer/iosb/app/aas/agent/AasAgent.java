@@ -46,8 +46,6 @@ public abstract class AasAgent<T> extends PipelineStep<URL, T> {
 
     public static final String AAS_V3_PREFIX = "/api/v3.0";
 
-    protected static final int INTERNAL_SERVER_ERROR = 500;
-
     private final AasDataProcessorFactory aasDataProcessorFactory;
     private final JsonDeserializer jsonDeserializer = new JsonDeserializer();
     private final ObjectMapper objectMapper = new ObjectMapper();

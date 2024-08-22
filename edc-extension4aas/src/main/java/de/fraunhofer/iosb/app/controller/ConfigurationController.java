@@ -23,7 +23,7 @@ import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import jakarta.ws.rs.GET;
-import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.PATCH;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -71,7 +71,7 @@ public class ConfigurationController {
      */
     @GET
     public Response getConfiguration() {
-        monitor.info("Received a config GET request");
+        monitor.info("GET /config");
 
         try {
             var serializedConfiguration = objectMapper.writeValueAsString(configuration);
@@ -88,9 +88,9 @@ public class ConfigurationController {
      * @param newConfigValues New configuration values as JSON string
      * @return Response with status code
      */
-    @PUT
+    @PATCH
     public Response updateConfiguration(String newConfigValues) {
-        monitor.info("Received a config PUT request");
+        monitor.info("PATCH /config");
 
         if (Objects.isNull(newConfigValues)) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Missing request body").build();

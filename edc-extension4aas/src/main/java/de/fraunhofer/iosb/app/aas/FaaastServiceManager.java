@@ -41,6 +41,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static de.fraunhofer.iosb.ilt.faaast.service.util.HostnameUtil.LOCALHOST;
+import static de.fraunhofer.iosb.ilt.faaast.service.util.HostnameUtil.LOCALHOST_IP;
 
 /**
  * Manages internally created FA³ST instances.
@@ -50,6 +51,8 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
     private static final String FAAAST = "FA³ST";
     private static final String GENERIC_EXCEPTION_MESSAGE = "Exception thrown by %s service.".formatted(FAAAST);
     public static final String NO_ENDPOINT_DEFINED_EXCEPTION_MESSAGE = "No valid HTTP endpoint could be defined in this configuration.";
+    private static final String LOCALHOST_URL = System.getProperty("os.name").contains("Windows") ?
+            LOCALHOST_IP : LOCALHOST;
 
     private final Monitor monitor;
     private final Map<AasAccessUrl, Service> faaastServiceRepository;
@@ -93,7 +96,7 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
         var urlSpec = "http"
                 .concat(communicationHttpPort.isSslEnabled() ? "s" : "")
                 .concat("://")
-                .concat(Optional.ofNullable(communicationHttpPort.getHostname()).orElse(LOCALHOST))
+                .concat(Optional.ofNullable(communicationHttpPort.getHostname()).orElse(LOCALHOST_URL))
                 .concat(":")
                 .concat(String.valueOf(communicationHttpPort.getPort()));
 

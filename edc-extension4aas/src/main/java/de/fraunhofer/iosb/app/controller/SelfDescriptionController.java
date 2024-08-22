@@ -68,7 +68,7 @@ public class SelfDescriptionController {
      * @return Self description(s)
      */
     @GET
-    public Response getSelfDescription(@QueryParam("aasService") URL aasServiceUrl) {
+    public Response getSelfDescription(@QueryParam("url") URL aasServiceUrl) {
         if (Objects.isNull(aasServiceUrl)) {
             monitor.debug("GET /selfDescription");
 

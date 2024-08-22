@@ -82,7 +82,7 @@ public class Endpoint {
     @POST
     @Path(REGISTRY_PATH)
     public Response createRegistry(@QueryParam("url") URL registryUrl) {
-        monitor.debug("POST /%s".formatted(REGISTRY_PATH));
+        monitor.info("POST /%s".formatted(REGISTRY_PATH));
         return createEntity(registryUrl, REGISTRY);
     }
 
@@ -95,7 +95,7 @@ public class Endpoint {
     @POST
     @Path(SERVICE_PATH)
     public Response createService(@QueryParam("url") URL serviceUrl) {
-        monitor.debug("POST /%s".formatted(SERVICE_PATH));
+        monitor.info("POST /%s".formatted(SERVICE_PATH));
         return createEntity(serviceUrl, SERVICE);
     }
 
@@ -108,7 +108,7 @@ public class Endpoint {
     @DELETE
     @Path(REGISTRY_PATH)
     public Response removeRegistry(@QueryParam("url") URL registryUrl) {
-        monitor.debug("DELETE /%s".formatted(REGISTRY_PATH));
+        monitor.info("DELETE /%s".formatted(REGISTRY_PATH));
         return removeEntity(registryUrl, REGISTRY);
     }
 
@@ -121,7 +121,7 @@ public class Endpoint {
     @DELETE
     @Path(SERVICE_PATH)
     public Response removeService(@QueryParam("url") URL serviceUrl) {
-        monitor.debug("DELETE /%s".formatted(SERVICE_PATH));
+        monitor.info("DELETE /%s".formatted(SERVICE_PATH));
         return removeEntity(serviceUrl, SERVICE);
     }
 
@@ -139,7 +139,7 @@ public class Endpoint {
     public Response postAasEnvironment(@QueryParam("environment") String pathToEnvironment,
                                        @QueryParam("config") String pathToConfig,
                                        @QueryParam("port") int port) {
-        monitor.debug("POST /environment");
+        monitor.info("POST /%s".formatted(ENVIRONMENT_PATH));
         if (Objects.isNull(pathToEnvironment)) {
             return Response.status(Status.BAD_REQUEST).entity("Missing query parameter 'environment'").build();
         }

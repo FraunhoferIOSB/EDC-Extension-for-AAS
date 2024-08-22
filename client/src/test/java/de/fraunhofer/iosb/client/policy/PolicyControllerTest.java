@@ -18,15 +18,19 @@ package de.fraunhofer.iosb.client.policy;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
+import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.monitor.ConsoleMonitor;
+import org.eclipse.edc.spi.system.configuration.Config;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
 import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
 
 class PolicyControllerTest {
 
@@ -35,18 +39,21 @@ class PolicyControllerTest {
     private static PolicyDefinition mockPolicyDefinition;
 
     @BeforeAll
-    public static void initialize() throws IOException {
+    public static void initialize() {
         var mockAsset = Asset.Builder.newInstance().id("test-asset").build();
 
         var mockPolicy = Policy.Builder.newInstance().target(mockAsset.getId()).build();
 
         mockPolicyDefinition = PolicyDefinition.Builder.newInstance()
                 .policy(mockPolicy).build();
-
     }
 
     @BeforeEach
     void setUp() {
+        testSubject = new PolicyController(new ConsoleMonitor(),
+                mock(CatalogService.class),
+                mock(TypeTransformerRegistry.class),
+                mock(Config.class));
     }
 
 

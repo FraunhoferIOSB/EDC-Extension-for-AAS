@@ -56,7 +56,6 @@ public class ClientEndpoint {
      * Root path for the client
      */
     public static final String AUTOMATED_PATH = "automated";
-    private static final String ACCEPTED_POLICIES_PATH = "acceptedPolicies";
     private static final String OFFER_PATH = "offer";
     private static final String NEGOTIATE_CONTRACT_PATH = "negotiateContract";
     private static final String NEGOTIATE_PATH = "negotiate";

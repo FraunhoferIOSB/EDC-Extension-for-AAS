@@ -40,7 +40,7 @@ import static org.eclipse.edc.spi.types.domain.transfer.FlowType.PUSH;
  */
 class TransferInitiator {
 
-    public static final String COULD_NOT_BUILD_URI_MESSAGE = "[Client] Could not build own URI, thus cannot transfer data to this EDC. Only data transfers to external endpoints are supported.";
+    public static final String COULD_NOT_BUILD_URI_MESSAGE = "[Client] Could not build own URI, cannot transfer data to this EDC directly. Only data transfers to external endpoints are supported.";
     public static final String HTTPS_KEYSTORE_PATH = "edc.web.https.keystore.path";
     public static final String HTTP_PORT = "web.http.port";
     public static final String HTTP_PATH = "web.http.path";

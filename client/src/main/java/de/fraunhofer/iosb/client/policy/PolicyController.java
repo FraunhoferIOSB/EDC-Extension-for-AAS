@@ -58,9 +58,9 @@ public class PolicyController {
         var config = new PolicyServiceConfig(systemConfig);
 
         this.monitor = monitor.withPrefix("Client PolicyController");
-        this.policyDefinitionStore = new PolicyDefinitionStore(monitor, config.getAcceptedPolicyDefinitionsPath());
-        this.policyService = new PolicyService(catalogService, typeTransformerRegistry, config,
-                this.policyDefinitionStore, monitor);
+        policyDefinitionStore = new PolicyDefinitionStore(monitor, config.getAcceptedPolicyDefinitionsPath());
+        policyService = new PolicyService(catalogService, typeTransformerRegistry, config,
+                policyDefinitionStore, monitor);
     }
 
     public Dataset getDataset(String counterPartyId, URL counterPartyUrl, String assetId) throws InterruptedException {

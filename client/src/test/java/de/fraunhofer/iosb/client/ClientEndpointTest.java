@@ -52,7 +52,6 @@ import org.mockserver.integration.ClientAndServer;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;

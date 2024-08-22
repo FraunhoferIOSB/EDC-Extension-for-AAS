@@ -71,12 +71,8 @@ public class Pipeline<I, O> implements Runnable {
      * @param result The result coming from the failed PipelineStep
      */
     protected <T> T handlePipelineFailure(PipelineStep<?, ?> step, PipelineResult<T> result) {
-        if (result.failed()) {
-            doHandle(result.getFailure());
-            return result.getContent();
-        } else {
-            throw new IllegalStateException("Error trying to handle failure when result did not fail");
-        }
+        doHandle(result.getFailure());
+        return result.getContent();
     }
 
     private void doHandle(PipelineFailure failure) {
@@ -98,7 +94,7 @@ public class Pipeline<I, O> implements Runnable {
 
     /**
      * Start the pipeline without input argument.
-     * This is used for running the pipeline on a separate thread.
+     * This is used for using the pipeline as a runnable.
      */
     @Override
     public void run() {

@@ -62,7 +62,7 @@ public class ClientExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var monitor = context.getMonitor();
+        var monitor = context.getMonitor().withPrefix("Client");
         var config = context.getConfig("edc.client");
         registerTransformers();
 
@@ -86,6 +86,7 @@ public class ClientExtension implements ServiceExtension {
                 transformer,
                 config);
 
+        webService.registerResource(policyController);
         webService.registerResource(
                 ClientEndpoint.Builder.newInstance()
                         .monitor(monitor)

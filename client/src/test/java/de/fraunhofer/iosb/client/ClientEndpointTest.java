@@ -205,40 +205,4 @@ public class ClientEndpointTest {
             assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
         }
     }
-
-    @Test
-    public void getAcceptedContractOffersTest() {
-        assertEquals(Response.Status.OK.getStatusCode(), clientEndpoint.getAcceptedPolicyDefinitions().getStatus());
-    }
-
-    @Test
-    public void addAcceptedContractOffersTest() {
-        var mockPolicyDefinitionsAsList = new ArrayList<PolicyDefinition>();
-        mockPolicyDefinitionsAsList.add(mockPolicyDefinition); // ClientEndpoint creates ArrayList
-        var offers = new PolicyDefinition[] {mockPolicyDefinition};
-
-        clientEndpoint.addAcceptedPolicyDefinitions(offers);
-
-        assertEquals(mockPolicyDefinitionsAsList, clientEndpoint.getAcceptedPolicyDefinitions().getEntity());
-    }
-
-    @Test
-    public void updateAcceptedContractOfferTest() {
-        var offers = new PolicyDefinition[] {mockPolicyDefinition};
-
-        clientEndpoint.addAcceptedPolicyDefinitions(offers);
-
-        var mockPolicy = Policy.Builder.newInstance().build();
-        var mockUpdatedContractOffer = PolicyDefinition.Builder.newInstance()
-                .id(mockPolicyDefinition.getId()) // Same id <-> same offer
-                .policy(mockPolicy)
-                .build();
-
-        var mockContractOfferAsList = new ArrayList<PolicyDefinition>();
-        mockContractOfferAsList.add(mockUpdatedContractOffer); // ClientEndpoint creates ArrayList
-        clientEndpoint.updateAcceptedPolicyDefinition(mockUpdatedContractOffer);
-
-        assertEquals(mockContractOfferAsList, clientEndpoint.getAcceptedPolicyDefinitions().getEntity());
-
-    }
 }

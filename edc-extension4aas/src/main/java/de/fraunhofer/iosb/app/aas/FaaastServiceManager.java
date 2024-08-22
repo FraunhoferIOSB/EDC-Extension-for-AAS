@@ -79,17 +79,23 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
 
         var service = createAndStartService(serviceConfig);
 
-        var httpEndpoint = (HttpEndpointConfig) serviceConfig.getEndpoints().stream()
-                .filter(e -> e instanceof HttpEndpointConfig)
-                .findAny()
+        var httpEndpoints = serviceConfig.getEndpoints().stream()
+                .filter(endpoint -> endpoint instanceof HttpEndpointConfig)
+                .map(endpoint -> (HttpEndpointConfig) endpoint)
+                .toList();
+
+        // If port was explicitly provided, take this port for communication
+        var communicationHttpPort = (httpEndpoints.stream().anyMatch(endpoint -> endpoint.getPort() == port) ?
+                httpEndpoints.stream().filter(endpoint -> endpoint.getPort() == port).findFirst() :
+                httpEndpoints.stream().findAny())
                 .orElseThrow(() -> new IllegalArgumentException(NO_ENDPOINT_DEFINED_EXCEPTION_MESSAGE));
 
         var urlSpec = "http"
-                .concat(httpEndpoint.isSslEnabled() ? "s" : "")
+                .concat(communicationHttpPort.isSslEnabled() ? "s" : "")
                 .concat("://")
-                .concat(Optional.ofNullable(httpEndpoint.getHostname()).orElse(LOCALHOST))
+                .concat(Optional.ofNullable(communicationHttpPort.getHostname()).orElse(LOCALHOST))
                 .concat(":")
-                .concat(String.valueOf(httpEndpoint.getPort()));
+                .concat(String.valueOf(communicationHttpPort.getPort()));
 
         var serviceAccessUrl = new URL(urlSpec);
         faaastServiceRepository.put(new AasAccessUrl(serviceAccessUrl), service);

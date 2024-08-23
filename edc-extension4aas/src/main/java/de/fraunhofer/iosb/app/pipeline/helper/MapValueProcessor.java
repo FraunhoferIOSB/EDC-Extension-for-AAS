@@ -78,4 +78,9 @@ public class MapValueProcessor<T, U, V> extends PipelineStep<Map<T, U>, Map<T, V
 
         return Objects.requireNonNullElseGet(handleError(results, contents), () -> PipelineResult.success(contents));
     }
+
+    @Override
+    public String getName() {
+        return "MapValueProcessor[%s]".formatted(processor.getName());
+    }
 }

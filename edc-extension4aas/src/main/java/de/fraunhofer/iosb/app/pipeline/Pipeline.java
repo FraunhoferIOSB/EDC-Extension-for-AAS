@@ -71,21 +71,21 @@ public class Pipeline<I, O> implements Runnable {
      * @param result The result coming from the failed PipelineStep
      */
     protected <T> T handlePipelineFailure(PipelineStep<?, ?> step, PipelineResult<T> result) {
-        doHandle(result.getFailure());
+        doHandle(result.getFailure(), step.getName());
         return result.getContent();
     }
 
-    private void doHandle(PipelineFailure failure) {
+    private void doHandle(PipelineFailure failure, String failingStep) {
         switch (failure.getFailureType()) {
             case FATAL:
-                var message = "Pipeline received a fatal error: %s".formatted(failure.getMessages());
+                var message = "Pipeline received a fatal error by pipeline step %s: %s".formatted(failingStep, failure.getMessages());
                 monitor.severe(message);
                 throw new EdcException(message);
             case WARNING:
-                monitor.warning("Pipeline received a warning from a pipeline step: %s".formatted(failure.getMessages()));
+                monitor.warning("Pipeline received a warning by pipeline step %s: %s".formatted(failingStep, failure.getMessages()));
                 break;
             case INFO:
-                monitor.info("Pipeline received info from a pipeline step: %s".formatted(failure.getMessages()));
+                monitor.info("Pipeline received info by pipeline step %s: %s".formatted(failingStep, failure.getMessages()));
                 break;
             default:
                 throw new IllegalStateException("Unexpected failure type: " + failure.getFailureType());
@@ -106,12 +106,13 @@ public class Pipeline<I, O> implements Runnable {
         private Monitor monitor;
         private final List<PipelineStep<?, ?>> steps;
 
-        private Builder(List<PipelineStep<?, ?>> instance) {
+        private Builder(List<PipelineStep<?, ?>> instance, Monitor monitor) {
             steps = instance;
+            this.monitor = monitor;
         }
 
         public Builder() {
-            this(new ArrayList<>());
+            this(new ArrayList<>(), null);
         }
 
         /**
@@ -148,7 +149,7 @@ public class Pipeline<I, O> implements Runnable {
         public <N> Builder<I, N> step(PipelineStep<O, N> step) {
             steps.add(step);
             // Assure that last.output==next.input
-            return new Builder<>(steps);
+            return new Builder<>(steps, monitor);
         }
 
         /**

@@ -50,4 +50,8 @@ public class CollectionFeeder<T, U> extends PipelineStep<Collection<T>, Collecti
         return Objects.requireNonNullElseGet(failureHandling.apply(results), () -> PipelineResult.success(contents));
     }
 
+    @Override
+    public String getName() {
+        return "CollectionFeeder[%s]".formatted(processor.getName());
+    }
 }

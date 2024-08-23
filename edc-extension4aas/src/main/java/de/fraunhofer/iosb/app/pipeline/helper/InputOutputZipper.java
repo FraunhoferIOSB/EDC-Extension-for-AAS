@@ -66,4 +66,9 @@ public class InputOutputZipper<T, U, V> extends PipelineStep<Collection<T>, Map<
 
         return Objects.requireNonNullElseGet(handleError(results.values(), contents), () -> PipelineResult.success(contents));
     }
+
+    @Override
+    public String getName() {
+        return "InputOutputZipper[%s]".formatted(processor.getName());
+    }
 }

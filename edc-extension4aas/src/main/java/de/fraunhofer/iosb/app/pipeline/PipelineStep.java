@@ -28,6 +28,10 @@ public abstract class PipelineStep<T, U> implements Function<T, PipelineResult<U
     protected PipelineStep() {
     }
 
+    public String getName() {
+        return this.getClass().getSimpleName();
+    }
+
     /**
      * Create an ad-hoc pipeline step.
      *
@@ -38,6 +42,12 @@ public abstract class PipelineStep<T, U> implements Function<T, PipelineResult<U
      */
     public static <T, U> PipelineStep<T, U> create(Function<T, U> func) {
         return new PipelineStep<>() {
+
+            @Override
+            public String getName() {
+                return "anonymous pipeline step";
+            }
+
             @Override
             public PipelineResult<U> apply(T t) {
                 return PipelineResult.success(func.apply(t));

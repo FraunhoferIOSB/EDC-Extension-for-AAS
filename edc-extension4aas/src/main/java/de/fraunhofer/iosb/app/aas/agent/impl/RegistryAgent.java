@@ -78,7 +78,7 @@ public class RegistryAgent extends AasAgent<Map<AasAccessUrl, Environment>> {
         try {
             return PipelineResult.success(readEnvironment(url));
         } catch (EdcException | IOException | URISyntaxException e) {
-            return PipelineResult.failure(PipelineFailure.fatal(List.of(e.getClass().getName(), e.getMessage())));
+            return PipelineResult.failure(PipelineFailure.warning(List.of(e.getClass().getName(), e.getMessage())));
         }
     }
 

@@ -48,12 +48,11 @@ import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractD
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.web.spi.WebService;
 
-import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.Collection;
@@ -87,11 +86,13 @@ public class AasExtension implements ServiceExtension {
     private PolicyDefinitionStore policyDefinitionStore;
     @Inject // Register http endpoint at EDC
     private WebService webService;
+
     private AasController aasController;
+    private Monitor monitor;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var monitor = context.getMonitor().withPrefix(NAME);
+        this.monitor = context.getMonitor().withPrefix(NAME);
         webService.registerResource(new ConfigurationController(context.getConfig(SETTINGS_PREFIX), monitor));
 
         aasController = new AasController(foreignServerRegistry, monitor);
@@ -101,8 +102,6 @@ public class AasExtension implements ServiceExtension {
         // This is to allow for self-signed services
         serviceRepository.registerListener(aasController);
         registryRepository.registerListener(aasController);
-
-        registerAasServicesByConfig(serviceRepository);
 
         // Check if a URL is reachable by pinging the host+port combination (not actual ICMP)
         PipelineStep<URL, URL> reachabilityCheck = PipelineStep.create(url -> {
@@ -167,6 +166,8 @@ public class AasExtension implements ServiceExtension {
 
         webService.registerResource(new SelfDescriptionController(monitor, serviceRepository, registryRepository));
         webService.registerResource(new Endpoint(serviceRepository, registryRepository, aasController, monitor));
+
+        registerAasServicesByConfig(serviceRepository);
     }
 
     private void registerAasServicesByConfig(ServiceRepository selfDescriptionRepository) {
@@ -192,9 +193,10 @@ public class AasExtension implements ServiceExtension {
                     Path.of(configInstance.getLocalAasModelPath()),
                     configInstance.getLocalAasServicePort(),
                     aasConfigPath);
-        } catch (IOException startAssetAdministrationShellException) {
-            throw new EdcException("Could not start AAS service provided by configuration",
+        } catch (Exception startAssetAdministrationShellException) {
+            monitor.severe("Could not start AAS service provided by configuration",
                     startAssetAdministrationShellException);
+            return;
         }
 
         selfDescriptionRepository.create(serviceUrl);
@@ -203,8 +205,8 @@ public class AasExtension implements ServiceExtension {
     @Override
     public void shutdown() {
         // Gracefully stop AAS services
+        monitor.info("Stopping all internally started AAS services");
         aasController.stopServices();
     }
-
 }
 

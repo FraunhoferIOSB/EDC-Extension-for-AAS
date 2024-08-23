@@ -124,8 +124,9 @@ public class AasExtension implements ServiceExtension {
                 .step(new ContractRegistrar(contractDefinitionStore, policyDefinitionStore, monitor))
                 .build();
 
-        new VariableRateScheduler(1, monitor).scheduleAtVariableRate(serviceSynchronization,
-                () -> Configuration.getInstance().getSyncPeriod());
+        var servicePipeline = new VariableRateScheduler(1, serviceSynchronization, monitor);
+        servicePipeline.scheduleAtVariableRate(() -> Configuration.getInstance().getSyncPeriod());
+        serviceRepository.registerListener(servicePipeline);
 
         var registrySynchronization = new Pipeline.Builder<Void, Void>()
                 .monitor(monitor.withPrefix("Registry Synchronization Pipeline"))
@@ -146,9 +147,11 @@ public class AasExtension implements ServiceExtension {
                 .step(new ContractRegistrar(contractDefinitionStore, policyDefinitionStore, monitor))
                 .build();
 
-        new VariableRateScheduler(1, monitor).scheduleAtVariableRate(registrySynchronization,
-                () -> Configuration.getInstance().getSyncPeriod());
+        var registryPipeline = new VariableRateScheduler(1, registrySynchronization, monitor);
+        registryPipeline.scheduleAtVariableRate(() -> Configuration.getInstance().getSyncPeriod());
+        registryRepository.registerListener(registryPipeline);
 
+        // Clean up assets and contracts if service/registry is unregistered
         var cleanUpService = CleanUpService.Builder.newInstance()
                 .assetIndex(assetIndex)
                 .policyDefinitionStore(policyDefinitionStore)

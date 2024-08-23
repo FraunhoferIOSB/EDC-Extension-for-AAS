@@ -41,13 +41,14 @@ public interface SelfDescriptionChangeListener {
      *
      * @param service Service that was removed
      */
-    void removed(Service service);
+    default void removed(Service service) {
+    }
 
     /**
      * Called when a self-description was removed
      *
      * @param registry Registry that was removed
      */
-    void removed(Registry registry);
-
+    default void removed(Registry registry) {
+    }
 }

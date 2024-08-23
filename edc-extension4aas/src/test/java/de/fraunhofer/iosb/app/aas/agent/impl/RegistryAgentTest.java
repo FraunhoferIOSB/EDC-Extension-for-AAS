@@ -39,6 +39,7 @@ import static de.fraunhofer.iosb.api.model.HttpMethod.GET;
 import static de.fraunhofer.iosb.app.aas.agent.impl.RegistryAgent.SHELL_DESCRIPTORS_PATH;
 import static de.fraunhofer.iosb.app.aas.agent.impl.RegistryAgent.SUBMODEL_DESCRIPTORS_PATH;
 import static de.fraunhofer.iosb.app.pipeline.PipelineFailure.Type.FATAL;
+import static de.fraunhofer.iosb.app.pipeline.PipelineFailure.Type.WARNING;
 import static de.fraunhofer.iosb.app.testutils.RegistryElementCreator.getEmptyShellDescriptor;
 import static de.fraunhofer.iosb.app.testutils.RegistryElementCreator.getEmptySubmodelDescriptor;
 import static de.fraunhofer.iosb.app.testutils.RegistryElementCreator.getShellDescriptor;
@@ -230,7 +231,7 @@ class RegistryAgentTest {
         var result = testSubject.apply(new URL("http://anonymous.invalid"));
 
         assertTrue(result.failed());
-        assertEquals(FATAL, result.getFailure().getFailureType());
+        assertEquals(WARNING, result.getFailure().getFailureType());
     }
 
     private void mockEmptyShellRequest() throws SerializationException {

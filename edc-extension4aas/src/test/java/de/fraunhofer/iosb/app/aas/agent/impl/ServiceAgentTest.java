@@ -39,6 +39,7 @@ import static de.fraunhofer.iosb.app.aas.agent.impl.ServiceAgent.CONCEPT_DESCRIP
 import static de.fraunhofer.iosb.app.aas.agent.impl.ServiceAgent.SHELLS_PATH;
 import static de.fraunhofer.iosb.app.aas.agent.impl.ServiceAgent.SUBMODELS_PATH;
 import static de.fraunhofer.iosb.app.pipeline.PipelineFailure.Type.FATAL;
+import static de.fraunhofer.iosb.app.pipeline.PipelineFailure.Type.WARNING;
 import static de.fraunhofer.iosb.app.testutils.AasCreator.getEmptyEnvironment;
 import static de.fraunhofer.iosb.app.testutils.AasCreator.getEnvironment;
 import static de.fraunhofer.iosb.app.testutils.StringMethods.resultOfCollection;
@@ -121,13 +122,12 @@ class ServiceAgentTest {
         assertEquals(UnknownHostException.class.getName(), result.getFailure().getMessages().get(0));
     }
 
-
     @Test
     void testApplyUnreachable() throws MalformedURLException {
         var result = testSubject.apply(new URL("http://localhost:" + getFreePort()));
 
         assertTrue(result.failed());
-        assertEquals(FATAL, result.getFailure().getFailureType());
+        assertEquals(WARNING, result.getFailure().getFailureType());
         // This throws a connectionException
     }
 

@@ -94,7 +94,7 @@ public class EndpointTest {
     @Test
     void testRemoveService() {
         try (var response = testSubject.removeService(url)) {
-            assertEquals(Response.Status.NO_CONTENT.getStatusCode(),
+            assertEquals(Response.Status.NOT_FOUND.getStatusCode(),
                     response.getStatusInfo().getStatusCode());
         }
 
@@ -105,7 +105,7 @@ public class EndpointTest {
     void testRemoveRegistry() {
         doThrow(IllegalAccessError.class).when(aasControllerMock).stopService(any());
         try (var response = testSubject.removeRegistry(url)) {
-            assertEquals(Response.Status.NO_CONTENT.getStatusCode(),
+            assertEquals(Response.Status.NOT_FOUND.getStatusCode(),
                     response.getStatusInfo().getStatusCode());
         }
         verify(registryRepositoryMock, times(1)).delete(any());

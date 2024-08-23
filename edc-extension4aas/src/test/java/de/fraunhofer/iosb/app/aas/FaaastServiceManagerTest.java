@@ -34,6 +34,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
 
+import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -111,8 +112,9 @@ public class FaaastServiceManagerTest {
     }
 
     private URL startService() throws IOException {
-        return testSubject.startService(Path.of("./src/test/resources/aasEnvironment.json"),
-                8080);
+        return testSubject.startService(
+                Path.of("./src/test/resources/aasEnvironment.json"),
+                getFreePort());
     }
 
     @AfterEach

@@ -43,6 +43,6 @@ public record AasAccessUrl(URL url) {
 
     @Override
     public String toString() {
-        return "AAS Access URL{url=%s}".formatted(url);
+        return url.toString();
     }
 }

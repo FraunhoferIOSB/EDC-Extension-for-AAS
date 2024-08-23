@@ -38,7 +38,6 @@ import java.util.Optional;
 import static de.fraunhofer.iosb.api.model.HttpMethod.GET;
 import static de.fraunhofer.iosb.app.aas.agent.impl.RegistryAgent.SHELL_DESCRIPTORS_PATH;
 import static de.fraunhofer.iosb.app.aas.agent.impl.RegistryAgent.SUBMODEL_DESCRIPTORS_PATH;
-import static de.fraunhofer.iosb.app.pipeline.PipelineFailure.Type.FATAL;
 import static de.fraunhofer.iosb.app.pipeline.PipelineFailure.Type.WARNING;
 import static de.fraunhofer.iosb.app.testutils.RegistryElementCreator.getEmptyShellDescriptor;
 import static de.fraunhofer.iosb.app.testutils.RegistryElementCreator.getEmptySubmodelDescriptor;
@@ -223,7 +222,7 @@ class RegistryAgentTest {
         var result = testSubject.apply(new URL("https://example.com"));
 
         assertTrue(result.failed());
-        assertEquals(FATAL, result.getFailure().getFailureType());
+        assertEquals(WARNING, result.getFailure().getFailureType());
     }
 
     @Test

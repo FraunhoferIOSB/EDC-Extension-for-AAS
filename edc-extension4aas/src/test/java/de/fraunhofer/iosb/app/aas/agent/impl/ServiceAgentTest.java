@@ -118,8 +118,8 @@ class ServiceAgentTest {
         var result = testSubject.apply(new URL("http://anonymous.invalid"));
 
         assertTrue(result.failed());
-        assertEquals(FATAL, result.getFailure().getFailureType());
-        assertEquals(UnknownHostException.class.getName(), result.getFailure().getMessages().get(0));
+        assertEquals(WARNING, result.getFailure().getFailureType());
+        assertEquals(UnknownHostException.class.getSimpleName(), result.getFailure().getMessages().get(0));
     }
 
     @Test

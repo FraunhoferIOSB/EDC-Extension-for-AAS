@@ -30,7 +30,8 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.net.ConnectException;
+import java.net.DatagramSocket;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URL;
 import java.nio.file.Path;
@@ -86,7 +87,7 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
                 .map(endpoint -> (HttpEndpointConfig) endpoint)
                 .toList();
 
-        if (httpEndpoints.stream().map(HttpEndpointConfig::getPort).noneMatch(p -> isValidPort(p) && available(p))) {
+        if (httpEndpoints.stream().map(HttpEndpointConfig::getPort).noneMatch(p -> port == p || isValidPort(p) && available(p))) {
             throw new IllegalArgumentException(NO_ENDPOINT_DEFINED_EXCEPTION_MESSAGE);
         }
 
@@ -167,15 +168,26 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
         return serviceConfig;
     }
 
-    private boolean available(int port) throws IllegalStateException {
-        try (Socket ignored = new Socket("localhost", port)) {
+    private boolean available(int port) {
+        try (var socket = new Socket("localhost", port)) {
+            socket.setReuseAddress(true);
             // Connected to some service -> unavailable
-            monitor.info("Port %s is unavailable.".formatted(port));
             return false;
-        } catch (ConnectException e) {
+        } catch (IOException ignored) {
+            var ignoredBody = "";
+        }
+
+        try (var serverSocket = new ServerSocket(port)) {
+            serverSocket.setReuseAddress(true);
+        } catch (IOException ignored) {
+            return false;
+        }
+
+        try (var datagramSocket = new DatagramSocket(port)) {
+            datagramSocket.setReuseAddress(true);
             return true;
-        } catch (IOException e) {
-            throw new IllegalStateException("Error while trying to check open port", e);
+        } catch (IOException ignored) {
+            return false;
         }
     }
 

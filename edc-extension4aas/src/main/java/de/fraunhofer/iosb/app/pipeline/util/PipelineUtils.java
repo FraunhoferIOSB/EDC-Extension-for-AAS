@@ -49,7 +49,7 @@ public class PipelineUtils {
      */
     public static <U> PipelineResult<Collection<U>> handleError(Collection<PipelineResult<U>> results) {
         PipelineResult<Collection<U>> pipeResult = null;
-        if (results.stream().anyMatch(PipelineResult::failed)) {
+        if (results.stream().anyMatch(AbstractResult::failed)) {
             var failureMessages = collectFailureMessages(results);
             pipeResult = switch (maxFailure(results)) {
                 case FATAL -> PipelineResult.failure(PipelineFailure.fatal(failureMessages));

@@ -16,6 +16,7 @@
 package de.fraunhofer.iosb.app.pipeline;
 
 import org.eclipse.edc.spi.result.AbstractResult;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -77,6 +78,20 @@ public class PipelineResult<T> extends AbstractResult<T, PipelineFailure, Pipeli
             case DUPLICATE_KEYS, NOT_FOUND -> failure(PipelineFailure.warning(storeResult.getFailureMessages()));
             case GENERAL_ERROR, ALREADY_LEASED -> failure(PipelineFailure.fatal(storeResult.getFailureMessages()));
         };
+    }
+
+    /**
+     * Returns warning on result failure. See also: from(StoreResult)
+     *
+     * @param result Result to transform.
+     * @param <T>    Content type
+     * @return PipelineResult
+     */
+    public static <T> PipelineResult<T> from(Result<T> result) {
+        if (result.succeeded()) {
+            return success(result.getContent());
+        }
+        return failure(PipelineFailure.warning(result.getFailureMessages()));
     }
 
     /**

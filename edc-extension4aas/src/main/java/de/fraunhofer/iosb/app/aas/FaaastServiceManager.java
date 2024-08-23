@@ -86,6 +86,10 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
                 .map(endpoint -> (HttpEndpointConfig) endpoint)
                 .toList();
 
+        if (httpEndpoints.stream().map(HttpEndpointConfig::getPort).noneMatch(p -> isValidPort(p) && available(p))) {
+            throw new IllegalArgumentException(NO_ENDPOINT_DEFINED_EXCEPTION_MESSAGE);
+        }
+
         // If port was explicitly provided, take this port for communication
         var communicationHttpPort = (httpEndpoints.stream().anyMatch(endpoint -> endpoint.getPort() == port) ?
                 httpEndpoints.stream().filter(endpoint -> endpoint.getPort() == port).findFirst() :

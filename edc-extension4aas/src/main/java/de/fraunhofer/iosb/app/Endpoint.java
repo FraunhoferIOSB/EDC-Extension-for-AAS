@@ -196,14 +196,12 @@ public class Endpoint {
             return Response.status(Status.BAD_REQUEST).entity("Missing query parameter 'url'").build();
         }
 
-        if (SERVICE.equals(type)) {
-            serviceRepository.delete(accessUrl);
-        } else if (REGISTRY.equals(type)) {
-            registryRepository.delete(accessUrl);
+        if (SERVICE.equals(type) && serviceRepository.delete(accessUrl) ||
+                REGISTRY.equals(type) && registryRepository.delete(accessUrl)) {
+            // Return 204 (https://www.rfc-editor.org/rfc/rfc9110.html#section-9.3.5)
+            return Response.noContent().build();
         } else {
-            throw new IllegalArgumentException("Unknown type: %s".formatted(type));
+            return Response.status(Status.NOT_FOUND).build();
         }
-        // Return 204 (https://www.rfc-editor.org/rfc/rfc9110.html#section-9.3.5)
-        return Response.noContent().build();
     }
 }

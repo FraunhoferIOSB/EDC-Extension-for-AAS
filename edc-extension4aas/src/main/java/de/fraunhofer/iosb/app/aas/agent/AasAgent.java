@@ -27,7 +27,7 @@ import okhttp3.ResponseBody;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.DeserializationException;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.json.JsonDeserializer;
 import org.eclipse.edc.spi.EdcException;
-import org.jetbrains.annotations.NotNull;
+import org.eclipse.edc.spi.result.Result;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -35,9 +35,9 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import javax.annotation.Nonnull;
 
 import static jakarta.ws.rs.HttpMethod.GET;
-import static java.lang.String.format;
 
 /**
  * Fetching an AAS environment from AAS service or AAS registry providers.
@@ -54,44 +54,49 @@ public abstract class AasAgent<T> extends PipelineStep<URL, T> {
         this.aasDataProcessorFactory = aasDataProcessorFactory;
     }
 
-    protected <K> List<K> readElements(URL accessUrl, Class<K> clazz) throws IOException {
+    protected <K> Result<List<K>> readElements(URL accessUrl, Class<K> clazz) throws IOException {
         try (var response = executeRequest(accessUrl)) {
-            if (response == null || response.body() == null || !response.isSuccessful()) {
+            if (response.isSuccessful() && response.body() != null) {
+                return readList(response.body().string(), clazz);
+            } else if (response.code() > 299 && response.code() < 500) {
+                // Fatal (irrecoverable): 4XX = client error
                 throw new EdcException("Request for %s failed".formatted(clazz.getName()));
+            } else if (response.code() > 499) {
+                // Warning (maybe temporary): 5XX = server error
+                return Result.failure(String.valueOf(response.code()));
             }
-            var body = response.body();
-
-            return readList(body.string(), clazz);
         }
+        throw new IllegalStateException("Reading %s from %s failed".formatted(clazz.getName(), accessUrl));
     }
 
-    private <K> @NotNull List<K> readList(@Nullable String serialized, Class<K> clazz) {
+    private <K> @Nonnull Result<List<K>> readList(@Nullable String serialized, Class<K> clazz) {
         try {
             var responseJson = objectMapper.readTree(serialized).get("result");
-            return Optional.ofNullable(jsonDeserializer.readList(responseJson, clazz))
-                    .orElse(new ArrayList<>());
+            return Result.success(Optional.ofNullable(jsonDeserializer.readList(responseJson, clazz))
+                    .orElse(new ArrayList<>()));
         } catch (JsonProcessingException | DeserializationException e) {
-            throw new EdcException(format("Failed parsing list of %s", clazz.getName()), e);
+            return Result.failure(List.of("Failed parsing list of %s".formatted(clazz.getName()), e.getMessage()));
         }
     }
 
-    private Response executeRequest(URL aasServiceUrl) throws IOException {
+    private @Nonnull Response executeRequest(URL aasServiceUrl) throws IOException {
         var processor = aasDataProcessorFactory.processorFor(aasServiceUrl.toString());
 
         if (processor.failed()) {
             return new Response.Builder()
                     .code(500)
-                    .body(ResponseBody.create(String.valueOf(processor.getFailure()), MediaType.get("application/json"
-                    )))
+                    .body(ResponseBody.create(processor.getFailure().getFailureDetail(),
+                            MediaType.get("application/json")))
                     .request(new Request.Builder().url("").build())
                     .build();
         }
+
         return processor.getContent()
                 .send(AasDataAddress.Builder
                         .newInstance()
                         .method(GET)
                         .baseUrl(aasServiceUrl.toString())
-                        .build());
-
+                        .build()
+                );
     }
 }

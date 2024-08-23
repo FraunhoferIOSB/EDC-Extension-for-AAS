@@ -25,6 +25,8 @@ import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
 import org.eclipse.digitaltwin.aas4j.v3.model.Submodel;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultEnvironment;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.result.AbstractResult;
+import org.eclipse.edc.spi.result.Result;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -53,20 +55,48 @@ public class ServiceAgent extends AasAgent<Environment> {
     @Override
     public PipelineResult<Environment> apply(URL url) {
         try {
-            return PipelineResult.success(readEnvironment(url));
-        } catch (EdcException | IOException | URISyntaxException e) {
-            return PipelineResult.failure(PipelineFailure.fatal(List.of(e.getClass().getName(), e.getMessage())));
+            return readEnvironment(url);
+        } catch (Exception e) {
+            // uncaught exception!
+            return PipelineResult.failure(PipelineFailure.warning(List.of(e.getClass().getSimpleName(), e.getMessage())));
         }
     }
 
-    private Environment readEnvironment(URL aasServiceUrl) throws IOException, URISyntaxException {
+    private PipelineResult<Environment> readEnvironment(URL aasServiceUrl) throws IOException, URISyntaxException {
         var submodelUrl = aasServiceUrl.toURI().resolve(SUBMODELS_PATH).toURL();
         var shellsUrl = aasServiceUrl.toURI().resolve(SHELLS_PATH).toURL();
         var conceptDescriptionsUrl = aasServiceUrl.toURI().resolve(CONCEPT_DESCRIPTIONS_PATH).toURL();
 
-        return new DefaultEnvironment.Builder()
-                .assetAdministrationShells(readElements(shellsUrl, AssetAdministrationShell.class).stream().toList())
-                .submodels(readElements(submodelUrl, Submodel.class).stream().toList())
-                .conceptDescriptions(readElements(conceptDescriptionsUrl, ConceptDescription.class).stream().toList()).build();
+        Result<List<AssetAdministrationShell>> shellsResult;
+        Result<List<Submodel>> submodelsResult;
+        Result<List<ConceptDescription>> conceptDescriptionsResult;
+        try {
+            shellsResult = readElements(shellsUrl, AssetAdministrationShell.class);
+            submodelsResult = readElements(submodelUrl, Submodel.class);
+            conceptDescriptionsResult = readElements(conceptDescriptionsUrl, ConceptDescription.class);
+
+        } catch (EdcException e) {
+            // If an exception was raised, produce a fatal result
+            return PipelineResult.failure(PipelineFailure.fatal(List.of(e.getClass().getSimpleName())));
+        }
+
+        var environment = new DefaultEnvironment.Builder()
+                .assetAdministrationShells(shellsResult.succeeded() ? shellsResult.getContent() : null)
+                .submodels(submodelsResult.succeeded() ? submodelsResult.getContent() : null)
+                .conceptDescriptions(conceptDescriptionsResult.succeeded() ? conceptDescriptionsResult.getContent() : null)
+                .build();
+
+        var results = List.of(shellsResult, submodelsResult, conceptDescriptionsResult);
+
+        if (results.stream().anyMatch(AbstractResult::failed)) {
+            // If any request failed, produce a warning
+            return PipelineResult.recoverableFailure(environment,
+                    PipelineFailure.warning(results.stream()
+                            .map(AbstractResult::getFailureMessages)
+                            .flatMap(List::stream)
+                            .toList()));
+        }
+
+        return PipelineResult.success(environment);
     }
 }

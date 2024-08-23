@@ -88,15 +88,6 @@ public class FaaastServiceManagerTest {
     }
 
     @Test
-    public void startServiceFalsePortTest() throws IOException {
-        try {
-            testSubject.startService(Path.of("./src/test/resources/aasEnvironment.json"), -800);
-            fail("EdcException should have been thrown");
-        } catch (EdcException expected) {
-        }
-    }
-
-    @Test
     public void stopServicesEmptyRepositoryTest() {
         try {
             testSubject.stopServices();

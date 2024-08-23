@@ -66,7 +66,6 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
     public URL startService(Path aasModelPath, int port) throws IOException {
         Objects.requireNonNull(aasModelPath);
         return startService(aasModelPath, null, port);
-
     }
 
     @Override

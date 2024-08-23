@@ -106,15 +106,18 @@ public class ServiceRepository extends ObservableImpl<SelfDescriptionChangeListe
      *
      * @param accessUrl URL of service to be removed
      */
-    public void delete(URL accessUrl) {
-        // Before we remove the self-description, notify listeners (remove assets/contracts from edc)
-        services.stream()
-                .filter(service -> service.accessUrl().toString().equals(accessUrl.toString()))
+    public boolean delete(URL accessUrl) {
+        // Before we remove the service, notify listeners (remove assets/contracts from edc)
+        var service = services.stream()
+                .filter(s -> s.accessUrl().toString().equals(accessUrl.toString()))
                 .findFirst()
-                .ifPresent(service -> {
-                    services.remove(service);
-                    invokeForEach(listener -> listener.removed(service));
-                });
+                .orElse(null);
+
+        if (service != null) {
+            invokeForEach(listener -> listener.removed(service));
+            return services.remove(service);
+        }
+        return false;
     }
 
     public enum SelfDescriptionSourceType {

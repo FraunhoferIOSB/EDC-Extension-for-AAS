@@ -46,4 +46,5 @@ public class ServiceRepositoryUpdater extends PipelineStep<Service, Pair<Asset, 
 
         return PipelineResult.success(new Pair<>(old, service.environment()));
     }
+
 }

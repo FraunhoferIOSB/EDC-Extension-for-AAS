@@ -100,17 +100,19 @@ public class RegistryRepository extends ObservableImpl<SelfDescriptionChangeList
      *
      * @param accessUrl URL of registry to be removed
      */
-    public void delete(URL accessUrl) {
-        // Before we remove the self-description, notify listeners (remove assets/contracts from edc)
-        registries.stream()
-                .filter(registry ->
-                        registry.accessUrl().toString()
-                                .equals(accessUrl.toString()))
+    public boolean delete(URL accessUrl) {
+        // Before we remove the registry, notify listeners (remove assets/contracts from edc)
+        var registry = registries.stream()
+                .filter(r -> r.accessUrl().equals(new AasAccessUrl(accessUrl)))
                 .findFirst()
-                .ifPresent(registry -> {
-                    registries.remove(registry);
-                    invokeForEach(listener -> listener.removed(registry));
-                });
+                .orElse(null);
+
+        if (registry != null) {
+            invokeForEach(listener -> listener.removed(registry));
+            return registries.remove(registry);
+        }
+
+        return false;
     }
 
     private Collection<Service> getEnvironments(Predicate<Registry> registryPredicate) {

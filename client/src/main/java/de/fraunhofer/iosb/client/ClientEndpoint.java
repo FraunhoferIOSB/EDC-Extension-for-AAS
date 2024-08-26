@@ -152,7 +152,8 @@ public class ClientEndpoint {
                                       @QueryParam("assetId") String assetId,
                                       DataAddress dataAddress) {
         monitor.info("POST /%s".formatted(NEGOTIATE_PATH));
-        if (Objects.isNull(counterPartyUrl) || Objects.isNull(counterPartyId) || Objects.isNull(assetId)) {
+        if (counterPartyUrl == null || counterPartyId == null || assetId == null ||
+                assetId.isEmpty()) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(MISSING_QUERY_PARAMETER_MESSAGE.formatted("providerUrl, counterPartyId, assetId")).build();
         }

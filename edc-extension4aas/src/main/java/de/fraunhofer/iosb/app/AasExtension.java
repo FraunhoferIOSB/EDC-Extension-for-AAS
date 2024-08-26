@@ -35,7 +35,6 @@ import de.fraunhofer.iosb.app.model.aas.service.ServiceRepository;
 import de.fraunhofer.iosb.app.model.aas.service.ServiceRepositoryUpdater;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import de.fraunhofer.iosb.app.pipeline.Pipeline;
-import de.fraunhofer.iosb.app.pipeline.PipelineFailure;
 import de.fraunhofer.iosb.app.pipeline.PipelineStep;
 import de.fraunhofer.iosb.app.pipeline.helper.CollectionFeeder;
 import de.fraunhofer.iosb.app.pipeline.helper.InputOutputZipper;
@@ -61,6 +60,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import static de.fraunhofer.iosb.app.controller.SelfDescriptionController.SELF_DESCRIPTION_PATH;
+import static de.fraunhofer.iosb.app.pipeline.PipelineFailure.Type.FATAL;
 import static de.fraunhofer.iosb.app.util.InetTools.pingHost;
 
 /**
@@ -136,7 +136,7 @@ public class AasExtension implements ServiceExtension {
                 .step(new MapValueProcessor<>(
                         new EnvironmentToAssetMapper(() -> Configuration.getInstance().isOnlySubmodels()),
                         // Remove fatal results from further processing
-                        result -> result.failed() && result.getFailure().getFailureType().equals(PipelineFailure.Type.FATAL) ? null : result)
+                        result -> result.failed() && FATAL.equals(result.getFailure().getFailureType()) ? null : result)
                 )
                 .step(PipelineStep.create(registriesMap -> (Collection<Registry>) registriesMap.entrySet().stream()
                         .map(registry -> new Registry(registry.getKey(), registry.getValue()))
@@ -208,7 +208,6 @@ public class AasExtension implements ServiceExtension {
     @Override
     public void shutdown() {
         // Gracefully stop AAS services
-        monitor.info("Stopping all internally started AAS services");
         aasController.stopServices();
     }
 }

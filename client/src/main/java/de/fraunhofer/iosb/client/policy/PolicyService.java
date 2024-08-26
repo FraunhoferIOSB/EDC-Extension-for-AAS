@@ -114,7 +114,7 @@ class PolicyService {
 
         if (Objects.isNull(datasets) || datasets.size() != 1) {
             throw new AmbiguousOrNullException(
-                    format("Multiple or no policyDefinitions were found for assetId %s!",
+                    format("Multiple or no policyDefinitions were received for assetId %s!",
                             assetId));
         }
 

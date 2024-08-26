@@ -42,6 +42,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+import static de.fraunhofer.iosb.client.policy.PolicyService.AMBIGUOUS_OR_NULL_MESSAGE;
 import static java.lang.String.format;
 import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
@@ -128,7 +129,7 @@ public class PolicyServiceTest {
             policyService.getDatasetForAssetId("test-counter-party-id", testUrl, "test-asset-id");
             fail(); // Should throw exception
         } catch (AmbiguousOrNullException expected) {
-            assertEquals(format("Multiple or no policyDefinitions were found for assetId %s!", "test-asset-id"), expected.getMessage());
+            assertEquals(AMBIGUOUS_OR_NULL_MESSAGE.formatted("test-asset-id"), expected.getMessage());
         }
     }
 

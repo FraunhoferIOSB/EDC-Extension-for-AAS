@@ -13,24 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.model.auth;
+package de.fraunhofer.iosb.model.aas.auth.impl;
 
-import org.jetbrains.annotations.Nullable;
+import de.fraunhofer.iosb.model.aas.auth.AuthenticationMethod;
 
-import java.util.AbstractMap;
-import java.util.Map;
+import java.util.Base64;
 
-public abstract class AuthenticationMethod {
+/**
+ * <a href="https://datatracker.ietf.org/doc/html/rfc7617#section-2">rfc7617</a>
+ */
+public class BasicAuth extends AuthenticationMethod {
 
-    /**
-     * Get the header value to add to the request headers to communicate with the service.
-     * Headers: [... , (getHeader().key, getHeader().value), ...]
-     *
-     * @return The header to place in the request in order to authenticate
-     */
-    public @Nullable Map.Entry<String, String> getHeader() {
-        return new AbstractMap.SimpleEntry<>("Authorization", getValue());
+    private final Base64.Encoder encoder = Base64.getEncoder();
+
+    private final String username;
+    private final String password;
+
+    public BasicAuth(String username, String password) {
+        this.username = username;
+        this.password = password;
     }
 
-    protected abstract String getValue();
+    protected String getValue() {
+        return "Basic %s".formatted(encoder.encodeToString("%s:%s".formatted(username, password).getBytes()));
+    }
 }

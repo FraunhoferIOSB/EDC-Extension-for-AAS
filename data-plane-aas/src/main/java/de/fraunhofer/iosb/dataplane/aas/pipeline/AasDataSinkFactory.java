@@ -54,7 +54,6 @@ public class AasDataSinkFactory implements DataSinkFactory {
                 .monitor(monitor)
                 .aasDataAddress(dataAddress)
                 .build();
-
     }
 
     @Override

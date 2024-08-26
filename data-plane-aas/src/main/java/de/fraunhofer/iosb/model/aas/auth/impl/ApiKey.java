@@ -13,36 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.app.model.aas;
+package de.fraunhofer.iosb.model.aas.auth.impl;
 
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.Objects;
+import de.fraunhofer.iosb.model.aas.auth.AuthenticationMethod;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.AbstractMap;
+import java.util.Map;
 
 /**
- * URL wrapper with equals method appropriate for AAS service access URLs
+ * Api key authentication: (key, value).
+ * Example: (x-api-key,password)
  */
-public record AasAccessUrl(URL url) {
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        AasAccessUrl that = (AasAccessUrl) o;
+public class ApiKey extends AuthenticationMethod {
 
-        try {
-            return Objects.equals(url.toURI(), that.url.toURI());
-        } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
-        }
+    private final String key;
+    private final String keyValue;
+
+    public ApiKey(String key, String keyValue) {
+        this.key = key;
+        this.keyValue = keyValue;
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hashCode(url);
+    public @Nullable Map.Entry<String, String> getHeader() {
+        return new AbstractMap.SimpleEntry<>(key, getValue());
     }
 
     @Override
-    public String toString() {
-        return url.toString();
+    protected String getValue() {
+        return keyValue;
     }
 }

@@ -81,11 +81,17 @@ public class AasDataProcessor {
 
     private Response send(AasDataAddress aasDataAddress, byte[] bytes, String mediaType) throws IOException {
         var requestUrlBuilder = HttpUrl.get(aasDataAddress.getBaseUrl()).newBuilder();
-        if (!aasDataAddress.referenceChainAsPath().isEmpty()) {
-            requestUrlBuilder.addPathSegments(aasDataAddress.referenceChainAsPath());
+
+        var requestPath = aasDataAddress.getPath();
+
+
+        if (!requestPath.isEmpty()) {
+            // Remove leading forward slash
+            requestPath = requestPath.startsWith("/") ? requestPath.substring(1) : requestPath;
+            requestUrlBuilder.addPathSegments(requestPath);
         }
 
-        var requestUrl  = requestUrlBuilder.build().url();
+        var requestUrl = requestUrlBuilder.build().url();
         var requestBody = new AasTransferRequestBody(bytes, mediaType);
 
         var request = new Request.Builder()

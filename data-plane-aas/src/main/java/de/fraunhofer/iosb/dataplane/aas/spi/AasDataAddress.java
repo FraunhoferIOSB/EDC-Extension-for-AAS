@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import de.fraunhofer.iosb.model.aas.AasProvider;
 import de.fraunhofer.iosb.util.Encoder;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultReference;
@@ -27,6 +28,7 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -44,12 +46,13 @@ import static java.util.stream.Collectors.toMap;
 @JsonDeserialize(builder = DataAddress.Builder.class)
 public class AasDataAddress extends DataAddress {
 
-    public static final String REFERENCE_CHAIN = "referenceChain";
     public static final String BASE_URL = "https://w3id.org/edc/v0.0.1/ns/baseUrl";
 
     private static final String ADDITIONAL_HEADER = "header:";
     private static final String METHOD = "method";
-    private static final String QUERY_PARAMS = "queryParams";
+    private static final String PROVIDER = "AAS-Provider";
+    private static final String REFERENCE_CHAIN = "referenceChain";
+    private static final String PATH = "PATH";
 
     private AasDataAddress() {
         super();
@@ -58,7 +61,19 @@ public class AasDataAddress extends DataAddress {
 
     @JsonIgnore
     public String getBaseUrl() {
-        return getStringProperty(BASE_URL);
+        return hasProvider() ? getProvider().getAccessUrl().toString() : getStringProperty(BASE_URL);
+    }
+
+    private AasProvider getProvider() {
+        Object provider = super.getProperties().get(PROVIDER);
+        if (provider instanceof AasProvider) {
+            return (AasProvider) provider;
+        }
+        throw new EdcException(new IllegalStateException("Provider not set correctly: %s".formatted(provider)));
+    }
+
+    private boolean hasProvider() {
+        return getProperties().get(PROVIDER) != null;
     }
 
     @JsonIgnore
@@ -68,29 +83,37 @@ public class AasDataAddress extends DataAddress {
 
     @JsonIgnore
     public Map<String, String> getAdditionalHeaders() {
-        return getProperties().entrySet().stream()
+        // First get authentication headers from aas provider, then additional ones
+        Map<String, String> headers = hasProvider() ? getProvider().getHeaders() : new HashMap<>();
+        headers.putAll(getProperties().entrySet().stream()
                 .filter(entry -> entry.getKey().startsWith(ADDITIONAL_HEADER))
-                .collect(toMap(headerName -> headerName.getKey().replace(ADDITIONAL_HEADER, ""), headerValue -> (String) headerValue.getValue()));
+                .collect(toMap(headerName -> headerName.getKey().replace(ADDITIONAL_HEADER, ""),
+                        headerValue -> (String) headerValue.getValue())));
+        return headers;
     }
 
     /**
-     * Builds and returns the HTTP URL path required to access this AAS data at the AAS service.
+     * If an explicit path is available, return this path. Else, return the following:
+     * <p>
+     * build and returns the HTTP URL path required to access this AAS data at the AAS service.
      * Example: ReferenceChain: [Submodel x, SubmodelElementCollection y, SubmodelElement z]
      * --> path: submodels/base64(x)/submodel-elements/y.z
      *
-     * @return Path correlating to reference chain stored in this DataAddress (no leading '/').
+     * @return Explicitly defined path or path correlating to reference chain stored in this DataAddress (no leading '/').
      */
-    public String referenceChainAsPath() {
+    public String getPath() {
+        return getStringProperty(PATH, referenceChainAsPath());
+    }
+
+    private String referenceChainAsPath() {
         StringBuilder urlBuilder = new StringBuilder();
 
         for (var key : getReferenceChain().getKeys()) {
 
             switch (key.getType()) {
-                case ASSET_ADMINISTRATION_SHELL ->
-                        urlBuilder.append("shells/").append(Encoder.encodeBase64(key.getValue()));
+                case ASSET_ADMINISTRATION_SHELL -> urlBuilder.append("shells/").append(Encoder.encodeBase64(key.getValue()));
                 case SUBMODEL -> urlBuilder.append("submodels/").append(Encoder.encodeBase64(key.getValue()));
-                case CONCEPT_DESCRIPTION ->
-                        urlBuilder.append("concept-descriptions/").append(Encoder.encodeBase64(key.getValue()));
+                case CONCEPT_DESCRIPTION -> urlBuilder.append("concept-descriptions/").append(Encoder.encodeBase64(key.getValue()));
                 case SUBMODEL_ELEMENT, SUBMODEL_ELEMENT_COLLECTION, SUBMODEL_ELEMENT_LIST -> {
                     if (urlBuilder.indexOf("/submodel-elements/") == -1) {
                         urlBuilder.append("/submodel-elements/");
@@ -99,8 +122,7 @@ public class AasDataAddress extends DataAddress {
                     }
                     urlBuilder.append(key.getValue());
                 }
-                default ->
-                        throw new EdcException(new IllegalStateException(format("Element type not recognized in AasDataAddress: %s", key.getType())));
+                default -> throw new EdcException(new IllegalStateException(format("Element type not recognized in AasDataAddress: %s", key.getType())));
             }
         }
 
@@ -134,13 +156,18 @@ public class AasDataAddress extends DataAddress {
             return new Builder();
         }
 
+        public Builder aasProvider(AasProvider provider) {
+            this.property(PROVIDER, provider);
+            return this;
+        }
+
         public Builder baseUrl(String baseUrl) {
             this.property(BASE_URL, baseUrl);
             return this;
         }
 
-        public Builder queryParams(String queryParams) {
-            this.property(QUERY_PARAMS, queryParams);
+        public Builder path(String path) {
+            this.property(PATH, path);
             return this;
         }
 
@@ -157,7 +184,10 @@ public class AasDataAddress extends DataAddress {
         }
 
         public Builder copyFrom(DataAddress other) {
-            (Optional.ofNullable(other).map(DataAddress::getProperties).orElse(Collections.emptyMap())).forEach(this::property);
+            (Optional.ofNullable(other)
+                    .map(DataAddress::getProperties)
+                    .orElse(Collections.emptyMap()))
+                    .forEach(this::property);
             return this;
         }
 

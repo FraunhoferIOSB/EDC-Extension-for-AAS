@@ -18,10 +18,28 @@ package de.fraunhofer.iosb.app;
 import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
 import de.fraunhofer.iosb.api.PublicApiManagementService;
 import de.fraunhofer.iosb.api.model.HttpMethod;
+import de.fraunhofer.iosb.app.aas.EnvironmentToAssetMapper;
+import de.fraunhofer.iosb.app.aas.agent.impl.RegistryAgent;
+import de.fraunhofer.iosb.app.aas.agent.impl.ServiceAgent;
 import de.fraunhofer.iosb.app.controller.AasController;
 import de.fraunhofer.iosb.app.controller.ConfigurationController;
+import de.fraunhofer.iosb.app.controller.SelfDescriptionController;
+import de.fraunhofer.iosb.app.edc.CleanUpService;
+import de.fraunhofer.iosb.app.edc.asset.AssetRegistrar;
+import de.fraunhofer.iosb.app.edc.contract.ContractRegistrar;
+import de.fraunhofer.iosb.app.model.aas.AasAccessUrl;
+import de.fraunhofer.iosb.app.model.aas.registry.Registry;
+import de.fraunhofer.iosb.app.model.aas.registry.RegistryRepository;
+import de.fraunhofer.iosb.app.model.aas.registry.RegistryRepositoryUpdater;
+import de.fraunhofer.iosb.app.model.aas.service.ServiceRepository;
+import de.fraunhofer.iosb.app.model.aas.service.ServiceRepositoryUpdater;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
-import de.fraunhofer.iosb.app.model.ids.SelfDescriptionRepository;
+import de.fraunhofer.iosb.app.pipeline.Pipeline;
+import de.fraunhofer.iosb.app.pipeline.PipelineFailure;
+import de.fraunhofer.iosb.app.pipeline.PipelineStep;
+import de.fraunhofer.iosb.app.pipeline.helper.CollectionFeeder;
+import de.fraunhofer.iosb.app.pipeline.helper.InputOutputZipper;
+import de.fraunhofer.iosb.app.pipeline.helper.MapValueProcessor;
 import de.fraunhofer.iosb.app.sync.Synchronizer;
 import de.fraunhofer.iosb.app.util.VariableRateScheduler;
 import de.fraunhofer.iosb.registry.AasServiceRegistry;
@@ -30,18 +48,20 @@ import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractD
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.web.spi.WebService;
 
-import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+
+import static de.fraunhofer.iosb.app.controller.SelfDescriptionController.SELF_DESCRIPTION_PATH;
+import static de.fraunhofer.iosb.app.util.InetTools.pingHost;
 
 /**
  * EDC Extension supporting usage of Asset Administration Shells.
@@ -55,7 +75,7 @@ public class AasExtension implements ServiceExtension {
     @Inject
     private AasDataProcessorFactory aasDataProcessorFactory;
     @Inject // Register AAS services (with self-signed certs) to allow communication
-    private AasServiceRegistry aasServiceRegistry;
+    private AasServiceRegistry foreignServerRegistry;
     @Inject // Register public endpoints
     private PublicApiManagementService publicApiManagementService;
     @Inject
@@ -66,55 +86,98 @@ public class AasExtension implements ServiceExtension {
     private PolicyDefinitionStore policyDefinitionStore;
     @Inject // Register http endpoint at EDC
     private WebService webService;
+
     private AasController aasController;
+    private Monitor monitor;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var monitor = context.getMonitor().withPrefix(NAME);
+        this.monitor = context.getMonitor().withPrefix(NAME);
+        webService.registerResource(new ConfigurationController(context.getConfig(SETTINGS_PREFIX), monitor));
 
-        var configurationController = new ConfigurationController(context.getConfig(SETTINGS_PREFIX), monitor);
+        aasController = new AasController(foreignServerRegistry, monitor);
+        var serviceRepository = new ServiceRepository();
+        var registryRepository = new RegistryRepository();
 
-        // Distribute controllers, repository
-        var selfDescriptionRepository = new SelfDescriptionRepository();
-        this.aasController = new AasController(monitor, aasDataProcessorFactory);
-        var endpoint = new Endpoint(selfDescriptionRepository, this.aasController, configurationController, monitor);
+        // This is to allow for self-signed services
+        serviceRepository.registerListener(aasController);
+        registryRepository.registerListener(aasController);
 
-        // Initialize/Start synchronizer, start AAS services defined in configuration
-        var synchronizer = initializeSynchronizer(selfDescriptionRepository, monitor);
+        // Check if a URL is reachable by pinging the host+port combination (not actual ICMP)
+        PipelineStep<URL, URL> reachabilityCheck = PipelineStep.create(url -> {
+            if (!pingHost(url.getHost(), url.getPort(), 10)) {
+                monitor.severe("URL %s not reachable!".formatted(url));
+                return null;
+            }
+            return url;
+        });
 
-        selfDescriptionRepository.registerListener(synchronizer);
+        var serviceSynchronization = new Pipeline.Builder<Void, Void>()
+                .monitor(monitor.withPrefix("Service Synchronization Pipeline"))
+                .supplier(serviceRepository::getAllServiceAccessUrls)
+                .step(new CollectionFeeder<>(reachabilityCheck))
+                .step(new InputOutputZipper<>(new ServiceAgent(aasDataProcessorFactory), AasAccessUrl::new))
+                .step(new EnvironmentToAssetMapper(() -> Configuration.getInstance().isOnlySubmodels()))
+                .step(new CollectionFeeder<>(new ServiceRepositoryUpdater(serviceRepository)))
+                .step(new Synchronizer())
+                .step(new AssetRegistrar(assetIndex, monitor))
+                .step(new ContractRegistrar(contractDefinitionStore, policyDefinitionStore, monitor))
+                .build();
 
-        // This makes the connector shutdown if an exception occurs while starting config services
-        registerAasServicesByConfig(selfDescriptionRepository);
+        var servicePipeline = new VariableRateScheduler(1, serviceSynchronization, monitor);
+        servicePipeline.scheduleAtVariableRate(() -> Configuration.getInstance().getSyncPeriod());
+        serviceRepository.registerListener(servicePipeline);
+
+        var registrySynchronization = new Pipeline.Builder<Void, Void>()
+                .monitor(monitor.withPrefix("Registry Synchronization Pipeline"))
+                .supplier(registryRepository::getAllUrls)
+                .step(new CollectionFeeder<>(reachabilityCheck))
+                .step(new InputOutputZipper<>(new RegistryAgent(aasDataProcessorFactory, foreignServerRegistry), AasAccessUrl::new))
+                .step(new MapValueProcessor<>(
+                        new EnvironmentToAssetMapper(() -> Configuration.getInstance().isOnlySubmodels()),
+                        // Remove fatal results from further processing
+                        result -> result.failed() && result.getFailure().getFailureType().equals(PipelineFailure.Type.FATAL) ? null : result)
+                )
+                .step(PipelineStep.create(registriesMap -> (Collection<Registry>) registriesMap.entrySet().stream()
+                        .map(registry -> new Registry(registry.getKey(), registry.getValue()))
+                        .toList()))
+                .step(new RegistryRepositoryUpdater(registryRepository))
+                .step(new Synchronizer())
+                .step(new AssetRegistrar(assetIndex, monitor))
+                .step(new ContractRegistrar(contractDefinitionStore, policyDefinitionStore, monitor))
+                .build();
+
+        var registryPipeline = new VariableRateScheduler(1, registrySynchronization, monitor);
+        registryPipeline.scheduleAtVariableRate(() -> Configuration.getInstance().getSyncPeriod());
+        registryRepository.registerListener(registryPipeline);
+
+        // Clean up assets and contracts if service/registry is unregistered
+        var cleanUpService = CleanUpService.Builder.newInstance()
+                .assetIndex(assetIndex)
+                .policyDefinitionStore(policyDefinitionStore)
+                .monitor(monitor)
+                .contractDefinitionStore(contractDefinitionStore)
+                .build();
+
+        serviceRepository.registerListener(cleanUpService);
+        registryRepository.registerListener(cleanUpService);
 
         // Add public endpoint if wanted by config
         if (Configuration.getInstance().isExposeSelfDescription()) {
-            publicApiManagementService.addEndpoints(List.of(new de.fraunhofer.iosb.api.model.Endpoint(Endpoint.SELF_DESCRIPTION_PATH, HttpMethod.GET, Map.of())));
+            publicApiManagementService.addEndpoints(List.of(new de.fraunhofer.iosb.api.model.Endpoint(SELF_DESCRIPTION_PATH, HttpMethod.GET, Map.of())));
         }
 
-        webService.registerResource(endpoint);
+        webService.registerResource(new SelfDescriptionController(monitor, serviceRepository, registryRepository));
+        webService.registerResource(new Endpoint(serviceRepository, registryRepository, aasController, monitor));
+
+        registerAasServicesByConfig(serviceRepository);
     }
 
-    private Synchronizer initializeSynchronizer(SelfDescriptionRepository selfDescriptionRepository, Monitor monitor) {
-        var synchronizer = Synchronizer.Builder.getInstance()
-                .selfDescriptionRepository(selfDescriptionRepository)
-                .aasController(aasController)
-                .assetIndex(assetIndex)
-                .contractStore(contractDefinitionStore)
-                .policyStore(policyDefinitionStore)
-                .monitor(monitor)
-                .aasServiceRegistry(aasServiceRegistry)
-                .build();
-
-        new VariableRateScheduler(1).scheduleAtVariableRate(synchronizer, () -> Configuration.getInstance().getSyncPeriod());
-        return synchronizer;
-    }
-
-    private void registerAasServicesByConfig(SelfDescriptionRepository selfDescriptionRepository) {
+    private void registerAasServicesByConfig(ServiceRepository selfDescriptionRepository) {
         var configInstance = Configuration.getInstance();
 
         if (Objects.nonNull(configInstance.getRemoteAasLocation())) {
-            selfDescriptionRepository.createSelfDescription(configInstance.getRemoteAasLocation());
+            selfDescriptionRepository.create(configInstance.getRemoteAasLocation());
         }
 
         if (Objects.isNull(configInstance.getLocalAasModelPath())) {
@@ -133,17 +196,20 @@ public class AasExtension implements ServiceExtension {
                     Path.of(configInstance.getLocalAasModelPath()),
                     configInstance.getLocalAasServicePort(),
                     aasConfigPath);
-
-        } catch (IOException startAssetAdministrationShellException) {
-            throw new EdcException("Could not start AAS service provided by configuration", startAssetAdministrationShellException);
+        } catch (Exception startAssetAdministrationShellException) {
+            monitor.severe("Could not start AAS service provided by configuration",
+                    startAssetAdministrationShellException);
+            return;
         }
 
-        selfDescriptionRepository.createSelfDescription(serviceUrl);
+        selfDescriptionRepository.create(serviceUrl);
     }
 
     @Override
     public void shutdown() {
         // Gracefully stop AAS services
+        monitor.info("Stopping all internally started AAS services");
         aasController.stopServices();
     }
 }
+

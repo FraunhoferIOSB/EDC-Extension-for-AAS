@@ -211,7 +211,7 @@ public class PolicyServiceTest {
     }
 
     @Test
-    void getAcceptablePolicyForAssetIdExceptionbyGetDatasetTest() {
+    void getAcceptablePolicyForAssetIdExceptionByGetDatasetTest() {
         //TODO
     }
 }

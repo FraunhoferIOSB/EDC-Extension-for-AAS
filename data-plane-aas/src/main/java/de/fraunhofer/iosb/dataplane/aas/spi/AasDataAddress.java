@@ -86,29 +86,22 @@ public class AasDataAddress extends DataAddress {
         for (var key : getReferenceChain().getKeys()) {
 
             switch (key.getType()) {
-                case ASSET_ADMINISTRATION_SHELL:
-                    urlBuilder.append("shells/").append(Encoder.encodeBase64(key.getValue()));
-                    break;
-                case SUBMODEL:
-                    urlBuilder.append("submodels/").append(Encoder.encodeBase64(key.getValue()));
-                    break;
-                case CONCEPT_DESCRIPTION:
-                    urlBuilder.append("concept-descriptions/").append(Encoder.encodeBase64(key.getValue()));
-                    break;
-                case SUBMODEL_ELEMENT:
-                case SUBMODEL_ELEMENT_COLLECTION:
-                case SUBMODEL_ELEMENT_LIST:
+                case ASSET_ADMINISTRATION_SHELL ->
+                        urlBuilder.append("shells/").append(Encoder.encodeBase64(key.getValue()));
+                case SUBMODEL -> urlBuilder.append("submodels/").append(Encoder.encodeBase64(key.getValue()));
+                case CONCEPT_DESCRIPTION ->
+                        urlBuilder.append("concept-descriptions/").append(Encoder.encodeBase64(key.getValue()));
+                case SUBMODEL_ELEMENT, SUBMODEL_ELEMENT_COLLECTION, SUBMODEL_ELEMENT_LIST -> {
                     if (urlBuilder.indexOf("/submodel-elements/") == -1) {
                         urlBuilder.append("/submodel-elements/");
                     } else {
                         urlBuilder.append(".");
                     }
                     urlBuilder.append(key.getValue());
-                    break;
-                default:
-                    throw new EdcException(new IllegalStateException(format("Element type not recognized in AasDataAddress: %s", key.getType())));
+                }
+                default ->
+                        throw new EdcException(new IllegalStateException(format("Element type not recognized in AasDataAddress: %s", key.getType())));
             }
-
         }
 
         return urlBuilder.toString();

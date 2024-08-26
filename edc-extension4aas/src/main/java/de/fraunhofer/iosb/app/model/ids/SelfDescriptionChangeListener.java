@@ -15,22 +15,40 @@
  */
 package de.fraunhofer.iosb.app.model.ids;
 
-import java.net.URL;
+import de.fraunhofer.iosb.app.model.aas.registry.Registry;
+import de.fraunhofer.iosb.app.model.aas.service.Service;
 
 public interface SelfDescriptionChangeListener {
 
     /**
-     * Called when a self-description was created
+     * Called when a registry was created
      *
-     * @param aasUrl The URL of the newly registered AAS service
+     * @param registry Newly created registry Newly
      */
-    void created(URL aasUrl);
+    default void created(Registry registry) {
+    }
+
+    /**
+     * Called when a service was created
+     *
+     * @param service Newly created service
+     */
+    default void created(Service service) {
+    }
 
     /**
      * Called when a self-description was removed
      *
-     * @param removed The URL of the unregistered AAS service
+     * @param service Service that was removed
      */
-    void removed(URL removed);
+    default void removed(Service service) {
+    }
 
+    /**
+     * Called when a self-description was removed
+     *
+     * @param registry Registry that was removed
+     */
+    default void removed(Registry registry) {
+    }
 }

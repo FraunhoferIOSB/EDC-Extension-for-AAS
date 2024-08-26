@@ -2,7 +2,41 @@
 
 ## Current development version
 
-Compatibility: **Eclipse Dataspace Connector v0.8.0**
+Compatibility: **Eclipse Dataspace Connector v0.8.1**
+
+**New Features**
+
+* AAS registries (spec, example) can now be registered at the extension.
+    * Add a FA³ST Registry / AAS registry by URL
+    * The extension reads the shell-/submodel-descriptors and registers assets for their endpoints
+    * The information (id, idShort, ...) displayed in the self-description comes only from the registry itself, the
+      service behind the endpoint is not queried
+    * When a contract is negotiated for one of those elements, the endpoint provided by the
+      shell-/submodel-descriptor
+      is used as data source for the data transfer
+
+**Bugfixes**
+
+**Miscellaneous**
+
+* The synchronization of the EDC AssetIndex/ContractStore to the AAS services/registries is updated to a pipeline
+  architecture.
+* The extension does not use custom AAS models for internal persistence any longer
+    * Instead, the nested structure of the AAS environment is now stored in an 'environment asset'.
+        * This asset is kept by the extension for the self-description
+        * Its elements are added to the assetIndex (and contractStore/policyDefinitionStore)
+    * On AAS environment updates, this nested asset is updated and these updates are propagated to the EDC components as
+      described above.
+    * This makes the extension not rely on custom data classes which can be invalidated through an update of AAS or EDC
+    * It also makes (de)serialization of AAS environments easier
+* Updated FA³ST to version v1.1.0
+* Updated EDC to version 0.8.1
+* Removed custom dependency injection because of transitive dependency issue from FA³ST service
+    * This was in `example/build.gradle.kts`
+
+## V2.1.1
+
+This version is compatible to **Eclipse Dataspace Connector v0.8.0**
 
 **New Features**
 
@@ -25,6 +59,8 @@ Compatibility: **Eclipse Dataspace Connector v0.8.0**
   possible
 * Unregistering an external AAS service no longer throws IllegalArgumentException
 * DataTransfer with AAS DataSource no longer throws IOException: closed
+* Test runs on Microsoft's OS no longer fail
+* Update older docker example files to support new version of extension
 
 **Miscellaneous**
 

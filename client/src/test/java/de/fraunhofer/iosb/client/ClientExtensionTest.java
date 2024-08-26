@@ -23,6 +23,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.Con
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
+import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.web.spi.WebService;
@@ -49,7 +50,7 @@ public class ClientExtensionTest {
         context.registerService(ContractNegotiationStore.class, mock(ContractNegotiationStore.class));
         context.registerService(TransferProcessManager.class, mock(TransferProcessManager.class));
         context.registerService(WebService.class, mock(WebService.class));
-        context.registerService(Monitor.class, mock(Monitor.class));
+        context.registerService(Monitor.class, new ConsoleMonitor());
 
         this.context = spy(context);
         clientExtension = factory.constructInstance(ClientExtension.class);

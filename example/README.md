@@ -52,7 +52,8 @@ If you prefer to built a docker image, it can be built after building the extens
 1. Go to example folder: `cd example`
 2. Create docker image: `docker build -t edc-extension4aas:latest .`
 3. Run
-   with `docker run -i -v $PWD/configurations:/configurations/ -v $PWD/resources:/resources/ -e EDC_FS_CONFIG=/configurations/docker-provider.properties edc-extension4aas:latest`
+   with
+   `docker run -i -v $PWD/configurations:/configurations/ -v $PWD/resources:/resources/ -e EDC_FS_CONFIG=/configurations/docker-provider.properties edc-extension4aas:latest`
 
 This docker image can be run individually or **from the docker-compose file**.
 
@@ -116,13 +117,28 @@ Start the consumer connector:
 java -Dedc.fs.config=./example/configurations/consumer.properties -jar ./example/build/libs/dataspace-connector.jar
 ```
 
-Starting the data transfer from provider to consumer. There is a `postman collection` containing the necessary http
-requests located in `/examples/resources`. Complete the following steps:
+### Starting the data transfer from provider to consumer
 
-1. Call the provider's self-description on `http://localhost:8281/api/selfDescription` and choose an element you want
-   to fetch. Put its `asset id` as a variable in the postman collection's variables section ("Current value").
+There is a `postman collection` located in `/examples/resources` that contains the necessary http requests. Complete the
+following steps:
 
-### Fully automated
+1. Call the provider's self-description (postman: EDC4AAS/Self Description or
+   `http://localhost:8281/api/selfDescription` in your browser) and choose an element you want to transfer. Put its `id`
+   as a variable in the postman collection's variables section ("current value"). Below is an example
+   of a submodel element within a self-description (details omitted).
+```json
+{
+  "id": "941234968", <-- use this
+  "properties": {
+    "semanticId": [...],
+    "idShort": "Type",
+    "description": [...],
+    "https://w3id.org/edc/v0.0.1/ns/id": "941234968",
+    "https://w3id.org/edc/v0.0.1/ns/contenttype": "application/json"
+}
+```
+
+### Option a: Fully automated
 
 __Important__:
 
@@ -140,7 +156,7 @@ __Important__:
 
 1. Execute the request `Client/Automated Negotiation`. The consumer connector will now try to negotiate a contract with
    the provider to get the data of the selected asset. Optionally, you can provide a target address via the request
-   body. This must be a JSON representation of an EDC DataAddress like for example an HttpDataAddress:
+   body. This must be a JSON representation of an EDC DataAddress like for example an AasDataAddress:
     ```json
     {
        "type": "AasData",
@@ -155,7 +171,7 @@ __Important__:
 2. If everything went right, the response should already be the data behind the `asset id` you selected (in case of
    DataAddress, the data should be at the target address).
 
-### Separate requests
+### Option b: Separate requests
 
 1. Execute the request `Client/1. Get dataset for asset`
    This will return the provider offer for this asset. Copy the full response for the next step.

@@ -15,11 +15,12 @@
  */
 package de.fraunhofer.iosb.app.controller;
 
-import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
-import de.fraunhofer.iosb.app.aas.AasAgent;
 import de.fraunhofer.iosb.app.aas.AssetAdministrationShellServiceManager;
 import de.fraunhofer.iosb.app.aas.FaaastServiceManager;
-import de.fraunhofer.iosb.app.model.aas.CustomAssetAdministrationShellEnvironment;
+import de.fraunhofer.iosb.app.model.aas.registry.Registry;
+import de.fraunhofer.iosb.app.model.aas.service.Service;
+import de.fraunhofer.iosb.app.model.ids.SelfDescriptionChangeListener;
+import de.fraunhofer.iosb.registry.AasServiceRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.io.IOException;
@@ -27,66 +28,54 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.Objects;
 
-import static java.lang.String.format;
-
 /**
  * Handles requests regarding the Asset Administration Shells registered to this
  * extension
  */
-public class AasController {
+public class AasController implements SelfDescriptionChangeListener {
 
-    private final AasAgent aasAgent;
     private final AssetAdministrationShellServiceManager aasServiceManager;
     private final Monitor monitor;
-
-    public AasController(Monitor monitor, AasDataProcessorFactory aasDataProcessorFactory) {
-        this.monitor = monitor;
-
-        aasAgent = new AasAgent(aasDataProcessorFactory);
-        aasServiceManager = new FaaastServiceManager(monitor);
-    }
+    private final AasServiceRegistry serviceRegistry;
 
     /**
-     * Returns the AAS model of the AAS service behind the aasServiceUrl, as a
-     * self-description (see model/aas/*). This model has the access URL of
-     * each AAS element in the sourceUrl field.
+     * Class constructor
      *
-     * @param aasServiceUrl url of the service
-     * @param onlySubmodels Don't get shells, concept descriptions, submodel elements
-     * @return aasServiceUrl's model, in self-description form
-     * @throws IOException Communication with AAS service failed
+     * @param aasServiceRegistry Allow communication for locally started and remotely registered AAS
+     *                           clients/registries if they provide self-signed certificates
+     * @param monitor            Logging
      */
-    public CustomAssetAdministrationShellEnvironment getAasModelWithUrls(URL aasServiceUrl, boolean onlySubmodels)
-            throws IOException {
-        Objects.requireNonNull(aasServiceUrl);
-
-        return aasAgent.getAasEnvWithUrls(aasServiceUrl, onlySubmodels);
+    public AasController(AasServiceRegistry aasServiceRegistry,
+                         Monitor monitor) {
+        this.monitor = monitor;
+        serviceRegistry = aasServiceRegistry;
+        aasServiceManager = new FaaastServiceManager(monitor);
     }
 
     /**
      * Starts an AAS service internally
      *
-     * @param aasModelPath   AAS Environment for the AAS service
-     * @param aasServicePort AAS service's exposed HTTP port for communication
-     *                       with this extension
-     * @param aasConfigPath  AAS config (optional)
+     * @param model  AAS Environment for the AAS service
+     * @param port   AAS service's exposed HTTP port for communication
+     *               with this extension
+     * @param config AAS config (optional)
      * @return The URL of the new service or null on error
      * @throws IOException If the URL creation fails
      */
-    public URL startService(Path aasModelPath, int aasServicePort, Path aasConfigPath) throws IOException {
-        Objects.requireNonNull(aasModelPath);
+    public URL startService(Path model, int port, Path config) throws IOException {
+        Objects.requireNonNull(model);
 
         URL serviceUrl;
-        if (Objects.isNull(aasConfigPath)) {
-            monitor.info(format(
-                    "Booting up AAS service given AAS model path (%s)\n and service port (%s)\n...",
-                    aasModelPath, aasServicePort));
-            serviceUrl = aasServiceManager.startService(aasModelPath, aasServicePort);
+        if (config == null && port != 0) {
+            monitor.info("Starting AAS service with AAS model (%s) and service port (%s)."
+                    .formatted(model, port));
+            serviceUrl = aasServiceManager.startService(model, port);
+        } else if (config != null) {
+            monitor.info("Starting AAS service with AAS model (%s) and service config (%s)."
+                    .formatted(model, config));
+            serviceUrl = aasServiceManager.startService(model, config);
         } else {
-            monitor.info(format(
-                    "Booting up AAS service given AAS model path (%s)\n and service config path (%s)...",
-                    aasModelPath, aasConfigPath));
-            serviceUrl = aasServiceManager.startService(aasModelPath, aasConfigPath, aasServicePort);
+            throw new IllegalArgumentException("Config or port must be specified.");
         }
 
         return serviceUrl;
@@ -97,8 +86,8 @@ public class AasController {
      *
      * @param aasServiceUrl URL of service to be stopped
      */
-    public void stopAssetAdministrationShellService(URL aasServiceUrl) {
-        monitor.info(format("Shutting down AAS service with URL %s...", aasServiceUrl.toString()));
+    public void stopService(URL aasServiceUrl) {
+        monitor.info("Stopping AAS service with URL %s".formatted(aasServiceUrl.toString()));
         aasServiceManager.stopService(aasServiceUrl);
     }
 
@@ -106,7 +95,28 @@ public class AasController {
      * Stops all internally started AAS services
      */
     public void stopServices() {
-        monitor.info("Shutting down all AAS services...");
+        monitor.info("Stopping all internally started AAS services...");
         aasServiceManager.stopServices();
+    }
+
+    @Override
+    public void created(Service service) {
+        serviceRegistry.register(service.accessUrl().toString());
+    }
+
+    @Override
+    public void created(Registry registry) {
+        serviceRegistry.register(registry.accessUrl().toString());
+    }
+
+    @Override
+    public void removed(Service service) {
+        serviceRegistry.unregister(service.accessUrl().toString());
+        stopService(service.accessUrl());
+    }
+
+    @Override
+    public void removed(Registry registry) {
+        serviceRegistry.unregister(registry.accessUrl().toString());
     }
 }

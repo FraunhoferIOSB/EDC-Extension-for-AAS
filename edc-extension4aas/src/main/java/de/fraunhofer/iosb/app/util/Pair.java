@@ -15,5 +15,10 @@
  */
 package de.fraunhofer.iosb.app.util;
 
+/**
+ * Why this over Map.Entry?
+ * - It is OO
+ * - Supports more than one null value for "first" (this is compared to a standard map as its competitor)
+ */
 public record Pair<T, U>(T first, U second) {
 }

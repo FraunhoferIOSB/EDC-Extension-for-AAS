@@ -22,10 +22,8 @@ import de.fraunhofer.iosb.client.datatransfer.DataTransferController;
 import de.fraunhofer.iosb.client.negotiation.NegotiationController;
 import de.fraunhofer.iosb.client.policy.PolicyController;
 import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
-import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
@@ -35,7 +33,6 @@ import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
-import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
@@ -59,14 +56,13 @@ public class ClientEndpoint {
      * Root path for the client
      */
     public static final String AUTOMATED_PATH = "automated";
-    private static final String ACCEPTED_POLICIES_PATH = "acceptedPolicies";
     private static final String OFFER_PATH = "offer";
     private static final String NEGOTIATE_CONTRACT_PATH = "negotiateContract";
     private static final String NEGOTIATE_PATH = "negotiate";
     private static final String TRANSFER_PATH = "transfer";
 
-    private static final String MISSING_QUERY_PARAMETER_MESSAGE = "Missing query parameter. Required parameters: %s";
-    private static final String MISSING_REQUEST_BODY_MESSAGE = "Missing request body of type %s";
+    public static final String MISSING_QUERY_PARAMETER_MESSAGE = "Missing query parameter. Required parameters: %s";
+    public static final String MISSING_REQUEST_BODY_MESSAGE = "Missing request body of type %s";
 
     private final Monitor monitor;
 
@@ -102,7 +98,7 @@ public class ClientEndpoint {
     @GET
     @Path(OFFER_PATH)
     public Response getOffer(@QueryParam("providerUrl") URL providerUrl, @QueryParam("assetId") String assetId, @QueryParam("providerId") String counterPartyId) {
-        monitor.info("[Client] Received an %s GET request".formatted(OFFER_PATH));
+        monitor.info("GET /%s".formatted(OFFER_PATH));
         if (Objects.isNull(assetId) || Objects.isNull(providerUrl)) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(MISSING_QUERY_PARAMETER_MESSAGE.formatted("assetId, providerId")).build();
@@ -112,7 +108,7 @@ public class ClientEndpoint {
         try {
             dataset = policyController.getDataset(counterPartyId, providerUrl, assetId);
         } catch (InterruptedException interruptedException) {
-            monitor.severe("[Client] Getting offer failed for provider %s and asset %s"
+            monitor.severe("Getting offer failed for provider %s and asset %s"
                     .formatted(providerUrl, assetId), interruptedException);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity(interruptedException.getMessage())
@@ -155,7 +151,7 @@ public class ClientEndpoint {
                                       @QueryParam("providerId") String counterPartyId,
                                       @QueryParam("assetId") String assetId,
                                       DataAddress dataAddress) {
-        monitor.info("[Client] Received a %s POST request".formatted(NEGOTIATE_PATH));
+        monitor.info("POST /%s".formatted(NEGOTIATE_PATH));
         if (Objects.isNull(counterPartyUrl) || Objects.isNull(counterPartyId) || Objects.isNull(assetId)) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(MISSING_QUERY_PARAMETER_MESSAGE.formatted("providerUrl, counterPartyId, assetId")).build();
@@ -164,7 +160,7 @@ public class ClientEndpoint {
         Result<ContractOffer> contractOfferResult = policyController.getAcceptableContractOfferForAssetId(counterPartyId, counterPartyUrl, assetId);
 
         if (contractOfferResult.failed()) {
-            monitor.severe("[Client] Getting policies failed for provider %s and asset %s: %s".formatted(
+            monitor.severe("Getting policies failed for provider %s and asset %s: %s".formatted(
                     counterPartyUrl, assetId, contractOfferResult.getFailureDetail()));
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity(contractOfferResult.getFailureDetail())
@@ -180,7 +176,7 @@ public class ClientEndpoint {
         Result<ContractAgreement> agreementResult = negotiationController.negotiateContract(contractRequest);
 
         if (agreementResult.failed()) {
-            monitor.severe("[Client] Negotiation failed for provider %s and contractOffer %s: %s".formatted(
+            monitor.severe("Negotiation failed for provider %s and contractOffer %s: %s".formatted(
                     counterPartyUrl, contractOfferResult.getContent().getId(), agreementResult.getFailureDetail()));
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity(agreementResult.getFailureDetail()).build();
@@ -199,7 +195,7 @@ public class ClientEndpoint {
     @POST
     @Path(NEGOTIATE_CONTRACT_PATH)
     public Response negotiateContract(ContractRequest contractRequest) {
-        monitor.info("[Client] Received a %s POST request".formatted(NEGOTIATE_CONTRACT_PATH));
+        monitor.info("POST /%s".formatted(NEGOTIATE_CONTRACT_PATH));
         if (Objects.isNull(contractRequest)) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(MISSING_REQUEST_BODY_MESSAGE.formatted("ContractRequest")).build();
@@ -208,7 +204,7 @@ public class ClientEndpoint {
         Result<ContractAgreement> agreementResult = negotiationController.negotiateContract(contractRequest);
 
         if (agreementResult.failed()) {
-            monitor.severe("[Client] Negotiation failed for provider %s and contractOffer %s: %s".formatted(
+            monitor.severe("Negotiation failed for provider %s and contractOffer %s: %s".formatted(
                     contractRequest.getProviderId(), contractRequest.getContractOffer().getId(), agreementResult.getFailureDetail()));
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity(agreementResult.getFailureDetail()).build();
@@ -232,7 +228,7 @@ public class ClientEndpoint {
     public Response getData(@QueryParam("providerUrl") URL providerUrl,
                             @QueryParam("agreementId") String agreementId,
                             DataAddress dataAddress) {
-        monitor.info("[Client] Received a %s GET request".formatted(TRANSFER_PATH));
+        monitor.info("GET /%s".formatted(TRANSFER_PATH));
         if (Objects.isNull(providerUrl) || Objects.isNull(agreementId)) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(MISSING_QUERY_PARAMETER_MESSAGE.formatted("providerUrl, agreementId")).build();
@@ -246,85 +242,12 @@ public class ClientEndpoint {
                 return Response.ok("Data transfer request sent.").build();
             }
         } catch (InterruptedException | ExecutionException negotiationException) {
-            monitor.severe("[Client] Data transfer failed for provider %s and agreementId %s".formatted(providerUrl,
+            monitor.severe("Data transfer failed for provider %s and agreementId %s".formatted(providerUrl,
                     agreementId), negotiationException);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity(negotiationException.getMessage())
                     .build();
         }
-    }
-
-    /**
-     * Adds an accepted contractOffer to match when checking a provider
-     * contractOffer. Only the policies' rules are relevant.
-     *
-     * @param policyDefinitions accepted policyDefinitions
-     * @return "OK"-response if requestBody is not empty
-     */
-    @POST
-    @Path(ACCEPTED_POLICIES_PATH)
-    public Response addAcceptedPolicyDefinitions(PolicyDefinition[] policyDefinitions) {
-        monitor.info("[Client] Received a %s POST request".formatted(ACCEPTED_POLICIES_PATH));
-        if (Objects.isNull(policyDefinitions)) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(MISSING_REQUEST_BODY_MESSAGE.formatted("PolicyDefinition[]")).build();
-        }
-
-        policyController.addAcceptedPolicyDefinitions(policyDefinitions);
-        return Response.ok().build();
-    }
-
-    /**
-     * Returns accepted policyDefinitions as list
-     *
-     * @return Accepted policyDefinitions list
-     */
-    @GET
-    @Path(ACCEPTED_POLICIES_PATH)
-    public Response getAcceptedPolicyDefinitions() {
-        monitor.info("[Client] Received a %s GET request".formatted(ACCEPTED_POLICIES_PATH));
-        return Response.ok(policyController.getAcceptedPolicyDefinitions()).build();
-    }
-
-    /**
-     * Removes an accepted policyDefinitions.
-     *
-     * @param policyDefinitionId ID of policyDefinition to be removed
-     * @return PolicyDefinitionId of removed policyDefinition or 404
-     */
-    @DELETE
-    @Path(ACCEPTED_POLICIES_PATH)
-    public Response deleteAcceptedPolicyDefinition(@QueryParam("policyDefinitionId") String policyDefinitionId) {
-        monitor.info("[Client] Received a %s DELETE request for %s".formatted(ACCEPTED_POLICIES_PATH, policyDefinitionId));
-        if (Objects.isNull(policyDefinitionId)) {
-            return Response.status(Response.Status.BAD_REQUEST).entity(MISSING_QUERY_PARAMETER_MESSAGE.formatted("policyDefinitionId")).build();
-        }
-
-        if (policyController.deleteAcceptedPolicyDefinition(policyDefinitionId).isPresent()) {
-            return Response.ok(policyDefinitionId).build();
-        }
-        return Response.status(Response.Status.NOT_FOUND).entity("Unknown policyDefinitionId.").build();
-    }
-
-    /**
-     * Updates an accepted policyDefinition.
-     * The policyDefinitionId must match with a stored policyDefinition.
-     *
-     * @param policyDefinition Updated policyDefinition
-     * @return PolicyDefinitionId of updated policyDefinition or 404
-     */
-    @PUT
-    @Path(ACCEPTED_POLICIES_PATH)
-    public Response updateAcceptedPolicyDefinition(PolicyDefinition policyDefinition) {
-        monitor.info("[Client] Received a %s PUT request".formatted(ACCEPTED_POLICIES_PATH));
-        if (Objects.isNull(policyDefinition)) {
-            return Response.status(Response.Status.BAD_REQUEST).entity(MISSING_REQUEST_BODY_MESSAGE.formatted("PolicyDefinition")).build();
-        }
-
-        if (policyController.updateAcceptedPolicyDefinition(policyDefinition).isPresent()) {
-            return Response.ok(policyDefinition.getId()).build();
-        }
-        return Response.status(Response.Status.NOT_FOUND).entity("Unknown policyDefinitionId.").build();
     }
 
     public static class Builder {

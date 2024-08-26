@@ -15,34 +15,61 @@
  */
 package de.fraunhofer.iosb.app.util;
 
+import de.fraunhofer.iosb.app.model.aas.registry.Registry;
+import de.fraunhofer.iosb.app.model.aas.service.Service;
+import de.fraunhofer.iosb.app.model.ids.SelfDescriptionChangeListener;
+import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.monitor.Monitor;
+
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 /**
- * Schedules a task at a variable rate.
+ * Schedules a task at a variable rate with additional external signal triggering.
  */
-public class VariableRateScheduler extends ScheduledThreadPoolExecutor {
+public class VariableRateScheduler extends ScheduledThreadPoolExecutor implements SelfDescriptionChangeListener {
+
+    private final Monitor monitor;
+    private final Runnable runnable;
 
     /**
      * Initialize a VariableRateScheduler, a subtype of the {@link java.util.concurrent.ScheduledThreadPoolExecutor}.
      *
      * @param corePoolSize Same as in the superclass.
+     * @param runnable     Runnable to be executed at a variable rate.
+     * @param monitor      Logging
      */
-    public VariableRateScheduler(int corePoolSize) {
+    public VariableRateScheduler(int corePoolSize, Runnable runnable, Monitor monitor) {
         super(corePoolSize);
+        this.runnable = runnable;
+        this.monitor = monitor;
     }
 
     /**
      * Execute the runnable task at a rate supplied by the second argument. The initial delay is also the supplied rate.
      *
-     * @param runnable     Runnable to be executed at a variable rate.
      * @param rateSupplier Provides the variable rate at which the runnable is to be executed.
      */
-    public void scheduleAtVariableRate(Runnable runnable, Supplier<Integer> rateSupplier) {
+    public void scheduleAtVariableRate(Supplier<Integer> rateSupplier) {
         schedule(() -> {
-            runnable.run();
-            scheduleAtVariableRate(runnable, rateSupplier);
+            try {
+                runnable.run();
+            } catch (Exception e) {
+                monitor.severe("VariableRateScheduler stopped execution.", e);
+                throw new EdcException(e);
+            }
+            scheduleAtVariableRate(rateSupplier);
         }, (long) rateSupplier.get(), TimeUnit.SECONDS);
+    }
+
+    @Override
+    public void created(Registry registry) {
+        runnable.run();
+    }
+
+    @Override
+    public void created(Service service) {
+        runnable.run();
     }
 }

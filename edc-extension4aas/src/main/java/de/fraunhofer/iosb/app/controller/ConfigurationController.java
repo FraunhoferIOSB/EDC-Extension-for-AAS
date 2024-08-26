@@ -21,19 +21,22 @@ import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.json.JsonMapper;
-import de.fraunhofer.iosb.app.RequestType;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.PATCH;
+import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 
-import java.net.URL;
+import java.util.Objects;
 
 /**
  * Handles requests regarding the application's configuration.
  */
-public class ConfigurationController implements Controllable {
+@Path("/config")
+public class ConfigurationController {
 
     private final Monitor monitor;
     private final Config sysConfig;
@@ -61,16 +64,15 @@ public class ConfigurationController implements Controllable {
 
     }
 
-    @Override
-    public Response handleRequest(RequestType requestType, URL url, String... requestData) {
-        return switch (requestType) {
-            case GET -> getConfiguration();
-            case PUT -> updateConfiguration(requestData[0]);
-            default -> Response.status(Response.Status.NOT_IMPLEMENTED).build();
-        };
-    }
+    /**
+     * Return the current configuration values of this extension.
+     *
+     * @return Current configuration values
+     */
+    @GET
+    public Response getConfiguration() {
+        monitor.info("GET /config");
 
-    private Response getConfiguration() {
         try {
             var serializedConfiguration = objectMapper.writeValueAsString(configuration);
             return Response.status(Response.Status.OK).entity(serializedConfiguration).build();
@@ -80,7 +82,20 @@ public class ConfigurationController implements Controllable {
         }
     }
 
-    private Response updateConfiguration(String newConfigValues) {
+    /**
+     * Update the current configuration.
+     *
+     * @param newConfigValues New configuration values as JSON string
+     * @return Response with status code
+     */
+    @PATCH
+    public Response updateConfiguration(String newConfigValues) {
+        monitor.info("PATCH /config");
+
+        if (Objects.isNull(newConfigValues)) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("Missing request body").build();
+        }
+
         try {
             // Read config values as map -> edc Config -> merge with old
             // -> set as AAS extension config
@@ -97,5 +112,4 @@ public class ConfigurationController implements Controllable {
 
         return Response.status(Response.Status.OK).build();
     }
-
 }

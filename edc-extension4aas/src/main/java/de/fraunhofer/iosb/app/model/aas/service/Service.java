@@ -15,37 +15,74 @@
  */
 package de.fraunhofer.iosb.app.model.aas.service;
 
+import de.fraunhofer.iosb.model.aas.AasProvider;
+import de.fraunhofer.iosb.model.aas.auth.AuthenticationMethod;
+import de.fraunhofer.iosb.model.aas.net.AasAccessUrl;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
+import org.jetbrains.annotations.NotNull;
 
-import java.net.URISyntaxException;
+import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Objects;
+import javax.annotation.Nullable;
 
 /**
- * An AAS service as seen in <a href="https://github.com/FraunhoferIOSB/FAAAST-Service">FA³ST Service</a>
- *
- * @param accessUrl   URL for accessing the service.
- * @param environment The AAS environment in asset form.
+ * An AAS service representation as seen in <a href="https://github.com/FraunhoferIOSB/FAAAST-Service">FA³ST Service</a>
  */
-public record Service(URL accessUrl, Asset environment) {
+public final class Service extends AasProvider {
+
+    public static final String SHELLS_PATH = "%s/shells".formatted(AAS_V3_PREFIX);
+    public static final String SUBMODELS_PATH = "%s/submodels".formatted(AAS_V3_PREFIX);
+    public static final String CONCEPT_DESCRIPTIONS_PATH = "%s/concept-descriptions".formatted(AAS_V3_PREFIX);
+
+    @Nullable
+    private Asset environment;
 
     /**
-     * Only checks for accessUrl!
+     * Create a new service with given access url and no environment and no required authentication.
+     *
+     * @param accessUrl URL for accessing the service.
      */
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Service service = (Service) o;
-        try {
-            return Objects.equals(accessUrl.toURI(), service.accessUrl.toURI());
-        } catch (URISyntaxException e) {
-            return false;
-        }
+    public Service(URL accessUrl) {
+        super(new AasAccessUrl(accessUrl));
+        this.environment = null;
+    }
+
+    /**
+     * Create a new service representation with given access url and empty environment and given authentication method.
+     *
+     * @param accessUrl            URL for accessing the service.
+     * @param authenticationMethod The authentication method required to access this AAS service
+     */
+    public Service(URL accessUrl, AuthenticationMethod authenticationMethod) {
+        super(new AasAccessUrl(accessUrl), authenticationMethod);
+        this.environment = null;
+    }
+
+    public @NotNull Service with(Asset environment) {
+        this.environment = environment;
+        return this;
+    }
+
+    public Asset environment() {
+        return environment;
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hashCode(accessUrl);
+    public String toString() {
+        return "Service[" +
+                "accessUrl=" + super.getAccessUrl() + ", " +
+                "environment=" + environment + ']';
+    }
+
+    public URL getShellsUrl() throws MalformedURLException {
+        return new URL(getAccessUrl(), SHELLS_PATH);
+    }
+
+    public URL getSubmodelsUrl() throws MalformedURLException {
+        return new URL(getAccessUrl(), SUBMODELS_PATH);
+    }
+
+    public URL getConceptDescriptionsUrl() throws MalformedURLException {
+        return new URL(getAccessUrl(), CONCEPT_DESCRIPTIONS_PATH);
     }
 }

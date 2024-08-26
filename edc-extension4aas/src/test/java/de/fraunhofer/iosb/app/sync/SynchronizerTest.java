@@ -17,6 +17,7 @@ package de.fraunhofer.iosb.app.sync;
 
 import de.fraunhofer.iosb.app.aas.EnvironmentToAssetMapper;
 import de.fraunhofer.iosb.app.model.ChangeSet;
+import de.fraunhofer.iosb.app.model.aas.service.Service;
 import de.fraunhofer.iosb.app.util.Pair;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultEnvironment;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
@@ -70,8 +71,8 @@ public class SynchronizerTest {
         var oldEnvironment = getEmptyEnvironment();
         var newEnvironment = getEnvironment();
 
-        var oldEnvironmentAsset = new EnvironmentToAssetMapper(() -> false).executeSingle(accessUrl, oldEnvironment);
-        var newEnvironmentAsset = new EnvironmentToAssetMapper(() -> false).executeSingle(accessUrl, newEnvironment);
+        var oldEnvironmentAsset = new EnvironmentToAssetMapper(() -> false).executeSingle(new Service(accessUrl), oldEnvironment);
+        var newEnvironmentAsset = new EnvironmentToAssetMapper(() -> false).executeSingle(new Service(accessUrl), newEnvironment);
 
         var pair = new Pair<>(oldEnvironmentAsset.getContent().environment(), newEnvironmentAsset.getContent().environment());
 
@@ -103,8 +104,8 @@ public class SynchronizerTest {
                 .conceptDescriptions(oldEnvironment.getConceptDescriptions())
                 .build();
 
-        var oldEnvironmentAsset = new EnvironmentToAssetMapper(() -> false).executeSingle(accessUrl, oldEnvironment);
-        var newEnvironmentAsset = new EnvironmentToAssetMapper(() -> false).executeSingle(accessUrl, newEnvironment);
+        var oldEnvironmentAsset = new EnvironmentToAssetMapper(() -> false).executeSingle(new Service(accessUrl), oldEnvironment);
+        var newEnvironmentAsset = new EnvironmentToAssetMapper(() -> false).executeSingle(new Service(accessUrl), newEnvironment);
 
         var pair = new Pair<>(oldEnvironmentAsset.getContent().environment(), newEnvironmentAsset.getContent().environment());
 

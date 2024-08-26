@@ -15,6 +15,8 @@
  */
 package de.fraunhofer.iosb.app.util;
 
+import de.fraunhofer.iosb.model.aas.AasProvider;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -40,5 +42,12 @@ public class InetTools {
         } catch (IOException e) {
             return false; // Either timeout or unreachable or failed DNS lookup.
         }
+    }
+
+    public static boolean pingHost(AasProvider provider) {
+        var host = provider.getAccessUrl().getHost();
+        var port = provider.getAccessUrl().getPort();
+
+        return pingHost(host, port, 10);
     }
 }

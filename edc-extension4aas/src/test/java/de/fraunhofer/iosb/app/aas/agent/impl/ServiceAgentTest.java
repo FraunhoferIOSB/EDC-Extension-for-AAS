@@ -16,6 +16,7 @@
 package de.fraunhofer.iosb.app.aas.agent.impl;
 
 import de.fraunhofer.iosb.aas.impl.AllAasDataProcessorFactory;
+import de.fraunhofer.iosb.app.model.aas.service.Service;
 import de.fraunhofer.iosb.app.pipeline.PipelineResult;
 import de.fraunhofer.iosb.ssl.impl.NoOpSelfSignedCertificateRetriever;
 import dev.failsafe.RetryPolicy;
@@ -35,9 +36,9 @@ import java.net.URL;
 import java.net.UnknownHostException;
 
 import static de.fraunhofer.iosb.api.model.HttpMethod.GET;
-import static de.fraunhofer.iosb.app.aas.agent.impl.ServiceAgent.CONCEPT_DESCRIPTIONS_PATH;
-import static de.fraunhofer.iosb.app.aas.agent.impl.ServiceAgent.SHELLS_PATH;
-import static de.fraunhofer.iosb.app.aas.agent.impl.ServiceAgent.SUBMODELS_PATH;
+import static de.fraunhofer.iosb.app.model.aas.service.Service.CONCEPT_DESCRIPTIONS_PATH;
+import static de.fraunhofer.iosb.app.model.aas.service.Service.SHELLS_PATH;
+import static de.fraunhofer.iosb.app.model.aas.service.Service.SUBMODELS_PATH;
 import static de.fraunhofer.iosb.app.pipeline.PipelineFailure.Type.FATAL;
 import static de.fraunhofer.iosb.app.pipeline.PipelineFailure.Type.WARNING;
 import static de.fraunhofer.iosb.app.testutils.AasCreator.getEmptyEnvironment;
@@ -90,7 +91,7 @@ class ServiceAgentTest {
         var emptyEnvironment = getEmptyEnvironment();
         answerWith(emptyEnvironment);
 
-        PipelineResult<Environment> result = testSubject.apply(mockServerUrl);
+        PipelineResult<Environment> result = testSubject.apply(new Service(mockServerUrl));
 
         assertTrue(result.succeeded());
         assertNotNull(result.getContent());
@@ -105,7 +106,7 @@ class ServiceAgentTest {
         var environment = getEnvironment();
         answerWith(environment);
 
-        PipelineResult<Environment> result = testSubject.apply(mockServerUrl);
+        PipelineResult<Environment> result = testSubject.apply(new Service(mockServerUrl));
 
         assertTrue(result.succeeded());
         assertNotNull(result.getContent());
@@ -115,7 +116,7 @@ class ServiceAgentTest {
 
     @Test
     void testApplyUnknownHost() throws MalformedURLException {
-        var result = testSubject.apply(new URL("http://anonymous.invalid"));
+        var result = testSubject.apply(new Service(new URL("http://anonymous.invalid")));
 
         assertTrue(result.failed());
         assertEquals(WARNING, result.getFailure().getFailureType());
@@ -124,7 +125,7 @@ class ServiceAgentTest {
 
     @Test
     void testApplyUnreachable() throws MalformedURLException {
-        var result = testSubject.apply(new URL("http://localhost:" + getFreePort()));
+        var result = testSubject.apply(new Service(new URL("http://localhost:" + getFreePort())));
 
         assertTrue(result.failed());
         assertEquals(WARNING, result.getFailure().getFailureType());
@@ -134,7 +135,7 @@ class ServiceAgentTest {
     @Test
     void testApplyNotActuallyService() {
         // Here, mock server returns no valid response (it is not an AAS service)
-        var result = testSubject.apply(mockServerUrl);
+        var result = testSubject.apply(new Service(mockServerUrl));
 
         assertTrue(result.failed());
         assertEquals(FATAL, result.getFailure().getFailureType());

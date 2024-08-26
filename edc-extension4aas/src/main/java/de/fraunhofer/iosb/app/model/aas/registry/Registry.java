@@ -16,31 +16,92 @@
 package de.fraunhofer.iosb.app.model.aas.registry;
 
 import de.fraunhofer.iosb.app.model.aas.service.Service;
-import de.fraunhofer.iosb.model.aas.AasAccessUrl;
+import de.fraunhofer.iosb.model.aas.AasProvider;
+import de.fraunhofer.iosb.model.aas.auth.AuthenticationMethod;
+import de.fraunhofer.iosb.model.aas.net.AasAccessUrl;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Objects;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
- * An AAS registry as seen in <a href="https://github.com/fraunhoferIOSB/FAAAST-registry">FA³ST Registry</a>
- *
- * @param accessUrl URL for accessing the registry.
- * @param services  The AAS services offered by this registry.
+ * An AAS registry representation as seen in <a href="https://github.com/fraunhoferIOSB/FAAAST-registry">FA³ST Registry</a>
  */
-public record Registry(@Nonnull AasAccessUrl accessUrl, @Nullable Collection<Service> services) {
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Registry registry = (Registry) o;
+public final class Registry extends AasProvider {
 
-        return Objects.equals(accessUrl, registry.accessUrl);
+    public static final String SUBMODEL_DESCRIPTORS_PATH = "%s/submodel-descriptors".formatted(AAS_V3_PREFIX);
+    public static final String SHELL_DESCRIPTORS_PATH = "%s/shell-descriptors".formatted(AAS_V3_PREFIX);
+
+    @Nullable
+    private Collection<Service> services;
+
+    /**
+     * Create a new AAS registry representation with given access url and environment and no required
+     * authentication method.
+     *
+     * @param accessUrl URL for accessing the registry.
+     * @param services  The AAS services offered by this registry.
+     */
+    public Registry(@Nonnull URL accessUrl, @Nullable Collection<Service> services) {
+        super(new AasAccessUrl(accessUrl));
+        this.services = services;
+    }
+
+    /**
+     * Create a new AAS registry representation with given access url and empty (nonnull) environment and no required
+     * authentication method.
+     *
+     * @param accessUrl URL for accessing the registry.
+     */
+    public Registry(@Nonnull URL accessUrl) {
+        super(new AasAccessUrl(accessUrl));
+        this.services = new ArrayList<>();
+    }
+
+    public Registry with(Collection<Service> services) {
+        this.services = services;
+        return this;
+    }
+
+    /**
+     * Create a new AAS registry representation with given access url and environment and
+     * authentication method.
+     *
+     * @param accessUrl URL for accessing the registry.
+     * @param services  The AAS services offered by this registry.
+     */
+    public Registry(@Nonnull URL accessUrl, @Nullable Collection<Service> services, AuthenticationMethod authenticationMethod) {
+        super(new AasAccessUrl(accessUrl), authenticationMethod);
+        this.services = services;
+    }
+
+    public URL getSubmodelDescriptorUrl() throws MalformedURLException {
+        return new URL(getAccessUrl(), SUBMODEL_DESCRIPTORS_PATH);
+    }
+
+    public URL getShellDescriptorUrl() throws MalformedURLException {
+        return new URL(getAccessUrl(), SHELL_DESCRIPTORS_PATH);
+    }
+
+
+    /**
+     * Returns services this registry holds. This can be null before synchronization happened
+     *
+     * @return The services this registry has registered.
+     */
+    @Nullable
+    public Collection<Service> services() {
+        return services;
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hashCode(accessUrl);
+    public String toString() {
+        return "Registry[" +
+                "accessUrl=" + super.getAccessUrl() + ", " +
+                "services=" + services + ']';
     }
+
 }

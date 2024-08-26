@@ -47,7 +47,7 @@ public class RegistryRepositoryUpdater extends PipelineStep<Collection<Registry>
     public PipelineResult<Collection<Pair<Asset, Asset>>> apply(Collection<Registry> registries) {
         Collection<Pair<Asset, Asset>> result = new ArrayList<>();
         registries.forEach(registry -> {
-            var storedEnvironments = Optional.ofNullable(registryRepository.getEnvironments(registry.accessUrl().url())).orElse(List.of());
+            var storedEnvironments = Optional.ofNullable(registryRepository.getEnvironments(registry.getAccessUrl())).orElse(List.of());
 
             Optional.ofNullable(registry.services())
                     .orElse(List.of())
@@ -69,6 +69,6 @@ public class RegistryRepositoryUpdater extends PipelineStep<Collection<Registry>
         return services.stream()
                 .filter(toFind::equals)
                 .findFirst()
-                .orElse(new Service(toFind.accessUrl(), null));
+                .orElse(new Service(toFind.getAccessUrl()));
     }
 }

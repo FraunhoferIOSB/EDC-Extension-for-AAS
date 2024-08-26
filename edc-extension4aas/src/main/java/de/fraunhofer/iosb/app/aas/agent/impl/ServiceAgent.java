@@ -17,6 +17,7 @@ package de.fraunhofer.iosb.app.aas.agent.impl;
 
 import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
 import de.fraunhofer.iosb.app.aas.agent.AasAgent;
+import de.fraunhofer.iosb.app.model.aas.service.Service;
 import de.fraunhofer.iosb.app.pipeline.PipelineFailure;
 import de.fraunhofer.iosb.app.pipeline.PipelineResult;
 import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShell;
@@ -29,18 +30,12 @@ import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.Result;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.List;
 
 /**
  * Communicating with AAS service
  */
-public class ServiceAgent extends AasAgent<Environment> {
-
-    public static final String SUBMODELS_PATH = "%s/submodels".formatted(AAS_V3_PREFIX);
-    public static final String SHELLS_PATH = "%s/shells".formatted(AAS_V3_PREFIX);
-    public static final String CONCEPT_DESCRIPTIONS_PATH = "%s/concept-descriptions".formatted(AAS_V3_PREFIX);
+public class ServiceAgent extends AasAgent<Service, Environment> {
 
     public ServiceAgent(AasDataProcessorFactory aasDataProcessorFactory) {
         super(aasDataProcessorFactory);
@@ -49,32 +44,28 @@ public class ServiceAgent extends AasAgent<Environment> {
     /**
      * Returns the environment of an AAS service.
      *
-     * @param url The AAS service's access URL
+     * @param service AAS service provider details
      * @return A map with one entry. This entry is the access url and environment of the service
      */
     @Override
-    public PipelineResult<Environment> apply(URL url) {
+    public PipelineResult<Environment> apply(Service service) {
         try {
-            return readEnvironment(url);
+            return readEnvironment(service);
         } catch (Exception e) {
             // uncaught exception!
             return PipelineResult.failure(PipelineFailure.warning(List.of(e.getClass().getSimpleName(), e.getMessage())));
         }
     }
 
-    private PipelineResult<Environment> readEnvironment(URL aasServiceUrl) throws IOException, URISyntaxException {
-        var submodelUrl = aasServiceUrl.toURI().resolve(SUBMODELS_PATH).toURL();
-        var shellsUrl = aasServiceUrl.toURI().resolve(SHELLS_PATH).toURL();
-        var conceptDescriptionsUrl = aasServiceUrl.toURI().resolve(CONCEPT_DESCRIPTIONS_PATH).toURL();
+    private PipelineResult<Environment> readEnvironment(Service service) throws IOException {
 
         Result<List<AssetAdministrationShell>> shellsResult;
         Result<List<Submodel>> submodelsResult;
         Result<List<ConceptDescription>> conceptDescriptionsResult;
         try {
-            shellsResult = readElements(shellsUrl, AssetAdministrationShell.class);
-            submodelsResult = readElements(submodelUrl, Submodel.class);
-            conceptDescriptionsResult = readElements(conceptDescriptionsUrl, ConceptDescription.class);
-
+            shellsResult = readElements(service, service.getShellsUrl(), AssetAdministrationShell.class);
+            submodelsResult = readElements(service, service.getSubmodelsUrl(), Submodel.class);
+            conceptDescriptionsResult = readElements(service, service.getConceptDescriptionsUrl(), ConceptDescription.class);
         } catch (EdcException e) {
             // If an exception was raised, produce a fatal result
             return PipelineResult.failure(PipelineFailure.fatal(List.of(e.getClass().getSimpleName())));

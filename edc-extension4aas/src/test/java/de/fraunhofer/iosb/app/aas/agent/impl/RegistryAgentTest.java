@@ -16,7 +16,8 @@
 package de.fraunhofer.iosb.app.aas.agent.impl;
 
 import de.fraunhofer.iosb.aas.impl.AllAasDataProcessorFactory;
-import de.fraunhofer.iosb.model.aas.AasAccessUrl;
+import de.fraunhofer.iosb.app.model.aas.registry.Registry;
+import de.fraunhofer.iosb.app.model.aas.service.Service;
 import de.fraunhofer.iosb.registry.AasServiceRegistry;
 import de.fraunhofer.iosb.ssl.impl.NoOpSelfSignedCertificateRetriever;
 import dev.failsafe.RetryPolicy;
@@ -36,8 +37,8 @@ import java.util.HashSet;
 import java.util.Optional;
 
 import static de.fraunhofer.iosb.api.model.HttpMethod.GET;
-import static de.fraunhofer.iosb.app.aas.agent.impl.RegistryAgent.SHELL_DESCRIPTORS_PATH;
-import static de.fraunhofer.iosb.app.aas.agent.impl.RegistryAgent.SUBMODEL_DESCRIPTORS_PATH;
+import static de.fraunhofer.iosb.app.model.aas.registry.Registry.SHELL_DESCRIPTORS_PATH;
+import static de.fraunhofer.iosb.app.model.aas.registry.Registry.SUBMODEL_DESCRIPTORS_PATH;
 import static de.fraunhofer.iosb.app.pipeline.PipelineFailure.Type.WARNING;
 import static de.fraunhofer.iosb.app.testutils.RegistryElementCreator.getEmptyShellDescriptor;
 import static de.fraunhofer.iosb.app.testutils.RegistryElementCreator.getEmptySubmodelDescriptor;
@@ -98,7 +99,7 @@ class RegistryAgentTest {
 
         mockEmptySubmodelRequest();
 
-        var result = testSubject.apply(mockServerUrl);
+        var result = testSubject.apply(new Registry(mockServerUrl));
 
         assertTrue(result.succeeded());
 
@@ -107,7 +108,7 @@ class RegistryAgentTest {
         assertEquals(1, bodyAsEnvironment.size());
 
         // We know the endpoint url from getEmptyShellDescriptor()...
-        var env = bodyAsEnvironment.get(new AasAccessUrl(new URL("https://localhost:12345")));
+        var env = bodyAsEnvironment.get(new Service(new URL("https://localhost:12345")));
 
         var shell = Optional.ofNullable(env.getAssetAdministrationShells().get(0)).orElseThrow();
 
@@ -130,7 +131,7 @@ class RegistryAgentTest {
 
         mockEmptySubmodelRequest();
 
-        var result = testSubject.apply(mockServerUrl);
+        var result = testSubject.apply(new Registry(mockServerUrl));
 
         assertTrue(result.succeeded());
 
@@ -138,7 +139,7 @@ class RegistryAgentTest {
 
         assertEquals(1, bodyAsEnvironment.size());
 
-        var env = bodyAsEnvironment.get(new AasAccessUrl(new URL("https://localhost:12345")));
+        var env = bodyAsEnvironment.get(new Service(new URL("https://localhost:12345")));
 
         var shell = Optional.ofNullable(env.getAssetAdministrationShells().get(0)).orElseThrow();
 
@@ -161,7 +162,7 @@ class RegistryAgentTest {
                 .respond(HttpResponse.response()
                         .withBody(resultOf(submodelDescriptor)));
 
-        var result = testSubject.apply(mockServerUrl);
+        var result = testSubject.apply(new Registry(mockServerUrl, null));
 
         assertTrue(result.succeeded());
 
@@ -170,7 +171,7 @@ class RegistryAgentTest {
         assertEquals(1, bodyAsEnvironment.size());
 
         var submodel = Optional.ofNullable(Optional
-                        .ofNullable(bodyAsEnvironment.get(new AasAccessUrl(new URL("https://localhost:12345"))))
+                        .ofNullable(bodyAsEnvironment.get(new Service(new URL("https://localhost:12345"))))
                         .orElseThrow()
                         .getSubmodels()
                         .get(0))
@@ -195,7 +196,7 @@ class RegistryAgentTest {
                 .respond(HttpResponse.response()
                         .withBody(resultOf(submodelDescriptor)));
 
-        var result = testSubject.apply(mockServerUrl);
+        var result = testSubject.apply(new Registry(mockServerUrl));
 
         assertTrue(result.succeeded());
 
@@ -204,7 +205,7 @@ class RegistryAgentTest {
         assertEquals(1, bodyAsEnvironment.size());
 
         var submodel = Optional.ofNullable(Optional
-                        .ofNullable(bodyAsEnvironment.get(new AasAccessUrl(new URL("https://localhost:12345"))))
+                        .ofNullable(bodyAsEnvironment.get(new Service(new URL("https://localhost:12345"))))
                         .orElseThrow()
                         .getSubmodels()
                         .get(0))
@@ -219,7 +220,7 @@ class RegistryAgentTest {
 
     @Test
     void testApplyNotActuallyRegistry() throws MalformedURLException {
-        var result = testSubject.apply(new URL("https://example.com"));
+        var result = testSubject.apply(new Registry(new URL("https://example.com")));
 
         assertTrue(result.failed());
         assertEquals(WARNING, result.getFailure().getFailureType());
@@ -227,7 +228,7 @@ class RegistryAgentTest {
 
     @Test
     void testApplyUnreachableRegistry() throws MalformedURLException {
-        var result = testSubject.apply(new URL("http://anonymous.invalid"));
+        var result = testSubject.apply(new Registry(new URL("http://anonymous.invalid")));
 
         assertTrue(result.failed());
         assertEquals(WARNING, result.getFailure().getFailureType());

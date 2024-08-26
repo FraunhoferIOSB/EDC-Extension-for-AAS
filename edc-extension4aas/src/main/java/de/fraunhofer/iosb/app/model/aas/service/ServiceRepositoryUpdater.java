@@ -41,7 +41,7 @@ public class ServiceRepositoryUpdater extends PipelineStep<Service, Pair<Asset, 
      */
     @Override
     public PipelineResult<Pair<Asset, Asset>> apply(Service service) {
-        var old = selfDescriptionRepository.getEnvironment(service.accessUrl());
+        var old = selfDescriptionRepository.getEnvironment(service.getAccessUrl());
         selfDescriptionRepository.updateService(service);
 
         return PipelineResult.success(new Pair<>(old, service.environment()));

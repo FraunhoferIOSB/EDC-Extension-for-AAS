@@ -36,11 +36,12 @@ import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import de.fraunhofer.iosb.app.pipeline.Pipeline;
 import de.fraunhofer.iosb.app.pipeline.PipelineStep;
 import de.fraunhofer.iosb.app.pipeline.helper.CollectionFeeder;
+import de.fraunhofer.iosb.app.pipeline.helper.Filter;
 import de.fraunhofer.iosb.app.pipeline.helper.InputOutputZipper;
 import de.fraunhofer.iosb.app.pipeline.helper.MapValueProcessor;
 import de.fraunhofer.iosb.app.sync.Synchronizer;
+import de.fraunhofer.iosb.app.util.InetTools;
 import de.fraunhofer.iosb.app.util.VariableRateScheduler;
-import de.fraunhofer.iosb.model.aas.AasAccessUrl;
 import de.fraunhofer.iosb.registry.AasServiceRegistry;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
@@ -58,10 +59,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 
 import static de.fraunhofer.iosb.app.controller.SelfDescriptionController.SELF_DESCRIPTION_PATH;
 import static de.fraunhofer.iosb.app.pipeline.PipelineFailure.Type.FATAL;
-import static de.fraunhofer.iosb.app.util.InetTools.pingHost;
 
 /**
  * EDC Extension supporting usage of Asset Administration Shells.
@@ -103,20 +104,11 @@ public class AasExtension implements ServiceExtension {
         serviceRepository.registerListener(aasController);
         registryRepository.registerListener(aasController);
 
-        // Check if a URL is reachable by pinging the host+port combination (not actual ICMP)
-        PipelineStep<URL, URL> reachabilityCheck = PipelineStep.create(url -> {
-            if (!pingHost(url.getHost(), url.getPort(), 10)) {
-                monitor.severe("URL %s not reachable!".formatted(url));
-                return null;
-            }
-            return url;
-        });
-
         var serviceSynchronization = new Pipeline.Builder<Void, Void>()
                 .monitor(monitor.withPrefix("Service Synchronization Pipeline"))
-                .supplier(serviceRepository::getAllServiceAccessUrls)
-                .step(new CollectionFeeder<>(reachabilityCheck))
-                .step(new InputOutputZipper<>(new ServiceAgent(aasDataProcessorFactory), AasAccessUrl::new))
+                .supplier(serviceRepository::getAll)
+                .step(new Filter<>(InetTools::pingHost))
+                .step(new InputOutputZipper<>(new ServiceAgent(aasDataProcessorFactory), Function.identity()))
                 .step(new EnvironmentToAssetMapper(() -> Configuration.getInstance().isOnlySubmodels()))
                 .step(new CollectionFeeder<>(new ServiceRepositoryUpdater(serviceRepository)))
                 .step(new Synchronizer())
@@ -130,16 +122,17 @@ public class AasExtension implements ServiceExtension {
 
         var registrySynchronization = new Pipeline.Builder<Void, Void>()
                 .monitor(monitor.withPrefix("Registry Synchronization Pipeline"))
-                .supplier(registryRepository::getAllUrls)
-                .step(new CollectionFeeder<>(reachabilityCheck))
-                .step(new InputOutputZipper<>(new RegistryAgent(aasDataProcessorFactory, foreignServerRegistry), AasAccessUrl::new))
+                .supplier(registryRepository::getAll)
+                .step(new Filter<>(InetTools::pingHost))
+                .step(new InputOutputZipper<>(new RegistryAgent(aasDataProcessorFactory, foreignServerRegistry),
+                        Function.identity()))
                 .step(new MapValueProcessor<>(
                         new EnvironmentToAssetMapper(() -> Configuration.getInstance().isOnlySubmodels()),
                         // Remove fatal results from further processing
                         result -> result.failed() && FATAL.equals(result.getFailure().getFailureType()) ? null : result)
                 )
                 .step(PipelineStep.create(registriesMap -> (Collection<Registry>) registriesMap.entrySet().stream()
-                        .map(registry -> new Registry(registry.getKey(), registry.getValue()))
+                        .map(registry -> registry.getKey().with(registry.getValue()))
                         .toList()))
                 .step(new RegistryRepositoryUpdater(registryRepository))
                 .step(new Synchronizer())

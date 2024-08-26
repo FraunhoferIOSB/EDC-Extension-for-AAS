@@ -20,7 +20,6 @@ import de.fraunhofer.iosb.app.pipeline.PipelineFailure;
 import de.fraunhofer.iosb.app.pipeline.PipelineResult;
 import de.fraunhofer.iosb.app.pipeline.PipelineStep;
 import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
-import de.fraunhofer.iosb.model.aas.AasAccessUrl;
 import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShell;
 import org.eclipse.digitaltwin.aas4j.v3.model.ConceptDescription;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
@@ -39,7 +38,7 @@ import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultReference;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.jetbrains.annotations.NotNull;
 
-import java.net.URL;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -49,7 +48,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-import static de.fraunhofer.iosb.app.aas.agent.AasAgent.AAS_V3_PREFIX;
 import static de.fraunhofer.iosb.app.pipeline.util.PipelineUtils.extractContents;
 import static de.fraunhofer.iosb.app.pipeline.util.PipelineUtils.handleError;
 
@@ -58,7 +56,8 @@ import static de.fraunhofer.iosb.app.pipeline.util.PipelineUtils.handleError;
  * This is not a holistic transformation but rather maps some
  * key elements and creates appropriate data address and assetId.
  */
-public class EnvironmentToAssetMapper extends PipelineStep<Map<AasAccessUrl, Environment>, Collection<Service>> {
+public class EnvironmentToAssetMapper extends PipelineStep<Map<Service, Environment>, Collection<Service>> {
+
     private static final String CONCEPT_DESCRIPTIONS = "conceptDescriptions";
     private static final String SHELLS = "shells";
     private static final String SUBMODELS = "submodels";
@@ -76,12 +75,11 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<AasAccessUrl, Env
      * @return Asset as described above
      */
     @Override
-    public PipelineResult<Collection<Service>> apply(Map<AasAccessUrl, Environment> environments) {
+    public PipelineResult<Collection<Service>> apply(Map<Service, Environment> environments) {
         var results = environments.entrySet().stream()
                 .map(entry -> executeSingle(
                         Optional.ofNullable(entry.getKey())
-                                .orElse(new AasAccessUrl(null))
-                                .url(),
+                                .orElse(new Service(null)),
                         entry.getValue())).toList();
 
         var contents = extractContents(results);
@@ -89,40 +87,52 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<AasAccessUrl, Env
         return Objects.requireNonNullElseGet(handleError(results, contents), () -> PipelineResult.success(contents));
     }
 
-    public PipelineResult<Service> executeSingle(URL accessUrl, Environment environment) {
-        if (accessUrl == null) {
+    public PipelineResult<Service> executeSingle(Service service, Environment environment) {
+        if (service == null || service.getAccessUrl() == null) {
             return PipelineResult.failure(PipelineFailure.fatal(
                     List.of("Mapping failure: accessUrl is null")));
         } else if (environment == null) {
-            return PipelineResult.recoverableFailure(new Service(accessUrl, null),
+            return PipelineResult.recoverableFailure(service,
                     PipelineFailure.warning(List.of("Mapping failure for accessUrl %s: environment is null"
-                            .formatted(accessUrl))));
+                            .formatted(service.getAccessUrl()))));
         }
 
         var assetBuilder = Asset.Builder.newInstance();
-        // Add the /api/v3.0 prefix to each element since this is AAS spec
-        var accessUrlV3 = accessUrl.toString().concat(AAS_V3_PREFIX);
-        // Submodels
-        assetBuilder.property(SUBMODELS, environment.getSubmodels().stream()
-                .map(submodel -> mapSubmodelToAsset(submodel, accessUrlV3))
-                .toList());
+
+        try {
+            final String submodelsUrl = service.getSubmodelsUrl().toString();
+            assetBuilder.property(SUBMODELS, environment.getSubmodels().stream()
+                    .map(submodel -> mapSubmodelToAsset(submodel, submodelsUrl))
+                    .toList());
+        } catch (MalformedURLException e) {
+            return PipelineResult.failure(PipelineFailure.warning(List.of("Could not build access url for %s".formatted(service.getAccessUrl()))));
+        }
 
         if (onlySubmodelsDecision.get()) {
             assetBuilder.property(SHELLS, List.of());
             assetBuilder.property(CONCEPT_DESCRIPTIONS, List.of());
-            return PipelineResult.success(new Service(accessUrl, assetBuilder.build()));
+            return PipelineResult.success(service.with(assetBuilder.build()));
         }
-        return PipelineResult.success(new Service(accessUrl,
-                assetBuilder
-                        .property(SHELLS,
-                                environment.getAssetAdministrationShells().stream()
-                                        .map((AssetAdministrationShell shell) -> mapShellToAsset(shell, accessUrlV3))
-                                        .toList())
-                        .property(CONCEPT_DESCRIPTIONS,
-                                environment.getConceptDescriptions().stream()
-                                        .map((ConceptDescription conceptDescription) -> mapConceptDescriptionToAsset(conceptDescription, accessUrlV3))
-                                        .toList())
-                        .build()));
+
+        try {
+            var shellsUrl = service.getShellsUrl().toString();
+            var conceptDescriptionsUrl = service.getConceptDescriptionsUrl().toString();
+
+            return PipelineResult.success(service.with(
+                    assetBuilder
+                            .property(SHELLS,
+                                    environment.getAssetAdministrationShells().stream()
+                                            .map((AssetAdministrationShell shell) -> mapShellToAsset(shell, shellsUrl))
+                                            .toList())
+                            .property(CONCEPT_DESCRIPTIONS,
+                                    environment.getConceptDescriptions().stream()
+                                            .map((ConceptDescription conceptDescription) -> mapConceptDescriptionToAsset(conceptDescription, conceptDescriptionsUrl))
+                                            .toList())
+                            .build()));
+        } catch (MalformedURLException e) {
+            return PipelineResult.recoverableFailure(service.with(assetBuilder.build()), PipelineFailure.warning(List.of("Could not build access url for %s".formatted(service.getAccessUrl()))));
+        }
+
     }
 
     private <R extends Referable> Asset.Builder mapReferableToAssetBuilder(R referable) {
@@ -177,7 +187,7 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<AasAccessUrl, Env
     }
 
     private static @NotNull String getId(String accessUrl, AasDataAddress dataAddress) {
-        return String.valueOf("%s:%s".formatted(accessUrl, dataAddress.referenceChainAsPath()).hashCode());
+        return String.valueOf("%s:%s".formatted(accessUrl, dataAddress.getPath()).hashCode());
     }
 
     private <T extends SubmodelElement> Collection<SubmodelElement> getContainerElements(T submodelElement) {

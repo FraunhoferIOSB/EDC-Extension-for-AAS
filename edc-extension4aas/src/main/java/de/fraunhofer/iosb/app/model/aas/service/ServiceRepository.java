@@ -38,10 +38,9 @@ public class ServiceRepository extends ObservableImpl<SelfDescriptionChangeListe
         services = new HashSet<>();
     }
 
-    public Collection<URL> getAllServiceAccessUrls() {
-        return services.stream().map(Service::accessUrl).toList();
+    public Collection<Service> getAll() {
+        return services;
     }
-
 
     /**
      * Returns the environments offered by all stored AAS services.
@@ -67,7 +66,7 @@ public class ServiceRepository extends ObservableImpl<SelfDescriptionChangeListe
     public @Nullable Asset getEnvironment(URL serviceUrl) {
         return services.stream()
                 .filter(service ->
-                        service.accessUrl().toString()
+                        service.getAccessUrl().toString()
                                 .equals(serviceUrl.toString()))
                 .findAny()
                 .orElseThrow(() ->
@@ -82,7 +81,7 @@ public class ServiceRepository extends ObservableImpl<SelfDescriptionChangeListe
      * @return True if created, else false.
      */
     public boolean create(URL accessUrl) {
-        var service = new Service(accessUrl, null);
+        var service = new Service(accessUrl);
 
         if (services.add(service)) {
             invokeForEach(listener -> listener.created(service));
@@ -108,8 +107,8 @@ public class ServiceRepository extends ObservableImpl<SelfDescriptionChangeListe
      */
     public boolean delete(URL accessUrl) {
         // Before we remove the service, notify listeners (remove assets/contracts from edc)
-        var service = services.stream()
-                .filter(s -> s.accessUrl().toString().equals(accessUrl.toString()))
+        Service service = services.stream()
+                .filter(s -> s.getAccessUrl().toString().equals(accessUrl.toString()))
                 .findFirst()
                 .orElse(null);
 

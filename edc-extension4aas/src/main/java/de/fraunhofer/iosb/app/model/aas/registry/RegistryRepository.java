@@ -17,11 +17,9 @@ package de.fraunhofer.iosb.app.model.aas.registry;
 
 import de.fraunhofer.iosb.app.model.aas.service.Service;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionChangeListener;
-import de.fraunhofer.iosb.model.aas.AasAccessUrl;
 import org.eclipse.edc.spi.observe.ObservableImpl;
 
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Objects;
@@ -43,7 +41,7 @@ public class RegistryRepository extends ObservableImpl<SelfDescriptionChangeList
      * @return True if created, else false.
      */
     public boolean create(URL accessUrl) {
-        var registry = new Registry(new AasAccessUrl(accessUrl), new ArrayList<>());
+        var registry = new Registry(accessUrl);
 
         if (registries.add(registry)) {
             invokeForEach(listener -> listener.created(registry));
@@ -57,11 +55,8 @@ public class RegistryRepository extends ObservableImpl<SelfDescriptionChangeList
      *
      * @return URLs of all registries currently stored.
      */
-    public Collection<URL> getAllUrls() {
-        return registries.stream()
-                .map(Registry::accessUrl)
-                .map(AasAccessUrl::url)
-                .toList();
+    public Collection<Registry> getAll() {
+        return registries;
     }
 
     /**
@@ -81,7 +76,7 @@ public class RegistryRepository extends ObservableImpl<SelfDescriptionChangeList
      */
     public @Nullable Collection<Service> getEnvironments(URL registryUrl) {
         return getEnvironments(registry ->
-                registry.accessUrl().toString()
+                registry.getAccessUrl().toString()
                         .equals(registryUrl.toString()));
     }
 
@@ -102,8 +97,8 @@ public class RegistryRepository extends ObservableImpl<SelfDescriptionChangeList
      */
     public boolean delete(URL accessUrl) {
         // Before we remove the registry, notify listeners (remove assets/contracts from edc)
-        var registry = registries.stream()
-                .filter(r -> r.accessUrl().equals(new AasAccessUrl(accessUrl)))
+        Registry registry = registries.stream()
+                .filter(r -> r.getAccessUrl().toString().equals(accessUrl.toString()))
                 .findFirst()
                 .orElse(null);
 

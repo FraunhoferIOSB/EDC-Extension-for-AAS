@@ -18,7 +18,6 @@ package de.fraunhofer.iosb.app.aas;
 import de.fraunhofer.iosb.app.model.aas.service.Service;
 import de.fraunhofer.iosb.app.pipeline.PipelineFailure;
 import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
-import de.fraunhofer.iosb.model.aas.AasAccessUrl;
 import de.fraunhofer.iosb.util.Encoder;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultEnvironment;
@@ -69,9 +68,9 @@ class EnvironmentToAssetMapperTest {
         var environment = getEnvironment();
         var realEnvironmentAccessUrl = new URL("https://example.com");
 
-        var input = new HashMap<AasAccessUrl, Environment>();
-        input.put(toAasAccessUrl(realEnvironmentAccessUrl), environment);
-        input.put(toAasAccessUrl(accessUrl), null);
+        var input = new HashMap<Service, Environment>();
+        input.put(new Service(realEnvironmentAccessUrl), environment);
+        input.put(new Service(accessUrl), null);
 
         var result = testSubject.apply(input);
 
@@ -79,12 +78,12 @@ class EnvironmentToAssetMapperTest {
         assertTrue(result.failed());
         assertEquals(PipelineFailure.Type.WARNING, result.getFailure().getFailureType());
         assertNotNull(result.getContent().stream()
-                .filter(service -> service.accessUrl().toString()
+                .filter(service -> service.getAccessUrl().toString()
                         .equals(realEnvironmentAccessUrl.toString())).findFirst().orElseThrow().environment());
 
         assertNull(result.getContent().stream()
-                .filter(service -> service.accessUrl().toString().equals(accessUrl.toString()))
-                .findFirst().orElse(new Service(null, null))
+                .filter(service -> service.getAccessUrl().toString().equals(accessUrl.toString()))
+                .findFirst().orElse(new Service(null))
                 .environment());
     }
 
@@ -93,8 +92,9 @@ class EnvironmentToAssetMapperTest {
         var environment = getEnvironment();
         var emptyEnvironment = getEmptyEnvironment();
 
-        var input = new HashMap<>(Map.of(toAasAccessUrl(accessUrl), environment, toAasAccessUrl(new URL("http://localhost:8080")), emptyEnvironment));
-        input.put(toAasAccessUrl(accessUrl), null);
+        var input = new HashMap<>(Map.of(new Service(accessUrl), environment,
+                new Service(new URL("http://localhost:8080")), emptyEnvironment));
+        input.put(new Service(accessUrl), null);
         input.put(null, environment);
 
         var result = testSubject.apply(input);
@@ -104,19 +104,15 @@ class EnvironmentToAssetMapperTest {
         assertEquals(PipelineFailure.Type.FATAL, result.getFailure().getFailureType());
     }
 
-    private AasAccessUrl toAasAccessUrl(URL url) {
-        return new AasAccessUrl(url);
-    }
-
     @Test
     void testApply() {
         var env = getEnvironment();
-        var result = testSubject.apply(Map.of(new AasAccessUrl(accessUrl), env));
+        var result = testSubject.apply(Map.of(new Service(accessUrl), env));
         assertTrue(result.succeeded());
         assertNotNull(result.getContent());
         var envAsset = result.getContent().stream()
                 .filter(service -> service
-                        .accessUrl().toString()
+                        .getAccessUrl().toString()
                         .equals(accessUrl.toString()))
                 .map(Service::environment)
                 .findFirst()
@@ -144,7 +140,7 @@ class EnvironmentToAssetMapperTest {
 
     @Test
     void testNullEnvironment() {
-        var res = testSubject.executeSingle(accessUrl, null);
+        var res = testSubject.executeSingle(new Service(accessUrl), null);
         assertTrue(res.failed());
     }
 
@@ -156,7 +152,7 @@ class EnvironmentToAssetMapperTest {
 
     @Test
     void testEmptyEnvironment() {
-        var result = testSubject.executeSingle(accessUrl, new DefaultEnvironment()).getContent();
+        var result = testSubject.executeSingle(new Service(accessUrl), new DefaultEnvironment()).getContent();
 
         assertEquals(emptyList, result.environment().getProperty(SUBMODELS));
         assertEquals(emptyList, result.environment().getProperty(SHELLS));
@@ -169,7 +165,7 @@ class EnvironmentToAssetMapperTest {
 
         var env = getEnvironment();
 
-        var result = testSubject.executeSingle(accessUrl, env).getContent();
+        var result = testSubject.executeSingle(new Service(accessUrl), env).getContent();
 
         assertEquals(env.getSubmodels().size(),
                 getChildren(result.environment(), SUBMODELS).size());
@@ -181,7 +177,7 @@ class EnvironmentToAssetMapperTest {
     void testWholeEnvironmentIdEquality() {
         var env = getEnvironment();
 
-        var result = testSubject.executeSingle(accessUrl, env);
+        var result = testSubject.executeSingle(new Service(accessUrl), env);
 
         assertTrue(result.succeeded());
 
@@ -200,7 +196,7 @@ class EnvironmentToAssetMapperTest {
     @Test
     void testCorrectAccessUrls() {
         var env = getEnvironment();
-        var result = testSubject.executeSingle(accessUrl, env).getContent();
+        var result = testSubject.executeSingle(new Service(accessUrl), env).getContent();
         var shellDataAddress =
                 (AasDataAddress) getChildren(result.environment(), SHELLS).stream().map(Asset::getDataAddress).toList().get(0);
         var submodelDataAddress =
@@ -210,13 +206,13 @@ class EnvironmentToAssetMapperTest {
 
         assertTrue(shellDataAddress.getBaseUrl().startsWith(accessUrl.toString()));
         assertEquals("%s/%s".formatted(SHELLS, Encoder.encodeBase64(env.getAssetAdministrationShells().get(0).getId())),
-                shellDataAddress.referenceChainAsPath());
+                shellDataAddress.getPath());
         assertTrue(submodelDataAddress.getBaseUrl().startsWith(accessUrl.toString()));
         assertEquals("%s/%s".formatted(SUBMODELS, Encoder.encodeBase64(env.getSubmodels().get(0).getId())),
-                submodelDataAddress.referenceChainAsPath());
+                submodelDataAddress.getPath());
         assertTrue(conceptDescriptionDataAddress.getBaseUrl().startsWith(accessUrl.toString()));
         assertEquals("concept-descriptions/%s".formatted(Encoder.encodeBase64(env.getConceptDescriptions().get(0).getId())),
-                conceptDescriptionDataAddress.referenceChainAsPath());
+                conceptDescriptionDataAddress.getPath());
     }
 
     @SuppressWarnings("unchecked")

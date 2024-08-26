@@ -16,8 +16,12 @@
 package de.fraunhofer.iosb.app;
 
 import de.fraunhofer.iosb.app.controller.AasController;
+import de.fraunhofer.iosb.app.model.aas.AasProviderRepository;
+import de.fraunhofer.iosb.app.model.aas.registry.Registry;
 import de.fraunhofer.iosb.app.model.aas.registry.RegistryRepository;
+import de.fraunhofer.iosb.app.model.aas.service.Service;
 import de.fraunhofer.iosb.app.model.aas.service.ServiceRepository;
+import de.fraunhofer.iosb.model.aas.AasProvider;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.POST;
@@ -35,10 +39,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Objects;
 import javax.annotation.Nullable;
-
-import static de.fraunhofer.iosb.app.model.aas.service.ServiceRepository.SelfDescriptionSourceType;
-import static de.fraunhofer.iosb.app.model.aas.service.ServiceRepository.SelfDescriptionSourceType.REGISTRY;
-import static de.fraunhofer.iosb.app.model.aas.service.ServiceRepository.SelfDescriptionSourceType.SERVICE;
 
 /**
  * Delegates requests to controllers.
@@ -83,7 +83,7 @@ public class Endpoint {
     @Path(REGISTRY_PATH)
     public Response createRegistry(@QueryParam("url") URL registryUrl) {
         monitor.info("POST /%s".formatted(REGISTRY_PATH));
-        return createEntity(registryUrl, REGISTRY);
+        return createEntity(registryRepository, new Registry(registryUrl));
     }
 
     /**
@@ -96,7 +96,21 @@ public class Endpoint {
     @Path(SERVICE_PATH)
     public Response createService(@QueryParam("url") URL serviceUrl) {
         monitor.info("POST /%s".formatted(SERVICE_PATH));
-        return createEntity(serviceUrl, SERVICE);
+        return createEntity(serviceRepository, new Service(serviceUrl));
+    }
+
+    /**
+     * Register an AAS service to this extension
+     *
+     * @param provider The AAS provider
+     * @return Status message about the success of this operation.
+     */
+    @POST
+    @Path(SERVICE_PATH)
+    public Response createProvider(AasProvider provider) {
+        monitor.info("POST /%s".formatted(SERVICE_PATH));
+        var service = new Service(provider);
+        return createEntity(serviceRepository, service);
     }
 
     /**
@@ -109,7 +123,7 @@ public class Endpoint {
     @Path(REGISTRY_PATH)
     public Response removeRegistry(@QueryParam("url") URL registryUrl) {
         monitor.info("DELETE /%s".formatted(REGISTRY_PATH));
-        return removeEntity(registryUrl, REGISTRY);
+        return removeEntity(registryRepository, registryUrl);
     }
 
     /**
@@ -122,7 +136,7 @@ public class Endpoint {
     @Path(SERVICE_PATH)
     public Response removeService(@QueryParam("url") URL serviceUrl) {
         monitor.info("DELETE /%s".formatted(SERVICE_PATH));
-        return removeEntity(serviceUrl, SERVICE);
+        return removeEntity(serviceRepository, serviceUrl);
     }
 
     /**
@@ -158,7 +172,7 @@ public class Endpoint {
         }
 
         // From here, do the same as if it were a remote service.
-        try (var creationResponse = createEntity(serviceAccessUrl, SERVICE)) {
+        try (var creationResponse = createEntity(serviceRepository, new Service(serviceAccessUrl))) {
             if (creationResponse.getStatusInfo().getFamily().equals(Status.Family.SUCCESSFUL)) {
                 return Response.status(Status.CREATED).entity(serviceAccessUrl).build();
             } else {
@@ -175,29 +189,27 @@ public class Endpoint {
         return java.nio.file.Path.of(pathAsString);
     }
 
-    private Response createEntity(URL accessUrl, SelfDescriptionSourceType type) {
-        if (Objects.isNull(accessUrl)) {
+    private <T extends AasProvider> Response createEntity(AasProviderRepository<T> repository, T entity) {
+        if (entity == null) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Missing query parameter 'url'").build();
         }
 
-        if (SERVICE.equals(type) && serviceRepository.create(accessUrl) ||
-                REGISTRY.equals(type) && registryRepository.create(accessUrl)) {
-            return Response.status(Status.CREATED).entity("Registered new AAS %s at EDC".formatted(type)).build();
+        if (repository.create(entity)) {
+            return Response.status(Status.CREATED).entity("Registered new AAS %s at EDC".formatted(repository.contentType())).build();
         }
 
         return Response.status(Status.CONFLICT)
                 .entity("AAS %s with this URL is already registered."
-                        .formatted(type.toString().toLowerCase()))
+                        .formatted(repository.contentType().toLowerCase()))
                 .build();
     }
 
-    private Response removeEntity(URL accessUrl, SelfDescriptionSourceType type) {
-        if (Objects.isNull(accessUrl)) {
+    private Response removeEntity(AasProviderRepository<?> repository, URL accessUrl) {
+        if (accessUrl == null) {
             return Response.status(Status.BAD_REQUEST).entity("Missing query parameter 'url'").build();
         }
 
-        if (SERVICE.equals(type) && serviceRepository.delete(accessUrl) ||
-                REGISTRY.equals(type) && registryRepository.delete(accessUrl)) {
+        if (repository.delete(accessUrl)) {
             // Return 204 (https://www.rfc-editor.org/rfc/rfc9110.html#section-9.3.5)
             return Response.noContent().build();
         } else {

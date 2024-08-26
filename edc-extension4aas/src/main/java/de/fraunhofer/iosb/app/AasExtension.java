@@ -30,6 +30,7 @@ import de.fraunhofer.iosb.app.edc.contract.ContractRegistrar;
 import de.fraunhofer.iosb.app.model.aas.registry.Registry;
 import de.fraunhofer.iosb.app.model.aas.registry.RegistryRepository;
 import de.fraunhofer.iosb.app.model.aas.registry.RegistryRepositoryUpdater;
+import de.fraunhofer.iosb.app.model.aas.service.Service;
 import de.fraunhofer.iosb.app.model.aas.service.ServiceRepository;
 import de.fraunhofer.iosb.app.model.aas.service.ServiceRepositoryUpdater;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
@@ -170,7 +171,7 @@ public class AasExtension implements ServiceExtension {
         var configInstance = Configuration.getInstance();
 
         if (Objects.nonNull(configInstance.getRemoteAasLocation())) {
-            selfDescriptionRepository.create(configInstance.getRemoteAasLocation());
+            selfDescriptionRepository.create(new Service(configInstance.getRemoteAasLocation()));
         }
 
         if (Objects.isNull(configInstance.getLocalAasModelPath())) {
@@ -195,7 +196,7 @@ public class AasExtension implements ServiceExtension {
             return;
         }
 
-        selfDescriptionRepository.create(serviceUrl);
+        selfDescriptionRepository.create(new Service(serviceUrl));
     }
 
     @Override

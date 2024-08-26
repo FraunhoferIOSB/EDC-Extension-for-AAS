@@ -15,49 +15,18 @@
  */
 package de.fraunhofer.iosb.app.model.aas.registry;
 
+import de.fraunhofer.iosb.app.model.aas.AasProviderRepository;
 import de.fraunhofer.iosb.app.model.aas.service.Service;
-import de.fraunhofer.iosb.app.model.ids.SelfDescriptionChangeListener;
-import org.eclipse.edc.spi.observe.ObservableImpl;
+import de.fraunhofer.iosb.model.aas.auth.AuthenticationMethod;
 
 import java.net.URL;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Objects;
 import java.util.function.Predicate;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class RegistryRepository extends ObservableImpl<SelfDescriptionChangeListener> {
-    private final Collection<Registry> registries;
-
-    public RegistryRepository() {
-        super();
-        this.registries = new HashSet<>();
-    }
-
-    /**
-     * Adds a new registry to the repository with the given url.
-     *
-     * @param accessUrl Access URL of the new registry.
-     * @return True if created, else false.
-     */
-    public boolean create(URL accessUrl) {
-        var registry = new Registry(accessUrl);
-
-        if (registries.add(registry)) {
-            invokeForEach(listener -> listener.created(registry));
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Returns all URLs of the stored registries
-     *
-     * @return URLs of all registries currently stored.
-     */
-    public Collection<Registry> getAll() {
-        return registries;
-    }
+public class RegistryRepository extends AasProviderRepository<Registry> {
 
     /**
      * Returns all stored environments of all registries
@@ -74,44 +43,29 @@ public class RegistryRepository extends ObservableImpl<SelfDescriptionChangeList
      * @param registryUrl The URL of the registry
      * @return The environments of this registry or null
      */
-    public @Nullable Collection<Service> getEnvironments(URL registryUrl) {
+    public @Nullable Collection<Service> getEnvironments(@Nonnull URL registryUrl) {
         return getEnvironments(registry ->
                 registry.getAccessUrl().toString()
                         .equals(registryUrl.toString()));
     }
 
-    /**
-     * Update a registry. Registries are identified by their accessUrls
-     *
-     * @param toUpdate Registry with new content
-     */
-    public void update(Registry toUpdate) {
-        registries.remove(toUpdate);
-        registries.add(toUpdate);
+    @Override
+    public String contentType() {
+        return Registry.class.getSimpleName();
     }
 
-    /**
-     * Remove registry and notify listeners.
-     *
-     * @param accessUrl URL of registry to be removed
-     */
-    public boolean delete(URL accessUrl) {
-        // Before we remove the registry, notify listeners (remove assets/contracts from edc)
-        Registry registry = registries.stream()
-                .filter(r -> r.getAccessUrl().toString().equals(accessUrl.toString()))
-                .findFirst()
-                .orElse(null);
+    @Override
+    protected void created(Registry created) {
+        invokeForEach(listener -> listener.created(created));
+    }
 
-        if (registry != null) {
-            invokeForEach(listener -> listener.removed(registry));
-            return registries.remove(registry);
-        }
-
-        return false;
+    @Override
+    protected void removed(Registry removed) {
+        invokeForEach(listener -> listener.removed(removed));
     }
 
     private Collection<Service> getEnvironments(Predicate<Registry> registryPredicate) {
-        return registries.stream()
+        return getAll().stream()
                 .filter(registryPredicate)
                 .map(Registry::services)
                 .filter(Objects::nonNull)

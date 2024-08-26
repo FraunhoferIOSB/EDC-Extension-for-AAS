@@ -162,7 +162,7 @@ class RegistryAgentTest {
                 .respond(HttpResponse.response()
                         .withBody(resultOf(submodelDescriptor)));
 
-        var result = testSubject.apply(new Registry(mockServerUrl, null));
+        var result = testSubject.apply(new Registry(mockServerUrl));
 
         assertTrue(result.succeeded());
 

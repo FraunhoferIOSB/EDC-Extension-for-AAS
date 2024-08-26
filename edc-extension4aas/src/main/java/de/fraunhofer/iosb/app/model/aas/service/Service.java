@@ -44,7 +44,6 @@ public final class Service extends AasProvider {
      */
     public Service(URL accessUrl) {
         super(new AasAccessUrl(accessUrl));
-        this.environment = null;
     }
 
     /**
@@ -58,6 +57,15 @@ public final class Service extends AasProvider {
         this.environment = null;
     }
 
+    /**
+     * Create a new service from another object
+     *
+     * @param provider Provider to replicate.
+     */
+    public Service(AasProvider provider) {
+        super(provider);
+    }
+
     public @NotNull Service with(Asset environment) {
         this.environment = environment;
         return this;
@@ -67,12 +75,6 @@ public final class Service extends AasProvider {
         return environment;
     }
 
-    @Override
-    public String toString() {
-        return "Service[" +
-                "accessUrl=" + super.getAccessUrl() + ", " +
-                "environment=" + environment + ']';
-    }
 
     public URL getShellsUrl() throws MalformedURLException {
         return new URL(getAccessUrl(), SHELLS_PATH);
@@ -84,5 +86,12 @@ public final class Service extends AasProvider {
 
     public URL getConceptDescriptionsUrl() throws MalformedURLException {
         return new URL(getAccessUrl(), CONCEPT_DESCRIPTIONS_PATH);
+    }
+
+    @Override
+    public String toString() {
+        return "Service[" +
+                "accessUrl=" + super.getAccessUrl() + ", " +
+                "environment=" + environment + ']';
     }
 }

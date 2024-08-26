@@ -39,18 +39,6 @@ public final class Registry extends AasProvider {
     private Collection<Service> services;
 
     /**
-     * Create a new AAS registry representation with given access url and environment and no required
-     * authentication method.
-     *
-     * @param accessUrl URL for accessing the registry.
-     * @param services  The AAS services offered by this registry.
-     */
-    public Registry(@Nonnull URL accessUrl, @Nullable Collection<Service> services) {
-        super(new AasAccessUrl(accessUrl));
-        this.services = services;
-    }
-
-    /**
      * Create a new AAS registry representation with given access url and empty (nonnull) environment and no required
      * authentication method.
      *
@@ -61,21 +49,26 @@ public final class Registry extends AasProvider {
         this.services = new ArrayList<>();
     }
 
-    public Registry with(Collection<Service> services) {
-        this.services = services;
-        return this;
+    /**
+     * Create a new AAS registry representation with given access url and environment and no required
+     * authentication method.
+     *
+     * @param accessUrl            URL for accessing the registry.
+     * @param authenticationMethod The authentication needed by this registry.
+     */
+    public Registry(@Nonnull URL accessUrl, @Nonnull AuthenticationMethod authenticationMethod) {
+        super(new AasAccessUrl(accessUrl), authenticationMethod);
     }
 
     /**
-     * Create a new AAS registry representation with given access url and environment and
-     * authentication method.
+     * Get this registry with the given services
      *
-     * @param accessUrl URL for accessing the registry.
-     * @param services  The AAS services offered by this registry.
+     * @param services Services to be associated with the registry
+     * @return The updated registry.
      */
-    public Registry(@Nonnull URL accessUrl, @Nullable Collection<Service> services, AuthenticationMethod authenticationMethod) {
-        super(new AasAccessUrl(accessUrl), authenticationMethod);
+    public Registry with(Collection<Service> services) {
         this.services = services;
+        return this;
     }
 
     public URL getSubmodelDescriptorUrl() throws MalformedURLException {

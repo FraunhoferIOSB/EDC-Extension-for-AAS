@@ -39,6 +39,7 @@ import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -79,7 +80,7 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<Service, Environm
         var results = environments.entrySet().stream()
                 .map(entry -> executeSingle(
                         Optional.ofNullable(entry.getKey())
-                                .orElse(new Service(null)),
+                                .orElse(new Service((URL) null)),
                         entry.getValue())).toList();
 
         var contents = extractContents(results);

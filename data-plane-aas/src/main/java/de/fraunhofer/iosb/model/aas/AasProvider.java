@@ -15,6 +15,7 @@
  */
 package de.fraunhofer.iosb.model.aas;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import de.fraunhofer.iosb.model.aas.auth.AuthenticationMethod;
 import de.fraunhofer.iosb.model.aas.auth.impl.NoAuth;
 import de.fraunhofer.iosb.model.aas.net.AasAccessUrl;
@@ -28,7 +29,9 @@ public abstract class AasProvider {
 
     public static final String AAS_V3_PREFIX = "/api/v3.0";
 
+    @JsonAlias("url")
     private final AasAccessUrl url;
+    @JsonAlias("auth")
     private final AuthenticationMethod authentication;
 
     public AasProvider(AasAccessUrl url) {
@@ -39,6 +42,11 @@ public abstract class AasProvider {
     public AasProvider(AasAccessUrl url, AuthenticationMethod authentication) {
         this.url = url;
         this.authentication = authentication;
+    }
+
+    protected AasProvider(AasProvider from) {
+        this.url = from.url;
+        this.authentication = from.authentication;
     }
 
     public Map<String, String> getHeaders() {

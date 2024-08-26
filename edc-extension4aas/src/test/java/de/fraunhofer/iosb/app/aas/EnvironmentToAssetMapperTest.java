@@ -83,7 +83,7 @@ class EnvironmentToAssetMapperTest {
 
         assertNull(result.getContent().stream()
                 .filter(service -> service.getAccessUrl().toString().equals(accessUrl.toString()))
-                .findFirst().orElse(new Service(null))
+                .findFirst().orElse(new Service((URL) null))
                 .environment());
     }
 

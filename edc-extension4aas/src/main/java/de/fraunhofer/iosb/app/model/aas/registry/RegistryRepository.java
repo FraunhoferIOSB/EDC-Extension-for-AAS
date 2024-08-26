@@ -17,7 +17,6 @@ package de.fraunhofer.iosb.app.model.aas.registry;
 
 import de.fraunhofer.iosb.app.model.aas.AasProviderRepository;
 import de.fraunhofer.iosb.app.model.aas.service.Service;
-import de.fraunhofer.iosb.model.aas.auth.AuthenticationMethod;
 
 import java.net.URL;
 import java.util.Collection;

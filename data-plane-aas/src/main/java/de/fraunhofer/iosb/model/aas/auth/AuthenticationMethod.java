@@ -22,6 +22,7 @@ import java.util.Map;
 
 public abstract class AuthenticationMethod {
 
+    // TODO serialize this so it's easy to embed in http request? how to handle different types of auth?
     /**
      * Get the header value to add to the request headers to communicate with the service.
      * Headers: [... , (getHeader().key, getHeader().value), ...]

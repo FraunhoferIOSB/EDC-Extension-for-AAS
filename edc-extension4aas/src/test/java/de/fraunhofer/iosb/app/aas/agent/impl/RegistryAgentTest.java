@@ -16,7 +16,7 @@
 package de.fraunhofer.iosb.app.aas.agent.impl;
 
 import de.fraunhofer.iosb.aas.impl.AllAasDataProcessorFactory;
-import de.fraunhofer.iosb.app.model.aas.AasAccessUrl;
+import de.fraunhofer.iosb.model.aas.AasAccessUrl;
 import de.fraunhofer.iosb.registry.AasServiceRegistry;
 import de.fraunhofer.iosb.ssl.impl.NoOpSelfSignedCertificateRetriever;
 import dev.failsafe.RetryPolicy;

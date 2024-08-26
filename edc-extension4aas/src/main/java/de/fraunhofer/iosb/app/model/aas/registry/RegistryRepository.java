@@ -15,9 +15,9 @@
  */
 package de.fraunhofer.iosb.app.model.aas.registry;
 
-import de.fraunhofer.iosb.app.model.aas.AasAccessUrl;
 import de.fraunhofer.iosb.app.model.aas.service.Service;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionChangeListener;
+import de.fraunhofer.iosb.model.aas.AasAccessUrl;
 import org.eclipse.edc.spi.observe.ObservableImpl;
 
 import java.net.URL;

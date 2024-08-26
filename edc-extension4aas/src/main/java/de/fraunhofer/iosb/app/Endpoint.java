@@ -190,7 +190,7 @@ public class Endpoint {
     }
 
     private <T extends AasProvider> Response createEntity(AasProviderRepository<T> repository, T entity) {
-        if (entity == null) {
+        if (entity == null || entity.getAccessUrl() == null) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Missing query parameter 'url'").build();
         }
 

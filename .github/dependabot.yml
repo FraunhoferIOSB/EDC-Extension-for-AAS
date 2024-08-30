@@ -6,12 +6,27 @@
 version: 2
 updates:
   - package-ecosystem: "gradle"
+    directory: "/client"
+    schedule:
+      interval: "daily"
+
+  - package-ecosystem: "gradle"
+    directory: "/data-plane-aas"
+    schedule:
+      interval: "daily"
+
+  - package-ecosystem: "gradle"
     directory: "/edc-extension4aas"
     schedule:
       interval: "daily"
 
   - package-ecosystem: "gradle"
     directory: "/example"
+    schedule:
+      interval: "daily"
+
+  - package-ecosystem: "gradle"
+    directory: "/public-api-management"
     schedule:
       interval: "daily"
 

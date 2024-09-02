@@ -9,7 +9,7 @@ model via the EDC.
 
 | Specification                                                                                                                                                                                                                                                                | Version                                                                                                      |
 |:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------|
-| [Eclipse Dataspace Connector](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector)                                                                                                                                                                              | v0.8.0                                                                                                       |
+| [Eclipse Dataspace Connector](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector)                                                                                                                                                                              | v0.8.1                                                                                                       |
 | [AAS - Details of the Asset Administration Shell - Part 1](https://www.plattform-i40.de/IP/Redaktion/EN/Downloads/Publikation/Details_of_the_Asset_Administration_Shell_Part1_V3.html)<br />The exchange of information between partners in the value chain of Industrie 4.0 | AAS Specs – Part 1 V3.0 (final)<br/>(based on [eclipse-aas4j/aas4j](https://github.com/eclipse-aas4j/aas4j)) |
 
 ## Repo Structure
@@ -32,19 +32,19 @@ the [example's README](example/README.md).
 
 ## Functionality
 
-AAS data can be shared over the EDC by linking an EDC Asset to the HTTP endpoint of the AAS element. Additionally,
+AAS data can be shared over the EDC by linking an EDC Asset to the HTTP endpoint of the AAS element/submodel. Additionally,
 contracts have to be defined for each element. In order to minimize configuration effort and prevent errors, this
-extension is able to link running AAS into EDC Assets by connecting to AAS services or AAS registries. Furthermore, this
-extension can also start AAS by reading an AAS
-model. A default contract can be chosen to be applied for all elements. For critical elements, additional contracts can
-be placed. External changes to the model of an AAS are automatically synchronized by the extension.
+extension is able to link running AAS into EDC Assets by connecting to AAS repositories or AAS registries. Furthermore, this
+extension can also start an AAS repository by reading an AAS
+model (AASX / JSON). A default contract can be chosen to be applied for all elements. For critical elements, additional contracts can
+be placed via API. External changes to the model of an AAS are automatically synchronized by the extension, reducing management of metadata significantly.
 
 Additionally, a client extension providing API calls for aggregations of processes such as contract negotiation and data
 transfer is available. The result is a one-click negotiation and data transfer, ideal for SME or individuals.
 
 ### Use Cases
 
-Provide digital twin (AAS) data to business partners in Data Spaces like Catena-X or Manufacturing-X.
+Provide digital twin (AAS) data to business partners in Data Spaces. Data Providers can share their AAS Repository / AAS Registry with other participants.
 
 ## Technical Details
 
@@ -187,5 +187,5 @@ Features in development:
   see: https://github.com/FraunhoferIOSB/EDC-Extension-for-AAS-Dashboard) (&#x2713; update required)
 - AAS data-plane for EDC &#x2713;
 - Docker Hub container deployment &#x2713;
-- Support for AAS Registries: Share all AAS from AAS Registry
+- Support for AAS Registries: Share all AAS from AAS Registry &#x2713;
 - Client DPP Viewer: Directly view the requested DPP (AAS format)

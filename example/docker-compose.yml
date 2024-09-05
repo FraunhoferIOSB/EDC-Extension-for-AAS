@@ -14,7 +14,7 @@ services:
       - ./configurations:/configurations
       - ./resources:/resources
   consumer:
-    image: edc-extension4aas:latest
+    image: fraunhoferiosb/edc-extension4aas:latest
     ports:
       - "9191:9191"
       - "9291:9291"

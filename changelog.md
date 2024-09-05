@@ -2,7 +2,7 @@
 
 ## Current development version
 
-Compatibility: **Eclipse Dataspace Connector v0.8.1**
+Compatibility: **Eclipse Dataspace Connector v0.8.1, v0.9.0**
 
 **New Features**
 
@@ -14,6 +14,10 @@ Compatibility: **Eclipse Dataspace Connector v0.8.1**
     * When a contract is negotiated for one of those elements, the endpoint provided by the
       shell-/submodel-descriptor
       is used as data source for the data transfer
+* Add AAS Authentication schemes
+    * If an external AAS service/registry needs authentication, this can be configured when registering the
+      service/registry at the extension
+    * example: `{ "type":"basic", "username": "admin", "password": "administrator" }`
 
 **Bugfixes**
 

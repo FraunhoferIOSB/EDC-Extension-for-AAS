@@ -22,6 +22,7 @@ import de.fraunhofer.iosb.app.model.aas.registry.RegistryRepository;
 import de.fraunhofer.iosb.app.model.aas.service.Service;
 import de.fraunhofer.iosb.app.model.aas.service.ServiceRepository;
 import de.fraunhofer.iosb.model.aas.AasProvider;
+import de.fraunhofer.iosb.model.aas.auth.AuthenticationMethod;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.POST;
@@ -35,10 +36,10 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.monitor.Monitor;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Objects;
-import javax.annotation.Nullable;
 
 /**
  * Delegates requests to controllers.
@@ -49,7 +50,6 @@ import javax.annotation.Nullable;
 public class Endpoint {
 
     private static final String SERVICE_PATH = "service";
-    private static final String SERVICE_AUTH_PATH = "service-auth"; // s.t. change
     private static final String REGISTRY_PATH = "registry";
     private static final String ENVIRONMENT_PATH = "environment";
 
@@ -95,22 +95,9 @@ public class Endpoint {
      */
     @POST
     @Path(SERVICE_PATH)
-    public Response createService(@QueryParam("url") URL serviceUrl) {
+    public Response createService(@QueryParam("url") URL serviceUrl, AuthenticationMethod auth) {
         monitor.info("POST /%s".formatted(SERVICE_PATH));
-        return createEntity(serviceRepository, new Service(serviceUrl));
-    }
-
-    /**
-     * Register an AAS service to this extension
-     *
-     * @param provider The AAS provider
-     * @return Status message about the success of this operation.
-     */
-    @POST
-    @Path(SERVICE_AUTH_PATH)
-    public Response createProvider(AasProvider provider) {
-        monitor.info("POST /%s".formatted(SERVICE_AUTH_PATH));
-        var service = new Service(provider);
+        var service = auth == null ? new Service(serviceUrl) : new Service(serviceUrl, auth);
         return createEntity(serviceRepository, service);
     }
 

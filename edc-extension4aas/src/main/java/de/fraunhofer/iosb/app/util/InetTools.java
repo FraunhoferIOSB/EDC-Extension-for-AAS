@@ -18,8 +18,10 @@ package de.fraunhofer.iosb.app.util;
 import de.fraunhofer.iosb.model.aas.AasProvider;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.URL;
 
 public class InetTools {
 
@@ -44,10 +46,30 @@ public class InetTools {
         }
     }
 
+    private static boolean checkUrlAvailability(URL toCheck) {
+        try {
+            // Open basic http connection with "GET" method and check if IOException occurs
+            HttpURLConnection connection = (HttpURLConnection) toCheck.openConnection();
+            connection.setRequestMethod("GET");
+            connection.setConnectTimeout(5000);
+            connection.setReadTimeout(5000);
+            connection.getResponseCode();
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+
     public static boolean pingHost(AasProvider provider) {
         var host = provider.getAccessUrl().getHost();
         var port = provider.getAccessUrl().getPort();
+        // If no port available, port should be 443 or 80
+        if (port == -1) {
+            // Iff http:// go with port 80
+            port = host.startsWith("http:") ? 80 : 443;
+        }
 
-        return pingHost(host, port, 10);
+        return pingHost(host, port, 10) || checkUrlAvailability(provider.getAccessUrl());
     }
 }

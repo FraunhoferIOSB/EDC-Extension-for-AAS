@@ -26,15 +26,30 @@ public class BasicAuth extends AuthenticationMethod {
 
     private final Base64.Encoder encoder = Base64.getEncoder();
 
-    private final String username;
-    private final String password;
+    private String username;
+    private String password;
 
-    public BasicAuth(String username, String password) {
-        this.username = username;
-        this.password = password;
+    public BasicAuth() {
     }
 
     protected String getValue() {
         return "Basic %s".formatted(encoder.encodeToString("%s:%s".formatted(username, password).getBytes()));
     }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
 }

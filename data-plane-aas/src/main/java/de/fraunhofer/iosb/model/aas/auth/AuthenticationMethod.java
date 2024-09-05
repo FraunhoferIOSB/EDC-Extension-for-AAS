@@ -15,14 +15,25 @@
  */
 package de.fraunhofer.iosb.model.aas.auth;
 
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import de.fraunhofer.iosb.model.aas.auth.impl.ApiKey;
+import de.fraunhofer.iosb.model.aas.auth.impl.BasicAuth;
+import de.fraunhofer.iosb.model.aas.auth.impl.NoAuth;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.AbstractMap;
 import java.util.Map;
 
+
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = BasicAuth.class, name = "basic"),
+        @JsonSubTypes.Type(value = ApiKey.class, name = "api-key"),
+        @JsonSubTypes.Type(value = NoAuth.class)
+})
 public abstract class AuthenticationMethod {
 
-    // TODO serialize this so it's easy to embed in http request? how to handle different types of auth?
     /**
      * Get the header value to add to the request headers to communicate with the service.
      * Headers: [... , (getHeader().key, getHeader().value), ...]

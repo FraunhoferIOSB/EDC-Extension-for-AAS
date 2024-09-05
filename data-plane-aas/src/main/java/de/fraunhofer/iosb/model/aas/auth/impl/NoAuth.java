@@ -21,6 +21,9 @@ import java.util.Map;
 
 public class NoAuth extends AuthenticationMethod {
 
+    public NoAuth() {
+    }
+
     @Override
     public Map.Entry<String, String> getHeader() {
         return null;

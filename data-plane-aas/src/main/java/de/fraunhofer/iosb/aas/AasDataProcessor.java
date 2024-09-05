@@ -84,7 +84,6 @@ public class AasDataProcessor {
 
         var requestPath = aasDataAddress.getPath();
 
-
         if (!requestPath.isEmpty()) {
             // Remove leading forward slash
             requestPath = requestPath.startsWith("/") ? requestPath.substring(1) : requestPath;

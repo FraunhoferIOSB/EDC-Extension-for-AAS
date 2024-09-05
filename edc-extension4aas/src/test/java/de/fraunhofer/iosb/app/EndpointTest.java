@@ -83,7 +83,7 @@ public class EndpointTest {
     void testCreateService() {
         when(serviceRepositoryMock.create(any())).thenReturn(true);
 
-        try (var response = testSubject.createService(url)) {
+        try (var response = testSubject.createService(url, null)) {
             assertEquals(Response.Status.CREATED.getStatusCode(),
                     response.getStatusInfo().getStatusCode());
         }
@@ -125,7 +125,7 @@ public class EndpointTest {
     @Test
     void testCreateServiceNullValue() {
         when(serviceRepositoryMock.create(any())).thenThrow(IllegalAccessError.class);
-        try (var response = testSubject.createService(null)) {
+        try (var response = testSubject.createService(null, null)) {
             assertEquals(BAD_REQUEST.getStatusCode(),
                     response.getStatusInfo().getStatusCode());
         }

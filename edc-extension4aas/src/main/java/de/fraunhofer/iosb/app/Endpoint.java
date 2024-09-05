@@ -49,6 +49,7 @@ import javax.annotation.Nullable;
 public class Endpoint {
 
     private static final String SERVICE_PATH = "service";
+    private static final String SERVICE_AUTH_PATH = "service-auth"; // s.t. change
     private static final String REGISTRY_PATH = "registry";
     private static final String ENVIRONMENT_PATH = "environment";
 
@@ -106,9 +107,9 @@ public class Endpoint {
      * @return Status message about the success of this operation.
      */
     @POST
-    @Path(SERVICE_PATH)
+    @Path(SERVICE_AUTH_PATH)
     public Response createProvider(AasProvider provider) {
-        monitor.info("POST /%s".formatted(SERVICE_PATH));
+        monitor.info("POST /%s".formatted(SERVICE_AUTH_PATH));
         var service = new Service(provider);
         return createEntity(serviceRepository, service);
     }

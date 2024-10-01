@@ -339,6 +339,38 @@
 					"response": []
 				},
 				{
+					"name": "Register authed AAS service",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"basic\",\n    \"username\": \"your-username\",\n    \"password\": \"your-password\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{provider}}/service?url=https://authenticated-aas.com",
+							"host": [
+								"{{provider}}"
+							],
+							"path": [
+								"service"
+							],
+							"query": [
+								{
+									"key": "url",
+									"value": "https://authenticated-aas.com"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Register AAS registry by URL",
 					"request": {
 						"method": "POST",
@@ -369,7 +401,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"edc.aas.syncPeriod\": 10\n}",
+							"raw": "{\n    \"edc.aas.syncPeriod\": 1\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -404,7 +436,7 @@
 							"query": [
 								{
 									"key": "environment",
-                  "value": "path/to/aas/model.aasx"
+                  					"value": "/path/to/aas/model.aasx"
 								},
 								{
 									"key": "port",

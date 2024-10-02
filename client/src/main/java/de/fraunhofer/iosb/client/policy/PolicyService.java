@@ -58,6 +58,7 @@ import static org.eclipse.edc.spi.query.Criterion.criterion;
 class PolicyService {
 
     private static final String CATALOG_RETRIEVAL_FAILURE_MSG = "Catalog by provider %s couldn't be retrieved: %s";
+    public static final String AMBIGUOUS_OR_NULL_MESSAGE = "Multiple or no policyDefinitions were received for assetId %s!";
     private final CatalogService catalogService;
     private final TypeTransformerRegistry transformer;
 
@@ -114,7 +115,7 @@ class PolicyService {
 
         if (Objects.isNull(datasets) || datasets.size() != 1) {
             throw new AmbiguousOrNullException(
-                    format("Multiple or no policyDefinitions were found for assetId %s!",
+                    format(AMBIGUOUS_OR_NULL_MESSAGE,
                             assetId));
         }
 

@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
 import de.fraunhofer.iosb.app.pipeline.PipelineStep;
 import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
+import de.fraunhofer.iosb.model.aas.AasProvider;
 import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -42,9 +43,9 @@ import static jakarta.ws.rs.HttpMethod.GET;
 /**
  * Fetching an AAS environment from AAS service or AAS registry providers.
  */
-public abstract class AasAgent<T> extends PipelineStep<URL, T> {
+public abstract class AasAgent<T extends AasProvider, U> extends PipelineStep<T, U> {
 
-    public static final String AAS_V3_PREFIX = "/api/v3.0";
+    //public static final String AAS_V3_PREFIX = "/api/v3.0";
 
     private final AasDataProcessorFactory aasDataProcessorFactory;
     private final JsonDeserializer jsonDeserializer = new JsonDeserializer();
@@ -54,8 +55,8 @@ public abstract class AasAgent<T> extends PipelineStep<URL, T> {
         this.aasDataProcessorFactory = aasDataProcessorFactory;
     }
 
-    protected <K> Result<List<K>> readElements(URL accessUrl, Class<K> clazz) throws IOException {
-        try (var response = executeRequest(accessUrl)) {
+    protected <K> Result<List<K>> readElements(AasProvider provider, URL url, Class<K> clazz) throws IOException {
+        try (var response = executeRequest(provider, url)) {
             if (response.isSuccessful() && response.body() != null) {
                 return readList(response.body().string(), clazz);
             } else if (response.code() > 299 && response.code() < 500) {
@@ -66,21 +67,11 @@ public abstract class AasAgent<T> extends PipelineStep<URL, T> {
                 return Result.failure(String.valueOf(response.code()));
             }
         }
-        throw new IllegalStateException("Reading %s from %s failed".formatted(clazz.getName(), accessUrl));
+        throw new IllegalStateException("Reading %s from %s failed".formatted(clazz.getName(), provider.getAccessUrl()));
     }
 
-    private <K> @Nonnull Result<List<K>> readList(@Nullable String serialized, Class<K> clazz) {
-        try {
-            var responseJson = objectMapper.readTree(serialized).get("result");
-            return Result.success(Optional.ofNullable(jsonDeserializer.readList(responseJson, clazz))
-                    .orElse(new ArrayList<>()));
-        } catch (JsonProcessingException | DeserializationException e) {
-            return Result.failure(List.of("Failed parsing list of %s".formatted(clazz.getName()), e.getMessage()));
-        }
-    }
-
-    private @Nonnull Response executeRequest(URL aasServiceUrl) throws IOException {
-        var processor = aasDataProcessorFactory.processorFor(aasServiceUrl.toString());
+    private Response executeRequest(AasProvider provider, URL apply) throws IOException {
+        var processor = aasDataProcessorFactory.processorFor(provider.getAccessUrl().toString());
 
         if (processor.failed()) {
             return new Response.Builder()
@@ -91,12 +82,22 @@ public abstract class AasAgent<T> extends PipelineStep<URL, T> {
                     .build();
         }
 
-        return processor.getContent()
-                .send(AasDataAddress.Builder
-                        .newInstance()
-                        .method(GET)
-                        .baseUrl(aasServiceUrl.toString())
-                        .build()
-                );
+        var addressBuilder = AasDataAddress.Builder
+                .newInstance()
+                .method(GET)
+                .aasProvider(provider)
+                .path(apply.getPath());
+
+        return processor.getContent().send(addressBuilder.build());
+    }
+
+    private <K> @Nonnull Result<List<K>> readList(@Nullable String serialized, Class<K> clazz) {
+        try {
+            var responseJson = objectMapper.readTree(serialized).get("result");
+            return Result.success(Optional.ofNullable(jsonDeserializer.readList(responseJson, clazz))
+                    .orElse(new ArrayList<>()));
+        } catch (JsonProcessingException | DeserializationException e) {
+            return Result.failure(List.of("Failed parsing list of %s".formatted(clazz.getName()), e.getMessage()));
+        }
     }
 }

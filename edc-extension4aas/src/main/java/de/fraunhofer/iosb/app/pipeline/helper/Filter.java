@@ -13,25 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.app.aas.agent;
+package de.fraunhofer.iosb.app.pipeline.helper;
 
-import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
 import de.fraunhofer.iosb.app.pipeline.PipelineResult;
-import de.fraunhofer.iosb.model.aas.AasProvider;
-import org.junit.jupiter.api.Test;
+import de.fraunhofer.iosb.app.pipeline.PipelineStep;
 
-import static org.mockito.Mockito.mock;
+import java.util.Collection;
+import java.util.function.Predicate;
 
-class AasAgentTest {
+/**
+ * Filter an input collection.
+ *
+ * @param <T> Type of input.
+ */
+public class Filter<T> extends PipelineStep<Collection<T>, Collection<T>> {
 
-    @Test
-    void initializeTest() {
-        // Abstract class. Try to instantiate with empty override of method
-        new AasAgent<>(mock(AasDataProcessorFactory.class)) {
-            @Override
-            public PipelineResult<Object> apply(AasProvider provider) {
-                return null;
-            }
-        };
+    private final Predicate<T> filterFunction;
+
+    public Filter(Predicate<T> filterFunction) {
+        this.filterFunction = filterFunction;
+    }
+
+    @Override
+    public PipelineResult<Collection<T>> apply(Collection<T> ts) {
+        return PipelineResult.success(ts.stream().filter(filterFunction).toList());
     }
 }

@@ -15,13 +15,11 @@
  */
 package de.fraunhofer.iosb.app.model.aas.service;
 
-import de.fraunhofer.iosb.app.model.ids.SelfDescriptionChangeListener;
+import de.fraunhofer.iosb.app.model.aas.AasProviderRepository;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
-import org.eclipse.edc.spi.observe.ObservableImpl;
 
 import java.net.URL;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Objects;
 import javax.annotation.Nullable;
 
@@ -29,28 +27,10 @@ import javax.annotation.Nullable;
  * Self-description repository, also an observable so that on removal
  * of self-description, AssetIndex / ContractStore can be synchronized
  */
-public class ServiceRepository extends ObservableImpl<SelfDescriptionChangeListener> {
+public class ServiceRepository extends AasProviderRepository<Service> {
 
-    private final Collection<Service> services;
-
-    public ServiceRepository() {
-        super();
-        services = new HashSet<>();
-    }
-
-    public Collection<URL> getAllServiceAccessUrls() {
-        return services.stream().map(Service::accessUrl).toList();
-    }
-
-
-    /**
-     * Returns the environments offered by all stored AAS services.
-     * If a stored AAS service has no environment, the element is filtered out.
-     *
-     * @return All environments currently stored for all registered AAS services.
-     */
     public Collection<Asset> getAllEnvironments() {
-        return services.stream()
+        return getAll().stream()
                 .map(Service::environment)
                 .filter(Objects::nonNull)
                 .toList();
@@ -65,9 +45,9 @@ public class ServiceRepository extends ObservableImpl<SelfDescriptionChangeListe
      * @return The AAS environment in form of an EDC Asset.
      */
     public @Nullable Asset getEnvironment(URL serviceUrl) {
-        return services.stream()
+        return getAll().stream()
                 .filter(service ->
-                        service.accessUrl().toString()
+                        service.getAccessUrl().toString()
                                 .equals(serviceUrl.toString()))
                 .findAny()
                 .orElseThrow(() ->
@@ -75,60 +55,18 @@ public class ServiceRepository extends ObservableImpl<SelfDescriptionChangeListe
                 .environment();
     }
 
-    /**
-     * Adds a new service to the repository with the given url.
-     *
-     * @param accessUrl Access URL of the new service.
-     * @return True if created, else false.
-     */
-    public boolean create(URL accessUrl) {
-        var service = new Service(accessUrl, null);
-
-        if (services.add(service)) {
-            invokeForEach(listener -> listener.created(service));
-            return true;
-        }
-        return false;
+    @Override
+    public String contentType() {
+        return Service.class.getSimpleName();
     }
 
-    /**
-     * Update a service. Services are identified by their accessUrls.
-     *
-     * @param service Service to update.
-     */
-    public void updateService(Service service) {
-        services.remove(service);
-        services.add(service);
+    @Override
+    protected void created(Service created) {
+        invokeForEach(listener -> listener.created(created));
     }
 
-    /**
-     * Remove service and notify listeners.
-     *
-     * @param accessUrl URL of service to be removed
-     */
-    public boolean delete(URL accessUrl) {
-        // Before we remove the service, notify listeners (remove assets/contracts from edc)
-        var service = services.stream()
-                .filter(s -> s.accessUrl().toString().equals(accessUrl.toString()))
-                .findFirst()
-                .orElse(null);
-
-        if (service != null) {
-            invokeForEach(listener -> listener.removed(service));
-            return services.remove(service);
-        }
-        return false;
+    @Override
+    protected void removed(Service removed) {
+        invokeForEach(listener -> listener.removed(removed));
     }
-
-    public enum SelfDescriptionSourceType {
-        /**
-         * An AAS service such as FA³ST
-         */
-        SERVICE,
-        /**
-         * An AAS registry as specified in AAS documents
-         */
-        REGISTRY
-    }
-
 }

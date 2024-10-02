@@ -13,25 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.app.aas.agent;
+package de.fraunhofer.iosb.model.aas.auth.impl;
 
-import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
-import de.fraunhofer.iosb.app.pipeline.PipelineResult;
-import de.fraunhofer.iosb.model.aas.AasProvider;
-import org.junit.jupiter.api.Test;
+import de.fraunhofer.iosb.model.aas.auth.AuthenticationMethod;
 
-import static org.mockito.Mockito.mock;
+import java.util.Map;
 
-class AasAgentTest {
+public class NoAuth extends AuthenticationMethod {
 
-    @Test
-    void initializeTest() {
-        // Abstract class. Try to instantiate with empty override of method
-        new AasAgent<>(mock(AasDataProcessorFactory.class)) {
-            @Override
-            public PipelineResult<Object> apply(AasProvider provider) {
-                return null;
-            }
-        };
+    public NoAuth() {
+    }
+
+    @Override
+    public Map.Entry<String, String> getHeader() {
+        return null;
+    }
+
+    @Override
+    protected String getValue() {
+        return null;
     }
 }

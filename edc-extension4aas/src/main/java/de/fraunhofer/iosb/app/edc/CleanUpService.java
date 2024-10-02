@@ -50,7 +50,9 @@ public class CleanUpService implements SelfDescriptionChangeListener {
 
     @Override
     public void removed(Service service) {
-        servicePipeline.execute(service.environment());
+        if (service.environment() != null) {
+            servicePipeline.execute(service.environment());
+        }
     }
 
     @Override

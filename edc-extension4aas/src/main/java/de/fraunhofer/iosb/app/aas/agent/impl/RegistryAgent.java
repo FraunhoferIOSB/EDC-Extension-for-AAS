@@ -17,7 +17,8 @@ package de.fraunhofer.iosb.app.aas.agent.impl;
 
 import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
 import de.fraunhofer.iosb.app.aas.agent.AasAgent;
-import de.fraunhofer.iosb.app.model.aas.AasAccessUrl;
+import de.fraunhofer.iosb.app.model.aas.registry.Registry;
+import de.fraunhofer.iosb.app.model.aas.service.Service;
 import de.fraunhofer.iosb.app.pipeline.PipelineFailure;
 import de.fraunhofer.iosb.app.pipeline.PipelineResult;
 import de.fraunhofer.iosb.registry.AasServiceRegistry;
@@ -42,7 +43,6 @@ import org.eclipse.edc.spi.result.Result;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -56,10 +56,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 
-public class RegistryAgent extends AasAgent<Map<AasAccessUrl, Environment>> {
+public class RegistryAgent extends AasAgent<Registry, Map<Service, Environment>> {
 
-    public static final String SUBMODEL_DESCRIPTORS_PATH = "%s/submodel-descriptors".formatted(AAS_V3_PREFIX);
-    public static final String SHELL_DESCRIPTORS_PATH = "%s/shell-descriptors".formatted(AAS_V3_PREFIX);
     public static final String SHELL_DIRECT_ENDPOINT = "AAS-3.0";
     public static final String SUBMODEL_DIRECT_ENDPOINT = "SUBMODEL-3.0";
 
@@ -77,38 +75,33 @@ public class RegistryAgent extends AasAgent<Map<AasAccessUrl, Environment>> {
     }
 
     @Override
-    public PipelineResult<Map<AasAccessUrl, Environment>> apply(@Nonnull URL url) {
+    public PipelineResult<Map<Service, Environment>> apply(@Nonnull Registry registry) {
         try {
-            return readEnvironment(url);
+            return readEnvironment(registry);
         } catch (Exception e) {
             return PipelineResult.failure(PipelineFailure.warning(List.of(e.getClass().getName(), e.getMessage())));
         }
     }
 
-    private PipelineResult<Map<AasAccessUrl, Environment>> readEnvironment(URL url) throws IOException, URISyntaxException {
-        var submodelDescriptorsUrl = url.toURI().resolve(SUBMODEL_DESCRIPTORS_PATH).toURL();
-        var shellDescriptorsUrl = url.toURI().resolve(SHELL_DESCRIPTORS_PATH).toURL();
-
-        Map<AasAccessUrl, DefaultEnvironment.Builder> environmentsByUrl = new HashMap<>();
-
+    private PipelineResult<Map<Service, Environment>> readEnvironment(Registry registry) throws IOException {
+        Map<Service, DefaultEnvironment.Builder> environmentsByUrl = new HashMap<>();
 
         Result<List<AssetAdministrationShellDescriptor>> shellDescriptors;
         Result<List<SubmodelDescriptor>> submodelDescriptors;
         try {
-            shellDescriptors = readElements(shellDescriptorsUrl, AssetAdministrationShellDescriptor.class);
-            submodelDescriptors = readElements(submodelDescriptorsUrl, SubmodelDescriptor.class);
+            shellDescriptors = readElements(registry, registry.getShellDescriptorUrl(), AssetAdministrationShellDescriptor.class);
+            submodelDescriptors = readElements(registry, registry.getSubmodelDescriptorUrl(), SubmodelDescriptor.class);
         } catch (EdcException e) {
             // If an exception was raised, produce a fatal result
-            return PipelineResult.failure(PipelineFailure.fatal(List.of(e.getClass().getSimpleName())));
+            return PipelineResult.failure(PipelineFailure.fatal(List.of(e.getClass().getSimpleName(), e.getMessage())));
         }
 
         addShellDescriptors(environmentsByUrl, shellDescriptors.getContent());
         addSubmodelDescriptors(environmentsByUrl, submodelDescriptors.getContent());
 
-        Map<AasAccessUrl, Environment> environment = environmentsByUrl.entrySet().stream()
+        Map<Service, Environment> environment = environmentsByUrl.entrySet().stream()
                 .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue()
                         .build()));
-
 
         if (shellDescriptors.failed() || submodelDescriptors.failed()) {
             return PipelineResult.recoverableFailure(environment,
@@ -122,7 +115,7 @@ public class RegistryAgent extends AasAgent<Map<AasAccessUrl, Environment>> {
         return PipelineResult.success(environment);
     }
 
-    private void addSubmodelDescriptors(Map<AasAccessUrl, DefaultEnvironment.Builder> environmentsByUrl,
+    private void addSubmodelDescriptors(Map<Service, DefaultEnvironment.Builder> environmentsByUrl,
                                         List<SubmodelDescriptor> submodelDescriptors) throws MalformedURLException {
         var submodelEndpointUrlsSorted = sortByHostAndPort(getEndpointUrls(
                 submodelDescriptors.stream()
@@ -136,18 +129,19 @@ public class RegistryAgent extends AasAgent<Map<AasAccessUrl, Environment>> {
             aasServiceRegistry.register(submodelUrl.toString());
             for (SubmodelDescriptor descriptor : submodelDescriptors) {
                 var baseUrl = getBaseUrl(submodelUrl);
+                var service = new Service(baseUrl);
 
                 var descriptorAsSubmodel = asSubmodel(descriptor);
 
-                var envBuilder = environmentsByUrl.getOrDefault(new AasAccessUrl(baseUrl), new DefaultEnvironment.Builder());
+                var envBuilder = environmentsByUrl.getOrDefault(service, new DefaultEnvironment.Builder());
 
                 envBuilder.submodels(descriptorAsSubmodel);
-                environmentsByUrl.put(new AasAccessUrl(baseUrl), envBuilder);
+                environmentsByUrl.put(service, envBuilder);
             }
         }
     }
 
-    private void addShellDescriptors(Map<AasAccessUrl, DefaultEnvironment.Builder> environmentsByUrl,
+    private void addShellDescriptors(Map<Service, DefaultEnvironment.Builder> environmentsByUrl,
                                      List<AssetAdministrationShellDescriptor> shellDescriptors) throws MalformedURLException {
         var shellEndpointUrlsSorted = sortByHostAndPort(getEndpointUrls(
                 shellDescriptors.stream()
@@ -161,15 +155,16 @@ public class RegistryAgent extends AasAgent<Map<AasAccessUrl, Environment>> {
             aasServiceRegistry.register(shellUrl.toString());
             for (AssetAdministrationShellDescriptor descriptor : shellDescriptors) {
                 var baseUrl = getBaseUrl(shellUrl);
+                var service = new Service(baseUrl);
 
                 var descriptorAsEnvironment = asEnvironment(descriptor);
 
-                var envBuilder = environmentsByUrl.getOrDefault(new AasAccessUrl(baseUrl), new DefaultEnvironment.Builder());
+                var envBuilder = environmentsByUrl.getOrDefault(service, new DefaultEnvironment.Builder());
 
                 descriptorAsEnvironment.getAssetAdministrationShells().forEach(envBuilder::assetAdministrationShells);
                 descriptorAsEnvironment.getSubmodels().forEach(envBuilder::submodels);
 
-                environmentsByUrl.put(new AasAccessUrl(baseUrl), envBuilder);
+                environmentsByUrl.put(service, envBuilder);
             }
         }
 

@@ -30,7 +30,7 @@ dependencies {
     implementation("$group:management-api:$edcVersion") // EDC WebService for registering endpoints
 
     testImplementation("$group:junit:$edcVersion")
-    testImplementation("org.glassfish.jersey.core:jersey-common:3.1.3")
+    testImplementation("org.glassfish.jersey.core:jersey-common:3.1.8")
     testImplementation("org.mockito:mockito-core:${mockitoVersion}")
     testImplementation("org.mock-server:mockserver-junit-jupiter:${mockserverVersion}")
 }

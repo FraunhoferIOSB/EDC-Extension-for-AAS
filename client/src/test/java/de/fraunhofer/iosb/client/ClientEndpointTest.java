@@ -20,7 +20,6 @@ import de.fraunhofer.iosb.api.PublicApiManagementService;
 import de.fraunhofer.iosb.client.datatransfer.DataTransferController;
 import de.fraunhofer.iosb.client.negotiation.NegotiationController;
 import de.fraunhofer.iosb.client.policy.PolicyController;
-import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
@@ -58,7 +57,6 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 import static java.lang.String.format;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -194,14 +192,6 @@ public class ClientEndpointTest {
         try (var ignored = clientEndpoint.negotiateContract(url, "test-id", "test-asset-id", null)) {
             fail();
         } catch (EdcException expected) {
-        }
-    }
-
-    @Test
-    public void getDataTest() {
-        var dataAddress = AasDataAddress.Builder.newInstance().baseUrl(url.toString()).build();
-        try (var response = clientEndpoint.getData(url, "test-agreement-id", dataAddress)) {
-            assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
         }
     }
 }

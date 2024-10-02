@@ -184,7 +184,7 @@ class PolicyService {
 
         return firstRules.stream().allMatch(
                 firstRule -> secondRules.stream()
-                        .anyMatch(secondRule -> !ruleEquality(firstRule, secondRule)));
+                        .anyMatch(secondRule -> ruleEquality(firstRule, secondRule)));
     }
 
     private <T extends Rule> boolean ruleEquality(T first, T second) {

@@ -21,7 +21,10 @@ import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DataService;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Distribution;
+import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService;
+import org.eclipse.edc.policy.model.Action;
+import org.eclipse.edc.policy.model.Duty;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
@@ -34,7 +37,6 @@ import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.platform.engine.TestExecutionResult;
 import org.mockito.Mockito;
 
 import java.net.MalformedURLException;
@@ -47,7 +49,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import static de.fraunhofer.iosb.client.policy.PolicyService.AMBIGUOUS_OR_NULL_MESSAGE;
 import static java.lang.String.format;
 import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
@@ -80,6 +81,7 @@ public class PolicyServiceTest {
     private TypeTransformerRegistry typeTransformerRegistry;
     private PolicyServiceConfig config;
     private PolicyService policyService;
+    private PolicyDefinitionStore policyDefinitionStore;
 
     public PolicyServiceTest() throws MalformedURLException {
         int providerPort = 54321;
@@ -91,10 +93,10 @@ public class PolicyServiceTest {
         catalogService = mock(CatalogService.class);
         typeTransformerRegistry = mock(TypeTransformerRegistry.class);
         config = mock(PolicyServiceConfig.class);
+        policyDefinitionStore = mock(PolicyDefinitionStore.class);
 
         policyService = new PolicyService(catalogService, typeTransformerRegistry, config,
-                mock(PolicyDefinitionStore.class),
-                new ConsoleMonitor().withPrefix("PolicyServiceTest"));
+                policyDefinitionStore, new ConsoleMonitor().withPrefix("PolicyServiceTest"));
 
         future = new CompletableFuture<>();
     }
@@ -149,8 +151,27 @@ public class PolicyServiceTest {
 
         assertTrue(datasetResponse.failed());
         assertEquals(ServiceFailure.Reason.NOT_FOUND, datasetResponse.reason());
-        assertEquals(List.of(AMBIGUOUS_OR_NULL_MESSAGE.formatted(TEST_ASSET_ID)),
-                datasetResponse.getFailureMessages());
+    }
+
+    @Test
+    void getDatasetTooManyDatasetsTest() {
+        var catalogString = FileManager.loadResource("catalog.json");
+        assert catalogString != null;
+        future.complete(StatusResult.success(catalogString.getBytes(StandardCharsets.UTF_8)));
+
+        mockCatalogServiceResponseWith(future);
+
+        when(typeTransformerRegistry.transform(any(), any()))
+                .thenReturn(Result.success(
+                        Catalog.Builder.newInstance()
+                                .datasets(List.of(Dataset.Builder.newInstance().build(),
+                                        Dataset.Builder.newInstance().build()))
+                                .build()));
+
+        var datasetResponse = policyService.getDatasetForAssetId(TEST_COUNTER_PARTY_ID, testUrl, TEST_ASSET_ID);
+
+        assertTrue(datasetResponse.failed());
+        assertEquals(ServiceFailure.Reason.CONFLICT, datasetResponse.reason());
     }
 
     @Test
@@ -196,47 +217,107 @@ public class PolicyServiceTest {
 
     @Test
     void getAcceptablePolicyForAssetIdEmptyContractOfferListTest() {
-        // mock getDatasetMethod
+        // we mock getDatasetMethod for simplicity
         var policyServiceSpy = spy(policyService);
-        Mockito.doReturn(ServiceResult.success(Dataset.Builder.newInstance().build())).when(policyServiceSpy).getDatasetForAssetId(TEST_COUNTER_PARTY_ID, testUrl, TEST_ASSET_ID);
+        Mockito.doReturn(ServiceResult.success(Dataset.Builder.newInstance().build()))
+                .when(policyServiceSpy)
+                .getDatasetForAssetId(TEST_COUNTER_PARTY_ID, testUrl, TEST_ASSET_ID);
 
-        try {
-            policyServiceSpy.getAcceptableContractOfferForAssetId(TEST_COUNTER_PARTY_ID, testUrl, TEST_ASSET_ID);
-        } catch (EdcException expected) {
-            assertEquals("Could not find any acceptable policyDefinition", expected.getMessage());
-        }
+        var result = policyServiceSpy.getAcceptableContractOfferForAssetId(TEST_COUNTER_PARTY_ID, testUrl,
+                TEST_ASSET_ID);
 
+        assertTrue(result.failed());
     }
 
     @Test
-    void getAcceptableContractOfferForAssetIdAcceptAllOffersTest() {
+    void test_getAcceptableContractOfferForAssetId_acceptAllOffers() {
+        when(config.isAcceptAllProviderOffers()).thenReturn(true);
+
+        Dataset dataset = getDataset();
+
+        // we mock getDatasetMethod for simplicity
+        var policyServiceSpy = spy(policyService);
+        Mockito.doReturn(ServiceResult.success(dataset))
+                .when(policyServiceSpy)
+                .getDatasetForAssetId(TEST_COUNTER_PARTY_ID, testUrl, TEST_ASSET_ID);
+
+        var result = policyServiceSpy.getAcceptableContractOfferForAssetId(TEST_COUNTER_PARTY_ID, testUrl,
+                TEST_ASSET_ID);
+
+        assertTrue(result.succeeded());
+
+        // Compare contractoffer id and policy
+        assertEquals(dataset.getOffers().entrySet().stream().findFirst().orElseThrow().getValue(),
+                result.getContent().getPolicy());
+
+        assertEquals(dataset.getOffers().entrySet().stream().findFirst().orElseThrow().getValue().getTarget(),
+                result.getContent().getAssetId());
+
+        assertEquals(dataset.getOffers().entrySet().stream().findFirst().orElseThrow().getKey(),
+                result.getContent().getId());
+    }
+
+    @Test
+    void test_getAcceptableContractOfferForAssetId_acceptFromAcceptedList() {
+        var dataset = getDataset();
+        when(config.isAcceptAllProviderOffers()).thenReturn(false);
+        List<PolicyDefinition> policies = List.of(
+                PolicyDefinition.Builder.newInstance()
+                        .policy(dataset.getOffers().values().stream().findFirst().orElseThrow())
+                        .id(dataset.getOffers().keySet().stream().findFirst().orElseThrow())
+                        .build());
+
+        when(policyDefinitionStore.getPolicyDefinitions()).thenReturn(policies);
+
+        // we mock getDatasetMethod for simplicity
+        var policyServiceSpy = spy(policyService);
+        Mockito.doReturn(ServiceResult.success(dataset))
+                .when(policyServiceSpy)
+                .getDatasetForAssetId(TEST_COUNTER_PARTY_ID, testUrl, TEST_ASSET_ID);
+
+        var result = policyServiceSpy.getAcceptableContractOfferForAssetId(TEST_COUNTER_PARTY_ID, testUrl,
+                TEST_ASSET_ID);
+
+        assertTrue(result.succeeded());
+
+        // Compare contractoffer id and policy
+        assertEquals(dataset.getOffers().entrySet().stream().findFirst().orElseThrow().getValue(),
+                result.getContent().getPolicy());
+
+        assertEquals(dataset.getOffers().entrySet().stream().findFirst().orElseThrow().getValue().getTarget(),
+                result.getContent().getAssetId());
+
+        assertEquals(dataset.getOffers().entrySet().stream().findFirst().orElseThrow().getKey(),
+                result.getContent().getId());
+    }
+
+    @Test
+    void test_getAcceptableContractOfferForAssetId_noAcceptableContractOffer() {
         //TODO
     }
 
     @Test
-    void getAcceptableContractOfferForAssetIdAcceptFromAcceptedListTest() {
+    void test_getAcceptableContractOfferForAssetId_timeout() {
         //TODO
     }
 
     @Test
-    void getAcceptablePolicyForAssetIdNoAcceptableContractOfferTest() {
-        //TODO
-    }
-
-    @Test
-    void getAcceptableContractOfferForAssetIdTimeoutTest() {
-        //TODO
-    }
-
-    @Test
-    void getAcceptablePolicyForAssetIdExceptionByGetDatasetTest() {
+    void test_getAcceptableContractOfferForAssetId_exceptionByGetDatasetForAssetId() {
         //TODO
     }
 
     private Dataset getDataset() {
         return Dataset.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
-                .offer(UUID.randomUUID().toString(), Policy.Builder.newInstance().build())
+                .offer(UUID.randomUUID().toString(),
+                        Policy.Builder.newInstance()
+                                .target(TEST_ASSET_ID)
+                                .duty(
+                                        Duty.Builder.newInstance()
+                                                .action(Action.Builder.newInstance().type("USE").build())
+                                                .consequence(Duty.Builder.newInstance().build())
+                                                .build())
+                                .build())
                 .distribution(
                         Distribution.Builder.newInstance()
                                 .dataService(DataService.Builder.newInstance().build())

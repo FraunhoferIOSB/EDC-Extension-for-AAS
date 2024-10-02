@@ -77,15 +77,16 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<Service, Environm
      */
     @Override
     public PipelineResult<Collection<Service>> apply(Map<Service, Environment> environments) {
-        var results = environments.entrySet().stream()
-                .map(entry -> executeSingle(
-                        Optional.ofNullable(entry.getKey())
-                                .orElse(new Service((URL) null)),
-                        entry.getValue())).toList();
+        Collection<PipelineResult<Service>> results = new ArrayList<>();
+
+        for (Map.Entry<Service, Environment> entry : environments.entrySet()) {
+            var service = Objects.requireNonNullElse(entry.getKey(), new Service((URL) null));
+            results.add(executeSingle(service, entry.getValue()));
+        }
 
         var contents = extractContents(results);
 
-        return Objects.requireNonNullElseGet(handleError(results, contents), () -> PipelineResult.success(contents));
+        return Objects.requireNonNullElse(handleError(results, contents), PipelineResult.success(contents));
     }
 
     public PipelineResult<Service> executeSingle(Service service, Environment environment) {
@@ -131,9 +132,9 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<Service, Environm
                                             .toList())
                             .build()));
         } catch (MalformedURLException e) {
-            return PipelineResult.recoverableFailure(service.with(assetBuilder.build()), PipelineFailure.warning(List.of("Could not build access url for %s".formatted(service.getAccessUrl()))));
+            return PipelineResult.recoverableFailure(service.with(assetBuilder.build()),
+                    PipelineFailure.warning(List.of("Could not build access url for %s".formatted(service.getAccessUrl()))));
         }
-
     }
 
     private <R extends Referable> Asset.Builder mapReferableToAssetBuilder(R referable) {

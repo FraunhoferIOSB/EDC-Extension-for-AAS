@@ -21,9 +21,9 @@ import de.fraunhofer.iosb.model.aas.net.AasAccessUrl;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Nullable;
 import java.net.MalformedURLException;
 import java.net.URL;
-import javax.annotation.Nullable;
 
 /**
  * An AAS service representation as seen in <a href="https://github.com/FraunhoferIOSB/FAAAST-Service">FA³ST Service</a>
@@ -66,15 +66,25 @@ public final class Service extends AasProvider {
         super(provider);
     }
 
-    public @NotNull Service with(Asset environment) {
+    private Service(AasProvider provider, @Nullable Asset environment) {
+        super(provider);
         this.environment = environment;
-        return this;
+    }
+
+    /**
+     * Return the current Service with the given environment.
+     * This creates a new object reference.
+     *
+     * @param environment The environment
+     * @return A new object containing this service's metadata and the environment.
+     */
+    public @NotNull Service with(Asset environment) {
+        return new Service(this, environment);
     }
 
     public Asset environment() {
         return environment;
     }
-
 
     public URL getShellsUrl() throws MalformedURLException {
         return new URL(getAccessUrl(), SHELLS_PATH);

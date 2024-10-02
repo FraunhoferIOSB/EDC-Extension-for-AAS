@@ -25,6 +25,7 @@ import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.Duty;
+import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
@@ -52,6 +53,7 @@ import java.util.concurrent.TimeoutException;
 import static java.lang.String.format;
 import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
+import static org.eclipse.edc.spi.result.ServiceFailure.Reason.UNEXPECTED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -132,7 +134,7 @@ public class PolicyServiceTest {
         var datasetResponse = policyService.getDatasetForAssetId(TEST_COUNTER_PARTY_ID, testUrl, TEST_ASSET_ID);
 
         assertTrue(datasetResponse.failed());
-        assertEquals(ServiceFailure.Reason.UNEXPECTED, datasetResponse.reason());
+        assertEquals(UNEXPECTED, datasetResponse.reason());
         assertTrue(datasetResponse.getFailureMessages().contains(TIMEOUT_MESSAGE));
     }
 
@@ -280,7 +282,7 @@ public class PolicyServiceTest {
 
         assertTrue(result.succeeded());
 
-        // Compare contractoffer id and policy
+        // Compare contract offer id and policy
         assertEquals(dataset.getOffers().entrySet().stream().findFirst().orElseThrow().getValue(),
                 result.getContent().getPolicy());
 
@@ -293,17 +295,47 @@ public class PolicyServiceTest {
 
     @Test
     void test_getAcceptableContractOfferForAssetId_noAcceptableContractOffer() {
-        //TODO
+        var dataset = getDataset();
+        when(config.isAcceptAllProviderOffers()).thenReturn(false);
+        List<PolicyDefinition> policies = List.of(
+                PolicyDefinition.Builder.newInstance()
+                        .policy(Policy.Builder.newInstance()
+                                .permission(Permission.Builder.newInstance().build())
+                                .build())
+                        .id(dataset.getOffers().keySet().stream().findFirst().orElseThrow())
+                        .build());
+
+        when(policyDefinitionStore.getPolicyDefinitions()).thenReturn(policies);
+
+        // we mock getDatasetMethod for simplicity
+        var policyServiceSpy = spy(policyService);
+        Mockito.doReturn(ServiceResult.success(dataset))
+                .when(policyServiceSpy)
+                .getDatasetForAssetId(TEST_COUNTER_PARTY_ID, testUrl, TEST_ASSET_ID);
+
+        var result = policyServiceSpy.getAcceptableContractOfferForAssetId(TEST_COUNTER_PARTY_ID, testUrl,
+                TEST_ASSET_ID);
+
+        assertTrue(result.failed());
     }
 
     @Test
-    void test_getAcceptableContractOfferForAssetId_timeout() {
-        //TODO
-    }
+    void test_getAcceptableContractOfferForAssetId_timeoutErrorHandling() {
+        final String ERROR_MESSAGE = "Failed fetching catalog";
+        // we mock getDatasetMethod for simplicity
+        var policyServiceSpy = spy(policyService);
 
-    @Test
-    void test_getAcceptableContractOfferForAssetId_exceptionByGetDatasetForAssetId() {
-        //TODO
+        Mockito.doReturn(ServiceResult.unexpected(ERROR_MESSAGE))
+                .when(policyServiceSpy)
+                .getDatasetForAssetId(TEST_COUNTER_PARTY_ID, testUrl, TEST_ASSET_ID);
+
+        var result = policyServiceSpy.getAcceptableContractOfferForAssetId(TEST_COUNTER_PARTY_ID, testUrl,
+                TEST_ASSET_ID);
+
+        assertTrue(result.failed());
+
+        assertTrue(result.getFailureMessages().contains(UNEXPECTED.toString()));
+        assertTrue(result.getFailureMessages().contains(ERROR_MESSAGE));
     }
 
     private Dataset getDataset() {

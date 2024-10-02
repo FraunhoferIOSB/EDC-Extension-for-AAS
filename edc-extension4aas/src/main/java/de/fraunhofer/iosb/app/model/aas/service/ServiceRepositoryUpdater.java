@@ -25,10 +25,10 @@ import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
  */
 public class ServiceRepositoryUpdater extends PipelineStep<Service, Pair<Asset, Asset>> {
 
-    private final ServiceRepository selfDescriptionRepository;
+    private final ServiceRepository services;
 
-    public ServiceRepositoryUpdater(ServiceRepository selfDescriptionRepository) {
-        this.selfDescriptionRepository = selfDescriptionRepository;
+    public ServiceRepositoryUpdater(ServiceRepository serviceRepository) {
+        this.services = serviceRepository;
     }
 
     /**
@@ -41,8 +41,13 @@ public class ServiceRepositoryUpdater extends PipelineStep<Service, Pair<Asset, 
      */
     @Override
     public PipelineResult<Pair<Asset, Asset>> apply(Service service) {
-        var old = selfDescriptionRepository.getEnvironment(service.getAccessUrl());
-        selfDescriptionRepository.update(service);
+        var old = services.getEnvironment(service.getAccessUrl());
+
+        if (old != null) {
+            // Create deep copy of old asset
+            old = old.toBuilder().build();
+        }
+        services.update(service);
 
         return PipelineResult.success(new Pair<>(old, service.environment()));
     }

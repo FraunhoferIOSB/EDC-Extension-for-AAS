@@ -167,11 +167,11 @@ public class AasExtension implements ServiceExtension {
         registerAasServicesByConfig(serviceRepository);
     }
 
-    private void registerAasServicesByConfig(ServiceRepository selfDescriptionRepository) {
+    private void registerAasServicesByConfig(ServiceRepository serviceRepository) {
         var configInstance = Configuration.getInstance();
 
         if (Objects.nonNull(configInstance.getRemoteAasLocation())) {
-            selfDescriptionRepository.create(new Service(configInstance.getRemoteAasLocation()));
+            serviceRepository.create(new Service(configInstance.getRemoteAasLocation()));
         }
 
         if (Objects.isNull(configInstance.getLocalAasModelPath())) {
@@ -196,7 +196,7 @@ public class AasExtension implements ServiceExtension {
             return;
         }
 
-        selfDescriptionRepository.create(new Service(serviceUrl));
+        serviceRepository.create(new Service(serviceUrl));
     }
 
     @Override

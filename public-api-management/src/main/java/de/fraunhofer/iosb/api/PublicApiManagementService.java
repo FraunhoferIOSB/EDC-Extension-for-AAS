@@ -21,15 +21,10 @@ import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.util.Collection;
 import java.util.Objects;
-import java.util.stream.Collectors;
-
-import static java.lang.String.format;
 
 /**
- * Extensions can register their public endpoints here.
- * Requests to those endpoints will not need authentication.
- * If multiple extensions handle their own public endpoints
- * with separate AuthenticationRequestFilters, they will
+ * Extensions can register their public endpoints here. Requests to those endpoints will not need authentication.
+ * If multiple extensions handle their own public endpoints with separate AuthenticationRequestFilters, they will
  * interfere with each other.
  */
 public class PublicApiManagementService {
@@ -39,7 +34,7 @@ public class PublicApiManagementService {
 
     public PublicApiManagementService(CustomAuthenticationRequestFilter filter, Monitor monitor) {
         this.filter = filter;
-        this.monitor = monitor;
+        this.monitor = monitor.withPrefix("PublicApiManagementService");
     }
 
     /**
@@ -48,10 +43,14 @@ public class PublicApiManagementService {
      * @param endpoints Non-null collection of endpoints.
      */
     public void addEndpoints(Collection<Endpoint> endpoints) {
-        Objects.requireNonNull(endpoints, "endpoints must not be null");
-        monitor.info(format("PublicApiManagementService: Adding %s public endpoints to filter.", endpoints.size()));
-        var nonNullEndpoints = endpoints.stream().filter(Objects::nonNull).collect(Collectors.toList());
-        filter.addEndpoints(nonNullEndpoints);
+        if (endpoints == null) {
+            throw new NullPointerException("endpoints must not be null");
+        }
+
+        monitor.debug("Adding %s public endpoints.".formatted(endpoints.size()));
+
+        endpoints.removeIf(Objects::isNull);
+        filter.addEndpoints(endpoints);
     }
 
     /**
@@ -60,8 +59,11 @@ public class PublicApiManagementService {
      * @param endpoint Non-null endpoint.
      */
     public void addTemporaryEndpoint(Endpoint endpoint) {
-        Objects.requireNonNull(endpoint, "endpoint must not be null");
-        monitor.info(format("PublicApiManagementService: Adding public endpoint %s to filter", endpoint.suffix()));
+        if (endpoint == null) {
+            throw new NullPointerException("endpoint must not be null");
+        }
+
+        monitor.debug("Adding public endpoint %s.".formatted(endpoint.suffix()));
         filter.addTemporaryEndpoint(endpoint);
     }
 
@@ -71,8 +73,12 @@ public class PublicApiManagementService {
      * @param endpoints Non-null collection of endpoints.
      */
     public void removeEndpoints(Collection<Endpoint> endpoints) {
-        Objects.requireNonNull(endpoints, "endpoints must not be null");
-        monitor.info(format("PublicApiManagementService: Removing %s public endpoints from filter.", endpoints.size()));
+        if (endpoints == null) {
+            throw new NullPointerException("endpoints must not be null");
+        }
+
+        monitor.debug("Removing %s public endpoints.".formatted(endpoints.size()));
+        endpoints.removeIf(Objects::isNull);
         filter.removeEndpoints(endpoints);
     }
 }

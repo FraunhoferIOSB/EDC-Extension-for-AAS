@@ -15,6 +15,8 @@
  */
 package de.fraunhofer.iosb.client;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iosb.client.datatransfer.DataTransferController;
 import de.fraunhofer.iosb.client.negotiation.NegotiationController;
 import de.fraunhofer.iosb.client.policy.PolicyController;
@@ -35,6 +37,7 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 import java.net.URL;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ExecutionException;
 
 import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 
@@ -61,6 +64,7 @@ public class ClientEndpoint {
     private final PolicyController policyController;
     private final DataTransferController transferController;
 
+    private final ObjectMapper nonNullNonEmptyObjectMapper;
 
     private ClientEndpoint(Monitor monitor,
                            NegotiationController negotiationController,
@@ -70,6 +74,9 @@ public class ClientEndpoint {
         this.policyController = policyController;
         this.negotiationController = negotiationController;
         this.transferController = transferController;
+        nonNullNonEmptyObjectMapper = new ObjectMapper()
+                .setSerializationInclusion(JsonInclude.Include.NON_NULL)
+                .setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
     }
 
     /**
@@ -93,6 +100,20 @@ public class ClientEndpoint {
                 assetId.isEmpty()) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(MISSING_QUERY_PARAMETER_MESSAGE.formatted("providerUrl, counterPartyId, assetId")).build();
+        }
+        if (dataAddress != null && dataAddress.getProperties().get("operation") != null) {
+            String operation;
+            try {
+                operation = nonNullNonEmptyObjectMapper.writeValueAsString(dataAddress.getProperties().get("operation"
+                ));
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+
+            dataAddress = AasDataAddress.Builder.newInstance()
+                    .copyFrom(dataAddress)
+                    .property("operation", operation)
+                    .build();
         }
 
         Result<ContractOffer> contractOfferResult =
@@ -151,43 +172,6 @@ public class ClientEndpoint {
         }
 
         return Response.ok(Map.of("agreement-id", agreementResult.getContent().getId())).build();
-    }
-
-    /**
-     * Submits a data transfer request to the providerUrl.
-     * In the future this could be replaced with the
-     * <a href="https://www.ietf.org/archive/id/draft-ietf-httpbis-safe-method-w-body-02.html">HTTP QUERY method</a>
-     *
-     * @param providerUrl The data provider's url
-     * @param agreementId The basis of the data transfer.
-     * @param dataAddress URL of destination data sink.
-     * @return On success, the data of the desired asset. Else, returns an error message.
-     */
-    @POST
-    @Path(TRANSFER_PATH)
-    public Response getData(@QueryParam("providerUrl") URL providerUrl,
-                            @QueryParam("agreementId") String agreementId,
-                            DataAddress dataAddress) {
-        monitor.info("GET /%s".formatted(TRANSFER_PATH));
-        if (Objects.isNull(providerUrl) || Objects.isNull(agreementId)) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(MISSING_QUERY_PARAMETER_MESSAGE.formatted("providerUrl, agreementId")).build();
-        }
-
-        try {
-            var data = transferController.initiateTransferProcess(providerUrl, agreementId, dataAddress);
-            if (Objects.isNull(dataAddress)) {
-                return Response.ok(data).build();
-            } else {
-                return Response.ok("Data transfer request sent.").build();
-            }
-        } catch (InterruptedException | ExecutionException negotiationException) {
-            monitor.severe("Data transfer failed for provider %s and agreementId %s".formatted(providerUrl,
-                    agreementId), negotiationException);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(negotiationException.getMessage())
-                    .build();
-        }
     }
 
     public static class Builder {

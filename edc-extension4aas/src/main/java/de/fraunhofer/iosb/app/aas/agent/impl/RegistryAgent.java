@@ -125,7 +125,7 @@ public class RegistryAgent extends AasAgent<Registry, Map<Service, Environment>>
 
         for (URL submodelUrl : submodelEndpointUrlsSorted) {
             // Still need to register AAS services for possible data transfer!!!
-            aasServiceRegistry.register(submodelUrl.toString());
+            aasServiceRegistry.register(submodelUrl);
             for (SubmodelDescriptor descriptor : submodelDescriptors) {
                 var baseUrl = getBaseUrl(submodelUrl);
                 var service = new Service(baseUrl);
@@ -151,7 +151,7 @@ public class RegistryAgent extends AasAgent<Registry, Map<Service, Environment>>
 
         for (URL shellUrl : shellEndpointUrlsSorted) {
             // Still need to register AAS services for possible data transfer!!!
-            aasServiceRegistry.register(shellUrl.toString());
+            aasServiceRegistry.register(shellUrl);
             for (AssetAdministrationShellDescriptor descriptor : shellDescriptors) {
                 var baseUrl = getBaseUrl(shellUrl);
                 var service = new Service(baseUrl);

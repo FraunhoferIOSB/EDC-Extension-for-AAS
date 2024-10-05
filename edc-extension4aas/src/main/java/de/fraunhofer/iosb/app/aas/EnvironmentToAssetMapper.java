@@ -25,9 +25,10 @@ import de.fraunhofer.iosb.app.pipeline.PipelineStep;
 import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShell;
 import org.eclipse.digitaltwin.aas4j.v3.model.ConceptDescription;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
+import org.eclipse.digitaltwin.aas4j.v3.model.Submodel;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
+import org.jetbrains.annotations.NotNull;
 
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -93,41 +94,42 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<Service, Environm
                             .formatted(service.getAccessUrl()))));
         }
 
-        var assetBuilder = Asset.Builder.newInstance();
+        String accessUrl = service.getAccessUrlV3().toString();
 
-        try {
-            final String submodelsUrl = service.getSubmodelsUrl().toString();
-            assetBuilder.property(SUBMODELS, environment.getSubmodels().stream()
-                    .map(submodel -> submodelMapper.map(submodel, submodelsUrl))
-                    .toList());
-        } catch (MalformedURLException e) {
-            return PipelineResult.failure(PipelineFailure.warning(List.of("Could not build access url for %s".formatted(service.getAccessUrl()))));
+        var submodels = handleSubmodels(environment.getSubmodels(), accessUrl);
+
+        List<Asset> shells = List.of();
+        List<Asset> conceptDescriptions = List.of();
+        if (!onlySubmodelsDecision.get()) {
+            shells = handleShells(environment.getAssetAdministrationShells(), accessUrl);
+            conceptDescriptions = handleConceptDescriptions(environment.getConceptDescriptions(), accessUrl);
         }
 
-        if (onlySubmodelsDecision.get()) {
-            assetBuilder.property(SHELLS, List.of());
-            assetBuilder.property(CONCEPT_DESCRIPTIONS, List.of());
-            return PipelineResult.success(service.with(assetBuilder.build()));
-        }
+        var asset = Asset.Builder.newInstance()
+                .property(SUBMODELS, submodels)
+                .property(SHELLS, shells)
+                .property(CONCEPT_DESCRIPTIONS, conceptDescriptions)
+                .build();
 
-        try {
-            var shellsUrl = service.getShellsUrl().toString();
-            var conceptDescriptionsUrl = service.getConceptDescriptionsUrl().toString();
+        return PipelineResult.success(service.with(asset));
+    }
 
-            return PipelineResult.success(service.with(
-                    assetBuilder
-                            .property(SHELLS,
-                                    environment.getAssetAdministrationShells().stream()
-                                            .map((AssetAdministrationShell shell) -> shellMapper.map(shell, shellsUrl))
-                                            .toList())
-                            .property(CONCEPT_DESCRIPTIONS,
-                                    environment.getConceptDescriptions().stream()
-                                            .map((ConceptDescription conceptDescription) -> conceptDescriptionMapper.map(conceptDescription, conceptDescriptionsUrl))
-                                            .toList())
-                            .build()));
-        } catch (MalformedURLException e) {
-            return PipelineResult.recoverableFailure(service.with(assetBuilder.build()),
-                    PipelineFailure.warning(List.of("Could not build access url for %s".formatted(service.getAccessUrl()))));
-        }
+    private @NotNull List<Asset> handleSubmodels(Collection<Submodel> submodels, String accessUrl) {
+        return submodels.stream()
+                .map(submodel -> submodelMapper.map(submodel, accessUrl))
+                .toList();
+    }
+
+    private @NotNull List<Asset> handleShells(Collection<AssetAdministrationShell> shells, String accessUrl) {
+        return shells.stream()
+                .map(shell -> shellMapper.map(shell, accessUrl))
+                .toList();
+    }
+
+    private @NotNull List<Asset> handleConceptDescriptions(Collection<ConceptDescription> conceptDescriptions,
+                                                           String accessUrl) {
+        return conceptDescriptions.stream()
+                .map(conceptDescription -> conceptDescriptionMapper.map(conceptDescription, accessUrl))
+                .toList();
     }
 }

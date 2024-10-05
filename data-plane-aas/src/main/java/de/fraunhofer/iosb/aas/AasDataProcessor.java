@@ -34,6 +34,7 @@ import java.nio.charset.StandardCharsets;
  */
 public class AasDataProcessor {
 
+    private static final String APPLICATION_JSON = "application/json";
     private final EdcHttpClient httpClient;
 
     AasDataProcessor(EdcHttpClient httpClient) {
@@ -88,6 +89,16 @@ public class AasDataProcessor {
             // Remove leading forward slash
             requestPath = requestPath.startsWith("/") ? requestPath.substring(1) : requestPath;
             requestUrlBuilder.addPathSegments(requestPath);
+        }
+
+
+        // This is also called on the destination address, so ensure no payload was present
+        if (aasDataAddress.isOperation() && (bytes == null || bytes.length == 0)) {
+            // https://faaast-service.readthedocs.io/en/latest/interfaces/endpoint.html#invoking-operations
+            requestUrlBuilder.addPathSegment("invoke");
+            // TODO this is very ad hoc
+            bytes = aasDataAddress.getOperation().getBytes(StandardCharsets.UTF_8);
+            mediaType = APPLICATION_JSON;
         }
 
         var requestUrl = requestUrlBuilder.build().url();

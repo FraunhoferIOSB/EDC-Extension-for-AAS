@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iosb.client.datatransfer.DataTransferController;
 import de.fraunhofer.iosb.client.negotiation.NegotiationController;
 import de.fraunhofer.iosb.client.policy.PolicyController;
+import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
@@ -97,7 +98,8 @@ public class ClientEndpoint {
      */
     @GET
     @Path(OFFER_PATH)
-    public Response getOffer(@QueryParam("providerUrl") URL providerUrl, @QueryParam("assetId") String assetId, @QueryParam("providerId") String counterPartyId) {
+    public Response getOffer(@QueryParam("providerUrl") URL providerUrl, @QueryParam("assetId") String assetId,
+                             @QueryParam("providerId") String counterPartyId) {
         monitor.info("GET /%s".formatted(OFFER_PATH));
         if (Objects.isNull(assetId) || Objects.isNull(providerUrl)) {
             return Response.status(Response.Status.BAD_REQUEST)
@@ -157,8 +159,21 @@ public class ClientEndpoint {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(MISSING_QUERY_PARAMETER_MESSAGE.formatted("providerUrl, counterPartyId, assetId")).build();
         }
+        /** TODO keep this if string operation does not work
+        if (dataAddress != null && dataAddress.getProperties().get("operation") != null) {
+            String operation;
+            try {
+                operation = nonNullNonEmptyObjectMapper.writeValueAsString(dataAddress.getProperties().get("operation"));
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
 
-        Result<ContractOffer> contractOfferResult = policyController.getAcceptableContractOfferForAssetId(counterPartyId, counterPartyUrl, assetId);
+            dataAddress = AasDataAddress.Builder.newInstance().copyFrom(dataAddress).property("operation", operation).build();
+
+        }*/
+
+        Result<ContractOffer> contractOfferResult =
+                policyController.getAcceptableContractOfferForAssetId(counterPartyId, counterPartyUrl, assetId);
 
         if (contractOfferResult.failed()) {
             monitor.severe("Getting policies failed for provider %s and asset %s: %s".formatted(
@@ -206,7 +221,8 @@ public class ClientEndpoint {
 
         if (agreementResult.failed()) {
             monitor.severe("Negotiation failed for provider %s and contractOffer %s: %s".formatted(
-                    contractRequest.getProviderId(), contractRequest.getContractOffer().getId(), agreementResult.getFailureDetail()));
+                    contractRequest.getProviderId(), contractRequest.getContractOffer().getId(),
+                    agreementResult.getFailureDetail()));
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity(agreementResult.getFailureDetail()).build();
         }

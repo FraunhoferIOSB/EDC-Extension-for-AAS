@@ -16,7 +16,6 @@
 package de.fraunhofer.iosb.app.aas.mapper;
 
 import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
-import org.eclipse.digitaltwin.aas4j.v3.model.Referable;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElement;
 import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElementCollection;

@@ -23,7 +23,6 @@ import org.eclipse.edc.http.client.EdcHttpClientImpl;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.KeyStoreException;
 import java.security.cert.Certificate;

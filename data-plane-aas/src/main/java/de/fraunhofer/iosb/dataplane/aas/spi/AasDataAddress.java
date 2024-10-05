@@ -26,12 +26,14 @@ import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultReference;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static de.fraunhofer.iosb.dataplane.aas.pipeline.AasDataSourceFactory.AAS_DATA_TYPE;
 import static java.lang.String.format;
@@ -54,9 +56,20 @@ public class AasDataAddress extends DataAddress {
     private static final String REFERENCE_CHAIN = "referenceChain";
     private static final String PATH = "PATH";
 
+    // See aas4j operation
+    public static final String OPERATION = "operation";
+
     private AasDataAddress() {
         super();
         this.setType(AAS_DATA_TYPE);
+    }
+
+    public boolean isOperation() {
+        return this.hasProperty(OPERATION);
+    }
+
+    public @Nullable String getOperation() {
+        return isOperation() ? this.getStringProperty(OPERATION) : null;
     }
 
     @JsonIgnore
@@ -99,7 +112,8 @@ public class AasDataAddress extends DataAddress {
      * Example: ReferenceChain: [Submodel x, SubmodelElementCollection y, SubmodelElement z]
      * --> path: submodels/base64(x)/submodel-elements/y.z
      *
-     * @return Explicitly defined path or path correlating to reference chain stored in this DataAddress (no leading '/').
+     * @return Explicitly defined path or path correlating to reference chain stored in this DataAddress (no leading
+     * '/').
      */
     public String getPath() {
         return getStringProperty(PATH, referenceChainAsPath());
@@ -111,9 +125,11 @@ public class AasDataAddress extends DataAddress {
         for (var key : getReferenceChain().getKeys()) {
 
             switch (key.getType()) {
-                case ASSET_ADMINISTRATION_SHELL -> urlBuilder.append("shells/").append(Encoder.encodeBase64(key.getValue()));
+                case ASSET_ADMINISTRATION_SHELL ->
+                        urlBuilder.append("shells/").append(Encoder.encodeBase64(key.getValue()));
                 case SUBMODEL -> urlBuilder.append("submodels/").append(Encoder.encodeBase64(key.getValue()));
-                case CONCEPT_DESCRIPTION -> urlBuilder.append("concept-descriptions/").append(Encoder.encodeBase64(key.getValue()));
+                case CONCEPT_DESCRIPTION ->
+                        urlBuilder.append("concept-descriptions/").append(Encoder.encodeBase64(key.getValue()));
                 case SUBMODEL_ELEMENT, SUBMODEL_ELEMENT_COLLECTION, SUBMODEL_ELEMENT_LIST -> {
                     if (urlBuilder.indexOf("/submodel-elements/") == -1) {
                         urlBuilder.append("/submodel-elements/");
@@ -122,7 +138,8 @@ public class AasDataAddress extends DataAddress {
                     }
                     urlBuilder.append(key.getValue());
                 }
-                default -> throw new EdcException(new IllegalStateException(format("Element type not recognized in AasDataAddress: %s", key.getType())));
+                default -> throw new EdcException(new IllegalStateException(format("Element type not recognized in " +
+                        "AasDataAddress: %s", key.getType())));
             }
         }
 
@@ -140,7 +157,8 @@ public class AasDataAddress extends DataAddress {
             return (Reference) referenceChain;
         }
 
-        throw new EdcException(new IllegalStateException("Something not of type Reference was stored in the property of an AasDataAddress!"));
+        throw new EdcException(new IllegalStateException("Something not of type Reference was stored in the property " +
+                "of an AasDataAddress!"));
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -176,6 +194,16 @@ public class AasDataAddress extends DataAddress {
             return this;
         }
 
+        public Builder operation(String operation) {
+            // Why not input and inouputvariables? Because of the serialization of DataAddresses,
+            // a direct list as property is not possible.
+            // Why not Operation as type? Operation contains "raw lists"...
+            // To send a DataAddress (serialization+compaction -> deserialization+expansion),
+            // this value would get removed if it were of any type other than String
+            this.property(OPERATION, operation);
+            return this;
+        }
+
         public Builder referenceChain(Reference referenceChain) {
             Objects.requireNonNull(referenceChain.getKeys());
 
@@ -184,9 +212,11 @@ public class AasDataAddress extends DataAddress {
         }
 
         public Builder copyFrom(DataAddress other) {
-            (Optional.ofNullable(other)
+            Optional.ofNullable(other)
                     .map(DataAddress::getProperties)
-                    .orElse(Collections.emptyMap()))
+                    .orElse(Collections.emptyMap())
+                    .entrySet().stream().filter(entry -> entry.getKey().equals(OPERATION))
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
                     .forEach(this::property);
             return this;
         }

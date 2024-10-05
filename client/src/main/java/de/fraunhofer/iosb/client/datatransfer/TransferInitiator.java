@@ -17,10 +17,13 @@ package de.fraunhofer.iosb.client.datatransfer;
 
 import de.fraunhofer.iosb.client.ClientEndpoint;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.response.ResponseStatus;
+import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -40,7 +43,8 @@ import static org.eclipse.edc.spi.types.domain.transfer.FlowType.PUSH;
  */
 class TransferInitiator {
 
-    public static final String COULD_NOT_BUILD_URI_MESSAGE = "[Client] Could not build own URI, cannot transfer data to this EDC directly. Only data transfers to external endpoints are supported.";
+    public static final String COULD_NOT_BUILD_URI_MESSAGE = "[Client] Could not build own URI, cannot transfer data " +
+            "to this EDC directly. Only data transfers to external endpoints are supported.";
     public static final String HTTPS_KEYSTORE_PATH = "edc.web.https.keystore.path";
     public static final String HTTP_PORT = "web.http.port";
     public static final String HTTP_PATH = "web.http.path";
@@ -56,10 +60,9 @@ class TransferInitiator {
         this.ownUri = createOwnUriFromConfigurationValues(config, hostname);
     }
 
-    void initiateTransferProcess(URL providerUrl, String agreementId, String apiKey) {
+    StatusResult<TransferProcess> initiateTransferProcess(URL providerUrl, String agreementId, String apiKey) {
         if (Objects.isNull(ownUri)) {
-            monitor.severe(COULD_NOT_BUILD_URI_MESSAGE);
-            return;
+            return StatusResult.failure(ResponseStatus.FATAL_ERROR, COULD_NOT_BUILD_URI_MESSAGE);
         }
         var dataDestination = HttpDataAddress.Builder.newInstance()
                 .baseUrl(ownUri.toString())
@@ -67,10 +70,11 @@ class TransferInitiator {
                 .addAdditionalHeader(DATA_TRANSFER_API_KEY, apiKey) // API key for validation on consumer side
                 .build();
 
-        initiateTransferProcess(providerUrl, agreementId, dataDestination);
+        return initiateTransferProcess(providerUrl, agreementId, dataDestination);
     }
 
-    void initiateTransferProcess(URL providerUrl, String agreementId, DataAddress dataSinkAddress) {
+    StatusResult<TransferProcess> initiateTransferProcess(URL providerUrl, String agreementId,
+                                                          DataAddress dataSinkAddress) {
         var transferRequest = TransferRequest.Builder.newInstance()
                 .protocol(DATASPACE_PROTOCOL_HTTP)
                 .counterPartyAddress(providerUrl.toString())
@@ -79,14 +83,13 @@ class TransferInitiator {
                 .dataDestination(dataSinkAddress)
                 .build();
 
-        transferProcessManager
-                .initiateConsumerRequest(transferRequest)
-                .onFailure(failure -> monitor.severe(failure.getFailureDetail()));
+        return transferProcessManager.initiateConsumerRequest(transferRequest);
     }
 
     private URI createOwnUriFromConfigurationValues(Config config, Hostname hostname) {
         try {
-            // HTTPS requires this value. With this configuration variable set, the connector will run with HTTPS enabled
+            // HTTPS requires this value. With this configuration variable set, the connector will run with HTTPS
+            // enabled
             var uriString = "%s://%s:%s%s/%s/%s".formatted(
                     config.getString(HTTPS_KEYSTORE_PATH, null) == null ? Protocol.HTTP.name() : Protocol.HTTPS.name(),
                     hostname.get(),
@@ -102,5 +105,5 @@ class TransferInitiator {
         }
     }
 
-    private enum Protocol { HTTP, HTTPS }
+    private enum Protocol {HTTP, HTTPS}
 }

@@ -18,22 +18,21 @@ package de.fraunhofer.iosb.client.datatransfer;
 import de.fraunhofer.iosb.api.PublicApiManagementService;
 import de.fraunhofer.iosb.client.authentication.DataTransferEndpointManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager;
-import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.response.ResponseStatus;
+import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.web.spi.WebService;
 
 import java.net.URL;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-
-import static java.lang.String.format;
 
 public class DataTransferController {
 
@@ -61,12 +60,18 @@ public class DataTransferController {
      *                                   consumer.
      */
     public DataTransferController(Monitor monitor, Config config, WebService webService,
-                                  PublicApiManagementService publicApiManagementService, TransferProcessManager transferProcessManager, Hostname hostname) {
-        this.transferInitiator = new TransferInitiator(monitor, config, hostname, transferProcessManager);
+                                  PublicApiManagementService publicApiManagementService,
+                                  TransferProcessManager transferProcessManager,
+                                  TransferProcessObservable transferProcessObservable,
+                                  Hostname hostname) {
         this.config = config.getConfig("edc.client");
-        this.dataTransferEndpointManager = new DataTransferEndpointManager(publicApiManagementService);
-        this.dataTransferObservable = new DataTransferObservable(monitor);
+
+        transferInitiator = new TransferInitiator(monitor, config, hostname, transferProcessManager);
+        dataTransferEndpointManager = new DataTransferEndpointManager(publicApiManagementService);
+        dataTransferObservable = new DataTransferObservable(monitor);
         var dataTransferEndpoint = new DataTransferEndpoint(monitor, dataTransferObservable);
+
+        transferProcessObservable.registerListener(dataTransferObservable);
         webService.registerResource(dataTransferEndpoint);
     }
 
@@ -78,43 +83,44 @@ public class DataTransferController {
      * @param agreementId     Non-null ContractAgreement of the negotiation process.
      * @param dataSinkAddress HTTPDataAddress the result of the transfer should be
      *                        sent to. (If null, send to extension and print in log)
-     * @return A completable future whose result will be the data or an error message.
+     * @return StatusResult containing error message or data or null on remote destination address
      * @throws InterruptedException If the data transfer was interrupted
      * @throws ExecutionException   If the data transfer process failed
      */
-    public String initiateTransferProcess(URL providerUrl, String agreementId, DataAddress dataSinkAddress)
+    public StatusResult<String> initiateTransferProcess(URL providerUrl, String agreementId,
+                                                        DataAddress dataSinkAddress)
             throws InterruptedException, ExecutionException {
         // Prepare for incoming data
         var dataFuture = dataTransferObservable.register(agreementId);
 
-        if (Objects.isNull(dataSinkAddress)) {
-            var apiKey = UUID.randomUUID().toString();
-            dataTransferEndpointManager.addTemporaryEndpoint(agreementId, DATA_TRANSFER_API_KEY, apiKey);
-
-            this.transferInitiator.initiateTransferProcess(providerUrl, agreementId, apiKey);
-            return waitForData(dataFuture, agreementId);
-        } else {
+        if (dataSinkAddress != null) {
             // Send data to custom target url
             this.transferInitiator.initiateTransferProcess(providerUrl, agreementId, dataSinkAddress);
             // Don't have to wait for data
-            return null;
+            return StatusResult.success(null);
         }
 
+        var apiKey = UUID.randomUUID().toString();
+        dataTransferEndpointManager.addTemporaryEndpoint(agreementId, DATA_TRANSFER_API_KEY, apiKey);
+
+        var initiateResult = this.transferInitiator.initiateTransferProcess(providerUrl, agreementId, apiKey);
+
+        return initiateResult.succeeded() ? waitForData(dataFuture, agreementId) :
+                StatusResult.failure(initiateResult.getFailure().status(), initiateResult.getFailureDetail());
     }
 
-    private String waitForData(CompletableFuture<String> dataFuture, String agreementId)
-            throws InterruptedException, ExecutionException {
+    private StatusResult<String> waitForData(CompletableFuture<String> dataFuture, String agreementId)
+            throws InterruptedException {
         var waitForTransferTimeout = config.getInteger("waitForTransferTimeout",
                 WAIT_FOR_TRANSFER_TIMEOUT_DEFAULT);
         try {
             // Fetch TransferTimeout everytime to adapt to runtime config changes
             var data = dataFuture.get(waitForTransferTimeout, TimeUnit.SECONDS);
             dataTransferObservable.unregister(agreementId);
-            return data;
-        } catch (TimeoutException transferTimeoutExceededException) {
+            return StatusResult.success(data);
+        } catch (TimeoutException | ExecutionException futureException) {
             dataTransferObservable.unregister(agreementId);
-            throw new EdcException(format("Waiting for a transfer failed for agreementId: %s", agreementId),
-                    transferTimeoutExceededException);
+            return StatusResult.failure(ResponseStatus.FATAL_ERROR, futureException.getMessage());
         }
     }
 }

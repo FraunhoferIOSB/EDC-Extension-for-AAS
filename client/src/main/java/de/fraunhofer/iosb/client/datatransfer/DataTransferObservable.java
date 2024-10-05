@@ -15,6 +15,9 @@
  */
 package de.fraunhofer.iosb.client.datatransfer;
 
+import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessListener;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.util.Map;
@@ -25,8 +28,9 @@ import static java.lang.String.format;
 
 /**
  * Gets notified about incoming data by a provider connector.
+ * Also notified by the transfer process observable regarding termination of transfer processes
  */
-class DataTransferObservable {
+class DataTransferObservable implements TransferProcessListener {
 
     private final Monitor monitor;
 
@@ -74,4 +78,13 @@ class DataTransferObservable {
         }
         observers.get(agreementId).complete(data);
     }
+
+    @Override
+    public void terminated(TransferProcess transferProcess) {
+        observers.get(transferProcess.getContractId())
+                .completeExceptionally(
+                        new EdcException("Transfer process terminated. Reason: %s"
+                                .formatted(transferProcess.getErrorDetail())));
+    }
+
 }

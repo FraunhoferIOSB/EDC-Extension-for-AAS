@@ -28,6 +28,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.observe.C
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager;
+import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.controlplane.transform.odrl.OdrlTransformersFactory;
 import org.eclipse.edc.connector.core.agent.NoOpParticipantIdMapper;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -56,6 +57,8 @@ public class ClientExtension implements ServiceExtension {
     @Inject
     private TransferProcessManager transferProcessManager;
     @Inject
+    private TransferProcessObservable transferProcessObservable;
+    @Inject
     private TypeTransformerRegistry transformer;
     @Inject
     private WebService webService;
@@ -78,6 +81,7 @@ public class ClientExtension implements ServiceExtension {
                 webService,
                 publicApiManagementService,
                 transferProcessManager,
+                transferProcessObservable,
                 hostname);
 
         var policyController = new PolicyController(

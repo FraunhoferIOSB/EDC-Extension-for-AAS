@@ -25,6 +25,9 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.AbstractResult;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
@@ -59,7 +62,14 @@ public class AasDataSink implements DataSink {
     }
 
     private StreamResult<Object> transferPart(DataSource.Part part) {
-        var aasDataProcessor = aasDataProcessorFactory.processorFor(aasDataAddress.getBaseUrl());
+        URL accessUrl;
+        try {
+            accessUrl = new URL(aasDataAddress.getBaseUrl());
+        } catch (MalformedURLException e) {
+            return StreamResult.failure(new StreamFailure(List.of(e.getMessage()), StreamFailure.Reason.GENERAL_ERROR));
+        }
+
+        var aasDataProcessor = aasDataProcessorFactory.processorFor(accessUrl);
 
         if (aasDataProcessor.failed()) {
             monitor.severe("Error writing HTTP data %s to endpoint %s:\n%s".formatted(part.name(), aasDataAddress.getBaseUrl(),

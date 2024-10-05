@@ -55,17 +55,10 @@ public abstract class AasDataProcessorFactory {
      * This is for AAS services with self-signed certificates.
      * Allowing self-signed certificates can be configured (see readme).
      *
-     * @param urlString URL of AAS service.
+     * @param aasUrl URL of AAS service.
      * @return AAS Processor allowing communication with AAS service using AAS data addresses
      */
-    public Result<AasDataProcessor> processorFor(String urlString) {
-        URL aasUrl;
-        try {
-            aasUrl = new URL(urlString);
-        } catch (MalformedURLException malformedUrlException) {
-            return Result.failure(malformedUrlException.getMessage());
-        }
-
+    public Result<AasDataProcessor> processorFor(URL aasUrl) {
         var certResult = getCertificates(aasUrl);
 
         try {

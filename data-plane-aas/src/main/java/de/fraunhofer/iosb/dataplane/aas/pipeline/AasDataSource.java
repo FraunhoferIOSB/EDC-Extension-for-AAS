@@ -27,6 +27,9 @@ import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
@@ -55,8 +58,14 @@ public class AasDataSource implements DataSource {
 
     @Override
     public StreamResult<Stream<Part>> openPartStream() {
+        URL accessUrl;
+        try {
+            accessUrl = new URL(aasDataAddress.getBaseUrl());
+        } catch (MalformedURLException e) {
+            return StreamResult.failure(new StreamFailure(List.of(e.getMessage()), StreamFailure.Reason.GENERAL_ERROR));
+        }
 
-        var aasDataProcessor = aasDataProcessorFactory.processorFor(aasDataAddress.getBaseUrl());
+        var aasDataProcessor = aasDataProcessorFactory.processorFor(accessUrl);
 
         if (aasDataProcessor.failed()) {
             return StreamResult.failure(new StreamFailure(aasDataProcessor.getFailureMessages(), StreamFailure.Reason.GENERAL_ERROR));

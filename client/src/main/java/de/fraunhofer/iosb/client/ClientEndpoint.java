@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iosb.client.datatransfer.DataTransferController;
 import de.fraunhofer.iosb.client.negotiation.NegotiationController;
 import de.fraunhofer.iosb.client.policy.PolicyController;
+import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
@@ -158,18 +159,20 @@ public class ClientEndpoint {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(MISSING_QUERY_PARAMETER_MESSAGE.formatted("providerUrl, counterPartyId, assetId")).build();
         }
-        /* TODO keep this if string operation does not work
         if (dataAddress != null && dataAddress.getProperties().get("operation") != null) {
             String operation;
             try {
-                operation = nonNullNonEmptyObjectMapper.writeValueAsString(dataAddress.getProperties().get("operation"));
+                operation = nonNullNonEmptyObjectMapper.writeValueAsString(dataAddress.getProperties().get("operation"
+                ));
             } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
             }
 
-         dataAddress = AasDataAddress.Builder.newInstance().copyFrom(dataAddress).property("operation", operation).build();
-
-         }*/
+            dataAddress = AasDataAddress.Builder.newInstance()
+                    .copyFrom(dataAddress)
+                    .property("operation", operation)
+                    .build();
+        }
 
         Result<ContractOffer> contractOfferResult =
                 policyController.getAcceptableContractOfferForAssetId(counterPartyId, counterPartyUrl, assetId);

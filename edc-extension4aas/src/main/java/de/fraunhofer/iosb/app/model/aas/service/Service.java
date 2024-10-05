@@ -101,7 +101,7 @@ public final class Service extends AasProvider {
     @Override
     public String toString() {
         return "Service[" +
-                "accessUrl=" + super.getAccessUrl() + ", " +
+                "accessUrl=" + getAccessUrl() + ", " +
                 "environment=" + environment + ']';
     }
 }

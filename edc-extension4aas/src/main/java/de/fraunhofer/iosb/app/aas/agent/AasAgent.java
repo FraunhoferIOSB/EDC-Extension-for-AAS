@@ -71,7 +71,7 @@ public abstract class AasAgent<T extends AasProvider, U> extends PipelineStep<T,
     }
 
     private Response executeRequest(AasProvider provider, URL apply) throws IOException {
-        var processor = aasDataProcessorFactory.processorFor(provider.getAccessUrl().toString());
+        var processor = aasDataProcessorFactory.processorFor(provider.getAccessUrl());
 
         if (processor.failed()) {
             return new Response.Builder()

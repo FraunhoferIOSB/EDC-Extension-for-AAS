@@ -79,7 +79,6 @@ public final class Registry extends AasProvider {
         return new URL(getAccessUrl(), SHELL_DESCRIPTORS_PATH);
     }
 
-
     /**
      * Returns services this registry holds. This can be null before synchronization happened
      *

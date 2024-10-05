@@ -18,10 +18,10 @@ package de.fraunhofer.iosb.app.model.aas.service;
 import de.fraunhofer.iosb.app.model.aas.AasProviderRepository;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 
+import javax.annotation.Nullable;
 import java.net.URL;
 import java.util.Collection;
 import java.util.Objects;
-import javax.annotation.Nullable;
 
 /**
  * Self-description repository, also an observable so that on removal

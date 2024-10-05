@@ -75,4 +75,8 @@ public abstract class AasProvider {
     public URL getAccessUrl() {
         return url.url();
     }
+
+    public URL getAccessUrlV3() {
+        return url.urlV3();
+    }
 }

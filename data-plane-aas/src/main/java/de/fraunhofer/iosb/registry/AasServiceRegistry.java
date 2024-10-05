@@ -18,6 +18,7 @@ package de.fraunhofer.iosb.registry;
 import org.eclipse.edc.spi.result.Result;
 import org.jetbrains.annotations.Nullable;
 
+import java.net.URL;
 import java.util.Set;
 
 /**
@@ -33,17 +34,17 @@ public class AasServiceRegistry {
         this.registeredAasServices = registeredAasServices;
     }
 
-    public Result<Void> register(String aasServiceUrl) {
+    public Result<Void> register(URL aasServiceUrl) {
         if (registeredAasServices == null) {
             return Result.failure("edc.dataplane.aas.acceptOwnSelfSignedCertificates is set to False");
         }
-        registeredAasServices.add(aasServiceUrl);
+        registeredAasServices.add(aasServiceUrl.toString());
         return Result.success();
     }
 
-    public void unregister(String aasServiceUrl) {
+    public void unregister(URL aasServiceUrl) {
         if (registeredAasServices != null) {
-            registeredAasServices.remove(aasServiceUrl);
+            registeredAasServices.remove(aasServiceUrl.toString());
         }
     }
 }

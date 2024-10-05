@@ -28,15 +28,14 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static de.fraunhofer.iosb.dataplane.aas.pipeline.AasDataSourceFactory.AAS_DATA_TYPE;
 import static java.lang.String.format;
+import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toMap;
 
 
@@ -212,12 +211,7 @@ public class AasDataAddress extends DataAddress {
         }
 
         public Builder copyFrom(DataAddress other) {
-            Optional.ofNullable(other)
-                    .map(DataAddress::getProperties)
-                    .orElse(Collections.emptyMap())
-                    .entrySet().stream().filter(entry -> entry.getKey().equals(OPERATION))
-                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
-                    .forEach(this::property);
+            Optional.ofNullable(other).map(DataAddress::getProperties).orElse(emptyMap()).forEach(this::property);
             return this;
         }
 

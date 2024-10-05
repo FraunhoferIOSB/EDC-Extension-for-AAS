@@ -28,6 +28,7 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.web.spi.WebService;
 
 import java.net.URL;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -120,7 +121,9 @@ public class DataTransferController {
             return StatusResult.success(data);
         } catch (TimeoutException | ExecutionException futureException) {
             dataTransferObservable.unregister(agreementId);
-            return StatusResult.failure(ResponseStatus.FATAL_ERROR, futureException.getMessage());
+
+            var errorMessage = Objects.requireNonNullElse(futureException.getMessage(), "No error message");
+            return StatusResult.failure(ResponseStatus.FATAL_ERROR, errorMessage);
         }
     }
 }

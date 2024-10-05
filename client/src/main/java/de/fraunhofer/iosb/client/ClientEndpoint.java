@@ -153,6 +153,43 @@ public class ClientEndpoint {
         return Response.ok(Map.of("agreement-id", agreementResult.getContent().getId())).build();
     }
 
+    /**
+     * Submits a data transfer request to the providerUrl.
+     * In the future this could be replaced with the
+     * <a href="https://www.ietf.org/archive/id/draft-ietf-httpbis-safe-method-w-body-02.html">HTTP QUERY method</a>
+     *
+     * @param providerUrl The data provider's url
+     * @param agreementId The basis of the data transfer.
+     * @param dataAddress URL of destination data sink.
+     * @return On success, the data of the desired asset. Else, returns an error message.
+     */
+    @POST
+    @Path(TRANSFER_PATH)
+    public Response getData(@QueryParam("providerUrl") URL providerUrl,
+                            @QueryParam("agreementId") String agreementId,
+                            DataAddress dataAddress) {
+        monitor.info("GET /%s".formatted(TRANSFER_PATH));
+        if (Objects.isNull(providerUrl) || Objects.isNull(agreementId)) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(MISSING_QUERY_PARAMETER_MESSAGE.formatted("providerUrl, agreementId")).build();
+        }
+
+        try {
+            var data = transferController.initiateTransferProcess(providerUrl, agreementId, dataAddress);
+            if (Objects.isNull(dataAddress)) {
+                return Response.ok(data).build();
+            } else {
+                return Response.ok("Data transfer request sent.").build();
+            }
+        } catch (InterruptedException | ExecutionException negotiationException) {
+            monitor.severe("Data transfer failed for provider %s and agreementId %s".formatted(providerUrl,
+                    agreementId), negotiationException);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(negotiationException.getMessage())
+                    .build();
+        }
+    }
+
     public static class Builder {
         private Monitor monitor;
         private NegotiationController negotiationController;

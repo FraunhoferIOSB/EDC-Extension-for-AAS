@@ -64,7 +64,8 @@ public class AasCreator {
     public static Environment getEnvironment() {
         return new DefaultEnvironment.Builder()
                 .submodels(List.of(getSubmodel(), getSubmodel(), getSubmodel()))
-                .assetAdministrationShells(List.of(getAssetAdministrationShell(), getAssetAdministrationShell(), getAssetAdministrationShell()))
+                .assetAdministrationShells(List.of(getAssetAdministrationShell(), getAssetAdministrationShell(),
+                        getAssetAdministrationShell()))
                 .conceptDescriptions(List.of(getConceptDescription(), getConceptDescription(), getConceptDescription()))
                 .build();
     }

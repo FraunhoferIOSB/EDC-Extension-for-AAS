@@ -71,10 +71,13 @@ public class SynchronizerTest {
         var oldEnvironment = getEmptyEnvironment();
         var newEnvironment = getEnvironment();
 
-        var oldEnvironmentAsset = new EnvironmentToAssetMapper(() -> false).executeSingle(new Service(accessUrl), oldEnvironment);
-        var newEnvironmentAsset = new EnvironmentToAssetMapper(() -> false).executeSingle(new Service(accessUrl), newEnvironment);
+        var oldEnvironmentAsset = new EnvironmentToAssetMapper(() -> false).executeSingle(new Service(accessUrl),
+                oldEnvironment);
+        var newEnvironmentAsset = new EnvironmentToAssetMapper(() -> false).executeSingle(new Service(accessUrl),
+                newEnvironment);
 
-        var pair = new Pair<>(oldEnvironmentAsset.getContent().environment(), newEnvironmentAsset.getContent().environment());
+        var pair = new Pair<>(oldEnvironmentAsset.getContent().environment(),
+                newEnvironmentAsset.getContent().environment());
 
         var result = testSubject.apply(List.of(pair));
 
@@ -104,10 +107,13 @@ public class SynchronizerTest {
                 .conceptDescriptions(oldEnvironment.getConceptDescriptions())
                 .build();
 
-        var oldEnvironmentAsset = new EnvironmentToAssetMapper(() -> false).executeSingle(new Service(accessUrl), oldEnvironment);
-        var newEnvironmentAsset = new EnvironmentToAssetMapper(() -> false).executeSingle(new Service(accessUrl), newEnvironment);
+        var oldEnvironmentAsset = new EnvironmentToAssetMapper(() -> false).executeSingle(new Service(accessUrl),
+                oldEnvironment);
+        var newEnvironmentAsset = new EnvironmentToAssetMapper(() -> false).executeSingle(new Service(accessUrl),
+                newEnvironment);
 
-        var pair = new Pair<>(oldEnvironmentAsset.getContent().environment(), newEnvironmentAsset.getContent().environment());
+        var pair = new Pair<>(oldEnvironmentAsset.getContent().environment(),
+                newEnvironmentAsset.getContent().environment());
 
         var result = testSubject.apply(List.of(pair));
 

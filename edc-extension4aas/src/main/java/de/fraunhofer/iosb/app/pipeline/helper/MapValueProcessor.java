@@ -53,10 +53,11 @@ public class MapValueProcessor<T, U, V> extends PipelineStep<Map<T, U>, Map<T, V
      * Class constructor with additional failure handling possibility.
      * The failureHandling function is called before it is known that a PipelineResult has failed.
      *
-     * @param processor Process each value from the input map.
+     * @param processor                 Process each value from the input map.
      * @param additionalFailureHandling Handle failures explicitly.
      */
-    public MapValueProcessor(PipelineStep<U, V> processor, Function<PipelineResult<V>, PipelineResult<V>> additionalFailureHandling) {
+    public MapValueProcessor(PipelineStep<U, V> processor,
+                             Function<PipelineResult<V>, PipelineResult<V>> additionalFailureHandling) {
         this.processor = processor;
         this.additionalFailureHandling = additionalFailureHandling;
     }

@@ -64,7 +64,8 @@ public class InputOutputZipper<T, U, V> extends PipelineStep<Collection<T>, Map<
                 .filter(entry -> entry.getValue() != null)
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-        return Objects.requireNonNullElseGet(handleError(results.values(), contents), () -> PipelineResult.success(contents));
+        return Objects.requireNonNullElseGet(handleError(results.values(), contents),
+                () -> PipelineResult.success(contents));
     }
 
     @Override

@@ -18,7 +18,8 @@ package de.fraunhofer.iosb.app.pipeline;
 import java.util.function.Function;
 
 /**
- * A pipeline step is a part of a pipeline which receives input of type T and produces an output of type PipelineResult< U >
+ * A pipeline step is a part of a pipeline which receives input of type T and produces an output of type
+ * PipelineResult< U >
  *
  * @param <T> Input type of the pipeline step
  * @param <U> Output type of the pipeline step
@@ -26,10 +27,6 @@ import java.util.function.Function;
 public abstract class PipelineStep<T, U> implements Function<T, PipelineResult<U>> {
 
     protected PipelineStep() {
-    }
-
-    public String getName() {
-        return this.getClass().getSimpleName();
     }
 
     /**
@@ -53,5 +50,9 @@ public abstract class PipelineStep<T, U> implements Function<T, PipelineResult<U
                 return PipelineResult.success(func.apply(t));
             }
         };
+    }
+
+    public String getName() {
+        return this.getClass().getSimpleName();
     }
 }

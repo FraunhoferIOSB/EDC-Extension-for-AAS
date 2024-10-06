@@ -35,6 +35,8 @@ import org.mockserver.integration.ClientAndServer;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.List;
 import java.util.UUID;
 
@@ -49,13 +51,13 @@ class AasDataProcessorTest {
 
     static AasDataProcessor testSubject;
     static ClientAndServer mockServer;
-    static String aasUrl;
+    static URL aasUrl;
 
     @BeforeAll
-    static void beforeAll() {
+    static void beforeAll() throws MalformedURLException {
         var port = getFreePort();
         mockServer = startClientAndServer(port);
-        aasUrl = "https://localhost:%s/api/v3.0".formatted(mockServer.getPort());
+        aasUrl = new URL("https://localhost:%s/api/v3.0".formatted(mockServer.getPort()));
 
         testSubject = new AllAasDataProcessorFactory(new DefaultSelfSignedCertificateRetriever(),
                 mock(OkHttpClient.class),
@@ -100,7 +102,7 @@ class AasDataProcessorTest {
 
     private AasDataAddress getAddress() {
         return AasDataAddress.Builder.newInstance()
-                .baseUrl(aasUrl)
+                .baseUrl(aasUrl.toString())
                 .method(HttpMethod.GET)
                 .referenceChain(
                         new DefaultReference.Builder()

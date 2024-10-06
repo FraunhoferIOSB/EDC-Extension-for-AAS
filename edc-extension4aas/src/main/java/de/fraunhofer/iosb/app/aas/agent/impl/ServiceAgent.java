@@ -53,7 +53,8 @@ public class ServiceAgent extends AasAgent<Service, Environment> {
             return readEnvironment(service);
         } catch (Exception e) {
             // uncaught exception!
-            return PipelineResult.failure(PipelineFailure.warning(List.of(e.getClass().getSimpleName(), e.getMessage())));
+            return PipelineResult.failure(PipelineFailure.warning(List.of(e.getClass().getSimpleName(),
+                    e.getMessage())));
         }
     }
 
@@ -65,7 +66,8 @@ public class ServiceAgent extends AasAgent<Service, Environment> {
         try {
             shellsResult = readElements(service, service.getShellsUrl(), AssetAdministrationShell.class);
             submodelsResult = readElements(service, service.getSubmodelsUrl(), Submodel.class);
-            conceptDescriptionsResult = readElements(service, service.getConceptDescriptionsUrl(), ConceptDescription.class);
+            conceptDescriptionsResult = readElements(service, service.getConceptDescriptionsUrl(),
+                    ConceptDescription.class);
         } catch (EdcException e) {
             // If an exception was raised, produce a fatal result
             return PipelineResult.failure(PipelineFailure.fatal(List.of(e.getClass().getSimpleName())));
@@ -74,7 +76,8 @@ public class ServiceAgent extends AasAgent<Service, Environment> {
         var environment = new DefaultEnvironment.Builder()
                 .assetAdministrationShells(shellsResult.succeeded() ? shellsResult.getContent() : null)
                 .submodels(submodelsResult.succeeded() ? submodelsResult.getContent() : null)
-                .conceptDescriptions(conceptDescriptionsResult.succeeded() ? conceptDescriptionsResult.getContent() : null)
+                .conceptDescriptions(conceptDescriptionsResult.succeeded() ? conceptDescriptionsResult.getContent() :
+                        null)
                 .build();
 
         var results = List.of(shellsResult, submodelsResult, conceptDescriptionsResult);

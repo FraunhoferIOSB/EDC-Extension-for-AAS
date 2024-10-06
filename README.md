@@ -32,19 +32,24 @@ the [example's README](example/README.md).
 
 ## Functionality
 
-AAS data can be shared over the EDC by linking an EDC Asset to the HTTP endpoint of the AAS element/submodel. Additionally,
+AAS data can be shared over the EDC by linking an EDC Asset to the HTTP endpoint of the AAS element/submodel.
+Additionally,
 contracts have to be defined for each element. In order to minimize configuration effort and prevent errors, this
-extension is able to link running AAS into EDC Assets by connecting to AAS repositories or AAS registries. Furthermore, this
+extension is able to link running AAS into EDC Assets by connecting to AAS repositories or AAS registries. Furthermore,
+this
 extension can also start an AAS repository by reading an AAS
-model (AASX / JSON). A default contract can be chosen to be applied for all elements. For critical elements, additional contracts can
-be placed via API. External changes to the model of an AAS are automatically synchronized by the extension, reducing management of metadata significantly.
+model (AASX / JSON). A default contract can be chosen to be applied for all elements. For critical elements, additional
+contracts can
+be placed via API. External changes to the model of an AAS are automatically synchronized by the extension, reducing
+management of metadata significantly.
 
 Additionally, a client extension providing API calls for aggregations of processes such as contract negotiation and data
 transfer is available. The result is a one-click negotiation and data transfer, ideal for SME or individuals.
 
 ### Use Cases
 
-Provide digital twin (AAS) data to business partners in Data Spaces. Data Providers can share their AAS Repository / AAS Registry with other participants.
+Provide digital twin (AAS) data to business partners in Data Spaces. Data Providers can share their AAS Repository / AAS
+Registry with other participants.
 
 ## Technical Details
 
@@ -174,10 +179,10 @@ In this section, dependencies from EDC and third-party are listed. (Implementati
 
 ## Terminology
 
-| Term          | Description                                                                                                                                                                                                                                                                                                                      |
-|:--------------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Term          | Description                                                                                                                                                                                                                                                                                                        |
+|:--------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | AAS           | Asset Administration Shell (see [AAS reading guide](https://industrialdigitaltwin.org/wp-content/uploads/2022/11/2022-11-03_IDTA_AAS-Reading-Guide.pdf) or [AAS specification part 1](https://www.plattform-i40.de/IP/Redaktion/DE/Downloads/Publikation/Details_of_the_Asset_Administration_Shell_Part1_V3.html)) |
-| FA³ST Service | Open Source java implementation of the AAS part 2 [see on GitHub](https://github.com/FraunhoferIOSB/FAAAST-Service)                                                                                                                                                                                                              |
+| FA³ST Service | Open Source java implementation of the AAS part 2 [see on GitHub](https://github.com/FraunhoferIOSB/FAAAST-Service)                                                                                                                                                                                                |
 
 ## Roadmap
 

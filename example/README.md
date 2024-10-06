@@ -46,7 +46,6 @@ You can directly start a provider and consumer EDC with the AAS extension built-
 1. Go to example folder: `cd example`
 2. `docker compose up` (Alternatively: `docker-compose up`)
 
-
 If you prefer to built a docker image, it can be built after building the extension as seen above:
 
 1. Go to example folder: `cd example`
@@ -57,9 +56,12 @@ If you prefer to built a docker image, it can be built after building the extens
 
 This docker image can be run individually or **from the docker-compose file**.
 
-When using Docker, the pre-defined variables in the Postman Collection for the provider should be changed from "localhost" to "provider", i.e. http://provider:8282/dsp instead of http://localhost:8282/dsp
+When using Docker, the pre-defined variables in the Postman Collection for the provider should be changed from "
+localhost" to "provider", i.e. http://provider:8282/dsp instead of http://localhost:8282/dsp
 
-Additionally, new AASX or JSON model files should be placed in the resources folder beforehand, since the docker container does not have access to your local files.
+Additionally, new AASX or JSON model files should be placed in the resources folder beforehand, since the docker
+container does not have access to your local files.
+
 ## Configuration
 
 The EDC and its extensions can be configured with a `.properties` file. In `example/resources/configurations` there are
@@ -126,6 +128,7 @@ following steps:
    `http://localhost:8281/api/selfDescription` in your browser) and choose an element you want to transfer. Put its `id`
    as a variable in the postman collection's variables section ("current value"). Below is an example
    of a submodel element within a self-description (details omitted).
+
 ```json
 {
   "id": "941234968", <-- use this

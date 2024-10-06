@@ -32,7 +32,10 @@ public class RegisteredAasDataProcessorFactory extends AasDataProcessorFactory {
 
     private final Set<String> registeredAasServices;
 
-    public RegisteredAasDataProcessorFactory(SelfSignedCertificateRetriever retriever, @Nullable Set<String> registeredAasServices, OkHttpClient edcOkHttpClient, RetryPolicy<Response> edcRetryPolicy, Monitor monitor) {
+    public RegisteredAasDataProcessorFactory(SelfSignedCertificateRetriever retriever,
+                                             @Nullable Set<String> registeredAasServices,
+                                             OkHttpClient edcOkHttpClient, RetryPolicy<Response> edcRetryPolicy,
+                                             Monitor monitor) {
         super(retriever, edcOkHttpClient, edcRetryPolicy, monitor);
         this.registeredAasServices = registeredAasServices;
     }
@@ -41,7 +44,8 @@ public class RegisteredAasDataProcessorFactory extends AasDataProcessorFactory {
     protected Result<Certificate[]> getCertificates(URL url) {
         if (registeredAasServices == null ||
                 registeredAasServices.stream().noneMatch(service -> url.toString().startsWith(service))) {
-            return Result.failure("AAS service is not registered and allowing all self-signed certificates is disabled");
+            return Result.failure("AAS service is not registered and allowing all self-signed certificates is " +
+                    "disabled");
         }
 
         return super.retrieveCertificates(url);

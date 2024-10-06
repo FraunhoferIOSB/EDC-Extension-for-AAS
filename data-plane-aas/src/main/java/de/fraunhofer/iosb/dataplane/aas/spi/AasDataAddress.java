@@ -30,7 +30,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 
 import static de.fraunhofer.iosb.dataplane.aas.pipeline.AasDataSourceFactory.AAS_DATA_TYPE;
@@ -48,15 +47,13 @@ import static java.util.stream.Collectors.toMap;
 public class AasDataAddress extends DataAddress {
 
     public static final String BASE_URL = "https://w3id.org/edc/v0.0.1/ns/baseUrl";
-
+    // See aas4j operation
+    public static final String OPERATION = "operation";
     private static final String ADDITIONAL_HEADER = "header:";
     private static final String METHOD = "method";
     private static final String PROVIDER = "AAS-Provider";
     private static final String REFERENCE_CHAIN = "referenceChain";
     private static final String PATH = "PATH";
-
-    // See aas4j operation
-    public static final String OPERATION = "operation";
 
     private AasDataAddress() {
         super();
@@ -76,16 +73,16 @@ public class AasDataAddress extends DataAddress {
         return hasProvider() ? getProvider().getAccessUrl().toString() : getStringProperty(BASE_URL);
     }
 
+    private boolean hasProvider() {
+        return getProperties().get(PROVIDER) != null;
+    }
+
     private AasProvider getProvider() {
         Object provider = super.getProperties().get(PROVIDER);
         if (provider instanceof AasProvider) {
             return (AasProvider) provider;
         }
         throw new EdcException(new IllegalStateException("Provider not set correctly: %s".formatted(provider)));
-    }
-
-    private boolean hasProvider() {
-        return getProperties().get(PROVIDER) != null;
     }
 
     @JsonIgnore
@@ -148,16 +145,16 @@ public class AasDataAddress extends DataAddress {
     private Reference getReferenceChain() {
         var referenceChain = properties.get(REFERENCE_CHAIN);
 
-        if (Objects.isNull(referenceChain)) {
+        if (referenceChain == null) {
             return new DefaultReference();
         }
 
-        if (referenceChain instanceof Reference) {
-            return (Reference) referenceChain;
+        if (referenceChain instanceof Reference reference
+                && reference.getKeys() != null) {
+            return reference;
         }
 
-        throw new EdcException(new IllegalStateException("Something not of type Reference was stored in the property " +
-                "of an AasDataAddress!"));
+        throw new EdcException(new IllegalStateException("Faulty reference chain: %s".formatted(referenceChain)));
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -194,7 +191,7 @@ public class AasDataAddress extends DataAddress {
         }
 
         public Builder operation(String operation) {
-            // Why not input and inouputvariables? Because of the serialization of DataAddresses,
+            // Why not input and inoutput variables? Because of the serialization of DataAddresses,
             // a direct list as property is not possible.
             // Why not Operation as type? Operation contains "raw lists"...
             // To send a DataAddress (serialization+compaction -> deserialization+expansion),
@@ -204,8 +201,6 @@ public class AasDataAddress extends DataAddress {
         }
 
         public Builder referenceChain(Reference referenceChain) {
-            Objects.requireNonNull(referenceChain.getKeys());
-
             this.property(REFERENCE_CHAIN, referenceChain);
             return this;
         }

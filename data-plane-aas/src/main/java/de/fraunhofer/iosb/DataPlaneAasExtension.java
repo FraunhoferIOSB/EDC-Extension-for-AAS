@@ -80,7 +80,8 @@ public class DataPlaneAasExtension implements ServiceExtension {
 
         var aasDataProcessorFactory = allSelfSigned ?
                 new AllAasDataProcessorFactory(retriever, okHttpClient, retryPolicy, monitor) :
-                new RegisteredAasDataProcessorFactory(retriever, registeredServices, okHttpClient, retryPolicy, monitor);
+                new RegisteredAasDataProcessorFactory(retriever, registeredServices, okHttpClient, retryPolicy,
+                        monitor);
 
         context.registerService(AasDataProcessorFactory.class, aasDataProcessorFactory);
 

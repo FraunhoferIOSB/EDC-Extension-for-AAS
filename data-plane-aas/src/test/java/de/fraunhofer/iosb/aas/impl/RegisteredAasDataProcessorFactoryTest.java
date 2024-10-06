@@ -28,9 +28,10 @@ import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultReference;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
-import java.util.HashSet;
 import javax.net.ssl.SSLException;
+import java.io.IOException;
+import java.net.URL;
+import java.util.HashSet;
 
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -46,13 +47,14 @@ class RegisteredAasDataProcessorFactoryTest {
                 registeredServices, mock(OkHttpClient.class), RetryPolicy.ofDefaults(), new ConsoleMonitor());
 
         var port = getFreePort();
-        var baseUrl = (System.getProperty("os.name").contains("Windows") ?
-                "https://127.0.0.1:%s" : "https://localhost:%s").formatted(port);
+        var baseUrl = new URL((System.getProperty("os.name").contains("Windows") ?
+                "https://127.0.0.1:%s" : "https://localhost:%s").formatted(port));
 
         try (var ignored = new TestUtils().startFaaastService(port)) {
-            registeredServices.add(baseUrl);
+            registeredServices.add(baseUrl.toString());
             var processor = testSubject.processorFor(baseUrl);
-            var response = processor.getContent().send(getDataAddress(baseUrl)); // processor == null --> Failed
+            var response = processor.getContent().send(getDataAddress(baseUrl.toString())); // processor == null -->
+            // Failed
             // getting self-signed cert
 
             // This means the HTTP request went through --> no certificate problems etc.
@@ -70,13 +72,13 @@ class RegisteredAasDataProcessorFactoryTest {
                 registeredServices, new OkHttpClient(), RetryPolicy.ofDefaults(), new ConsoleMonitor());
 
         var port = getFreePort();
-        var baseUrl = "https://127.0.0.1:%s".formatted(port);
+        var baseUrl = new URL("https://127.0.0.1:%s".formatted(port));
 
         try (var ignored = new TestUtils().startFaaastService(port)) {
             // If this fails, certificate could not be retrieved from foreignService
             var processor = testSubject.processorFor(baseUrl);
 
-            processor.getContent().send(getDataAddress(baseUrl));
+            processor.getContent().send(getDataAddress(baseUrl.toString()));
 
             fail("Certificate error expected since EdcHttpClient is used here which does not accept self-signed " +
                     "certificates.");

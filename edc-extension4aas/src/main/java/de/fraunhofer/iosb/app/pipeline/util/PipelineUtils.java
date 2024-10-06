@@ -27,7 +27,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
- * Utility class with error handling, failure message collecting and content extracting capabilities for collections of pipeline results.
+ * Utility class with error handling, failure message collecting and content extracting capabilities for collections
+ * of pipeline results.
  */
 public class PipelineUtils {
 
@@ -39,12 +40,14 @@ public class PipelineUtils {
      * Handles errors of a collection of pipeline results.
      * <p>
      * <b>If no failure occurred, null is returned!</b>
-     * <li>The pipeline result will have as error type the gravest of errors occurring in the input result collection.</li>
+     * <li>The pipeline result will have as error type the gravest of errors occurring in the input result collection
+     * .</li>
      * <li>The pipeline result will have as failure message all the failure messages of the input results.</li>
-     * <li>The pipeline result will have as content the content from the input pipeline results if no fatal error occurred.</li>
+     * <li>The pipeline result will have as content the content from the input pipeline results if no fatal error
+     * occurred.</li>
      *
-     * @param results  Pipeline result collection containing zero, one or multiple failures.
-     * @param <U>      The content type
+     * @param results Pipeline result collection containing zero, one or multiple failures.
+     * @param <U>     The content type
      * @return The pipeline result as described above, or null.
      */
     public static <U> PipelineResult<Collection<U>> handleError(Collection<PipelineResult<U>> results) {
@@ -53,8 +56,12 @@ public class PipelineUtils {
             var failureMessages = collectFailureMessages(results);
             pipeResult = switch (maxFailure(results)) {
                 case FATAL -> PipelineResult.failure(PipelineFailure.fatal(failureMessages));
-                case WARNING -> PipelineResult.recoverableFailure(extractContents(results), PipelineFailure.warning(failureMessages));
-                case INFO -> PipelineResult.recoverableFailure(extractContents(results), PipelineFailure.info(failureMessages));
+                case WARNING ->
+                        PipelineResult.recoverableFailure(extractContents(results),
+                                PipelineFailure.warning(failureMessages));
+                case INFO ->
+                        PipelineResult.recoverableFailure(extractContents(results),
+                                PipelineFailure.info(failureMessages));
             };
         }
         return pipeResult;
@@ -64,9 +71,11 @@ public class PipelineUtils {
      * Handles errors of a collection of pipeline results.
      * <p>
      * <b>If no failure occurred, null is returned!</b>
-     * <li>The pipeline result will have as error type the gravest of errors occurring in the input result collection.</li>
+     * <li>The pipeline result will have as error type the gravest of errors occurring in the input result collection
+     * .</li>
      * <li>The pipeline result will have as failure message all the failure messages of the input results.</li>
-     * <li>The pipeline result will have as content the content from the input parameters if no fatal error occurred.</li>
+     * <li>The pipeline result will have as content the content from the input parameters if no fatal error occurred
+     * .</li>
      *
      * @param results  Pipeline result collection containing zero, one or multiple failures.
      * @param contents Contents of the input pipeline results which are to be returned in the pipeline result.

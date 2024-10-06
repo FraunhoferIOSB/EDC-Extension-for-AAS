@@ -78,14 +78,17 @@ public class Pipeline<I, O> implements Runnable {
     private void doHandle(PipelineFailure failure, String failingStep) {
         switch (failure.getFailureType()) {
             case FATAL:
-                var message = "Pipeline received a fatal error by pipeline step %s: %s".formatted(failingStep, failure.getMessages());
+                var message = "Pipeline received a fatal error by pipeline step %s: %s".formatted(failingStep,
+                        failure.getMessages());
                 monitor.severe(message);
                 throw new EdcException(message);
             case WARNING:
-                monitor.warning("Pipeline received a warning by pipeline step %s: %s".formatted(failingStep, failure.getMessages()));
+                monitor.warning("Pipeline received a warning by pipeline step %s: %s".formatted(failingStep,
+                        failure.getMessages()));
                 break;
             case INFO:
-                monitor.info("Pipeline received info by pipeline step %s: %s".formatted(failingStep, failure.getMessages()));
+                monitor.info("Pipeline received info by pipeline step %s: %s".formatted(failingStep,
+                        failure.getMessages()));
                 break;
             default:
                 throw new IllegalStateException("Unexpected failure type: " + failure.getFailureType());
@@ -103,8 +106,8 @@ public class Pipeline<I, O> implements Runnable {
 
     public static class Builder<I, O> {
 
-        private Monitor monitor;
         private final List<PipelineStep<?, ?>> steps;
+        private Monitor monitor;
 
         private Builder(List<PipelineStep<?, ?>> instance, Monitor monitor) {
             steps = instance;

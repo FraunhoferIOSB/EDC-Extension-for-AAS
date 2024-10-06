@@ -50,7 +50,8 @@ class CustomAuthenticationRequestFilterTest {
     void setUp() {
         mockApiAuthenticationRegistry = mock(ApiAuthenticationRegistry.class);
         when(mockApiAuthenticationRegistry.resolve(any())).thenReturn(mock(AuthenticationService.class));
-        customAuthenticationRequestFilter = new CustomAuthenticationRequestFilter(mockApiAuthenticationRegistry, mock(Monitor.class));
+        customAuthenticationRequestFilter = new CustomAuthenticationRequestFilter(mockApiAuthenticationRegistry,
+                mock(Monitor.class));
     }
 
     @SuppressWarnings("unchecked")
@@ -59,7 +60,8 @@ class CustomAuthenticationRequestFilterTest {
         // Make a request that should be accepted by our filter.
         // First, prepare the filter by adding an endpoint.
         var headers = Map.of("y-api-key", List.of("pasword"));
-        customAuthenticationRequestFilter.addEndpoints(List.of(new Endpoint("/api/suffix/test", HttpMethod.DELETE, headers)));
+        customAuthenticationRequestFilter.addEndpoints(List.of(new Endpoint("/api/suffix/test", HttpMethod.DELETE,
+                headers)));
         // Create the mock request
         var mockRequest = mock(ContainerRequestContext.class);
         var mockUriInfo = mock(UriInfo.class);
@@ -83,7 +85,8 @@ class CustomAuthenticationRequestFilterTest {
         // Make a request that should not be accepted by our filter.
         // First, prepare the filter by adding an endpoint.
         var headers = Map.of("y-api-key", List.of("pasword"));
-        customAuthenticationRequestFilter.addEndpoints(List.of(new Endpoint("/api/suffix/test", HttpMethod.PATCH, headers)));
+        customAuthenticationRequestFilter.addEndpoints(List.of(new Endpoint("/api/suffix/test", HttpMethod.PATCH,
+                headers)));
         // Create the mock request
         var mockRequest = mock(ContainerRequestContext.class);
         var mockUriInfo = mock(UriInfo.class);
@@ -109,14 +112,16 @@ class CustomAuthenticationRequestFilterTest {
     void addEndpoints() {
         // Pre: No endpoints
         // We only test if adding breaks
-        var endpoints = new ArrayList<>(List.of(createNormalEndpoint(), createNormalEndpoint(), createNormalEndpoint()));
+        var endpoints = new ArrayList<>(List.of(createNormalEndpoint(), createNormalEndpoint(),
+                createNormalEndpoint()));
         assertTrue(customAuthenticationRequestFilter.addEndpoints(endpoints));
     }
 
     @SuppressWarnings("unchecked")
     @Test
     void addSameEndpointsUnchanged() {
-        var endpoints = new ArrayList<>(List.of(createNormalEndpoint(), createNormalEndpoint(), createNormalEndpoint()));
+        var endpoints = new ArrayList<>(List.of(createNormalEndpoint(), createNormalEndpoint(),
+                createNormalEndpoint()));
         customAuthenticationRequestFilter.addEndpoints(endpoints);
 
         // Pre: Three endpoints
@@ -128,7 +133,8 @@ class CustomAuthenticationRequestFilterTest {
 
     @Test
     void removeEndpoints() {
-        var endpoints = new ArrayList<>(List.of(createNormalEndpoint(), createNormalEndpoint(), createNormalEndpoint()));
+        var endpoints = new ArrayList<>(List.of(createNormalEndpoint(), createNormalEndpoint(),
+                createNormalEndpoint()));
         customAuthenticationRequestFilter.addEndpoints(endpoints);
 
         // Pre: Three endpoints
@@ -143,7 +149,8 @@ class CustomAuthenticationRequestFilterTest {
 
     private ArrayList<Endpoint> cloneEndpoints(ArrayList<Endpoint> endpointCollection) {
         var sameEndpoints = new ArrayList<>(endpointCollection);
-        sameEndpoints.forEach(oldEndpoint -> new Endpoint(oldEndpoint.suffix(), oldEndpoint.method(), oldEndpoint.customHeaders()));
+        sameEndpoints.forEach(oldEndpoint -> new Endpoint(oldEndpoint.suffix(), oldEndpoint.method(),
+                oldEndpoint.customHeaders()));
         return sameEndpoints;
     }
 }

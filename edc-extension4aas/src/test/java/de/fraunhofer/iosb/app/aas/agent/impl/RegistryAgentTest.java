@@ -53,10 +53,9 @@ import static org.mockserver.model.HttpRequest.request;
 
 class RegistryAgentTest {
     private static final int PORT = getFreePort();
-    private final URL mockServerUrl = new URL("http://localhost:%s".formatted(PORT));
     private static ClientAndServer mockServer;
-
     private static RegistryAgent testSubject;
+    private final URL mockServerUrl = new URL("http://localhost:%s".formatted(PORT));
 
     RegistryAgentTest() throws MalformedURLException {
     }
@@ -77,14 +76,14 @@ class RegistryAgentTest {
         mockServer = startClientAndServer(PORT);
     }
 
-    @AfterEach
-    void tearDown() {
-        mockServer.reset();
-    }
-
     @AfterAll
     static void shutdown() {
         mockServer.stop();
+    }
+
+    @AfterEach
+    void tearDown() {
+        mockServer.reset();
     }
 
     @Test

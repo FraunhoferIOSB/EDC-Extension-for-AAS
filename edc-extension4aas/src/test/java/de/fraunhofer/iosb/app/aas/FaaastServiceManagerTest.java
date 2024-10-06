@@ -50,23 +50,20 @@ public class FaaastServiceManagerTest {
     @Test
     public void startServiceTest() throws IOException, URISyntaxException {
         var url = startService();
-        String urlString = url.toString();
-
-        if (System.getProperty("os.name").startsWith("Windows")) {
-            urlString = url.toString().replace("localhost", "127.0.0.1");
-        }
 
         var factory = new AllAasDataProcessorFactory(
                 new DefaultSelfSignedCertificateRetriever(),
                 new OkHttpClient(),
                 RetryPolicy.ofDefaults(),
                 new ConsoleMonitor());
-        try (var response = factory.processorFor(urlString).getContent()
-                .send(AasDataAddress.Builder.newInstance()
-                                .method(HttpMethod.GET)
-                                .baseUrl(new URI(urlString).resolve("/api/v3.0/shells").toString())
-                                .build(),
-                        null, null)) {
+
+        var processor = factory.processorFor(url).getContent();
+
+        try (var response = processor.send(AasDataAddress.Builder.newInstance()
+                        .method(HttpMethod.GET)
+                        .baseUrl(new URI(url.toString()).resolve("/api/v3.0/shells").toString())
+                        .build(),
+                null, null)) {
             assertEquals(Response.Status.OK.getStatusCode(), response.code());
         }
     }

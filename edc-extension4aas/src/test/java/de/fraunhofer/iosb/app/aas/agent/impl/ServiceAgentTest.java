@@ -55,10 +55,9 @@ import static org.mockserver.model.HttpRequest.request;
 class ServiceAgentTest {
 
     private static final int PORT = getFreePort();
-    private final URL mockServerUrl = new URL("http://localhost:%s".formatted(PORT));
     private static ClientAndServer mockServer;
-
     private static ServiceAgent testSubject;
+    private final URL mockServerUrl = new URL("http://localhost:%s".formatted(PORT));
 
     ServiceAgentTest() throws MalformedURLException {
     }
@@ -76,14 +75,14 @@ class ServiceAgentTest {
         mockServer = startClientAndServer(PORT);
     }
 
-    @AfterEach
-    void tearDown() {
-        mockServer.reset();
-    }
-
     @AfterAll
     static void shutdown() {
         mockServer.stop();
+    }
+
+    @AfterEach
+    void tearDown() {
+        mockServer.reset();
     }
 
     @Test

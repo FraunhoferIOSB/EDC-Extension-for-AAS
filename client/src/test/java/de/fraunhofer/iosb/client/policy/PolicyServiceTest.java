@@ -79,31 +79,37 @@ public class PolicyServiceTest {
         var policyDefinitionStore = mock(PolicyDefinitionStore.class);
         config = mock(PolicyServiceConfig.class);
 
-        policyService = new PolicyService(catalogService, typeTransformerRegistry, config, policyDefinitionStore, mock(Monitor.class));
+        policyService = new PolicyService(catalogService, typeTransformerRegistry, config, policyDefinitionStore,
+                mock(Monitor.class));
     }
 
     @Test
     void getDatasetCatalogResponseFailureTest() throws InterruptedException {
-        var querySpec = QuerySpec.Builder.newInstance().filter(List.of(criterion(Asset.PROPERTY_ID, "=", "test-asset-id"))).build();
+        var querySpec = QuerySpec.Builder.newInstance().filter(List.of(criterion(Asset.PROPERTY_ID, "=", "test-asset" +
+                "-id"))).build();
         var future = new CompletableFuture<StatusResult<byte[]>>();
         future.complete(StatusResult.failure(ResponseStatus.FATAL_ERROR, "This is a test"));
 
-        when(catalogService.requestCatalog("test-counter-party-id", testUrl.toString(), DATASPACE_PROTOCOL_HTTP, querySpec)).thenReturn(future);
+        when(catalogService.requestCatalog("test-counter-party-id", testUrl.toString(), DATASPACE_PROTOCOL_HTTP,
+                querySpec)).thenReturn(future);
 
         try {
             policyService.getDatasetForAssetId("test-counter-party-id", testUrl, "test-asset-id");
             fail(); // Should throw exception
         } catch (EdcException expected) {
-            assertEquals(format("Catalog by provider %s couldn't be retrieved: %s", testUrl, "[This is a test]"), expected.getMessage());
+            assertEquals(format("Catalog by provider %s couldn't be retrieved: %s", testUrl, "[This is a test]"),
+                    expected.getMessage());
         }
     }
 
     @Test
     void getDatasetCatalogFutureTimeoutTest() throws InterruptedException {
-        var querySpec = QuerySpec.Builder.newInstance().filter(criterion(Asset.PROPERTY_ID, "=", "test-asset-id")).build();
+        var querySpec =
+                QuerySpec.Builder.newInstance().filter(criterion(Asset.PROPERTY_ID, "=", "test-asset-id")).build();
         var future = new CompletableFuture<StatusResult<byte[]>>();
 
-        when(catalogService.requestCatalog("test-counter-party-id", testUrl.toString(), DATASPACE_PROTOCOL_HTTP, querySpec)).thenReturn(future);
+        when(catalogService.requestCatalog("test-counter-party-id", testUrl.toString(), DATASPACE_PROTOCOL_HTTP,
+                querySpec)).thenReturn(future);
 
         try {
             policyService.getDatasetForAssetId("test-counter-party-id", testUrl, "test-asset-id");
@@ -115,13 +121,15 @@ public class PolicyServiceTest {
 
     @Test
     void getDatasetNoDatasetsTest() throws InterruptedException {
-        var querySpec = QuerySpec.Builder.newInstance().filter(criterion(Asset.PROPERTY_ID, "=", "test-asset-id")).build();
+        var querySpec =
+                QuerySpec.Builder.newInstance().filter(criterion(Asset.PROPERTY_ID, "=", "test-asset-id")).build();
         var future = new CompletableFuture<StatusResult<byte[]>>();
         var catalogString = FileManager.loadResource("catalog.json");
         assert catalogString != null;
         future.complete(StatusResult.success(catalogString.getBytes(StandardCharsets.UTF_8)));
 
-        when(catalogService.requestCatalog("test-counter-party-id", testUrl.toString(), DATASPACE_PROTOCOL_HTTP, querySpec)).thenReturn(future);
+        when(catalogService.requestCatalog("test-counter-party-id", testUrl.toString(), DATASPACE_PROTOCOL_HTTP,
+                querySpec)).thenReturn(future);
         when(typeTransformerRegistry.transform(any(), any()))
                 .thenReturn(Result.success(Catalog.Builder.newInstance().build()));
 
@@ -172,7 +180,8 @@ public class PolicyServiceTest {
                 .getDatasetForAssetId("test-counter-party-id", testUrl, "test-asset-id");
         when(config.isAcceptAllProviderOffers()).thenReturn(true);
 
-        var resultPolicy = policyServiceSpy.getAcceptableContractOfferForAssetId("test-counter-party-id", testUrl, "test-asset-id");
+        var resultPolicy = policyServiceSpy.getAcceptableContractOfferForAssetId("test-counter-party-id", testUrl,
+                "test-asset-id");
         assertEquals(shouldPolicy, resultPolicy.getContent().getPolicy());
         assertEquals("test-offer-id", resultPolicy.getContent().getId());
     }
@@ -181,7 +190,8 @@ public class PolicyServiceTest {
     void getAcceptablePolicyForAssetIdEmptyContractOfferListTest() throws InterruptedException {
         // mock getDatasetMethod
         var policyServiceSpy = spy(policyService);
-        Mockito.doReturn(Dataset.Builder.newInstance().build()).when(policyServiceSpy).getDatasetForAssetId("test-counter-party-id", testUrl, "test-asset-id");
+        Mockito.doReturn(Dataset.Builder.newInstance().build()).when(policyServiceSpy).getDatasetForAssetId("test" +
+                "-counter-party-id", testUrl, "test-asset-id");
 
         try {
             policyServiceSpy.getAcceptableContractOfferForAssetId("test-counter-party-id", testUrl, "test-asset-id");

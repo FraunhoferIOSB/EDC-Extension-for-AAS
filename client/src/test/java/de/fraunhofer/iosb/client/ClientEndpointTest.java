@@ -34,6 +34,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractO
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager;
+import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.EdcException;
@@ -115,6 +116,7 @@ public class ClientEndpointTest {
                         mock(WebService.class),
                         mock(PublicApiManagementService.class),
                         mockTransferProcessManager(),
+                        mock(TransferProcessObservable.class),
                         () -> "localhost"))
                 .build();
     }

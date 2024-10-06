@@ -47,12 +47,11 @@ class EnvironmentToAssetMapperTest {
     public static final String CONCEPT_DESCRIPTIONS = "conceptDescriptions";
     public static final String SHELLS = "shells";
     public static final String SUBMODELS = "submodels";
-    private EnvironmentToAssetMapper testSubject;
     private final URL accessUrl = new URL("http://localhost:%s".formatted(12345));
-
+    private final List<Object> emptyList = List.of();
+    private EnvironmentToAssetMapper testSubject;
     // Change for test case if needed
     private boolean onlySubmodelsDecider;
-    private final List<Object> emptyList = List.of();
 
     EnvironmentToAssetMapperTest() throws MalformedURLException {
     }

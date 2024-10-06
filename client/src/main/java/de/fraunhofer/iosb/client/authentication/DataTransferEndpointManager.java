@@ -45,6 +45,7 @@ public class DataTransferEndpointManager {
      */
     public void addTemporaryEndpoint(String agreementId, String key, String value) {
         var endpointSuffix = ClientEndpoint.AUTOMATED_PATH + "/receiveData/" + agreementId;
-        publicApiManagementService.addTemporaryEndpoint(new Endpoint(endpointSuffix, HttpMethod.POST, Map.of(key, List.of(value))));
+        publicApiManagementService.addTemporaryEndpoint(new Endpoint(endpointSuffix, HttpMethod.POST, Map.of(key,
+                List.of(value))));
     }
 }

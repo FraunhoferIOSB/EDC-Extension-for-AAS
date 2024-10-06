@@ -30,7 +30,7 @@ import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.PROP
 
 public class SelfDescriptionSerializer {
 
-    private static final String[] SKIPPED_FIELDS = new String[] {"dataAddress", "privateProperties", "createdAt",
+    private static final String[] SKIPPED_FIELDS = new String[]{"dataAddress", "privateProperties", "createdAt",
             PROPERTY_ID};
     private static final ObjectWriter OBJECT_WRITER = createObjectWriter();
 

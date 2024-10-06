@@ -57,8 +57,9 @@ import static org.eclipse.edc.spi.query.Criterion.criterion;
  */
 class PolicyService {
 
+    public static final String AMBIGUOUS_OR_NULL_MESSAGE = "Multiple or no policyDefinitions were received for " +
+            "assetId %s!";
     private static final String CATALOG_RETRIEVAL_FAILURE_MSG = "Catalog by provider %s couldn't be retrieved: %s";
-    public static final String AMBIGUOUS_OR_NULL_MESSAGE = "Multiple or no policyDefinitions were received for assetId %s!";
     private final CatalogService catalogService;
     private final TypeTransformerRegistry transformer;
 
@@ -82,7 +83,8 @@ class PolicyService {
         this.jsonLdExpander = new TitaniumJsonLd(monitor);
     }
 
-    Dataset getDatasetForAssetId(@NotNull String counterPartyId, @NotNull URL counterPartyUrl, @NotNull String assetId) throws InterruptedException {
+    Dataset getDatasetForAssetId(@NotNull String counterPartyId, @NotNull URL counterPartyUrl,
+                                 @NotNull String assetId) throws InterruptedException {
         var catalogFuture = catalogService.requestCatalog(
                 counterPartyId, // why do we even need a provider id when we have the url...
                 counterPartyUrl.toString(),

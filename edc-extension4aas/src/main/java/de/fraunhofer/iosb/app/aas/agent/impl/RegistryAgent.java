@@ -41,6 +41,7 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.Result;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -54,7 +55,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.annotation.Nonnull;
 
 public class RegistryAgent extends AasAgent<Registry, Map<Service, Environment>> {
 
@@ -74,6 +74,14 @@ public class RegistryAgent extends AasAgent<Registry, Map<Service, Environment>>
         this.aasServiceRegistry = aasServiceRegistry;
     }
 
+    private static URL convertToUrl(String spec) {
+        try {
+            return new URL(spec);
+        } catch (MalformedURLException e) {
+            return null;
+        }
+    }
+
     @Override
     public PipelineResult<Map<Service, Environment>> apply(@Nonnull Registry registry) {
         try {
@@ -89,7 +97,8 @@ public class RegistryAgent extends AasAgent<Registry, Map<Service, Environment>>
         Result<List<AssetAdministrationShellDescriptor>> shellDescriptors;
         Result<List<SubmodelDescriptor>> submodelDescriptors;
         try {
-            shellDescriptors = readElements(registry, registry.getShellDescriptorUrl(), AssetAdministrationShellDescriptor.class);
+            shellDescriptors = readElements(registry, registry.getShellDescriptorUrl(),
+                    AssetAdministrationShellDescriptor.class);
             submodelDescriptors = readElements(registry, registry.getSubmodelDescriptorUrl(), SubmodelDescriptor.class);
         } catch (EdcException e) {
             // If an exception was raised, produce a fatal result
@@ -231,14 +240,6 @@ public class RegistryAgent extends AasAgent<Registry, Map<Service, Environment>>
                 .collect(Collectors.toCollection(ArrayList::new)).stream()
                 .sorted(Comparator.comparing(URL::getHost).thenComparingInt(URL::getPort))
                 .toList();
-    }
-
-    private static URL convertToUrl(String spec) {
-        try {
-            return new URL(spec);
-        } catch (MalformedURLException e) {
-            return null;
-        }
     }
 
     private @Nonnull List<String> getEndpointUrls(Collection<Endpoint> endpoints, String identifier) {

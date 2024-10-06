@@ -34,7 +34,9 @@ class EncoderTest {
     @Test
     public void testEncodeAsciiString() {
         // Might as well test all ASCII
-        assertEquals("ICEiIyQlJlwnKCkqKywtLi8wMTIzNDU2Nzg5Ojs8PT4/QEFCQ0RFRkdISUpLTE1OT1BRUlNUVVZXWFlaW1xcXV5fYGFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6e3x9fg==",
-                Encoder.encodeBase64(" !\"#$%&\\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"));
+        assertEquals("ICEiIyQlJlwnKCkqKywtLi8wMTIzNDU2Nzg5Ojs8PT4" +
+                        "/QEFCQ0RFRkdISUpLTE1OT1BRUlNUVVZXWFlaW1xcXV5fYGFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6e3x9fg==",
+                Encoder.encodeBase64(" !\"#$%&\\'()*+,-./0123456789:;" +
+                        "<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"));
     }
 }

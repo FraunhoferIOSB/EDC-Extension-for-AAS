@@ -17,12 +17,19 @@ package de.fraunhofer.iosb.registry;
 
 import org.junit.jupiter.api.Test;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.HashSet;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 class AasServiceRegistryTest {
+
+    final URL testUrl = new URL("http://localhost");
+
+    AasServiceRegistryTest() throws MalformedURLException {
+    }
 
     @Test
     void testCreate() {
@@ -34,32 +41,32 @@ class AasServiceRegistryTest {
     void testRegister() {
         var repo = new HashSet<String>();
         var testSubject = new AasServiceRegistry(repo);
-        testSubject.register("Hello World");
+        testSubject.register(testUrl);
         assertEquals(1, repo.size());
-        assertEquals("Hello World", repo.iterator().next());
+        assertEquals(testUrl.toString(), repo.iterator().next());
     }
 
     @Test
     void testUnregister() {
         var repo = new HashSet<String>();
         var testSubject = new AasServiceRegistry(repo);
-        testSubject.register("Hello World");
-        testSubject.unregister("Hello World");
+        testSubject.register(testUrl);
+        testSubject.unregister(testUrl);
 
         assertEquals(0, repo.size());
         assertFalse(repo.iterator().hasNext());
     }
 
     @Test
-    void testUnregisterWrongServiceUrl() {
+    void testUnregisterWrongServiceUrl() throws MalformedURLException {
         var repo = new HashSet<String>();
         var testSubject = new AasServiceRegistry(repo);
-        testSubject.register("Hello World");
+        testSubject.register(testUrl);
         // Should not fail
-        testSubject.unregister("Hello World2");
+        testSubject.unregister(new URL("http://localhost2"));
 
         assertEquals(1, repo.size());
-        assertEquals("Hello World", repo.iterator().next());
+        assertEquals(testUrl.toString(), repo.iterator().next());
     }
 
 }

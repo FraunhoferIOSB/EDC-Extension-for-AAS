@@ -20,15 +20,16 @@ import de.fraunhofer.iosb.model.aas.AasProvider;
 import de.fraunhofer.iosb.model.aas.auth.AuthenticationMethod;
 import de.fraunhofer.iosb.model.aas.net.AasAccessUrl;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 /**
- * An AAS registry representation as seen in <a href="https://github.com/fraunhoferIOSB/FAAAST-registry">FA³ST Registry</a>
+ * An AAS registry representation as seen in
+ * <a href="https://github.com/fraunhoferIOSB/FAAAST-registry">FA³ST Registry</a>
  */
 public final class Registry extends AasProvider {
 

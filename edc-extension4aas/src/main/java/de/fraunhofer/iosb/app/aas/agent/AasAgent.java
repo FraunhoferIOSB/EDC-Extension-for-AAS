@@ -31,12 +31,12 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.result.Result;
 import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import javax.annotation.Nonnull;
 
 import static jakarta.ws.rs.HttpMethod.GET;
 
@@ -67,7 +67,8 @@ public abstract class AasAgent<T extends AasProvider, U> extends PipelineStep<T,
                 return Result.failure(String.valueOf(response.code()));
             }
         }
-        throw new IllegalStateException("Reading %s from %s failed".formatted(clazz.getName(), provider.getAccessUrl()));
+        throw new IllegalStateException("Reading %s from %s failed".formatted(clazz.getName(),
+                provider.getAccessUrl()));
     }
 
     private Response executeRequest(AasProvider provider, URL apply) throws IOException {

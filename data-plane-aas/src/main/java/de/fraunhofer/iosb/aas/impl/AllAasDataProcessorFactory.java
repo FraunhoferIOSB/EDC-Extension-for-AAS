@@ -29,7 +29,8 @@ import java.security.cert.Certificate;
 
 public class AllAasDataProcessorFactory extends AasDataProcessorFactory {
 
-    public AllAasDataProcessorFactory(SelfSignedCertificateRetriever retriever, OkHttpClient edcOkHttpClient, RetryPolicy<Response> edcRetryPolicy, Monitor monitor) {
+    public AllAasDataProcessorFactory(SelfSignedCertificateRetriever retriever, OkHttpClient edcOkHttpClient,
+                                      RetryPolicy<Response> edcRetryPolicy, Monitor monitor) {
         super(retriever, edcOkHttpClient, edcRetryPolicy, monitor);
     }
 

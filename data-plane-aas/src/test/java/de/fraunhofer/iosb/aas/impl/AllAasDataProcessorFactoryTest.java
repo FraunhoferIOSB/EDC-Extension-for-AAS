@@ -29,6 +29,7 @@ import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.net.URL;
 
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -42,14 +43,14 @@ class AllAasDataProcessorFactoryTest {
         var testSubject = new AllAasDataProcessorFactory(new DefaultSelfSignedCertificateRetriever(),
                 mock(OkHttpClient.class), RetryPolicy.ofDefaults(), new ConsoleMonitor());
         var port = getFreePort(443);
-        var baseUrl = (System.getProperty("os.name").contains("Windows") ?
-                "https://127.0.0.1:%s" : "https://localhost:%s").formatted(port);
+        var baseUrl = new URL((System.getProperty("os.name").contains("Windows") ?
+                "https://127.0.0.1:%s" : "https://localhost:%s").formatted(port));
 
         try (var ignored = new TestUtils().startFaaastService(port)) {
             // If this fails, certificate could not be retrieved from foreignService
             var processor = testSubject.processorFor(baseUrl);
 
-            var response = processor.getContent().send(getDataAddress(baseUrl));
+            var response = processor.getContent().send(getDataAddress(baseUrl.toString()));
             // This means the HTTP request went through --> no certificate problems etc.
             assertNotEquals(500, response.code());
         } catch (MessageBusException | EndpointException | ConfigurationException | AssetConnectionException e) {

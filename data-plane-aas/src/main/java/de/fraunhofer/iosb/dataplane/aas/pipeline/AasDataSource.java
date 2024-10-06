@@ -68,21 +68,25 @@ public class AasDataSource implements DataSource {
         var aasDataProcessor = aasDataProcessorFactory.processorFor(accessUrl);
 
         if (aasDataProcessor.failed()) {
-            return StreamResult.failure(new StreamFailure(aasDataProcessor.getFailureMessages(), StreamFailure.Reason.GENERAL_ERROR));
+            return StreamResult.failure(new StreamFailure(aasDataProcessor.getFailureMessages(),
+                    StreamFailure.Reason.GENERAL_ERROR));
         }
 
         try {
-            // NB: Do not close the response as the body input stream needs to be read after this method returns. The response closes the body stream.
+            // NB: Do not close the response as the body input stream needs to be read after this method returns. The
+            // response closes the body stream.
             var response = aasDataProcessor.getContent().send(aasDataAddress);
 
             if (response.isSuccessful()) {
                 var body = response.body();
                 if (body == null) {
-                    throw new EdcException(format("Received empty response body transferring AAS data for request %s: %s", requestId, response.code()));
+                    throw new EdcException(format("Received empty response body transferring AAS data for request %s:" +
+                            " %s", requestId, response.code()));
                 }
                 var bodyStream = body.byteStream();
                 responseBodyStream.set(new ResponseBodyStream(body, bodyStream));
-                var mediaType = Optional.ofNullable(body.contentType()).map(MediaType::toString).orElse(APPLICATION_JSON);
+                var mediaType =
+                        Optional.ofNullable(body.contentType()).map(MediaType::toString).orElse(APPLICATION_JSON);
                 return StreamResult.success(Stream.of(new AasPart("AAS Part", bodyStream, mediaType)));
 
             } else {
@@ -92,7 +96,8 @@ public class AasDataSource implements DataSource {
                     } else if (NOT_FOUND == response.code()) {
                         return StreamResult.notFound();
                     } else {
-                        return StreamResult.error(format("Received code transferring AAS data: %s - %s.", response.code(), response.message()));
+                        return StreamResult.error(format("Received code transferring AAS data: %s - %s.",
+                                response.code(), response.message()));
                     }
                 } finally {
                     try {

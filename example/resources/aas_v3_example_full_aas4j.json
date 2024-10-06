@@ -403,13 +403,14 @@
               "type": "ExternalReference"
             },
             {
-              "keys": [{
-                "type": "GlobalReference",
-                "value": "something_random_bd061acd"
-              }],
+              "keys": [
+                {
+                  "type": "GlobalReference",
+                  "value": "something_random_bd061acd"
+                }
+              ],
               "type": "ExternalReference"
             }
-
           ],
           "value": "978-8234-234-342",
           "valueId": {

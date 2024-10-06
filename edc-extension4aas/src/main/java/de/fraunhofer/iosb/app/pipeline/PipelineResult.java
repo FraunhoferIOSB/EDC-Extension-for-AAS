@@ -22,7 +22,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Returned by any PipelineStep inside a {@link Pipeline}. Can have content even in failure scenarios (not if failure is fatal).
+ * Returned by any PipelineStep inside a {@link Pipeline}. Can have content even in failure scenarios (not if failure
+ * is fatal).
  *
  * @param <T> Content type
  */
@@ -63,11 +64,13 @@ public class PipelineResult<T> extends AbstractResult<T, PipelineFailure, Pipeli
     }
 
     /**
-     * Create a pipeline result from a store result. Useful if an operation to, for example, the AssetIndex is forwarded as a pipeline result.
+     * Create a pipeline result from a store result. Useful if an operation to, for example, the AssetIndex is
+     * forwarded as a pipeline result.
      *
      * @param storeResult The corresponding store result.
      * @param <T>         The content type of the store result and the resulting pipeline result
-     * @return A pipeline result with the same content or failure messages and a mapping of {@link org.eclipse.edc.spi.result.StoreFailure.Reason} to {@link PipelineFailure.Type}
+     * @return A pipeline result with the same content or failure messages and a mapping of
+     * {@link org.eclipse.edc.spi.result.StoreFailure.Reason} to {@link PipelineFailure.Type}
      */
     public static <T> PipelineResult<T> from(StoreResult<T> storeResult) {
         if (storeResult.succeeded()) {

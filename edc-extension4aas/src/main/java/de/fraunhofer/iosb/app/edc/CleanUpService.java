@@ -38,7 +38,8 @@ import java.util.Optional;
 
 /**
  * Listens for removals of registries and services from the EDC.
- * If a registry or service is removed from the EDC, the CleanUpService will remove any EDC assets and contracts associated with it.
+ * If a registry or service is removed from the EDC, the CleanUpService will remove any EDC assets and contracts
+ * associated with it.
  */
 public class CleanUpService implements SelfDescriptionChangeListener {
 

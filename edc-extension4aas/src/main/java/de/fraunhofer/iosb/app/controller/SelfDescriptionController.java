@@ -54,7 +54,8 @@ public class SelfDescriptionController {
      * @param monitor           Logs
      * @param serviceRepository Manage self descriptions
      */
-    public SelfDescriptionController(Monitor monitor, ServiceRepository serviceRepository, RegistryRepository registryRepository) {
+    public SelfDescriptionController(Monitor monitor, ServiceRepository serviceRepository,
+                                     RegistryRepository registryRepository) {
         this.monitor = monitor;
         this.serviceRepository = serviceRepository;
         this.registryRepository = registryRepository;

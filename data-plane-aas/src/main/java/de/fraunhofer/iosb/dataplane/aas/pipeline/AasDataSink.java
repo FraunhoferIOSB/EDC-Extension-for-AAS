@@ -72,10 +72,12 @@ public class AasDataSink implements DataSink {
         var aasDataProcessor = aasDataProcessorFactory.processorFor(accessUrl);
 
         if (aasDataProcessor.failed()) {
-            monitor.severe("Error writing HTTP data %s to endpoint %s:\n%s".formatted(part.name(), aasDataAddress.getBaseUrl(),
+            monitor.severe("Error writing HTTP data %s to endpoint %s:\n%s".formatted(part.name(),
+                    aasDataAddress.getBaseUrl(),
                     aasDataProcessor.getFailureMessages()));
 
-            return StreamResult.failure(new StreamFailure(aasDataProcessor.getFailureMessages(), StreamFailure.Reason.GENERAL_ERROR));
+            return StreamResult.failure(new StreamFailure(aasDataProcessor.getFailureMessages(),
+                    StreamFailure.Reason.GENERAL_ERROR));
         }
 
         try (var response = aasDataProcessor.getContent().send(aasDataAddress, part)) {

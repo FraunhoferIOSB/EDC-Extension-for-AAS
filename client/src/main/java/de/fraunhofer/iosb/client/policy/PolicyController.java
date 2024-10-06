@@ -80,7 +80,8 @@ public class PolicyController {
      * @param assetId         Asset ID of the asset whose contract should be fetched.
      * @return One policyDefinition offered by the provider for the given assetId.
      */
-    public Result<ContractOffer> getAcceptableContractOfferForAssetId(String counterPartyId, URL counterPartyUrl, String assetId) {
+    public Result<ContractOffer> getAcceptableContractOfferForAssetId(String counterPartyId, URL counterPartyUrl,
+                                                                      String assetId) {
         return policyService.getAcceptableContractOfferForAssetId(counterPartyId, counterPartyUrl, assetId);
     }
 
@@ -124,7 +125,8 @@ public class PolicyController {
     public Response deleteAcceptedPolicyDefinition(String policyDefinitionId) {
         monitor.info("DELETE /%s".formatted(ACCEPTED_POLICIES_PATH));
         if (Objects.isNull(policyDefinitionId)) {
-            return Response.status(Response.Status.BAD_REQUEST).entity(MISSING_QUERY_PARAMETER_MESSAGE.formatted("policyDefinitionId")).build();
+            return Response.status(Response.Status.BAD_REQUEST).entity(MISSING_QUERY_PARAMETER_MESSAGE.formatted(
+                    "policyDefinitionId")).build();
         }
 
         if (policyDefinitionStore.removePolicyDefinition(policyDefinitionId).isPresent()) {
@@ -144,7 +146,8 @@ public class PolicyController {
     public Response updateAcceptedPolicyDefinition(PolicyDefinition policyDefinition) {
         monitor.info("PUT /%s".formatted(ACCEPTED_POLICIES_PATH));
         if (Objects.isNull(policyDefinition)) {
-            return Response.status(Response.Status.BAD_REQUEST).entity(MISSING_REQUEST_BODY_MESSAGE.formatted("PolicyDefinition")).build();
+            return Response.status(Response.Status.BAD_REQUEST).entity(MISSING_REQUEST_BODY_MESSAGE.formatted(
+                    "PolicyDefinition")).build();
         }
 
         if (policyDefinitionStore.updatePolicyDefinitions(policyDefinition).isPresent()) {

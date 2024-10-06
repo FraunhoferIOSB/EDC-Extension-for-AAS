@@ -33,7 +33,6 @@ import java.util.Map;
 import java.util.Optional;
 
 import static de.fraunhofer.iosb.dataplane.aas.pipeline.AasDataSourceFactory.AAS_DATA_TYPE;
-import static java.lang.String.format;
 import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toMap;
 
@@ -119,27 +118,28 @@ public class AasDataAddress extends DataAddress {
         StringBuilder urlBuilder = new StringBuilder();
 
         for (var key : getReferenceChain().getKeys()) {
+            var value = key.getValue();
+            String[] toAppend = switch (key.getType()) {
+                case ASSET_ADMINISTRATION_SHELL -> new String[]{"shells", b64(value)};
+                case SUBMODEL -> new String[]{"submodels", b64(value)};
+                case CONCEPT_DESCRIPTION -> new String[]{"concept-descriptions", b64(value)};
+                case SUBMODEL_ELEMENT, SUBMODEL_ELEMENT_COLLECTION, SUBMODEL_ELEMENT_LIST ->
+                        new String[]{urlBuilder.indexOf("/submodel-elements/") == -1 ?
+                                "/submodel-elements/".concat(value) :
+                                ".".concat(value)};
+                default -> throw new EdcException(new IllegalStateException(
+                        "Element type not recognized: %s".formatted(key)));
+            };
 
-            switch (key.getType()) {
-                case ASSET_ADMINISTRATION_SHELL ->
-                        urlBuilder.append("shells/").append(Encoder.encodeBase64(key.getValue()));
-                case SUBMODEL -> urlBuilder.append("submodels/").append(Encoder.encodeBase64(key.getValue()));
-                case CONCEPT_DESCRIPTION ->
-                        urlBuilder.append("concept-descriptions/").append(Encoder.encodeBase64(key.getValue()));
-                case SUBMODEL_ELEMENT, SUBMODEL_ELEMENT_COLLECTION, SUBMODEL_ELEMENT_LIST -> {
-                    if (urlBuilder.indexOf("/submodel-elements/") == -1) {
-                        urlBuilder.append("/submodel-elements/");
-                    } else {
-                        urlBuilder.append(".");
-                    }
-                    urlBuilder.append(key.getValue());
-                }
-                default -> throw new EdcException(new IllegalStateException(format("Element type not recognized in " +
-                        "AasDataAddress: %s", key.getType())));
-            }
+            urlBuilder.append(String.join("/", toAppend));
         }
 
         return urlBuilder.toString();
+    }
+
+    /* For readability */
+    private String b64(String toEncode) {
+        return Encoder.encodeBase64(toEncode);
     }
 
     private Reference getReferenceChain() {
@@ -190,12 +190,12 @@ public class AasDataAddress extends DataAddress {
             return this;
         }
 
+        /*
+            Why not use Operation.class or InputVariable.class/InOutputVariable.class?
+            - Values of any type other than String get removed when sending the DA from
+              consumer to provider (during "compaction" phase when serializing the DA)
+         */
         public Builder operation(String operation) {
-            // Why not input and inoutput variables? Because of the serialization of DataAddresses,
-            // a direct list as property is not possible.
-            // Why not Operation as type? Operation contains "raw lists"...
-            // To send a DataAddress (serialization+compaction -> deserialization+expansion),
-            // this value would get removed if it were of any type other than String
             this.property(OPERATION, operation);
             return this;
         }

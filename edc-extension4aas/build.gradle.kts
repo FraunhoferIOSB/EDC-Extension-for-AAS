@@ -25,7 +25,7 @@ dependencies {
     implementation("$group:management-api:$edcVersion")
 
     testImplementation("$group:junit:$edcVersion")
-    testImplementation("org.glassfish.jersey.core:jersey-common:3.1.8")
+    testImplementation("org.glassfish.jersey.core:jersey-common:3.1.9")
     testImplementation("org.mockito:mockito-core:${mockitoVersion}")
     testImplementation("org.mock-server:mockserver-junit-jupiter:${mockserverVersion}")
     testImplementation("org.mock-server:mockserver-netty:${mockserverVersion}")

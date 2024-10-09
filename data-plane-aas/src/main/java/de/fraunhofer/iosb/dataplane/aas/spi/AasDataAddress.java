@@ -25,9 +25,12 @@ import de.fraunhofer.iosb.util.Encoder;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultReference;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.jetbrains.annotations.Nullable;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -70,6 +73,19 @@ public class AasDataAddress extends DataAddress {
     @JsonIgnore
     public String getBaseUrl() {
         return hasProvider() ? getProvider().getAccessUrl().toString() : getStringProperty(BASE_URL);
+    }
+
+    public Result<URL> getAccessUrl() {
+        if (hasProvider()) {
+            return Result.success(getProvider().getAccessUrl());
+        } else if (hasProperty(BASE_URL)) {
+            try {
+                return Result.success(new URL(getStringProperty(BASE_URL)));
+            } catch (MalformedURLException e) {
+                return Result.failure("Could not form URL");
+            }
+        }
+        return Result.failure("No URL available for this AasDataAddress");
     }
 
     private boolean hasProvider() {

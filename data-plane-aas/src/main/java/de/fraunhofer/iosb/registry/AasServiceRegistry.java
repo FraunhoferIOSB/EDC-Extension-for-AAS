@@ -15,7 +15,8 @@
  */
 package de.fraunhofer.iosb.registry;
 
-import org.eclipse.edc.spi.result.Result;
+import de.fraunhofer.iosb.model.aas.net.AasAccessUrl;
+import org.eclipse.edc.spi.EdcException;
 import org.jetbrains.annotations.Nullable;
 
 import java.net.URL;
@@ -28,23 +29,27 @@ import java.util.Set;
  */
 public class AasServiceRegistry {
 
-    private final Set<String> registeredAasServices;
+    private final Set<AasAccessUrl> registeredAasServices;
 
-    public AasServiceRegistry(@Nullable Set<String> registeredAasServices) {
+    public AasServiceRegistry(@Nullable Set<AasAccessUrl> registeredAasServices) {
         this.registeredAasServices = registeredAasServices;
     }
 
-    public Result<Void> register(URL aasServiceUrl) {
+    public void register(URL aasServiceUrl) {
+        // Not calling acceptSelfSignedCertificates here to calm down IDE
         if (registeredAasServices == null) {
-            return Result.failure("edc.dataplane.aas.acceptOwnSelfSignedCertificates is set to False");
+            throw new EdcException("edc.dataplane.aas.acceptOwnSelfSignedCertificates is set to False");
         }
-        registeredAasServices.add(aasServiceUrl.toString());
-        return Result.success();
+        registeredAasServices.add(new AasAccessUrl(aasServiceUrl));
     }
 
     public void unregister(URL aasServiceUrl) {
         if (registeredAasServices != null) {
-            registeredAasServices.remove(aasServiceUrl.toString());
+            registeredAasServices.remove(new AasAccessUrl(aasServiceUrl));
         }
+    }
+
+    public boolean acceptSelfSignedCertificates() {
+        return registeredAasServices != null;
     }
 }

@@ -20,6 +20,7 @@ import de.fraunhofer.iosb.aas.impl.AllAasDataProcessorFactory;
 import de.fraunhofer.iosb.aas.impl.RegisteredAasDataProcessorFactory;
 import de.fraunhofer.iosb.dataplane.aas.pipeline.AasDataSinkFactory;
 import de.fraunhofer.iosb.dataplane.aas.pipeline.AasDataSourceFactory;
+import de.fraunhofer.iosb.model.aas.net.AasAccessUrl;
 import de.fraunhofer.iosb.registry.AasServiceRegistry;
 import de.fraunhofer.iosb.ssl.impl.DefaultSelfSignedCertificateRetriever;
 import de.fraunhofer.iosb.ssl.impl.NoOpSelfSignedCertificateRetriever;
@@ -76,7 +77,7 @@ public class DataPlaneAasExtension implements ServiceExtension {
                 new DefaultSelfSignedCertificateRetriever() :
                 new NoOpSelfSignedCertificateRetriever();
 
-        var registeredServices = (ownSelfSigned || allSelfSigned) ? new HashSet<String>() : null;
+        var registeredServices = (ownSelfSigned || allSelfSigned) ? new HashSet<AasAccessUrl>() : null;
 
         var aasDataProcessorFactory = allSelfSigned ?
                 new AllAasDataProcessorFactory(retriever, okHttpClient, retryPolicy, monitor) :

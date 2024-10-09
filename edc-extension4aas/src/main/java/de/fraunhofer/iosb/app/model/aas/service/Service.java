@@ -42,7 +42,7 @@ public final class Service extends AasProvider {
      *
      * @param accessUrl URL for accessing the service.
      */
-    public Service(URL accessUrl) {
+    public Service(@NotNull URL accessUrl) {
         super(new AasAccessUrl(accessUrl));
     }
 

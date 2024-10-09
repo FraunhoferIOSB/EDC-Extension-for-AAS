@@ -98,9 +98,10 @@ class EnvironmentToAssetMapperTest {
 
         var result = testSubject.apply(input);
 
-        // Since there are null keys / null values, the pipeline should halt.
+        // Since there are null keys / null values, the pipeline should warn.
+        // Halting the pipeline should only happen if no other services can be "serviced"
         assertTrue(result.failed());
-        assertEquals(PipelineFailure.Type.FATAL, result.getFailure().getFailureType());
+        assertEquals(PipelineFailure.Type.WARNING, result.getFailure().getFailureType());
     }
 
     @Test

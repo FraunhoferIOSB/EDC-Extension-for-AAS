@@ -75,8 +75,11 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<Service, Environm
         Collection<PipelineResult<Service>> results = new ArrayList<>();
 
         for (Map.Entry<Service, Environment> entry : environments.entrySet()) {
-            var service = Objects.requireNonNullElse(entry.getKey(), new Service((URL) null));
-            results.add(executeSingle(service, entry.getValue()));
+            results.add(
+                    entry.getKey() == null ?
+                            PipelineResult.failure(PipelineFailure.warning(
+                                    List.of("A service in the pipeline is undefined"))) :
+                            executeSingle(entry.getKey(), entry.getValue()));
         }
 
         var contents = extractContents(results);

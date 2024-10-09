@@ -50,9 +50,10 @@ class AllAasDataProcessorFactoryTest {
             // If this fails, certificate could not be retrieved from foreignService
             var processor = testSubject.processorFor(baseUrl);
 
-            var response = processor.getContent().send(getDataAddress(baseUrl.toString()));
-            // This means the HTTP request went through --> no certificate problems etc.
-            assertNotEquals(500, response.code());
+            try (var response = processor.getContent().send(getDataAddress(baseUrl.toString()))) {
+                // This means the HTTP request went through --> no certificate problems etc.
+                assertNotEquals(500, response.code());
+            }
         } catch (MessageBusException | EndpointException | ConfigurationException | AssetConnectionException e) {
             fail("Failed starting FA³ST service");
         }

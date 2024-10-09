@@ -20,6 +20,7 @@ import de.fraunhofer.iosb.ilt.faaast.service.assetconnection.AssetConnectionExce
 import de.fraunhofer.iosb.ilt.faaast.service.exception.ConfigurationException;
 import de.fraunhofer.iosb.ilt.faaast.service.exception.EndpointException;
 import de.fraunhofer.iosb.ilt.faaast.service.exception.MessageBusException;
+import de.fraunhofer.iosb.model.aas.net.AasAccessUrl;
 import de.fraunhofer.iosb.ssl.impl.DefaultSelfSignedCertificateRetriever;
 import de.fraunhofer.iosb.testutils.TestUtils;
 import dev.failsafe.RetryPolicy;
@@ -42,7 +43,7 @@ class RegisteredAasDataProcessorFactoryTest {
 
     @Test
     void testSendRegistered() throws IOException {
-        var registeredServices = new HashSet<String>();
+        var registeredServices = new HashSet<AasAccessUrl>();
         var testSubject = new RegisteredAasDataProcessorFactory(new DefaultSelfSignedCertificateRetriever(),
                 registeredServices, mock(OkHttpClient.class), RetryPolicy.ofDefaults(), new ConsoleMonitor());
 
@@ -51,14 +52,13 @@ class RegisteredAasDataProcessorFactoryTest {
                 "https://127.0.0.1:%s" : "https://localhost:%s").formatted(port));
 
         try (var ignored = new TestUtils().startFaaastService(port)) {
-            registeredServices.add(baseUrl.toString());
+            registeredServices.add(new AasAccessUrl(baseUrl));
             var processor = testSubject.processorFor(baseUrl);
-            var response = processor.getContent().send(getDataAddress(baseUrl.toString())); // processor == null -->
-            // Failed
-            // getting self-signed cert
-
-            // This means the HTTP request went through --> no certificate problems etc.
-            assertNotEquals(500, response.code());
+            try (var response = processor.getContent().send(getDataAddress(baseUrl.toString()))) {
+                // processor == null --> Failed getting self-signed cert
+                // This means the HTTP request went through --> no certificate problems etc.
+                assertNotEquals(500, response.code());
+            }
         } catch (MessageBusException | EndpointException | ConfigurationException | AssetConnectionException e) {
             fail("Failed starting FA³ST service");
         }
@@ -67,7 +67,7 @@ class RegisteredAasDataProcessorFactoryTest {
     @Test
     void testSendForeign() throws IOException {
         // We trust no service's self-signed certificate
-        var registeredServices = new HashSet<String>();
+        var registeredServices = new HashSet<AasAccessUrl>();
         var testSubject = new RegisteredAasDataProcessorFactory(new DefaultSelfSignedCertificateRetriever(),
                 registeredServices, new OkHttpClient(), RetryPolicy.ofDefaults(), new ConsoleMonitor());
 

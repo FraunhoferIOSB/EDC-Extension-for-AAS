@@ -56,12 +56,10 @@ public class PipelineUtils {
             var failureMessages = collectFailureMessages(results);
             pipeResult = switch (maxFailure(results)) {
                 case FATAL -> PipelineResult.failure(PipelineFailure.fatal(failureMessages));
-                case WARNING ->
-                        PipelineResult.recoverableFailure(extractContents(results),
-                                PipelineFailure.warning(failureMessages));
-                case INFO ->
-                        PipelineResult.recoverableFailure(extractContents(results),
-                                PipelineFailure.info(failureMessages));
+                case WARNING -> PipelineResult.recoverableFailure(extractContents(results),
+                        PipelineFailure.warning(failureMessages));
+                case INFO -> PipelineResult.recoverableFailure(extractContents(results),
+                        PipelineFailure.info(failureMessages));
             };
         }
         return pipeResult;

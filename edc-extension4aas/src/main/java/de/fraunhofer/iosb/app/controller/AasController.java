@@ -101,12 +101,16 @@ public class AasController implements SelfDescriptionChangeListener {
 
     @Override
     public void created(Service service) {
-        serviceRegistry.register(service.getAccessUrl());
+        if (serviceRegistry.acceptSelfSignedCertificates()) {
+            serviceRegistry.register(service.getAccessUrl());
+        }
     }
 
     @Override
     public void created(Registry registry) {
-        serviceRegistry.register(registry.getAccessUrl());
+        if (serviceRegistry.acceptSelfSignedCertificates()) {
+            serviceRegistry.register(registry.getAccessUrl());
+        }
     }
 
     @Override

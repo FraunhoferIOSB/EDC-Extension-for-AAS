@@ -85,13 +85,13 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<Service, Environm
     }
 
     public PipelineResult<Service> executeSingle(Service service, Environment environment) {
-        if (service == null || service.getAccessUrl() == null) {
+        if (service == null || service.getAccessUrlV3() == null) {
             return PipelineResult.failure(PipelineFailure.fatal(
                     List.of("Mapping failure: accessUrl is null")));
         } else if (environment == null) {
             return PipelineResult.recoverableFailure(service,
                     PipelineFailure.warning(List.of("Mapping failure for accessUrl %s: environment is null"
-                            .formatted(service.getAccessUrl()))));
+                            .formatted(service.getAccessUrlV3()))));
         }
 
         String accessUrl = service.getAccessUrlV3().toString();

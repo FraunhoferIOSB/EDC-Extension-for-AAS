@@ -56,6 +56,9 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * Given a registry (accessUrl, auth), read its registered shells/submodels and return them as separate environments.
+ */
 public class RegistryAgent extends AasAgent<Registry, Map<Service, Environment>> {
 
     public static final String SHELL_DIRECT_ENDPOINT = "AAS-3.0";
@@ -135,10 +138,11 @@ public class RegistryAgent extends AasAgent<Registry, Map<Service, Environment>>
 
         for (URL submodelUrl : submodelEndpointUrlsSorted) {
             // Still need to register AAS services for possible data transfer!!!
-            aasServiceRegistry.register(submodelUrl);
+            if (aasServiceRegistry.acceptSelfSignedCertificates()) {
+                aasServiceRegistry.register(submodelUrl);
+            }
             for (SubmodelDescriptor descriptor : submodelDescriptors) {
-                var baseUrl = getBaseUrl(submodelUrl);
-                var service = new Service(baseUrl);
+                var service = new Service(getBaseUrl(submodelUrl));
 
                 var descriptorAsSubmodel = asSubmodel(descriptor);
 
@@ -161,10 +165,11 @@ public class RegistryAgent extends AasAgent<Registry, Map<Service, Environment>>
 
         for (URL shellUrl : shellEndpointUrlsSorted) {
             // Still need to register AAS services for possible data transfer!!!
-            aasServiceRegistry.register(shellUrl);
+            if (aasServiceRegistry.acceptSelfSignedCertificates()) {
+                aasServiceRegistry.register(shellUrl);
+            }
             for (AssetAdministrationShellDescriptor descriptor : shellDescriptors) {
-                var baseUrl = getBaseUrl(shellUrl);
-                var service = new Service(baseUrl);
+                var service = new Service(getBaseUrl(shellUrl));
 
                 var descriptorAsEnvironment = asEnvironment(descriptor);
 
@@ -176,7 +181,6 @@ public class RegistryAgent extends AasAgent<Registry, Map<Service, Environment>>
                 environmentsByUrl.put(service, envBuilder);
             }
         }
-
     }
 
     private Submodel asSubmodel(SubmodelDescriptor submodelDescriptor) {

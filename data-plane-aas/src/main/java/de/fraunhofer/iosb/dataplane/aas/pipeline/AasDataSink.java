@@ -23,9 +23,9 @@ import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamFailure;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.AbstractResult;
+import org.eclipse.edc.spi.result.Result;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 import java.util.Objects;
@@ -44,7 +44,6 @@ public class AasDataSink implements DataSink {
     private Monitor monitor;
 
     private AasDataSink() {
-
     }
 
     @Override
@@ -62,14 +61,16 @@ public class AasDataSink implements DataSink {
     }
 
     private StreamResult<Object> transferPart(DataSource.Part part) {
-        URL accessUrl;
-        try {
-            accessUrl = new URL(aasDataAddress.getBaseUrl());
-        } catch (MalformedURLException e) {
-            return StreamResult.failure(new StreamFailure(List.of(e.getMessage()), StreamFailure.Reason.GENERAL_ERROR));
+        Result<URL> accessUrlResult = aasDataAddress.getAccessUrl();
+
+        if (accessUrlResult.failed()) {
+            return StreamResult.failure(
+                    new StreamFailure(
+                            List.of(accessUrlResult.getFailureDetail()),
+                            StreamFailure.Reason.GENERAL_ERROR));
         }
 
-        var aasDataProcessor = aasDataProcessorFactory.processorFor(accessUrl);
+        var aasDataProcessor = aasDataProcessorFactory.processorFor(accessUrlResult.getContent());
 
         if (aasDataProcessor.failed()) {
             monitor.severe("Error writing HTTP data %s to endpoint %s:\n%s".formatted(part.name(),

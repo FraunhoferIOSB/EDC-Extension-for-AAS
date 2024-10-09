@@ -24,10 +24,10 @@ import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamFailure;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.result.Result;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 import java.util.Objects;
@@ -58,14 +58,16 @@ public class AasDataSource implements DataSource {
 
     @Override
     public StreamResult<Stream<Part>> openPartStream() {
-        URL accessUrl;
-        try {
-            accessUrl = new URL(aasDataAddress.getBaseUrl());
-        } catch (MalformedURLException e) {
-            return StreamResult.failure(new StreamFailure(List.of(e.getMessage()), StreamFailure.Reason.GENERAL_ERROR));
+        Result<URL> accessUrlResult = aasDataAddress.getAccessUrl();
+
+        if (accessUrlResult.failed()) {
+            return StreamResult.failure(
+                    new StreamFailure(
+                            List.of(accessUrlResult.getFailureDetail()),
+                            StreamFailure.Reason.GENERAL_ERROR));
         }
 
-        var aasDataProcessor = aasDataProcessorFactory.processorFor(accessUrl);
+        var aasDataProcessor = aasDataProcessorFactory.processorFor(accessUrlResult.getContent());
 
         if (aasDataProcessor.failed()) {
             return StreamResult.failure(new StreamFailure(aasDataProcessor.getFailureMessages(),

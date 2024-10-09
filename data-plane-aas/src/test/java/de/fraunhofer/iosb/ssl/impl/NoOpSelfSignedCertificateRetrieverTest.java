@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Test;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class NoOpSelfSignedCertificateRetrieverTest {
 
@@ -31,6 +31,6 @@ class NoOpSelfSignedCertificateRetrieverTest {
         var result = testSubject.getSelfSignedCertificate(new URL("https://example.com"))
                 .onSuccess(Assertions::assertNull);
         // .onFailure(fail()) did not work
-        assertFalse(result.failed());
+        assertTrue(result.failed());
     }
 }

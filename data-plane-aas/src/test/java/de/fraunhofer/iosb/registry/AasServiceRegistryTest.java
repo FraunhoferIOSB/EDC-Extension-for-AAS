@@ -15,6 +15,7 @@
  */
 package de.fraunhofer.iosb.registry;
 
+import de.fraunhofer.iosb.model.aas.net.AasAccessUrl;
 import org.junit.jupiter.api.Test;
 
 import java.net.MalformedURLException;
@@ -39,16 +40,16 @@ class AasServiceRegistryTest {
 
     @Test
     void testRegister() {
-        var repo = new HashSet<String>();
+        var repo = new HashSet<AasAccessUrl>();
         var testSubject = new AasServiceRegistry(repo);
         testSubject.register(testUrl);
         assertEquals(1, repo.size());
-        assertEquals(testUrl.toString(), repo.iterator().next());
+        assertEquals(testUrl.toString(), repo.iterator().next().toString());
     }
 
     @Test
     void testUnregister() {
-        var repo = new HashSet<String>();
+        var repo = new HashSet<AasAccessUrl>();
         var testSubject = new AasServiceRegistry(repo);
         testSubject.register(testUrl);
         testSubject.unregister(testUrl);
@@ -59,14 +60,14 @@ class AasServiceRegistryTest {
 
     @Test
     void testUnregisterWrongServiceUrl() throws MalformedURLException {
-        var repo = new HashSet<String>();
+        var repo = new HashSet<AasAccessUrl>();
         var testSubject = new AasServiceRegistry(repo);
         testSubject.register(testUrl);
         // Should not fail
         testSubject.unregister(new URL("http://localhost2"));
 
         assertEquals(1, repo.size());
-        assertEquals(testUrl.toString(), repo.iterator().next());
+        assertEquals(testUrl.toString(), repo.iterator().next().toString());
     }
 
 }

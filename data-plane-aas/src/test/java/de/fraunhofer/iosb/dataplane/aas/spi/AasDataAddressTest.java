@@ -7,7 +7,6 @@ import org.eclipse.digitaltwin.aas4j.v3.model.Key;
 import org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultKey;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultReference;
-import org.eclipse.edc.spi.EdcException;
 import org.junit.jupiter.api.Test;
 
 import java.net.MalformedURLException;
@@ -44,7 +43,7 @@ class AasDataAddressTest {
                 try {
                     return new URL("http://aas-provider:8081");
                 } catch (MalformedURLException e) {
-                    throw new EdcException("");
+                    throw new RuntimeException("help");
                 }
             }
         });

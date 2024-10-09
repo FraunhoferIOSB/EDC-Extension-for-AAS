@@ -15,6 +15,8 @@
  */
 package de.fraunhofer.iosb.model.aas.net;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -26,7 +28,9 @@ import static de.fraunhofer.iosb.model.aas.AasProvider.AAS_V3_PREFIX;
 /**
  * URL wrapper with equals method appropriate for AAS service access URLs
  */
-public record AasAccessUrl(URL url) {
+public record AasAccessUrl(@NotNull URL url) {
+
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

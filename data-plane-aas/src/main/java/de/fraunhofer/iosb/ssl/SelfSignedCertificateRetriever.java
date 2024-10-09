@@ -22,7 +22,5 @@ import java.security.cert.Certificate;
 
 public interface SelfSignedCertificateRetriever {
 
-    default Result<Certificate[]> getSelfSignedCertificate(URL url) {
-        return Result.success(null);
-    }
+    Result<Certificate[]> getSelfSignedCertificate(URL url);
 }

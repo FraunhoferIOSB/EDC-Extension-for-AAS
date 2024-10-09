@@ -112,7 +112,6 @@ public class DefaultSelfSignedCertificateRetriever implements SelfSignedCertific
 
         conn.disconnect();
         return Result.success(certs);
-
     }
 
 }

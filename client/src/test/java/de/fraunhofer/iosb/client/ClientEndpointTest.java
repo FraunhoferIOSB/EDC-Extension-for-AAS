@@ -20,7 +20,6 @@ import de.fraunhofer.iosb.api.PublicApiManagementService;
 import de.fraunhofer.iosb.client.datatransfer.DataTransferController;
 import de.fraunhofer.iosb.client.negotiation.NegotiationController;
 import de.fraunhofer.iosb.client.policy.PolicyController;
-import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
@@ -35,7 +34,6 @@ import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogServic
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
@@ -56,7 +54,9 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static java.lang.String.format;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -181,7 +181,7 @@ public class ClientEndpointTest {
                                         .build())
                         .protocol("dataspace-protocol-http")
                         .build())) {
-            if ((resultResponse.getStatus() != Response.Status.INTERNAL_SERVER_ERROR.getStatusCode())) {
+            if ((resultResponse.getStatus() != INTERNAL_SERVER_ERROR.getStatusCode())) {
                 fail();
             }
         }
@@ -189,9 +189,8 @@ public class ClientEndpointTest {
 
     @Test
     public void negotiateContractAndTransferTest() {
-        try (var ignored = clientEndpoint.negotiateContract(url, "test-id", "test-asset-id", null)) {
-            fail();
-        } catch (EdcException expected) {
+        try (var response = clientEndpoint.negotiateContract(url, "test-id", "test-asset-id", null)) {
+            assertEquals(INTERNAL_SERVER_ERROR, response.getStatusInfo());
         }
     }
 }

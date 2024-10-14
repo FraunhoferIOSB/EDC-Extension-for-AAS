@@ -39,7 +39,6 @@ import static de.fraunhofer.iosb.api.model.HttpMethod.GET;
 import static de.fraunhofer.iosb.app.model.aas.service.Service.CONCEPT_DESCRIPTIONS_PATH;
 import static de.fraunhofer.iosb.app.model.aas.service.Service.SHELLS_PATH;
 import static de.fraunhofer.iosb.app.model.aas.service.Service.SUBMODELS_PATH;
-import static de.fraunhofer.iosb.app.pipeline.PipelineFailure.Type.FATAL;
 import static de.fraunhofer.iosb.app.pipeline.PipelineFailure.Type.WARNING;
 import static de.fraunhofer.iosb.app.testutils.AasCreator.getEmptyEnvironment;
 import static de.fraunhofer.iosb.app.testutils.AasCreator.getEnvironment;
@@ -120,7 +119,7 @@ class ServiceAgentTest {
 
         assertTrue(result.failed());
         assertEquals(WARNING, result.getFailure().getFailureType());
-        assertEquals(UnknownHostException.class.getSimpleName(), result.getFailure().getMessages().get(0));
+        assertTrue(result.getFailureDetail().contains(UnknownHostException.class.getSimpleName()));
     }
 
     @Test
@@ -138,7 +137,7 @@ class ServiceAgentTest {
         var result = testSubject.apply(new Service(mockServerUrl));
 
         assertTrue(result.failed());
-        assertEquals(FATAL, result.getFailure().getFailureType());
+        assertEquals(WARNING, result.getFailure().getFailureType());
     }
 
     private void answerWith(Environment environment) {

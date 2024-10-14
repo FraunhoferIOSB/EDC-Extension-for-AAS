@@ -37,11 +37,10 @@ import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultEnvironment;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultKey;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultReference;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultSubmodel;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.Result;
 
-import java.io.IOException;
+import javax.annotation.Nonnull;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -54,7 +53,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.annotation.Nonnull;
 
 public class RegistryAgent extends AasAgent<Registry, Map<Service, Environment>> {
 
@@ -78,30 +76,31 @@ public class RegistryAgent extends AasAgent<Registry, Map<Service, Environment>>
     public PipelineResult<Map<Service, Environment>> apply(@Nonnull Registry registry) {
         try {
             return readEnvironment(registry);
-        } catch (Exception e) {
-            return PipelineResult.failure(PipelineFailure.warning(List.of(e.getClass().getName(), e.getMessage())));
+        } catch (Exception uncaughtException) {
+            return PipelineResult.failure(PipelineFailure.fatal(List.of(uncaughtException.getClass().getName(),
+                    uncaughtException.getMessage())));
         }
     }
 
-    private PipelineResult<Map<Service, Environment>> readEnvironment(Registry registry) throws IOException {
+    private PipelineResult<Map<Service, Environment>> readEnvironment(Registry registry) throws MalformedURLException {
         Map<Service, DefaultEnvironment.Builder> environmentsByUrl = new HashMap<>();
 
-        Result<List<AssetAdministrationShellDescriptor>> shellDescriptors;
-        Result<List<SubmodelDescriptor>> submodelDescriptors;
-        try {
-            shellDescriptors = readElements(registry, registry.getShellDescriptorUrl(), AssetAdministrationShellDescriptor.class);
-            submodelDescriptors = readElements(registry, registry.getSubmodelDescriptorUrl(), SubmodelDescriptor.class);
-        } catch (EdcException e) {
-            // If an exception was raised, produce a fatal result
-            return PipelineResult.failure(PipelineFailure.fatal(List.of(e.getClass().getSimpleName(), e.getMessage())));
+        Result<List<AssetAdministrationShellDescriptor>> shellDescriptors = readElements(registry,
+                registry.getShellDescriptorUrl(),
+                AssetAdministrationShellDescriptor.class);
+        Result<List<SubmodelDescriptor>> submodelDescriptors = readElements(registry,
+                registry.getSubmodelDescriptorUrl(), SubmodelDescriptor.class);
+
+        if (submodelDescriptors.succeeded()) {
+            addSubmodelDescriptors(environmentsByUrl, submodelDescriptors.getContent());
         }
 
-        addShellDescriptors(environmentsByUrl, shellDescriptors.getContent());
-        addSubmodelDescriptors(environmentsByUrl, submodelDescriptors.getContent());
+        if (shellDescriptors.succeeded()) {
+            addShellDescriptors(environmentsByUrl, shellDescriptors.getContent());
+        }
 
         Map<Service, Environment> environment = environmentsByUrl.entrySet().stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue()
-                        .build()));
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().build()));
 
         if (shellDescriptors.failed() || submodelDescriptors.failed()) {
             return PipelineResult.recoverableFailure(environment,

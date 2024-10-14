@@ -21,22 +21,19 @@ import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
 import de.fraunhofer.iosb.app.pipeline.PipelineStep;
 import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
 import de.fraunhofer.iosb.model.aas.AasProvider;
-import okhttp3.MediaType;
-import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.DeserializationException;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.json.JsonDeserializer;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.result.Result;
 import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import javax.annotation.Nonnull;
 
 import static jakarta.ws.rs.HttpMethod.GET;
 
@@ -44,8 +41,6 @@ import static jakarta.ws.rs.HttpMethod.GET;
  * Fetching an AAS environment from AAS service or AAS registry providers.
  */
 public abstract class AasAgent<T extends AasProvider, U> extends PipelineStep<T, U> {
-
-    //public static final String AAS_V3_PREFIX = "/api/v3.0";
 
     private final AasDataProcessorFactory aasDataProcessorFactory;
     private final JsonDeserializer jsonDeserializer = new JsonDeserializer();
@@ -55,31 +50,32 @@ public abstract class AasAgent<T extends AasProvider, U> extends PipelineStep<T,
         this.aasDataProcessorFactory = aasDataProcessorFactory;
     }
 
-    protected <K> Result<List<K>> readElements(AasProvider provider, URL url, Class<K> clazz) throws IOException {
-        try (var response = executeRequest(provider, url)) {
-            if (response.isSuccessful() && response.body() != null) {
-                return readList(response.body().string(), clazz);
-            } else if (response.code() > 299 && response.code() < 500) {
-                // Fatal (irrecoverable): 4XX = client error
-                throw new EdcException("Request for %s failed".formatted(clazz.getName()));
-            } else if (response.code() > 499) {
-                // Warning (maybe temporary): 5XX = server error
-                return Result.failure(String.valueOf(response.code()));
-            }
+    protected <K> Result<List<K>> readElements(AasProvider provider, URL url, Class<K> clazz) {
+        var responseResult = executeRequest(provider, url);
+
+        if (responseResult.failed()) {
+            return Result.failure("Reading %s from %s failed: %s"
+                    .formatted(clazz.getName(), url, responseResult.getFailureDetail()));
         }
-        throw new IllegalStateException("Reading %s from %s failed".formatted(clazz.getName(), provider.getAccessUrl()));
+
+        var response = responseResult.getContent();
+
+        if (response.isSuccessful() && response.body() != null) {
+            return readList(response.body(), clazz);
+        } else if (response.code() > 299 && response.code() < 500) {
+            // Fatal (irrecoverable): 4XX = client (our) error
+            return Result.failure("Reading %s from %s failed: %s, %s"
+                    .formatted(clazz.getSimpleName(), url, response.code(), response.message()));
+        }
+        // Warning (maybe temporary): 5XX = server error
+        return Result.failure(String.valueOf(response.code()));
     }
 
-    private Response executeRequest(AasProvider provider, URL apply) throws IOException {
+    private Result<Response> executeRequest(AasProvider provider, URL apply) {
         var processor = aasDataProcessorFactory.processorFor(provider.getAccessUrl().toString());
 
         if (processor.failed()) {
-            return new Response.Builder()
-                    .code(500)
-                    .body(ResponseBody.create(processor.getFailure().getFailureDetail(),
-                            MediaType.get("application/json")))
-                    .request(new Request.Builder().url("").build())
-                    .build();
+            return Result.failure(processor.getFailureDetail());
         }
 
         var addressBuilder = AasDataAddress.Builder
@@ -88,10 +84,22 @@ public abstract class AasAgent<T extends AasProvider, U> extends PipelineStep<T,
                 .aasProvider(provider)
                 .path(apply.getPath());
 
-        return processor.getContent().send(addressBuilder.build());
+        try {
+            return Result.success(processor.getContent().send(addressBuilder.build()));
+        } catch (IOException httpIOException) {
+            return Result.failure(List.of(httpIOException.getClass().getSimpleName(), httpIOException.getMessage()));
+        }
     }
 
-    private <K> @Nonnull Result<List<K>> readList(@Nullable String serialized, Class<K> clazz) {
+    private <K> @Nonnull Result<List<K>> readList(@Nullable ResponseBody responseBody, Class<K> clazz) {
+        String serialized;
+        try {
+            serialized = responseBody == null ? null : responseBody.string();
+        } catch (IOException readBodyException) {
+            return Result.failure("Failed reading response body: %s, %s"
+                    .formatted(readBodyException.getClass().getSimpleName(), readBodyException.getMessage()));
+        }
+
         try {
             var responseJson = objectMapper.readTree(serialized).get("result");
             return Result.success(Optional.ofNullable(jsonDeserializer.readList(responseJson, clazz))

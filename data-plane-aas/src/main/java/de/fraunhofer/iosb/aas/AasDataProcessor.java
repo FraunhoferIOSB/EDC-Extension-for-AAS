@@ -98,6 +98,7 @@ public class AasDataProcessor {
                         aasDataAddress.getMethod(),
                         HttpMethod.permitsRequestBody(aasDataAddress.getMethod()) ? requestBody : null)
                 .url(requestUrl) // .url(HttpUrl) is marked as "internal"
+                // getAdditionalHeaders() includes authentication needed to access the service
                 .headers(Headers.of(aasDataAddress.getAdditionalHeaders()))
                 .build();
 

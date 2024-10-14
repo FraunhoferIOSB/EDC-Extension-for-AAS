@@ -49,8 +49,7 @@ public class PublicApiManagementService {
 
         monitor.debug("Adding %s public endpoints.".formatted(endpoints.size()));
 
-        endpoints.removeIf(Objects::isNull);
-        filter.addEndpoints(endpoints);
+        filter.addEndpoints(endpoints.stream().filter(Objects::nonNull).toList());
     }
 
     /**

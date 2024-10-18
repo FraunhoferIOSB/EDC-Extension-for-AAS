@@ -56,7 +56,7 @@ public class AasDataSourceFactory implements DataSourceFactory {
             // TODO Currently injecting source DA with destination DA properties
             // https://faaast-service.readthedocs.io/en/latest/interfaces/endpoint.html#http
             dataAddress.method("POST")
-                    .operation(((AasDataAddress) destination).getOperation());
+                    .operation(AasDataAddress.Builder.newInstance().copyFrom(destination).build().getOperation());
         }
 
         return AasDataSource.Builder.newInstance()
@@ -68,7 +68,7 @@ public class AasDataSourceFactory implements DataSourceFactory {
     }
 
     private boolean isOperationRequest(DataAddress address) {
-        return address.getType().equals(AAS_DATA_TYPE) && ((AasDataAddress) address).isOperation();
+        return address.getType().equals(AAS_DATA_TYPE) && address.hasProperty(AasDataAddress.OPERATION);
     }
 
     @Override
@@ -76,7 +76,7 @@ public class AasDataSourceFactory implements DataSourceFactory {
         try (var ignored = createSource(request)) {
             return Result.success();
         } catch (Exception e) {
-            return Result.failure("Failed to build AAS data source: " + e.getMessage());
+            return Result.failure("Failed to validate AAS data source: " + e.getMessage());
         }
     }
 }

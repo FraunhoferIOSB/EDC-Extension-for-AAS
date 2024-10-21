@@ -16,6 +16,7 @@
 package de.fraunhofer.iosb.app.model.aas.service;
 
 import de.fraunhofer.iosb.app.model.aas.AasProviderRepository;
+import de.fraunhofer.iosb.model.aas.service.Service;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 
 import javax.annotation.Nullable;

@@ -13,16 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.app.model.aas.registry;
+package de.fraunhofer.iosb.model.aas.registry;
 
-import de.fraunhofer.iosb.app.model.aas.service.Service;
 import de.fraunhofer.iosb.model.aas.AasProvider;
 import de.fraunhofer.iosb.model.aas.auth.AuthenticationMethod;
 import de.fraunhofer.iosb.model.aas.net.AasAccessUrl;
+import de.fraunhofer.iosb.model.aas.service.Service;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -33,10 +30,9 @@ import java.util.Collection;
  */
 public final class Registry extends AasProvider {
 
-    public static final String SUBMODEL_DESCRIPTORS_PATH = "%s/submodel-descriptors".formatted(AAS_V3_PREFIX);
-    public static final String SHELL_DESCRIPTORS_PATH = "%s/shell-descriptors".formatted(AAS_V3_PREFIX);
+    public static final String SUBMODEL_DESCRIPTORS_PATH = "submodel-descriptors";
+    public static final String SHELL_DESCRIPTORS_PATH = "shell-descriptors";
 
-    @Nullable
     private Collection<Service> services;
 
     /**
@@ -45,7 +41,7 @@ public final class Registry extends AasProvider {
      *
      * @param accessUrl URL for accessing the registry.
      */
-    public Registry(@Nonnull URL accessUrl) {
+    public Registry(URL accessUrl) {
         super(new AasAccessUrl(accessUrl));
         this.services = new ArrayList<>();
     }
@@ -57,7 +53,7 @@ public final class Registry extends AasProvider {
      * @param accessUrl            URL for accessing the registry.
      * @param authenticationMethod The authentication needed by this registry.
      */
-    public Registry(@Nonnull URL accessUrl, @Nonnull AuthenticationMethod authenticationMethod) {
+    public Registry(URL accessUrl, AuthenticationMethod authenticationMethod) {
         super(new AasAccessUrl(accessUrl), authenticationMethod);
     }
 
@@ -72,20 +68,11 @@ public final class Registry extends AasProvider {
         return this;
     }
 
-    public URL getSubmodelDescriptorUrl() throws MalformedURLException {
-        return new URL(getAccessUrl(), SUBMODEL_DESCRIPTORS_PATH);
-    }
-
-    public URL getShellDescriptorUrl() throws MalformedURLException {
-        return new URL(getAccessUrl(), SHELL_DESCRIPTORS_PATH);
-    }
-
     /**
      * Returns services this registry holds. This can be null before synchronization happened
      *
      * @return The services this registry has registered.
      */
-    @Nullable
     public Collection<Service> services() {
         return services;
     }

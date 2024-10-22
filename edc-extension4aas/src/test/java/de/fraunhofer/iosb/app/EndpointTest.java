@@ -72,7 +72,7 @@ public class EndpointTest {
     void testCreateRegistry() {
         when(registryRepositoryMock.create(any())).thenReturn(true);
 
-        try (var response = testSubject.createRegistry(url)) {
+        try (var response = testSubject.createRegistry(url.toString())) {
             assertEquals(Response.Status.CREATED.getStatusCode(),
                     response.getStatusInfo().getStatusCode());
         }
@@ -83,7 +83,7 @@ public class EndpointTest {
     void testCreateService() {
         when(serviceRepositoryMock.create(any())).thenReturn(true);
 
-        try (var response = testSubject.createService(url, null)) {
+        try (var response = testSubject.createService(url.toString(), null)) {
             assertEquals(Response.Status.CREATED.getStatusCode(),
                     response.getStatusInfo().getStatusCode());
         }
@@ -93,7 +93,7 @@ public class EndpointTest {
 
     @Test
     void testRemoveService() {
-        try (var response = testSubject.removeService(url)) {
+        try (var response = testSubject.removeService(url.toString())) {
             assertEquals(Response.Status.NOT_FOUND.getStatusCode(),
                     response.getStatusInfo().getStatusCode());
         }
@@ -104,7 +104,7 @@ public class EndpointTest {
     @Test
     void testRemoveRegistry() {
         doThrow(IllegalAccessError.class).when(aasControllerMock).stopService(any());
-        try (var response = testSubject.removeRegistry(url)) {
+        try (var response = testSubject.removeRegistry(url.toString())) {
             assertEquals(Response.Status.NOT_FOUND.getStatusCode(),
                     response.getStatusInfo().getStatusCode());
         }

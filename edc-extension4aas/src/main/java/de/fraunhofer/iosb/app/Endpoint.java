@@ -35,9 +35,11 @@ import jakarta.ws.rs.core.Response.Status;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.result.Result;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Objects;
 
@@ -77,54 +79,70 @@ public class Endpoint {
     /**
      * Register an AAS registry to this extension
      *
-     * @param registryUrl The URL of the AAS registry
+     * @param registryUrlString The URL of the AAS registry
      * @return Status message about the success of this operation.
      */
     @POST
     @Path(REGISTRY_PATH)
-    public Response createRegistry(@QueryParam("url") URL registryUrl) {
+    public Response createRegistry(@QueryParam("url") String registryUrlString) {
         monitor.info("POST /%s".formatted(REGISTRY_PATH));
-        return createEntity(registryRepository, new Registry(registryUrl));
+        var registryUrl = parseUrl(registryUrlString);
+        if (registryUrl.failed()) {
+            return Response.status(Status.BAD_REQUEST).entity(registryUrl.getFailureDetail()).build();
+        }
+        return createEntity(registryRepository, new Registry(registryUrl.getContent()));
     }
 
     /**
      * Register an AAS service to this extension
      *
-     * @param serviceUrl The URL of the AAS service
+     * @param serviceUrlString The URL of the AAS service
      * @return Status message about the success of this operation.
      */
     @POST
     @Path(SERVICE_PATH)
-    public Response createService(@QueryParam("url") URL serviceUrl, AuthenticationMethod auth) {
+    public Response createService(@QueryParam("url") String serviceUrlString, AuthenticationMethod auth) {
         monitor.info("POST /%s".formatted(SERVICE_PATH));
-        var service = auth == null ? new Service(serviceUrl) : new Service(serviceUrl, auth);
+        var serviceUrl = parseUrl(serviceUrlString);
+        if (serviceUrl.failed()) {
+            return Response.status(Status.BAD_REQUEST).entity(serviceUrl.getFailureDetail()).build();
+        }
+        var service = auth == null ? new Service(serviceUrl.getContent()) : new Service(serviceUrl.getContent(), auth);
         return createEntity(serviceRepository, service);
     }
 
     /**
      * Unregister an AAS registry from this extension
      *
-     * @param registryUrl The URL of the registry
+     * @param registryUrlString The URL of the registry
      * @return Status message about the success of this operation.
      */
     @DELETE
     @Path(REGISTRY_PATH)
-    public Response removeRegistry(@QueryParam("url") URL registryUrl) {
+    public Response removeRegistry(@QueryParam("url") String registryUrlString) {
         monitor.info("DELETE /%s".formatted(REGISTRY_PATH));
-        return removeEntity(registryRepository, registryUrl);
+        var registryUrl = parseUrl(registryUrlString);
+        if (registryUrl.failed()) {
+            return Response.status(Status.BAD_REQUEST).entity(registryUrl.getFailureDetail()).build();
+        }
+        return removeEntity(registryRepository, registryUrl.getContent());
     }
 
     /**
      * Unregister an AAS service (e.g., FA³ST) from this extension
      *
-     * @param serviceUrl The URL of the AAS client
+     * @param serviceUrlString The URL of the AAS client
      * @return Status message about the success of this operation.
      */
     @DELETE
     @Path(SERVICE_PATH)
-    public Response removeService(@QueryParam("url") URL serviceUrl) {
+    public Response removeService(@QueryParam("url") String serviceUrlString) {
         monitor.info("DELETE /%s".formatted(SERVICE_PATH));
-        return removeEntity(serviceRepository, serviceUrl);
+        var serviceUrl = parseUrl(serviceUrlString);
+        if (serviceUrl.failed()) {
+            return Response.status(Status.BAD_REQUEST).entity(serviceUrl.getFailureDetail()).build();
+        }
+        return removeEntity(serviceRepository, serviceUrl.getContent());
     }
 
     /**
@@ -167,6 +185,14 @@ public class Endpoint {
                 aasController.stopService(serviceAccessUrl);
                 return creationResponse;
             }
+        }
+    }
+
+    private Result<URL> parseUrl(String urlString) {
+        try {
+            return Result.success(new URL(urlString));
+        } catch (MalformedURLException e) {
+            return Result.failure(e.getMessage());
         }
     }
 

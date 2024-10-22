@@ -32,6 +32,7 @@ import org.eclipse.edc.spi.result.Result;
 import java.io.IOException;
 import java.util.List;
 
+import static de.fraunhofer.iosb.app.pipeline.PipelineResult.failure;
 import static de.fraunhofer.iosb.model.aas.service.Service.CONCEPT_DESCRIPTIONS_PATH;
 import static de.fraunhofer.iosb.model.aas.service.Service.SHELLS_PATH;
 import static de.fraunhofer.iosb.model.aas.service.Service.SUBMODELS_PATH;
@@ -63,17 +64,24 @@ public class ServiceAgent extends AasAgent<Service, Environment> {
     }
 
     private PipelineResult<Environment> readEnvironment(Service service) throws IOException {
+        var processorResult = aasDataProcessorFactory.processorFor(service.getAccessUrl());
+
+        if (processorResult.failed()) {
+            return failure(PipelineFailure.warning(List.of(processorResult.getFailure().getFailureDetail())));
+        }
+        var processor = processorResult.getContent();
+
         Result<List<AssetAdministrationShell>> shellsResult;
         Result<List<Submodel>> submodelsResult;
         Result<List<ConceptDescription>> conceptDescResult;
 
         try {
-            shellsResult = readElements(service, SHELLS_PATH, AssetAdministrationShell.class);
-            submodelsResult = readElements(service, SUBMODELS_PATH, Submodel.class);
-            conceptDescResult = readElements(service, CONCEPT_DESCRIPTIONS_PATH, ConceptDescription.class);
+            shellsResult = readElements(processor, service, SHELLS_PATH, AssetAdministrationShell.class);
+            submodelsResult = readElements(processor, service, SUBMODELS_PATH, Submodel.class);
+            conceptDescResult = readElements(processor, service, CONCEPT_DESCRIPTIONS_PATH, ConceptDescription.class);
         } catch (EdcException e) {
             // If an exception was raised, produce a fatal result
-            return PipelineResult.failure(PipelineFailure.fatal(List.of(e.getClass().getSimpleName())));
+            return failure(PipelineFailure.fatal(List.of(e.getClass().getSimpleName())));
         }
 
         var environment = new DefaultEnvironment.Builder()

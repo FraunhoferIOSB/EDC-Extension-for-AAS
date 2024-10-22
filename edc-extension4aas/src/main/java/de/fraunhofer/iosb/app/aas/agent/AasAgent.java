@@ -17,14 +17,12 @@ package de.fraunhofer.iosb.app.aas.agent;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import de.fraunhofer.iosb.aas.AasDataProcessor;
 import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
 import de.fraunhofer.iosb.app.pipeline.PipelineStep;
 import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
 import de.fraunhofer.iosb.model.aas.AasProvider;
-import okhttp3.MediaType;
-import okhttp3.Request;
 import okhttp3.Response;
-import okhttp3.ResponseBody;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.DeserializationException;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.json.JsonDeserializer;
 import org.eclipse.edc.spi.result.Result;
@@ -45,7 +43,7 @@ public abstract class AasAgent<T extends AasProvider, U> extends PipelineStep<T,
 
     //public static final String AAS_V3_PREFIX = "/api/v3.0";
 
-    private final AasDataProcessorFactory aasDataProcessorFactory;
+    protected final AasDataProcessorFactory aasDataProcessorFactory;
     private final JsonDeserializer jsonDeserializer = new JsonDeserializer();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -53,8 +51,15 @@ public abstract class AasAgent<T extends AasProvider, U> extends PipelineStep<T,
         this.aasDataProcessorFactory = aasDataProcessorFactory;
     }
 
-    protected <K> Result<List<K>> readElements(AasProvider provider, String path, Class<K> clazz) throws IOException {
-        try (var response = executeRequest(provider, path)) {
+    protected <K> Result<List<K>> readElements(AasDataProcessor processor, AasProvider provider, String path,
+                                               Class<K> clazz) throws IOException {
+        var dataAddress = AasDataAddress.Builder.newInstance()
+                .method(GET)
+                .aasProvider(provider)
+                .path(path)
+                .build();
+
+        try (var response = executeRequest(processor, dataAddress)) {
             if (response.isSuccessful() && response.body() != null) {
                 return readList(response.body().string(), clazz);
             } else if (response.code() > 299) {
@@ -65,25 +70,8 @@ public abstract class AasAgent<T extends AasProvider, U> extends PipelineStep<T,
                 provider.getAccessUrl()));
     }
 
-    private Response executeRequest(AasProvider provider, String path) throws IOException {
-        var processor = aasDataProcessorFactory.processorFor(provider.getAccessUrl());
-
-        if (processor.failed()) {
-            return new Response.Builder()
-                    .code(500)
-                    .body(ResponseBody.create(processor.getFailure().getFailureDetail(),
-                            MediaType.get("application/json")))
-                    .request(new Request.Builder().url("").build())
-                    .build();
-        }
-
-        var addressBuilder = AasDataAddress.Builder
-                .newInstance()
-                .method(GET)
-                .aasProvider(provider)
-                .path(path);
-
-        return processor.getContent().send(addressBuilder.build());
+    private Response executeRequest(AasDataProcessor processor, AasDataAddress dataAddress) throws IOException {
+        return processor.send(dataAddress);
     }
 
     private <K> @Nonnull Result<List<K>> readList(@Nullable String serialized, Class<K> clazz) {

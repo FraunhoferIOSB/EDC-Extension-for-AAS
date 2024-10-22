@@ -56,6 +56,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static de.fraunhofer.iosb.app.pipeline.PipelineResult.failure;
 import static de.fraunhofer.iosb.model.aas.registry.Registry.SHELL_DESCRIPTORS_PATH;
 import static de.fraunhofer.iosb.model.aas.registry.Registry.SUBMODEL_DESCRIPTORS_PATH;
 
@@ -93,21 +94,30 @@ public class RegistryAgent extends AasAgent<Registry, Map<Service, Environment>>
         try {
             return readEnvironment(registry);
         } catch (Exception e) {
-            return PipelineResult.failure(PipelineFailure.warning(List.of(e.getClass().getName(), e.getMessage())));
+            return failure(PipelineFailure.warning(List.of(e.getClass().getName(), e.getMessage())));
         }
     }
 
     private PipelineResult<Map<Service, Environment>> readEnvironment(Registry registry) throws IOException {
+        var processorResult = aasDataProcessorFactory.processorFor(registry.getAccessUrl());
+
+        if (processorResult.failed()) {
+            return failure(PipelineFailure.warning(List.of(processorResult.getFailure().getFailureDetail())));
+        }
+        var processor = processorResult.getContent();
+
         Map<Service, DefaultEnvironment.Builder> environmentsByUrl = new HashMap<>();
 
         Result<List<AssetAdministrationShellDescriptor>> shellDescriptors;
         Result<List<SubmodelDescriptor>> submodelDescriptors;
         try {
-            shellDescriptors = readElements(registry, SHELL_DESCRIPTORS_PATH, AssetAdministrationShellDescriptor.class);
-            submodelDescriptors = readElements(registry, SUBMODEL_DESCRIPTORS_PATH, SubmodelDescriptor.class);
+            shellDescriptors = readElements(processor, registry, SHELL_DESCRIPTORS_PATH,
+                    AssetAdministrationShellDescriptor.class);
+            submodelDescriptors = readElements(processor, registry, SUBMODEL_DESCRIPTORS_PATH,
+                    SubmodelDescriptor.class);
         } catch (EdcException e) {
             // If an exception was raised, produce a fatal result
-            return PipelineResult.failure(PipelineFailure.fatal(List.of(e.getClass().getSimpleName(), e.getMessage())));
+            return failure(PipelineFailure.fatal(List.of(e.getClass().getSimpleName(), e.getMessage())));
         }
 
         addShellDescriptors(environmentsByUrl, shellDescriptors.getContent());

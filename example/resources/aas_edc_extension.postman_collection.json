@@ -1,6 +1,6 @@
 {
   "info": {
-    "_postman_id": "114fa32e-566e-4c02-a6f6-3a035231eace",
+    "_postman_id": "6b00e5c3-57da-47aa-8c14-22b06f755bcf",
     "name": "EDC Extension",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "20511334"
@@ -158,7 +158,54 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"type\": \"AasData\",\n    \"properties\": {\n        \"https://w3id.org/edc/v0.0.1/ns/baseUrl\": \"https://localhost:12345/api/v3.0/submodels/aHR0cHM6Ly9leGFtcGxlLmNvbS9pZHMvc20vNTIxM18xMTIwXzgwMjJfOTMwNQ==/submodel-elements/Skills.Skill.Name\",\n        \"method\": \"PATCH\",\n        \"header:x-api-key\": \"password\"\n    }\n}",
+              "raw": "{\n    \"type\": \"AasData\",\n    \"properties\": {\n        \"aasProvider\": {\n            \"aasAccessUrl\": \"{{ext-aas-service}}\"\n        },\n        \"path\": \"submodels/aHR0cHM6Ly9leGFtcGxlLmNvbS9pZHMvc20vNTIxM18xMTIwXzgwMjJfOTMwNQ==/submodel-elements/Skills.Skill.Name\",\n        \"method\": \"PATCH\",\n        \"header:x-api-key\": \"password\"\n    }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{consumer}}/automated/negotiate?providerId=provider&assetId={{asset-id}}&providerUrl={{provider-dsp}}",
+              "host": [
+                "{{consumer}}"
+              ],
+              "path": [
+                "automated",
+                "negotiate"
+              ],
+              "query": [
+                {
+                  "key": "providerId",
+                  "value": "provider"
+                },
+                {
+                  "key": "assetId",
+                  "value": "{{asset-id}}"
+                },
+                {
+                  "key": "dataDestinationUrl",
+                  "value": "http://example.com",
+                  "description": "May be null",
+                  "disabled": true
+                },
+                {
+                  "key": "providerUrl",
+                  "value": "{{provider-dsp}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Automated w/ Operation",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"type\": \"HttpData\",\n    \"properties\": {\n        \"baseUrl\": \"https://my-http-receiver:54321/receiveEndpoint\",\n        \"method\": \"PATCH\",\n        \"operation\": {\n            \"inputArguments\": {\n                \"in\": 4,\n                \"myIdShort\": \"myValue\"\n            },\n            \"inoutputArguments\": {\n                \"note\": \"original value\"\n            },\n            \"clientTimeoutDuration\": \"PT10S\"\n        }\n    }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -320,7 +367,7 @@
             "method": "POST",
             "header": [],
             "url": {
-              "raw": "{{provider}}/service?url=https://localhost:12345",
+              "raw": "{{provider}}/service?url={{ext-aas-service}}",
               "host": [
                 "{{provider}}"
               ],
@@ -330,7 +377,7 @@
               "query": [
                 {
                   "key": "url",
-                  "value": "https://localhost:12345",
+                  "value": "{{ext-aas-service}}",
                   "description": "External FA³ST service"
                 }
               ]
@@ -353,7 +400,7 @@
               }
             },
             "url": {
-              "raw": "{{provider}}/service?url=https://authenticated-aas.com",
+              "raw": "{{provider}}/service?url=https://authenticated-aas.com/api/v3.0",
               "host": [
                 "{{provider}}"
               ],
@@ -363,7 +410,7 @@
               "query": [
                 {
                   "key": "url",
-                  "value": "https://authenticated-aas.com"
+                  "value": "https://authenticated-aas.com/api/v3.0"
                 }
               ]
             }
@@ -376,7 +423,7 @@
             "method": "POST",
             "header": [],
             "url": {
-              "raw": "{{provider}}/registry?url=https://localhost:8090",
+              "raw": "{{provider}}/registry?url=https://localhost:8090/api/v3.0",
               "host": [
                 "{{provider}}"
               ],
@@ -386,7 +433,7 @@
               "query": [
                 {
                   "key": "url",
-                  "value": "https://localhost:8090",
+                  "value": "https://localhost:8090/api/v3.0",
                   "description": "External FA³ST registry"
                 }
               ]
@@ -426,7 +473,7 @@
             "method": "POST",
             "header": [],
             "url": {
-              "raw": "{{provider}}/environment?environment=path/to/aas/model.aasx&port=12345",
+              "raw": "{{provider}}/environment?environment=/path/to/aas/model.aasx&port=12345",
               "host": [
                 "{{provider}}"
               ],
@@ -453,7 +500,7 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "{{provider}}/service?url=https://localhost:12345",
+              "raw": "{{provider}}/service?url={{ext-aas-service}}",
               "host": [
                 "{{provider}}"
               ],
@@ -463,7 +510,7 @@
               "query": [
                 {
                   "key": "url",
-                  "value": "https://localhost:12345"
+                  "value": "{{ext-aas-service}}"
                 }
               ]
             }
@@ -476,7 +523,7 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "{{provider}}/registry?url=https://localhost:8090",
+              "raw": "{{provider}}/registry?url=https://localhost:8090/api/v3.0",
               "host": [
                 "{{provider}}"
               ],
@@ -486,7 +533,7 @@
               "query": [
                 {
                   "key": "url",
-                  "value": "https://localhost:8090"
+                  "value": "https://localhost:8090/api/v3.0"
                 }
               ]
             }
@@ -535,7 +582,7 @@
       ]
     },
     {
-      "name": "EDC API",
+      "name": "EDC API (not our extension)",
       "item": [
         {
           "name": "Get contractdefinitions",
@@ -772,6 +819,11 @@
       "key": "consumer-management",
       "value": "http://localhost:9192/management",
       "type": "default"
+    },
+    {
+      "key": "ext-aas-service",
+      "value": "https://localhost:12345/api/v3.0",
+      "type": "string"
     }
   ]
 }

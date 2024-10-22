@@ -22,7 +22,8 @@ import java.net.URL;
 import java.util.Objects;
 
 /**
- * The part of the AAS access URL to directly access the /submodel /shell and /concept-description endpoints, i.e. "http:aas-service:port/path/to".
+ * The part of the AAS access URL to directly access the /submodel /shell and /concept-description endpoints, i.e.
+ * "http:aas-service:port/path/to".
  * <p>An example could be "https://localhost:8080/api/v3.0"
  * <p>URL wrapper with equals method appropriate for AAS service access URLs
  */

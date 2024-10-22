@@ -16,6 +16,7 @@
 package de.fraunhofer.iosb.app.aas.mapper;
 
 import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
+import de.fraunhofer.iosb.model.aas.AasProvider;
 import org.eclipse.digitaltwin.aas4j.v3.model.Identifiable;
 import org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes;
 import org.eclipse.digitaltwin.aas4j.v3.model.Referable;
@@ -24,6 +25,7 @@ import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultAdministrativeInformat
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultKey;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultReference;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -60,8 +62,15 @@ public class ElementMapper {
                         "embeddedDataSpecifications", admin.getEmbeddedDataSpecifications()));
     }
 
-    protected @NotNull String getId(String accessUrl, AasDataAddress dataAddress) {
-        return String.valueOf("%s:%s".formatted(accessUrl, dataAddress.getPath()).hashCode());
+    protected @NotNull String getId(AasDataAddress dataAddress) {
+        return String.valueOf("%s:%s".formatted(dataAddress.getAccessUrl().getContent().toString(), dataAddress.getPath()).hashCode());
+    }
+
+    protected AasDataAddress createDataAddress(AasProvider provider, Reference reference) {
+        return AasDataAddress.Builder.newInstance()
+                .aasProvider(provider)
+                .referenceChain(reference)
+                .build();
     }
 
     protected Reference createReference(KeyTypes type, String value) {

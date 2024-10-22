@@ -27,13 +27,11 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.DeserializationException;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.json.JsonDeserializer;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.result.Result;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -55,23 +53,19 @@ public abstract class AasAgent<T extends AasProvider, U> extends PipelineStep<T,
         this.aasDataProcessorFactory = aasDataProcessorFactory;
     }
 
-    protected <K> Result<List<K>> readElements(AasProvider provider, URL url, Class<K> clazz) throws IOException {
-        try (var response = executeRequest(provider, url)) {
+    protected <K> Result<List<K>> readElements(AasProvider provider, String path, Class<K> clazz) throws IOException {
+        try (var response = executeRequest(provider, path)) {
             if (response.isSuccessful() && response.body() != null) {
                 return readList(response.body().string(), clazz);
-            } else if (response.code() > 299 && response.code() < 500) {
-                // Fatal (irrecoverable): 4XX = client error
-                throw new EdcException("Request for %s failed".formatted(clazz.getName()));
-            } else if (response.code() > 499) {
-                // Warning (maybe temporary): 5XX = server error
-                return Result.failure(String.valueOf(response.code()));
+            } else if (response.code() > 299) {
+                return Result.failure(List.of(response.message(), String.valueOf(response.code())));
             }
         }
         throw new IllegalStateException("Reading %s from %s failed".formatted(clazz.getName(),
                 provider.getAccessUrl()));
     }
 
-    private Response executeRequest(AasProvider provider, URL apply) throws IOException {
+    private Response executeRequest(AasProvider provider, String path) throws IOException {
         var processor = aasDataProcessorFactory.processorFor(provider.getAccessUrl());
 
         if (processor.failed()) {
@@ -87,7 +81,7 @@ public abstract class AasAgent<T extends AasProvider, U> extends PipelineStep<T,
                 .newInstance()
                 .method(GET)
                 .aasProvider(provider)
-                .path(apply.getPath());
+                .path(path);
 
         return processor.getContent().send(addressBuilder.build());
     }

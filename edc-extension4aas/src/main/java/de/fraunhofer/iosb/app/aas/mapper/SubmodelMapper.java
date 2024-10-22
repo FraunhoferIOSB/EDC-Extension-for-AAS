@@ -15,7 +15,7 @@
  */
 package de.fraunhofer.iosb.app.aas.mapper;
 
-import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
+import de.fraunhofer.iosb.model.aas.AasProvider;
 import org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes;
 import org.eclipse.digitaltwin.aas4j.v3.model.Submodel;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultReference;
@@ -38,12 +38,12 @@ public class SubmodelMapper extends ElementMapper implements Mapper<Submodel> {
     }
 
     @Override
-    public Asset map(Submodel submodel, String accessUrl) {
+    public Asset map(Submodel submodel, AasProvider provider) {
         var reference = createReference(KeyTypes.SUBMODEL, submodel.getId());
         Collection<Asset> children = new ArrayList<>();
         if (!onlySubmodelsDecision.get()) {
             children = submodel.getSubmodelElements().stream()
-                    .map(elem -> submodelElementMapper.map(reference, elem, accessUrl))
+                    .map(elem -> submodelElementMapper.map(reference, elem, provider))
                     .toList();
         }
 
@@ -51,13 +51,10 @@ public class SubmodelMapper extends ElementMapper implements Mapper<Submodel> {
                 submodel.getSemanticId(),
                 new DefaultReference.Builder().build());
 
-        var dataAddress = AasDataAddress.Builder.newInstance()
-                .baseUrl(accessUrl)
-                .referenceChain(reference)
-                .build();
+        var dataAddress = createDataAddress(provider, reference);
 
         return mapIdentifiableToAssetBuilder(submodel)
-                .id(getId(accessUrl, dataAddress))
+                .id(getId(dataAddress))
                 .properties(Map.of(
                         "semanticId", semanticId,
                         "submodelElements", children))

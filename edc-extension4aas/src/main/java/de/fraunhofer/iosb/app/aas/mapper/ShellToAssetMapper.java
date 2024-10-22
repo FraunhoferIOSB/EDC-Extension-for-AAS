@@ -15,21 +15,19 @@
  */
 package de.fraunhofer.iosb.app.aas.mapper;
 
-import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
+import de.fraunhofer.iosb.model.aas.AasProvider;
 import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShell;
 import org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 
 public class ShellToAssetMapper extends ElementMapper implements Mapper<AssetAdministrationShell> {
 
-    public Asset map(AssetAdministrationShell shell, String accessUrl) {
-        var dataAddress = AasDataAddress.Builder.newInstance()
-                .baseUrl(accessUrl)
-                .referenceChain(createReference(KeyTypes.ASSET_ADMINISTRATION_SHELL, shell.getId()))
-                .build();
+    public Asset map(AssetAdministrationShell shell, AasProvider provider) {
+        var dataAddress = createDataAddress(provider, createReference(KeyTypes.ASSET_ADMINISTRATION_SHELL,
+                shell.getId()));
 
         return mapIdentifiableToAssetBuilder(shell)
-                .id(getId(accessUrl, dataAddress))
+                .id(getId(dataAddress))
                 .dataAddress(dataAddress)
                 .build();
     }

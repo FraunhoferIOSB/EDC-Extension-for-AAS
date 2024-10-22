@@ -17,9 +17,9 @@ package de.fraunhofer.iosb.app.aas.agent.impl;
 
 import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
 import de.fraunhofer.iosb.app.aas.agent.AasAgent;
-import de.fraunhofer.iosb.app.model.aas.service.Service;
 import de.fraunhofer.iosb.app.pipeline.PipelineFailure;
 import de.fraunhofer.iosb.app.pipeline.PipelineResult;
+import de.fraunhofer.iosb.model.aas.service.Service;
 import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShell;
 import org.eclipse.digitaltwin.aas4j.v3.model.ConceptDescription;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
@@ -31,6 +31,10 @@ import org.eclipse.edc.spi.result.Result;
 
 import java.io.IOException;
 import java.util.List;
+
+import static de.fraunhofer.iosb.model.aas.service.Service.CONCEPT_DESCRIPTIONS_PATH;
+import static de.fraunhofer.iosb.model.aas.service.Service.SHELLS_PATH;
+import static de.fraunhofer.iosb.model.aas.service.Service.SUBMODELS_PATH;
 
 /**
  * Communicating with AAS service
@@ -45,7 +49,7 @@ public class ServiceAgent extends AasAgent<Service, Environment> {
      * Returns the environment of an AAS service.
      *
      * @param service AAS service provider details
-     * @return A map with one entry. This entry is the access url and environment of the service
+     * @return The environment of the service
      */
     @Override
     public PipelineResult<Environment> apply(Service service) {
@@ -59,15 +63,14 @@ public class ServiceAgent extends AasAgent<Service, Environment> {
     }
 
     private PipelineResult<Environment> readEnvironment(Service service) throws IOException {
-
         Result<List<AssetAdministrationShell>> shellsResult;
         Result<List<Submodel>> submodelsResult;
-        Result<List<ConceptDescription>> conceptDescriptionsResult;
+        Result<List<ConceptDescription>> conceptDescResult;
+
         try {
-            shellsResult = readElements(service, service.getShellsUrl(), AssetAdministrationShell.class);
-            submodelsResult = readElements(service, service.getSubmodelsUrl(), Submodel.class);
-            conceptDescriptionsResult = readElements(service, service.getConceptDescriptionsUrl(),
-                    ConceptDescription.class);
+            shellsResult = readElements(service, SHELLS_PATH, AssetAdministrationShell.class);
+            submodelsResult = readElements(service, SUBMODELS_PATH, Submodel.class);
+            conceptDescResult = readElements(service, CONCEPT_DESCRIPTIONS_PATH, ConceptDescription.class);
         } catch (EdcException e) {
             // If an exception was raised, produce a fatal result
             return PipelineResult.failure(PipelineFailure.fatal(List.of(e.getClass().getSimpleName())));
@@ -76,11 +79,10 @@ public class ServiceAgent extends AasAgent<Service, Environment> {
         var environment = new DefaultEnvironment.Builder()
                 .assetAdministrationShells(shellsResult.succeeded() ? shellsResult.getContent() : null)
                 .submodels(submodelsResult.succeeded() ? submodelsResult.getContent() : null)
-                .conceptDescriptions(conceptDescriptionsResult.succeeded() ? conceptDescriptionsResult.getContent() :
-                        null)
+                .conceptDescriptions(conceptDescResult.succeeded() ? conceptDescResult.getContent() : null)
                 .build();
 
-        var results = List.of(shellsResult, submodelsResult, conceptDescriptionsResult);
+        var results = List.of(shellsResult, submodelsResult, conceptDescResult);
 
         if (results.stream().anyMatch(AbstractResult::failed)) {
             // If any request failed, produce a warning

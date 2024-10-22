@@ -17,10 +17,10 @@ package de.fraunhofer.iosb.app.aas.agent.impl;
 
 import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
 import de.fraunhofer.iosb.app.aas.agent.AasAgent;
-import de.fraunhofer.iosb.app.model.aas.registry.Registry;
-import de.fraunhofer.iosb.app.model.aas.service.Service;
 import de.fraunhofer.iosb.app.pipeline.PipelineFailure;
 import de.fraunhofer.iosb.app.pipeline.PipelineResult;
+import de.fraunhofer.iosb.model.aas.registry.Registry;
+import de.fraunhofer.iosb.model.aas.service.Service;
 import de.fraunhofer.iosb.registry.AasServiceRegistry;
 import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShellDescriptor;
 import org.eclipse.digitaltwin.aas4j.v3.model.Endpoint;
@@ -55,6 +55,9 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static de.fraunhofer.iosb.model.aas.registry.Registry.SHELL_DESCRIPTORS_PATH;
+import static de.fraunhofer.iosb.model.aas.registry.Registry.SUBMODEL_DESCRIPTORS_PATH;
 
 /**
  * Given a registry (accessUrl, auth), read its registered shells/submodels and return them as separate environments.
@@ -100,9 +103,8 @@ public class RegistryAgent extends AasAgent<Registry, Map<Service, Environment>>
         Result<List<AssetAdministrationShellDescriptor>> shellDescriptors;
         Result<List<SubmodelDescriptor>> submodelDescriptors;
         try {
-            shellDescriptors = readElements(registry, registry.getShellDescriptorUrl(),
-                    AssetAdministrationShellDescriptor.class);
-            submodelDescriptors = readElements(registry, registry.getSubmodelDescriptorUrl(), SubmodelDescriptor.class);
+            shellDescriptors = readElements(registry, SHELL_DESCRIPTORS_PATH, AssetAdministrationShellDescriptor.class);
+            submodelDescriptors = readElements(registry, SUBMODEL_DESCRIPTORS_PATH, SubmodelDescriptor.class);
         } catch (EdcException e) {
             // If an exception was raised, produce a fatal result
             return PipelineResult.failure(PipelineFailure.fatal(List.of(e.getClass().getSimpleName(), e.getMessage())));
@@ -122,7 +124,6 @@ public class RegistryAgent extends AasAgent<Registry, Map<Service, Environment>>
                                     .map(AbstractResult::getFailureMessages)
                                     .flatMap(List::stream)
                                     .toList()));
-
         }
         return PipelineResult.success(environment);
     }

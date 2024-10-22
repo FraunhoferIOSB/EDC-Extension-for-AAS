@@ -15,7 +15,7 @@
  */
 package de.fraunhofer.iosb.app.aas.mapper;
 
-import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
+import de.fraunhofer.iosb.model.aas.AasProvider;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElement;
 import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElementCollection;
@@ -43,17 +43,14 @@ class SubmodelElementMapper {
     }
 
     /* May contain traces of recursion */
-    <E extends SubmodelElement> Asset map(Reference parent, E submodelElement, String accessUrl) {
+    <E extends SubmodelElement> Asset map(Reference parent, E submodelElement, AasProvider provider) {
         var reference = elementMapper.createReference(submodelElement.getIdShort(), parent);
 
         var children = getContainerElements(submodelElement).stream()
-                .map(elem -> map(reference, elem, accessUrl))
+                .map(elem -> map(reference, elem, provider))
                 .toList();
 
-        var dataAddress = AasDataAddress.Builder.newInstance()
-                .baseUrl(accessUrl)
-                .referenceChain(reference)
-                .build();
+        var dataAddress = elementMapper.createDataAddress(provider, reference);
 
         // Display the modeling type of the element, i.e. "Property"/"Operation"/...
         // Get the implemented interface, else we will have Default<Name> instead of <Name>
@@ -63,7 +60,7 @@ class SubmodelElementMapper {
                 .orElse("SubmodelElement");
 
         return elementMapper.mapReferableToAssetBuilder(submodelElement)
-                .id(elementMapper.getId(accessUrl, dataAddress))
+                .id(elementMapper.getId(dataAddress))
                 .contentType("application/json")
                 .properties(Map.of(
                         "embeddedDataSpecifications",

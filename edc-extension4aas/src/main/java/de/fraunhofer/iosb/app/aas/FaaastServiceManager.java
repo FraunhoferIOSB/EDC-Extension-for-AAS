@@ -101,7 +101,8 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
                 .concat("://")
                 .concat(Optional.ofNullable(communicationHttpPort.getHostname()).orElse(LOCALHOST_URL))
                 .concat(":")
-                .concat(String.valueOf(communicationHttpPort.getPort()));
+                .concat(String.valueOf(communicationHttpPort.getPort()))
+                .concat("/api/v3.0");
 
         var serviceAccessUrl = new URL(urlSpec);
         faaastServiceRepository.put(new AasAccessUrl(serviceAccessUrl), service);

@@ -17,19 +17,16 @@ package de.fraunhofer.iosb.model.aas.net;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Objects;
 
-import static de.fraunhofer.iosb.model.aas.AasProvider.AAS_V3_PREFIX;
-
 /**
- * URL wrapper with equals method appropriate for AAS service access URLs
+ * The part of the AAS access URL to directly access the /submodel /shell and /concept-description endpoints, i.e. "http:aas-service:port/path/to".
+ * <p>An example could be "https://localhost:8080/api/v3.0"
+ * <p>URL wrapper with equals method appropriate for AAS service access URLs
  */
 public record AasAccessUrl(@NotNull URL url) {
-
 
     @Override
     public boolean equals(Object o) {
@@ -40,15 +37,6 @@ public record AasAccessUrl(@NotNull URL url) {
         try {
             return Objects.equals(url.toURI(), that.url.toURI());
         } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public URL urlV3() {
-        try {
-            return URI.create(url.toString()).resolve(AAS_V3_PREFIX).toURL();
-        } catch (MalformedURLException e) {
-            // Since url was a URL before, this should not happen
             throw new RuntimeException(e);
         }
     }

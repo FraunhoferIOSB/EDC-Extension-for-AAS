@@ -25,8 +25,6 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.jetbrains.annotations.Nullable;
 
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.security.cert.Certificate;
 import java.util.Set;
@@ -45,20 +43,11 @@ public class RegisteredAasDataProcessorFactory extends AasDataProcessorFactory {
 
     @Override
     protected Result<Certificate[]> getCertificates(URL url) {
-        if (registeredAasServices == null || !registeredAasServices.contains(new AasAccessUrl(removePathOptions(url)))) {
+        if (registeredAasServices == null || !registeredAasServices.contains(new AasAccessUrl(url))) {
             return Result.failure("AAS service is not registered and allowing all self-signed certificates is " +
                     "disabled");
         }
 
         return super.retrieveCertificates(url);
-    }
-
-    private URL removePathOptions(URL url) {
-        try {
-            var removedString = url.toURI().resolve("/").toString();
-            return new URL(removedString.substring(0, removedString.lastIndexOf("/")));
-        } catch (MalformedURLException | URISyntaxException e) {
-            throw new RuntimeException(e); // TODO
-        }
     }
 }

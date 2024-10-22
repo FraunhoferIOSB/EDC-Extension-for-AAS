@@ -18,6 +18,7 @@ package de.fraunhofer.iosb.aas;
 import de.fraunhofer.iosb.aas.impl.AllAasDataProcessorFactory;
 import de.fraunhofer.iosb.dataplane.aas.pipeline.AasPart;
 import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
+import de.fraunhofer.iosb.model.aas.service.Service;
 import de.fraunhofer.iosb.ssl.impl.DefaultSelfSignedCertificateRetriever;
 import dev.failsafe.RetryPolicy;
 import jakarta.ws.rs.HttpMethod;
@@ -102,7 +103,7 @@ class AasDataProcessorTest {
 
     private AasDataAddress getAddress() {
         return AasDataAddress.Builder.newInstance()
-                .baseUrl(aasUrl.toString())
+                .aasProvider(new Service(aasUrl))
                 .method(HttpMethod.GET)
                 .referenceChain(
                         new DefaultReference.Builder()

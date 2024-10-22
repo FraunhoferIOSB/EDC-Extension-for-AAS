@@ -21,6 +21,7 @@ import de.fraunhofer.iosb.ilt.faaast.service.exception.ConfigurationException;
 import de.fraunhofer.iosb.ilt.faaast.service.exception.EndpointException;
 import de.fraunhofer.iosb.ilt.faaast.service.exception.MessageBusException;
 import de.fraunhofer.iosb.model.aas.net.AasAccessUrl;
+import de.fraunhofer.iosb.model.aas.service.Service;
 import de.fraunhofer.iosb.ssl.impl.DefaultSelfSignedCertificateRetriever;
 import de.fraunhofer.iosb.testutils.TestUtils;
 import dev.failsafe.RetryPolicy;
@@ -54,7 +55,7 @@ class RegisteredAasDataProcessorFactoryTest {
         try (var ignored = new TestUtils().startFaaastService(port)) {
             registeredServices.add(new AasAccessUrl(baseUrl));
             var processor = testSubject.processorFor(baseUrl);
-            try (var response = processor.getContent().send(getDataAddress(baseUrl.toString()))) {
+            try (var response = processor.getContent().send(getDataAddress(baseUrl))) {
                 // processor == null --> Failed getting self-signed cert
                 // This means the HTTP request went through --> no certificate problems etc.
                 assertNotEquals(500, response.code());
@@ -78,7 +79,7 @@ class RegisteredAasDataProcessorFactoryTest {
             // If this fails, certificate could not be retrieved from foreignService
             var processor = testSubject.processorFor(baseUrl);
 
-            processor.getContent().send(getDataAddress(baseUrl.toString()));
+            processor.getContent().send(getDataAddress(baseUrl));
 
             fail("Certificate error expected since EdcHttpClient is used here which does not accept self-signed " +
                     "certificates.");
@@ -89,9 +90,9 @@ class RegisteredAasDataProcessorFactoryTest {
         }
     }
 
-    private AasDataAddress getDataAddress(String baseUrl) {
+    private AasDataAddress getDataAddress(URL baseUrl) {
         return AasDataAddress.Builder.newInstance()
-                .baseUrl(baseUrl)
+                .aasProvider(new Service(baseUrl))
                 .method("GET")
                 .referenceChain(new DefaultReference())
                 .build();

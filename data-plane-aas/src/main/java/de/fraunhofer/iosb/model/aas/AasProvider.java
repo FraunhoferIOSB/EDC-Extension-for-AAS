@@ -27,8 +27,6 @@ import java.util.Objects;
 
 public abstract class AasProvider {
 
-    public static final String AAS_V3_PREFIX = "/api/v3.0";
-
     @JsonAlias("url")
     private final AasAccessUrl url;
     @JsonAlias("auth")
@@ -74,9 +72,5 @@ public abstract class AasProvider {
 
     public URL getAccessUrl() {
         return url.url();
-    }
-
-    public URL getAccessUrlV3() {
-        return url.urlV3();
     }
 }

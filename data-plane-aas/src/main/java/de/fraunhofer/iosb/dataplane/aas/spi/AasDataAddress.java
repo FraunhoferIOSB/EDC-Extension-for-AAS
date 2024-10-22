@@ -29,13 +29,15 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.jetbrains.annotations.Nullable;
 
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
 import static de.fraunhofer.iosb.dataplane.aas.pipeline.AasDataSourceFactory.AAS_DATA_TYPE;
+import static de.fraunhofer.iosb.model.aas.service.Service.CONCEPT_DESCRIPTIONS_PATH;
+import static de.fraunhofer.iosb.model.aas.service.Service.SHELLS_PATH;
+import static de.fraunhofer.iosb.model.aas.service.Service.SUBMODELS_PATH;
 import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toMap;
 
@@ -48,7 +50,6 @@ import static java.util.stream.Collectors.toMap;
 @JsonDeserialize(builder = DataAddress.Builder.class)
 public class AasDataAddress extends DataAddress {
 
-    public static final String BASE_URL = "https://w3id.org/edc/v0.0.1/ns/baseUrl";
     // See aas4j operation
     public static final String OPERATION = "operation";
     private static final String ADDITIONAL_HEADER = "header:";
@@ -71,19 +72,9 @@ public class AasDataAddress extends DataAddress {
     }
 
     @JsonIgnore
-    public String getBaseUrl() {
-        return hasProvider() ? getProvider().getAccessUrl().toString() : getStringProperty(BASE_URL);
-    }
-
     public Result<URL> getAccessUrl() {
         if (hasProvider()) {
             return Result.success(getProvider().getAccessUrl());
-        } else if (hasProperty(BASE_URL)) {
-            try {
-                return Result.success(new URL(getStringProperty(BASE_URL)));
-            } catch (MalformedURLException e) {
-                return Result.failure("Could not form URL");
-            }
         }
         return Result.failure("No URL available for this AasDataAddress");
     }
@@ -136,9 +127,9 @@ public class AasDataAddress extends DataAddress {
         for (var key : getReferenceChain().getKeys()) {
             var value = key.getValue();
             String[] toAppend = switch (key.getType()) {
-                case ASSET_ADMINISTRATION_SHELL -> new String[]{"shells", b64(value)};
-                case SUBMODEL -> new String[]{"submodels", b64(value)};
-                case CONCEPT_DESCRIPTION -> new String[]{"concept-descriptions", b64(value)};
+                case ASSET_ADMINISTRATION_SHELL -> new String[]{SHELLS_PATH, b64(value)};
+                case SUBMODEL -> new String[]{SUBMODELS_PATH, b64(value)};
+                case CONCEPT_DESCRIPTION -> new String[]{CONCEPT_DESCRIPTIONS_PATH, b64(value)};
                 case SUBMODEL_ELEMENT, SUBMODEL_ELEMENT_COLLECTION, SUBMODEL_ELEMENT_LIST ->
                         new String[]{urlBuilder.indexOf("/submodel-elements/") == -1 ?
                                 "/submodel-elements/".concat(value) :
@@ -188,11 +179,6 @@ public class AasDataAddress extends DataAddress {
 
         public Builder aasProvider(AasProvider provider) {
             this.property(PROVIDER, provider);
-            return this;
-        }
-
-        public Builder baseUrl(String baseUrl) {
-            this.property(BASE_URL, baseUrl);
             return this;
         }
 

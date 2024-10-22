@@ -81,7 +81,13 @@ public class AasDataProcessor {
     }
 
     private Response send(AasDataAddress aasDataAddress, byte[] bytes, String mediaType) throws IOException {
-        var requestUrlBuilder = HttpUrl.get(aasDataAddress.getBaseUrl()).newBuilder();
+        var accessUrl = aasDataAddress.getAccessUrl();
+
+        if (accessUrl.failed()) {
+            throw new IllegalArgumentException("No access url found");
+        }
+
+        var requestUrlBuilder = HttpUrl.get(accessUrl.getContent().toString()).newBuilder();
 
         var requestPath = aasDataAddress.getPath();
 

@@ -21,6 +21,7 @@ import de.fraunhofer.iosb.client.datatransfer.DataTransferController;
 import de.fraunhofer.iosb.client.negotiation.NegotiationController;
 import de.fraunhofer.iosb.client.policy.PolicyController;
 import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
+import de.fraunhofer.iosb.model.aas.service.Service;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
@@ -201,7 +202,7 @@ public class ClientEndpointTest {
 
     @Test
     public void getDataTest() {
-        var dataAddress = AasDataAddress.Builder.newInstance().baseUrl(url.toString()).build();
+        var dataAddress = AasDataAddress.Builder.newInstance().aasProvider(new Service(url)).build();
         try (var response = clientEndpoint.getData(url, "test-agreement-id", dataAddress)) {
             assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
         }

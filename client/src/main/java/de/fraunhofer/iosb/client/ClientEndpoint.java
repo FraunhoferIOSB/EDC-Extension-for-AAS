@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iosb.client.datatransfer.DataTransferController;
 import de.fraunhofer.iosb.client.negotiation.NegotiationController;
 import de.fraunhofer.iosb.client.policy.PolicyController;
-import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
@@ -165,9 +164,10 @@ public class ClientEndpoint {
             } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
             }
-
-            dataAddress = AasDataAddress.Builder.newInstance()
-                    .copyFrom(dataAddress)
+            
+            dataAddress = DataAddress.Builder.newInstance()
+                    .type(dataAddress.getType())
+                    .properties(dataAddress.getProperties())
                     .property("operation", operation)
                     .build();
         }

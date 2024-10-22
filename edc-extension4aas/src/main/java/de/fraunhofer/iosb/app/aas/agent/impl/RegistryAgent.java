@@ -54,6 +54,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static de.fraunhofer.iosb.app.pipeline.PipelineResult.failure;
 import static de.fraunhofer.iosb.model.aas.registry.Registry.SHELL_DESCRIPTORS_PATH;
 import static de.fraunhofer.iosb.model.aas.registry.Registry.SUBMODEL_DESCRIPTORS_PATH;
 

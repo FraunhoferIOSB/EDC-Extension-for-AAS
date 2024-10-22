@@ -15,10 +15,8 @@
  */
 package de.fraunhofer.iosb.aas;
 
-import de.fraunhofer.iosb.aas.http.HttpClientProvider;
 import de.fraunhofer.iosb.ssl.SelfSignedCertificateRetriever;
 import dev.failsafe.RetryPolicy;
-import okhttp3.OkHttp;
 import okhttp3.OkHttpClient;
 import okhttp3.Response;
 import org.eclipse.edc.http.client.EdcHttpClientImpl;
@@ -26,7 +24,6 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 
 import java.net.URL;
-import java.net.http.HttpClient;
 import java.security.cert.Certificate;
 
 import static de.fraunhofer.iosb.aas.http.HttpClientProvider.clientFor;

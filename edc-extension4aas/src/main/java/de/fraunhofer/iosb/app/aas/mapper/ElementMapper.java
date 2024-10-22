@@ -25,7 +25,6 @@ import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultAdministrativeInformat
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultKey;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultReference;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -63,7 +62,8 @@ public class ElementMapper {
     }
 
     protected @NotNull String getId(AasDataAddress dataAddress) {
-        return String.valueOf("%s:%s".formatted(dataAddress.getAccessUrl().getContent().toString(), dataAddress.getPath()).hashCode());
+        return String.valueOf("%s:%s".formatted(dataAddress.getAccessUrl().getContent().toString(),
+                dataAddress.getPath()).hashCode());
     }
 
     protected AasDataAddress createDataAddress(AasProvider provider, Reference reference) {

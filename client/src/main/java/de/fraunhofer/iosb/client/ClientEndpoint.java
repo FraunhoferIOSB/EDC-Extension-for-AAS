@@ -164,7 +164,7 @@ public class ClientEndpoint {
             } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
             }
-            
+
             dataAddress = DataAddress.Builder.newInstance()
                     .type(dataAddress.getType())
                     .properties(dataAddress.getProperties())

@@ -164,7 +164,10 @@ __Important__:
     {
        "type": "AasData",
        "properties": {
-           "https://w3id.org/edc/v0.0.1/ns/baseUrl": "https://my-aas:1234/api/v3.0/submodels/xyz/submodel-elements/a.b.c",
+           "aasProvider": {
+              "aasAccessUrl": "https://my-aas:1234/api/v3.0"
+           },
+           "path": "submodels/xyz/submodel-elements/a.b.c",
            "method": "PATCH",
            "header:x-api-key": "password"
        }

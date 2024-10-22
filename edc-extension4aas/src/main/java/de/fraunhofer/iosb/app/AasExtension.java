@@ -106,14 +106,14 @@ public class AasExtension implements ServiceExtension {
         registryRepository.registerListener(aasController);
 
         var serviceSynchronization = new Pipeline.Builder<Void, Void>()
-                .monitor(monitor.withPrefix("Service Synchronization Pipeline"))
+                .monitor(monitor.withPrefix("Service Pipeline"))
                 .supplier(serviceRepository::getAll)
                 .step(new Filter<>(InetTools::pingHost))
                 .step(new InputOutputZipper<>(new ServiceAgent(aasDataProcessorFactory), Function.identity()))
                 .step(new EnvironmentToAssetMapper(() -> Configuration.getInstance().isOnlySubmodels()))
                 .step(new CollectionFeeder<>(new ServiceRepositoryUpdater(serviceRepository)))
                 .step(new Synchronizer())
-                .step(new AssetRegistrar(assetIndex, monitor))
+                .step(new AssetRegistrar(assetIndex, monitor.withPrefix("Service Pipeline")))
                 .step(new ContractRegistrar(contractDefinitionStore, policyDefinitionStore, monitor))
                 .build();
 
@@ -122,7 +122,7 @@ public class AasExtension implements ServiceExtension {
         serviceRepository.registerListener(servicePipeline);
 
         var registrySynchronization = new Pipeline.Builder<Void, Void>()
-                .monitor(monitor.withPrefix("Registry Synchronization Pipeline"))
+                .monitor(monitor.withPrefix("Registry Pipeline"))
                 .supplier(registryRepository::getAll)
                 .step(new Filter<>(InetTools::pingHost))
                 .step(new InputOutputZipper<>(new RegistryAgent(aasDataProcessorFactory, foreignServerRegistry),
@@ -137,7 +137,7 @@ public class AasExtension implements ServiceExtension {
                         .toList()))
                 .step(new RegistryRepositoryUpdater(registryRepository))
                 .step(new Synchronizer())
-                .step(new AssetRegistrar(assetIndex, monitor))
+                .step(new AssetRegistrar(assetIndex, monitor.withPrefix("Registry Pipeline")))
                 .step(new ContractRegistrar(contractDefinitionStore, policyDefinitionStore, monitor))
                 .build();
 

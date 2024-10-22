@@ -57,7 +57,7 @@ public class DefaultSelfSignedCertificateRetriever implements SelfSignedCertific
             }
     };
 
-    private static boolean isTrusted(URL url) {
+    public static boolean isTrusted(URL url) {
         HttpsURLConnection.setDefaultSSLSocketFactory((SSLSocketFactory) SSLSocketFactory.getDefault());
 
         try {
@@ -73,10 +73,6 @@ public class DefaultSelfSignedCertificateRetriever implements SelfSignedCertific
 
     public Result<Certificate[]> getSelfSignedCertificate(URL url) {
         SSLContext sslContext;
-
-        if (isTrusted(url)) {
-            return Result.failure("trusted");
-        }
 
         try {
             sslContext = SSLContext.getInstance("TLS");
@@ -113,5 +109,4 @@ public class DefaultSelfSignedCertificateRetriever implements SelfSignedCertific
         conn.disconnect();
         return Result.success(certs);
     }
-
 }

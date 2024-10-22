@@ -109,9 +109,10 @@ public class ClientEndpoint {
             } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
             }
-
-            dataAddress = AasDataAddress.Builder.newInstance()
-                    .copyFrom(dataAddress)
+            
+            dataAddress = DataAddress.Builder.newInstance()
+                    .type(dataAddress.getType())
+                    .properties(dataAddress.getProperties())
                     .property("operation", operation)
                     .build();
         }

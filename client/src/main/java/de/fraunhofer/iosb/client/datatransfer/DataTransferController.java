@@ -16,12 +16,20 @@
 package de.fraunhofer.iosb.client.datatransfer;
 
 import de.fraunhofer.iosb.api.PublicApiManagementService;
+import de.fraunhofer.iosb.client.ClientEndpoint;
 import de.fraunhofer.iosb.client.authentication.DataTransferEndpointManager;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -35,9 +43,15 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import static de.fraunhofer.iosb.client.ClientEndpoint.MISSING_QUERY_PARAMETER_MESSAGE;
+import static java.lang.String.format;
+
+@Consumes({MediaType.APPLICATION_JSON})
+@Path(ClientEndpoint.AUTOMATED_PATH)
 public class DataTransferController {
 
     static final String DATA_TRANSFER_API_KEY = "data-transfer-api-key";
+    static final String TRANSFER_PATH = "transfer";
 
     private static final int WAIT_FOR_TRANSFER_TIMEOUT_DEFAULT = 10;
 
@@ -45,6 +59,7 @@ public class DataTransferController {
 
     private final DataTransferObservable dataTransferObservable;
     private final TransferInitiator transferInitiator;
+    private final Monitor monitor;
 
     private final DataTransferEndpointManager dataTransferEndpointManager;
 
@@ -61,10 +76,8 @@ public class DataTransferController {
      *                                   consumer.
      */
     public DataTransferController(Monitor monitor, Config config, WebService webService,
-                                  PublicApiManagementService publicApiManagementService,
-                                  TransferProcessManager transferProcessManager,
-                                  TransferProcessObservable transferProcessObservable,
-                                  Hostname hostname) {
+                                  PublicApiManagementService publicApiManagementService, TransferProcessManager transferProcessManager, Hostname hostname) {
+        this.monitor = monitor.withPrefix("Client PolicyController");
         this.config = config.getConfig("edc.client");
 
         transferInitiator = new TransferInitiator(monitor, config, hostname, transferProcessManager);
@@ -74,6 +87,44 @@ public class DataTransferController {
 
         transferProcessObservable.registerListener(dataTransferObservable);
         webService.registerResource(dataTransferEndpoint);
+    }
+
+
+    /**
+     * Submits a data transfer request to the providerUrl.
+     * In the future this could be replaced with the
+     * <a href="https://www.ietf.org/archive/id/draft-ietf-httpbis-safe-method-w-body-02.html">HTTP QUERY method</a>
+     *
+     * @param providerUrl The data provider's url
+     * @param agreementId The basis of the data transfer.
+     * @param dataAddress URL of destination data sink.
+     * @return On success, the data of the desired asset. Else, returns an error message.
+     */
+    @POST
+    @Path(TRANSFER_PATH)
+    public Response getData(@QueryParam("providerUrl") URL providerUrl,
+                            @QueryParam("agreementId") String agreementId,
+                            DataAddress dataAddress) {
+        monitor.info("GET /%s".formatted(TRANSFER_PATH));
+        if (Objects.isNull(providerUrl) || Objects.isNull(agreementId)) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(MISSING_QUERY_PARAMETER_MESSAGE.formatted("providerUrl, agreementId")).build();
+        }
+
+        try {
+            var data = initiateTransferProcess(providerUrl, agreementId, dataAddress);
+            if (Objects.isNull(dataAddress)) {
+                return Response.ok(data).build();
+            } else {
+                return Response.ok("Data transfer request sent.").build();
+            }
+        } catch (InterruptedException | ExecutionException negotiationException) {
+            monitor.severe("Data transfer failed for provider %s and agreementId %s".formatted(providerUrl,
+                    agreementId), negotiationException);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(negotiationException.getMessage())
+                    .build();
+        }
     }
 
     /**
@@ -88,11 +139,10 @@ public class DataTransferController {
      * @throws InterruptedException If the data transfer was interrupted
      * @throws ExecutionException   If the data transfer process failed
      */
-    public StatusResult<String> initiateTransferProcess(URL providerUrl, String agreementId,
-                                                        DataAddress dataSinkAddress)
+    private Result<String> initiateTransferProcess(URL providerUrl, String agreementId, DataAddress dataSinkAddress)
             throws InterruptedException, ExecutionException {
         // Prepare for incoming data
-        var dataFuture = dataTransferObservable.register(agreementId);
+        var providerDataFuture = dataTransferObservable.register(agreementId);
 
         if (dataSinkAddress != null) {
             // Send data to custom target url
@@ -116,9 +166,10 @@ public class DataTransferController {
                 WAIT_FOR_TRANSFER_TIMEOUT_DEFAULT);
         try {
             // Fetch TransferTimeout everytime to adapt to runtime config changes
-            var data = dataFuture.get(waitForTransferTimeout, TimeUnit.SECONDS);
+            var providerData = dataFuture.get(waitForTransferTimeout, TimeUnit.SECONDS);
             dataTransferObservable.unregister(agreementId);
             return StatusResult.success(data);
+            
         } catch (TimeoutException | ExecutionException futureException) {
             dataTransferObservable.unregister(agreementId);
 

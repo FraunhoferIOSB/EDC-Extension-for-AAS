@@ -15,25 +15,19 @@
  */
 package de.fraunhofer.iosb.client;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iosb.client.datatransfer.DataTransferController;
 import de.fraunhofer.iosb.client.negotiation.NegotiationController;
 import de.fraunhofer.iosb.client.policy.PolicyController;
 import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -41,7 +35,6 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 import java.net.URL;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ExecutionException;
 
 import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 
@@ -56,19 +49,18 @@ public class ClientEndpoint {
      * Root path for the client
      */
     public static final String AUTOMATED_PATH = "automated";
-    public static final String MISSING_QUERY_PARAMETER_MESSAGE = "Missing query parameter. Required parameters: %s";
-    public static final String MISSING_REQUEST_BODY_MESSAGE = "Missing request body of type %s";
-    private static final String OFFER_PATH = "offer";
     private static final String NEGOTIATE_CONTRACT_PATH = "negotiateContract";
     private static final String NEGOTIATE_PATH = "negotiate";
-    private static final String TRANSFER_PATH = "transfer";
+
+    public static final String MISSING_QUERY_PARAMETER_MESSAGE = "Missing query parameter. Required parameters: %s";
+    public static final String MISSING_REQUEST_BODY_MESSAGE = "Missing request body of type %s";
+
     private final Monitor monitor;
 
     private final NegotiationController negotiationController;
     private final PolicyController policyController;
     private final DataTransferController transferController;
 
-    private final ObjectMapper nonNullNonEmptyObjectMapper;
 
     private ClientEndpoint(Monitor monitor,
                            NegotiationController negotiationController,
@@ -78,60 +70,6 @@ public class ClientEndpoint {
         this.policyController = policyController;
         this.negotiationController = negotiationController;
         this.transferController = transferController;
-        nonNullNonEmptyObjectMapper = new ObjectMapper()
-                .setSerializationInclusion(JsonInclude.Include.NON_NULL)
-                .setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
-    }
-
-    /**
-     * Return dataset for assetId that match any policyDefinition's policy
-     * of the services' policyDefinitionStore instance containing user added
-     * policyDefinitions. If more than one policyDefinitions are provided by the
-     * provider connector, an AmbiguousOrNullException will be thrown.
-     *
-     * @param providerUrl Provider of the asset.
-     * @param assetId     Asset ID of the asset whose contract should be fetched.
-     * @return A dataset offered by the provider for the given assetId.
-     */
-    @GET
-    @Path(OFFER_PATH)
-    public Response getOffer(@QueryParam("providerUrl") URL providerUrl, @QueryParam("assetId") String assetId,
-                             @QueryParam("providerId") String counterPartyId) {
-        monitor.info("GET /%s".formatted(OFFER_PATH));
-        if (Objects.isNull(assetId) || Objects.isNull(providerUrl)) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(MISSING_QUERY_PARAMETER_MESSAGE.formatted("assetId, providerId")).build();
-        }
-
-        Dataset dataset;
-        try {
-            dataset = policyController.getDataset(counterPartyId, providerUrl, assetId);
-        } catch (InterruptedException interruptedException) {
-            monitor.severe("Getting offer failed for provider %s and asset %s"
-                    .formatted(providerUrl, assetId), interruptedException);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(interruptedException.getMessage())
-                    .build();
-        }
-
-        try {
-            return Response.ok(nonNullNonEmptyObjectMapper.writeValueAsString(buildResponseFrom(dataset))).build();
-        } catch (JsonProcessingException e) {
-            return Response.serverError().entity("Could not serialize contractOffer").build();
-        }
-
-    }
-
-    private ContractOffer buildResponseFrom(Dataset dataset) {
-        return dataset.getOffers().entrySet().stream()
-                .findFirst()
-                .map(entry ->
-                        ContractOffer.Builder.newInstance()
-                                .id(entry.getKey())
-                                .policy(entry.getValue())
-                                .assetId(entry.getValue().getTarget())
-                                .build())
-                .orElseThrow(() -> new EdcException("Failed building response policyDefinition"));
     }
 
     /**
@@ -198,7 +136,7 @@ public class ClientEndpoint {
                     .entity(agreementResult.getFailureDetail()).build();
         }
 
-        return getData(counterPartyUrl, agreementResult.getContent().getId(), dataAddress);
+        return transferController.getData(counterPartyUrl, agreementResult.getContent().getId(), dataAddress);
     }
 
     /**
@@ -228,43 +166,6 @@ public class ClientEndpoint {
         }
 
         return Response.ok(Map.of("agreement-id", agreementResult.getContent().getId())).build();
-    }
-
-    /**
-     * Submits a data transfer request to the providerUrl.
-     * In the future this could be replaced with the
-     * <a href="https://www.ietf.org/archive/id/draft-ietf-httpbis-safe-method-w-body-02.html">HTTP QUERY method</a>
-     *
-     * @param providerUrl The data provider's url
-     * @param agreementId The basis of the data transfer.
-     * @param dataAddress URL of destination data sink.
-     * @return On success, the data of the desired asset. Else, returns an error message.
-     */
-    @POST
-    @Path(TRANSFER_PATH)
-    public Response getData(@QueryParam("providerUrl") URL providerUrl,
-                            @QueryParam("agreementId") String agreementId,
-                            DataAddress dataAddress) {
-        monitor.info("GET /%s".formatted(TRANSFER_PATH));
-        if (Objects.isNull(providerUrl) || Objects.isNull(agreementId)) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(MISSING_QUERY_PARAMETER_MESSAGE.formatted("providerUrl, agreementId")).build();
-        }
-
-        try {
-            var data = transferController.initiateTransferProcess(providerUrl, agreementId, dataAddress);
-            if (Objects.isNull(dataAddress)) {
-                return Response.ok(data).build();
-            } else {
-                return Response.ok("Data transfer request sent.").build();
-            }
-        } catch (InterruptedException | ExecutionException negotiationException) {
-            monitor.severe("Data transfer failed for provider %s and agreementId %s".formatted(providerUrl,
-                    agreementId), negotiationException);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(negotiationException.getMessage())
-                    .build();
-        }
     }
 
     public static class Builder {

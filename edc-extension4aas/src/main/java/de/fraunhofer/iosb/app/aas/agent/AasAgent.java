@@ -41,7 +41,6 @@ import static jakarta.ws.rs.HttpMethod.GET;
  */
 public abstract class AasAgent<T extends AasProvider, U> extends PipelineStep<T, U> {
 
-    //public static final String AAS_V3_PREFIX = "/api/v3.0";
 
     protected final AasDataProcessorFactory aasDataProcessorFactory;
     private final JsonDeserializer jsonDeserializer = new JsonDeserializer();
@@ -74,7 +73,15 @@ public abstract class AasAgent<T extends AasProvider, U> extends PipelineStep<T,
         return processor.send(dataAddress);
     }
 
-    private <K> @Nonnull Result<List<K>> readList(@Nullable String serialized, Class<K> clazz) {
+    private <K> @Nonnull Result<List<K>> readList(@Nullable ResponseBody responseBody, Class<K> clazz) {
+        String serialized;
+        try {
+            serialized = responseBody == null ? null : responseBody.string();
+        } catch (IOException readBodyException) {
+            return Result.failure("Failed reading response body: %s, %s"
+                    .formatted(readBodyException.getClass().getSimpleName(), readBodyException.getMessage()));
+        }
+
         try {
             var responseJson = objectMapper.readTree(serialized).get("result");
             return Result.success(Optional.ofNullable(jsonDeserializer.readList(responseJson, clazz))

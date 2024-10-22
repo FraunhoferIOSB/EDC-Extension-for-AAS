@@ -37,7 +37,6 @@ import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultEnvironment;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultKey;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultReference;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultSubmodel;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.Result;
 
@@ -118,14 +117,15 @@ public class RegistryAgent extends AasAgent<Registry, Map<Service, Environment>>
         } catch (EdcException e) {
             // If an exception was raised, produce a fatal result
             return failure(PipelineFailure.fatal(List.of(e.getClass().getSimpleName(), e.getMessage())));
+
         }
 
-        addShellDescriptors(environmentsByUrl, shellDescriptors.getContent());
-        addSubmodelDescriptors(environmentsByUrl, submodelDescriptors.getContent());
+        if (shellDescriptors.succeeded()) {
+            addShellDescriptors(environmentsByUrl, shellDescriptors.getContent());
+        }
 
         Map<Service, Environment> environment = environmentsByUrl.entrySet().stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue()
-                        .build()));
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().build()));
 
         if (shellDescriptors.failed() || submodelDescriptors.failed()) {
             return PipelineResult.recoverableFailure(environment,

@@ -15,8 +15,10 @@
  */
 package de.fraunhofer.iosb.aas;
 
+import de.fraunhofer.iosb.aas.http.HttpClientProvider;
 import de.fraunhofer.iosb.ssl.SelfSignedCertificateRetriever;
 import dev.failsafe.RetryPolicy;
+import okhttp3.OkHttp;
 import okhttp3.OkHttpClient;
 import okhttp3.Response;
 import org.eclipse.edc.http.client.EdcHttpClientImpl;
@@ -24,6 +26,7 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 
 import java.net.URL;
+import java.net.http.HttpClient;
 import java.security.cert.Certificate;
 
 import static de.fraunhofer.iosb.aas.http.HttpClientProvider.clientFor;
@@ -53,7 +56,7 @@ public abstract class AasDataProcessorFactory {
      * This is for AAS services with self-signed certificates.
      * Allowing self-signed certificates can be configured (see readme).
      *
-     * @param aasUrl URL of AAS service.
+     * @param aasUrl URL of AAS service without element access suffix (e.g., /submodels)
      * @return AAS Processor allowing communication with AAS service using AAS data addresses
      */
     public Result<AasDataProcessor> processorFor(URL aasUrl) {

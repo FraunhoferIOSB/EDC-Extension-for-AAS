@@ -1,7 +1,6 @@
 package de.fraunhofer.iosb.dataplane.aas.spi;
 
-import de.fraunhofer.iosb.model.aas.AasProvider;
-import de.fraunhofer.iosb.model.aas.net.AasAccessUrl;
+import de.fraunhofer.iosb.model.aas.service.Service;
 import de.fraunhofer.iosb.util.Encoder;
 import org.eclipse.digitaltwin.aas4j.v3.model.Key;
 import org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes;
@@ -19,40 +18,29 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class AasDataAddressTest {
 
     @Test
-    void test_build_accessUrlBuiltCorrectly() {
+    void test_build_accessUrlBuiltCorrectly() throws MalformedURLException {
         var addressBuilder = AasDataAddress.Builder.newInstance();
 
-        addressBuilder.baseUrl("http://localhost:8080");
+        addressBuilder.aasProvider(new Service(new URL("http://localhost:8080")));
         addressBuilder.path("/path/to/resource");
 
         var address = addressBuilder.build();
 
-        assertEquals(address.getBaseUrl(), "http://localhost:8080");
+        assertEquals(address.getAccessUrl().getContent().toString(), "http://localhost:8080");
 
         assertEquals(address.getPath(), "/path/to/resource");
     }
 
     @Test
-    void test_build_accessUrlBuiltCorrectlyWithProvider() {
+    void test_build_accessUrlBuiltCorrectlyWithProvider() throws MalformedURLException {
         var addressBuilder = AasDataAddress.Builder.newInstance();
 
-        addressBuilder.baseUrl("http://localhost:8080");
-        addressBuilder.aasProvider(new AasProvider((AasAccessUrl) null) {
-            @Override
-            public URL getAccessUrl() {
-                try {
-                    return new URL("http://aas-provider:8081");
-                } catch (MalformedURLException e) {
-                    throw new RuntimeException("help");
-                }
-            }
-        });
+        addressBuilder.aasProvider(new Service(new URL("http://aas-provider:8081")));
 
         addressBuilder.path("/path/to/resource");
 
         var address = addressBuilder.build();
-        // AasProvider takes precedence over baseUrl
-        assertEquals("http://aas-provider:8081", address.getBaseUrl());
+        assertEquals("http://aas-provider:8081", address.getAccessUrl().getContent().toString());
 
         assertEquals(address.getPath(), "/path/to/resource");
     }

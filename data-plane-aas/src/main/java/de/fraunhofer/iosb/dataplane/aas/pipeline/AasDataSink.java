@@ -74,7 +74,7 @@ public class AasDataSink implements DataSink {
 
         if (aasDataProcessor.failed()) {
             monitor.severe("Error writing HTTP data %s to endpoint %s:\n%s".formatted(part.name(),
-                    aasDataAddress.getBaseUrl(),
+                    accessUrlResult.getContent(),
                     aasDataProcessor.getFailureMessages()));
 
             return StreamResult.failure(new StreamFailure(aasDataProcessor.getFailureMessages(),

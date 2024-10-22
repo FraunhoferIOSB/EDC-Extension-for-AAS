@@ -20,6 +20,7 @@ import de.fraunhofer.iosb.ilt.faaast.service.assetconnection.AssetConnectionExce
 import de.fraunhofer.iosb.ilt.faaast.service.exception.ConfigurationException;
 import de.fraunhofer.iosb.ilt.faaast.service.exception.EndpointException;
 import de.fraunhofer.iosb.ilt.faaast.service.exception.MessageBusException;
+import de.fraunhofer.iosb.model.aas.service.Service;
 import de.fraunhofer.iosb.ssl.impl.DefaultSelfSignedCertificateRetriever;
 import de.fraunhofer.iosb.testutils.TestUtils;
 import dev.failsafe.RetryPolicy;
@@ -50,7 +51,7 @@ class AllAasDataProcessorFactoryTest {
             // If this fails, certificate could not be retrieved from foreignService
             var processor = testSubject.processorFor(baseUrl);
 
-            try (var response = processor.getContent().send(getDataAddress(baseUrl.toString()))) {
+            try (var response = processor.getContent().send(getDataAddress(baseUrl))) {
                 // This means the HTTP request went through --> no certificate problems etc.
                 assertNotEquals(500, response.code());
             }
@@ -59,9 +60,9 @@ class AllAasDataProcessorFactoryTest {
         }
     }
 
-    private AasDataAddress getDataAddress(String baseUrl) {
+    private AasDataAddress getDataAddress(URL baseUrl) {
         return AasDataAddress.Builder.newInstance()
-                .baseUrl(baseUrl)
+                .aasProvider(new Service(baseUrl))
                 .method("GET")
                 .referenceChain(new DefaultReference())
                 .build();

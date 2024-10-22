@@ -21,6 +21,7 @@ dependencies {
         exclude(group = group, module = "auth-spi") // Not needed in this extension
         exclude(group = group, module = "core-spi") // Already by data-plane-spi
     }
+    implementation("$group:asset-spi:$edcVersion")
 
     implementation("org.eclipse.digitaltwin.aas4j:aas4j-model:${aas4jVersion}")
 

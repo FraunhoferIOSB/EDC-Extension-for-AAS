@@ -17,6 +17,7 @@ package de.fraunhofer.iosb.app.aas;
 
 import de.fraunhofer.iosb.aas.impl.AllAasDataProcessorFactory;
 import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
+import de.fraunhofer.iosb.model.aas.service.Service;
 import de.fraunhofer.iosb.ssl.impl.DefaultSelfSignedCertificateRetriever;
 import dev.failsafe.RetryPolicy;
 import jakarta.ws.rs.HttpMethod;
@@ -29,8 +30,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
 
@@ -48,7 +47,7 @@ public class FaaastServiceManagerTest {
     }
 
     @Test
-    public void startServiceTest() throws IOException, URISyntaxException {
+    public void startServiceTest() throws IOException {
         var url = startService();
 
         var factory = new AllAasDataProcessorFactory(
@@ -61,7 +60,8 @@ public class FaaastServiceManagerTest {
 
         try (var response = processor.send(AasDataAddress.Builder.newInstance()
                         .method(HttpMethod.GET)
-                        .baseUrl(new URI(url.toString()).resolve("/api/v3.0/shells").toString())
+                        .aasProvider(new Service(url))
+                        .path("shells")
                         .build(),
                 null, null)) {
             assertEquals(Response.Status.OK.getStatusCode(), response.code());

@@ -15,9 +15,9 @@
  */
 package de.fraunhofer.iosb.app.aas;
 
-import de.fraunhofer.iosb.app.model.aas.service.Service;
 import de.fraunhofer.iosb.app.pipeline.PipelineFailure;
 import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
+import de.fraunhofer.iosb.model.aas.service.Service;
 import de.fraunhofer.iosb.util.Encoder;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultEnvironment;
@@ -204,13 +204,13 @@ class EnvironmentToAssetMapperTest {
         var conceptDescriptionDataAddress =
                 (AasDataAddress) getChildren(result.environment(), CONCEPT_DESCRIPTIONS).stream().map(Asset::getDataAddress).toList().get(0);
 
-        assertTrue(shellDataAddress.getBaseUrl().startsWith(accessUrl.toString()));
+        assertTrue(shellDataAddress.getAccessUrl().getContent().toString().startsWith(accessUrl.toString()));
         assertEquals("%s/%s".formatted(SHELLS, Encoder.encodeBase64(env.getAssetAdministrationShells().get(0).getId())),
                 shellDataAddress.getPath());
-        assertTrue(submodelDataAddress.getBaseUrl().startsWith(accessUrl.toString()));
+        assertTrue(submodelDataAddress.getAccessUrl().getContent().toString().startsWith(accessUrl.toString()));
         assertEquals("%s/%s".formatted(SUBMODELS, Encoder.encodeBase64(env.getSubmodels().get(0).getId())),
                 submodelDataAddress.getPath());
-        assertTrue(conceptDescriptionDataAddress.getBaseUrl().startsWith(accessUrl.toString()));
+        assertTrue(conceptDescriptionDataAddress.getAccessUrl().getContent().toString().startsWith(accessUrl.toString()));
         assertEquals("concept-descriptions/%s".formatted(Encoder.encodeBase64(env.getConceptDescriptions().get(0).getId())),
                 conceptDescriptionDataAddress.getPath());
     }

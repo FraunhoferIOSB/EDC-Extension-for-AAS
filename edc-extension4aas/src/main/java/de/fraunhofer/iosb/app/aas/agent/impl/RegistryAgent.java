@@ -17,10 +17,10 @@ package de.fraunhofer.iosb.app.aas.agent.impl;
 
 import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
 import de.fraunhofer.iosb.app.aas.agent.AasAgent;
-import de.fraunhofer.iosb.app.model.aas.registry.Registry;
-import de.fraunhofer.iosb.app.model.aas.service.Service;
 import de.fraunhofer.iosb.app.pipeline.PipelineFailure;
 import de.fraunhofer.iosb.app.pipeline.PipelineResult;
+import de.fraunhofer.iosb.model.aas.registry.Registry;
+import de.fraunhofer.iosb.model.aas.service.Service;
 import de.fraunhofer.iosb.registry.AasServiceRegistry;
 import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShellDescriptor;
 import org.eclipse.digitaltwin.aas4j.v3.model.Endpoint;
@@ -53,6 +53,9 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static de.fraunhofer.iosb.model.aas.registry.Registry.SHELL_DESCRIPTORS_PATH;
+import static de.fraunhofer.iosb.model.aas.registry.Registry.SUBMODEL_DESCRIPTORS_PATH;
 
 /**
  * Given a registry (accessUrl, auth), read its registered shells/submodels and return them as separate environments.
@@ -88,11 +91,8 @@ public class RegistryAgent extends AasAgent<Registry, Map<Service, Environment>>
     private PipelineResult<Map<Service, Environment>> readEnvironment(Registry registry) throws MalformedURLException {
         Map<Service, DefaultEnvironment.Builder> environmentsByUrl = new HashMap<>();
 
-        Result<List<AssetAdministrationShellDescriptor>> shellDescriptors = readElements(registry,
-                registry.getShellDescriptorUrl(),
-                AssetAdministrationShellDescriptor.class);
-        Result<List<SubmodelDescriptor>> submodelDescriptors = readElements(registry,
-                registry.getSubmodelDescriptorUrl(), SubmodelDescriptor.class);
+        Result<List<AssetAdministrationShellDescriptor>> shellDescriptors = readElements(registry, SHELL_DESCRIPTORS_PATH, AssetAdministrationShellDescriptor.class);
+        Result<List<SubmodelDescriptor>> submodelDescriptors = readElements(registry, SUBMODEL_DESCRIPTORS_PATH, SubmodelDescriptor.class);
 
         if (submodelDescriptors.succeeded()) {
             addSubmodelDescriptors(environmentsByUrl, submodelDescriptors.getContent());
@@ -112,7 +112,6 @@ public class RegistryAgent extends AasAgent<Registry, Map<Service, Environment>>
                                     .map(AbstractResult::getFailureMessages)
                                     .flatMap(List::stream)
                                     .toList()));
-
         }
         return PipelineResult.success(environment);
     }

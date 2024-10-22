@@ -16,8 +16,8 @@
 package de.fraunhofer.iosb.app.aas.agent.impl;
 
 import de.fraunhofer.iosb.aas.impl.AllAasDataProcessorFactory;
-import de.fraunhofer.iosb.app.model.aas.registry.Registry;
-import de.fraunhofer.iosb.app.model.aas.service.Service;
+import de.fraunhofer.iosb.model.aas.registry.Registry;
+import de.fraunhofer.iosb.model.aas.service.Service;
 import de.fraunhofer.iosb.registry.AasServiceRegistry;
 import de.fraunhofer.iosb.ssl.impl.NoOpSelfSignedCertificateRetriever;
 import dev.failsafe.RetryPolicy;
@@ -37,14 +37,14 @@ import java.util.HashSet;
 import java.util.Optional;
 
 import static de.fraunhofer.iosb.api.model.HttpMethod.GET;
-import static de.fraunhofer.iosb.app.model.aas.registry.Registry.SHELL_DESCRIPTORS_PATH;
-import static de.fraunhofer.iosb.app.model.aas.registry.Registry.SUBMODEL_DESCRIPTORS_PATH;
 import static de.fraunhofer.iosb.app.pipeline.PipelineFailure.Type.WARNING;
 import static de.fraunhofer.iosb.app.testutils.RegistryElementCreator.getEmptyShellDescriptor;
 import static de.fraunhofer.iosb.app.testutils.RegistryElementCreator.getEmptySubmodelDescriptor;
 import static de.fraunhofer.iosb.app.testutils.RegistryElementCreator.getShellDescriptor;
 import static de.fraunhofer.iosb.app.testutils.RegistryElementCreator.getSubmodelDescriptor;
 import static de.fraunhofer.iosb.app.testutils.StringMethods.resultOf;
+import static de.fraunhofer.iosb.model.aas.registry.Registry.SHELL_DESCRIPTORS_PATH;
+import static de.fraunhofer.iosb.model.aas.registry.Registry.SUBMODEL_DESCRIPTORS_PATH;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -87,12 +87,12 @@ class RegistryAgentTest {
     }
 
     @Test
-    void testApplyEmptyShellDescriptor() throws SerializationException, MalformedURLException {
+    void test_apply_emptyButNonNullShellDescriptor() throws SerializationException, MalformedURLException {
         var shellDescriptor = getEmptyShellDescriptor();
 
         mockServer.when(request()
                         .withMethod(GET.toString())
-                        .withPath(SHELL_DESCRIPTORS_PATH))
+                        .withPath("/%s".formatted(SHELL_DESCRIPTORS_PATH)))
                 .respond(HttpResponse.response()
                         .withBody(resultOf(shellDescriptor)));
 
@@ -126,7 +126,7 @@ class RegistryAgentTest {
 
         mockServer.when(request()
                         .withMethod(GET.toString())
-                        .withPath(SHELL_DESCRIPTORS_PATH))
+                        .withPath("/%s".formatted(SHELL_DESCRIPTORS_PATH)))
                 .respond(HttpResponse.response()
                         .withBody(mockedResponseBody));
 
@@ -159,7 +159,7 @@ class RegistryAgentTest {
 
         mockServer.when(request()
                         .withMethod(GET.toString())
-                        .withPath(SUBMODEL_DESCRIPTORS_PATH))
+                        .withPath("/%s".formatted(SUBMODEL_DESCRIPTORS_PATH)))
                 .respond(HttpResponse.response()
                         .withBody(resultOf(submodelDescriptor)));
 
@@ -193,7 +193,7 @@ class RegistryAgentTest {
 
         mockServer.when(request()
                         .withMethod(GET.toString())
-                        .withPath(SUBMODEL_DESCRIPTORS_PATH))
+                        .withPath("/%s".formatted(SUBMODEL_DESCRIPTORS_PATH)))
                 .respond(HttpResponse.response()
                         .withBody(resultOf(submodelDescriptor)));
 
@@ -238,7 +238,7 @@ class RegistryAgentTest {
     private void mockEmptyShellRequest() throws SerializationException {
         mockServer.when(request()
                         .withMethod(GET.toString())
-                        .withPath(SHELL_DESCRIPTORS_PATH))
+                        .withPath("/%s".formatted(SHELL_DESCRIPTORS_PATH)))
                 .respond(HttpResponse.response()
                         .withBody(resultOf(null)));
     }
@@ -246,7 +246,7 @@ class RegistryAgentTest {
     private void mockEmptySubmodelRequest() throws SerializationException {
         mockServer.when(request()
                         .withMethod(GET.toString())
-                        .withPath(SUBMODEL_DESCRIPTORS_PATH))
+                        .withPath("/%s".formatted(SUBMODEL_DESCRIPTORS_PATH)))
                 .respond(HttpResponse.response()
                         .withBody(resultOf(null)));
     }

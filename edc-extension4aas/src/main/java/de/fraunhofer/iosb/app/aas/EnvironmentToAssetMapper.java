@@ -18,10 +18,11 @@ package de.fraunhofer.iosb.app.aas;
 import de.fraunhofer.iosb.app.aas.mapper.ConceptDescriptionMapper;
 import de.fraunhofer.iosb.app.aas.mapper.ShellToAssetMapper;
 import de.fraunhofer.iosb.app.aas.mapper.SubmodelMapper;
-import de.fraunhofer.iosb.app.model.aas.service.Service;
 import de.fraunhofer.iosb.app.pipeline.PipelineFailure;
 import de.fraunhofer.iosb.app.pipeline.PipelineResult;
 import de.fraunhofer.iosb.app.pipeline.PipelineStep;
+import de.fraunhofer.iosb.model.aas.AasProvider;
+import de.fraunhofer.iosb.model.aas.service.Service;
 import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShell;
 import org.eclipse.digitaltwin.aas4j.v3.model.ConceptDescription;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
@@ -29,7 +30,6 @@ import org.eclipse.digitaltwin.aas4j.v3.model.Submodel;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.jetbrains.annotations.NotNull;
 
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -88,24 +88,22 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<Service, Environm
     }
 
     public PipelineResult<Service> executeSingle(Service service, Environment environment) {
-        if (service == null || service.getAccessUrlV3() == null) {
+        if (service == null || service.getAccessUrl() == null) {
             return PipelineResult.failure(PipelineFailure.fatal(
                     List.of("Mapping failure: accessUrl is null")));
         } else if (environment == null) {
             return PipelineResult.recoverableFailure(service,
                     PipelineFailure.warning(List.of("Mapping failure for accessUrl %s: environment is null"
-                            .formatted(service.getAccessUrlV3()))));
+                            .formatted(service.getAccessUrl()))));
         }
 
-        String accessUrl = service.getAccessUrlV3().toString();
-
-        var submodels = handleSubmodels(environment.getSubmodels(), accessUrl);
+        var submodels = handleSubmodels(environment.getSubmodels(), service);
 
         List<Asset> shells = List.of();
         List<Asset> conceptDescriptions = List.of();
         if (!onlySubmodelsDecision.get()) {
-            shells = handleShells(environment.getAssetAdministrationShells(), accessUrl);
-            conceptDescriptions = handleConceptDescriptions(environment.getConceptDescriptions(), accessUrl);
+            shells = handleShells(environment.getAssetAdministrationShells(), service);
+            conceptDescriptions = handleConceptDescriptions(environment.getConceptDescriptions(), service);
         }
 
         var asset = Asset.Builder.newInstance()
@@ -117,22 +115,22 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<Service, Environm
         return PipelineResult.success(service.with(asset));
     }
 
-    private @NotNull List<Asset> handleSubmodels(Collection<Submodel> submodels, String accessUrl) {
+    private @NotNull List<Asset> handleSubmodels(Collection<Submodel> submodels, AasProvider provider) {
         return submodels.stream()
-                .map(submodel -> submodelMapper.map(submodel, accessUrl))
+                .map(submodel -> submodelMapper.map(submodel, provider))
                 .toList();
     }
 
-    private @NotNull List<Asset> handleShells(Collection<AssetAdministrationShell> shells, String accessUrl) {
+    private @NotNull List<Asset> handleShells(Collection<AssetAdministrationShell> shells, AasProvider provider) {
         return shells.stream()
-                .map(shell -> shellMapper.map(shell, accessUrl))
+                .map(shell -> shellMapper.map(shell, provider))
                 .toList();
     }
 
     private @NotNull List<Asset> handleConceptDescriptions(Collection<ConceptDescription> conceptDescriptions,
-                                                           String accessUrl) {
+                                                           AasProvider provider) {
         return conceptDescriptions.stream()
-                .map(conceptDescription -> conceptDescriptionMapper.map(conceptDescription, accessUrl))
+                .map(conceptDescription -> conceptDescriptionMapper.map(conceptDescription, provider))
                 .toList();
     }
 }

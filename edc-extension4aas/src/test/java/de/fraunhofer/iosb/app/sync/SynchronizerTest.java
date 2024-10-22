@@ -17,8 +17,8 @@ package de.fraunhofer.iosb.app.sync;
 
 import de.fraunhofer.iosb.app.aas.EnvironmentToAssetMapper;
 import de.fraunhofer.iosb.app.model.ChangeSet;
-import de.fraunhofer.iosb.app.model.aas.service.Service;
 import de.fraunhofer.iosb.app.util.Pair;
+import de.fraunhofer.iosb.model.aas.service.Service;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultEnvironment;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.junit.jupiter.api.BeforeEach;

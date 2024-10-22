@@ -30,7 +30,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -50,12 +49,12 @@ public abstract class AasAgent<T extends AasProvider, U> extends PipelineStep<T,
         this.aasDataProcessorFactory = aasDataProcessorFactory;
     }
 
-    protected <K> Result<List<K>> readElements(AasProvider provider, URL url, Class<K> clazz) {
-        var responseResult = executeRequest(provider, url);
+    protected <K> Result<List<K>> readElements(AasProvider provider, String path, Class<K> clazz) {
+        var responseResult = executeRequest(provider, path);
 
         if (responseResult.failed()) {
             return Result.failure("Reading %s from %s failed: %s"
-                    .formatted(clazz.getName(), url, responseResult.getFailureDetail()));
+                    .formatted(clazz.getName(), path, responseResult.getFailureDetail()));
         }
 
         var response = responseResult.getContent();
@@ -65,13 +64,13 @@ public abstract class AasAgent<T extends AasProvider, U> extends PipelineStep<T,
         } else if (response.code() > 299 && response.code() < 500) {
             // Fatal (irrecoverable): 4XX = client (our) error
             return Result.failure("Reading %s from %s failed: %s, %s"
-                    .formatted(clazz.getSimpleName(), url, response.code(), response.message()));
+                    .formatted(clazz.getSimpleName(), path, response.code(), response.message()));
         }
         // Warning (maybe temporary): 5XX = server error
         return Result.failure(String.valueOf(response.code()));
     }
 
-    private Result<Response> executeRequest(AasProvider provider, URL apply) {
+    private Result<Response> executeRequest(AasProvider provider, String path) {
         var processor = aasDataProcessorFactory.processorFor(provider.getAccessUrl().toString());
 
         if (processor.failed()) {
@@ -82,7 +81,7 @@ public abstract class AasAgent<T extends AasProvider, U> extends PipelineStep<T,
                 .newInstance()
                 .method(GET)
                 .aasProvider(provider)
-                .path(apply.getPath());
+                .path(path);
 
         try {
             return Result.success(processor.getContent().send(addressBuilder.build()));

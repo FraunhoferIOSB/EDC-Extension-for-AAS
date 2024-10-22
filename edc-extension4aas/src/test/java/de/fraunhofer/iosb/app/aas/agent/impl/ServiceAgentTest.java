@@ -16,8 +16,8 @@
 package de.fraunhofer.iosb.app.aas.agent.impl;
 
 import de.fraunhofer.iosb.aas.impl.AllAasDataProcessorFactory;
-import de.fraunhofer.iosb.app.model.aas.service.Service;
 import de.fraunhofer.iosb.app.pipeline.PipelineResult;
+import de.fraunhofer.iosb.model.aas.service.Service;
 import de.fraunhofer.iosb.ssl.impl.NoOpSelfSignedCertificateRetriever;
 import dev.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
@@ -36,13 +36,13 @@ import java.net.URL;
 import java.net.UnknownHostException;
 
 import static de.fraunhofer.iosb.api.model.HttpMethod.GET;
-import static de.fraunhofer.iosb.app.model.aas.service.Service.CONCEPT_DESCRIPTIONS_PATH;
-import static de.fraunhofer.iosb.app.model.aas.service.Service.SHELLS_PATH;
-import static de.fraunhofer.iosb.app.model.aas.service.Service.SUBMODELS_PATH;
 import static de.fraunhofer.iosb.app.pipeline.PipelineFailure.Type.WARNING;
 import static de.fraunhofer.iosb.app.testutils.AasCreator.getEmptyEnvironment;
 import static de.fraunhofer.iosb.app.testutils.AasCreator.getEnvironment;
 import static de.fraunhofer.iosb.app.testutils.StringMethods.resultOfCollection;
+import static de.fraunhofer.iosb.model.aas.service.Service.CONCEPT_DESCRIPTIONS_PATH;
+import static de.fraunhofer.iosb.model.aas.service.Service.SHELLS_PATH;
+import static de.fraunhofer.iosb.model.aas.service.Service.SUBMODELS_PATH;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -85,7 +85,7 @@ class ServiceAgentTest {
     }
 
     @Test
-    void testApplyEmptyEnvironment() {
+    void test_apply_emptyEnvironment() {
         var emptyEnvironment = getEmptyEnvironment();
         answerWith(emptyEnvironment);
 
@@ -100,7 +100,7 @@ class ServiceAgentTest {
     }
 
     @Test
-    void testApplyEnvironment() {
+    void test_apply_validEnvironment() {
         var environment = getEnvironment();
         answerWith(environment);
 
@@ -131,7 +131,7 @@ class ServiceAgentTest {
     }
 
     @Test
-    void testApplyNotActuallyService() {
+    void test_apply_notActuallyService() {
         // Here, mock server returns no valid response (it is not an AAS service)
         var result = testSubject.apply(new Service(mockServerUrl));
 

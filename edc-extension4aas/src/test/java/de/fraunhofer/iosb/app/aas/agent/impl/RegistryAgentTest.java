@@ -122,13 +122,11 @@ class RegistryAgentTest {
     void testApplyShellDescriptor() throws SerializationException, MalformedURLException {
         var shellDescriptor = getShellDescriptor();
 
-        var mockedResponseBody = resultOf(shellDescriptor);
-
         mockServer.when(request()
                         .withMethod(GET.toString())
                         .withPath("/%s".formatted(SHELL_DESCRIPTORS_PATH)))
                 .respond(HttpResponse.response()
-                        .withBody(mockedResponseBody));
+                        .withBody(resultOf(shellDescriptor)));
 
         mockEmptySubmodelRequest();
 

@@ -72,5 +72,4 @@ public class TransferInitiatorTest {
                 "test-agreement-id", dataSink);
         verify(mockTransferProcessManager, times(1)).initiateConsumerRequest(any());
     }
-
 }

@@ -22,7 +22,7 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -49,7 +49,7 @@ class PolicyDefinitionStore {
      *
      * @return Stored PolicyDefinitions (non-null but possibly empty)
      */
-    Collection<PolicyDefinition> getPolicyDefinitions() {
+    List<PolicyDefinition> getPolicyDefinitions() {
         return new ArrayList<>(policyDefinitions.values());
     }
 
@@ -94,7 +94,7 @@ class PolicyDefinitionStore {
         return Optional.empty();
     }
 
-    private void loadPolicyDefinitions(String acceptedPolicyDefinitionsPath) {
+    void loadPolicyDefinitions(String acceptedPolicyDefinitionsPath) {
         Path path;
         if (Objects.nonNull(acceptedPolicyDefinitionsPath)) {
             path = Path.of(acceptedPolicyDefinitionsPath);

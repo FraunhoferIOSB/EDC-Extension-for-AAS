@@ -118,7 +118,7 @@ class ServiceAgentTest {
 
         assertTrue(result.failed());
         assertEquals(WARNING, result.getFailure().getFailureType());
-        assertTrue(result.getFailureDetail().contains(UnknownHostException.class.getSimpleName()));
+        assertEquals(UnknownHostException.class.getSimpleName(), result.getFailure().getMessages().get(0));
     }
 
     @Test

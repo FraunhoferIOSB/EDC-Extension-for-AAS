@@ -72,17 +72,15 @@ public class PipelineFailure extends Failure {
      */
     public enum Type {
         /**
-         * Cannot continue pipeline computation (halts pipeline)
+         * Cannot continue computation (halts pipeline)
          */
         FATAL,
         /**
-         * Something unexpected happened to an element in the pipeline,
-         * data of this element may or may not be processed further
+         * Something unexpected happened
          */
         WARNING,
         /**
-         * Something happened that does not directly interfere with the
-         * pipeline's steps
+         * Something happened
          */
         INFO
     }

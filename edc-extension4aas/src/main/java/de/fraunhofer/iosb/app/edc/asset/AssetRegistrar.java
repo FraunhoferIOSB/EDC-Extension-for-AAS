@@ -71,9 +71,6 @@ public class AssetRegistrar extends PipelineStep<ChangeSet<Asset, String>, Chang
         if (!changeSetIds.toAdd().isEmpty() || !changeSetIds.toRemove().isEmpty()) {
             monitor.info("Added %s, removed %s assets".formatted(changeSetIds.toAdd().size(),
                     changeSetIds.toRemove().size()));
-        } else {
-            monitor.debug("Added %s, removed %s assets".formatted(changeSetIds.toAdd().size(),
-                    changeSetIds.toRemove().size()));
         }
 
         if (added.stream().anyMatch(AbstractResult::failed) || removed.stream().anyMatch(AbstractResult::failed)) {

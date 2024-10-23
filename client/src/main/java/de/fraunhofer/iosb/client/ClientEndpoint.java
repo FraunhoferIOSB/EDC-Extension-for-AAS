@@ -38,7 +38,6 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 import java.net.URL;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ExecutionException;
 
 import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 

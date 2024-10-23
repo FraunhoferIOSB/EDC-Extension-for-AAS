@@ -29,7 +29,6 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.Result;
 
-import java.io.IOException;
 import java.util.List;
 
 import static de.fraunhofer.iosb.app.pipeline.PipelineResult.failure;
@@ -63,7 +62,7 @@ public class ServiceAgent extends AasAgent<Service, Environment> {
         }
     }
 
-    private PipelineResult<Environment> readEnvironment(Service service) throws IOException {
+    private PipelineResult<Environment> readEnvironment(Service service) {
         var processorResult = aasDataProcessorFactory.processorFor(service.getAccessUrl());
 
         if (processorResult.failed()) {

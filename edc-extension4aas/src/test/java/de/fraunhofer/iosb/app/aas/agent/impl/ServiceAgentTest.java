@@ -143,19 +143,19 @@ class ServiceAgentTest {
         try {
             mockServer.when(request()
                             .withMethod(GET.toString())
-                            .withPath(SHELLS_PATH))
+                            .withPath("/%s".formatted(SHELLS_PATH)))
                     .respond(HttpResponse.response()
                             .withBody(resultOfCollection(environment.getAssetAdministrationShells())));
 
             mockServer.when(request()
                             .withMethod(GET.toString())
-                            .withPath(SUBMODELS_PATH))
+                            .withPath("/%s".formatted(SUBMODELS_PATH)))
                     .respond(HttpResponse.response()
                             .withBody(resultOfCollection(environment.getSubmodels())));
 
             mockServer.when(request()
                             .withMethod(GET.toString())
-                            .withPath(CONCEPT_DESCRIPTIONS_PATH))
+                            .withPath("/%s".formatted(CONCEPT_DESCRIPTIONS_PATH)))
                     .respond(HttpResponse.response()
                             .withBody(resultOfCollection(environment.getConceptDescriptions())));
 

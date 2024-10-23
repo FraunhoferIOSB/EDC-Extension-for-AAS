@@ -50,7 +50,7 @@ public abstract class AasAgent<T extends AasProvider, U> extends PipelineStep<T,
         this.aasDataProcessorFactory = aasDataProcessorFactory;
     }
 
-    protected <K> Result<List<K>> readElements(AasDataProcessor processor, AasProvider provider, String path, Class<K> clazz) throws IOException {
+    protected <K> Result<List<K>> readElements(AasDataProcessor processor, AasProvider provider, String path, Class<K> clazz) {
         var dataAddress = AasDataAddress.Builder.newInstance()
                 .method(GET)
                 .aasProvider(provider)

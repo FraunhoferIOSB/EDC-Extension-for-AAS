@@ -15,6 +15,7 @@
  */
 package de.fraunhofer.iosb.app.aas.agent.impl;
 
+import de.fraunhofer.iosb.aas.AasDataProcessor;
 import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
 import de.fraunhofer.iosb.app.aas.agent.AasAgent;
 import de.fraunhofer.iosb.app.pipeline.PipelineFailure;
@@ -54,7 +55,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static de.fraunhofer.iosb.app.pipeline.PipelineResult.failure;
 import static de.fraunhofer.iosb.model.aas.registry.Registry.SHELL_DESCRIPTORS_PATH;
 import static de.fraunhofer.iosb.model.aas.registry.Registry.SUBMODEL_DESCRIPTORS_PATH;
 
@@ -90,10 +90,20 @@ public class RegistryAgent extends AasAgent<Registry, Map<Service, Environment>>
     }
 
     private PipelineResult<Map<Service, Environment>> readEnvironment(Registry registry) throws MalformedURLException {
+        Result<AasDataProcessor> processorResult = aasDataProcessorFactory.processorFor(registry.getAccessUrl());
+
+        if (processorResult.failed()) {
+            return PipelineResult.failure(PipelineFailure.warning(List.of(processorResult.getFailureDetail())));
+        }
+
+        var processor = processorResult.getContent();
+
         Map<Service, DefaultEnvironment.Builder> environmentsByUrl = new HashMap<>();
 
-        Result<List<AssetAdministrationShellDescriptor>> shellDescriptors = readElements(registry, SHELL_DESCRIPTORS_PATH, AssetAdministrationShellDescriptor.class);
-        Result<List<SubmodelDescriptor>> submodelDescriptors = readElements(registry, SUBMODEL_DESCRIPTORS_PATH, SubmodelDescriptor.class);
+        Result<List<AssetAdministrationShellDescriptor>> shellDescriptors = readElements(processor, registry,
+                SHELL_DESCRIPTORS_PATH, AssetAdministrationShellDescriptor.class);
+        Result<List<SubmodelDescriptor>> submodelDescriptors = readElements(processor, registry,
+                SUBMODEL_DESCRIPTORS_PATH, SubmodelDescriptor.class);
 
         if (submodelDescriptors.succeeded()) {
             addSubmodelDescriptors(environmentsByUrl, submodelDescriptors.getContent());

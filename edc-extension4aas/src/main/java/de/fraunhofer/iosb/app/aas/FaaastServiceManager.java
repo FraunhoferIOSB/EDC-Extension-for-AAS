@@ -41,19 +41,18 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static de.fraunhofer.iosb.ilt.faaast.service.util.HostnameUtil.LOCALHOST;
-import static de.fraunhofer.iosb.ilt.faaast.service.util.HostnameUtil.LOCALHOST_IP;
+import static de.fraunhofer.iosb.app.util.OSUtil.getLocalhostAddress;
 
 /**
  * Manages internally created FA³ST instances.
  */
 public class FaaastServiceManager implements AssetAdministrationShellServiceManager {
 
+    public static final String NO_ENDPOINT_DEFINED_EXCEPTION_MESSAGE = "No valid HTTP endpoint could be defined in " +
+            "this configuration.";
     private static final String FAAAST = "FA³ST";
     private static final String GENERIC_EXCEPTION_MESSAGE = "Exception thrown by %s service.".formatted(FAAAST);
-    public static final String NO_ENDPOINT_DEFINED_EXCEPTION_MESSAGE = "No valid HTTP endpoint could be defined in this configuration.";
-    private static final String LOCALHOST_URL = System.getProperty("os.name").contains("Windows") ?
-            LOCALHOST_IP : LOCALHOST;
+    private static final String LOCALHOST_URL = getLocalhostAddress();
 
     private final Monitor monitor;
     private final Map<AasAccessUrl, Service> faaastServiceRepository;
@@ -102,7 +101,8 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
                 .concat("://")
                 .concat(Optional.ofNullable(communicationHttpPort.getHostname()).orElse(LOCALHOST_URL))
                 .concat(":")
-                .concat(String.valueOf(communicationHttpPort.getPort()));
+                .concat(String.valueOf(communicationHttpPort.getPort()))
+                .concat("/api/v3.0");
 
         var serviceAccessUrl = new URL(urlSpec);
         faaastServiceRepository.put(new AasAccessUrl(serviceAccessUrl), service);
@@ -169,7 +169,7 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
     }
 
     private boolean available(int port) {
-        try (var socket = new Socket("localhost", port)) {
+        try (var socket = new Socket(LOCALHOST_URL, port)) {
             socket.setReuseAddress(true);
             // Connected to some service -> unavailable
             return false;

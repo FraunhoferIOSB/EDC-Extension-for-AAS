@@ -17,8 +17,13 @@ package de.fraunhofer.iosb.aas.http;
 
 import okhttp3.OkHttpClient;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
@@ -26,46 +31,51 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.TrustManagerFactory;
-import javax.net.ssl.X509TrustManager;
 
 /**
  * Provides OkHttpClient instance allowing communication to a remote service with the given certificate.
  */
 public class HttpClientProvider {
 
-    public static OkHttpClient clientFor(@NotNull Certificate[] certificateChain) throws KeyStoreException {
-        var keyStore = createAndPopulateKeyStore(certificateChain);
+    public static final String SSL_PROTOCOL = "TLS";
+
+    /**
+     * Creates a new OkHttpClient which allows communication with a server holding the given certificateChain.
+     *
+     * @param certificateChain A server certificate chain for TLS encrypted communication.
+     * @return Result containing either a new OkHttpClient instance or failure reason.
+     */
+    public static Result<OkHttpClient> clientFor(@NotNull Certificate[] certificateChain) {
 
         TrustManager[] trustManagers;
         SSLContext sslContext;
         try {
             var tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            // Get a new SSL context for each new http client
+            sslContext = SSLContext.getInstance(SSL_PROTOCOL);
+
+            var keyStore = createAndPopulateKeyStore(certificateChain);
             tmf.init(keyStore);
-
             trustManagers = tmf.getTrustManagers();
-
-            sslContext = SSLContext.getInstance("TLS");
-
-        } catch (NoSuchAlgorithmException noSuchAlgorithmException) {
+        } catch (NoSuchAlgorithmException | KeyStoreException trustManagerException) {
             // Something wrong with the system as TLS or a default algorithm is not found
-            throw new EdcException("An exception occurred trying to accept a self-signed certificate.",
-                    noSuchAlgorithmException);
+            return Result.failure("%s trying to build trust manager: %s"
+                    .formatted(trustManagerException.getClass().getSimpleName(),
+                            trustManagerException.getMessage()));
         }
 
         // No KeyManager needed: we don't need to authenticate ourselves, only trust "others"
         try {
             sslContext.init(null, trustManagers, null);
         } catch (KeyManagementException keyManagementException) {
-            throw new EdcException("Could not set self-signed certificate chain", keyManagementException);
+            return Result.failure("%s trying to initialize SSL context: %s"
+                    .formatted(keyManagementException.getClass().getSimpleName(), keyManagementException.getMessage()));
         }
 
-        return new OkHttpClient()
+        return Result.success(new OkHttpClient()
                 .newBuilder()
                 .sslSocketFactory(sslContext.getSocketFactory(), (X509TrustManager) trustManagers[0])
-                .build();
+                .build());
     }
 
     private static KeyStore createAndPopulateKeyStore(Certificate[] certs) throws KeyStoreException {

@@ -16,9 +16,9 @@
 package de.fraunhofer.iosb.app.controller;
 
 import de.fraunhofer.iosb.app.model.aas.registry.RegistryRepository;
-import de.fraunhofer.iosb.app.model.aas.service.Service;
 import de.fraunhofer.iosb.app.model.aas.service.ServiceRepository;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionSerializer;
+import de.fraunhofer.iosb.model.aas.service.Service;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
@@ -54,7 +54,8 @@ public class SelfDescriptionController {
      * @param monitor           Logs
      * @param serviceRepository Manage self descriptions
      */
-    public SelfDescriptionController(Monitor monitor, ServiceRepository serviceRepository, RegistryRepository registryRepository) {
+    public SelfDescriptionController(Monitor monitor, ServiceRepository serviceRepository,
+                                     RegistryRepository registryRepository) {
         this.monitor = monitor;
         this.serviceRepository = serviceRepository;
         this.registryRepository = registryRepository;

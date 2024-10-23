@@ -31,6 +31,7 @@ import java.util.List;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.fail;
 
 class DefaultSelfSignedCertificateRetrieverTest {
@@ -64,14 +65,12 @@ class DefaultSelfSignedCertificateRetrieverTest {
     }
 
     @Test
-    void getValidCertificate() throws MalformedURLException {
+    void isTrusted() throws MalformedURLException {
         var url = new URL(VALID);
-        var certResult = new DefaultSelfSignedCertificateRetriever().getSelfSignedCertificate(url);
+        var trusted = DefaultSelfSignedCertificateRetriever.isTrusted(url);
 
-        if (certResult.succeeded()) {
+        if (!trusted) {
             fail();
-        } else {
-            assertEquals(List.of("trusted"), certResult.getFailureMessages());
         }
     }
 

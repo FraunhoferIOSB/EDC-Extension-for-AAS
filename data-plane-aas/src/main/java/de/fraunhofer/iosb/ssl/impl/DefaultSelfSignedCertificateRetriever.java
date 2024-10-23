@@ -18,6 +18,12 @@ package de.fraunhofer.iosb.ssl.impl;
 import de.fraunhofer.iosb.ssl.SelfSignedCertificateRetriever;
 import org.eclipse.edc.spi.result.Result;
 
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLPeerUnverifiedException;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
 import java.net.URL;
 import java.security.KeyManagementException;
@@ -28,12 +34,6 @@ import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.X509Certificate;
 import java.util.List;
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLPeerUnverifiedException;
-import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 
 /**
  * Retrieve certificates of an online service by its URL.
@@ -43,7 +43,7 @@ import javax.net.ssl.X509TrustManager;
  */
 public class DefaultSelfSignedCertificateRetriever implements SelfSignedCertificateRetriever {
 
-    private static final TrustManager[] TRUST_ALL_MANAGER = new TrustManager[] {
+    private static final TrustManager[] TRUST_ALL_MANAGER = new TrustManager[]{
             new X509TrustManager() {
                 public X509Certificate[] getAcceptedIssuers() {
                     return null;
@@ -57,7 +57,7 @@ public class DefaultSelfSignedCertificateRetriever implements SelfSignedCertific
             }
     };
 
-    private static boolean isTrusted(URL url) {
+    public static boolean isTrusted(URL url) {
         HttpsURLConnection.setDefaultSSLSocketFactory((SSLSocketFactory) SSLSocketFactory.getDefault());
 
         try {
@@ -73,10 +73,6 @@ public class DefaultSelfSignedCertificateRetriever implements SelfSignedCertific
 
     public Result<Certificate[]> getSelfSignedCertificate(URL url) {
         SSLContext sslContext;
-
-        if (isTrusted(url)) {
-            return Result.failure("trusted");
-        }
 
         try {
             sslContext = SSLContext.getInstance("TLS");
@@ -112,7 +108,5 @@ public class DefaultSelfSignedCertificateRetriever implements SelfSignedCertific
 
         conn.disconnect();
         return Result.success(certs);
-
     }
-
 }

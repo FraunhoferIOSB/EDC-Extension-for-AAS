@@ -48,7 +48,8 @@ public class NegotiationController {
     private final ClientContractNegotiationListener listener;
 
     public NegotiationController(ConsumerContractNegotiationManager consumerNegotiationManager,
-                                 ContractNegotiationObservable observable, ContractNegotiationStore contractNegotiationStore,
+                                 ContractNegotiationObservable observable,
+                                 ContractNegotiationStore contractNegotiationStore,
                                  Config config) {
         this.config = config;
         this.negotiator = new Negotiator(consumerNegotiationManager, contractNegotiationStore);

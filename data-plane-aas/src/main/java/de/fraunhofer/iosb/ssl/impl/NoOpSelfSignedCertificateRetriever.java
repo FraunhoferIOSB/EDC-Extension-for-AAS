@@ -16,6 +16,18 @@
 package de.fraunhofer.iosb.ssl.impl;
 
 import de.fraunhofer.iosb.ssl.SelfSignedCertificateRetriever;
+import org.eclipse.edc.spi.result.Result;
 
+import java.net.URL;
+import java.security.cert.Certificate;
+
+/**
+ * Does not return self-signed certificates. This implementation is used when the extension configuration does not
+ * allow any self-signed certificates.
+ */
 public class NoOpSelfSignedCertificateRetriever implements SelfSignedCertificateRetriever {
+    @Override
+    public Result<Certificate[]> getSelfSignedCertificate(URL url) {
+        return Result.failure("Self-signed certificates not allowed");
+    }
 }

@@ -1,12 +1,28 @@
+/*
+ * Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
+ * Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
+ * Forschung e.V.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package de.fraunhofer.iosb.client.datatransfer;
 
 import de.fraunhofer.iosb.api.PublicApiManagementService;
 import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
+import de.fraunhofer.iosb.model.aas.service.Service;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager;
+import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.system.configuration.Config;
@@ -27,21 +43,19 @@ import static org.mockito.Mockito.when;
 
 class DataTransferControllerTest {
     private DataTransferController testSubject;
-    private Monitor monitor;
-
     private static URL url;
 
     @BeforeEach
     public void setup() throws IOException {
         int port = 8080;
         url = new URL(format("http://localhost:%s", port));
-        monitor = new ConsoleMonitor().withPrefix("DataTransferControllerTest");
         testSubject = new DataTransferController(
-                monitor,
+                new ConsoleMonitor().withPrefix("DataTransferControllerTest"),
                 mockConfig(),
                 mock(WebService.class),
                 mock(PublicApiManagementService.class),
                 mockTransferProcessManager(),
+                mock(TransferProcessObservable.class),
                 () -> "localhost");
     }
 
@@ -63,7 +77,7 @@ class DataTransferControllerTest {
 
     @Test
     public void getDataTest() {
-        var dataAddress = AasDataAddress.Builder.newInstance().baseUrl(url.toString()).build();
+        var dataAddress = AasDataAddress.Builder.newInstance().aasProvider(new Service(url)).build();
         try (var response = testSubject.getData(url, "test-agreement-id", dataAddress)) {
             assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
         }

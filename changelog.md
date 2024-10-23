@@ -18,11 +18,18 @@ Compatibility: **Eclipse Dataspace Connector v0.8.1, v0.9.0, v0.9.1**
     * If an external AAS service/registry needs authentication, this can be configured when registering the
       service/registry at the extension
     * example: `{ "type":"basic", "username": "admin", "password": "administrator" }`
+* Allow for AAS operation invokations by clients on provider AAS.
+    * See example in postman collection (in the client directory)
 
 **Bugfixes**
 
 **Miscellaneous**
 
+* Important: URLs for an AAS Service / Registry must now be provided fully until the /shells, /submodels and
+  /concept-descriptions endpoints
+    * Until last version, ´/api/v3.0´ was appended to the access URL of each AAS service/registry.
+    * Now, a URL must be provided such that appending /shells, /submodels and /concept-descriptions yields the
+      respective resources.
 * The synchronization of the EDC AssetIndex/ContractStore to the AAS services/registries is updated to a pipeline
   architecture.
 * The extension does not use custom AAS models for internal persistence any longer

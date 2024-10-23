@@ -17,6 +17,7 @@ package de.fraunhofer.iosb.app.aas.agent;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import de.fraunhofer.iosb.aas.AasDataProcessor;
 import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
 import de.fraunhofer.iosb.app.pipeline.PipelineStep;
 import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
@@ -30,7 +31,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -42,7 +42,7 @@ import static jakarta.ws.rs.HttpMethod.GET;
  */
 public abstract class AasAgent<T extends AasProvider, U> extends PipelineStep<T, U> {
 
-    private final AasDataProcessorFactory aasDataProcessorFactory;
+    protected final AasDataProcessorFactory aasDataProcessorFactory;
     private final JsonDeserializer jsonDeserializer = new JsonDeserializer();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -50,42 +50,33 @@ public abstract class AasAgent<T extends AasProvider, U> extends PipelineStep<T,
         this.aasDataProcessorFactory = aasDataProcessorFactory;
     }
 
-    protected <K> Result<List<K>> readElements(AasProvider provider, URL url, Class<K> clazz) {
-        var responseResult = executeRequest(provider, url);
+    protected <K> Result<List<K>> readElements(AasDataProcessor processor, AasProvider provider, String path, Class<K> clazz) {
+        var dataAddress = AasDataAddress.Builder.newInstance()
+                .method(GET)
+                .aasProvider(provider)
+                .path(path)
+                .build();
+        
+        var responseResult = executeRequest(processor, dataAddress);
 
         if (responseResult.failed()) {
             return Result.failure("Reading %s from %s failed: %s"
-                    .formatted(clazz.getName(), url, responseResult.getFailureDetail()));
+                    .formatted(clazz.getName(), path, responseResult.getFailureDetail()));
         }
 
         var response = responseResult.getContent();
 
         if (response.isSuccessful() && response.body() != null) {
             return readList(response.body(), clazz);
-        } else if (response.code() > 299 && response.code() < 500) {
-            // Fatal (irrecoverable): 4XX = client (our) error
-            return Result.failure("Reading %s from %s failed: %s, %s"
-                    .formatted(clazz.getSimpleName(), url, response.code(), response.message()));
         }
-        // Warning (maybe temporary): 5XX = server error
-        return Result.failure(String.valueOf(response.code()));
+        
+        return Result.failure("Reading %s from %s failed: %s, %s"
+                .formatted(clazz.getSimpleName(), path, response.code(), response.message()));
     }
 
-    private Result<Response> executeRequest(AasProvider provider, URL apply) {
-        var processor = aasDataProcessorFactory.processorFor(provider.getAccessUrl().toString());
-
-        if (processor.failed()) {
-            return Result.failure(processor.getFailureDetail());
-        }
-
-        var addressBuilder = AasDataAddress.Builder
-                .newInstance()
-                .method(GET)
-                .aasProvider(provider)
-                .path(apply.getPath());
-
+    private Result<Response> executeRequest(AasDataProcessor processor, AasDataAddress dataAddress) {
         try {
-            return Result.success(processor.getContent().send(addressBuilder.build()));
+            return Result.success(processor.send(dataAddress));
         } catch (IOException httpIOException) {
             return Result.failure(List.of(httpIOException.getClass().getSimpleName(), httpIOException.getMessage()));
         }

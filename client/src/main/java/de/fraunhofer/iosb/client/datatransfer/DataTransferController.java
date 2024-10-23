@@ -25,9 +25,10 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager;
-import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.response.ResponseStatus;
+import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -42,7 +43,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import static de.fraunhofer.iosb.client.ClientEndpoint.MISSING_QUERY_PARAMETER_MESSAGE;
-import static java.lang.String.format;
 
 @Consumes({MediaType.APPLICATION_JSON})
 @Path(ClientEndpoint.AUTOMATED_PATH)
@@ -74,14 +74,20 @@ public class DataTransferController {
      *                                   consumer.
      */
     public DataTransferController(Monitor monitor, Config config, WebService webService,
-                                  PublicApiManagementService publicApiManagementService, TransferProcessManager transferProcessManager, Hostname hostname) {
+                                  PublicApiManagementService publicApiManagementService,
+                                  TransferProcessManager transferProcessManager,
+                                  TransferProcessObservable transferProcessObservable,
+                                  Hostname hostname) {
+        this.config = config.getConfig("edc.client");
+
         this.monitor = monitor.withPrefix("Client PolicyController");
 
-        this.transferInitiator = new TransferInitiator(monitor, config, hostname, transferProcessManager);
-        this.config = config.getConfig("edc.client");
-        this.dataTransferEndpointManager = new DataTransferEndpointManager(publicApiManagementService);
-        this.dataTransferObservable = new DataTransferObservable(monitor);
+        transferInitiator = new TransferInitiator(monitor, config, hostname, transferProcessManager);
+        dataTransferEndpointManager = new DataTransferEndpointManager(publicApiManagementService);
+        dataTransferObservable = new DataTransferObservable(monitor);
         var dataTransferEndpoint = new DataTransferEndpoint(monitor, dataTransferObservable);
+
+        transferProcessObservable.registerListener(dataTransferObservable);
         webService.registerResource(dataTransferEndpoint);
     }
 
@@ -102,18 +108,22 @@ public class DataTransferController {
                             @QueryParam("agreementId") String agreementId,
                             DataAddress dataAddress) {
         monitor.info("GET /%s".formatted(TRANSFER_PATH));
-        if (Objects.isNull(providerUrl) || Objects.isNull(agreementId)) {
+        if (providerUrl == null || agreementId == null) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(MISSING_QUERY_PARAMETER_MESSAGE.formatted("providerUrl, agreementId")).build();
         }
 
         try {
-            var data = initiateTransferProcess(providerUrl, agreementId, dataAddress);
-            if (Objects.isNull(dataAddress)) {
-                return Response.ok(data).build();
-            } else {
+            var dataResult = initiateTransferProcess(providerUrl, agreementId, dataAddress);
+            if (dataAddress != null) {
                 return Response.ok("Data transfer request sent.").build();
             }
+
+            if (dataResult.succeeded()) {
+                return Response.ok(dataResult.getContent()).build();
+            }
+            return Response.status(Response.Status.EXPECTATION_FAILED).entity(dataResult.getFailureDetail()).build();
+
         } catch (InterruptedException | ExecutionException negotiationException) {
             monitor.severe("Data transfer failed for provider %s and agreementId %s".formatted(providerUrl,
                     agreementId), negotiationException);
@@ -131,30 +141,33 @@ public class DataTransferController {
      * @param agreementId     Non-null ContractAgreement of the negotiation process.
      * @param dataSinkAddress HTTPDataAddress the result of the transfer should be
      *                        sent to. (If null, send to extension and print in log)
-     * @return A completable future whose result will be the data or an error message.
+     * @return StatusResult containing error message or data or null on remote destination address
      * @throws InterruptedException If the data transfer was interrupted
      * @throws ExecutionException   If the data transfer process failed
      */
-    private Result<String> initiateTransferProcess(URL providerUrl, String agreementId, DataAddress dataSinkAddress)
+    public StatusResult<String> initiateTransferProcess(URL providerUrl, String agreementId,
+                                                        DataAddress dataSinkAddress)
             throws InterruptedException, ExecutionException {
         // Prepare for incoming data
         var providerDataFuture = dataTransferObservable.register(agreementId);
 
-        if (Objects.isNull(dataSinkAddress)) {
-            var apiKey = UUID.randomUUID().toString();
-            dataTransferEndpointManager.addTemporaryEndpoint(agreementId, DATA_TRANSFER_API_KEY, apiKey);
-
-            this.transferInitiator.initiateTransferProcess(providerUrl, agreementId, apiKey);
-            return Result.success(waitForProviderData(providerDataFuture, agreementId));
-        } else {
+        if (dataSinkAddress != null) {
             // Send data to custom target url
-            this.transferInitiator.initiateTransferProcess(providerUrl, agreementId, dataSinkAddress);
+            transferInitiator.initiateTransferProcess(providerUrl, agreementId, dataSinkAddress);
             // Don't have to wait for data
-            return Result.success(null);
+            return StatusResult.success(null);
         }
+
+        var apiKey = UUID.randomUUID().toString();
+        dataTransferEndpointManager.addTemporaryEndpoint(agreementId, DATA_TRANSFER_API_KEY, apiKey);
+
+        var initiateResult = transferInitiator.initiateTransferProcess(providerUrl, agreementId, apiKey);
+
+        return initiateResult.succeeded() ? waitForProviderData(providerDataFuture, agreementId) :
+                StatusResult.failure(initiateResult.getFailure().status(), initiateResult.getFailureDetail());
     }
 
-    private String waitForProviderData(CompletableFuture<String> dataFuture, String agreementId)
+    private StatusResult<String> waitForProviderData(CompletableFuture<String> dataFuture, String agreementId)
             throws InterruptedException, ExecutionException {
         var waitForTransferTimeout = config.getInteger("waitForTransferTimeout",
                 WAIT_FOR_TRANSFER_TIMEOUT_DEFAULT);
@@ -162,11 +175,12 @@ public class DataTransferController {
             // Fetch TransferTimeout everytime to adapt to runtime config changes
             var providerData = dataFuture.get(waitForTransferTimeout, TimeUnit.SECONDS);
             dataTransferObservable.unregister(agreementId);
-            return providerData;
-        } catch (TimeoutException transferTimeoutExceededException) {
+            return StatusResult.success(providerData);
+        } catch (TimeoutException futureException) {
             dataTransferObservable.unregister(agreementId);
-            throw new EdcException(format("Waiting for a transfer failed for agreementId: %s", agreementId),
-                    transferTimeoutExceededException);
+
+            var errorMessage = Objects.requireNonNullElse(futureException.getMessage(), "No error message");
+            return StatusResult.failure(ResponseStatus.FATAL_ERROR, errorMessage);
         }
     }
 }

@@ -22,19 +22,19 @@ import okhttp3.Response;
 import org.eclipse.edc.http.client.EdcHttpClientImpl;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
+import org.jetbrains.annotations.Nullable;
 
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.security.KeyStoreException;
 import java.security.cert.Certificate;
 
 import static de.fraunhofer.iosb.aas.http.HttpClientProvider.clientFor;
+import static de.fraunhofer.iosb.ssl.impl.DefaultSelfSignedCertificateRetriever.isTrusted;
 
 public abstract class AasDataProcessorFactory {
 
     private static final String HTTPS = "HTTPS";
     protected final SelfSignedCertificateRetriever retriever;
-    // EDC provided fields. Use for non-self-signed certificates
+    // EDC provided fields. Used for non-self-signed certificates
     private final OkHttpClient edcOkHttpClient;
     private final RetryPolicy<Response> edcRetryPolicy;
     private final Monitor monitor;
@@ -51,45 +51,50 @@ public abstract class AasDataProcessorFactory {
     }
 
     /**
-     * Return a processor for a given URL.
+     * Return a processor accepting the certificates of the server behind the given URL.
      * This is for AAS services with self-signed certificates.
      * Allowing self-signed certificates can be configured (see readme).
      *
-     * @param urlString URL of AAS service.
+     * @param aasUrl URL of AAS service without element access suffix (e.g., /submodels)
      * @return AAS Processor allowing communication with AAS service using AAS data addresses
      */
-    public Result<AasDataProcessor> processorFor(String urlString) {
-        URL aasUrl;
-        try {
-            aasUrl = new URL(urlString);
-        } catch (MalformedURLException malformedUrlException) {
-            return Result.failure(malformedUrlException.getMessage());
+    public Result<AasDataProcessor> processorFor(URL aasUrl) {
+        if (!aasUrl.getProtocol().equalsIgnoreCase(HTTPS)) {
+            return Result.success(new AasDataProcessor(
+                    new EdcHttpClientImpl(edcOkHttpClient, edcRetryPolicy, monitor)));
         }
 
         var certResult = getCertificates(aasUrl);
 
-        try {
-            return Result.success(new AasDataProcessor(
-                    new EdcHttpClientImpl(
-                            certResult.getContent() == null ? edcOkHttpClient : clientFor(certResult.getContent()),
-                            edcRetryPolicy,
-                            monitor)));
-        } catch (KeyStoreException keyStoreException) {
-            return Result.failure(keyStoreException.getMessage());
+        var client = edcOkHttpClient;
+
+        if (certResult.succeeded() && certResult.getContent() != null) {
+            var customClientResult = clientFor(certResult.getContent());
+
+            if (customClientResult.succeeded()) {
+                client = customClientResult.getContent();
+            } else {
+                return Result.failure(customClientResult.getFailureDetail());
+            }
+        } else if (certResult.succeeded() && certResult.getContent() == null) {
+            monitor.debug("%s is trusted".formatted(aasUrl));
+        } else {
+            monitor.info("Did not retrieve certificates for %s: %s".formatted(aasUrl, certResult.getFailureDetail()));
         }
+
+        return Result.success(new AasDataProcessor(new EdcHttpClientImpl(client, edcRetryPolicy, monitor)));
     }
 
     protected abstract Result<Certificate[]> getCertificates(URL url);
 
-    protected Result<Certificate[]> retrieveCertificates(URL url) {
-        if (!url.getProtocol().equalsIgnoreCase(HTTPS)) {
-            // Returning no certificates means accepting only trusted authorities (and http)
+    protected Result<@Nullable Certificate[]> retrieveCertificates(URL aasUrl) {
+        if (isTrusted(aasUrl)) {
             return Result.success(null);
         }
 
-        var certsResult = retriever.getSelfSignedCertificate(url);
+        var certsResult = retriever.getSelfSignedCertificate(aasUrl);
 
-        if (certsResult.failed() && !certsResult.getFailureMessages().contains("trusted")) {
+        if (certsResult.failed()) {
             return Result.failure("Certificates were neither trusted nor self-signed: %s"
                     .formatted(certsResult.getFailureMessages()));
         }

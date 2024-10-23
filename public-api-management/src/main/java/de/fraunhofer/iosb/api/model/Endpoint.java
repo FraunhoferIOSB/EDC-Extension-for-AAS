@@ -41,7 +41,8 @@ public record Endpoint(String suffix, HttpMethod method, Map<String, List<String
      * Headers of this endpoint have to be within other's headers.
      * This is to check if the other endpoint contains custom needed headers like additional api keys.
      *
-     * @param other Other endpoint, whose headers must contain this endpoint's headers, as well as match suffix and method.
+     * @param other Other endpoint, whose headers must contain this endpoint's headers, as well as match suffix and
+     *              method.
      * @return True if the condition holds, else false.
      */
     public boolean isCoveredBy(Endpoint other) {
@@ -59,7 +60,8 @@ public record Endpoint(String suffix, HttpMethod method, Map<String, List<String
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Endpoint endpoint = (Endpoint) o;
-        return Objects.equals(suffix, endpoint.suffix) && method == endpoint.method && Objects.equals(customHeaders, endpoint.customHeaders);
+        return Objects.equals(suffix, endpoint.suffix) && method == endpoint.method && Objects.equals(customHeaders,
+                endpoint.customHeaders);
     }
 
     @Override

@@ -64,7 +64,8 @@ public class Synchronizer extends PipelineStep<Collection<Pair<Asset, Asset>>, C
         for (var entry : oldAndNewAssets) {
             // New environment cannot be null.
             Objects.requireNonNull(entry.second());
-            var oldEnvironment = entry.first() != null ? AssetUtil.flatMapAssets(entry.first()) : new ArrayList<Asset>();
+            var oldEnvironment = entry.first() != null ? AssetUtil.flatMapAssets(entry.first()) :
+                    new ArrayList<Asset>();
 
             var newEnvironment = AssetUtil.flatMapAssets(entry.second());
 

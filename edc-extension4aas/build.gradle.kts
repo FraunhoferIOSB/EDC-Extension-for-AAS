@@ -36,23 +36,5 @@ repositories {
     mavenCentral()
 }
 
-tasks.compileJava { options.encoding = "UTF-8" }
-tasks.compileTestJava { options.encoding = "UTF-8" }
 tasks.test { useJUnitPlatform() }
 tasks.jacocoTestReport { dependsOn(tasks.test) }
-
-// FA³ST dependency needs the following
-configurations.all {
-    resolutionStrategy.eachDependency {
-        if (requested.module.toString() == "com.google.inject:guice") {
-            artifactSelection {
-                selectArtifact(DependencyArtifact.DEFAULT_TYPE, null, null)
-            }
-        }
-        if (requested.module.toString() == "org.yaml:snakeyaml") {
-            artifactSelection {
-                selectArtifact(DependencyArtifact.DEFAULT_TYPE, null, null)
-            }
-        }
-    }
-}

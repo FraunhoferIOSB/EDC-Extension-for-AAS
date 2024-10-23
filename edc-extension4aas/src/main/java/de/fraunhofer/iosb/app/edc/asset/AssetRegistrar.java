@@ -69,7 +69,7 @@ public class AssetRegistrar extends PipelineStep<ChangeSet<Asset, String>, Chang
                 .build();
 
         if (!changeSetIds.toAdd().isEmpty() || !changeSetIds.toRemove().isEmpty()) {
-            monitor.debug("Added %s, removed %s assets".formatted(changeSetIds.toAdd().size(),
+            monitor.info("Added %s, removed %s assets".formatted(changeSetIds.toAdd().size(),
                     changeSetIds.toRemove().size()));
         }
 

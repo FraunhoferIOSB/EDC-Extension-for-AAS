@@ -52,7 +52,8 @@ public class TestUtils {
      * @param port port for FA³ST to use
      * @return AutoCloseable handle on FA³ST service
      */
-    public ServiceHandle startFaaastService(int port) throws ConfigurationException, AssetConnectionException, MessageBusException, EndpointException {
+    public ServiceHandle startFaaastService(int port) throws ConfigurationException, AssetConnectionException,
+            MessageBusException, EndpointException {
         var serviceConfig = new ServiceConfig.Builder()
                 .endpoint(new HttpEndpointConfig.Builder().port(port).build())
                 .persistence(PersistenceInMemoryConfig.builder()

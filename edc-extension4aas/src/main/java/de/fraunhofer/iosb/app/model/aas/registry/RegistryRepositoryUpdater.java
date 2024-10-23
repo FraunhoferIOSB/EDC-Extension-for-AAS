@@ -15,17 +15,17 @@
  */
 package de.fraunhofer.iosb.app.model.aas.registry;
 
-import de.fraunhofer.iosb.app.model.aas.service.Service;
 import de.fraunhofer.iosb.app.pipeline.PipelineResult;
 import de.fraunhofer.iosb.app.pipeline.PipelineStep;
 import de.fraunhofer.iosb.app.util.Pair;
+import de.fraunhofer.iosb.model.aas.registry.Registry;
+import de.fraunhofer.iosb.model.aas.service.Service;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import javax.annotation.Nonnull;
 
 /**
  * Update a registry
@@ -47,13 +47,14 @@ public class RegistryRepositoryUpdater extends PipelineStep<Collection<Registry>
     public PipelineResult<Collection<Pair<Asset, Asset>>> apply(Collection<Registry> registries) {
         Collection<Pair<Asset, Asset>> result = new ArrayList<>();
         registries.forEach(registry -> {
-            var storedEnvironments = Optional.ofNullable(registryRepository.getEnvironments(registry.getAccessUrl())).orElse(List.of());
+            var storedEnvironments =
+                    Optional.ofNullable(registryRepository.getEnvironments(registry.getAccessUrl())).orElse(List.of());
 
             Optional.ofNullable(registry.services())
                     .orElse(List.of())
                     .forEach(service ->
                             result.add(new Pair<>(
-                                    getCorresponding(storedEnvironments, service).environment(),
+                                    getCorresponding(storedEnvironments, service),
                                     service.environment())));
 
             registryRepository.update(registry);
@@ -63,12 +64,13 @@ public class RegistryRepositoryUpdater extends PipelineStep<Collection<Registry>
     }
 
     /*
-        Find service with same accessUrl in a collection of services. If not found, empty service with same URL is returned
+        Find environment of service with same accessUrl in a collection of services. If not found, return null
      */
-    private @Nonnull Service getCorresponding(Collection<Service> services, Service toFind) {
+    private Asset getCorresponding(Collection<Service> services, Service toFind) {
         return services.stream()
                 .filter(toFind::equals)
                 .findFirst()
-                .orElse(new Service(toFind.getAccessUrl()));
+                .map(Service::environment)
+                .orElse(null);
     }
 }

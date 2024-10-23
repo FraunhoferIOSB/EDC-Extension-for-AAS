@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.app.model.aas.service;
+package de.fraunhofer.iosb.model.aas.service;
 
 import de.fraunhofer.iosb.model.aas.AasProvider;
 import de.fraunhofer.iosb.model.aas.auth.AuthenticationMethod;
@@ -21,8 +21,6 @@ import de.fraunhofer.iosb.model.aas.net.AasAccessUrl;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nullable;
-import java.net.MalformedURLException;
 import java.net.URL;
 
 /**
@@ -30,11 +28,10 @@ import java.net.URL;
  */
 public final class Service extends AasProvider {
 
-    public static final String SHELLS_PATH = "%s/shells".formatted(AAS_V3_PREFIX);
-    public static final String SUBMODELS_PATH = "%s/submodels".formatted(AAS_V3_PREFIX);
-    public static final String CONCEPT_DESCRIPTIONS_PATH = "%s/concept-descriptions".formatted(AAS_V3_PREFIX);
+    public static final String SHELLS_PATH = "shells";
+    public static final String SUBMODELS_PATH = "submodels";
+    public static final String CONCEPT_DESCRIPTIONS_PATH = "concept-descriptions";
 
-    @Nullable
     private Asset environment;
 
     /**
@@ -42,7 +39,7 @@ public final class Service extends AasProvider {
      *
      * @param accessUrl URL for accessing the service.
      */
-    public Service(URL accessUrl) {
+    public Service(@NotNull URL accessUrl) {
         super(new AasAccessUrl(accessUrl));
     }
 
@@ -66,7 +63,7 @@ public final class Service extends AasProvider {
         super(provider);
     }
 
-    private Service(AasProvider provider, @Nullable Asset environment) {
+    private Service(AasProvider provider, Asset environment) {
         super(provider);
         this.environment = environment;
     }
@@ -86,22 +83,10 @@ public final class Service extends AasProvider {
         return environment;
     }
 
-    public URL getShellsUrl() throws MalformedURLException {
-        return new URL(getAccessUrl(), SHELLS_PATH);
-    }
-
-    public URL getSubmodelsUrl() throws MalformedURLException {
-        return new URL(getAccessUrl(), SUBMODELS_PATH);
-    }
-
-    public URL getConceptDescriptionsUrl() throws MalformedURLException {
-        return new URL(getAccessUrl(), CONCEPT_DESCRIPTIONS_PATH);
-    }
-
     @Override
     public String toString() {
         return "Service[" +
-                "accessUrl=" + super.getAccessUrl() + ", " +
+                "accessUrl=" + getAccessUrl() + ", " +
                 "environment=" + environment + ']';
     }
 }

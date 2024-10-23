@@ -21,6 +21,7 @@ import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSourceFactory;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.jetbrains.annotations.NotNull;
 
@@ -47,13 +48,27 @@ public class AasDataSourceFactory implements DataSourceFactory {
 
     @Override
     public DataSource createSource(DataFlowStartMessage request) {
-        var dataAddress = AasDataAddress.Builder.newInstance().copyFrom(request.getSourceDataAddress()).build();
+        var dataAddress = AasDataAddress.Builder.newInstance()
+                .copyFrom(request.getSourceDataAddress());
+
+        var destination = request.getDestinationDataAddress();
+        if (isOperationRequest(destination)) {
+            // TODO Currently injecting source DA with destination DA properties
+            // https://faaast-service.readthedocs.io/en/latest/interfaces/endpoint.html#http
+            dataAddress.method("POST")
+                    .operation(AasDataAddress.Builder.newInstance().copyFrom(destination).build().getOperation());
+        }
+
         return AasDataSource.Builder.newInstance()
                 .aasDataProcessorFactory(aasDataProcessorFactory)
                 .monitor(monitor)
                 .requestId(request.getId())
-                .aasDataAddress(dataAddress)
+                .aasDataAddress(dataAddress.build())
                 .build();
+    }
+
+    private boolean isOperationRequest(DataAddress address) {
+        return address.getType().equals(AAS_DATA_TYPE) && address.hasProperty(AasDataAddress.OPERATION);
     }
 
     @Override
@@ -61,7 +76,7 @@ public class AasDataSourceFactory implements DataSourceFactory {
         try (var ignored = createSource(request)) {
             return Result.success();
         } catch (Exception e) {
-            return Result.failure("Failed to build AAS data source: " + e.getMessage());
+            return Result.failure("Failed to validate AAS data source: " + e.getMessage());
         }
     }
 }

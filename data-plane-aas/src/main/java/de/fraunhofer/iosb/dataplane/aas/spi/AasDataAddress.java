@@ -25,16 +25,20 @@ import de.fraunhofer.iosb.util.Encoder;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultReference;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 
 import static de.fraunhofer.iosb.dataplane.aas.pipeline.AasDataSourceFactory.AAS_DATA_TYPE;
-import static java.lang.String.format;
+import static de.fraunhofer.iosb.model.aas.service.Service.CONCEPT_DESCRIPTIONS_PATH;
+import static de.fraunhofer.iosb.model.aas.service.Service.SHELLS_PATH;
+import static de.fraunhofer.iosb.model.aas.service.Service.SUBMODELS_PATH;
+import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toMap;
 
 
@@ -46,8 +50,8 @@ import static java.util.stream.Collectors.toMap;
 @JsonDeserialize(builder = DataAddress.Builder.class)
 public class AasDataAddress extends DataAddress {
 
-    public static final String BASE_URL = "https://w3id.org/edc/v0.0.1/ns/baseUrl";
-
+    // See aas4j operation
+    public static final String OPERATION = "operation";
     private static final String ADDITIONAL_HEADER = "header:";
     private static final String METHOD = "method";
     private static final String PROVIDER = "AAS-Provider";
@@ -59,9 +63,24 @@ public class AasDataAddress extends DataAddress {
         this.setType(AAS_DATA_TYPE);
     }
 
+    public boolean isOperation() {
+        return this.hasProperty(OPERATION);
+    }
+
+    public @Nullable String getOperation() {
+        return isOperation() ? this.getStringProperty(OPERATION) : null;
+    }
+
     @JsonIgnore
-    public String getBaseUrl() {
-        return hasProvider() ? getProvider().getAccessUrl().toString() : getStringProperty(BASE_URL);
+    public Result<URL> getAccessUrl() {
+        if (hasProvider()) {
+            return Result.success(getProvider().getAccessUrl());
+        }
+        return Result.failure("No URL available for this AasDataAddress");
+    }
+
+    private boolean hasProvider() {
+        return getProperties().get(PROVIDER) != null;
     }
 
     private AasProvider getProvider() {
@@ -70,10 +89,6 @@ public class AasDataAddress extends DataAddress {
             return (AasProvider) provider;
         }
         throw new EdcException(new IllegalStateException("Provider not set correctly: %s".formatted(provider)));
-    }
-
-    private boolean hasProvider() {
-        return getProperties().get(PROVIDER) != null;
     }
 
     @JsonIgnore
@@ -99,7 +114,8 @@ public class AasDataAddress extends DataAddress {
      * Example: ReferenceChain: [Submodel x, SubmodelElementCollection y, SubmodelElement z]
      * --> path: submodels/base64(x)/submodel-elements/y.z
      *
-     * @return Explicitly defined path or path correlating to reference chain stored in this DataAddress (no leading '/').
+     * @return Explicitly defined path or path correlating to reference chain stored in this DataAddress (no leading
+     * '/').
      */
     public String getPath() {
         return getStringProperty(PATH, referenceChainAsPath());
@@ -109,38 +125,43 @@ public class AasDataAddress extends DataAddress {
         StringBuilder urlBuilder = new StringBuilder();
 
         for (var key : getReferenceChain().getKeys()) {
+            var value = key.getValue();
+            String[] toAppend = switch (key.getType()) {
+                case ASSET_ADMINISTRATION_SHELL -> new String[]{SHELLS_PATH, b64(value)};
+                case SUBMODEL -> new String[]{SUBMODELS_PATH, b64(value)};
+                case CONCEPT_DESCRIPTION -> new String[]{CONCEPT_DESCRIPTIONS_PATH, b64(value)};
+                case SUBMODEL_ELEMENT, SUBMODEL_ELEMENT_COLLECTION, SUBMODEL_ELEMENT_LIST ->
+                        new String[]{urlBuilder.indexOf("/submodel-elements/") == -1 ?
+                                "/submodel-elements/".concat(value) :
+                                ".".concat(value)};
+                default -> throw new EdcException(new IllegalStateException(
+                        "Element type not recognized: %s".formatted(key)));
+            };
 
-            switch (key.getType()) {
-                case ASSET_ADMINISTRATION_SHELL -> urlBuilder.append("shells/").append(Encoder.encodeBase64(key.getValue()));
-                case SUBMODEL -> urlBuilder.append("submodels/").append(Encoder.encodeBase64(key.getValue()));
-                case CONCEPT_DESCRIPTION -> urlBuilder.append("concept-descriptions/").append(Encoder.encodeBase64(key.getValue()));
-                case SUBMODEL_ELEMENT, SUBMODEL_ELEMENT_COLLECTION, SUBMODEL_ELEMENT_LIST -> {
-                    if (urlBuilder.indexOf("/submodel-elements/") == -1) {
-                        urlBuilder.append("/submodel-elements/");
-                    } else {
-                        urlBuilder.append(".");
-                    }
-                    urlBuilder.append(key.getValue());
-                }
-                default -> throw new EdcException(new IllegalStateException(format("Element type not recognized in AasDataAddress: %s", key.getType())));
-            }
+            urlBuilder.append(String.join("/", toAppend));
         }
 
         return urlBuilder.toString();
     }
 
+    /* For readability */
+    private String b64(String toEncode) {
+        return Encoder.encodeBase64(toEncode);
+    }
+
     private Reference getReferenceChain() {
         var referenceChain = properties.get(REFERENCE_CHAIN);
 
-        if (Objects.isNull(referenceChain)) {
+        if (referenceChain == null) {
             return new DefaultReference();
         }
 
-        if (referenceChain instanceof Reference) {
-            return (Reference) referenceChain;
+        if (referenceChain instanceof Reference reference
+                && reference.getKeys() != null) {
+            return reference;
         }
 
-        throw new EdcException(new IllegalStateException("Something not of type Reference was stored in the property of an AasDataAddress!"));
+        throw new EdcException(new IllegalStateException("Faulty reference chain: %s".formatted(referenceChain)));
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -161,11 +182,6 @@ public class AasDataAddress extends DataAddress {
             return this;
         }
 
-        public Builder baseUrl(String baseUrl) {
-            this.property(BASE_URL, baseUrl);
-            return this;
-        }
-
         public Builder path(String path) {
             this.property(PATH, path);
             return this;
@@ -176,18 +192,23 @@ public class AasDataAddress extends DataAddress {
             return this;
         }
 
-        public Builder referenceChain(Reference referenceChain) {
-            Objects.requireNonNull(referenceChain.getKeys());
+        /*
+            Why not use Operation.class or InputVariable.class/InOutputVariable.class?
+            - Values of any type other than String get removed when sending the DA from
+              consumer to provider (during "compaction" phase when serializing the DA)
+         */
+        public Builder operation(String operation) {
+            this.property(OPERATION, operation);
+            return this;
+        }
 
+        public Builder referenceChain(Reference referenceChain) {
             this.property(REFERENCE_CHAIN, referenceChain);
             return this;
         }
 
         public Builder copyFrom(DataAddress other) {
-            (Optional.ofNullable(other)
-                    .map(DataAddress::getProperties)
-                    .orElse(Collections.emptyMap()))
-                    .forEach(this::property);
+            Optional.ofNullable(other).map(DataAddress::getProperties).orElse(emptyMap()).forEach(this::property);
             return this;
         }
 

@@ -17,9 +17,9 @@ package de.fraunhofer.iosb.app.controller;
 
 import de.fraunhofer.iosb.app.aas.AssetAdministrationShellServiceManager;
 import de.fraunhofer.iosb.app.aas.FaaastServiceManager;
-import de.fraunhofer.iosb.app.model.aas.registry.Registry;
-import de.fraunhofer.iosb.app.model.aas.service.Service;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionChangeListener;
+import de.fraunhofer.iosb.model.aas.registry.Registry;
+import de.fraunhofer.iosb.model.aas.service.Service;
 import de.fraunhofer.iosb.registry.AasServiceRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
 
@@ -101,22 +101,26 @@ public class AasController implements SelfDescriptionChangeListener {
 
     @Override
     public void created(Service service) {
-        serviceRegistry.register(service.getAccessUrl().toString());
+        if (serviceRegistry.acceptSelfSignedCertificates()) {
+            serviceRegistry.register(service.getAccessUrl());
+        }
     }
 
     @Override
     public void created(Registry registry) {
-        serviceRegistry.register(registry.getAccessUrl().toString());
+        if (serviceRegistry.acceptSelfSignedCertificates()) {
+            serviceRegistry.register(registry.getAccessUrl());
+        }
     }
 
     @Override
     public void removed(Service service) {
-        serviceRegistry.unregister(service.getAccessUrl().toString());
+        serviceRegistry.unregister(service.getAccessUrl());
         stopService(service.getAccessUrl());
     }
 
     @Override
     public void removed(Registry registry) {
-        serviceRegistry.unregister(registry.getAccessUrl().toString());
+        serviceRegistry.unregister(registry.getAccessUrl());
     }
 }

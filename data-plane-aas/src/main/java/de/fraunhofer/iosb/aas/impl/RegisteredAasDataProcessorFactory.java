@@ -16,6 +16,7 @@
 package de.fraunhofer.iosb.aas.impl;
 
 import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
+import de.fraunhofer.iosb.model.aas.net.AasAccessUrl;
 import de.fraunhofer.iosb.ssl.SelfSignedCertificateRetriever;
 import dev.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
@@ -30,18 +31,21 @@ import java.util.Set;
 
 public class RegisteredAasDataProcessorFactory extends AasDataProcessorFactory {
 
-    private final Set<String> registeredAasServices;
+    private final Set<AasAccessUrl> registeredAasServices;
 
-    public RegisteredAasDataProcessorFactory(SelfSignedCertificateRetriever retriever, @Nullable Set<String> registeredAasServices, OkHttpClient edcOkHttpClient, RetryPolicy<Response> edcRetryPolicy, Monitor monitor) {
+    public RegisteredAasDataProcessorFactory(SelfSignedCertificateRetriever retriever,
+                                             @Nullable Set<AasAccessUrl> registeredAasServices,
+                                             OkHttpClient edcOkHttpClient, RetryPolicy<Response> edcRetryPolicy,
+                                             Monitor monitor) {
         super(retriever, edcOkHttpClient, edcRetryPolicy, monitor);
         this.registeredAasServices = registeredAasServices;
     }
 
     @Override
-    protected Result<Certificate[]> getCertificates(URL url) {
-        if (registeredAasServices == null ||
-                registeredAasServices.stream().noneMatch(service -> url.toString().startsWith(service))) {
-            return Result.failure("AAS service is not registered and allowing all self-signed certificates is disabled");
+    protected Result<@Nullable Certificate[]> getCertificates(URL url) {
+        if (registeredAasServices == null || !registeredAasServices.contains(new AasAccessUrl(url))) {
+            return Result.failure("AAS service is not registered and allowing all self-signed certificates is " +
+                    "disabled");
         }
 
         return super.retrieveCertificates(url);

@@ -15,9 +15,9 @@
  */
 package de.fraunhofer.iosb.app.util;
 
-import de.fraunhofer.iosb.app.model.aas.registry.Registry;
-import de.fraunhofer.iosb.app.model.aas.service.Service;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionChangeListener;
+import de.fraunhofer.iosb.model.aas.registry.Registry;
+import de.fraunhofer.iosb.model.aas.service.Service;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 

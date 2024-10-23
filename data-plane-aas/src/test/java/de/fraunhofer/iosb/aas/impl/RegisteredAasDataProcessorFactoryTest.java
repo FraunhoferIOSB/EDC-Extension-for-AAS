@@ -20,6 +20,8 @@ import de.fraunhofer.iosb.ilt.faaast.service.assetconnection.AssetConnectionExce
 import de.fraunhofer.iosb.ilt.faaast.service.exception.ConfigurationException;
 import de.fraunhofer.iosb.ilt.faaast.service.exception.EndpointException;
 import de.fraunhofer.iosb.ilt.faaast.service.exception.MessageBusException;
+import de.fraunhofer.iosb.model.aas.net.AasAccessUrl;
+import de.fraunhofer.iosb.model.aas.service.Service;
 import de.fraunhofer.iosb.ssl.impl.DefaultSelfSignedCertificateRetriever;
 import de.fraunhofer.iosb.testutils.TestUtils;
 import dev.failsafe.RetryPolicy;
@@ -28,9 +30,10 @@ import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultReference;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
-import java.util.HashSet;
 import javax.net.ssl.SSLException;
+import java.io.IOException;
+import java.net.URL;
+import java.util.HashSet;
 
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -41,22 +44,22 @@ class RegisteredAasDataProcessorFactoryTest {
 
     @Test
     void testSendRegistered() throws IOException {
-        var registeredServices = new HashSet<String>();
+        var registeredServices = new HashSet<AasAccessUrl>();
         var testSubject = new RegisteredAasDataProcessorFactory(new DefaultSelfSignedCertificateRetriever(),
                 registeredServices, mock(OkHttpClient.class), RetryPolicy.ofDefaults(), new ConsoleMonitor());
 
         var port = getFreePort();
-        var baseUrl = (System.getProperty("os.name").contains("Windows") ?
-                "https://127.0.0.1:%s" : "https://localhost:%s").formatted(port);
+        var baseUrl = new URL((System.getProperty("os.name").contains("Windows") ?
+                "https://127.0.0.1:%s" : "https://localhost:%s").formatted(port));
 
         try (var ignored = new TestUtils().startFaaastService(port)) {
-            registeredServices.add(baseUrl);
+            registeredServices.add(new AasAccessUrl(baseUrl));
             var processor = testSubject.processorFor(baseUrl);
-            var response = processor.getContent().send(getDataAddress(baseUrl)); // processor == null --> Failed
-            // getting self-signed cert
-
-            // This means the HTTP request went through --> no certificate problems etc.
-            assertNotEquals(500, response.code());
+            try (var response = processor.getContent().send(getDataAddress(baseUrl))) {
+                // processor == null --> Failed getting self-signed cert
+                // This means the HTTP request went through --> no certificate problems etc.
+                assertNotEquals(500, response.code());
+            }
         } catch (MessageBusException | EndpointException | ConfigurationException | AssetConnectionException e) {
             fail("Failed starting FA³ST service");
         }
@@ -65,12 +68,12 @@ class RegisteredAasDataProcessorFactoryTest {
     @Test
     void testSendForeign() throws IOException {
         // We trust no service's self-signed certificate
-        var registeredServices = new HashSet<String>();
+        var registeredServices = new HashSet<AasAccessUrl>();
         var testSubject = new RegisteredAasDataProcessorFactory(new DefaultSelfSignedCertificateRetriever(),
                 registeredServices, new OkHttpClient(), RetryPolicy.ofDefaults(), new ConsoleMonitor());
 
         var port = getFreePort();
-        var baseUrl = "https://127.0.0.1:%s".formatted(port);
+        var baseUrl = new URL("https://127.0.0.1:%s".formatted(port));
 
         try (var ignored = new TestUtils().startFaaastService(port)) {
             // If this fails, certificate could not be retrieved from foreignService
@@ -87,9 +90,9 @@ class RegisteredAasDataProcessorFactoryTest {
         }
     }
 
-    private AasDataAddress getDataAddress(String baseUrl) {
+    private AasDataAddress getDataAddress(URL baseUrl) {
         return AasDataAddress.Builder.newInstance()
-                .baseUrl(baseUrl)
+                .aasProvider(new Service(baseUrl))
                 .method("GET")
                 .referenceChain(new DefaultReference())
                 .build();

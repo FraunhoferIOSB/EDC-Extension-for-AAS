@@ -91,6 +91,7 @@ public class ClientExtension implements ServiceExtension {
                 config);
 
         webService.registerResource(policyController);
+        webService.registerResource(transferController);
         webService.registerResource(
                 ClientEndpoint.Builder.newInstance()
                         .monitor(monitor)

@@ -114,12 +114,16 @@ public class DataTransferController {
         }
 
         try {
-            var data = initiateTransferProcess(providerUrl, agreementId, dataAddress);
-            if (dataAddress == null) {
-                return Response.ok(data).build();
-            } else {
+            var dataResult = initiateTransferProcess(providerUrl, agreementId, dataAddress);
+            if (dataAddress != null) {
                 return Response.ok("Data transfer request sent.").build();
             }
+
+            if (dataResult.succeeded()) {
+                return Response.ok(dataResult.getContent()).build();
+            }
+            return Response.status(Response.Status.EXPECTATION_FAILED).entity(dataResult.getFailureDetail()).build();
+
         } catch (InterruptedException | ExecutionException negotiationException) {
             monitor.severe("Data transfer failed for provider %s and agreementId %s".formatted(providerUrl,
                     agreementId), negotiationException);
@@ -149,7 +153,7 @@ public class DataTransferController {
 
         if (dataSinkAddress != null) {
             // Send data to custom target url
-            this.transferInitiator.initiateTransferProcess(providerUrl, agreementId, dataSinkAddress);
+            transferInitiator.initiateTransferProcess(providerUrl, agreementId, dataSinkAddress);
             // Don't have to wait for data
             return StatusResult.success(null);
         }
@@ -157,14 +161,14 @@ public class DataTransferController {
         var apiKey = UUID.randomUUID().toString();
         dataTransferEndpointManager.addTemporaryEndpoint(agreementId, DATA_TRANSFER_API_KEY, apiKey);
 
-        var initiateResult = this.transferInitiator.initiateTransferProcess(providerUrl, agreementId, apiKey);
+        var initiateResult = transferInitiator.initiateTransferProcess(providerUrl, agreementId, apiKey);
 
         return initiateResult.succeeded() ? waitForProviderData(providerDataFuture, agreementId) :
                 StatusResult.failure(initiateResult.getFailure().status(), initiateResult.getFailureDetail());
     }
 
     private StatusResult<String> waitForProviderData(CompletableFuture<String> dataFuture, String agreementId)
-            throws InterruptedException {
+            throws InterruptedException, ExecutionException {
         var waitForTransferTimeout = config.getInteger("waitForTransferTimeout",
                 WAIT_FOR_TRANSFER_TIMEOUT_DEFAULT);
         try {
@@ -172,7 +176,7 @@ public class DataTransferController {
             var providerData = dataFuture.get(waitForTransferTimeout, TimeUnit.SECONDS);
             dataTransferObservable.unregister(agreementId);
             return StatusResult.success(providerData);
-        } catch (TimeoutException | ExecutionException futureException) {
+        } catch (TimeoutException futureException) {
             dataTransferObservable.unregister(agreementId);
 
             var errorMessage = Objects.requireNonNullElse(futureException.getMessage(), "No error message");

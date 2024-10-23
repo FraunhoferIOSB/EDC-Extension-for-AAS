@@ -18,6 +18,8 @@ Compatibility: **Eclipse Dataspace Connector v0.8.1, v0.9.0, v0.9.1**
     * If an external AAS service/registry needs authentication, this can be configured when registering the
       service/registry at the extension
     * example: `{ "type":"basic", "username": "admin", "password": "administrator" }`
+* Allow for AAS operation invokations by clients on provider AAS.
+    * See example in postman collection (in the client directory)
 
 **Bugfixes**
 

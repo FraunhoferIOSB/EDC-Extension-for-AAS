@@ -184,7 +184,7 @@ public class DataTransferController {
      * @throws InterruptedException If the data transfer was interrupted
      * @throws ExecutionException   If the data transfer process failed
      */
-    public StatusResult<String> initiateTransferProcess(URL providerUrl, String agreementId,
+    private StatusResult<String> initiateTransferProcess(URL providerUrl, String agreementId,
                                                         DataAddress dataSinkAddress)
             throws InterruptedException, ExecutionException {
 

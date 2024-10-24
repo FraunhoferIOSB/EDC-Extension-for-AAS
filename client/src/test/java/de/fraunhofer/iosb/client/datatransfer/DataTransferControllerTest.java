@@ -55,7 +55,7 @@ class DataTransferControllerTest {
     private static URL url;
     private static final String agreementId = UUID.randomUUID().toString();
 
-    private TransferProcessManager mockTransferProcessManager = mock(TransferProcessManager.class);
+    private final TransferProcessManager mockTransferProcessManager = mock(TransferProcessManager.class);
 
     @BeforeEach
     public void setup() throws IOException {
@@ -91,15 +91,27 @@ class DataTransferControllerTest {
         testSubject.getData(url, agreementId, dataSinkAddress);
         // Verify that operation is serialized before sending it to provider
         verify(mockTransferProcessManager).initiateConsumerRequest(argThat(request ->
-                operationString.equals(request.getDataDestination().getStringProperty("operation"))));
+                operationString.equals(request.getDataDestination().getStringProperty(OPERATION_FIELD))));
     }
 
-    private static DataAddress getDataAddress(Operation operation) {
+    @Test
+    void test_getData_correctlySerializeNullOperation() {
+        Operation operation = null;
+
+        DataAddress dataSinkAddress = getDataAddress(operation);
+
+        testSubject.getData(url, agreementId, dataSinkAddress);
+        // Verify that operation is serialized before sending it to provider
+        verify(mockTransferProcessManager).initiateConsumerRequest(argThat(request ->
+                null == request.getDataDestination().getProperties().get(OPERATION_FIELD)));
+    }
+
+    private static DataAddress getDataAddress(Object operation) {
         return DataAddress.Builder.newInstance()
                 .type("my-da-type")
                 .property("hello", "world")
                 .property("foo", new Object() {
-                    final String x = "bar";
+                    final String zab = "bar";
                 })
                 .property("baz", 1)
                 .property(OPERATION_FIELD, operation)
@@ -111,7 +123,7 @@ class DataTransferControllerTest {
                 .category("cat")
                 .description(new DefaultLangStringTextType.Builder()
                         .language("en")
-                        .text("helloworld")
+                        .text("hello-world")
                         .build())
                 .inputVariables(new DefaultOperationVariable.Builder()
                         .value(new DefaultProperty.Builder()

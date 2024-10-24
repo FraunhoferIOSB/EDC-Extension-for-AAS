@@ -15,9 +15,6 @@
  */
 package de.fraunhofer.iosb.client;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iosb.client.datatransfer.DataTransferController;
 import de.fraunhofer.iosb.client.negotiation.NegotiationController;
 import de.fraunhofer.iosb.client.policy.PolicyController;
@@ -64,7 +61,6 @@ public class ClientEndpoint {
     private final PolicyController policyController;
     private final DataTransferController transferController;
 
-    private final ObjectMapper nonNullNonEmptyObjectMapper;
 
     private ClientEndpoint(Monitor monitor,
                            NegotiationController negotiationController,
@@ -74,9 +70,6 @@ public class ClientEndpoint {
         this.policyController = policyController;
         this.negotiationController = negotiationController;
         this.transferController = transferController;
-        nonNullNonEmptyObjectMapper = new ObjectMapper()
-                .setSerializationInclusion(JsonInclude.Include.NON_NULL)
-                .setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
     }
 
     /**
@@ -100,21 +93,6 @@ public class ClientEndpoint {
                 assetId.isEmpty()) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(MISSING_QUERY_PARAMETER_MESSAGE.formatted("providerUrl, counterPartyId, assetId")).build();
-        }
-        if (dataAddress != null && dataAddress.getProperties().get("operation") != null) {
-            String operation;
-            try {
-                operation = nonNullNonEmptyObjectMapper.writeValueAsString(dataAddress.getProperties().get("operation"
-                ));
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException(e);
-            }
-
-            dataAddress = DataAddress.Builder.newInstance()
-                    .type(dataAddress.getType())
-                    .properties(dataAddress.getProperties())
-                    .property("operation", operation)
-                    .build();
         }
 
         Result<ContractOffer> contractOfferResult =

@@ -61,23 +61,25 @@ public class AasDataSource implements DataSource {
         Result<URL> accessUrlResult = aasDataAddress.getAccessUrl();
 
         if (accessUrlResult.failed()) {
+            monitor.severe("Failed to open part stream: %s".formatted(accessUrlResult.getFailureDetail()));
             return StreamResult.failure(
                     new StreamFailure(
                             List.of(accessUrlResult.getFailureDetail()),
                             StreamFailure.Reason.GENERAL_ERROR));
         }
 
-        var aasDataProcessor = aasDataProcessorFactory.processorFor(accessUrlResult.getContent());
+        var aasDataProcessorResult = aasDataProcessorFactory.processorFor(accessUrlResult.getContent());
 
-        if (aasDataProcessor.failed()) {
-            return StreamResult.failure(new StreamFailure(aasDataProcessor.getFailureMessages(),
+        if (aasDataProcessorResult.failed()) {
+            monitor.severe("Failed to create aas data processor: %s".formatted(aasDataProcessorResult.getFailureDetail()));
+            return StreamResult.failure(new StreamFailure(aasDataProcessorResult.getFailureMessages(),
                     StreamFailure.Reason.GENERAL_ERROR));
         }
 
         try {
             // NB: Do not close the response as the body input stream needs to be read after this method returns. The
             // response closes the body stream.
-            var response = aasDataProcessor.getContent().send(aasDataAddress);
+            var response = aasDataProcessorResult.getContent().send(aasDataAddress);
 
             if (response.isSuccessful()) {
                 var body = response.body();
@@ -94,8 +96,10 @@ public class AasDataSource implements DataSource {
             } else {
                 try {
                     if (NOT_AUTHORIZED == response.code() || FORBIDDEN == response.code()) {
+                        monitor.severe("Failed to get data from source: %s".formatted(response.code()));
                         return StreamResult.notAuthorized();
                     } else if (NOT_FOUND == response.code()) {
+                        monitor.severe("Failed to get data from source: %s".formatted(response.code()));
                         return StreamResult.notFound();
                     } else {
                         return StreamResult.error(format("Received code transferring AAS data: %s - %s.",
@@ -105,7 +109,7 @@ public class AasDataSource implements DataSource {
                     try {
                         response.close();
                     } catch (Exception e) {
-                        monitor.info("Error closing failed response", e);
+                        monitor.severe("Error closing failed response", e);
                     }
                 }
             }

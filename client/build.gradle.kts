@@ -9,6 +9,7 @@ val rsApi: String by project
 val mockitoVersion: String by project
 val mockserverVersion: String by project
 val jerseyVersion: String by project
+val aas4jVersion: String by project
 
 java {
     toolchain {
@@ -34,6 +35,7 @@ dependencies {
     testImplementation("org.glassfish.jersey.core:jersey-common:$jerseyVersion")
     testImplementation("org.mockito:mockito-core:$mockitoVersion")
     testImplementation("org.mock-server:mockserver-junit-jupiter:$mockserverVersion")
+    testImplementation("org.eclipse.digitaltwin.aas4j:aas4j-model:${aas4jVersion}")
 }
 
 repositories {

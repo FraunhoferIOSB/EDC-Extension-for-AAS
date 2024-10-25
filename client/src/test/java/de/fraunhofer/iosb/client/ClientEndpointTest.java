@@ -57,6 +57,7 @@ import java.util.concurrent.CompletableFuture;
 
 import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static java.lang.String.format;
+import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
@@ -77,7 +78,7 @@ public class ClientEndpointTest {
     @BeforeAll
     public static void initialize() throws IOException {
         monitor = mock(Monitor.class);
-        int port = 8080;
+        int port = getFreePort();
         url = new URL(format("http://localhost:%s", port));
         mockServer = startClientAndServer(port);
         var mockAsset = Asset.Builder.newInstance().id("test-asset").build();

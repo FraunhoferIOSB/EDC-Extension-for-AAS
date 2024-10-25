@@ -15,6 +15,9 @@
  */
 package de.fraunhofer.iosb.client.datatransfer;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iosb.api.PublicApiManagementService;
 import de.fraunhofer.iosb.client.ClientEndpoint;
 import de.fraunhofer.iosb.client.authentication.DataTransferEndpointManager;
@@ -52,6 +55,7 @@ public class DataTransferController {
     static final String TRANSFER_PATH = "transfer";
 
     private static final int WAIT_FOR_TRANSFER_TIMEOUT_DEFAULT = 10;
+    public static final String OPERATION_FIELD = "operation";
 
     private final Config config;
 
@@ -60,6 +64,8 @@ public class DataTransferController {
     private final Monitor monitor;
 
     private final DataTransferEndpointManager dataTransferEndpointManager;
+
+    private final ObjectMapper nonNullNonEmptyObjectMapper;
 
     /**
      * Class constructor
@@ -86,6 +92,9 @@ public class DataTransferController {
         dataTransferEndpointManager = new DataTransferEndpointManager(publicApiManagementService);
         dataTransferObservable = new DataTransferObservable(monitor);
         var dataTransferEndpoint = new DataTransferEndpoint(monitor, dataTransferObservable);
+        nonNullNonEmptyObjectMapper = new ObjectMapper()
+                .setSerializationInclusion(JsonInclude.Include.NON_NULL)
+                .setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
 
         transferProcessObservable.registerListener(dataTransferObservable);
         webService.registerResource(dataTransferEndpoint);
@@ -110,27 +119,57 @@ public class DataTransferController {
         monitor.info("GET /%s".formatted(TRANSFER_PATH));
         if (providerUrl == null || agreementId == null) {
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(MISSING_QUERY_PARAMETER_MESSAGE.formatted("providerUrl, agreementId")).build();
+                    .entity(MISSING_QUERY_PARAMETER_MESSAGE.formatted("providerUrl, agreementId"))
+                    .build();
         }
 
         try {
-            var dataResult = initiateTransferProcess(providerUrl, agreementId, dataAddress);
-            if (dataAddress != null) {
-                return Response.ok("Data transfer request sent.").build();
+            if (dataAddress == null) {
+                var tpResult = initiateTransferProcess(providerUrl, agreementId);
+                return tpResult.succeeded() ? Response.ok().build() :
+                        Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                                .entity(tpResult.getFailureDetail())
+                                .build();
             }
+
+            var op = dataAddress.getProperties().get("operation");
+            if (op != null) {
+                try {
+                    dataAddress = serializeOperation(dataAddress);
+                } catch (JsonProcessingException e) {
+                    // Operation invocation is required by client -> return
+                    return Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).build();
+                }
+            }
+
+            var dataResult = initiateTransferProcess(providerUrl, agreementId, dataAddress);
 
             if (dataResult.succeeded()) {
                 return Response.ok(dataResult.getContent()).build();
             }
             return Response.status(Response.Status.EXPECTATION_FAILED).entity(dataResult.getFailureDetail()).build();
 
-        } catch (InterruptedException | ExecutionException negotiationException) {
+        } catch (InterruptedException | ExecutionException futureException) {
             monitor.severe("Data transfer failed for provider %s and agreementId %s".formatted(providerUrl,
-                    agreementId), negotiationException);
+                    agreementId), futureException);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(negotiationException.getMessage())
+                    .entity(futureException.getMessage())
                     .build();
         }
+    }
+
+    private DataAddress serializeOperation(DataAddress dataAddress) throws JsonProcessingException {
+        String operation = nonNullNonEmptyObjectMapper
+                .writeValueAsString(dataAddress.getProperties().get(OPERATION_FIELD));
+
+        // Rebuild DA with serialized operation
+        dataAddress = DataAddress.Builder.newInstance()
+                .type(dataAddress.getType())
+                .properties(dataAddress.getProperties())
+                .property(OPERATION_FIELD, operation) // This overwrites Operation object with string
+                .build();
+
+        return dataAddress;
     }
 
     /**
@@ -139,24 +178,30 @@ public class DataTransferController {
      *
      * @param providerUrl     The provider from whom the data is to be fetched.
      * @param agreementId     Non-null ContractAgreement of the negotiation process.
-     * @param dataSinkAddress HTTPDataAddress the result of the transfer should be
+     * @param dataSinkAddress DataAddress the result of the transfer should be
      *                        sent to. (If null, send to extension and print in log)
      * @return StatusResult containing error message or data or null on remote destination address
      * @throws InterruptedException If the data transfer was interrupted
      * @throws ExecutionException   If the data transfer process failed
      */
-    public StatusResult<String> initiateTransferProcess(URL providerUrl, String agreementId,
+    private StatusResult<String> initiateTransferProcess(URL providerUrl, String agreementId,
                                                         DataAddress dataSinkAddress)
             throws InterruptedException, ExecutionException {
+
+        if (dataSinkAddress == null) {
+            return initiateTransferProcess(providerUrl, agreementId);
+        }
+
+        transferInitiator.initiateTransferProcess(providerUrl, agreementId, dataSinkAddress);
+        // Don't have to wait for data
+        return StatusResult.success(null);
+    }
+
+    /* Send result of transferProcess to extension endpoint */
+    private StatusResult<String> initiateTransferProcess(URL providerUrl, String agreementId)
+            throws ExecutionException, InterruptedException {
         // Prepare for incoming data
         var providerDataFuture = dataTransferObservable.register(agreementId);
-
-        if (dataSinkAddress != null) {
-            // Send data to custom target url
-            transferInitiator.initiateTransferProcess(providerUrl, agreementId, dataSinkAddress);
-            // Don't have to wait for data
-            return StatusResult.success(null);
-        }
 
         var apiKey = UUID.randomUUID().toString();
         dataTransferEndpointManager.addTemporaryEndpoint(agreementId, DATA_TRANSFER_API_KEY, apiKey);

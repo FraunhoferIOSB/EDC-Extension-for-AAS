@@ -81,10 +81,13 @@ class DataTransferObservable implements TransferProcessListener {
 
     @Override
     public void terminated(TransferProcess transferProcess) {
-        observers.get(transferProcess.getContractId())
-                .completeExceptionally(
-                        new EdcException("Transfer process terminated. Reason: %s"
-                                .formatted(transferProcess.getErrorDetail())));
+        var errorMessage = "Transfer process terminated. Reason: %s".formatted(transferProcess.getErrorDetail());
+        var observer = observers.get(transferProcess.getContractId());
+        if (observer != null) {
+            observer.completeExceptionally(new EdcException(errorMessage));
+        } else {
+            monitor.severe(errorMessage);
+        }
     }
 
 }

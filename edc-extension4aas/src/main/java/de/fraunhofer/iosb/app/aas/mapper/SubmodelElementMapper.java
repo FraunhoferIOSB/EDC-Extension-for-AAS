@@ -16,20 +16,18 @@
 package de.fraunhofer.iosb.app.aas.mapper;
 
 import de.fraunhofer.iosb.model.aas.AasProvider;
+import org.eclipse.digitaltwin.aas4j.v3.model.Operation;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElement;
 import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElementCollection;
 import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElementList;
-import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultEmbeddedDataSpecification;
-import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultReference;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * Not an ElementMapper since we have a different method signature.
@@ -59,18 +57,28 @@ class SubmodelElementMapper {
                 .map(Class::getSimpleName)
                 .orElse("SubmodelElement");
 
+        var additionalProperties = new HashMap<>(Map.of(
+                "modelingType", modelingType,
+                "value", children));
+
+        if (submodelElement.getEmbeddedDataSpecifications() != null) {
+            additionalProperties.put("embeddedDataSpecifications", submodelElement.getEmbeddedDataSpecifications());
+        }
+
+        if (submodelElement.getSemanticId() != null) {
+            additionalProperties.put("semanticId", submodelElement.getSemanticId());
+        }
+
+        if (submodelElement instanceof Operation operation) {
+            additionalProperties.put("inputVariables", operation.getInputVariables());
+            additionalProperties.put("inoutputVariables", operation.getInoutputVariables());
+            additionalProperties.put("outputVariables", operation.getOutputVariables());
+        }
+
         return elementMapper.mapReferableToAssetBuilder(submodelElement)
                 .id(elementMapper.getId(dataAddress))
                 .contentType("application/json")
-                .properties(Map.of(
-                        "embeddedDataSpecifications",
-                        Optional.ofNullable(submodelElement.getEmbeddedDataSpecifications())
-                                .orElse(List.of(new DefaultEmbeddedDataSpecification())),
-                        "semanticId",
-                        Optional.ofNullable(submodelElement.getSemanticId())
-                                .orElse(new DefaultReference()),
-                        "modelingType", modelingType,
-                        "value", children))
+                .properties(additionalProperties)
                 .dataAddress(dataAddress)
                 .build();
     }

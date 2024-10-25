@@ -84,12 +84,19 @@ public class ServiceAgent extends AasAgent<Service, Environment> {
         }
 
         var environment = new DefaultEnvironment.Builder()
-                .assetAdministrationShells(shellsResult.succeeded() ? shellsResult.getContent() : null)
-                .submodels(submodelsResult.succeeded() ? submodelsResult.getContent() : null)
-                .conceptDescriptions(conceptDescResult.succeeded() ? conceptDescResult.getContent() : null)
+                .assetAdministrationShells(shellsResult.succeeded() ? shellsResult.getContent() : List.of())
+                .submodels(submodelsResult.succeeded() ? submodelsResult.getContent() : List.of())
+                .conceptDescriptions(conceptDescResult.succeeded() ? conceptDescResult.getContent() : List.of())
                 .build();
 
         var results = List.of(shellsResult, submodelsResult, conceptDescResult);
+        if (results.stream().allMatch(AbstractResult::failed)) {
+            // If all requests failed, something w/ service is wrong
+            return PipelineResult.failure(PipelineFailure.warning(results.stream()
+                    .map(AbstractResult::getFailureMessages)
+                    .flatMap(List::stream)
+                    .toList()));
+        }
 
         if (results.stream().anyMatch(AbstractResult::failed)) {
             // If any request failed, produce a warning

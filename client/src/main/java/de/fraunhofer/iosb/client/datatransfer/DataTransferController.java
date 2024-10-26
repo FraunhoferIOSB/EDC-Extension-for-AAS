@@ -51,15 +51,13 @@ import static de.fraunhofer.iosb.client.ClientEndpoint.MISSING_QUERY_PARAMETER_M
 @Path(ClientEndpoint.AUTOMATED_PATH)
 public class DataTransferController {
 
+    public static final String OPERATION_FIELD = "operation";
     static final String DATA_TRANSFER_API_KEY = "data-transfer-api-key";
     static final String TRANSFER_PATH = "transfer";
-
     private static final int WAIT_FOR_TRANSFER_TIMEOUT_DEFAULT = 10;
-    public static final String OPERATION_FIELD = "operation";
-
     private final Config config;
 
-    private final DataTransferObservable dataTransferObservable;
+    private final DataTransferObservable<String> dataTransferObservable;
     private final TransferInitiator transferInitiator;
     private final Monitor monitor;
 
@@ -90,7 +88,7 @@ public class DataTransferController {
 
         transferInitiator = new TransferInitiator(monitor, config, hostname, transferProcessManager);
         dataTransferEndpointManager = new DataTransferEndpointManager(publicApiManagementService);
-        dataTransferObservable = new DataTransferObservable(monitor);
+        dataTransferObservable = new DataTransferObservable<>(monitor);
         var dataTransferEndpoint = new DataTransferEndpoint(monitor, dataTransferObservable);
         nonNullNonEmptyObjectMapper = new ObjectMapper()
                 .setSerializationInclusion(JsonInclude.Include.NON_NULL)
@@ -185,7 +183,7 @@ public class DataTransferController {
      * @throws ExecutionException   If the data transfer process failed
      */
     private StatusResult<String> initiateTransferProcess(URL providerUrl, String agreementId,
-                                                        DataAddress dataSinkAddress)
+                                                         DataAddress dataSinkAddress)
             throws InterruptedException, ExecutionException {
 
         if (dataSinkAddress == null) {

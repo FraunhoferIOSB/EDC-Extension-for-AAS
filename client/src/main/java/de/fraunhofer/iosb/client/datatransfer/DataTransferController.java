@@ -126,7 +126,7 @@ public class DataTransferController {
         try {
             if (dataAddress == null) {
                 var tpResult = initiateTransferProcess(providerUrl, agreementId);
-                return tpResult.succeeded() ? Response.ok().build() :
+                return tpResult.succeeded() ? Response.ok(tpResult.getContent()).build() :
                         Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                                 .entity(tpResult.getFailureDetail())
                                 .build();

@@ -2,7 +2,7 @@
 
 ## Current development version
 
-Compatibility: **Eclipse Dataspace Connector v0.8.1, v0.9.0, v0.9.1**
+Compatibility: **Eclipse Dataspace Connector v0.10.0**
 
 **New Features**
 
@@ -18,10 +18,13 @@ Compatibility: **Eclipse Dataspace Connector v0.8.1, v0.9.0, v0.9.1**
     * If an external AAS service/registry needs authentication, this can be configured when registering the
       service/registry at the extension
     * example: `{ "type":"basic", "username": "admin", "password": "administrator" }`
-* Allow for AAS operation invokations by clients on provider AAS.
+* A client can invoke AAS operations on a provider AAS after negotiating a contract with the linked asset
     * See example in postman collection (in the client directory)
 
 **Bugfixes**
+
+* NPE on transfer terminated signal when transfering data to the extension
+* Null-checks in various files
 
 **Miscellaneous**
 
@@ -41,9 +44,18 @@ Compatibility: **Eclipse Dataspace Connector v0.8.1, v0.9.0, v0.9.1**
     * This makes the extension not rely on custom data classes which can be invalidated through an update of AAS or EDC
     * It also makes (de)serialization of AAS environments easier
 * Updated FA³ST to version v1.1.0
-* Updated EDC to version 0.8.1
+* Updated EDC to version v0.10.0
 * Removed custom dependency injection because of transitive dependency issue from FA³ST service
     * This was in `example/build.gradle.kts`
+* Added tests
+* Wrapped some raw return values with Result, StreamResult etc.
+
+## V2.1.2
+
+This version is compatible to **Eclipse Dataspace Connector v0.8.0**
+
+* This version mainly fixed some issues with Windows hostname resolving (127.0.0.1 vs. localhost)
+* Also, a docker-hub deployment was added
 
 ## V2.1.1
 

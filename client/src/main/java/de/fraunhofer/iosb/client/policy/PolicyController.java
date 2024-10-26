@@ -55,7 +55,8 @@ public class PolicyController {
 
     static final String ACCEPTED_POLICIES_PATH = "acceptedPolicies";
     private static final String OFFER_PATH = "offer";
-    private static final String GET_OFFER_FAILED_MESSAGE = "Getting offer from the provider failed. Check connector output for details.";
+    private static final String GET_OFFER_FAILED_MESSAGE = "Getting offer from the provider failed. Check connector " +
+            "output for details.";
 
     private final PolicyDefinitionStore policyDefinitionStore;
     private final PolicyService policyService;
@@ -90,7 +91,8 @@ public class PolicyController {
      */
     @GET
     @Path(OFFER_PATH)
-    public Response getDataset(@QueryParam("providerUrl") URL providerUrl, @QueryParam("assetId") String assetId, @QueryParam("providerId") String counterPartyId) {
+    public Response getDataset(@QueryParam("providerUrl") URL providerUrl, @QueryParam("assetId") String assetId,
+                               @QueryParam("providerId") String counterPartyId) {
         monitor.info("GET /%s".formatted(OFFER_PATH));
         if (Objects.isNull(assetId) || Objects.isNull(providerUrl)) {
             return Response.status(Response.Status.BAD_REQUEST)

@@ -79,6 +79,14 @@ public class RegistryAgent extends AasAgent<Registry, Map<Service, Environment>>
         this.aasServiceRegistry = aasServiceRegistry;
     }
 
+    private static URL convertToUrl(String spec) {
+        try {
+            return new URL(spec);
+        } catch (MalformedURLException e) {
+            return null;
+        }
+    }
+
     @Override
     public PipelineResult<Map<Service, Environment>> apply(@Nonnull Registry registry) {
         try {
@@ -244,14 +252,6 @@ public class RegistryAgent extends AasAgent<Registry, Map<Service, Environment>>
                 .collect(Collectors.toCollection(ArrayList::new)).stream()
                 .sorted(Comparator.comparing(URL::getHost).thenComparingInt(URL::getPort))
                 .toList();
-    }
-
-    private static URL convertToUrl(String spec) {
-        try {
-            return new URL(spec);
-        } catch (MalformedURLException e) {
-            return null;
-        }
     }
 
     private @Nonnull List<String> getEndpointUrls(Collection<Endpoint> endpoints, String identifier) {

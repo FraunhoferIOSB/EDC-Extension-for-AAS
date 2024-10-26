@@ -51,60 +51,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 class DataTransferControllerTest {
-    private DataTransferController testSubject;
-    private static URL url;
     private static final String agreementId = UUID.randomUUID().toString();
-
+    private static URL url;
     private final TransferProcessManager mockTransferProcessManager = mock(TransferProcessManager.class);
-
-    @BeforeEach
-    public void setup() throws IOException {
-        int port = 8080;
-        url = new URL(format("http://localhost:%s", port));
-        testSubject = new DataTransferController(
-                new ConsoleMonitor().withPrefix("DataTransferControllerTest"),
-                mockConfig(),
-                mock(WebService.class),
-                mock(PublicApiManagementService.class),
-                mockTransferProcessManager,
-                mock(TransferProcessObservable.class),
-                () -> "localhost");
-    }
-
-    private Config mockConfig() {
-        return ConfigFactory.fromMap(
-                Map.of(
-                        "edc.dsp.callback.address", "http://localhost:4321/dsp",
-                        "web.http.port", "8080",
-                        "web.http.path", "/api"));
-    }
-
-    @Test
-    void test_getData_correctlySerializeOperation() throws JsonProcessingException {
-        Operation operation = getOperation();
-        var nnneObjectMapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL)
-                .setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
-
-        var operationString = nnneObjectMapper.writeValueAsString(operation);
-        DataAddress dataSinkAddress = getDataAddress(operation);
-
-        testSubject.getData(url, agreementId, dataSinkAddress);
-        // Verify that operation is serialized before sending it to provider
-        verify(mockTransferProcessManager).initiateConsumerRequest(argThat(request ->
-                operationString.equals(request.getDataDestination().getStringProperty(OPERATION_FIELD))));
-    }
-
-    @Test
-    void test_getData_correctlySerializeNullOperation() {
-        Operation operation = null;
-
-        DataAddress dataSinkAddress = getDataAddress(operation);
-
-        testSubject.getData(url, agreementId, dataSinkAddress);
-        // Verify that operation is serialized before sending it to provider
-        verify(mockTransferProcessManager).initiateConsumerRequest(argThat(request ->
-                null == request.getDataDestination().getProperties().get(OPERATION_FIELD)));
-    }
+    private DataTransferController testSubject;
 
     private static DataAddress getDataAddress(Object operation) {
         return DataAddress.Builder.newInstance()
@@ -154,6 +104,55 @@ class DataTransferControllerTest {
                                 .build()
                 ))
                 .build();
+    }
+
+    @BeforeEach
+    public void setup() throws IOException {
+        int port = 8080;
+        url = new URL(format("http://localhost:%s", port));
+        testSubject = new DataTransferController(
+                new ConsoleMonitor().withPrefix("DataTransferControllerTest"),
+                mockConfig(),
+                mock(WebService.class),
+                mock(PublicApiManagementService.class),
+                mockTransferProcessManager,
+                mock(TransferProcessObservable.class),
+                () -> "localhost");
+    }
+
+    private Config mockConfig() {
+        return ConfigFactory.fromMap(
+                Map.of(
+                        "edc.dsp.callback.address", "http://localhost:4321/dsp",
+                        "web.http.port", "8080",
+                        "web.http.path", "/api"));
+    }
+
+    @Test
+    void test_getData_correctlySerializeOperation() throws JsonProcessingException {
+        Operation operation = getOperation();
+        var nnneObjectMapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL)
+                .setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
+
+        var operationString = nnneObjectMapper.writeValueAsString(operation);
+        DataAddress dataSinkAddress = getDataAddress(operation);
+
+        testSubject.getData(url, agreementId, dataSinkAddress);
+        // Verify that operation is serialized before sending it to provider
+        verify(mockTransferProcessManager).initiateConsumerRequest(argThat(request ->
+                operationString.equals(request.getDataDestination().getStringProperty(OPERATION_FIELD))));
+    }
+
+    @Test
+    void test_getData_correctlySerializeNullOperation() {
+        Operation operation = null;
+
+        DataAddress dataSinkAddress = getDataAddress(operation);
+
+        testSubject.getData(url, agreementId, dataSinkAddress);
+        // Verify that operation is serialized before sending it to provider
+        verify(mockTransferProcessManager).initiateConsumerRequest(argThat(request ->
+                null == request.getDataDestination().getProperties().get(OPERATION_FIELD)));
     }
 
     @Test

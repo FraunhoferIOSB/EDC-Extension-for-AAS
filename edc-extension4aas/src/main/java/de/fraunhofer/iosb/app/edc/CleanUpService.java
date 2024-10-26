@@ -28,7 +28,6 @@ import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
-import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.util.List;
@@ -110,8 +109,7 @@ public class CleanUpService implements SelfDescriptionChangeListener {
         }
 
         public CleanUpService build() {
-            monitor = Objects.requireNonNullElseGet(monitor,
-                    () -> new ConsoleMonitor(this.getClass().getName(), ConsoleMonitor.Level.INFO));
+            Objects.requireNonNull(monitor);
 
             var pipeline = new Pipeline.Builder<Asset, ChangeSet<Asset, String>>()
                     .initialStep(PipelineStep.create(asset -> new ChangeSet.Builder<Asset, String>()

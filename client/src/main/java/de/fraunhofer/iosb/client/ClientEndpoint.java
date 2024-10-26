@@ -49,12 +49,10 @@ public class ClientEndpoint {
      * Root path for the client
      */
     public static final String AUTOMATED_PATH = "automated";
-    private static final String NEGOTIATE_CONTRACT_PATH = "negotiateContract";
-    private static final String NEGOTIATE_PATH = "negotiate";
-
     public static final String MISSING_QUERY_PARAMETER_MESSAGE = "Missing query parameter. Required parameters: %s";
     public static final String MISSING_REQUEST_BODY_MESSAGE = "Missing request body of type %s";
-
+    private static final String NEGOTIATE_CONTRACT_PATH = "negotiateContract";
+    private static final String NEGOTIATE_PATH = "negotiate";
     private final Monitor monitor;
 
     private final NegotiationController negotiationController;

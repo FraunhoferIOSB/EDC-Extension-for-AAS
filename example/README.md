@@ -6,13 +6,13 @@ provider of an AAS model and the second connector is an example consumer which w
 The example has the following structure:
 
 - `configurations`: contains configuration files for the provider and consumer connector
-- `resources`: contains two example AAS files ('demoAAS.json' and 'FestoDemoAAS.json') and an example config file
-  ('exampleConfig.json') for the used AAS service. Additionally, there is a postman collection which can be used for
-  requesting the consumer connector.
+- `resources`: contains two example AAS files ('aas_v3_example_full_aas4j.json' and 'aas_model_v3.aasx') and an example
+  config file ('exampleConfig.json') for the used AAS service (FA³ST). Additionally, there is a postman collection which
+  can be used for requesting the consumer connector. Lastly, there is a JSON with accepted contract offers for the
+  client connector and a keystore for HTTPS use-cases
 - `build.gradle.kts`: build file for an EDC with the edc-extension4aas. Can be used as a launcher for a ready to use
   EDC. _Connectors can be started using the concept of "launchers", which are essentially compositions of Java modules
-  defined as gradle build
-  files._ - [EDC readme](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector#run-your-first-connector).
+  defined as gradle build files._ - [EDC readme](https://github.com/eclipse-edc/Connector?tab=readme-ov-file#launchers).
 - `dataspaceconnector-configuration.properties`: Debugging and quick testing of changes via `./gradlew run --debug-jvm`
   command
 - `docker-compose.yml`, `Dockerfile`: Docker files
@@ -46,7 +46,7 @@ You can directly start a provider and consumer EDC with the AAS extension built-
 1. Go to example folder: `cd example`
 2. `docker compose up` (Alternatively: `docker-compose up`)
 
-If you prefer to built a docker image, it can be built after building the extension as seen above:
+If you prefer to build a docker image, it can be built after building the extension as seen above:
 
 1. Go to example folder: `cd example`
 2. Create docker image: `docker build -t edc-extension4aas:latest .`
@@ -131,12 +131,11 @@ following steps:
 
 ```json
 {
-  "id": "941234968", <-- use this
-  "properties": {
-    "semanticId": [...],
-    "idShort": "Type",
-    "description": [...],
-    "https://w3id.org/edc/v0.0.1/ns/id": "941234968",
+  "id": "1987065423",
+  "properties": {"some":"properties"},
+    "idShort": "ExampleProperty",
+    "description": [{"some":"descriptions"}],
+    "https://w3id.org/edc/v0.0.1/ns/id": "1987065423",
     "https://w3id.org/edc/v0.0.1/ns/contenttype": "application/json"
 }
 ```

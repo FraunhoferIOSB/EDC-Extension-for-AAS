@@ -110,8 +110,7 @@ public class CleanUpService implements SelfDescriptionChangeListener {
         }
 
         public CleanUpService build() {
-            monitor = Objects.requireNonNullElseGet(monitor,
-                    () -> new ConsoleMonitor(this.getClass().getName(), ConsoleMonitor.Level.INFO));
+            Objects.requireNonNull(monitor);
 
             var pipeline = new Pipeline.Builder<Asset, ChangeSet<Asset, String>>()
                     .initialStep(PipelineStep.create(asset -> new ChangeSet.Builder<Asset, String>()

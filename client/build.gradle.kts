@@ -29,7 +29,6 @@ dependencies {
     implementation("$group:data-plane-http-spi:$edcVersion") // EDC HttpDataAddress
     implementation("$group:dsp-catalog-http-dispatcher:$edcVersion") // DSP HTTP constant
     implementation("$group:json-ld-lib:$edcVersion") // JsonLD expansion
-    implementation("$group:management-api:$edcVersion") // EDC WebService for registering endpoints
 
     testImplementation("$group:junit:$edcVersion")
     testImplementation("org.glassfish.jersey.core:jersey-common:$jerseyVersion")

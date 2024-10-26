@@ -21,6 +21,7 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -30,11 +31,11 @@ import static java.lang.String.format;
  * Gets notified about incoming data by a provider connector.
  * Also notified by the transfer process observable regarding termination of transfer processes
  */
-class DataTransferObservable implements TransferProcessListener {
+class DataTransferObservable<T> implements TransferProcessListener {
 
     private final Monitor monitor;
 
-    private final Map<String, CompletableFuture<String>> observers;
+    private final Map<String, CompletableFuture<T>> observers;
 
     DataTransferObservable(Monitor monitor) {
         this.monitor = monitor;
@@ -45,9 +46,9 @@ class DataTransferObservable implements TransferProcessListener {
      * Register a future that should complete if a data transfer is finished.
      *
      * @param agreementId The agreement ID this future is dependent on.
-     * @return Object containing data in case of transfer.
+     * @return Future containing data in case of transfer.
      */
-    CompletableFuture<String> register(String agreementId) {
+    CompletableFuture<T> register(String agreementId) {
         observers.put(agreementId, new CompletableFuture<>());
         return observers.get(agreementId);
     }
@@ -68,7 +69,7 @@ class DataTransferObservable implements TransferProcessListener {
      * @param agreementId The agreementId coming with a provider's data transfer
      * @param data        Any data by a provider connector
      */
-    void update(String agreementId, String data) {
+    void update(String agreementId, T data) {
         if (!observers.containsKey(agreementId)) {
             monitor.warning(format(
                     "A POST request to the client's data transfer endpoint with an unknown agreementID was caught. " +
@@ -81,10 +82,9 @@ class DataTransferObservable implements TransferProcessListener {
 
     @Override
     public void terminated(TransferProcess transferProcess) {
-        observers.get(transferProcess.getContractId())
-                .completeExceptionally(
-                        new EdcException("Transfer process terminated. Reason: %s"
-                                .formatted(transferProcess.getErrorDetail())));
+        var errorMessage = "Transfer process terminated. Reason: %s".formatted(transferProcess.getErrorDetail());
+        Optional.ofNullable(observers.get(transferProcess.getContractId()))
+                .ifPresentOrElse(observer -> observer.completeExceptionally(new EdcException(errorMessage)),
+                        () -> monitor.severe(errorMessage));
     }
-
 }

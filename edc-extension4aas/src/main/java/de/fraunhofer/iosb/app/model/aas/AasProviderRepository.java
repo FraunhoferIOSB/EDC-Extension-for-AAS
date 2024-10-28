@@ -21,10 +21,10 @@ import org.eclipse.edc.spi.observe.ObservableImpl;
 
 import java.net.URL;
 import java.util.Collection;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.HashSet;
 
 public abstract class AasProviderRepository<T extends AasProvider> extends ObservableImpl<SelfDescriptionChangeListener> {
-    private final Collection<T> content = new ConcurrentLinkedQueue<>();
+    private final Collection<T> content = new HashSet<>();
 
     /**
      * Returns the contents of this repository.

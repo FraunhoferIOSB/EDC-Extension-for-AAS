@@ -61,6 +61,7 @@ public abstract class AasAgent<T extends AasProvider, U> extends PipelineStep<T,
         var responseResult = executeRequest(processor, dataAddress);
 
         if (responseResult.failed()) {
+            responseResult.getContent().close();
             return Result.failure("Reading %s from %s failed: %s"
                     .formatted(clazz.getName(), path, responseResult.getFailureDetail()));
         }
@@ -76,8 +77,8 @@ public abstract class AasAgent<T extends AasProvider, U> extends PipelineStep<T,
     }
 
     private Result<Response> executeRequest(AasDataProcessor processor, AasDataAddress dataAddress) {
-        try {
-            return Result.success(processor.send(dataAddress));
+        try(var response = processor.send(dataAddress)) {
+            return Result.success(response);
         } catch (IOException httpIOException) {
             return Result.failure(List.of(httpIOException.getClass().getSimpleName(), httpIOException.getMessage()));
         }

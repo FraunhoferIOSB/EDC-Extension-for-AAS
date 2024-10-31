@@ -54,7 +54,7 @@ public class VariableRateScheduler extends ScheduledThreadPoolExecutor implement
     public void scheduleAtVariableRate(Supplier<Integer> rateSupplier) {
         schedule(() -> {
             try {
-                runnable.run();
+                runRunnable();
             } catch (Exception e) {
                 monitor.severe("VariableRateScheduler stopped execution.", e);
                 throw new EdcException(e);
@@ -63,13 +63,17 @@ public class VariableRateScheduler extends ScheduledThreadPoolExecutor implement
         }, (long) rateSupplier.get(), TimeUnit.SECONDS);
     }
 
-    @Override
-    public void created(Registry registry) {
+    private synchronized void runRunnable() {
         runnable.run();
     }
 
     @Override
+    public void created(Registry registry) {
+        runRunnable();
+    }
+
+    @Override
     public void created(Service service) {
-        runnable.run();
+        runRunnable();
     }
 }

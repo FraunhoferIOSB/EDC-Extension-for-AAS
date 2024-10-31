@@ -191,8 +191,8 @@ public class AasExtension implements ServiceExtension {
                     configInstance.getLocalAasServicePort(),
                     aasConfigPath);
         } catch (Exception startAssetAdministrationShellException) {
-            monitor.severe("Could not start AAS service provided by configuration",
-                    startAssetAdministrationShellException);
+            monitor.severe("Could not start / register AAS service provided by configuration.\nReason: %s"
+                    .formatted(startAssetAdministrationShellException.getMessage()));
             return;
         }
 

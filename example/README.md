@@ -57,7 +57,8 @@ If you prefer to build a docker image, it can be built after building the extens
 This docker image can be run individually or **from the docker-compose file**.
 
 When using Docker, the pre-defined variables in the Postman Collection for the provider should be changed from "
-localhost" to "provider", i.e. http://provider:8282/dsp instead of http://localhost:8282/dsp
+localhost" to the name of the containers "provider", i.e. http://provider:8282/dsp instead of http://localhost:8282/dsp
+Docker occasionally renames the containers to "example-provider-1" and "example-consumer-1".
 
 Additionally, new AASX or JSON model files should be placed in the resources folder beforehand, since the docker
 container does not have access to your local files.
@@ -158,7 +159,7 @@ __Important__:
 
 1. Execute the request `Client/Automated Negotiation`. The consumer connector will now try to negotiate a contract with
    the provider to get the data of the selected asset. Optionally, you can provide a target address via the request
-   body. This must be a JSON representation of an EDC DataAddress like for example an AasDataAddress:
+   body, where the data should be sent. If you just want to view the data, change the request body to "none". This must be a JSON representation of an EDC DataAddress like for example an AasDataAddress:
     ```json
     {
        "type": "AasData",
@@ -172,7 +173,7 @@ __Important__:
        }
     }
     ```
-
+    The above request body will PATCH the data into a running AAS at the consumer side.
 2. If everything went right, the response should already be the data behind the `asset id` you selected (in case of
    DataAddress, the data should be at the target address).
 

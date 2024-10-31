@@ -22,7 +22,6 @@ import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
 import de.fraunhofer.iosb.app.pipeline.PipelineStep;
 import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
 import de.fraunhofer.iosb.model.aas.AasProvider;
-import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.DeserializationException;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.json.JsonDeserializer;
@@ -58,29 +57,19 @@ public abstract class AasAgent<T extends AasProvider, U> extends PipelineStep<T,
                 .path(path)
                 .build();
 
-        var responseResult = executeRequest(processor, dataAddress);
+        try (var response = processor.send(dataAddress)) {
 
-        if (responseResult.failed()) {
-            responseResult.getContent().close();
-            return Result.failure("Reading %s from %s failed: %s"
-                    .formatted(clazz.getName(), path, responseResult.getFailureDetail()));
-        }
+            if (response.isSuccessful() && response.body() != null) {
+                return readList(response.body(), clazz);
+            }
 
-        var response = responseResult.getContent();
+            return Result.failure("Reading %s from %s failed: %s, %s"
+                    .formatted(clazz.getSimpleName(), path, response.code(), response.message()));
 
-        if (response.isSuccessful() && response.body() != null) {
-            return readList(response.body(), clazz);
-        }
-
-        return Result.failure("Reading %s from %s failed: %s, %s"
-                .formatted(clazz.getSimpleName(), path, response.code(), response.message()));
-    }
-
-    private Result<Response> executeRequest(AasDataProcessor processor, AasDataAddress dataAddress) {
-        try(var response = processor.send(dataAddress)) {
-            return Result.success(response);
         } catch (IOException httpIOException) {
-            return Result.failure(List.of(httpIOException.getClass().getSimpleName(), httpIOException.getMessage()));
+            return Result.failure("Reading %s from %s failed: %s %s"
+                    .formatted(clazz.getName(), path, httpIOException.getClass().getSimpleName(),
+                            httpIOException.getMessage()));
         }
     }
 

@@ -29,6 +29,8 @@ import java.net.URL;
 import java.security.cert.Certificate;
 import java.util.Set;
 
+import static de.fraunhofer.iosb.ssl.impl.DefaultSelfSignedCertificateRetriever.isTrusted;
+
 public class RegisteredAasDataProcessorFactory extends AasDataProcessorFactory {
 
     private final Set<AasAccessUrl> registeredAasServices;
@@ -43,6 +45,10 @@ public class RegisteredAasDataProcessorFactory extends AasDataProcessorFactory {
 
     @Override
     protected Result<@Nullable Certificate[]> getCertificates(URL url) {
+        if (isTrusted(url) || "http".equalsIgnoreCase(url.getProtocol())) {
+            return Result.success(null);
+        }
+
         if (registeredAasServices == null || !registeredAasServices.contains(new AasAccessUrl(url))) {
             return Result.failure("AAS service is not registered and allowing all self-signed certificates is " +
                     "disabled");

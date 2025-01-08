@@ -57,8 +57,9 @@ If you prefer to build a docker image, it can be built after building the extens
 This docker image can be run individually or **from the docker-compose file**.
 
 When using Docker, the pre-defined variables in the Postman Collection for the provider should be changed from "
-localhost" to the name of the containers "provider", i.e. http://provider:8282/dsp instead of http://localhost:8282/dsp
+localhost" to the name of the containers "provider", i.e. http://provider:8282/dsp instead of http://localhost:8282/dsp whenever the consumer container wants to access the provider container. This is already reflected in the consumer call "Docker Automated Negotation", which should work out of the box in our example docker compose setup.
 Docker occasionally renames the containers to "example-provider-1" and "example-consumer-1".
+When a docker container wants to access AAS Services on the host, the URL "host.docker.internal" should be used instead of the IP or localhost.
 
 Additionally, new AASX or JSON model files should be placed in the resources folder beforehand, since the docker
 container does not have access to your local files.
@@ -203,7 +204,7 @@ communicating with another connector, so data transfer will not be possible.
 ## Debugging the extension
 
 With the gradle goal `run` and the additional flag `--debug-jvm`, the extension can be debugged while running within the
-example launcher (or any other launcher). A configuration file can be provided by creating a file named
+example launcher (or any other launcher). In IntelliJ IDEA, the debug jvm flag can be ommited. The built-in gradle can be used to directly attach to the process. A configuration file can be provided by creating a file named
 _dataspaceconnector-configuration.properties_ in the same folder as the _build.gradle.kts_ file of the launcher (e.g.,
 _./example/dataspaceconnector-configuration.properties_). After executing the gradle run goal, attach to the debugger
 with your IDE. The following snippet is an example _launch.json_ file to attach to a debugger in vscode running on port

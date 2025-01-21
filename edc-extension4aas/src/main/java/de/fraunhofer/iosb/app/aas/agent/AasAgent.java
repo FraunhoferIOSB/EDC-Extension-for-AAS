@@ -24,6 +24,7 @@ import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
 import de.fraunhofer.iosb.model.aas.AasProvider;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.DeserializationException;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.json.JsonDeserializer;
 import org.eclipse.edc.spi.result.Result;
@@ -97,7 +98,7 @@ public abstract class AasAgent<T extends AasProvider, U> extends PipelineStep<T,
             return Result.success(Optional.ofNullable(jsonDeserializer.readList(responseJson, clazz))
                     .orElse(new ArrayList<>()));
         } catch (JsonProcessingException | DeserializationException e) {
-            return Result.failure(List.of("Failed parsing list of %s".formatted(clazz.getName()), e.getMessage()));
+            return Result.failure(List.of("Failed parsing list of %s".formatted(clazz.getName()), e.getMessage(), ExceptionUtils.getRootCauseMessage(e)));
         }
     }
 }

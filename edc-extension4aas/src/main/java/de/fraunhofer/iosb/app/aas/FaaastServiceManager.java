@@ -141,7 +141,7 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
 
         try {
             service.start();
-        } catch (MessageBusException | EndpointException faaastServiceException) {
+        } catch (Exception faaastServiceException) {
             throw new EdcException(GENERIC_EXCEPTION_MESSAGE, faaastServiceException);
         }
         return service;

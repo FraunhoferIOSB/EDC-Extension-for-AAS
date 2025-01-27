@@ -11,22 +11,22 @@
 plugins {
     `java-library`
     id("application")
-    id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("io.github.goooler.shadow") version "8.1.8"
 }
 
 val edcVersion: String by project
-val shaded by configurations.creating
 
 dependencies {
     // ---- CONTROL PLANE ----
     implementation("$group:control-plane-core:$edcVersion")
-    implementation(project(":edc-extension4aas"))
+    implementation(project(":edc-extension4aas", "shadow"))
     implementation(project(":client"))
     // Communicate status of a transfer process w/ consumer
     implementation("$group:control-plane-api:$edcVersion")
     implementation("$group:control-plane-api-client:$edcVersion")
     implementation("$group:dsp:$edcVersion") // DSP protocol for negotiation and transfer
-    shaded("$group:http:$edcVersion")// WebService
+    implementation("$group:http:$edcVersion")// WebService
+
     // Identity and access management MOCK -> only for testing
     implementation("$group:iam-mock:$edcVersion")
     // X-Api-Key authentication
@@ -50,13 +50,12 @@ application {
     mainClass.set("org.eclipse.edc.boot.system.runtime.BaseRuntime")
 }
 
-tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
+tasks.shadowJar {
     isZip64 = true
     exclude("**/pom.properties", "**/pom.xm")
     mergeServiceFiles()
     archiveFileName.set("dataspace-connector.jar")
-    configurations = listOf(shaded)
-    relocate("org.eclipse.jetty", "shaded.org.eclipse.jetty")
+    from(project.configurations.runtimeClasspath.get().map { if (it.isDirectory) it else project.zipTree(it) })
 }
 
 repositories {

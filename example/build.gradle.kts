@@ -15,6 +15,7 @@ plugins {
 }
 
 val edcVersion: String by project
+val shaded by configurations.creating
 
 dependencies {
     // ---- CONTROL PLANE ----
@@ -25,7 +26,7 @@ dependencies {
     implementation("$group:control-plane-api:$edcVersion")
     implementation("$group:control-plane-api-client:$edcVersion")
     implementation("$group:dsp:$edcVersion") // DSP protocol for negotiation and transfer
-    implementation("$group:http:$edcVersion") // WebService
+    shaded("$group:http:$edcVersion")// WebService
     // Identity and access management MOCK -> only for testing
     implementation("$group:iam-mock:$edcVersion")
     // X-Api-Key authentication
@@ -54,6 +55,8 @@ tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
     exclude("**/pom.properties", "**/pom.xm")
     mergeServiceFiles()
     archiveFileName.set("dataspace-connector.jar")
+    configurations = listOf(shaded)
+    relocate("org.eclipse.jetty", "shaded.org.eclipse.jetty")
 }
 
 repositories {

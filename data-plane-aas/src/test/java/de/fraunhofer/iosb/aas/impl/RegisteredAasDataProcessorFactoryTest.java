@@ -20,7 +20,6 @@ import de.fraunhofer.iosb.ilt.faaast.service.assetconnection.AssetConnectionExce
 import de.fraunhofer.iosb.ilt.faaast.service.exception.ConfigurationException;
 import de.fraunhofer.iosb.ilt.faaast.service.exception.EndpointException;
 import de.fraunhofer.iosb.ilt.faaast.service.exception.MessageBusException;
-import de.fraunhofer.iosb.ilt.faaast.service.model.exception.PersistenceException;
 import de.fraunhofer.iosb.model.aas.net.AasAccessUrl;
 import de.fraunhofer.iosb.model.aas.service.Service;
 import de.fraunhofer.iosb.ssl.impl.DefaultSelfSignedCertificateRetriever;
@@ -61,8 +60,7 @@ class RegisteredAasDataProcessorFactoryTest {
                 // This means the HTTP request went through --> no certificate problems etc.
                 assertNotEquals(500, response.code());
             }
-        } catch (MessageBusException | EndpointException | ConfigurationException | AssetConnectionException |
-                 PersistenceException e) {
+        } catch (MessageBusException | EndpointException | ConfigurationException | AssetConnectionException e) {
             fail("Failed starting FA³ST service");
         }
     }
@@ -87,8 +85,7 @@ class RegisteredAasDataProcessorFactoryTest {
                     "certificates.");
         } catch (SSLException sslException) {
             // self-signed
-        } catch (MessageBusException | EndpointException | ConfigurationException | AssetConnectionException |
-                 PersistenceException e) {
+        } catch (MessageBusException | EndpointException | ConfigurationException | AssetConnectionException e) {
             fail("Failed starting FA³ST service");
         }
     }

@@ -26,6 +26,7 @@ dependencies {
     implementation("$group:control-plane-api-client:$edcVersion")
     implementation("$group:dsp:$edcVersion") // DSP protocol for negotiation and transfer
     implementation("$group:http:$edcVersion")// WebService
+    implementation("$group:management-api-configuration:$edcVersion")// management-api-configuration
 
     // Identity and access management MOCK -> only for testing
     implementation("$group:iam-mock:$edcVersion")

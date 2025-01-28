@@ -24,7 +24,7 @@ First, the extension and the connector is built via the following command:
 
 ```sh
 cd /EDC-Extension-for-AAS
-./gradlew clean build
+./gradlew shadowJar
 ```
 
 The following command starts an EDC connector with the _EDC AAS Extension_ with a configuration file:
@@ -106,7 +106,7 @@ Build the EDC with the extensions.
 
 ```sh
 cd /EDC-Extension-for-AAS
-./gradlew clean build
+./gradlew shadowJar
 ```
 
 Start the provider connector:

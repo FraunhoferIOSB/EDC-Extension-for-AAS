@@ -44,7 +44,7 @@ jobs:
       - name: Extract version from Gradle
         id: get_version
         run: |
-          VERSION=$(./gradlew -q printVersion)
+          VERSION=$(./gradlew properties -q | grep "^version:" | awk '{print $2}')
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           
       - name: Build and push docker image - extension

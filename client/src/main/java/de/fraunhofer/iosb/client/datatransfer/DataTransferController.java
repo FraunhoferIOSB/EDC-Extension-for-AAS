@@ -115,6 +115,8 @@ public class DataTransferController {
                             @QueryParam("agreementId") String agreementId,
                             DataAddress dataAddress) {
         monitor.info("GET /%s".formatted(TRANSFER_PATH));
+        monitor.debug("providerUrl = " + providerUrl.toString());
+        monitor.debug("agreementId: " + agreementId);
         if (providerUrl == null || agreementId == null) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(MISSING_QUERY_PARAMETER_MESSAGE.formatted("providerUrl, agreementId"))
@@ -185,7 +187,6 @@ public class DataTransferController {
     private StatusResult<String> initiateTransferProcess(URL providerUrl, String agreementId,
                                                          DataAddress dataSinkAddress)
             throws InterruptedException, ExecutionException {
-
         if (dataSinkAddress == null) {
             return initiateTransferProcess(providerUrl, agreementId);
         }

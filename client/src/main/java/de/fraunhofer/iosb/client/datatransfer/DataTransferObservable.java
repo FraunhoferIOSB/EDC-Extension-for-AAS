@@ -49,6 +49,7 @@ class DataTransferObservable<T> implements TransferProcessListener {
      * @return Future containing data in case of transfer.
      */
     CompletableFuture<T> register(String agreementId) {
+        monitor.debug("Registering new observer for agreementId: " + agreementId);
         observers.put(agreementId, new CompletableFuture<>());
         return observers.get(agreementId);
     }
@@ -70,13 +71,16 @@ class DataTransferObservable<T> implements TransferProcessListener {
      * @param data        Any data by a provider connector
      */
     void update(String agreementId, T data) {
-        /*if (!observers.containsKey(agreementId)) {
+        monitor.debug("agreementID: " + agreementId);
+        monitor.debug("data: " + data);
+        monitor.debug(observers.keySet().toString());
+        if (!observers.containsKey(agreementId)) {
             monitor.warning(format(
                     "A POST request to the client's data transfer endpoint with an unknown agreementID was caught. " +
                             "AgreementID: %s",
                     agreementId));
             return;
-        }*/
+        }
         observers.get(agreementId).complete(data);
     }
 

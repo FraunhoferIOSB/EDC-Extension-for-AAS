@@ -52,6 +52,7 @@ public class AasDataSourceFactory implements DataSourceFactory {
                 .copyFrom(request.getSourceDataAddress());
 
         var destination = request.getDestinationDataAddress();
+        monitor.debug("destination: " + destination.toString());
         if (isOperationRequest(destination)) {
             // TODO Currently injecting source DA with destination DA properties
             // https://faaast-service.readthedocs.io/en/latest/interfaces/endpoint.html#http

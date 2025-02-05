@@ -37,7 +37,7 @@ public class PolicyServiceConfigTest {
     @Test
     public void getWaitForCatalogTimeoutTest() {
         var expected = 42;
-        when(config.getInteger("waitForCatalogTimeout", 10)).thenReturn(expected);
+        when(config.getInteger("waitForCatalogTimeout", 20)).thenReturn(expected);
 
         assertEquals(expected, policyServiceConfig.getWaitForCatalogTimeout());
     }

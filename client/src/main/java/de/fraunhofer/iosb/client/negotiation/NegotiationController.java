@@ -40,7 +40,7 @@ import java.util.concurrent.TimeoutException;
 public class NegotiationController {
 
     // How long the client waits for a negotiation to finish (seconds)
-    private static final int WAIT_FOR_AGREEMENT_TIMEOUT_DEFAULT = 10;
+    private static final int WAIT_FOR_AGREEMENT_TIMEOUT_DEFAULT = 20;
 
     private final Config config;
 

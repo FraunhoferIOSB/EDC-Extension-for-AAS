@@ -50,9 +50,14 @@ public class AasDataSourceFactory implements DataSourceFactory {
     public DataSource createSource(DataFlowStartMessage request) {
         var dataAddress = AasDataAddress.Builder.newInstance()
                 .copyFrom(request.getSourceDataAddress());
-
+        monitor.debug("request properties: "
+                + " id: " + request.getId()
+                + " assetId: " +request.getAssetId()
+                + " agreementId: " +request.getAgreementId()
+                + " participantId: " +request.getParticipantId()
+                + " processId: " +request.getProcessId()
+                + " callbackAddress: " +request.getCallbackAddress());
         var destination = request.getDestinationDataAddress();
-        monitor.debug("destination: " + destination.toString());
         if (isOperationRequest(destination)) {
             // TODO Currently injecting source DA with destination DA properties
             // https://faaast-service.readthedocs.io/en/latest/interfaces/endpoint.html#http

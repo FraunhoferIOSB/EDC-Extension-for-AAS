@@ -54,7 +54,7 @@ public class DataTransferController {
     public static final String OPERATION_FIELD = "operation";
     static final String DATA_TRANSFER_API_KEY = "data-transfer-api-key";
     static final String TRANSFER_PATH = "transfer";
-    private static final int WAIT_FOR_TRANSFER_TIMEOUT_DEFAULT = 10;
+    private static final int WAIT_FOR_TRANSFER_TIMEOUT_DEFAULT = 20;
     private final Config config;
 
     private final DataTransferObservable<String> dataTransferObservable;

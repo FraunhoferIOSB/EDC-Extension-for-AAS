@@ -58,8 +58,6 @@ public abstract class AasAgent<T extends AasProvider, U> extends PipelineStep<T,
                 .aasProvider(provider)
                 .path(path)
                 .build();
-        System.out.println("Trying to read elements, provider: " + provider.getAccessUrl());
-        System.out.println("with path: " + path);
         var responseResult = executeRequest(processor, dataAddress);
 
         if (responseResult.failed()) {

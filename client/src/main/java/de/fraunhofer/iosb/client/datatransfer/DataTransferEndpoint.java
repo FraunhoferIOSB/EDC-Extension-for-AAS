@@ -62,7 +62,6 @@ public class DataTransferEndpoint {
     @Path("receiveData/{agreement}")
     public Response receiveData(@PathParam("agreement") String agreementId, String requestBody) {
         monitor.info(format("Receiving data for agreement %s...", agreementId));
-        monitor.debug("requestBody is: " + requestBody);
         Objects.requireNonNull(agreementId);
         Objects.requireNonNull(requestBody);
         observable.update(agreementId, requestBody);

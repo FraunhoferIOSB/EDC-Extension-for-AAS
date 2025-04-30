@@ -31,3 +31,10 @@ services:
     volumes:
       - ./configurations/provider.nginx.conf:/etc/nginx/nginx.conf
       - ./configurations/app.config.json:/usr/share/nginx/html/assets/config/app.config.json
+  consumer-dashboard:
+    image: fraunhoferiosb/edc-extension4aas-dashboard:latest
+    ports:
+      - "4201:80"
+    volumes:
+      - ./configurations/provider.nginx.conf:/etc/nginx/nginx.conf
+      - ./configurations/app.config.consumer.json:/usr/share/nginx/html/assets/config/app.config.json

@@ -18,33 +18,21 @@ val edcVersion: String by project
 
 dependencies {
     // ---- CONTROL PLANE ----
-    implementation("$group:control-plane-core:$edcVersion")
-    implementation(project(":edc-extension4aas", "shadow"))
-    implementation(project(":client"))
-    // Communicate status of a transfer process w/ consumer
-    implementation("$group:control-plane-api:$edcVersion")
-    implementation("$group:control-plane-api-client:$edcVersion")
-    implementation("$group:dsp:$edcVersion") // DSP protocol for negotiation and transfer
-    implementation("$group:http:$edcVersion")// WebService
-    implementation("$group:management-api-configuration:$edcVersion")// management-api-configuration
+    implementation("$group:controlplane-base-bom:$edcVersion")
 
     // Identity and access management MOCK -> only for testing
     implementation("$group:iam-mock:$edcVersion")
-    // X-Api-Key authentication
-    implementation("$group:auth-tokenbased:$edcVersion")
-    // Read configuration values
-    implementation("$group:configuration-filesystem:$edcVersion")
     // -----------------------
 
     // ---- DATA PLANE ----
-    implementation("$group:data-plane-core:$edcVersion") // PipelineService
-    implementation("$group:data-plane-http:$edcVersion") // Http Data Transfer
+    implementation("$group:dataplane-base-bom:$edcVersion")
     implementation("$group:data-plane-self-registration:$edcVersion") // Register DataPlane with PipelineService factories
+    // -----------------------
 
-    implementation("$group:control-api-configuration:$edcVersion") // Needed for data-plane-self-registration
-    implementation("$group:data-plane-selector-core:$edcVersion") // Needed for data-plane-self-registration
-    implementation("$group:transfer-data-plane-signaling:$edcVersion") // Needed for data-plane-selector-core
-    // --------------------
+    // ----    OURS    ----
+    implementation(project(":edc-extension4aas"))
+    implementation(project(":client"))
+    // -----------------------
 }
 
 application {

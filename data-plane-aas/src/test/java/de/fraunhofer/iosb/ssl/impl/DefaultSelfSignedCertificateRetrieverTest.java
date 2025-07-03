@@ -19,6 +19,7 @@ import de.fraunhofer.iosb.ilt.faaast.service.assetconnection.AssetConnectionExce
 import de.fraunhofer.iosb.ilt.faaast.service.exception.ConfigurationException;
 import de.fraunhofer.iosb.ilt.faaast.service.exception.EndpointException;
 import de.fraunhofer.iosb.ilt.faaast.service.exception.MessageBusException;
+import de.fraunhofer.iosb.ilt.faaast.service.model.exception.PersistenceException;
 import de.fraunhofer.iosb.testutils.TestUtils;
 import org.eclipse.edc.spi.result.Result;
 import org.junit.jupiter.api.Test;
@@ -51,7 +52,8 @@ class DefaultSelfSignedCertificateRetrieverTest {
         Result<Certificate[]> certResult;
         try (var ignored = new TestUtils().startFaaastService(port)) {
             certResult = new DefaultSelfSignedCertificateRetriever().getSelfSignedCertificate(url);
-        } catch (MessageBusException | EndpointException | ConfigurationException | AssetConnectionException e) {
+        } catch (MessageBusException | EndpointException | ConfigurationException | AssetConnectionException |
+                 PersistenceException e) {
             fail("Failed starting FA³ST service");
             return;
         }

@@ -5,7 +5,6 @@ plugins {
 
 val javaVersion: String by project
 val edcVersion: String by project
-val rsApi: String by project
 val mockitoVersion: String by project
 val mockserverVersion: String by project
 val jerseyVersion: String by project
@@ -35,6 +34,7 @@ dependencies {
     testImplementation("org.mockito:mockito-core:$mockitoVersion")
     testImplementation("org.mock-server:mockserver-junit-jupiter:$mockserverVersion")
     testImplementation("org.eclipse.digitaltwin.aas4j:aas4j-model:${aas4jVersion}")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.13.2")
 }
 
 repositories {

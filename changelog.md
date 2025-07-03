@@ -2,7 +2,7 @@
 
 ## Current development version
 
-Compatibility: **Eclipse Dataspace Connector v0.10.0**
+Compatibility: **Eclipse Dataspace Connector v0.13.0**
 
 **New Features**
 
@@ -23,7 +23,7 @@ Compatibility: **Eclipse Dataspace Connector v0.10.0**
 
 **Bugfixes**
 
-* NPE on transfer terminated signal when transfering data to the extension
+* NPE on transfer terminated signal when transferring data to the extension
 * Null-checks in various files
 
 **Miscellaneous**

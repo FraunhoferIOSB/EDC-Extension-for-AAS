@@ -64,6 +64,8 @@ class TransferInitiator {
         if (Objects.isNull(ownUri)) {
             return StatusResult.failure(ResponseStatus.FATAL_ERROR, COULD_NOT_BUILD_URI_MESSAGE);
         }
+        monitor.debug("Starting transfer process for provider: " + providerUrl.toString());
+        monitor.debug("agreementId: " + agreementId);
         var dataDestination = HttpDataAddress.Builder.newInstance()
                 .baseUrl(ownUri.toString())
                 .path(agreementId)

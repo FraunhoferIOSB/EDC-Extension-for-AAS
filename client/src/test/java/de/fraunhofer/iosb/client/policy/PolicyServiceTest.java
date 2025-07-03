@@ -116,7 +116,7 @@ public class PolicyServiceTest {
     @Test
     @SuppressWarnings("unchecked")
     void getDatasetCatalogFutureTimeoutTest() throws ExecutionException, InterruptedException, TimeoutException {
-        final int TIMEOUT = 10;
+        final int TIMEOUT = 20;
         final String TIMEOUT_MESSAGE = "Request timed out";
         when(config.getWaitForCatalogTimeout()).thenReturn(TIMEOUT);
         CompletableFuture<StatusResult<byte[]>> future2 = mock(CompletableFuture.class);

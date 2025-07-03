@@ -10,5 +10,6 @@ WORKDIR /app
 COPY ./build/libs/dataspace-connector.jar /app
 
 ENV EDC_FS_CONFIG=$EDC_FS_CONFIG
+ENV JAVA_OPTS=""
 
-ENTRYPOINT ["java", "-jar", "dataspace-connector.jar"]
+ENTRYPOINT java $JAVA_OPTS -jar dataspace-connector.jar

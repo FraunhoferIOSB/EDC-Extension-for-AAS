@@ -22,8 +22,8 @@ import org.eclipse.edc.spi.system.configuration.Config;
  */
 public class PolicyServiceConfig {
 
-    private static final boolean ACCEPT_ALL_POLICY_DEFINITIONS_DEFAULT = false;
-    private static final int WAIT_FOR_CATALOG_TIMEOUT_DEFAULT = 10;
+    private static final boolean ACCEPT_ALL_POLICY_DEFINITIONS_DEFAULT = true;
+    private static final int WAIT_FOR_CATALOG_TIMEOUT_DEFAULT = 20;
     private static final String ACCEPTED_POLICY_DEFINITIONS_PATH_DEFAULT = null;
 
     private final Config config;

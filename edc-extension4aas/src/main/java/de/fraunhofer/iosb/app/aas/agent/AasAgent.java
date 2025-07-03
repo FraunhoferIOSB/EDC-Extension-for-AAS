@@ -58,10 +58,11 @@ public abstract class AasAgent<T extends AasProvider, U> extends PipelineStep<T,
                 .aasProvider(provider)
                 .path(path)
                 .build();
-
         var responseResult = executeRequest(processor, dataAddress);
 
         if (responseResult.failed()) {
+            System.out.println(responseResult.getFailureMessages().toString());
+            System.out.println(responseResult.getFailure().getMessages().toString());
             return Result.failure("Reading %s from %s failed: %s"
                     .formatted(clazz.getName(), path, responseResult.getFailureDetail()));
         }

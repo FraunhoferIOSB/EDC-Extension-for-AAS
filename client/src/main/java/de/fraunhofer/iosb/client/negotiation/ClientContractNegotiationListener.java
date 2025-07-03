@@ -51,7 +51,6 @@ public class ClientContractNegotiationListener implements ContractNegotiationLis
      */
     public void finalized(ContractNegotiation negotiation) {
         var negotiationId = negotiation.getId();
-
         if (subscribers.containsKey(negotiationId)) {
             subscribers.get(negotiationId).complete(negotiation);
         }
@@ -65,7 +64,6 @@ public class ClientContractNegotiationListener implements ContractNegotiationLis
     public void terminated(ContractNegotiation negotiation) {
 
         var negotiationId = negotiation.getId();
-
         if (subscribers.containsKey(negotiationId)) {
             subscribers.get(negotiationId).completeExceptionally(
                     new Throwable(format("Negotiation with ID %s was terminated.", negotiationId)));

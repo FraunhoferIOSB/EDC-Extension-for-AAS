@@ -160,9 +160,9 @@ In this section, dependencies from EDC and third-party are listed. (Implementati
 | edc.aas.localAASModelPath         | path              | A path to a serialized AAS environment compatible to specification version 3.0RC01 (see: https://github.com/FraunhoferIOSB/FAAAST-Service/blob/main/README.md)                   |
 | edc.aas.localAASServiceConfigPath | path              | Path to AAS config for locally started AAS service. Required, if localAASServicePort is not defined, but localAASModelPath is defined.                                           |
 | edc.aas.localAASServicePort       | Open network port | Port to locally created AAS service. Required, if localAASModelPath is defined and localAASServiceConfigPath is not defined.                                                     |
-| edc.aas.onlySubmodels             | boolean           | (Provider) Only register submodels of AAS services. Default: False                                                                                                               |
+| edc.aas.onlySubmodels             | boolean           | (Provider) Only register submodels of AAS services. Default: True                                                                                                                |
 | edc.aas.remoteAasLocation         | URL               | Register a URL of an AAS service (such as FA³ST) that is already running and is conformant with official AAS API specification                                                   |
-| edc.aas.syncPeriod                | number in seconds | Time period in which AAS services should be polled for structural changes (added/deleted elements etc.). Default: 5 (seconds).                                                   |
+| edc.aas.syncPeriod                | number in seconds | Time period in which AAS services should be polled for structural changes (added/deleted elements etc.). Default: 50 (seconds).                                                  |
 
 </details>
 <details>
@@ -170,10 +170,10 @@ In this section, dependencies from EDC and third-party are listed. (Implementati
 
 | Key                                      | Value Type              | Description                                                                                                                                                                   |
 |:-----------------------------------------|:------------------------|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| edc.client.acceptAllProviderOffers       | True/<u>False</u>       | Accept any contractOffer offered by all provider connectors on automated contract negotiation (e.g., trusted provider)                                                        |
+| edc.client.acceptAllProviderOffers       | <u>True</u>/False       | Accept any contractOffer offered by all provider connectors on automated contract negotiation (e.g., trusted provider)                                                        |
 | edc.client.acceptedPolicyDefinitionsPath | path                    | Path pointing to a JSON-file containing acceptable PolicyDefinitions for automated contract negotiation in a list (only policies must match in a provider's PolicyDefinition) |
-| edc.client.waitForAgreementTimeout       | whole number in seconds | How long should the extension wait for an agreement when automatically negotiating a contract? Default value is 10(s).                                                        |
-| edc.client.waitForTransferTimeout        | whole number in seconds | How long should the extension wait for a data transfer when automatically negotiating a contract? Default value is 10(s).                                                     |
+| edc.client.waitForAgreementTimeout       | whole number in seconds | How long should the extension wait for an agreement when automatically negotiating a contract? Default value is 20(s).                                                        |
+| edc.client.waitForTransferTimeout        | whole number in seconds | How long should the extension wait for a data transfer when automatically negotiating a contract? Default value is 20(s).                                                     |
 
 </details>
 

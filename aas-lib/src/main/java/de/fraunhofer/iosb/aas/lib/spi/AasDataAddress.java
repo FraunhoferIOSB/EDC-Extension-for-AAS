@@ -18,7 +18,6 @@ package de.fraunhofer.iosb.aas.lib.spi;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import de.fraunhofer.iosb.aas.lib.model.AasProvider;
@@ -54,8 +53,6 @@ public class AasDataAddress extends DataAddress {
     private static final String PROVIDER = "AAS-Provider";
     private static final String REFERENCE_CHAIN = "referenceChain";
     private static final String PATH = "PATH";
-
-    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     private AasDataAddress() {
         super();

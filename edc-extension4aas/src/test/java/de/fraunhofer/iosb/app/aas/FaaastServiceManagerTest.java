@@ -15,14 +15,11 @@
  */
 package de.fraunhofer.iosb.app.aas;
 
-import de.fraunhofer.iosb.aas.impl.AllAasDataProcessorFactory;
-import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
-import de.fraunhofer.iosb.model.aas.service.Service;
-import de.fraunhofer.iosb.ssl.impl.DefaultSelfSignedCertificateRetriever;
 import dev.failsafe.RetryPolicy;
-import jakarta.ws.rs.HttpMethod;
 import jakarta.ws.rs.core.Response;
 import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import org.eclipse.edc.http.client.EdcHttpClientImpl;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.junit.jupiter.api.AfterEach;
@@ -33,6 +30,9 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
 
+import static de.fraunhofer.iosb.app.util.HttpClientProvider.clientFor;
+import static de.fraunhofer.iosb.app.util.InetTools.getSelfSignedCertificate;
+import static jakarta.ws.rs.HttpMethod.GET;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -49,21 +49,12 @@ public class FaaastServiceManagerTest {
     @Test
     public void startServiceTest() throws IOException {
         var url = startService();
+        var certificate = getSelfSignedCertificate(url);
+        var okHttpClient = clientFor(certificate.getContent());
 
-        var factory = new AllAasDataProcessorFactory(
-                new DefaultSelfSignedCertificateRetriever(),
-                new OkHttpClient(),
-                RetryPolicy.ofDefaults(),
-                new ConsoleMonitor());
+        var edcHttpClient = new EdcHttpClientImpl(okHttpClient.getContent(), RetryPolicy.ofDefaults(), new ConsoleMonitor());
 
-        var processor = factory.processorFor(url).getContent();
-
-        try (var response = processor.send(AasDataAddress.Builder.newInstance()
-                        .method(HttpMethod.GET)
-                        .aasProvider(new Service(url))
-                        .path("shells")
-                        .build(),
-                null, null)) {
+        try (var response = edcHttpClient.execute(new Request.Builder().url(url.toString()+"/shells").method(GET, null).build())) {
             assertEquals(Response.Status.OK.getStatusCode(), response.code());
         }
     }

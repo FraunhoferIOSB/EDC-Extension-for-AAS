@@ -65,7 +65,7 @@ public class EndpointTest {
         registryRepositoryMock = mock(RegistryRepository.class);
         aasControllerMock = mock(AasController.class);
         testSubject = new Endpoint(serviceRepositoryMock, registryRepositoryMock,
-                aasControllerMock, monitor);
+                aasControllerMock, monitor, true);
     }
 
     @Test

@@ -16,8 +16,8 @@
 package de.fraunhofer.iosb.app.model.aas.registry;
 
 import de.fraunhofer.iosb.app.model.aas.AasProviderRepository;
-import de.fraunhofer.iosb.model.aas.registry.Registry;
-import de.fraunhofer.iosb.model.aas.service.Service;
+import de.fraunhofer.iosb.aas.lib.model.impl.Registry;
+import de.fraunhofer.iosb.aas.lib.model.impl.Service;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

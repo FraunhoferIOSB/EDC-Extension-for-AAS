@@ -16,7 +16,7 @@
 package de.fraunhofer.iosb.app.model.aas;
 
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionChangeListener;
-import de.fraunhofer.iosb.model.aas.AasProvider;
+import de.fraunhofer.iosb.aas.lib.model.AasProvider;
 import org.eclipse.edc.spi.observe.ObservableImpl;
 
 import java.net.URL;

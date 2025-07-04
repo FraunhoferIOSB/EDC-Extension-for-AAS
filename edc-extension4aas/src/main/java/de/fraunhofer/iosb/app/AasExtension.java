@@ -15,7 +15,8 @@
  */
 package de.fraunhofer.iosb.app;
 
-import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
+import de.fraunhofer.iosb.aas.lib.model.impl.Registry;
+import de.fraunhofer.iosb.aas.lib.model.impl.Service;
 import de.fraunhofer.iosb.api.PublicApiManagementService;
 import de.fraunhofer.iosb.api.model.HttpMethod;
 import de.fraunhofer.iosb.app.aas.EnvironmentToAssetMapper;
@@ -41,12 +42,10 @@ import de.fraunhofer.iosb.app.pipeline.helper.MapValueProcessor;
 import de.fraunhofer.iosb.app.sync.Synchronizer;
 import de.fraunhofer.iosb.app.util.InetTools;
 import de.fraunhofer.iosb.app.util.VariableRateScheduler;
-import de.fraunhofer.iosb.model.aas.registry.Registry;
-import de.fraunhofer.iosb.model.aas.service.Service;
-import de.fraunhofer.iosb.registry.AasServiceRegistry;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
+import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -64,6 +63,8 @@ import java.util.function.Function;
 
 import static de.fraunhofer.iosb.app.controller.SelfDescriptionController.SELF_DESCRIPTION_PATH;
 import static de.fraunhofer.iosb.app.pipeline.PipelineFailure.Type.FATAL;
+import static de.fraunhofer.iosb.app.util.InetTools.getSelfSignedCertificate;
+import static de.fraunhofer.iosb.app.util.InetTools.isConnectionTrusted;
 
 /**
  * EDC Extension supporting usage of Asset Administration Shells.
@@ -74,16 +75,17 @@ public class AasExtension implements ServiceExtension {
     public static final String NAME = "EDC4AAS Extension";
 
     private static final String SETTINGS_PREFIX = "edc.aas";
-    @Inject
-    private AasDataProcessorFactory aasDataProcessorFactory;
-    @Inject // Register AAS services (with self-signed certs) to allow communication
-    private AasServiceRegistry foreignServerRegistry;
+    // TODO update readmes for new config keys and meanings and update configuration files...
+    private static final String ALLOW_SELF_SIGNED = "edc.aas.allowSelfSignedCertificates";
+
     @Inject // Register public endpoints
     private PublicApiManagementService publicApiManagementService;
     @Inject
     private AssetIndex assetIndex;
     @Inject
     private ContractDefinitionStore contractDefinitionStore;
+    @Inject
+    private EdcHttpClient edcHttpClient;
     @Inject // Create / manage EDC policies
     private PolicyDefinitionStore policyDefinitionStore;
     @Inject // Register http endpoint at EDC
@@ -94,10 +96,11 @@ public class AasExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
+        var allowSelfSigned = context.getSetting(ALLOW_SELF_SIGNED, false);
+
         this.monitor = context.getMonitor().withPrefix(NAME);
         webService.registerResource(new ConfigurationController(context.getConfig(SETTINGS_PREFIX), monitor));
-
-        aasController = new AasController(foreignServerRegistry, monitor);
+        aasController = new AasController(monitor);
         var serviceRepository = new ServiceRepository();
         var registryRepository = new RegistryRepository();
 
@@ -109,7 +112,7 @@ public class AasExtension implements ServiceExtension {
                 .monitor(monitor.withPrefix("Service Pipeline"))
                 .supplier(serviceRepository::getAll)
                 .step(new Filter<>(InetTools::pingHost))
-                .step(new InputOutputZipper<>(new ServiceAgent(aasDataProcessorFactory), Function.identity()))
+                .step(new InputOutputZipper<>(new ServiceAgent(edcHttpClient, monitor, allowSelfSigned), Function.identity()))
                 .step(new EnvironmentToAssetMapper(() -> Configuration.getInstance().isOnlySubmodels()))
                 .step(new CollectionFeeder<>(new ServiceRepositoryUpdater(serviceRepository)))
                 .step(new Synchronizer())
@@ -125,7 +128,7 @@ public class AasExtension implements ServiceExtension {
                 .monitor(monitor.withPrefix("Registry Pipeline"))
                 .supplier(registryRepository::getAll)
                 .step(new Filter<>(InetTools::pingHost))
-                .step(new InputOutputZipper<>(new RegistryAgent(aasDataProcessorFactory, foreignServerRegistry),
+                .step(new InputOutputZipper<>(new RegistryAgent(edcHttpClient, monitor, allowSelfSigned),
                         Function.identity()))
                 .step(new MapValueProcessor<>(
                         new EnvironmentToAssetMapper(() -> Configuration.getInstance().isOnlySubmodels()),
@@ -162,7 +165,7 @@ public class AasExtension implements ServiceExtension {
         }
 
         webService.registerResource(new SelfDescriptionController(monitor, serviceRepository, registryRepository));
-        webService.registerResource(new Endpoint(serviceRepository, registryRepository, aasController, monitor));
+        webService.registerResource(new Endpoint(serviceRepository, registryRepository, aasController, monitor, Configuration.getInstance().isAllowSelfSignedCertificates()));
 
         registerAasServicesByConfig(serviceRepository);
     }
@@ -196,7 +199,18 @@ public class AasExtension implements ServiceExtension {
             return;
         }
 
-        serviceRepository.create(new Service(serviceUrl));
+        // Now, check if the created service has a valid certificate
+        // OR a self-signed one, and we accept self-signed.
+        if (isConnectionTrusted(serviceUrl)) {
+            monitor.info("cool");
+        }
+        if (isConnectionTrusted(serviceUrl) || (Configuration.getInstance().isAllowSelfSignedCertificates()
+                && getSelfSignedCertificate(serviceUrl).succeeded())) {
+            serviceRepository.create(new Service(serviceUrl));
+        } else {
+            aasController.stopService(serviceUrl);
+            monitor.severe("AAS service uses self-signed (not allowed) or otherwise invalid certificate.");
+        }
     }
 
     @Override

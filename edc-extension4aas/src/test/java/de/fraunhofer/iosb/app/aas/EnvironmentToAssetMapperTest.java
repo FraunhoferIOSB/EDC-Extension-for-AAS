@@ -15,10 +15,9 @@
  */
 package de.fraunhofer.iosb.app.aas;
 
+import de.fraunhofer.iosb.aas.lib.model.impl.Service;
+import de.fraunhofer.iosb.aas.lib.spi.AasDataAddress;
 import de.fraunhofer.iosb.app.pipeline.PipelineFailure;
-import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
-import de.fraunhofer.iosb.model.aas.service.Service;
-import de.fraunhofer.iosb.util.Encoder;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultEnvironment;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
@@ -27,16 +26,14 @@ import org.junit.jupiter.api.Test;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static de.fraunhofer.iosb.app.testutils.AasCreator.getEmptyEnvironment;
 import static de.fraunhofer.iosb.app.testutils.AasCreator.getEnvironment;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Do not test for empty Shell, Submodel, ConceptDescription inside an environment since the default implementation
@@ -205,13 +202,13 @@ class EnvironmentToAssetMapperTest {
                 (AasDataAddress) getChildren(result.environment(), CONCEPT_DESCRIPTIONS).stream().map(Asset::getDataAddress).toList().get(0);
 
         assertTrue(shellDataAddress.getAccessUrl().getContent().toString().startsWith(accessUrl.toString()));
-        assertEquals("%s/%s".formatted(SHELLS, Encoder.encodeBase64(env.getAssetAdministrationShells().get(0).getId())),
+        assertEquals("%s/%s".formatted(SHELLS, Base64.getEncoder().encodeToString(env.getAssetAdministrationShells().get(0).getId().getBytes())),
                 shellDataAddress.getPath());
         assertTrue(submodelDataAddress.getAccessUrl().getContent().toString().startsWith(accessUrl.toString()));
-        assertEquals("%s/%s".formatted(SUBMODELS, Encoder.encodeBase64(env.getSubmodels().get(0).getId())),
+        assertEquals("%s/%s".formatted(SUBMODELS, Base64.getEncoder().encodeToString(env.getSubmodels().get(0).getId().getBytes())),
                 submodelDataAddress.getPath());
         assertTrue(conceptDescriptionDataAddress.getAccessUrl().getContent().toString().startsWith(accessUrl.toString()));
-        assertEquals("concept-descriptions/%s".formatted(Encoder.encodeBase64(env.getConceptDescriptions().get(0).getId())),
+        assertEquals("concept-descriptions/%s".formatted(Base64.getEncoder().encodeToString(env.getConceptDescriptions().get(0).getId().getBytes())),
                 conceptDescriptionDataAddress.getPath());
     }
 

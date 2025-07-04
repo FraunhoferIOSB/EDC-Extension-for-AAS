@@ -15,20 +15,15 @@
  */
 package de.fraunhofer.iosb.app;
 
+import de.fraunhofer.iosb.aas.lib.auth.AuthenticationMethod;
+import de.fraunhofer.iosb.aas.lib.model.AasProvider;
+import de.fraunhofer.iosb.aas.lib.model.impl.Registry;
+import de.fraunhofer.iosb.aas.lib.model.impl.Service;
 import de.fraunhofer.iosb.app.controller.AasController;
 import de.fraunhofer.iosb.app.model.aas.AasProviderRepository;
 import de.fraunhofer.iosb.app.model.aas.registry.RegistryRepository;
 import de.fraunhofer.iosb.app.model.aas.service.ServiceRepository;
-import de.fraunhofer.iosb.model.aas.AasProvider;
-import de.fraunhofer.iosb.model.aas.auth.AuthenticationMethod;
-import de.fraunhofer.iosb.model.aas.registry.Registry;
-import de.fraunhofer.iosb.model.aas.service.Service;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.DELETE;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
@@ -42,6 +37,8 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Objects;
+
+import static de.fraunhofer.iosb.app.util.InetTools.isConnectionTrusted;
 
 /**
  * Delegates requests to controllers.
@@ -57,6 +54,8 @@ public class Endpoint {
 
     private final Monitor monitor;
     private final AasController aasController;
+    // Allow self-signed certificates from AAS services that are registered to this extension
+    private final boolean allowSelfSigned;
     private final RegistryRepository registryRepository;
     private final ServiceRepository serviceRepository;
 
@@ -69,11 +68,12 @@ public class Endpoint {
      * @param monitor            Logs
      */
     public Endpoint(ServiceRepository serviceRepository, RegistryRepository registryRepository,
-                    AasController aasController, Monitor monitor) {
+                    AasController aasController, Monitor monitor, boolean allowSelfSigned) {
         this.monitor = Objects.requireNonNullElseGet(monitor, ConsoleMonitor::new);
         this.serviceRepository = Objects.requireNonNull(serviceRepository);
         this.registryRepository = Objects.requireNonNull(registryRepository);
         this.aasController = Objects.requireNonNull(aasController);
+        this.allowSelfSigned = allowSelfSigned;
     }
 
     /**
@@ -208,8 +208,16 @@ public class Endpoint {
             return Response.status(Response.Status.BAD_REQUEST).entity("Missing query parameter 'url'").build();
         }
 
+        if (!allowSelfSigned && !isConnectionTrusted(entity.getAccessUrl())) {
+            return Response.status(Status.BAD_REQUEST)
+                    .entity("Service to register has untrusted certificate.")
+                    .build();
+        }
+
         if (repository.create(entity)) {
-            return Response.status(Status.CREATED).entity("Registered new AAS %s at EDC".formatted(repository.contentType())).build();
+            return Response.status(Status.CREATED)
+                    .entity("Registered new AAS %s at EDC".formatted(repository.contentType()))
+                    .build();
         }
 
         return Response.status(Status.CONFLICT)

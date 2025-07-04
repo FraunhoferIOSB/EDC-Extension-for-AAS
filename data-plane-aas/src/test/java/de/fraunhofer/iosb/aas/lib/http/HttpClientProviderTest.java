@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 class HttpClientProviderTest {
 
     @Test
-    void testClientFor() throws KeyStoreException {
+    void testClientFor() {
         assertNotNull(HttpClientProvider.clientFor(new TestUtils().getSelfSignedCertificate()));
     }
 

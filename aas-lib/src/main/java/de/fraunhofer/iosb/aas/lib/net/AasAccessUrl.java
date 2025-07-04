@@ -48,7 +48,7 @@ public record AasAccessUrl(@NotNull URL url) {
     }
 
     @Override
-    public String toString() {
+    public @NotNull String toString() {
         return url.toString();
     }
 }

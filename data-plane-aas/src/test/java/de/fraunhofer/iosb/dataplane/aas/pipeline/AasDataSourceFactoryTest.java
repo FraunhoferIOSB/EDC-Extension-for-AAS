@@ -73,7 +73,7 @@ class AasDataSourceFactoryTest {
         when(mockedDataFlowStartMessage.getId()).thenReturn("testId");
 
         try (var source = testSubject.createSource(mockedDataFlowStartMessage)) {
-            var streamResult = source.openPartStream();
+            source.openPartStream();
         }
 
         verify(mockedDataProcessorFactory, times(1)).processorFor(accessUrl);

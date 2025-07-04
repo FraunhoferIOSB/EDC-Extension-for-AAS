@@ -85,8 +85,6 @@ public abstract class AasDataProcessorFactory {
         return Result.success(new AasDataProcessor(new EdcHttpClientImpl(client, edcRetryPolicy, monitor)));
     }
 
-    protected abstract Result<Certificate[]> getCertificates(URL url);
-
     protected Result<@Nullable Certificate[]> retrieveCertificates(URL aasUrl) {
         if (isTrusted(aasUrl) || "http".equalsIgnoreCase(aasUrl.getProtocol())) {
             return Result.success(null);

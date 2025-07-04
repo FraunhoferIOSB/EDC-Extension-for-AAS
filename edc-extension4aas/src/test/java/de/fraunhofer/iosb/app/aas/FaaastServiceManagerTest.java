@@ -17,7 +17,6 @@ package de.fraunhofer.iosb.app.aas;
 
 import dev.failsafe.RetryPolicy;
 import jakarta.ws.rs.core.Response;
-import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import org.eclipse.edc.http.client.EdcHttpClientImpl;
 import org.eclipse.edc.spi.EdcException;

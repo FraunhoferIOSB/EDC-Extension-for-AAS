@@ -19,8 +19,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iosb.api.PublicApiManagementService;
-import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
-import de.fraunhofer.iosb.model.aas.service.Service;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.digitaltwin.aas4j.v3.model.Operation;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultLangStringTextType;
@@ -157,8 +155,10 @@ class DataTransferControllerTest {
 
     @Test
     void getDataTest() {
-        var dataAddress = AasDataAddress.Builder.newInstance().aasProvider(new Service(url)).build();
-        try (var response = testSubject.getData(url, agreementId, dataAddress)) {
+        var aasDataAddress = DataAddress.Builder.newInstance()
+                .type("AasData")
+                .build();
+        try (var response = testSubject.getData(url, agreementId, aasDataAddress)) {
             assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
         }
     }

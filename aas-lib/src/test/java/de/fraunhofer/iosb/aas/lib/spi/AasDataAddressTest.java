@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.dataplane.aas.spi;
+package de.fraunhofer.iosb.aas.lib.spi;
 
-import de.fraunhofer.iosb.model.aas.service.Service;
-import de.fraunhofer.iosb.util.Encoder;
+import de.fraunhofer.iosb.aas.lib.model.impl.Service;
 import org.eclipse.digitaltwin.aas4j.v3.model.Key;
 import org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultKey;
@@ -25,7 +24,9 @@ import org.junit.jupiter.api.Test;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -41,9 +42,9 @@ class AasDataAddressTest {
 
         var address = addressBuilder.build();
 
-        assertEquals(address.getAccessUrl().getContent().toString(), "http://localhost:8080");
+        assertEquals("http://localhost:8080", address.getAccessUrl().getContent().toString());
 
-        assertEquals(address.getPath(), "/path/to/resource");
+        assertEquals("/path/to/resource", address.getPath());
     }
 
     @Test
@@ -57,7 +58,7 @@ class AasDataAddressTest {
         var address = addressBuilder.build();
         assertEquals("http://aas-provider:8081", address.getAccessUrl().getContent().toString());
 
-        assertEquals(address.getPath(), "/path/to/resource");
+        assertEquals("/path/to/resource", address.getPath());
     }
 
     @Test
@@ -69,8 +70,8 @@ class AasDataAddressTest {
         for (int i = 0; i < 100; i++) {
             keys.add(getKey(KeyTypes.SUBMODEL_ELEMENT_COLLECTION, "smc%s".formatted(i)));
             path = path.concat("smc%s.".formatted(i));
-
         }
+        
         keys.add(getKey(KeyTypes.SUBMODEL_ELEMENT, "sme"));
         path = path.concat("sme");
 
@@ -122,5 +123,13 @@ class AasDataAddressTest {
                 .type(keyType)
                 .value(idShort)
                 .build();
+    }
+
+    private static class Encoder {
+        private static final java.util.Base64.Encoder enc = Base64.getEncoder();
+
+        static String encodeBase64(String toEncode) {
+            return enc.encodeToString(toEncode.getBytes(StandardCharsets.UTF_8));
+        }
     }
 }

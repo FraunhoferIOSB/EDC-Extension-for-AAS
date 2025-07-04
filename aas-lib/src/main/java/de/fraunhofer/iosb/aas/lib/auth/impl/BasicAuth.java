@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.model.aas.auth.impl;
+package de.fraunhofer.iosb.aas.lib.auth.impl;
 
-import de.fraunhofer.iosb.model.aas.auth.AuthenticationMethod;
+
+import de.fraunhofer.iosb.aas.lib.auth.AuthenticationMethod;
 
 import java.util.Base64;
 

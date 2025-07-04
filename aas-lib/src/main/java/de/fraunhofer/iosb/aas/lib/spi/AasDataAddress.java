@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.dataplane.aas.spi;
+package de.fraunhofer.iosb.aas.lib.spi;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import de.fraunhofer.iosb.model.aas.AasProvider;
-import de.fraunhofer.iosb.util.Encoder;
+import de.fraunhofer.iosb.aas.lib.model.AasProvider;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultReference;
 import org.eclipse.edc.spi.EdcException;
@@ -30,14 +30,9 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.jetbrains.annotations.Nullable;
 
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
-import static de.fraunhofer.iosb.dataplane.aas.pipeline.AasDataSourceFactory.AAS_DATA_TYPE;
-import static de.fraunhofer.iosb.model.aas.service.Service.CONCEPT_DESCRIPTIONS_PATH;
-import static de.fraunhofer.iosb.model.aas.service.Service.SHELLS_PATH;
-import static de.fraunhofer.iosb.model.aas.service.Service.SUBMODELS_PATH;
+import static de.fraunhofer.iosb.aas.lib.model.impl.Service.*;
 import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toMap;
 
@@ -50,6 +45,8 @@ import static java.util.stream.Collectors.toMap;
 @JsonDeserialize(builder = DataAddress.Builder.class)
 public class AasDataAddress extends DataAddress {
 
+    public static final String AAS_DATA_TYPE = "AasData";
+
     // See aas4j operation
     public static final String OPERATION = "operation";
     private static final String ADDITIONAL_HEADER = "header:";
@@ -57,6 +54,8 @@ public class AasDataAddress extends DataAddress {
     private static final String PROVIDER = "AAS-Provider";
     private static final String REFERENCE_CHAIN = "referenceChain";
     private static final String PATH = "PATH";
+
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     private AasDataAddress() {
         super();
@@ -144,9 +143,10 @@ public class AasDataAddress extends DataAddress {
         return urlBuilder.toString();
     }
 
-    /* For readability */
-    private String b64(String toEncode) {
-        return Encoder.encodeBase64(toEncode);
+    /* Return base64 encoded String version of input */
+    private String b64(String toBeEncoded) {
+        Objects.requireNonNull(toBeEncoded, "toBeEncoded must not be null");
+        return Base64.getEncoder().encodeToString(toBeEncoded.getBytes());
     }
 
     private Reference getReferenceChain() {

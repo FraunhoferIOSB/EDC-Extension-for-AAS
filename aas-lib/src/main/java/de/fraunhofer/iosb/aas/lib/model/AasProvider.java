@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.model.aas;
+package de.fraunhofer.iosb.aas.lib.model;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
-import de.fraunhofer.iosb.model.aas.auth.AuthenticationMethod;
-import de.fraunhofer.iosb.model.aas.auth.impl.NoAuth;
-import de.fraunhofer.iosb.model.aas.net.AasAccessUrl;
+import de.fraunhofer.iosb.aas.lib.auth.AuthenticationMethod;
+import de.fraunhofer.iosb.aas.lib.auth.impl.NoAuth;
+import de.fraunhofer.iosb.aas.lib.net.AasAccessUrl;
 
 import java.net.URL;
 import java.util.HashMap;

@@ -13,24 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.model.aas.auth.impl;
+package de.fraunhofer.iosb.aas.lib.auth.impl;
 
-import de.fraunhofer.iosb.model.aas.auth.AuthenticationMethod;
+import de.fraunhofer.iosb.aas.lib.auth.AuthenticationMethod;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.AbstractMap;
 import java.util.Map;
 
-public class NoAuth extends AuthenticationMethod {
+/**
+ * Api key authentication: (key, value).
+ * Example: (x-api-key,password)
+ */
+public class ApiKey extends AuthenticationMethod {
 
-    public NoAuth() {
+    private final String key;
+    private final String keyValue;
+
+    public ApiKey(String key, String keyValue) {
+        this.key = key;
+        this.keyValue = keyValue;
     }
 
     @Override
-    public Map.Entry<String, String> getHeader() {
-        return null;
+    public @Nullable Map.Entry<String, String> getHeader() {
+        return new AbstractMap.SimpleEntry<>(key, getValue());
     }
 
     @Override
     protected String getValue() {
-        return null;
+        return keyValue;
     }
 }

@@ -15,48 +15,27 @@
  */
 package de.fraunhofer.iosb.app.aas.agent.impl;
 
-import de.fraunhofer.iosb.aas.AasDataProcessor;
-import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
+import de.fraunhofer.iosb.aas.lib.model.impl.Registry;
+import de.fraunhofer.iosb.aas.lib.model.impl.Service;
 import de.fraunhofer.iosb.app.aas.agent.AasAgent;
 import de.fraunhofer.iosb.app.pipeline.PipelineFailure;
 import de.fraunhofer.iosb.app.pipeline.PipelineResult;
-import de.fraunhofer.iosb.model.aas.registry.Registry;
-import de.fraunhofer.iosb.model.aas.service.Service;
-import de.fraunhofer.iosb.registry.AasServiceRegistry;
-import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShellDescriptor;
-import org.eclipse.digitaltwin.aas4j.v3.model.Endpoint;
-import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
-import org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes;
-import org.eclipse.digitaltwin.aas4j.v3.model.ProtocolInformation;
-import org.eclipse.digitaltwin.aas4j.v3.model.Submodel;
-import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelDescriptor;
-import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultAdministrativeInformation;
-import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultAssetAdministrationShell;
-import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultAssetInformation;
-import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultEmbeddedDataSpecification;
-import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultEnvironment;
-import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultKey;
-import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultReference;
-import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultSubmodel;
+import org.eclipse.digitaltwin.aas4j.v3.model.*;
+import org.eclipse.digitaltwin.aas4j.v3.model.impl.*;
+import org.eclipse.edc.http.spi.EdcHttpClient;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.Result;
 
 import javax.annotation.Nonnull;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static de.fraunhofer.iosb.model.aas.registry.Registry.SHELL_DESCRIPTORS_PATH;
-import static de.fraunhofer.iosb.model.aas.registry.Registry.SUBMODEL_DESCRIPTORS_PATH;
+import static de.fraunhofer.iosb.aas.lib.model.impl.Registry.SHELL_DESCRIPTORS_PATH;
+import static de.fraunhofer.iosb.aas.lib.model.impl.Registry.SUBMODEL_DESCRIPTORS_PATH;
 
 /**
  * Given a registry (accessUrl, auth), read its registered shells/submodels and return them as separate environments.
@@ -66,17 +45,13 @@ public class RegistryAgent extends AasAgent<Registry, Map<Service, Environment>>
     public static final String SHELL_DIRECT_ENDPOINT = "AAS-3.0";
     public static final String SUBMODEL_DIRECT_ENDPOINT = "SUBMODEL-3.0";
 
-    private final AasServiceRegistry aasServiceRegistry;
-
     /**
      * Class constructor
      *
-     * @param aasDataProcessorFactory For reading AAS data.
-     * @param aasServiceRegistry      Register AAS services within the registry
+     * @param edcHttpClient For reading AAS data.
      */
-    public RegistryAgent(AasDataProcessorFactory aasDataProcessorFactory, AasServiceRegistry aasServiceRegistry) {
-        super(aasDataProcessorFactory);
-        this.aasServiceRegistry = aasServiceRegistry;
+    public RegistryAgent(EdcHttpClient edcHttpClient, Monitor monitor, boolean allowSelfSigned) {
+        super(edcHttpClient, monitor, allowSelfSigned);
     }
 
     private static URL convertToUrl(String spec) {
@@ -98,19 +73,11 @@ public class RegistryAgent extends AasAgent<Registry, Map<Service, Environment>>
     }
 
     private PipelineResult<Map<Service, Environment>> readEnvironment(Registry registry) throws MalformedURLException {
-        Result<AasDataProcessor> processorResult = aasDataProcessorFactory.processorFor(registry.getAccessUrl());
-
-        if (processorResult.failed()) {
-            return PipelineResult.failure(PipelineFailure.warning(List.of(processorResult.getFailureDetail())));
-        }
-
-        var processor = processorResult.getContent();
-
         Map<Service, DefaultEnvironment.Builder> environmentsByUrl = new HashMap<>();
 
-        Result<List<AssetAdministrationShellDescriptor>> shellDescriptors = readElements(processor, registry,
+        Result<List<AssetAdministrationShellDescriptor>> shellDescriptors = readElements(registry,
                 SHELL_DESCRIPTORS_PATH, AssetAdministrationShellDescriptor.class);
-        Result<List<SubmodelDescriptor>> submodelDescriptors = readElements(processor, registry,
+        Result<List<SubmodelDescriptor>> submodelDescriptors = readElements(registry,
                 SUBMODEL_DESCRIPTORS_PATH, SubmodelDescriptor.class);
 
         if (submodelDescriptors.succeeded()) {
@@ -145,10 +112,6 @@ public class RegistryAgent extends AasAgent<Registry, Map<Service, Environment>>
                 SUBMODEL_DIRECT_ENDPOINT));
 
         for (URL submodelUrl : submodelEndpointUrlsSorted) {
-            // Still need to register AAS services for possible data transfer!!!
-            if (aasServiceRegistry.acceptSelfSignedCertificates()) {
-                aasServiceRegistry.register(submodelUrl);
-            }
             for (SubmodelDescriptor descriptor : submodelDescriptors) {
                 var service = new Service(getBaseUrl(submodelUrl));
 
@@ -172,10 +135,6 @@ public class RegistryAgent extends AasAgent<Registry, Map<Service, Environment>>
                 SHELL_DIRECT_ENDPOINT));
 
         for (URL shellUrl : shellEndpointUrlsSorted) {
-            // Still need to register AAS services for possible data transfer!!!
-            if (aasServiceRegistry.acceptSelfSignedCertificates()) {
-                aasServiceRegistry.register(shellUrl);
-            }
             for (AssetAdministrationShellDescriptor descriptor : shellDescriptors) {
                 var service = new Service(getBaseUrl(shellUrl));
 

@@ -15,34 +15,33 @@
  */
 package de.fraunhofer.iosb.app.aas.agent.impl;
 
-import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
+import de.fraunhofer.iosb.aas.lib.model.impl.Service;
 import de.fraunhofer.iosb.app.aas.agent.AasAgent;
 import de.fraunhofer.iosb.app.pipeline.PipelineFailure;
 import de.fraunhofer.iosb.app.pipeline.PipelineResult;
-import de.fraunhofer.iosb.model.aas.service.Service;
 import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShell;
 import org.eclipse.digitaltwin.aas4j.v3.model.ConceptDescription;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
 import org.eclipse.digitaltwin.aas4j.v3.model.Submodel;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultEnvironment;
+import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.Result;
 
 import java.util.List;
 
+import static de.fraunhofer.iosb.aas.lib.model.impl.Service.*;
 import static de.fraunhofer.iosb.app.pipeline.PipelineResult.failure;
-import static de.fraunhofer.iosb.model.aas.service.Service.CONCEPT_DESCRIPTIONS_PATH;
-import static de.fraunhofer.iosb.model.aas.service.Service.SHELLS_PATH;
-import static de.fraunhofer.iosb.model.aas.service.Service.SUBMODELS_PATH;
 
 /**
  * Communicating with AAS service
  */
 public class ServiceAgent extends AasAgent<Service, Environment> {
 
-    public ServiceAgent(AasDataProcessorFactory aasDataProcessorFactory) {
-        super(aasDataProcessorFactory);
+    public ServiceAgent(EdcHttpClient edcHttpClient, Monitor monitor, boolean allowSelfSigned) {
+        super(edcHttpClient, monitor, allowSelfSigned);
     }
 
     /**
@@ -63,21 +62,14 @@ public class ServiceAgent extends AasAgent<Service, Environment> {
     }
 
     private PipelineResult<Environment> readEnvironment(Service service) {
-        var processorResult = aasDataProcessorFactory.processorFor(service.getAccessUrl());
-
-        if (processorResult.failed()) {
-            return failure(PipelineFailure.warning(List.of(processorResult.getFailure().getFailureDetail())));
-        }
-        var processor = processorResult.getContent();
-
         Result<List<AssetAdministrationShell>> shellsResult;
         Result<List<Submodel>> submodelsResult;
         Result<List<ConceptDescription>> conceptDescResult;
 
         try {
-            shellsResult = readElements(processor, service, SHELLS_PATH, AssetAdministrationShell.class);
-            submodelsResult = readElements(processor, service, SUBMODELS_PATH, Submodel.class);
-            conceptDescResult = readElements(processor, service, CONCEPT_DESCRIPTIONS_PATH, ConceptDescription.class);
+            shellsResult = readElements(service, SHELLS_PATH, AssetAdministrationShell.class);
+            submodelsResult = readElements(service, SUBMODELS_PATH, Submodel.class);
+            conceptDescResult = readElements(service, CONCEPT_DESCRIPTIONS_PATH, ConceptDescription.class);
         } catch (EdcException e) {
             // If an exception was raised, produce a fatal result
             return failure(PipelineFailure.fatal(List.of(e.getClass().getSimpleName())));

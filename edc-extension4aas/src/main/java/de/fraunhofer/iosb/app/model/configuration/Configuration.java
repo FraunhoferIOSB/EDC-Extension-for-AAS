@@ -54,6 +54,9 @@ public class Configuration {
     @JsonProperty(SETTINGS_PREFIX + "defaultContractPolicyPath")
     private String defaultContractPolicyPath;
 
+    @JsonProperty(SETTINGS_PREFIX + "allowSelfSignedCertificates")
+    private boolean allowSelfSignedCertificates;
+
     public static synchronized Configuration getInstance() {
         if (instance == null) {
             instance = new Configuration();
@@ -95,5 +98,9 @@ public class Configuration {
 
     public String getDefaultContractPolicyPath() {
         return defaultContractPolicyPath;
+    }
+
+    public boolean isAllowSelfSignedCertificates() {
+        return allowSelfSignedCertificates;
     }
 }

@@ -64,7 +64,7 @@ public abstract class AasDataProcessorFactory {
                     new EdcHttpClientImpl(edcOkHttpClient, edcRetryPolicy, monitor)));
         }
 
-        var certResult = getCertificates(aasUrl);
+        var certResult = this.retriever.getSelfSignedCertificate(aasUrl);
 
         var client = edcOkHttpClient;
 

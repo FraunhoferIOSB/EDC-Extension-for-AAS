@@ -75,7 +75,6 @@ public class AasExtension implements ServiceExtension {
     public static final String NAME = "EDC4AAS Extension";
 
     private static final String SETTINGS_PREFIX = "edc.aas";
-    // TODO update readmes for new config keys and meanings and update configuration files...
     private static final String ALLOW_SELF_SIGNED = "edc.aas.allowSelfSignedCertificates";
 
     @Inject // Register public endpoints
@@ -96,7 +95,7 @@ public class AasExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var allowSelfSigned = context.getSetting(ALLOW_SELF_SIGNED, false);
+        var allowSelfSigned = Configuration.getInstance().isAllowSelfSignedCertificates();
 
         this.monitor = context.getMonitor().withPrefix(NAME);
         webService.registerResource(new ConfigurationController(context.getConfig(SETTINGS_PREFIX), monitor));
@@ -165,7 +164,7 @@ public class AasExtension implements ServiceExtension {
         }
 
         webService.registerResource(new SelfDescriptionController(monitor, serviceRepository, registryRepository));
-        webService.registerResource(new Endpoint(serviceRepository, registryRepository, aasController, monitor, Configuration.getInstance().isAllowSelfSignedCertificates()));
+        webService.registerResource(new Endpoint(serviceRepository, registryRepository, aasController, monitor, allowSelfSigned));
 
         registerAasServicesByConfig(serviceRepository);
     }
@@ -204,7 +203,7 @@ public class AasExtension implements ServiceExtension {
         if (isConnectionTrusted(serviceUrl)) {
             monitor.info("cool");
         }
-        if (isConnectionTrusted(serviceUrl) || (Configuration.getInstance().isAllowSelfSignedCertificates()
+        if (isConnectionTrusted(serviceUrl) || (configInstance.isAllowSelfSignedCertificates()
                 && getSelfSignedCertificate(serviceUrl).succeeded())) {
             serviceRepository.create(new Service(serviceUrl));
         } else {

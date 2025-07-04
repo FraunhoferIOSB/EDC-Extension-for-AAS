@@ -63,9 +63,6 @@ public abstract class AasAgent<T extends AasProvider, U> extends PipelineStep<T,
         var responseResult = executeRequest(provider, path);
 
         if (responseResult.failed()) {
-            // TODO get monitor in this class
-            System.out.println(responseResult.getFailureMessages().toString());
-            System.out.println(responseResult.getFailure().getMessages().toString());
             return Result.failure("Reading %s from %s failed: %s"
                     .formatted(clazz.getName(), path, responseResult.getFailureDetail()));
         }

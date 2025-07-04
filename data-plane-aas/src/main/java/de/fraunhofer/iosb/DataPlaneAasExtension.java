@@ -54,7 +54,6 @@ public class DataPlaneAasExtension implements ServiceExtension {
 
     public static final String NAME = "Data Plane AAS";
 
-    // TODO update readmes for new config keys and meanings and update configuration files...
     private static final String FOREIGN_SELF_SIGNED = "edc.dataplane.aas.acceptForeignSelfSignedCertificates";
     private static final String OWN_SELF_SIGNED = "edc.dataplane.aas.acceptOwnSelfSignedCertificates";
 

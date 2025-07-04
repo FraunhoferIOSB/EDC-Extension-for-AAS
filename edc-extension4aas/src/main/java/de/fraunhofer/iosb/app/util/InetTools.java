@@ -110,7 +110,8 @@ public class InetTools {
                 // -> according to this system, the server has a trusted certificate
                 return true;
             } else
-                return conn instanceof HttpURLConnection; // TODO should we allow unencrypted traffic in production for our services?
+                // TODO should we allow unencrypted traffic in production for our services?
+                return conn instanceof HttpURLConnection;
 
         } catch (IOException e) {
             return false;

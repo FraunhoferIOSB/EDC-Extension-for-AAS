@@ -21,10 +21,8 @@ dependencies {
     implementation(project(":aas-lib"))
 
     implementation("de.fraunhofer.iosb.ilt.faaast.service:starter:${faaastVersion}")
-    //implementation("${group}:http-spi:${edcVersion}")
     implementation("${group}:http-lib:${edcVersion}")
     implementation("$group:asset-api:$edcVersion")
-    //implementation("$group:web-spi:$edcVersion")
 
     testImplementation("$group:junit:$edcVersion")
     testImplementation("org.glassfish.jersey.core:jersey-common:$jerseyVersion")

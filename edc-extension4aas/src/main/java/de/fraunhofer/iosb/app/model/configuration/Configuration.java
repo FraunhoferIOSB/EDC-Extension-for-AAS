@@ -27,6 +27,9 @@ public class Configuration {
     private static final String SETTINGS_PREFIX = "edc.aas.";
     private static Configuration instance;
 
+    @JsonProperty(SETTINGS_PREFIX + "allowSelfSignedCertificates")
+    private boolean allowSelfSignedCertificates;
+
     @JsonProperty(SETTINGS_PREFIX + "remoteAASLocation")
     private URL remoteAasLocation;
 
@@ -54,8 +57,6 @@ public class Configuration {
     @JsonProperty(SETTINGS_PREFIX + "defaultContractPolicyPath")
     private String defaultContractPolicyPath;
 
-    @JsonProperty(SETTINGS_PREFIX + "allowSelfSignedCertificates")
-    private boolean allowSelfSignedCertificates;
 
     public static synchronized Configuration getInstance() {
         if (instance == null) {

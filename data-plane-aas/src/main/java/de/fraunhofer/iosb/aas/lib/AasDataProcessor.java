@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.aas;
+package de.fraunhofer.iosb.aas.lib;
 
+import de.fraunhofer.iosb.aas.lib.spi.AasDataAddress;
 import de.fraunhofer.iosb.dataplane.aas.pipeline.AasTransferRequestBody;
-import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
 import okhttp3.Headers;
 import okhttp3.HttpUrl;
 import okhttp3.Request;

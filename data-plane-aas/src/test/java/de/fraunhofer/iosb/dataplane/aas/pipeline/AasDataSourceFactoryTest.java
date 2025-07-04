@@ -1,10 +1,10 @@
 package de.fraunhofer.iosb.dataplane.aas.pipeline;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.fraunhofer.iosb.aas.AasDataProcessor;
-import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
-import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
-import de.fraunhofer.iosb.model.aas.service.Service;
+import de.fraunhofer.iosb.aas.lib.AasDataProcessor;
+import de.fraunhofer.iosb.aas.lib.AasDataProcessorFactory;
+import de.fraunhofer.iosb.aas.lib.model.impl.Service;
+import de.fraunhofer.iosb.aas.lib.spi.AasDataAddress;
 import okhttp3.Protocol;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -23,10 +23,7 @@ import java.nio.charset.StandardCharsets;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 class AasDataSourceFactoryTest {
 

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.aas.http;
+package de.fraunhofer.iosb.aas.lib.http;
 
 import okhttp3.OkHttpClient;
 import org.eclipse.edc.spi.EdcException;
@@ -46,7 +46,6 @@ public class HttpClientProvider {
      * @return Result containing either a new OkHttpClient instance or failure reason.
      */
     public static Result<OkHttpClient> clientFor(@NotNull Certificate[] certificateChain) {
-
         TrustManager[] trustManagers;
         SSLContext sslContext;
         try {

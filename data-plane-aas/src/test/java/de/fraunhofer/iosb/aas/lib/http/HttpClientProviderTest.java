@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.aas.http;
+package de.fraunhofer.iosb.aas.lib.http;
 
 import de.fraunhofer.iosb.testutils.TestUtils;
 import org.junit.jupiter.api.Test;

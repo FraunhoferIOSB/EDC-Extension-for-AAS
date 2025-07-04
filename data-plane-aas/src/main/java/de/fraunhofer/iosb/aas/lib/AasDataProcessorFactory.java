@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.aas;
+package de.fraunhofer.iosb.aas.lib;
 
 import de.fraunhofer.iosb.ssl.SelfSignedCertificateRetriever;
 import dev.failsafe.RetryPolicy;
@@ -27,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
 import java.net.URL;
 import java.security.cert.Certificate;
 
-import static de.fraunhofer.iosb.aas.http.HttpClientProvider.clientFor;
+import static de.fraunhofer.iosb.aas.lib.http.HttpClientProvider.clientFor;
 import static de.fraunhofer.iosb.ssl.impl.DefaultSelfSignedCertificateRetriever.isTrusted;
 
 public abstract class AasDataProcessorFactory {

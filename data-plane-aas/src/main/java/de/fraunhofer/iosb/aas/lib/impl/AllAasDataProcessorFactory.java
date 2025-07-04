@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.aas.impl;
+package de.fraunhofer.iosb.aas.lib.impl;
 
-import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
-import de.fraunhofer.iosb.model.aas.net.AasAccessUrl;
+import de.fraunhofer.iosb.aas.lib.AasDataProcessorFactory;
 import de.fraunhofer.iosb.ssl.SelfSignedCertificateRetriever;
 import dev.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
@@ -27,33 +26,17 @@ import org.jetbrains.annotations.Nullable;
 
 import java.net.URL;
 import java.security.cert.Certificate;
-import java.util.Set;
 
-import static de.fraunhofer.iosb.ssl.impl.DefaultSelfSignedCertificateRetriever.isTrusted;
 
-public class RegisteredAasDataProcessorFactory extends AasDataProcessorFactory {
+public class AllAasDataProcessorFactory extends AasDataProcessorFactory {
 
-    private final Set<AasAccessUrl> registeredAasServices;
-
-    public RegisteredAasDataProcessorFactory(SelfSignedCertificateRetriever retriever,
-                                             @Nullable Set<AasAccessUrl> registeredAasServices,
-                                             OkHttpClient edcOkHttpClient, RetryPolicy<Response> edcRetryPolicy,
-                                             Monitor monitor) {
+    public AllAasDataProcessorFactory(SelfSignedCertificateRetriever retriever, OkHttpClient edcOkHttpClient,
+                                      RetryPolicy<Response> edcRetryPolicy, Monitor monitor) {
         super(retriever, edcOkHttpClient, edcRetryPolicy, monitor);
-        this.registeredAasServices = registeredAasServices;
     }
 
     @Override
     protected Result<@Nullable Certificate[]> getCertificates(URL url) {
-        if (isTrusted(url) || "http".equalsIgnoreCase(url.getProtocol())) {
-            return Result.success(null);
-        }
-
-        if (registeredAasServices == null || !registeredAasServices.contains(new AasAccessUrl(url))) {
-            return Result.failure("AAS service is not registered and allowing all self-signed certificates is " +
-                    "disabled");
-        }
-
         return super.retrieveCertificates(url);
     }
 }

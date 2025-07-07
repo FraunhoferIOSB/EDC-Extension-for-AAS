@@ -71,8 +71,6 @@ class DataTransferObservable<T> implements TransferProcessListener {
      * @param data        Any data by a provider connector
      */
     void update(String agreementId, T data) {
-        monitor.debug("agreementID: " + agreementId);
-        monitor.debug("data: " + data);
         if (!observers.containsKey(agreementId)) {
             monitor.warning(format(
                     "A POST request to the client's data transfer endpoint with an unknown agreementID was caught. " +

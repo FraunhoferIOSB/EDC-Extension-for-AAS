@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   provider:
-    image: fraunhoferiosb/edc-extension4aas:latest
+    image: fraunhoferiosb/edc-extension4aas:2.2.1
     ports:
       - "8181:8181"
       - "8281:8281"
@@ -24,6 +24,7 @@ services:
       EDC_FS_CONFIG: /configurations/docker-consumer.properties
     volumes:
       - ./configurations:/configurations
+
   provider-dashboard:
     image: fraunhoferiosb/edc-extension4aas-dashboard:latest
     ports:
@@ -31,10 +32,14 @@ services:
     volumes:
       - ./configurations/provider.nginx.conf:/etc/nginx/nginx.conf
       - ./configurations/app.config.json:/usr/share/nginx/html/assets/config/app.config.json
+
   consumer-dashboard:
     image: fraunhoferiosb/edc-extension4aas-dashboard:latest
     ports:
       - "4201:80"
     volumes:
+      - ./configurations/consumer.nginx.conf:/etc/nginx/nginx.conf
+      - ./configurations/consumer.app.config.json:/usr/share/nginx/html/assets/config/app.config.json
       - ./configurations/provider.nginx.conf:/etc/nginx/nginx.conf
       - ./configurations/app.config.consumer.json:/usr/share/nginx/html/assets/config/app.config.json
+

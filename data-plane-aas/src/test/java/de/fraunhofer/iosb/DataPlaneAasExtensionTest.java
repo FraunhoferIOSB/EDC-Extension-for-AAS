@@ -26,13 +26,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 
 @ExtendWith(DependencyInjectionExtension.class)
 class DataPlaneAasExtensionTest {
 
     private DataPlaneAasExtension extension;
-    private ServiceExtensionContext context;
 
     @BeforeEach
     void setUp(ServiceExtensionContext context, ObjectFactory factory) {
@@ -40,14 +38,11 @@ class DataPlaneAasExtensionTest {
         context.registerService(OkHttpClient.class, mock(OkHttpClient.class));
         context.registerService(RetryPolicy.class, RetryPolicy.ofDefaults());
 
-        this.context = spy(context);
-
         extension = factory.constructInstance(DataPlaneAasExtension.class);
-
     }
 
     @Test
-    void testInitialize() {
+    void testInitialize(ServiceExtensionContext context) {
         extension.initialize(context);
     }
 }

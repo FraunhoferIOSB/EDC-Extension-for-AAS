@@ -32,13 +32,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 
 @ExtendWith(DependencyInjectionExtension.class)
 public class ClientExtensionTest {
 
     private ClientExtension clientExtension;
-    private ServiceExtensionContext context;
 
     @BeforeEach
     void setup(ServiceExtensionContext context, ObjectFactory factory) {
@@ -52,14 +50,13 @@ public class ClientExtensionTest {
         context.registerService(WebService.class, mock(WebService.class));
         context.registerService(Monitor.class, new ConsoleMonitor());
 
-        this.context = spy(context);
         clientExtension = factory.constructInstance(ClientExtension.class);
     }
 
     @Test
-    public void initializeTest() {
+    public void initializeTest(ServiceExtensionContext context) {
         // See if initializing the extension works
-        clientExtension.initialize(this.context);
+        clientExtension.initialize(context);
     }
 
 }

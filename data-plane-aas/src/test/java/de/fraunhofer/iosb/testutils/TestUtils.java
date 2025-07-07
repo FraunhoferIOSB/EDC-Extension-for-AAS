@@ -22,6 +22,7 @@ import de.fraunhofer.iosb.ilt.faaast.service.endpoint.http.HttpEndpointConfig;
 import de.fraunhofer.iosb.ilt.faaast.service.exception.ConfigurationException;
 import de.fraunhofer.iosb.ilt.faaast.service.exception.EndpointException;
 import de.fraunhofer.iosb.ilt.faaast.service.exception.MessageBusException;
+import de.fraunhofer.iosb.ilt.faaast.service.model.exception.PersistenceException;
 import de.fraunhofer.iosb.ilt.faaast.service.persistence.memory.PersistenceInMemoryConfig;
 import de.fraunhofer.iosb.ilt.faaast.service.starter.util.ServiceConfigHelper;
 import de.fraunhofer.iosb.ssl.impl.DefaultSelfSignedCertificateRetriever;
@@ -53,7 +54,7 @@ public class TestUtils {
      * @return AutoCloseable handle on FA³ST service
      */
     public ServiceHandle startFaaastService(int port) throws ConfigurationException, AssetConnectionException,
-            MessageBusException, EndpointException {
+            MessageBusException, EndpointException, PersistenceException {
         var serviceConfig = new ServiceConfig.Builder()
                 .endpoint(new HttpEndpointConfig.Builder().port(port).build())
                 .persistence(PersistenceInMemoryConfig.builder()
@@ -74,7 +75,7 @@ public class TestUtils {
 
         private final Service service;
 
-        ServiceHandle(Service service) throws MessageBusException, EndpointException {
+        ServiceHandle(Service service) throws MessageBusException, EndpointException, PersistenceException {
             this.service = service;
             this.service.start();
         }

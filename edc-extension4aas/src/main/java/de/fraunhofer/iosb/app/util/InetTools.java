@@ -51,8 +51,8 @@ public class InetTools {
             // Open basic http connection with "GET" method and check if IOException occurs
             HttpURLConnection connection = (HttpURLConnection) toCheck.openConnection();
             connection.setRequestMethod("GET");
-            connection.setConnectTimeout(5000);
-            connection.setReadTimeout(5000);
+            connection.setConnectTimeout(7000);
+            connection.setReadTimeout(7000);
             connection.getResponseCode();
             return true;
         } catch (IOException e) {

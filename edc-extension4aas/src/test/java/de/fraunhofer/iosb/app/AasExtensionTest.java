@@ -30,7 +30,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 
@@ -38,7 +37,6 @@ import static org.mockito.Mockito.when;
 public class AasExtensionTest {
 
     private AasExtension extension;
-    private ServiceExtensionContext context;
 
     @BeforeEach
     void setup(ServiceExtensionContext context, ObjectFactory factory) {
@@ -48,14 +46,13 @@ public class AasExtensionTest {
         context.registerService(PolicyDefinitionStore.class, mock(PolicyDefinitionStore.class));
         context.registerService(WebService.class, mock(WebService.class));
 
-        this.context = spy(context); // used to inject the config
-        when(this.context.getConfig()).thenReturn(mock(Config.class));
+        when(context.getConfig()).thenReturn(mock(Config.class));
 
         extension = factory.constructInstance(AasExtension.class);
     }
 
     @Test
-    public void testInitialize() {
+    public void testInitialize(ServiceExtensionContext context) {
         // See if initialization works
         extension.initialize(context);
     }

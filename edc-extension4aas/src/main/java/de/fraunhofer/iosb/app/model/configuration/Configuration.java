@@ -40,7 +40,7 @@ public class Configuration {
     private String aasServiceConfigPath;
 
     @JsonProperty(SETTINGS_PREFIX + "syncPeriod")
-    private int syncPeriod = 5; // Seconds
+    private int syncPeriod = 50; // Seconds
 
     @JsonProperty(SETTINGS_PREFIX + "onlySubmodels")
     private boolean onlySubmodels = true;

@@ -95,7 +95,6 @@ public class AasExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var allowSelfSigned = Configuration.getInstance().isAllowSelfSignedCertificates();
 
         this.monitor = context.getMonitor().withPrefix(NAME);
         webService.registerResource(new ConfigurationController(context.getConfig(SETTINGS_PREFIX), monitor));
@@ -111,7 +110,7 @@ public class AasExtension implements ServiceExtension {
                 .monitor(monitor.withPrefix("Service Pipeline"))
                 .supplier(serviceRepository::getAll)
                 .step(new Filter<>(InetTools::pingHost))
-                .step(new InputOutputZipper<>(new ServiceAgent(edcHttpClient, monitor, allowSelfSigned), Function.identity()))
+                .step(new InputOutputZipper<>(new ServiceAgent(edcHttpClient, monitor), Function.identity()))
                 .step(new EnvironmentToAssetMapper(() -> Configuration.getInstance().isOnlySubmodels()))
                 .step(new CollectionFeeder<>(new ServiceRepositoryUpdater(serviceRepository)))
                 .step(new Synchronizer())
@@ -127,7 +126,7 @@ public class AasExtension implements ServiceExtension {
                 .monitor(monitor.withPrefix("Registry Pipeline"))
                 .supplier(registryRepository::getAll)
                 .step(new Filter<>(InetTools::pingHost))
-                .step(new InputOutputZipper<>(new RegistryAgent(edcHttpClient, monitor, allowSelfSigned),
+                .step(new InputOutputZipper<>(new RegistryAgent(edcHttpClient, monitor),
                         Function.identity()))
                 .step(new MapValueProcessor<>(
                         new EnvironmentToAssetMapper(() -> Configuration.getInstance().isOnlySubmodels()),
@@ -164,7 +163,7 @@ public class AasExtension implements ServiceExtension {
         }
 
         webService.registerResource(new SelfDescriptionController(monitor, serviceRepository, registryRepository));
-        webService.registerResource(new Endpoint(serviceRepository, registryRepository, aasController, monitor, allowSelfSigned));
+        webService.registerResource(new Endpoint(serviceRepository, registryRepository, aasController, monitor));
 
         registerAasServicesByConfig(serviceRepository);
     }

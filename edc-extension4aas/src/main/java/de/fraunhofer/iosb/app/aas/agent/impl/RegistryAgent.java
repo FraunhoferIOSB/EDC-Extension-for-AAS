@@ -50,8 +50,8 @@ public class RegistryAgent extends AasAgent<Registry, Map<Service, Environment>>
      *
      * @param edcHttpClient For reading AAS data.
      */
-    public RegistryAgent(EdcHttpClient edcHttpClient, Monitor monitor, boolean allowSelfSigned) {
-        super(edcHttpClient, monitor, allowSelfSigned);
+    public RegistryAgent(EdcHttpClient edcHttpClient, Monitor monitor) {
+        super(edcHttpClient, monitor);
     }
 
     private static URL convertToUrl(String spec) {

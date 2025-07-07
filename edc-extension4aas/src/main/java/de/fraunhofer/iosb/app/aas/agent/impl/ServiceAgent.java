@@ -40,8 +40,8 @@ import static de.fraunhofer.iosb.app.pipeline.PipelineResult.failure;
  */
 public class ServiceAgent extends AasAgent<Service, Environment> {
 
-    public ServiceAgent(EdcHttpClient edcHttpClient, Monitor monitor, boolean allowSelfSigned) {
-        super(edcHttpClient, monitor, allowSelfSigned);
+    public ServiceAgent(EdcHttpClient edcHttpClient, Monitor monitor) {
+        super(edcHttpClient, monitor);
     }
 
     /**

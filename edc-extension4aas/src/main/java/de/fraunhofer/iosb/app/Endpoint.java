@@ -23,6 +23,7 @@ import de.fraunhofer.iosb.app.controller.AasController;
 import de.fraunhofer.iosb.app.model.aas.AasProviderRepository;
 import de.fraunhofer.iosb.app.model.aas.registry.RegistryRepository;
 import de.fraunhofer.iosb.app.model.aas.service.ServiceRepository;
+import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -51,11 +52,9 @@ public class Endpoint {
     private static final String SERVICE_PATH = "service";
     private static final String REGISTRY_PATH = "registry";
     private static final String ENVIRONMENT_PATH = "environment";
-
+    private static final Configuration configuration = Configuration.getInstance();
     private final Monitor monitor;
     private final AasController aasController;
-    // Allow self-signed certificates from AAS services that are registered to this extension
-    private final boolean allowSelfSigned;
     private final RegistryRepository registryRepository;
     private final ServiceRepository serviceRepository;
 
@@ -68,12 +67,11 @@ public class Endpoint {
      * @param monitor            Logs
      */
     public Endpoint(ServiceRepository serviceRepository, RegistryRepository registryRepository,
-                    AasController aasController, Monitor monitor, boolean allowSelfSigned) {
+                    AasController aasController, Monitor monitor) {
         this.monitor = Objects.requireNonNullElseGet(monitor, ConsoleMonitor::new);
         this.serviceRepository = Objects.requireNonNull(serviceRepository);
         this.registryRepository = Objects.requireNonNull(registryRepository);
         this.aasController = Objects.requireNonNull(aasController);
-        this.allowSelfSigned = allowSelfSigned;
     }
 
     /**
@@ -208,7 +206,7 @@ public class Endpoint {
             return Response.status(Response.Status.BAD_REQUEST).entity("Missing query parameter 'url'").build();
         }
 
-        if (!allowSelfSigned && !isConnectionTrusted(entity.getAccessUrl())) {
+        if (!configuration.isAllowSelfSignedCertificates() && !isConnectionTrusted(entity.getAccessUrl())) {
             return Response.status(Status.BAD_REQUEST)
                     .entity("Service to register has untrusted certificate.")
                     .build();

@@ -18,6 +18,7 @@ package de.fraunhofer.iosb.app.aas.agent;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iosb.aas.lib.model.AasProvider;
+import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import de.fraunhofer.iosb.app.pipeline.PipelineStep;
 import dev.failsafe.RetryPolicy;
 import okhttp3.*;
@@ -47,16 +48,15 @@ import static jakarta.ws.rs.HttpMethod.GET;
  */
 public abstract class AasAgent<T extends AasProvider, U> extends PipelineStep<T, U> {
 
+    private static final Configuration configuration = Configuration.getInstance();
     private final EdcHttpClient edcHttpClient;
     private final Monitor monitor;
-    private final boolean allowSelfSigned;
     private final JsonDeserializer jsonDeserializer = new JsonDeserializer();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public AasAgent(EdcHttpClient edcHttpClient, Monitor monitor, boolean allowSelfSigned) {
+    public AasAgent(EdcHttpClient edcHttpClient, Monitor monitor) {
         this.edcHttpClient = edcHttpClient;
         this.monitor = monitor;
-        this.allowSelfSigned = allowSelfSigned;
     }
 
     protected <K> Result<List<K>> readElements(AasProvider provider, String path, Class<K> clazz) {
@@ -108,7 +108,7 @@ public abstract class AasAgent<T extends AasProvider, U> extends PipelineStep<T,
     }
 
     private EdcHttpClient getHttpClient(URL url) {
-        if (isConnectionTrusted(url) || !allowSelfSigned) {
+        if (isConnectionTrusted(url) || !configuration.isAllowSelfSignedCertificates()) {
             return edcHttpClient;
         }
         var certificate = getSelfSignedCertificate(url);

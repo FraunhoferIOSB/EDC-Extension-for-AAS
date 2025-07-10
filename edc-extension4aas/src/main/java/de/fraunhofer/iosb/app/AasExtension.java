@@ -92,6 +92,8 @@ public class AasExtension implements ServiceExtension {
 
     private AasController aasController;
     private Monitor monitor;
+    private VariableRateScheduler servicePipeline;
+    private VariableRateScheduler registryPipeline;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
@@ -118,7 +120,7 @@ public class AasExtension implements ServiceExtension {
                 .step(new ContractRegistrar(contractDefinitionStore, policyDefinitionStore, monitor))
                 .build();
 
-        var servicePipeline = new VariableRateScheduler(1, serviceSynchronization, monitor);
+        servicePipeline = new VariableRateScheduler(1, serviceSynchronization, monitor);
         servicePipeline.scheduleAtVariableRate(() -> Configuration.getInstance().getSyncPeriod());
         serviceRepository.registerListener(servicePipeline);
 
@@ -142,7 +144,7 @@ public class AasExtension implements ServiceExtension {
                 .step(new ContractRegistrar(contractDefinitionStore, policyDefinitionStore, monitor))
                 .build();
 
-        var registryPipeline = new VariableRateScheduler(1, registrySynchronization, monitor);
+        registryPipeline = new VariableRateScheduler(1, registrySynchronization, monitor);
         registryPipeline.scheduleAtVariableRate(() -> Configuration.getInstance().getSyncPeriod());
         registryRepository.registerListener(registryPipeline);
 
@@ -192,16 +194,14 @@ public class AasExtension implements ServiceExtension {
                     configInstance.getLocalAasServicePort(),
                     aasConfigPath);
         } catch (Exception startAssetAdministrationShellException) {
-            monitor.severe("Could not start / register AAS service provided by configuration.\nReason: %s"
-                    .formatted(startAssetAdministrationShellException.getMessage()));
+            monitor.severe("Could not start / register AAS service provided by configuration.\nReason: %s %s"
+                    .formatted(startAssetAdministrationShellException.getMessage(), startAssetAdministrationShellException.getCause()));
             return;
         }
 
-        // Now, check if the created service has a valid certificate
-        // OR a self-signed one, and we accept self-signed.
-        if (isConnectionTrusted(serviceUrl)) {
-            monitor.info("cool");
-        }
+        // Now, check if the created service
+        // - has a valid certificate OR
+        // - has a self-signed one AND we accept self-signed
         if (isConnectionTrusted(serviceUrl) || (configInstance.isAllowSelfSignedCertificates()
                 && getSelfSignedCertificate(serviceUrl).succeeded())) {
             serviceRepository.create(new Service(serviceUrl));
@@ -213,6 +213,9 @@ public class AasExtension implements ServiceExtension {
 
     @Override
     public void shutdown() {
+        // Stop pipelines
+        registryPipeline.terminate();
+        servicePipeline.terminate();
         // Gracefully stop AAS services
         aasController.stopServices();
     }

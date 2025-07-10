@@ -15,9 +15,9 @@
  */
 package de.fraunhofer.iosb.app.util;
 
-import de.fraunhofer.iosb.app.model.ids.SelfDescriptionChangeListener;
 import de.fraunhofer.iosb.aas.lib.model.impl.Registry;
 import de.fraunhofer.iosb.aas.lib.model.impl.Service;
+import de.fraunhofer.iosb.app.model.ids.SelfDescriptionChangeListener;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 
@@ -32,6 +32,8 @@ public class VariableRateScheduler extends ScheduledThreadPoolExecutor implement
 
     private final Monitor monitor;
     private final Runnable runnable;
+
+    private boolean terminateScheduler;
 
     /**
      * Initialize a VariableRateScheduler, a subtype of the {@link java.util.concurrent.ScheduledThreadPoolExecutor}.
@@ -52,6 +54,10 @@ public class VariableRateScheduler extends ScheduledThreadPoolExecutor implement
      * @param rateSupplier Provides the variable rate at which the runnable is to be executed.
      */
     public void scheduleAtVariableRate(Supplier<Integer> rateSupplier) {
+        if (terminateScheduler) {
+            monitor.info("VariableRateScheduler stopped execution.");
+            return;
+        }
         schedule(() -> {
             try {
                 runnable.run();
@@ -61,6 +67,10 @@ public class VariableRateScheduler extends ScheduledThreadPoolExecutor implement
             }
             scheduleAtVariableRate(rateSupplier);
         }, (long) rateSupplier.get(), TimeUnit.SECONDS);
+    }
+
+    public void terminate() {
+        terminateScheduler = true;
     }
 
     @Override

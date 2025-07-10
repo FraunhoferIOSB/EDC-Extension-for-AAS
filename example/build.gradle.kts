@@ -29,7 +29,6 @@ dependencies {
     // ----- DATA PLANE ------
     implementation("$group:dataplane-base-bom:$edcVersion")
     implementation(project(":data-plane-aas"))
-    implementation("$group:data-plane-self-registration:$edcVersion") // Register DataPlane with PipelineService factories
     // -----------------------
 }
 

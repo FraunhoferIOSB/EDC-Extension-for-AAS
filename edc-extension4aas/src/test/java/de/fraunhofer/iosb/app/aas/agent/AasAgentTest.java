@@ -28,7 +28,7 @@ class AasAgentTest {
     @Test
     void initializeTest() {
         // Abstract class. Try to instantiate with empty override of method
-        new AasAgent<>(mock(EdcHttpClient.class), new ConsoleMonitor(), true) {
+        new AasAgent<>(mock(EdcHttpClient.class), new ConsoleMonitor()) {
             @Override
             public PipelineResult<Object> apply(AasProvider provider) {
                 return null;

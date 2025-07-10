@@ -58,7 +58,7 @@ class ServiceAgentTest {
     @BeforeAll
     static void setUp() {
         testSubject = new ServiceAgent(new EdcHttpClientImpl(new OkHttpClient(), RetryPolicy.ofDefaults(), new ConsoleMonitor()),
-        new ConsoleMonitor(), true);
+                new ConsoleMonitor());
 
         mockServer = startClientAndServer(PORT);
     }

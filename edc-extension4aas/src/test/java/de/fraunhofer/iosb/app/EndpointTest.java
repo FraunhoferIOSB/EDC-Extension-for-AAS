@@ -16,28 +16,26 @@
 package de.fraunhofer.iosb.app;
 
 import de.fraunhofer.iosb.app.controller.AasController;
+import de.fraunhofer.iosb.app.controller.ConfigurationController;
 import de.fraunhofer.iosb.app.model.aas.registry.RegistryRepository;
 import de.fraunhofer.iosb.app.model.aas.service.ServiceRepository;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
+import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
-import static jakarta.ws.rs.core.Response.Status.CREATED;
-import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+import static jakarta.ws.rs.core.Response.Status.*;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * Not mocking the controllers this endpoint uses, as the mocking/validation
@@ -45,6 +43,7 @@ import static org.mockito.Mockito.when;
  * Note: Synchronization now happens outside the endpoint, so the
  * selfDescription will be null after requests
  */
+@ExtendWith(DependencyInjectionExtension.class)
 public class EndpointTest {
 
     private final URL url = new URL("https://localhost:%s".formatted(getFreePort()));
@@ -59,13 +58,15 @@ public class EndpointTest {
     }
 
     @BeforeEach
-    public void setupEndpoint() {
+    public void setupEndpoint(ServiceExtensionContext context) {
         var monitor = new ConsoleMonitor();
         serviceRepositoryMock = mock(ServiceRepository.class);
         registryRepositoryMock = mock(RegistryRepository.class);
         aasControllerMock = mock(AasController.class);
         testSubject = new Endpoint(serviceRepositoryMock, registryRepositoryMock,
-                aasControllerMock, monitor, true);
+                aasControllerMock, monitor);
+
+        new ConfigurationController(context.getConfig(), monitor).updateConfiguration("{\"edc.aas.allowSelfSignedCertificates\":true}");
     }
 
     @Test
@@ -73,7 +74,8 @@ public class EndpointTest {
         when(registryRepositoryMock.create(any())).thenReturn(true);
 
         try (var response = testSubject.createRegistry(url.toString())) {
-            assertEquals(Response.Status.CREATED.getStatusCode(),
+            // Unauthorized because of self-signed certificate
+            assertEquals(CREATED.getStatusCode(),
                     response.getStatusInfo().getStatusCode());
         }
         verify(registryRepositoryMock, times(1)).create(any());
@@ -84,7 +86,7 @@ public class EndpointTest {
         when(serviceRepositoryMock.create(any())).thenReturn(true);
 
         try (var response = testSubject.createService(url.toString(), null)) {
-            assertEquals(Response.Status.CREATED.getStatusCode(),
+            assertEquals(CREATED.getStatusCode(),
                     response.getStatusInfo().getStatusCode());
         }
 

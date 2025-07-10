@@ -58,7 +58,7 @@ class RegistryAgentTest {
     static void setUp() {
         testSubject = new RegistryAgent(
                 new EdcHttpClientImpl(new OkHttpClient(), RetryPolicy.ofDefaults(), new ConsoleMonitor()),
-                new ConsoleMonitor(), true);
+                new ConsoleMonitor());
 
         mockServer = startClientAndServer(PORT);
     }

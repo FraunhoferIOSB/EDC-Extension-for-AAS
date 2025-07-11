@@ -31,11 +31,17 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import static jakarta.ws.rs.core.Response.Status.*;
+import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
+import static jakarta.ws.rs.core.Response.Status.CREATED;
+import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Not mocking the controllers this endpoint uses, as the mocking/validation
@@ -63,10 +69,10 @@ public class EndpointTest {
         serviceRepositoryMock = mock(ServiceRepository.class);
         registryRepositoryMock = mock(RegistryRepository.class);
         aasControllerMock = mock(AasController.class);
-        testSubject = new Endpoint(serviceRepositoryMock, registryRepositoryMock,
-                aasControllerMock, monitor);
+        testSubject = new Endpoint(serviceRepositoryMock, registryRepositoryMock, aasControllerMock, monitor);
 
-        new ConfigurationController(context.getConfig(), monitor).updateConfiguration("{\"edc.aas.allowSelfSignedCertificates\":true}");
+        new ConfigurationController(context.getConfig(), monitor).updateConfiguration("{\"edc.aas" +
+                ".allowSelfSignedCertificates\":true}");
     }
 
     @Test
@@ -75,8 +81,7 @@ public class EndpointTest {
 
         try (var response = testSubject.createRegistry(url.toString())) {
             // Unauthorized because of self-signed certificate
-            assertEquals(CREATED.getStatusCode(),
-                    response.getStatusInfo().getStatusCode());
+            assertEquals(CREATED.getStatusCode(), response.getStatusInfo().getStatusCode());
         }
         verify(registryRepositoryMock, times(1)).create(any());
     }
@@ -86,8 +91,7 @@ public class EndpointTest {
         when(serviceRepositoryMock.create(any())).thenReturn(true);
 
         try (var response = testSubject.createService(url.toString(), null)) {
-            assertEquals(CREATED.getStatusCode(),
-                    response.getStatusInfo().getStatusCode());
+            assertEquals(CREATED.getStatusCode(), response.getStatusInfo().getStatusCode());
         }
 
         verify(serviceRepositoryMock, times(1)).create(any());
@@ -96,8 +100,7 @@ public class EndpointTest {
     @Test
     void testRemoveService() {
         try (var response = testSubject.removeService(url.toString())) {
-            assertEquals(Response.Status.NOT_FOUND.getStatusCode(),
-                    response.getStatusInfo().getStatusCode());
+            assertEquals(Response.Status.NOT_FOUND.getStatusCode(), response.getStatusInfo().getStatusCode());
         }
 
         verify(serviceRepositoryMock, times(1)).delete(any());
@@ -107,8 +110,7 @@ public class EndpointTest {
     void testRemoveRegistry() {
         doThrow(IllegalAccessError.class).when(aasControllerMock).stopService(any());
         try (var response = testSubject.removeRegistry(url.toString())) {
-            assertEquals(Response.Status.NOT_FOUND.getStatusCode(),
-                    response.getStatusInfo().getStatusCode());
+            assertEquals(Response.Status.NOT_FOUND.getStatusCode(), response.getStatusInfo().getStatusCode());
         }
         verify(registryRepositoryMock, times(1)).delete(any());
     }
@@ -117,8 +119,7 @@ public class EndpointTest {
     void testCreateRegistryNullValue() {
         when(registryRepositoryMock.create(any())).thenThrow(IllegalAccessError.class);
         try (var response = testSubject.createRegistry(null)) {
-            assertEquals(BAD_REQUEST.getStatusCode(),
-                    response.getStatusInfo().getStatusCode());
+            assertEquals(BAD_REQUEST.getStatusCode(), response.getStatusInfo().getStatusCode());
         }
 
         assertEquals(0, registryRepositoryMock.getAllEnvironments().size());
@@ -128,8 +129,7 @@ public class EndpointTest {
     void testCreateServiceNullValue() {
         when(serviceRepositoryMock.create(any())).thenThrow(IllegalAccessError.class);
         try (var response = testSubject.createService(null, null)) {
-            assertEquals(BAD_REQUEST.getStatusCode(),
-                    response.getStatusInfo().getStatusCode());
+            assertEquals(BAD_REQUEST.getStatusCode(), response.getStatusInfo().getStatusCode());
         }
 
         assertEquals(0, serviceRepositoryMock.getAllEnvironments().size());
@@ -140,8 +140,7 @@ public class EndpointTest {
         doThrow(IllegalAccessError.class).when(serviceRepositoryMock).delete(any());
         doThrow(IllegalAccessError.class).when(aasControllerMock).stopService(any());
         try (var response = testSubject.removeService(null)) {
-            assertEquals(BAD_REQUEST.getStatusCode(),
-                    response.getStatusInfo().getStatusCode());
+            assertEquals(BAD_REQUEST.getStatusCode(), response.getStatusInfo().getStatusCode());
         }
     }
 
@@ -150,8 +149,7 @@ public class EndpointTest {
         doThrow(IllegalAccessError.class).when(registryRepositoryMock).delete(any());
         doThrow(IllegalAccessError.class).when(aasControllerMock).stopService(any());
         try (var response = testSubject.removeRegistry(null)) {
-            assertEquals(BAD_REQUEST.getStatusCode(),
-                    response.getStatusInfo().getStatusCode());
+            assertEquals(BAD_REQUEST.getStatusCode(), response.getStatusInfo().getStatusCode());
         }
     }
 

@@ -33,7 +33,10 @@ import java.util.Map;
 
 import static de.fraunhofer.iosb.app.testutils.AasCreator.getEmptyEnvironment;
 import static de.fraunhofer.iosb.app.testutils.AasCreator.getEnvironment;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Do not test for empty Shell, Submodel, ConceptDescription inside an environment since the default implementation
@@ -118,14 +121,11 @@ class EnvironmentToAssetMapperTest {
         assertNotNull(envAsset);
 
         // We don't compare IDs since they simply need to be unique
-        assertEquals(env.getSubmodels().size(),
-                getChildren(envAsset, SUBMODELS).size());
+        assertEquals(env.getSubmodels().size(), getChildren(envAsset, SUBMODELS).size());
 
-        assertEquals(env.getAssetAdministrationShells().size(),
-                getChildren(envAsset, SHELLS).size());
+        assertEquals(env.getAssetAdministrationShells().size(), getChildren(envAsset, SHELLS).size());
 
-        assertEquals(env.getConceptDescriptions().size(),
-                getChildren(envAsset, CONCEPT_DESCRIPTIONS).size());
+        assertEquals(env.getConceptDescriptions().size(), getChildren(envAsset, CONCEPT_DESCRIPTIONS).size());
     }
 
     @Test
@@ -164,8 +164,7 @@ class EnvironmentToAssetMapperTest {
 
         var result = testSubject.executeSingle(new Service(accessUrl), env).getContent();
 
-        assertEquals(env.getSubmodels().size(),
-                getChildren(result.environment(), SUBMODELS).size());
+        assertEquals(env.getSubmodels().size(), getChildren(result.environment(), SUBMODELS).size());
         assertEquals(emptyList, result.environment().getProperty(SHELLS));
         assertEquals(emptyList, result.environment().getProperty(CONCEPT_DESCRIPTIONS));
     }
@@ -180,14 +179,11 @@ class EnvironmentToAssetMapperTest {
 
         var res = result.getContent().environment();
 
-        assertEquals(env.getSubmodels().size(),
-                getChildren(res, SUBMODELS).size());
+        assertEquals(env.getSubmodels().size(), getChildren(res, SUBMODELS).size());
 
-        assertEquals(env.getAssetAdministrationShells().size(),
-                getChildren(res, SHELLS).size());
+        assertEquals(env.getAssetAdministrationShells().size(), getChildren(res, SHELLS).size());
 
-        assertEquals(env.getConceptDescriptions().size(),
-                getChildren(res, CONCEPT_DESCRIPTIONS).size());
+        assertEquals(env.getConceptDescriptions().size(), getChildren(res, CONCEPT_DESCRIPTIONS).size());
     }
 
     @Test
@@ -202,14 +198,15 @@ class EnvironmentToAssetMapperTest {
                 (AasDataAddress) getChildren(result.environment(), CONCEPT_DESCRIPTIONS).stream().map(Asset::getDataAddress).toList().get(0);
 
         assertTrue(shellDataAddress.getAccessUrl().getContent().toString().startsWith(accessUrl.toString()));
-        assertEquals("%s/%s".formatted(SHELLS, Base64.getEncoder().encodeToString(env.getAssetAdministrationShells().get(0).getId().getBytes())),
+        assertEquals("%s/%s".formatted(SHELLS,
+                        Base64.getEncoder().encodeToString(env.getAssetAdministrationShells().get(0).getId().getBytes())),
                 shellDataAddress.getPath());
         assertTrue(submodelDataAddress.getAccessUrl().getContent().toString().startsWith(accessUrl.toString()));
-        assertEquals("%s/%s".formatted(SUBMODELS, Base64.getEncoder().encodeToString(env.getSubmodels().get(0).getId().getBytes())),
+        assertEquals("%s/%s".formatted(SUBMODELS,
+                        Base64.getEncoder().encodeToString(env.getSubmodels().get(0).getId().getBytes())),
                 submodelDataAddress.getPath());
         assertTrue(conceptDescriptionDataAddress.getAccessUrl().getContent().toString().startsWith(accessUrl.toString()));
-        assertEquals("concept-descriptions/%s".formatted(Base64.getEncoder().encodeToString(env.getConceptDescriptions().get(0).getId().getBytes())),
-                conceptDescriptionDataAddress.getPath());
+        assertEquals("concept-descriptions/%s".formatted(Base64.getEncoder().encodeToString(env.getConceptDescriptions().get(0).getId().getBytes())), conceptDescriptionDataAddress.getPath());
     }
 
     @SuppressWarnings("unchecked")

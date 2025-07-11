@@ -29,9 +29,15 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.jetbrains.annotations.Nullable;
 
 import java.net.URL;
-import java.util.*;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 
-import static de.fraunhofer.iosb.aas.lib.model.impl.Service.*;
+import static de.fraunhofer.iosb.aas.lib.model.impl.Service.CONCEPT_DESCRIPTIONS_PATH;
+import static de.fraunhofer.iosb.aas.lib.model.impl.Service.SHELLS_PATH;
+import static de.fraunhofer.iosb.aas.lib.model.impl.Service.SUBMODELS_PATH;
 import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toMap;
 
@@ -98,8 +104,7 @@ public class AasDataAddress extends DataAddress {
         Map<String, String> headers = hasProvider() ? getProvider().getHeaders() : new HashMap<>();
         headers.putAll(getProperties().entrySet().stream()
                 .filter(entry -> entry.getKey().startsWith(ADDITIONAL_HEADER))
-                .collect(toMap(headerName -> headerName.getKey().replace(ADDITIONAL_HEADER, ""),
-                        headerValue -> (String) headerValue.getValue())));
+                .collect(toMap(headerName -> headerName.getKey().replace(ADDITIONAL_HEADER, ""), headerValue -> (String) headerValue.getValue())));
         return headers;
     }
 
@@ -110,8 +115,7 @@ public class AasDataAddress extends DataAddress {
      * Example: ReferenceChain: [Submodel x, SubmodelElementCollection y, SubmodelElement z]
      * --> path: submodels/base64(x)/submodel-elements/y.z
      *
-     * @return Explicitly defined path or path correlating to reference chain stored in this DataAddress (no leading
-     * '/').
+     * @return Explicitly defined path or path correlating to reference chain stored in this DataAddress (no leading '/').
      */
     public String getPath() {
         return getStringProperty(PATH, referenceChainAsPath());
@@ -123,15 +127,13 @@ public class AasDataAddress extends DataAddress {
         for (var key : getReferenceChain().getKeys()) {
             var value = key.getValue();
             String[] toAppend = switch (key.getType()) {
-                case ASSET_ADMINISTRATION_SHELL -> new String[]{SHELLS_PATH, b64(value)};
-                case SUBMODEL -> new String[]{SUBMODELS_PATH, b64(value)};
-                case CONCEPT_DESCRIPTION -> new String[]{CONCEPT_DESCRIPTIONS_PATH, b64(value)};
+                case ASSET_ADMINISTRATION_SHELL -> new String[]{ SHELLS_PATH, b64(value) };
+                case SUBMODEL -> new String[]{ SUBMODELS_PATH, b64(value) };
+                case CONCEPT_DESCRIPTION -> new String[]{ CONCEPT_DESCRIPTIONS_PATH, b64(value) };
                 case SUBMODEL_ELEMENT, SUBMODEL_ELEMENT_COLLECTION, SUBMODEL_ELEMENT_LIST ->
-                        new String[]{urlBuilder.indexOf("/submodel-elements/") == -1 ?
-                                "/submodel-elements/".concat(value) :
-                                ".".concat(value)};
-                default -> throw new EdcException(new IllegalStateException(
-                        "Element type not recognized: %s".formatted(key)));
+                        new String[]{ urlBuilder.indexOf("/submodel-elements/") == -1 ?
+                                "/submodel-elements/".concat(value) : ".".concat(value) };
+                default -> throw new EdcException(new IllegalStateException("Element type not recognized: %s".formatted(key)));
             };
 
             urlBuilder.append(String.join("/", toAppend));
@@ -153,12 +155,11 @@ public class AasDataAddress extends DataAddress {
             return new DefaultReference();
         }
 
-        if (referenceChain instanceof Reference reference
-                && reference.getKeys() != null) {
+        if (referenceChain instanceof Reference reference && reference.getKeys() != null) {
             return reference;
         }
 
-        throw new EdcException(new IllegalStateException("Faulty reference chain: %s".formatted(referenceChain)));
+        throw new EdcException(new IllegalStateException(("Faulty reference chain: %s").formatted(referenceChain)));
     }
 
     @JsonPOJOBuilder(withPrefix = "")

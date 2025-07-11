@@ -24,7 +24,12 @@ import de.fraunhofer.iosb.app.model.aas.AasProviderRepository;
 import de.fraunhofer.iosb.app.model.aas.registry.RegistryRepository;
 import de.fraunhofer.iosb.app.model.aas.service.ServiceRepository;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
@@ -33,26 +38,26 @@ import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Objects;
+import javax.annotation.Nullable;
 
 import static de.fraunhofer.iosb.app.util.InetTools.isConnectionTrusted;
 
 /**
  * Delegates requests to controllers.
  */
-@Consumes({MediaType.APPLICATION_JSON, MediaType.WILDCARD})
-@Produces({MediaType.APPLICATION_JSON})
+@Consumes({ MediaType.APPLICATION_JSON, MediaType.WILDCARD })
+@Produces({ MediaType.APPLICATION_JSON })
 @Path("/")
 public class Endpoint {
 
     private static final String SERVICE_PATH = "service";
     private static final String REGISTRY_PATH = "registry";
     private static final String ENVIRONMENT_PATH = "environment";
-    private static final Configuration configuration = Configuration.getInstance();
+    private static final Configuration CONFIGURATION = Configuration.getInstance();
     private final Monitor monitor;
     private final AasController aasController;
     private final RegistryRepository registryRepository;
@@ -206,7 +211,7 @@ public class Endpoint {
             return Response.status(Response.Status.BAD_REQUEST).entity("Missing query parameter 'url'").build();
         }
 
-        if (!configuration.isAllowSelfSignedCertificates() && !isConnectionTrusted(entity.getAccessUrl())) {
+        if (!CONFIGURATION.isAllowSelfSignedCertificates() && !isConnectionTrusted(entity.getAccessUrl())) {
             return Response.status(Status.BAD_REQUEST)
                     .entity("Service to register has untrusted certificate.")
                     .build();

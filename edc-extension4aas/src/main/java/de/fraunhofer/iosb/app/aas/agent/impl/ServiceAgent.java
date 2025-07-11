@@ -32,7 +32,9 @@ import org.eclipse.edc.spi.result.Result;
 
 import java.util.List;
 
-import static de.fraunhofer.iosb.aas.lib.model.impl.Service.*;
+import static de.fraunhofer.iosb.aas.lib.model.impl.Service.CONCEPT_DESCRIPTIONS_PATH;
+import static de.fraunhofer.iosb.aas.lib.model.impl.Service.SHELLS_PATH;
+import static de.fraunhofer.iosb.aas.lib.model.impl.Service.SUBMODELS_PATH;
 import static de.fraunhofer.iosb.app.pipeline.PipelineResult.failure;
 
 /**

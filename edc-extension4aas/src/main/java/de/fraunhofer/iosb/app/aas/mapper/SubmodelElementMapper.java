@@ -36,7 +36,7 @@ class SubmodelElementMapper {
 
     private final ElementMapper elementMapper;
 
-    public SubmodelElementMapper() {
+    SubmodelElementMapper() {
         this.elementMapper = new ElementMapper();
     }
 

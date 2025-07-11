@@ -15,8 +15,8 @@
  */
 package de.fraunhofer.iosb.aas.lib.model.impl;
 
-import de.fraunhofer.iosb.aas.lib.model.AasProvider;
 import de.fraunhofer.iosb.aas.lib.auth.AuthenticationMethod;
+import de.fraunhofer.iosb.aas.lib.model.AasProvider;
 import de.fraunhofer.iosb.aas.lib.net.AasAccessUrl;
 
 import java.net.URL;
@@ -78,9 +78,7 @@ public final class Registry extends AasProvider {
 
     @Override
     public String toString() {
-        return "Registry[" +
-                "accessUrl=" + super.getAccessUrl() + ", " +
-                "services=" + services + ']';
+        return "Registry[" + "accessUrl=" + super.getAccessUrl() + ", " + "services=" + services + ']';
     }
 
 }

@@ -35,9 +35,12 @@ import java.nio.charset.StandardCharsets;
 import java.util.stream.Stream;
 
 import static org.eclipse.edc.util.io.Ports.getFreePort;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class AasDataSinkTest {
 

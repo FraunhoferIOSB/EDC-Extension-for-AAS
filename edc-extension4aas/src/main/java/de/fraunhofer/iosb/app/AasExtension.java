@@ -75,7 +75,6 @@ public class AasExtension implements ServiceExtension {
     public static final String NAME = "EDC4AAS Extension";
 
     private static final String SETTINGS_PREFIX = "edc.aas";
-    private static final String ALLOW_SELF_SIGNED = "edc.aas.allowSelfSignedCertificates";
 
     @Inject // Register public endpoints
     private PublicApiManagementService publicApiManagementService;
@@ -161,7 +160,8 @@ public class AasExtension implements ServiceExtension {
 
         // Add public endpoint if wanted by config
         if (Configuration.getInstance().isExposeSelfDescription()) {
-            publicApiManagementService.addEndpoints(List.of(new de.fraunhofer.iosb.api.model.Endpoint(SELF_DESCRIPTION_PATH, HttpMethod.GET, Map.of())));
+            publicApiManagementService.addEndpoints(List.of(new de.fraunhofer.iosb.api.model.Endpoint(SELF_DESCRIPTION_PATH, HttpMethod.GET,
+                    Map.of())));
         }
 
         webService.registerResource(new SelfDescriptionController(monitor, serviceRepository, registryRepository));
@@ -202,8 +202,7 @@ public class AasExtension implements ServiceExtension {
         // Now, check if the created service
         // - has a valid certificate OR
         // - has a self-signed one AND we accept self-signed
-        if (isConnectionTrusted(serviceUrl) || (configInstance.isAllowSelfSignedCertificates()
-                && getSelfSignedCertificate(serviceUrl).succeeded())) {
+        if (isConnectionTrusted(serviceUrl) || (configInstance.isAllowSelfSignedCertificates() && getSelfSignedCertificate(serviceUrl).succeeded())) {
             serviceRepository.create(new Service(serviceUrl));
         } else {
             aasController.stopService(serviceUrl);

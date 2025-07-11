@@ -39,15 +39,14 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static de.fraunhofer.iosb.app.util.OSUtil.getLocalhostAddress;
+import static de.fraunhofer.iosb.app.util.OperatingSystemUtil.getLocalhostAddress;
 
 /**
  * Manages internally created FA³ST instances.
  */
 public class FaaastServiceManager implements AssetAdministrationShellServiceManager {
 
-    public static final String NO_ENDPOINT_DEFINED_EXCEPTION_MESSAGE = "No valid HTTP endpoint could be defined in " +
-            "this configuration.";
+    public static final String NO_ENDPOINT_DEFINED_EXCEPTION_MESSAGE = "No valid HTTP endpoint could be defined in " + "this configuration.";
     private static final String FAAAST = "FA³ST";
     private static final String GENERIC_EXCEPTION_MESSAGE = "Exception thrown by %s service.".formatted(FAAAST);
     private static final String LOCALHOST_URL = getLocalhostAddress();
@@ -94,13 +93,13 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
                 httpEndpoints.stream().findAny())
                 .orElseThrow(() -> new IllegalArgumentException(NO_ENDPOINT_DEFINED_EXCEPTION_MESSAGE));
 
-        var urlSpec = "http"
-                .concat(communicationHttpPort.isSslEnabled() ? "s" : "")
-                .concat("://")
-                .concat(Optional.ofNullable(communicationHttpPort.getHostname()).orElse(LOCALHOST_URL))
-                .concat(":")
-                .concat(String.valueOf(communicationHttpPort.getPort()))
-                .concat("/api/v3.0");
+        var urlSpec =
+                "http".concat(communicationHttpPort.isSslEnabled() ? "s" : "") // proto
+                        .concat("://")
+                        .concat(Optional.ofNullable(communicationHttpPort.getHostname()).orElse(LOCALHOST_URL)) // hostname
+                        .concat(":")
+                        .concat(String.valueOf(communicationHttpPort.getPort())) // port
+                        .concat("/api/v3.0"); // path
 
         var serviceAccessUrl = new URL(urlSpec);
         faaastServiceRepository.put(new AasAccessUrl(serviceAccessUrl), service);

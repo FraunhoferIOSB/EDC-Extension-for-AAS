@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
+ * Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
+ * Forschung e.V.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package de.fraunhofer.iosb.dataplane.aas.pipeline;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,9 +36,12 @@ import org.junit.jupiter.api.Test;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.argThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class AasDataSourceFactoryTest {
 
@@ -32,8 +50,7 @@ class AasDataSourceFactoryTest {
 
     @BeforeEach
     void setUp() {
-        testSubject = new AasDataSourceFactory(
-                new ConsoleMonitor().withPrefix(this.getClass().getSimpleName()),
+        testSubject = new AasDataSourceFactory(new ConsoleMonitor().withPrefix(this.getClass().getSimpleName()),
                 mockedDataProcessorFactory);
     }
 
@@ -50,8 +67,7 @@ class AasDataSourceFactoryTest {
                                 .build())
                         .protocol(Protocol.HTTP_1_1)
                         .message("")
-                        .body(ResponseBody.create("{\"test\": \"ok\"}".getBytes(StandardCharsets.UTF_8),
-                                okhttp3.MediaType.get("application/json")))
+                        .body(ResponseBody.create("{\"test\": \"ok\"}".getBytes(StandardCharsets.UTF_8), okhttp3.MediaType.get("application/json")))
                         .build());
         when(mockedDataProcessorFactory.processorFor(accessUrl)).thenReturn(Result.success(mockedProcessor));
 
@@ -62,13 +78,13 @@ class AasDataSourceFactoryTest {
 
         // Destination of not type AasData
         when(mockedDataFlowStartMessage.getDestinationDataAddress())
-                .thenReturn(DataAddress.Builder.newInstance().type("HttpData")
-                        .property("operation", new ObjectMapper().writeValueAsString(
-                                new DefaultOperation.Builder()
-                                        .inoutputVariables(new DefaultOperationVariable.Builder().build())
-                                        .inputVariables(new DefaultOperationVariable.Builder().build())
-                                        .outputVariables(new DefaultOperationVariable.Builder().build())
-                                        .build()))
+                .thenReturn(DataAddress.Builder.newInstance()
+                        .type("HttpData")
+                        .property("operation", new ObjectMapper().writeValueAsString(new DefaultOperation.Builder()
+                                .inoutputVariables(new DefaultOperationVariable.Builder().build())
+                                .inputVariables(new DefaultOperationVariable.Builder().build())
+                                .outputVariables(new DefaultOperationVariable.Builder().build())
+                                .build()))
                         .build());
         when(mockedDataFlowStartMessage.getId()).thenReturn("testId");
 

@@ -18,7 +18,6 @@ package de.fraunhofer.iosb.app.util;
 import de.fraunhofer.iosb.aas.lib.model.AasProvider;
 import org.eclipse.edc.spi.result.Result;
 
-import javax.net.ssl.*;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
@@ -32,22 +31,26 @@ import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.X509Certificate;
 import java.util.List;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLPeerUnverifiedException;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 public class InetTools {
 
-    private static final TrustManager[] TRUST_ALL_MANAGER = new TrustManager[]{
-            new X509TrustManager() {
-                public X509Certificate[] getAcceptedIssuers() {
-                    return null;
-                }
+    private static final TrustManager[] TRUST_ALL_MANAGER = new TrustManager[]{ new X509TrustManager() {
+        public X509Certificate[] getAcceptedIssuers() {
+            return null;
+        }
 
-                public void checkClientTrusted(X509Certificate[] certs, String authType) {
-                }
+        public void checkClientTrusted(X509Certificate[] certs, String authType) {
+        }
 
-                public void checkServerTrusted(X509Certificate[] certs, String authType) {
-                }
-            }
-    };
+        public void checkServerTrusted(X509Certificate[] certs, String authType) {
+        }
+    } };
 
     private InetTools() {
         throw new RuntimeException("Utility class");
@@ -109,9 +112,10 @@ public class InetTools {
                 // Connection with standard java library succeeded
                 // -> according to this system, the server has a trusted certificate
                 return true;
-            } else
+            } else {
                 // TODO should we allow unencrypted traffic in production for our services?
                 return conn instanceof HttpURLConnection;
+            }
 
         } catch (IOException e) {
             return false;

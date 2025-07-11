@@ -5,7 +5,6 @@ plugins {
 
 val javaVersion: String by project
 val edcVersion: String by project
-val rsApi: String by project
 val mockitoVersion: String by project
 val mockserverVersion: String by project
 val jerseyVersion: String by project

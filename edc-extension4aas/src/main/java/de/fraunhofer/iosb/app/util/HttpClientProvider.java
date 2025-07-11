@@ -20,10 +20,6 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.TrustManagerFactory;
-import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
@@ -31,6 +27,10 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
 
 /**
  * Provides OkHttpClient instance allowing communication to a remote service with the given certificate.
@@ -67,8 +67,8 @@ public class HttpClientProvider {
         try {
             sslContext.init(null, trustManagers, null);
         } catch (KeyManagementException keyManagementException) {
-            return Result.failure("%s trying to initialize SSL context: %s"
-                    .formatted(keyManagementException.getClass().getSimpleName(), keyManagementException.getMessage()));
+            return Result.failure("%s trying to initialize SSL context: %s".formatted(keyManagementException.getClass().getSimpleName(),
+                    keyManagementException.getMessage()));
         }
 
         return Result.success(new OkHttpClient()

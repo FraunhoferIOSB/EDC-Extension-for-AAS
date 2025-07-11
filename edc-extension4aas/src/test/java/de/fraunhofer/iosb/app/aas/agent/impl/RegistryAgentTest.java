@@ -37,7 +37,10 @@ import static de.fraunhofer.iosb.aas.lib.model.impl.Registry.SHELL_DESCRIPTORS_P
 import static de.fraunhofer.iosb.aas.lib.model.impl.Registry.SUBMODEL_DESCRIPTORS_PATH;
 import static de.fraunhofer.iosb.api.model.HttpMethod.GET;
 import static de.fraunhofer.iosb.app.pipeline.PipelineFailure.Type.WARNING;
-import static de.fraunhofer.iosb.app.testutils.RegistryElementCreator.*;
+import static de.fraunhofer.iosb.app.testutils.RegistryElementCreator.getEmptyShellDescriptor;
+import static de.fraunhofer.iosb.app.testutils.RegistryElementCreator.getEmptySubmodelDescriptor;
+import static de.fraunhofer.iosb.app.testutils.RegistryElementCreator.getShellDescriptor;
+import static de.fraunhofer.iosb.app.testutils.RegistryElementCreator.getSubmodelDescriptor;
 import static de.fraunhofer.iosb.app.testutils.StringMethods.resultOf;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.junit.jupiter.api.Assertions.assertEquals;

@@ -53,7 +53,7 @@ public class FaaastServiceManagerTest {
 
         var edcHttpClient = new EdcHttpClientImpl(okHttpClient.getContent(), RetryPolicy.ofDefaults(), new ConsoleMonitor());
 
-        try (var response = edcHttpClient.execute(new Request.Builder().url(url.toString()+"/shells").method(GET, null).build())) {
+        try (var response = edcHttpClient.execute(new Request.Builder().url(url.toString() + "/shells").method(GET, null).build())) {
             assertEquals(Response.Status.OK.getStatusCode(), response.code());
         }
     }

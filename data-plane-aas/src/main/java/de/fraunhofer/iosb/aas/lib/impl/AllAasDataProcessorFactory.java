@@ -21,11 +21,6 @@ import dev.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
 import okhttp3.Response;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.result.Result;
-import org.jetbrains.annotations.Nullable;
-
-import java.net.URL;
-import java.security.cert.Certificate;
 
 
 public class AllAasDataProcessorFactory extends AasDataProcessorFactory {

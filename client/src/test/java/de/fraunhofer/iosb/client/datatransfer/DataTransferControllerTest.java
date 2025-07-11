@@ -49,7 +49,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 class DataTransferControllerTest {
-    private static final String agreementId = UUID.randomUUID().toString();
+    private static final String AGREEMENT_ID = UUID.randomUUID().toString();
     private static URL url;
     private final TransferProcessManager mockTransferProcessManager = mock(TransferProcessManager.class);
     private DataTransferController testSubject;
@@ -135,7 +135,7 @@ class DataTransferControllerTest {
         var operationString = nnneObjectMapper.writeValueAsString(operation);
         DataAddress dataSinkAddress = getDataAddress(operation);
 
-        testSubject.getData(url, agreementId, dataSinkAddress);
+        testSubject.getData(url, AGREEMENT_ID, dataSinkAddress);
         // Verify that operation is serialized before sending it to provider
         verify(mockTransferProcessManager).initiateConsumerRequest(argThat(request ->
                 operationString.equals(request.getDataDestination().getStringProperty(OPERATION_FIELD))));
@@ -147,7 +147,7 @@ class DataTransferControllerTest {
 
         DataAddress dataSinkAddress = getDataAddress(operation);
 
-        testSubject.getData(url, agreementId, dataSinkAddress);
+        testSubject.getData(url, AGREEMENT_ID, dataSinkAddress);
         // Verify that operation is serialized before sending it to provider
         verify(mockTransferProcessManager).initiateConsumerRequest(argThat(request ->
                 null == request.getDataDestination().getProperties().get(OPERATION_FIELD)));
@@ -158,7 +158,7 @@ class DataTransferControllerTest {
         var aasDataAddress = DataAddress.Builder.newInstance()
                 .type("AasData")
                 .build();
-        try (var response = testSubject.getData(url, agreementId, aasDataAddress)) {
+        try (var response = testSubject.getData(url, AGREEMENT_ID, aasDataAddress)) {
             assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
         }
     }

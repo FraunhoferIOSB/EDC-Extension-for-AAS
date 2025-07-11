@@ -47,7 +47,7 @@ import java.util.concurrent.TimeoutException;
 
 import static de.fraunhofer.iosb.client.ClientEndpoint.MISSING_QUERY_PARAMETER_MESSAGE;
 
-@Consumes({MediaType.APPLICATION_JSON})
+@Consumes({ MediaType.APPLICATION_JSON })
 @Path(ClientEndpoint.AUTOMATED_PATH)
 public class DataTransferController {
 
@@ -115,13 +115,13 @@ public class DataTransferController {
                             @QueryParam("agreementId") String agreementId,
                             DataAddress dataAddress) {
         monitor.info("GET /%s".formatted(TRANSFER_PATH));
-        monitor.debug("providerUrl = " + providerUrl.toString());
-        monitor.debug("agreementId: " + agreementId);
         if (providerUrl == null || agreementId == null) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(MISSING_QUERY_PARAMETER_MESSAGE.formatted("providerUrl, agreementId"))
                     .build();
         }
+        monitor.debug("providerUrl: %s".formatted(providerUrl.toString()));
+        monitor.debug("agreementId: %s".formatted(agreementId));
 
         try {
             if (dataAddress == null) {

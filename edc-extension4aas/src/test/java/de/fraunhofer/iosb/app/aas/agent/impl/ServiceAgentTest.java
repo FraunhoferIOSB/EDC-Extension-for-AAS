@@ -34,14 +34,19 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
 
-import static de.fraunhofer.iosb.aas.lib.model.impl.Service.*;
+import static de.fraunhofer.iosb.aas.lib.model.impl.Service.CONCEPT_DESCRIPTIONS_PATH;
+import static de.fraunhofer.iosb.aas.lib.model.impl.Service.SHELLS_PATH;
+import static de.fraunhofer.iosb.aas.lib.model.impl.Service.SUBMODELS_PATH;
 import static de.fraunhofer.iosb.api.model.HttpMethod.GET;
 import static de.fraunhofer.iosb.app.pipeline.PipelineFailure.Type.WARNING;
 import static de.fraunhofer.iosb.app.testutils.AasCreator.getEmptyEnvironment;
 import static de.fraunhofer.iosb.app.testutils.AasCreator.getEnvironment;
 import static de.fraunhofer.iosb.app.testutils.StringMethods.resultOfCollection;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.model.HttpRequest.request;
 
@@ -57,8 +62,8 @@ class ServiceAgentTest {
 
     @BeforeAll
     static void setUp() {
-        testSubject = new ServiceAgent(new EdcHttpClientImpl(new OkHttpClient(), RetryPolicy.ofDefaults(), new ConsoleMonitor()),
-                new ConsoleMonitor());
+        testSubject = new ServiceAgent(new EdcHttpClientImpl(new OkHttpClient(), RetryPolicy.ofDefaults(),
+                new ConsoleMonitor()), new ConsoleMonitor());
 
         mockServer = startClientAndServer(PORT);
     }

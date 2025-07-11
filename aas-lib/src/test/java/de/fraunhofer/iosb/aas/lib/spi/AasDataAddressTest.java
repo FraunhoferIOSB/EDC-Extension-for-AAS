@@ -71,7 +71,7 @@ class AasDataAddressTest {
             keys.add(getKey(KeyTypes.SUBMODEL_ELEMENT_COLLECTION, "smc%s".formatted(i)));
             path = path.concat("smc%s.".formatted(i));
         }
-        
+
         keys.add(getKey(KeyTypes.SUBMODEL_ELEMENT, "sme"));
         path = path.concat("sme");
 
@@ -126,10 +126,10 @@ class AasDataAddressTest {
     }
 
     private static class Encoder {
-        private static final java.util.Base64.Encoder enc = Base64.getEncoder();
+        private static final java.util.Base64.Encoder ENC = Base64.getEncoder();
 
         static String encodeBase64(String toEncode) {
-            return enc.encodeToString(toEncode.getBytes(StandardCharsets.UTF_8));
+            return ENC.encodeToString(toEncode.getBytes(StandardCharsets.UTF_8));
         }
     }
 }

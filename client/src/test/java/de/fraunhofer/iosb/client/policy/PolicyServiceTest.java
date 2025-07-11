@@ -94,8 +94,8 @@ public class PolicyServiceTest {
         config = mock(PolicyServiceConfig.class);
         policyDefinitionStore = mock(PolicyDefinitionStore.class);
 
-        policyService = new PolicyService(catalogService, typeTransformerRegistry, config,
-                policyDefinitionStore, new ConsoleMonitor().withPrefix("PolicyServiceTest"));
+        policyService = new PolicyService(catalogService, typeTransformerRegistry, config, policyDefinitionStore, new ConsoleMonitor().withPrefix(
+                "PolicyServiceTest"));
 
         future = new CompletableFuture<>();
     }
@@ -104,23 +104,21 @@ public class PolicyServiceTest {
     void getDatasetCatalogResponseFailureTest() {
         future.complete(StatusResult.failure(ResponseStatus.FATAL_ERROR, "This is a test"));
 
-        when(catalogService.requestCatalog(TEST_COUNTER_PARTY_ID, testUrl.toString(), DATASPACE_PROTOCOL_HTTP,
-                ASSET_ID_QUERY_SPEC)).thenReturn(future);
+        when(catalogService.requestCatalog(TEST_COUNTER_PARTY_ID, testUrl.toString(), DATASPACE_PROTOCOL_HTTP, ASSET_ID_QUERY_SPEC)).thenReturn(future);
 
         var response = policyService.getDatasetForAssetId(TEST_COUNTER_PARTY_ID, testUrl, TEST_ASSET_ID);
-        assertEquals("Failed fetching catalog, FATAL_ERROR: This is a test",
-                response.getFailureDetail());
+        assertEquals("Failed fetching catalog, FATAL_ERROR: This is a test", response.getFailureDetail());
 
     }
 
     @Test
     @SuppressWarnings("unchecked")
     void getDatasetCatalogFutureTimeoutTest() throws ExecutionException, InterruptedException, TimeoutException {
-        final int TIMEOUT = 20;
-        final String TIMEOUT_MESSAGE = "Request timed out";
-        when(config.getWaitForCatalogTimeout()).thenReturn(TIMEOUT);
+        final int timeout = 20;
+        final String timeoutMessage = "Request timed out";
+        when(config.getWaitForCatalogTimeout()).thenReturn(timeout);
         CompletableFuture<StatusResult<byte[]>> future2 = mock(CompletableFuture.class);
-        when(future2.get(TIMEOUT, TimeUnit.SECONDS)).thenThrow(new TimeoutException(TIMEOUT_MESSAGE));
+        when(future2.get(timeout, TimeUnit.SECONDS)).thenThrow(new TimeoutException(timeoutMessage));
 
         mockCatalogServiceResponseWith(future);
 
@@ -139,8 +137,7 @@ public class PolicyServiceTest {
 
         mockCatalogServiceResponseWith(future);
 
-        when(typeTransformerRegistry.transform(any(), any()))
-                .thenReturn(Result.success(Catalog.Builder.newInstance().build()));
+        when(typeTransformerRegistry.transform(any(), any())).thenReturn(Result.success(Catalog.Builder.newInstance().build()));
 
         var datasetResponse = policyService.getDatasetForAssetId(TEST_COUNTER_PARTY_ID, testUrl, TEST_ASSET_ID);
 
@@ -184,8 +181,7 @@ public class PolicyServiceTest {
                                 .dataset(dataset)
                                 .build()));
 
-        assertEquals(dataset.getId(),
-                policyService.getDatasetForAssetId(TEST_COUNTER_PARTY_ID, testUrl, TEST_ASSET_ID).getContent().getId());
+        assertEquals(dataset.getId(), policyService.getDatasetForAssetId(TEST_COUNTER_PARTY_ID, testUrl, TEST_ASSET_ID).getContent().getId());
     }
 
     @Test
@@ -201,8 +197,7 @@ public class PolicyServiceTest {
                 .getDatasetForAssetId(TEST_COUNTER_PARTY_ID, testUrl, TEST_ASSET_ID);
         when(config.isAcceptAllProviderOffers()).thenReturn(true);
 
-        var resultPolicy = policyServiceSpy.getAcceptableContractOfferForAssetId(TEST_COUNTER_PARTY_ID, testUrl,
-                TEST_ASSET_ID);
+        var resultPolicy = policyServiceSpy.getAcceptableContractOfferForAssetId(TEST_COUNTER_PARTY_ID, testUrl, TEST_ASSET_ID);
 
         assertEquals(dataset.getOffers().values().stream().findFirst().orElseThrow(),
                 resultPolicy.getContent().getPolicy());
@@ -218,8 +213,7 @@ public class PolicyServiceTest {
                 .when(policyServiceSpy)
                 .getDatasetForAssetId(TEST_COUNTER_PARTY_ID, testUrl, TEST_ASSET_ID);
 
-        var result = policyServiceSpy.getAcceptableContractOfferForAssetId(TEST_COUNTER_PARTY_ID, testUrl,
-                TEST_ASSET_ID);
+        var result = policyServiceSpy.getAcceptableContractOfferForAssetId(TEST_COUNTER_PARTY_ID, testUrl, TEST_ASSET_ID);
 
         assertTrue(result.failed());
     }
@@ -236,20 +230,16 @@ public class PolicyServiceTest {
                 .when(policyServiceSpy)
                 .getDatasetForAssetId(TEST_COUNTER_PARTY_ID, testUrl, TEST_ASSET_ID);
 
-        var result = policyServiceSpy.getAcceptableContractOfferForAssetId(TEST_COUNTER_PARTY_ID, testUrl,
-                TEST_ASSET_ID);
+        var result = policyServiceSpy.getAcceptableContractOfferForAssetId(TEST_COUNTER_PARTY_ID, testUrl, TEST_ASSET_ID);
 
         assertTrue(result.succeeded());
 
         // Compare contractoffer id and policy
-        assertEquals(dataset.getOffers().entrySet().stream().findFirst().orElseThrow().getValue(),
-                result.getContent().getPolicy());
+        assertEquals(dataset.getOffers().entrySet().stream().findFirst().orElseThrow().getValue(), result.getContent().getPolicy());
 
-        assertEquals(dataset.getOffers().entrySet().stream().findFirst().orElseThrow().getValue().getTarget(),
-                result.getContent().getAssetId());
+        assertEquals(dataset.getOffers().entrySet().stream().findFirst().orElseThrow().getValue().getTarget(), result.getContent().getAssetId());
 
-        assertEquals(dataset.getOffers().entrySet().stream().findFirst().orElseThrow().getKey(),
-                result.getContent().getId());
+        assertEquals(dataset.getOffers().entrySet().stream().findFirst().orElseThrow().getKey(), result.getContent().getId());
     }
 
     @Test
@@ -270,20 +260,16 @@ public class PolicyServiceTest {
                 .when(policyServiceSpy)
                 .getDatasetForAssetId(TEST_COUNTER_PARTY_ID, testUrl, TEST_ASSET_ID);
 
-        var result = policyServiceSpy.getAcceptableContractOfferForAssetId(TEST_COUNTER_PARTY_ID, testUrl,
-                TEST_ASSET_ID);
+        var result = policyServiceSpy.getAcceptableContractOfferForAssetId(TEST_COUNTER_PARTY_ID, testUrl, TEST_ASSET_ID);
 
         assertTrue(result.succeeded());
 
         // Compare contract offer id and policy
-        assertEquals(dataset.getOffers().entrySet().stream().findFirst().orElseThrow().getValue(),
-                result.getContent().getPolicy());
+        assertEquals(dataset.getOffers().entrySet().stream().findFirst().orElseThrow().getValue(), result.getContent().getPolicy());
 
-        assertEquals(dataset.getOffers().entrySet().stream().findFirst().orElseThrow().getValue().getTarget(),
-                result.getContent().getAssetId());
+        assertEquals(dataset.getOffers().entrySet().stream().findFirst().orElseThrow().getValue().getTarget(), result.getContent().getAssetId());
 
-        assertEquals(dataset.getOffers().entrySet().stream().findFirst().orElseThrow().getKey(),
-                result.getContent().getId());
+        assertEquals(dataset.getOffers().entrySet().stream().findFirst().orElseThrow().getKey(), result.getContent().getId());
     }
 
     @Test
@@ -306,29 +292,27 @@ public class PolicyServiceTest {
                 .when(policyServiceSpy)
                 .getDatasetForAssetId(TEST_COUNTER_PARTY_ID, testUrl, TEST_ASSET_ID);
 
-        var result = policyServiceSpy.getAcceptableContractOfferForAssetId(TEST_COUNTER_PARTY_ID, testUrl,
-                TEST_ASSET_ID);
+        var result = policyServiceSpy.getAcceptableContractOfferForAssetId(TEST_COUNTER_PARTY_ID, testUrl, TEST_ASSET_ID);
 
         assertTrue(result.failed());
     }
 
     @Test
     void test_getAcceptableContractOfferForAssetId_timeoutErrorHandling() {
-        final String ERROR_MESSAGE = "Failed fetching catalog";
+        final String errorMessage = "Failed fetching catalog";
         // we mock getDatasetMethod for simplicity
         var policyServiceSpy = spy(policyService);
 
-        Mockito.doReturn(ServiceResult.unexpected(ERROR_MESSAGE))
+        Mockito.doReturn(ServiceResult.unexpected(errorMessage))
                 .when(policyServiceSpy)
                 .getDatasetForAssetId(TEST_COUNTER_PARTY_ID, testUrl, TEST_ASSET_ID);
 
-        var result = policyServiceSpy.getAcceptableContractOfferForAssetId(TEST_COUNTER_PARTY_ID, testUrl,
-                TEST_ASSET_ID);
+        var result = policyServiceSpy.getAcceptableContractOfferForAssetId(TEST_COUNTER_PARTY_ID, testUrl, TEST_ASSET_ID);
 
         assertTrue(result.failed());
 
         assertTrue(result.getFailureMessages().contains(UNEXPECTED.toString()));
-        assertTrue(result.getFailureMessages().contains(ERROR_MESSAGE));
+        assertTrue(result.getFailureMessages().contains(errorMessage));
     }
 
     private Dataset getDataset() {
@@ -337,17 +321,13 @@ public class PolicyServiceTest {
                 .offer(UUID.randomUUID().toString(),
                         Policy.Builder.newInstance()
                                 .target(TEST_ASSET_ID)
-                                .duty(
-                                        Duty.Builder.newInstance()
-                                                .action(Action.Builder.newInstance().type("USE").build())
-                                                .consequence(Duty.Builder.newInstance().build())
-                                                .build())
-                                .build())
-                .distribution(
-                        Distribution.Builder.newInstance()
-                                .dataService(DataService.Builder.newInstance().build())
-                                .format("")
-                                .build())
+                                .duty(Duty.Builder.newInstance()
+                                        .action(Action.Builder.newInstance().type("USE").build())
+                                        .consequence(Duty.Builder.newInstance().build()).build()).build())
+                .distribution(Distribution.Builder.newInstance()
+                        .dataService(DataService.Builder.newInstance().build())
+                        .format("")
+                        .build())
                 .build();
     }
 

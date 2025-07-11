@@ -15,11 +15,11 @@
  */
 package de.fraunhofer.iosb.app.model.aas.registry;
 
+import de.fraunhofer.iosb.aas.lib.model.impl.Registry;
+import de.fraunhofer.iosb.aas.lib.model.impl.Service;
 import de.fraunhofer.iosb.app.pipeline.PipelineResult;
 import de.fraunhofer.iosb.app.pipeline.PipelineStep;
 import de.fraunhofer.iosb.app.util.Pair;
-import de.fraunhofer.iosb.model.aas.registry.Registry;
-import de.fraunhofer.iosb.model.aas.service.Service;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 
 import java.util.ArrayList;

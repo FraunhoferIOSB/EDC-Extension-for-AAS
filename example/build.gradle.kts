@@ -19,19 +19,16 @@ val edcVersion: String by project
 dependencies {
     // ---- CONTROL PLANE ----
     implementation("$group:controlplane-base-bom:$edcVersion")
+    implementation(project(":edc-extension4aas"))
+    implementation(project(":client"))
 
     // Identity and access management MOCK -> only for testing
     implementation("$group:iam-mock:$edcVersion")
     // -----------------------
 
-    // ---- DATA PLANE ----
+    // ----- DATA PLANE ------
     implementation("$group:dataplane-base-bom:$edcVersion")
-    implementation("$group:data-plane-self-registration:$edcVersion") // Register DataPlane with PipelineService factories
-    // -----------------------
-
-    // ----    OURS    ----
-    implementation(project(":edc-extension4aas"))
-    implementation(project(":client"))
+    implementation(project(":data-plane-aas"))
     // -----------------------
 }
 

@@ -17,10 +17,10 @@ package de.fraunhofer.iosb.app.util;
 
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 
-import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import javax.annotation.Nonnull;
 
 public class AssetUtil {
 

@@ -15,8 +15,8 @@
  */
 package de.fraunhofer.iosb.dataplane.aas.pipeline;
 
-import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
-import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
+import de.fraunhofer.iosb.aas.lib.AasDataProcessorFactory;
+import de.fraunhofer.iosb.aas.lib.spi.AasDataAddress;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSink;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSinkFactory;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -24,7 +24,8 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.jetbrains.annotations.NotNull;
 
-import static de.fraunhofer.iosb.dataplane.aas.pipeline.AasDataSourceFactory.AAS_DATA_TYPE;
+import static de.fraunhofer.iosb.aas.lib.spi.AasDataAddress.AAS_DATA_TYPE;
+
 
 /**
  * Inspired by org.eclipse.edc.connector.dataplane.http.pipeline.HttpDataSourceFactory

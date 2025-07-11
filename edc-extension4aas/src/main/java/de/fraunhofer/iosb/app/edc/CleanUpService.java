@@ -15,6 +15,8 @@
  */
 package de.fraunhofer.iosb.app.edc;
 
+import de.fraunhofer.iosb.aas.lib.model.impl.Registry;
+import de.fraunhofer.iosb.aas.lib.model.impl.Service;
 import de.fraunhofer.iosb.app.edc.asset.AssetRegistrar;
 import de.fraunhofer.iosb.app.edc.contract.ContractRegistrar;
 import de.fraunhofer.iosb.app.model.ChangeSet;
@@ -22,8 +24,6 @@ import de.fraunhofer.iosb.app.model.ids.SelfDescriptionChangeListener;
 import de.fraunhofer.iosb.app.pipeline.Pipeline;
 import de.fraunhofer.iosb.app.pipeline.PipelineStep;
 import de.fraunhofer.iosb.app.util.AssetUtil;
-import de.fraunhofer.iosb.model.aas.registry.Registry;
-import de.fraunhofer.iosb.model.aas.service.Service;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;

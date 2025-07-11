@@ -15,8 +15,8 @@
  */
 package de.fraunhofer.iosb.app.aas.mapper;
 
-import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
-import de.fraunhofer.iosb.model.aas.AasProvider;
+import de.fraunhofer.iosb.aas.lib.model.AasProvider;
+import de.fraunhofer.iosb.aas.lib.spi.AasDataAddress;
 import org.eclipse.digitaltwin.aas4j.v3.model.Identifiable;
 import org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes;
 import org.eclipse.digitaltwin.aas4j.v3.model.Referable;

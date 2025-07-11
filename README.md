@@ -90,33 +90,31 @@ Registry with other participants.
 
 ### Dependencies
 
-In this section, dependencies from EDC and third-party are listed. (Implementation for test runs are not shown)
+In this section, dependencies from EDC and third-party are listed. (Dependencies for tests are not shown)
 <details>
 <summary>EDC-Extension-for-AAS</summary>
 
 | Name                                          | Description                                                                                         |
 |:----------------------------------------------|:----------------------------------------------------------------------------------------------------|
 | public-api-management (local)                 | Centralized http authentication request filter                                                      |
-| data-plane-aas (local)                        | Allowing easy communication with AAS services through AAS data addresses                            |
+| aas-lib (local)                               | Provides common objects for AAS data plane and AAS extension                                        |
 | de.fraunhofer.iosb.ilt.faaast.service:starter | [FA³ST Service](https://github.com/FraunhoferIOSB/FAAAST-Service) to start AAS services internally. |
-| org.eclipse.edc:http-spi                      | OkHttp3 Fields                                                                                      |
-| org.eclipse.edc:management-api                | EDC Asset/Contract Management                                                                       |
+| org.eclipse.edc:http-lib                      | OkHttp3 Fields                                                                                      |
+| org.eclipse.edc:asset-api                     | EDC Asset/Contract Management                                                                       |
 
 </details>
 <details>
 <summary>Client Extension</summary>  
 
-| Name                                        | Description                                                              |
-|:--------------------------------------------|:-------------------------------------------------------------------------|
-| public-api-management (local)               | Centralized http authentication request filter                           |
-| data-plane-aas (local)                      | Allowing easy communication with AAS services through AAS data addresses |
-| org.eclipse.edc:connector-core              | PolicyService                                                            |
-| org.eclipse.edc:control-plane-contract      | Observe contract negotiations                                            |
-| org.eclipse.edc:control-plane-transform     | Type transformers                                                        |
-| org.eclipse.edc:data-plane-http-spi         | HttpDataAddress                                                          |
-| org.eclipse.edc:dsp-catalog-http-dispatcher | EDC constants                                                            |
-| org.eclipse.edc:json-ld-lib                 | JsonLD expansion                                                         |
-| org.eclipse.edc:management-api              | EDC WebService for registering endpoints                                 |
+| Name                                        | Description                                    |
+|:--------------------------------------------|:-----------------------------------------------|
+| public-api-management (local)               | Centralized http authentication request filter |
+| org.eclipse.edc:connector-core              | PolicyService                                  |
+| org.eclipse.edc:control-plane-contract      | Observe contract negotiations                  |
+| org.eclipse.edc:control-plane-transform     | Type transformers                              |
+| org.eclipse.edc:data-plane-http-spi         | HttpDataAddress                                |
+| org.eclipse.edc:dsp-catalog-http-dispatcher | EDC constants                                  |
+| org.eclipse.edc:json-ld-lib                 | JsonLD expansion                               |
 
 </details>
 <details>
@@ -138,42 +136,55 @@ In this section, dependencies from EDC and third-party are listed. (Implementati
 
 </details>
 
+<details>
+<summary>AAS Library</summary>  
+
+| Name                                      | Description                                                                        |
+|:------------------------------------------|:-----------------------------------------------------------------------------------|
+| org.eclipse.edc:asset-spi                 | Asset, DataAddress                                                                 |
+| org.eclipse.digitaltwin.aas4j:aas4j-model | [Eclipse AAS4J java model](https://github.com/eclipse-aas4j/aas4j/tree/main/model) |
+
+</details>
+
 ### Configuration Values
 
 <details>
-<summary>Common Configurations</summary>
-
-| Key                                               | Values            | Description                                                                                                                                                                            |
-|:--------------------------------------------------|:------------------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| edc.dataplane.aas.acceptAllSelfSignedCertificates | True/<u>False</u> | Accept self-signed certificates from ALL AAS services (internal+external, provider+consumer)                                                                                           |
-| edc.dataplane.aas.acceptOwnSelfSignedCertificates | True/<u>False</u> | Accept self-signed certificates from registered services (example: Creating AAS service in extension -> extension registers service at dataplane to allow its self-signed certificate) |
-
-</details>
-<details>
 <summary>EDC-Extension-for-AAS</summary>
 
-| Key                               | Value Type        | Description                                                                                                                                                                      |
-|:----------------------------------|:------------------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| edc.aas.defaultAccessPolicyPath   | path              | Path to an access policy file (JSON). This policy will be used as the default access policy for all assets created after the configuration value has been set.                   |
-| edc.aas.defaultContractPolicyPath | path              | Path to a contract policy file (JSON). This policy will be used as the default contract policy for all assets created after the configuration value has been set.                |
-| edc.aas.exposeSelfDescription     | boolean           | Whether the Self Description should be exposed on {edc}/api/selfDescription. When set to False, the selfDescription is still available for authenticated requests. Default: True |
-| edc.aas.localAASModelPath         | path              | A path to a serialized AAS environment compatible to specification version 3.0RC01 (see: https://github.com/FraunhoferIOSB/FAAAST-Service/blob/main/README.md)                   |
-| edc.aas.localAASServiceConfigPath | path              | Path to AAS config for locally started AAS service. Required, if localAASServicePort is not defined, but localAASModelPath is defined.                                           |
-| edc.aas.localAASServicePort       | Open network port | Port to locally created AAS service. Required, if localAASModelPath is defined and localAASServiceConfigPath is not defined.                                                     |
-| edc.aas.onlySubmodels             | boolean           | (Provider) Only register submodels of AAS services. Default: True                                                                                                                |
-| edc.aas.remoteAasLocation         | URL               | Register a URL of an AAS service (such as FA³ST) that is already running and is conformant with official AAS API specification                                                   |
-| edc.aas.syncPeriod                | number in seconds | Time period in which AAS services should be polled for structural changes (added/deleted elements etc.). Default: 50 (seconds).                                                  |
+| Key (edc.aas.)              | Value Type        | Description                                                                                                                                                                      |
+|:----------------------------|:------------------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| allowSelfSignedCertificates | boolean           | Whether to allow self-signed certificates for own AAS services/registries.                                                                                                       |
+| defaultAccessPolicyPath     | path              | Path to an access policy file (JSON). This policy will be used as the default access policy for all assets created after the configuration value has been set.                   |
+| defaultContractPolicyPath   | path              | Path to a contract policy file (JSON). This policy will be used as the default contract policy for all assets created after the configuration value has been set.                |
+| exposeSelfDescription       | boolean           | Whether the Self Description should be exposed on {edc}/api/selfDescription. When set to False, the selfDescription is still available for authenticated requests. Default: True |
+| localAASModelPath           | path              | A path to a serialized AAS environment compatible to specification version 3.0RC01 (see: https://github.com/FraunhoferIOSB/FAAAST-Service/blob/main/README.md)                   |
+| localAASServiceConfigPath   | path              | Path to AAS config for locally started AAS service. Required, if localAASServicePort is not defined, but localAASModelPath is defined.                                           |
+| localAASServicePort         | Open network port | Port to locally created AAS service. Required, if localAASModelPath is defined and localAASServiceConfigPath is not defined.                                                     |
+| onlySubmodels               | boolean           | (Provider) Only register submodels of AAS services. Default: True                                                                                                                |
+| remoteAasLocation           | URL               | Register a URL of an AAS service (such as FA³ST) that is already running and is conformant with official AAS API specification                                                   |
+| syncPeriod                  | number in seconds | Time period in which AAS services should be polled for structural changes (added/deleted elements etc.). Default: 50 (seconds).                                                  |
 
 </details>
 <details>
 <summary>Client Extension</summary>  
 
-| Key                                      | Value Type              | Description                                                                                                                                                                   |
-|:-----------------------------------------|:------------------------|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| edc.client.acceptAllProviderOffers       | <u>True</u>/False       | Accept any contractOffer offered by all provider connectors on automated contract negotiation (e.g., trusted provider)                                                        |
-| edc.client.acceptedPolicyDefinitionsPath | path                    | Path pointing to a JSON-file containing acceptable PolicyDefinitions for automated contract negotiation in a list (only policies must match in a provider's PolicyDefinition) |
-| edc.client.waitForAgreementTimeout       | whole number in seconds | How long should the extension wait for an agreement when automatically negotiating a contract? Default value is 20(s).                                                        |
-| edc.client.waitForTransferTimeout        | whole number in seconds | How long should the extension wait for a data transfer when automatically negotiating a contract? Default value is 20(s).                                                     |
+| Key (edc.client.)             | Value Type              | Description                                                                                                                                                                   |
+|:------------------------------|:------------------------|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| acceptAllProviderOffers       | <u>True</u>/False       | Accept any contractOffer offered by all provider connectors on automated contract negotiation (e.g., trusted provider)                                                        |
+| acceptedPolicyDefinitionsPath | path                    | Path pointing to a JSON-file containing acceptable PolicyDefinitions for automated contract negotiation in a list (only policies must match in a provider's PolicyDefinition) |
+| waitForAgreementTimeout       | whole number in seconds | How long should the extension wait for an agreement when automatically negotiating a contract? Default value is 20(s).                                                        |
+| waitForCatalogTimeout         | whole number in seconds | How long should the extension wait for a catalog? Default value is 20(s).                                                                                                     |
+| waitForTransferTimeout        | whole number in seconds | How long should the extension wait for a data transfer when automatically negotiating a contract? Default value is 20(s).                                                     |
+
+</details>
+
+<details>
+<summary>AAS Data Plane Extension</summary>
+
+| Key (edc.dataplane.aas.)            | Values Type | Description                                                                                                                                   |
+|:------------------------------------|:------------|:----------------------------------------------------------------------------------------------------------------------------------------------|
+| acceptOwnSelfSignedCertificates     | boolean     | Accept self-signed certificates from own AAS services <u>if the configured EDC is a data provider.</u>                                        |
+| acceptForeignSelfSignedCertificates | boolean     | Accept self-signed certificates from ALL AAS services <u>if the configured EDC shall send data to services with self-signed certificates.</u> |
 
 </details>
 

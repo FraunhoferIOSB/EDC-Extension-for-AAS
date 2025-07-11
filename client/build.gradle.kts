@@ -19,7 +19,6 @@ java {
 dependencies {
     // See this project's README.MD for explanations
     implementation(project(":public-api-management"))
-    implementation(project(":data-plane-aas"))
 
     implementation("$group:connector-core:$edcVersion") // PolicyService
     implementation("$group:federated-catalog-core:$edcVersion") // Transformers

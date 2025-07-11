@@ -53,8 +53,7 @@ class TransferInitiator {
     private final TransferProcessManager transferProcessManager;
     private final URI ownUri;
 
-    TransferInitiator(Monitor monitor, Config config, Hostname hostname,
-                      TransferProcessManager transferProcessManager) {
+    TransferInitiator(Monitor monitor, Config config, Hostname hostname, TransferProcessManager transferProcessManager) {
         this.monitor = monitor;
         this.transferProcessManager = transferProcessManager;
         this.ownUri = createOwnUriFromConfigurationValues(config, hostname);
@@ -107,5 +106,5 @@ class TransferInitiator {
         }
     }
 
-    private enum Protocol {HTTP, HTTPS}
+    private enum Protocol { HTTP, HTTPS }
 }

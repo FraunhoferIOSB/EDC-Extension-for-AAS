@@ -42,16 +42,20 @@ class BasicAuthTest {
 
     @Test
     void getValue() {
-        String unencodedAuthString = "Basic: %s:%s".formatted(username, password);
+        String unencodedAuthString = "%s:%s".formatted(username, password);
         String encodedAuthString = Base64.getEncoder().encodeToString(unencodedAuthString.getBytes(StandardCharsets.UTF_8));
-        assertEquals(encodedAuthString, testSubject.getValue());
+        String authHeaderValue = "Basic %s".formatted(encodedAuthString);
+
+        assertEquals(authHeaderValue, testSubject.getValue());
     }
 
     @Test
     void getHeader() {
-        String unencodedAuthString = "Basic: %s:%s".formatted(username, password);
+        String unencodedAuthString = "%s:%s".formatted(username, password);
         String encodedAuthString = Base64.getEncoder().encodeToString(unencodedAuthString.getBytes(StandardCharsets.UTF_8));
-        assertEquals(encodedAuthString, testSubject.getHeader().getValue());
+        String authHeaderValue = "Basic %s".formatted(encodedAuthString);
+
+        assertEquals(authHeaderValue, testSubject.getHeader().getValue());
         assertEquals("Authorization", testSubject.getHeader().getKey());
 
     }

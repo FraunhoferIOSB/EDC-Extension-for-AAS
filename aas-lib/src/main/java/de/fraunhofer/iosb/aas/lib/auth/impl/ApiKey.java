@@ -16,7 +16,6 @@
 package de.fraunhofer.iosb.aas.lib.auth.impl;
 
 import de.fraunhofer.iosb.aas.lib.auth.AuthenticationMethod;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.AbstractMap;
 import java.util.Map;
@@ -27,17 +26,17 @@ import java.util.Map;
  */
 public class ApiKey extends AuthenticationMethod {
 
-    private final String key;
+    private final String keyName;
     private final String keyValue;
 
     public ApiKey(String key, String keyValue) {
-        this.key = key;
+        this.keyName = key;
         this.keyValue = keyValue;
     }
 
     @Override
-    public @Nullable Map.Entry<String, String> getHeader() {
-        return new AbstractMap.SimpleEntry<>(key, getValue());
+    public Map.Entry<String, String> getHeader() {
+        return new AbstractMap.SimpleEntry<>(keyName, getValue());
     }
 
     @Override

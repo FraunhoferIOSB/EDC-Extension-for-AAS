@@ -15,24 +15,35 @@
  */
 package de.fraunhofer.iosb.aas.lib.auth.impl;
 
-
 import de.fraunhofer.iosb.aas.lib.auth.AuthenticationMethod;
-import org.jetbrains.annotations.Nullable;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import java.util.Map;
+import java.util.Objects;
 
-public class NoAuth extends AuthenticationMethod {
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-    public NoAuth() {
+
+class ApiKeyTest {
+
+    private final String keyName = "my-api-key-name";
+    private final String keyValue = "my-api-key-value";
+    private AuthenticationMethod testSubject;
+
+    @BeforeEach
+    void setUp() {
+        testSubject = new ApiKey(keyName, keyValue);
     }
 
-    @Override
-    public @Nullable Map.Entry<String, String> getHeader() {
-        return null;
+    @AfterEach
+    void tearDown() {
+        testSubject = null;
     }
 
-    @Override
-    protected @Nullable String getValue() {
-        return null;
+    @Test
+    void getHeader() {
+        assertEquals(keyName, Objects.requireNonNull(testSubject.getHeader()).getKey());
+        assertEquals(keyValue, testSubject.getHeader().getValue());
     }
 }

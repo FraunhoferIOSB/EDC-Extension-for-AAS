@@ -19,38 +19,26 @@ package de.fraunhofer.iosb.aas.lib.auth.impl;
 import de.fraunhofer.iosb.aas.lib.auth.AuthenticationMethod;
 
 import java.util.Base64;
+import java.util.Objects;
 
 /**
  * <a href="https://datatracker.ietf.org/doc/html/rfc7617#section-2">rfc7617</a>
+ * -> b64("Basic user:password")
  */
 public class BasicAuth extends AuthenticationMethod {
 
-    private final Base64.Encoder encoder = Base64.getEncoder();
+    private static final Base64.Encoder BASE64_ENCODER = Base64.getEncoder();
 
-    private String username;
-    private String password;
+    private final String username;
+    private final String password;
 
-    public BasicAuth() {
+    public BasicAuth(String username, String password) {
+        this.username = Objects.requireNonNull(username);
+        this.password = Objects.requireNonNull(password);
     }
 
     protected String getValue() {
-        return "Basic %s".formatted(encoder.encodeToString("%s:%s".formatted(username, password).getBytes()));
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
+        return "Basic %s".formatted(BASE64_ENCODER.encodeToString("%s:%s".formatted(username, password).getBytes()));
     }
 
 }

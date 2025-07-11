@@ -13,6 +13,7 @@ dependencies {
     implementation("$group:asset-spi:${edcVersion}")
     implementation("org.eclipse.digitaltwin.aas4j:aas4j-model:${aas4jVersion}")
 
+    testImplementation("$group:junit:$edcVersion")
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
 }

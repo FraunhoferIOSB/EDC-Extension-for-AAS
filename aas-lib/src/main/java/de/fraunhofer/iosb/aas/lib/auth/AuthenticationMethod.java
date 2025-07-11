@@ -20,7 +20,6 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import de.fraunhofer.iosb.aas.lib.auth.impl.ApiKey;
 import de.fraunhofer.iosb.aas.lib.auth.impl.BasicAuth;
 import de.fraunhofer.iosb.aas.lib.auth.impl.NoAuth;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.AbstractMap;
 import java.util.Map;
@@ -40,7 +39,7 @@ public abstract class AuthenticationMethod {
      *
      * @return The header to place in the request in order to authenticate
      */
-    public @Nullable Map.Entry<String, String> getHeader() {
+    public Map.Entry<String, String> getHeader() {
         return new AbstractMap.SimpleEntry<>("Authorization", getValue());
     }
 

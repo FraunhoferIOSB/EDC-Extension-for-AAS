@@ -43,9 +43,9 @@ public class DataTransferEndpoint {
     static final String RECEIVE_DATA_PATH = "receiveData";
 
     private final Monitor monitor;
-    private final DataTransferObservable observable;
+    private final DataTransferObservable<String> observable;
 
-    DataTransferEndpoint(Monitor monitor, DataTransferObservable dataTransferObservable) {
+    DataTransferEndpoint(Monitor monitor, DataTransferObservable<String> dataTransferObservable) {
         this.monitor = monitor;
         this.observable = dataTransferObservable;
     }

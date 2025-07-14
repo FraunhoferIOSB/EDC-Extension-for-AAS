@@ -15,13 +15,10 @@
  */
 package de.fraunhofer.iosb.app.controller;
 
+import de.fraunhofer.iosb.aas.lib.model.impl.Service;
 import de.fraunhofer.iosb.app.aas.AssetAdministrationShellServiceManager;
 import de.fraunhofer.iosb.app.aas.FaaastServiceManager;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionChangeListener;
-import de.fraunhofer.iosb.model.aas.registry.Registry;
-import de.fraunhofer.iosb.model.aas.service.Service;
-import de.fraunhofer.iosb.registry.AasServiceRegistry;
-import de.fraunhofer.iosb.ssl.impl.DefaultSelfSignedCertificateRetriever;
 import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.io.IOException;
@@ -37,19 +34,14 @@ public class AasController implements SelfDescriptionChangeListener {
 
     private final AssetAdministrationShellServiceManager aasServiceManager;
     private final Monitor monitor;
-    private final AasServiceRegistry providerRegistry;
 
     /**
      * Class constructor
      *
-     * @param aasServiceRegistry Allow communication for locally started and remotely registered AAS
-     *                           clients/registries if they provide self-signed certificates
      * @param monitor            Logging
      */
-    public AasController(AasServiceRegistry aasServiceRegistry,
-                         Monitor monitor) {
+    public AasController(Monitor monitor) {
         this.monitor = monitor;
-        providerRegistry = aasServiceRegistry;
         aasServiceManager = new FaaastServiceManager(monitor);
     }
 
@@ -79,10 +71,6 @@ public class AasController implements SelfDescriptionChangeListener {
             throw new IllegalArgumentException("Config or port must be specified.");
         }
 
-        if (!providerRegistry.acceptSelfSignedCertificates()) {
-            throw new IllegalArgumentException("Self signed certificates are not accepted.");
-        }
-
         return serviceUrl;
     }
 
@@ -105,34 +93,8 @@ public class AasController implements SelfDescriptionChangeListener {
     }
 
     @Override
-    public void created(Service service) {
-        registerProvider(service.getAccessUrl());
-    }
-
-    @Override
-    public void created(Registry registry) {
-        registerProvider(registry.getAccessUrl());
-    }
-
-    private void registerProvider(URL url) {
-        // Only try to register if https+untrusted.
-        if (secureAndUntrusted(url) && providerRegistry.acceptSelfSignedCertificates()) {
-            providerRegistry.register(url);
-        }
-    }
-
-    public boolean secureAndUntrusted(URL url) {
-        return url.getProtocol().equalsIgnoreCase("https") && !DefaultSelfSignedCertificateRetriever.isTrusted(url);
-    }
-
-    @Override
     public void removed(Service service) {
-        providerRegistry.unregister(service.getAccessUrl());
         stopService(service.getAccessUrl());
     }
 
-    @Override
-    public void removed(Registry registry) {
-        providerRegistry.unregister(registry.getAccessUrl());
-    }
 }

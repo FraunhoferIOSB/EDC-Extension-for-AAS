@@ -15,14 +15,12 @@
  */
 package de.fraunhofer.iosb.app.aas.agent.impl;
 
-import de.fraunhofer.iosb.aas.impl.AllAasDataProcessorFactory;
-import de.fraunhofer.iosb.model.aas.registry.Registry;
-import de.fraunhofer.iosb.model.aas.service.Service;
-import de.fraunhofer.iosb.registry.AasServiceRegistry;
-import de.fraunhofer.iosb.ssl.impl.NoOpSelfSignedCertificateRetriever;
+import de.fraunhofer.iosb.aas.lib.model.impl.Registry;
+import de.fraunhofer.iosb.aas.lib.model.impl.Service;
 import dev.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.SerializationException;
+import org.eclipse.edc.http.client.EdcHttpClientImpl;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -33,9 +31,10 @@ import org.mockserver.model.HttpResponse;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.HashSet;
 import java.util.Optional;
 
+import static de.fraunhofer.iosb.aas.lib.model.impl.Registry.SHELL_DESCRIPTORS_PATH;
+import static de.fraunhofer.iosb.aas.lib.model.impl.Registry.SUBMODEL_DESCRIPTORS_PATH;
 import static de.fraunhofer.iosb.api.model.HttpMethod.GET;
 import static de.fraunhofer.iosb.app.pipeline.PipelineFailure.Type.WARNING;
 import static de.fraunhofer.iosb.app.testutils.RegistryElementCreator.getEmptyShellDescriptor;
@@ -43,8 +42,6 @@ import static de.fraunhofer.iosb.app.testutils.RegistryElementCreator.getEmptySu
 import static de.fraunhofer.iosb.app.testutils.RegistryElementCreator.getShellDescriptor;
 import static de.fraunhofer.iosb.app.testutils.RegistryElementCreator.getSubmodelDescriptor;
 import static de.fraunhofer.iosb.app.testutils.StringMethods.resultOf;
-import static de.fraunhofer.iosb.model.aas.registry.Registry.SHELL_DESCRIPTORS_PATH;
-import static de.fraunhofer.iosb.model.aas.registry.Registry.SUBMODEL_DESCRIPTORS_PATH;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -63,15 +60,8 @@ class RegistryAgentTest {
     @BeforeAll
     static void setUp() {
         testSubject = new RegistryAgent(
-                new AllAasDataProcessorFactory(
-                        new NoOpSelfSignedCertificateRetriever(),
-                        new OkHttpClient(),
-                        RetryPolicy.ofDefaults(),
-                        new ConsoleMonitor()
-                ),
-                new AasServiceRegistry(
-                        new HashSet<>())
-        );
+                new EdcHttpClientImpl(new OkHttpClient(), RetryPolicy.ofDefaults(), new ConsoleMonitor()),
+                new ConsoleMonitor());
 
         mockServer = startClientAndServer(PORT);
     }

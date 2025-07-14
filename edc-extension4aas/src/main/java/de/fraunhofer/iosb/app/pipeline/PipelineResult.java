@@ -70,7 +70,7 @@ public class PipelineResult<T> extends AbstractResult<T, PipelineFailure, Pipeli
      * @param storeResult The corresponding store result.
      * @param <T>         The content type of the store result and the resulting pipeline result
      * @return A pipeline result with the same content or failure messages and a mapping of
-     * {@link org.eclipse.edc.spi.result.StoreFailure.Reason} to {@link PipelineFailure.Type}
+     *         {@link org.eclipse.edc.spi.result.StoreFailure.Reason} to {@link PipelineFailure.Type}
      */
     public static <T> PipelineResult<T> from(StoreResult<T> storeResult) {
         if (storeResult.succeeded()) {

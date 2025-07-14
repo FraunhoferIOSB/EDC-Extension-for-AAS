@@ -15,9 +15,10 @@
  */
 package de.fraunhofer.iosb.app.aas.agent;
 
-import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
+import de.fraunhofer.iosb.aas.lib.model.AasProvider;
 import de.fraunhofer.iosb.app.pipeline.PipelineResult;
-import de.fraunhofer.iosb.model.aas.AasProvider;
+import org.eclipse.edc.http.spi.EdcHttpClient;
+import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.junit.jupiter.api.Test;
 
 import static org.mockito.Mockito.mock;
@@ -27,7 +28,7 @@ class AasAgentTest {
     @Test
     void initializeTest() {
         // Abstract class. Try to instantiate with empty override of method
-        new AasAgent<>(mock(AasDataProcessorFactory.class)) {
+        new AasAgent<>(mock(EdcHttpClient.class), new ConsoleMonitor()) {
             @Override
             public PipelineResult<Object> apply(AasProvider provider) {
                 return null;

@@ -15,10 +15,10 @@
  */
 package de.fraunhofer.iosb.app.controller;
 
+import de.fraunhofer.iosb.aas.lib.model.impl.Service;
 import de.fraunhofer.iosb.app.model.aas.registry.RegistryRepository;
 import de.fraunhofer.iosb.app.model.aas.service.ServiceRepository;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionSerializer;
-import de.fraunhofer.iosb.model.aas.service.Service;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
@@ -38,7 +38,7 @@ import static de.fraunhofer.iosb.app.controller.SelfDescriptionController.SELF_D
 /**
  * Handles requests to the selfDescription endpoint.
  */
-@Produces({MediaType.APPLICATION_JSON})
+@Produces({ MediaType.APPLICATION_JSON })
 @Path(SELF_DESCRIPTION_PATH)
 public class SelfDescriptionController {
 

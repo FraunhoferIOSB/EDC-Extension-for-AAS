@@ -19,8 +19,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iosb.api.PublicApiManagementService;
-import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
-import de.fraunhofer.iosb.model.aas.service.Service;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.digitaltwin.aas4j.v3.model.Operation;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultLangStringTextType;
@@ -51,7 +49,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 class DataTransferControllerTest {
-    private static final String agreementId = UUID.randomUUID().toString();
+    private static final String AGREEMENT_ID = UUID.randomUUID().toString();
     private static URL url;
     private final TransferProcessManager mockTransferProcessManager = mock(TransferProcessManager.class);
     private DataTransferController testSubject;
@@ -137,7 +135,7 @@ class DataTransferControllerTest {
         var operationString = nnneObjectMapper.writeValueAsString(operation);
         DataAddress dataSinkAddress = getDataAddress(operation);
 
-        testSubject.getData(url, agreementId, dataSinkAddress);
+        testSubject.getData(url, AGREEMENT_ID, dataSinkAddress);
         // Verify that operation is serialized before sending it to provider
         verify(mockTransferProcessManager).initiateConsumerRequest(argThat(request ->
                 operationString.equals(request.getDataDestination().getStringProperty(OPERATION_FIELD))));
@@ -149,7 +147,7 @@ class DataTransferControllerTest {
 
         DataAddress dataSinkAddress = getDataAddress(operation);
 
-        testSubject.getData(url, agreementId, dataSinkAddress);
+        testSubject.getData(url, AGREEMENT_ID, dataSinkAddress);
         // Verify that operation is serialized before sending it to provider
         verify(mockTransferProcessManager).initiateConsumerRequest(argThat(request ->
                 null == request.getDataDestination().getProperties().get(OPERATION_FIELD)));
@@ -157,8 +155,10 @@ class DataTransferControllerTest {
 
     @Test
     void getDataTest() {
-        var dataAddress = AasDataAddress.Builder.newInstance().aasProvider(new Service(url)).build();
-        try (var response = testSubject.getData(url, agreementId, dataAddress)) {
+        var aasDataAddress = DataAddress.Builder.newInstance()
+                .type("AasData")
+                .build();
+        try (var response = testSubject.getData(url, AGREEMENT_ID, aasDataAddress)) {
             assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
         }
     }

@@ -15,7 +15,7 @@
  */
 package de.fraunhofer.iosb.app.aas.mapper;
 
-import de.fraunhofer.iosb.model.aas.AasProvider;
+import de.fraunhofer.iosb.aas.lib.model.AasProvider;
 import org.eclipse.digitaltwin.aas4j.v3.model.Operation;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElement;
@@ -36,7 +36,7 @@ class SubmodelElementMapper {
 
     private final ElementMapper elementMapper;
 
-    public SubmodelElementMapper() {
+    SubmodelElementMapper() {
         this.elementMapper = new ElementMapper();
     }
 

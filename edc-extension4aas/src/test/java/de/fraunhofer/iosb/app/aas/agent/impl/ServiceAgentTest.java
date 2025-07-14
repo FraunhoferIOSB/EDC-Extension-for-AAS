@@ -15,14 +15,13 @@
  */
 package de.fraunhofer.iosb.app.aas.agent.impl;
 
-import de.fraunhofer.iosb.aas.impl.AllAasDataProcessorFactory;
+import de.fraunhofer.iosb.aas.lib.model.impl.Service;
 import de.fraunhofer.iosb.app.pipeline.PipelineResult;
-import de.fraunhofer.iosb.model.aas.service.Service;
-import de.fraunhofer.iosb.ssl.impl.NoOpSelfSignedCertificateRetriever;
 import dev.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.SerializationException;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
+import org.eclipse.edc.http.client.EdcHttpClientImpl;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -35,14 +34,14 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
 
+import static de.fraunhofer.iosb.aas.lib.model.impl.Service.CONCEPT_DESCRIPTIONS_PATH;
+import static de.fraunhofer.iosb.aas.lib.model.impl.Service.SHELLS_PATH;
+import static de.fraunhofer.iosb.aas.lib.model.impl.Service.SUBMODELS_PATH;
 import static de.fraunhofer.iosb.api.model.HttpMethod.GET;
 import static de.fraunhofer.iosb.app.pipeline.PipelineFailure.Type.WARNING;
 import static de.fraunhofer.iosb.app.testutils.AasCreator.getEmptyEnvironment;
 import static de.fraunhofer.iosb.app.testutils.AasCreator.getEnvironment;
 import static de.fraunhofer.iosb.app.testutils.StringMethods.resultOfCollection;
-import static de.fraunhofer.iosb.model.aas.service.Service.CONCEPT_DESCRIPTIONS_PATH;
-import static de.fraunhofer.iosb.model.aas.service.Service.SHELLS_PATH;
-import static de.fraunhofer.iosb.model.aas.service.Service.SUBMODELS_PATH;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -63,13 +62,8 @@ class ServiceAgentTest {
 
     @BeforeAll
     static void setUp() {
-        testSubject = new ServiceAgent(
-                new AllAasDataProcessorFactory(
-                        new NoOpSelfSignedCertificateRetriever(),
-                        new OkHttpClient(),
-                        RetryPolicy.ofDefaults(),
-                        new ConsoleMonitor()
-                ));
+        testSubject = new ServiceAgent(new EdcHttpClientImpl(new OkHttpClient(), RetryPolicy.ofDefaults(),
+                new ConsoleMonitor()), new ConsoleMonitor());
 
         mockServer = startClientAndServer(PORT);
     }

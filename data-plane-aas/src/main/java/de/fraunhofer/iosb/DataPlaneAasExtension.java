@@ -15,13 +15,11 @@
  */
 package de.fraunhofer.iosb;
 
-import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
-import de.fraunhofer.iosb.aas.impl.AllAasDataProcessorFactory;
-import de.fraunhofer.iosb.aas.impl.RegisteredAasDataProcessorFactory;
+import de.fraunhofer.iosb.aas.lib.AasDataProcessorFactory;
+import de.fraunhofer.iosb.aas.lib.impl.AllAasDataProcessorFactory;
 import de.fraunhofer.iosb.dataplane.aas.pipeline.AasDataSinkFactory;
 import de.fraunhofer.iosb.dataplane.aas.pipeline.AasDataSourceFactory;
-import de.fraunhofer.iosb.model.aas.net.AasAccessUrl;
-import de.fraunhofer.iosb.registry.AasServiceRegistry;
+import de.fraunhofer.iosb.ssl.SelfSignedCertificateRetriever;
 import de.fraunhofer.iosb.ssl.impl.DefaultSelfSignedCertificateRetriever;
 import de.fraunhofer.iosb.ssl.impl.NoOpSelfSignedCertificateRetriever;
 import dev.failsafe.RetryPolicy;
@@ -31,10 +29,9 @@ import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-
-import java.util.HashSet;
 
 /**
  * Provides support for communicating with AAS services.
@@ -51,13 +48,13 @@ import java.util.HashSet;
  *     </li>
  * </ul>
  */
-@Provides({AasDataProcessorFactory.class, AasServiceRegistry.class})
+@Provides({AasDataProcessorFactory.class})
 @Extension(value = DataPlaneAasExtension.NAME)
 public class DataPlaneAasExtension implements ServiceExtension {
 
     public static final String NAME = "Data Plane AAS";
 
-    private static final String ALL_SELF_SIGNED = "edc.dataplane.aas.acceptAllSelfSignedCertificates";
+    private static final String FOREIGN_SELF_SIGNED = "edc.dataplane.aas.acceptForeignSelfSignedCertificates";
     private static final String OWN_SELF_SIGNED = "edc.dataplane.aas.acceptOwnSelfSignedCertificates";
 
     @Inject
@@ -70,30 +67,36 @@ public class DataPlaneAasExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var monitor = context.getMonitor();
 
-        var allSelfSigned = context.getSetting(ALL_SELF_SIGNED, false);
-        var ownSelfSigned = context.getSetting(OWN_SELF_SIGNED, allSelfSigned);
+        var allowForeignSelfSigned = context.getSetting(FOREIGN_SELF_SIGNED, false);
+        var allowOwnSelfSigned = context.getSetting(OWN_SELF_SIGNED, false);
 
-        var retriever = (allSelfSigned || ownSelfSigned) ?
-                new DefaultSelfSignedCertificateRetriever() :
-                new NoOpSelfSignedCertificateRetriever();
-
-        var registeredServices = (ownSelfSigned || allSelfSigned) ? new HashSet<AasAccessUrl>() : null;
-
-        var aasDataProcessorFactory = allSelfSigned ?
-                new AllAasDataProcessorFactory(retriever, okHttpClient, retryPolicy, monitor) :
-                new RegisteredAasDataProcessorFactory(retriever, registeredServices, okHttpClient, retryPolicy,
-                        monitor);
-
-        context.registerService(AasDataProcessorFactory.class, aasDataProcessorFactory);
-
-        var registry = new AasServiceRegistry(registeredServices);
-
-        context.registerService(AasServiceRegistry.class, registry);
-
-        var aasDataSourceFactory = new AasDataSourceFactory(monitor, aasDataProcessorFactory);
+        var aasDataSourceFactory = getAasDataSourceFactory(allowOwnSelfSigned, monitor);
         pipelineService.registerFactory(aasDataSourceFactory);
-
-        var aasDataSinkFactory = new AasDataSinkFactory(monitor, aasDataProcessorFactory);
+        var aasDataSinkFactory = getAasDataSinkFactory(allowForeignSelfSigned, monitor);
         pipelineService.registerFactory(aasDataSinkFactory);
+    }
+
+    private AasDataSourceFactory getAasDataSourceFactory(boolean ownSelfSigned, Monitor monitor) {
+        SelfSignedCertificateRetriever certRetriever;
+        if (ownSelfSigned) {
+            certRetriever = new DefaultSelfSignedCertificateRetriever();
+        } else {
+            certRetriever = new NoOpSelfSignedCertificateRetriever();
+        }
+
+        var aasDataProcessorFactory = new AllAasDataProcessorFactory(certRetriever, okHttpClient, retryPolicy, monitor);
+        return new AasDataSourceFactory(monitor, aasDataProcessorFactory);
+    }
+
+    private AasDataSinkFactory getAasDataSinkFactory(boolean foreignSelfSigned, Monitor monitor) {
+        SelfSignedCertificateRetriever certRetriever;
+        if (foreignSelfSigned) {
+            certRetriever = new DefaultSelfSignedCertificateRetriever();
+        } else {
+            certRetriever = new NoOpSelfSignedCertificateRetriever();
+        }
+
+        var aasDataProcessorFactory = new AllAasDataProcessorFactory(certRetriever, okHttpClient, retryPolicy, monitor);
+        return new AasDataSinkFactory(monitor, aasDataProcessorFactory);
     }
 }

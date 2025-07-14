@@ -15,9 +15,9 @@
  */
 package de.fraunhofer.iosb.dataplane.aas.pipeline;
 
-import de.fraunhofer.iosb.aas.AasDataProcessor;
-import de.fraunhofer.iosb.aas.AasDataProcessorFactory;
-import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
+import de.fraunhofer.iosb.aas.lib.AasDataProcessor;
+import de.fraunhofer.iosb.aas.lib.AasDataProcessorFactory;
+import de.fraunhofer.iosb.aas.lib.spi.AasDataAddress;
 import okhttp3.MediaType;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
@@ -35,9 +35,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.stream.Stream;
 
 import static org.eclipse.edc.util.io.Ports.getFreePort;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;

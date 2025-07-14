@@ -15,10 +15,9 @@
  */
 package de.fraunhofer.iosb.app.aas;
 
+import de.fraunhofer.iosb.aas.lib.model.impl.Service;
+import de.fraunhofer.iosb.aas.lib.spi.AasDataAddress;
 import de.fraunhofer.iosb.app.pipeline.PipelineFailure;
-import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
-import de.fraunhofer.iosb.model.aas.service.Service;
-import de.fraunhofer.iosb.util.Encoder;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultEnvironment;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
@@ -27,6 +26,7 @@ import org.junit.jupiter.api.Test;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -121,14 +121,11 @@ class EnvironmentToAssetMapperTest {
         assertNotNull(envAsset);
 
         // We don't compare IDs since they simply need to be unique
-        assertEquals(env.getSubmodels().size(),
-                getChildren(envAsset, SUBMODELS).size());
+        assertEquals(env.getSubmodels().size(), getChildren(envAsset, SUBMODELS).size());
 
-        assertEquals(env.getAssetAdministrationShells().size(),
-                getChildren(envAsset, SHELLS).size());
+        assertEquals(env.getAssetAdministrationShells().size(), getChildren(envAsset, SHELLS).size());
 
-        assertEquals(env.getConceptDescriptions().size(),
-                getChildren(envAsset, CONCEPT_DESCRIPTIONS).size());
+        assertEquals(env.getConceptDescriptions().size(), getChildren(envAsset, CONCEPT_DESCRIPTIONS).size());
     }
 
     @Test
@@ -167,8 +164,7 @@ class EnvironmentToAssetMapperTest {
 
         var result = testSubject.executeSingle(new Service(accessUrl), env).getContent();
 
-        assertEquals(env.getSubmodels().size(),
-                getChildren(result.environment(), SUBMODELS).size());
+        assertEquals(env.getSubmodels().size(), getChildren(result.environment(), SUBMODELS).size());
         assertEquals(emptyList, result.environment().getProperty(SHELLS));
         assertEquals(emptyList, result.environment().getProperty(CONCEPT_DESCRIPTIONS));
     }
@@ -183,14 +179,11 @@ class EnvironmentToAssetMapperTest {
 
         var res = result.getContent().environment();
 
-        assertEquals(env.getSubmodels().size(),
-                getChildren(res, SUBMODELS).size());
+        assertEquals(env.getSubmodels().size(), getChildren(res, SUBMODELS).size());
 
-        assertEquals(env.getAssetAdministrationShells().size(),
-                getChildren(res, SHELLS).size());
+        assertEquals(env.getAssetAdministrationShells().size(), getChildren(res, SHELLS).size());
 
-        assertEquals(env.getConceptDescriptions().size(),
-                getChildren(res, CONCEPT_DESCRIPTIONS).size());
+        assertEquals(env.getConceptDescriptions().size(), getChildren(res, CONCEPT_DESCRIPTIONS).size());
     }
 
     @Test
@@ -205,14 +198,15 @@ class EnvironmentToAssetMapperTest {
                 (AasDataAddress) getChildren(result.environment(), CONCEPT_DESCRIPTIONS).stream().map(Asset::getDataAddress).toList().get(0);
 
         assertTrue(shellDataAddress.getAccessUrl().getContent().toString().startsWith(accessUrl.toString()));
-        assertEquals("%s/%s".formatted(SHELLS, Encoder.encodeBase64(env.getAssetAdministrationShells().get(0).getId())),
+        assertEquals("%s/%s".formatted(SHELLS,
+                        Base64.getEncoder().encodeToString(env.getAssetAdministrationShells().get(0).getId().getBytes())),
                 shellDataAddress.getPath());
         assertTrue(submodelDataAddress.getAccessUrl().getContent().toString().startsWith(accessUrl.toString()));
-        assertEquals("%s/%s".formatted(SUBMODELS, Encoder.encodeBase64(env.getSubmodels().get(0).getId())),
+        assertEquals("%s/%s".formatted(SUBMODELS,
+                        Base64.getEncoder().encodeToString(env.getSubmodels().get(0).getId().getBytes())),
                 submodelDataAddress.getPath());
         assertTrue(conceptDescriptionDataAddress.getAccessUrl().getContent().toString().startsWith(accessUrl.toString()));
-        assertEquals("concept-descriptions/%s".formatted(Encoder.encodeBase64(env.getConceptDescriptions().get(0).getId())),
-                conceptDescriptionDataAddress.getPath());
+        assertEquals("concept-descriptions/%s".formatted(Base64.getEncoder().encodeToString(env.getConceptDescriptions().get(0).getId().getBytes())), conceptDescriptionDataAddress.getPath());
     }
 
     @SuppressWarnings("unchecked")

@@ -32,7 +32,7 @@ dependencies {
     testImplementation("de.fraunhofer.iosb.ilt.faaast.service:starter:${faaastVersion}")
     testImplementation("org.mockito:mockito-core:${mockitoVersion}")
     testImplementation("org.mock-server:mockserver-junit-jupiter:${mockserverVersion}")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.13.2")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.13.3")
 }
 
 tasks.test { useJUnitPlatform() }

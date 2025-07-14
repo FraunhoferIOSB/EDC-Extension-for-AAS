@@ -33,7 +33,7 @@ dependencies {
     testImplementation("org.mockito:mockito-core:$mockitoVersion")
     testImplementation("org.mock-server:mockserver-junit-jupiter:$mockserverVersion")
     testImplementation("org.eclipse.digitaltwin.aas4j:aas4j-model:${aas4jVersion}")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.13.2")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.13.3")
 }
 
 repositories {

@@ -29,7 +29,7 @@ dependencies {
     testImplementation("org.mockito:mockito-core:${mockitoVersion}")
     testImplementation("org.mock-server:mockserver-junit-jupiter:${mockserverVersion}")
     testImplementation("org.mock-server:mockserver-netty:${mockserverVersion}")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.13.2")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.13.3")
 }
 
 repositories {

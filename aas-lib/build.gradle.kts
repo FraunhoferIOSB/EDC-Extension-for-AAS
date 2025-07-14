@@ -4,6 +4,7 @@ plugins {
 
 val edcVersion: String by project
 val aas4jVersion: String by project
+val junitPlatformLauncherVersion: String by project
 
 repositories {
     mavenCentral()
@@ -16,7 +17,7 @@ dependencies {
     testImplementation("$group:junit:$edcVersion")
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.13.2")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher:$junitPlatformLauncherVersion")
 
 }
 

@@ -8,6 +8,7 @@ val edcVersion: String by project
 val mockitoVersion: String by project
 val mockserverVersion: String by project
 val jerseyVersion: String by project
+val junitPlatformLauncherVersion: String by project
 
 java {
     toolchain {
@@ -21,9 +22,9 @@ dependencies {
 
     testImplementation("$group:junit:$edcVersion")
     testImplementation("org.glassfish.jersey.core:jersey-common:$jerseyVersion")
-    testImplementation("org.mockito:mockito-core:${mockitoVersion}")
-    testImplementation("org.mock-server:mockserver-junit-jupiter:${mockserverVersion}")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.13.2")
+    testImplementation("org.mockito:mockito-core:$mockitoVersion")
+    testImplementation("org.mock-server:mockserver-junit-jupiter:$mockserverVersion")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher:$junitPlatformLauncherVersion")
 }
 
 repositories {

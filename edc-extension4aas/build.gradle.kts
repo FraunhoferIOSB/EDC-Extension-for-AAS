@@ -9,6 +9,7 @@ val edcVersion: String by project
 val mockitoVersion: String by project
 val mockserverVersion: String by project
 val jerseyVersion: String by project
+val junitPlatformLauncherVersion: String by project
 
 java {
     toolchain {
@@ -20,16 +21,16 @@ dependencies {
     implementation(project(":public-api-management"))
     implementation(project(":aas-lib"))
 
-    implementation("de.fraunhofer.iosb.ilt.faaast.service:starter:${faaastVersion}")
-    implementation("${group}:http-lib:${edcVersion}")
+    implementation("de.fraunhofer.iosb.ilt.faaast.service:starter:$faaastVersion")
+    implementation("${group}:http-lib:$edcVersion")
     implementation("$group:asset-api:$edcVersion")
 
     testImplementation("$group:junit:$edcVersion")
     testImplementation("org.glassfish.jersey.core:jersey-common:$jerseyVersion")
     testImplementation("org.mockito:mockito-core:${mockitoVersion}")
-    testImplementation("org.mock-server:mockserver-junit-jupiter:${mockserverVersion}")
-    testImplementation("org.mock-server:mockserver-netty:${mockserverVersion}")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.13.2")
+    testImplementation("org.mock-server:mockserver-junit-jupiter:$mockserverVersion")
+    testImplementation("org.mock-server:mockserver-netty:$mockserverVersion")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher:$junitPlatformLauncherVersion")
 }
 
 repositories {

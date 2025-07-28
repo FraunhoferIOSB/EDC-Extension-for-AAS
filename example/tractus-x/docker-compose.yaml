@@ -1,0 +1,61 @@
+services:
+  consumer-control-plane:
+    image:
+      tractus-x-control-plane
+    ports:
+      - "9191:9191"
+      - "9291:9291"
+      - "9192:9192"
+      - "9292:9292"
+    environment:
+      EDC_FS_CONFIG: /configurations/consumer.properties
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:9291/api/selfDescription || exit 1" ]
+      interval: 10s
+      retries: 5
+      start_period: 5s
+      timeout: 10s
+    volumes:
+      - ./configurations:/configurations
+  consumer-data-plane:
+    image:
+      tractus-x-data-plane
+    environment:
+      EDC_FS_CONFIG: /configurations/consumer.properties
+    depends_on:
+      consumer-control-plane:
+        condition: service_healthy
+    volumes:
+      - ./configurations:/configurations
+  provider-control-plane:
+    image:
+      tractus-x-control-plane
+    ports:
+      - "8123:8123"
+      - "8181:8181"
+      - "8281:8281"
+      - "8182:8182"
+      - "8282:8282"
+    environment:
+      EDC_FS_CONFIG: /configurations/provider.properties
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:8281/api/selfDescription || exit 1" ]
+      interval: 10s
+      retries: 5
+      start_period: 5s
+      timeout: 10s
+    volumes:
+      - ./configurations:/configurations
+      - ../resources:/resources
+  provider-data-plane:
+    image:
+      tractus-x-data-plane
+    environment:
+      EDC_FS_CONFIG: /configurations/provider.properties
+    depends_on:
+      provider-control-plane:
+        condition: service_healthy
+    volumes:
+      - ./configurations:/configurations
+volumes:
+  postgres_data:

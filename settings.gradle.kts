@@ -7,3 +7,6 @@ include("public-api-management")
 
 // include the launcher in the build process
 include("example")
+// tractus-x example
+include("example:tractus-x:control-plane")
+include("example:tractus-x:data-plane")

@@ -8,8 +8,7 @@
     - When deploying data- and control-plane separately, a configuration file is shared across both deployments.
     - Identity and access management is mocked throughout this example.
 - `control-plane`: extension + tractus-x EDC control-plane build file + dockerfile.
-- `data-plane`: data-plane build file + dockerfile.
-- `resources`:
+- `data-plane`: data-plane + aas-data-plane build file + dockerfile.
 
 ## Build the connectors:
 

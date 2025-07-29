@@ -20,7 +20,7 @@ import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShell;
 import org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 
-public class ShellToAssetMapper extends ElementMapper implements Mapper<AssetAdministrationShell> {
+public class AssetAdministrationShellMapper extends ElementMapper implements Mapper<AssetAdministrationShell> {
 
     public Asset map(AssetAdministrationShell shell, AasProvider provider) {
         var dataAddress = createDataAddress(provider, createReference(KeyTypes.ASSET_ADMINISTRATION_SHELL,

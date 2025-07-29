@@ -6,6 +6,12 @@ Compatibility: **Eclipse Dataspace Connector v0.13.0**
 
 **New Features**
 
+* AAS DataPlane is now optional
+    * Configuration variable `edc.aas.useAasDataPlane`, default value `False`
+    * Use cases:
+        * Better integration into existing EDC deployments
+        * Use existing Http DataPlane
+        * If there is no need for proxy functionality like ProxyMethod or ProxyBody to trigger AAS operations
 * AAS registries (spec, example) can now be registered at the extension.
     * Add a FA³ST Registry / AAS registry by URL
     * The extension reads the shell-/submodel-descriptors and registers assets for their endpoints

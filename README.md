@@ -162,6 +162,7 @@ In this section, dependencies from EDC and third-party are listed. (Dependencies
 | localAASServicePort         | Open network port | Port to locally created AAS service. Required, if localAASModelPath is defined and localAASServiceConfigPath is not defined.                                                     |
 | onlySubmodels               | boolean           | (Provider) Only register submodels of AAS services. Default: True                                                                                                                |
 | remoteAasLocation           | URL               | Register a URL of an AAS service (such as FA³ST) that is already running and is conformant with official AAS API specification                                                   |
+| useAasDataPlane             | boolean           | Whether to use AAS data plane or HTTP DataPlane to register AAS elements. (Default: False)                                                                                       |
 | syncPeriod                  | number in seconds | Time period in which AAS services should be polled for structural changes (added/deleted elements etc.). Default: 50 (seconds).                                                  |
 
 </details>
@@ -170,7 +171,7 @@ In this section, dependencies from EDC and third-party are listed. (Dependencies
 
 | Key (edc.client.)             | Value Type              | Description                                                                                                                                                                   |
 |:------------------------------|:------------------------|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| acceptAllProviderOffers       | <u>True</u>/False       | Accept any contractOffer offered by all provider connectors on automated contract negotiation (e.g., trusted provider)                                                        |
+| acceptAllProviderOffers       | boolean                 | Accept any contractOffer offered by all provider connectors on automated contract negotiation (e.g., trusted provider)                                                        |
 | acceptedPolicyDefinitionsPath | path                    | Path pointing to a JSON-file containing acceptable PolicyDefinitions for automated contract negotiation in a list (only policies must match in a provider's PolicyDefinition) |
 | waitForAgreementTimeout       | whole number in seconds | How long should the extension wait for an agreement when automatically negotiating a contract? Default value is 20(s).                                                        |
 | waitForCatalogTimeout         | whole number in seconds | How long should the extension wait for a catalog? Default value is 20(s).                                                                                                     |

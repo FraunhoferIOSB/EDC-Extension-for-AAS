@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.api.filter;
+package de.fraunhofer.iosb.ilt.api.filter;
 
-import de.fraunhofer.iosb.api.model.Endpoint;
-import de.fraunhofer.iosb.api.model.HttpMethod;
+import de.fraunhofer.iosb.ilt.api.model.Endpoint;
+import de.fraunhofer.iosb.ilt.api.model.HttpMethod;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.UriInfo;
@@ -31,7 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static de.fraunhofer.iosb.api.model.EndpointTest.createNormalEndpoint;
+import static de.fraunhofer.iosb.ilt.api.model.EndpointTest.createNormalEndpoint;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;

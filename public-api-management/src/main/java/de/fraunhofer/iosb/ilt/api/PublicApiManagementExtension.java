@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.api;
+package de.fraunhofer.iosb.ilt.api;
 
-import de.fraunhofer.iosb.api.filter.CustomAuthenticationRequestFilter;
+import de.fraunhofer.iosb.ilt.api.filter.CustomAuthenticationRequestFilter;
 import org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;

@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.api;
+package de.fraunhofer.iosb.ilt.api;
 
-import de.fraunhofer.iosb.api.filter.CustomAuthenticationRequestFilter;
-import de.fraunhofer.iosb.api.model.Endpoint;
-import de.fraunhofer.iosb.api.model.HttpMethod;
+import de.fraunhofer.iosb.ilt.api.filter.CustomAuthenticationRequestFilter;
+import de.fraunhofer.iosb.ilt.api.model.Endpoint;
+import de.fraunhofer.iosb.ilt.api.model.HttpMethod;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.MultivaluedMap;

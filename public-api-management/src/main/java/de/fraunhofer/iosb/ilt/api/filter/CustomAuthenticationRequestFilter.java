@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.api.filter;
+package de.fraunhofer.iosb.ilt.api.filter;
 
-import de.fraunhofer.iosb.api.model.Endpoint;
-import de.fraunhofer.iosb.api.model.HttpMethod;
+import de.fraunhofer.iosb.ilt.api.model.Endpoint;
+import de.fraunhofer.iosb.ilt.api.model.HttpMethod;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import org.eclipse.edc.api.auth.spi.AuthenticationRequestFilter;
 import org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationRegistry;

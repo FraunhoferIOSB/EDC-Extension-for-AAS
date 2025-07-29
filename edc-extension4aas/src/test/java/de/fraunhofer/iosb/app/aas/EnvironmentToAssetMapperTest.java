@@ -17,10 +17,14 @@ package de.fraunhofer.iosb.app.aas;
 
 import de.fraunhofer.iosb.aas.lib.model.impl.Service;
 import de.fraunhofer.iosb.aas.lib.spi.AasDataAddress;
+import de.fraunhofer.iosb.app.controller.ConfigurationController;
 import de.fraunhofer.iosb.app.pipeline.PipelineFailure;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultEnvironment;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
+import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
+import org.eclipse.edc.spi.monitor.ConsoleMonitor;
+import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -59,6 +63,7 @@ class EnvironmentToAssetMapperTest {
     @BeforeEach
     void setUp() {
         onlySubmodelsDecider = false;
+
         testSubject = new EnvironmentToAssetMapper(() -> this.onlySubmodelsDecider);
     }
 
@@ -187,7 +192,36 @@ class EnvironmentToAssetMapperTest {
     }
 
     @Test
-    void testCorrectAccessUrls() {
+    void testCorrectAccessUrlsHttpDataAddress() {
+        var configController = new ConfigurationController(ConfigFactory.empty(), new ConsoleMonitor());
+        configController.updateConfiguration("{\"edc.aas.useAasDataPlane\":\"false\"}");
+
+        var env = getEnvironment();
+        var result = testSubject.executeSingle(new Service(accessUrl), env).getContent();
+        var shellDataAddress =
+                (HttpDataAddress) getChildren(result.environment(), SHELLS).stream().map(Asset::getDataAddress).toList().get(0);
+        var submodelDataAddress =
+                (HttpDataAddress) getChildren(result.environment(), SUBMODELS).stream().map(Asset::getDataAddress).toList().get(0);
+        var conceptDescriptionDataAddress =
+                (HttpDataAddress) getChildren(result.environment(), CONCEPT_DESCRIPTIONS).stream().map(Asset::getDataAddress).toList().get(0);
+
+        assertTrue(shellDataAddress.getBaseUrl().startsWith(accessUrl.toString()));
+        assertEquals("%s/%s".formatted(SHELLS,
+                        Base64.getEncoder().encodeToString(env.getAssetAdministrationShells().get(0).getId().getBytes())),
+                shellDataAddress.getPath());
+        assertTrue(submodelDataAddress.getBaseUrl().startsWith(accessUrl.toString()));
+        assertEquals("%s/%s".formatted(SUBMODELS,
+                        Base64.getEncoder().encodeToString(env.getSubmodels().get(0).getId().getBytes())),
+                submodelDataAddress.getPath());
+        assertTrue(conceptDescriptionDataAddress.getBaseUrl().startsWith(accessUrl.toString()));
+        assertEquals("concept-descriptions/%s".formatted(Base64.getEncoder().encodeToString(env.getConceptDescriptions().get(0).getId().getBytes())), conceptDescriptionDataAddress.getPath());
+    }
+
+    @Test
+    void testCorrectAccessUrlsAasDataAddress() {
+        var configController = new ConfigurationController(ConfigFactory.empty(), new ConsoleMonitor());
+        configController.updateConfiguration("{\"edc.aas.useAasDataPlane\":\"true\"}");
+
         var env = getEnvironment();
         var result = testSubject.executeSingle(new Service(accessUrl), env).getContent();
         var shellDataAddress =

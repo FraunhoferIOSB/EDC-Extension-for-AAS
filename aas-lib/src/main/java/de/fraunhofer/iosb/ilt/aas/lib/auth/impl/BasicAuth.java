@@ -13,34 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.aas.lib.auth.impl;
+package de.fraunhofer.iosb.ilt.aas.lib.auth.impl;
 
-import de.fraunhofer.iosb.aas.lib.auth.AuthenticationMethod;
 
-import java.util.AbstractMap;
-import java.util.Map;
+import de.fraunhofer.iosb.ilt.aas.lib.auth.AuthenticationMethod;
+
+import java.util.Base64;
+import java.util.Objects;
 
 /**
- * Api key authentication: (key, value).
- * Example: (x-api-key,password)
+ * <a href="https://datatracker.ietf.org/doc/html/rfc7617#section-2">rfc7617</a>
+ * -> b64("Basic user:password")
  */
-public class ApiKey extends AuthenticationMethod {
+public class BasicAuth extends AuthenticationMethod {
 
-    private final String keyName;
-    private final String keyValue;
+    private static final Base64.Encoder BASE64_ENCODER = Base64.getEncoder();
 
-    public ApiKey(String key, String keyValue) {
-        this.keyName = key;
-        this.keyValue = keyValue;
+    private final String username;
+    private final String password;
+
+    public BasicAuth(String username, String password) {
+        this.username = Objects.requireNonNull(username);
+        this.password = Objects.requireNonNull(password);
     }
 
-    @Override
-    public Map.Entry<String, String> getHeader() {
-        return new AbstractMap.SimpleEntry<>(keyName, getValue());
-    }
-
-    @Override
     protected String getValue() {
-        return keyValue;
+        return "Basic %s".formatted(BASE64_ENCODER.encodeToString("%s:%s".formatted(username, password).getBytes()));
     }
+
 }

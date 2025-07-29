@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.aas.lib.auth;
+package de.fraunhofer.iosb.ilt.aas.lib.auth;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import de.fraunhofer.iosb.aas.lib.auth.impl.ApiKey;
-import de.fraunhofer.iosb.aas.lib.auth.impl.BasicAuth;
-import de.fraunhofer.iosb.aas.lib.auth.impl.NoAuth;
+import de.fraunhofer.iosb.ilt.aas.lib.auth.impl.ApiKey;
+import de.fraunhofer.iosb.ilt.aas.lib.auth.impl.BasicAuth;
+import de.fraunhofer.iosb.ilt.aas.lib.auth.impl.NoAuth;
 
 import java.util.AbstractMap;
 import java.util.Map;

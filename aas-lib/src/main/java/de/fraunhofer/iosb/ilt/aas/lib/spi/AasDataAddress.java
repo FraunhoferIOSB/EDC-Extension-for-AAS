@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.aas.lib.spi;
+package de.fraunhofer.iosb.ilt.aas.lib.spi;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import de.fraunhofer.iosb.aas.lib.model.AasProvider;
+import de.fraunhofer.iosb.ilt.aas.lib.model.AasProvider;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultReference;
 import org.eclipse.edc.spi.EdcException;
@@ -35,9 +35,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-import static de.fraunhofer.iosb.aas.lib.model.impl.Service.CONCEPT_DESCRIPTIONS_PATH;
-import static de.fraunhofer.iosb.aas.lib.model.impl.Service.SHELLS_PATH;
-import static de.fraunhofer.iosb.aas.lib.model.impl.Service.SUBMODELS_PATH;
+import static de.fraunhofer.iosb.ilt.aas.lib.model.impl.Service.CONCEPT_DESCRIPTIONS_PATH;
+import static de.fraunhofer.iosb.ilt.aas.lib.model.impl.Service.SHELLS_PATH;
+import static de.fraunhofer.iosb.ilt.aas.lib.model.impl.Service.SUBMODELS_PATH;
 import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toMap;
 

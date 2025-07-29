@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.aas.lib.model.impl;
+package de.fraunhofer.iosb.ilt.aas.lib.model.impl;
 
-import de.fraunhofer.iosb.aas.lib.auth.AuthenticationMethod;
-import de.fraunhofer.iosb.aas.lib.model.AasProvider;
-import de.fraunhofer.iosb.aas.lib.net.AasAccessUrl;
+import de.fraunhofer.iosb.ilt.aas.lib.auth.AuthenticationMethod;
+import de.fraunhofer.iosb.ilt.aas.lib.model.AasProvider;
+import de.fraunhofer.iosb.ilt.aas.lib.net.AasAccessUrl;
 
 import java.net.URL;
 import java.util.ArrayList;

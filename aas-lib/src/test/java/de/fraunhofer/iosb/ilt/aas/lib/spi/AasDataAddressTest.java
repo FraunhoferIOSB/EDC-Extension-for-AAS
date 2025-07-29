@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.aas.lib.spi;
+package de.fraunhofer.iosb.ilt.aas.lib.spi;
 
-import de.fraunhofer.iosb.aas.lib.model.impl.Service;
+import de.fraunhofer.iosb.ilt.aas.lib.model.impl.Service;
 import org.eclipse.digitaltwin.aas4j.v3.model.Key;
 import org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultKey;

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.client.testutils;
+package de.fraunhofer.iosb.ilt.app.testutils;
 
 import org.apache.commons.io.IOUtils;
 

@@ -6,6 +6,7 @@ Compatibility: **Eclipse Dataspace Connector v0.13.0**
 
 **New Features**
 
+* Added tractus-x example configurations to showcase compatibility
 * AAS DataPlane is now optional
     * Configuration variable `edc.aas.useAasDataPlane`, default value `False`
     * Use cases:

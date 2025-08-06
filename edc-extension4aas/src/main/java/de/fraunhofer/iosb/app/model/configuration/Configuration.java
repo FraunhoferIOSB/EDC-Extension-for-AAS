@@ -57,6 +57,9 @@ public class Configuration {
     @JsonProperty(SETTINGS_PREFIX + "defaultContractPolicyPath")
     private String defaultContractPolicyPath;
 
+    @JsonProperty(SETTINGS_PREFIX + "useAasDataPlane")
+    private boolean useAasDataPlane;
+
 
     public static synchronized Configuration getInstance() {
         if (instance == null) {
@@ -104,4 +107,9 @@ public class Configuration {
     public boolean isAllowSelfSignedCertificates() {
         return allowSelfSignedCertificates;
     }
+
+    public boolean isUseAasDataPlane() {
+        return useAasDataPlane;
+    }
+
 }

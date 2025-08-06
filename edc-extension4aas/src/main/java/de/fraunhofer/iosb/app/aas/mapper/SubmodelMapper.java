@@ -33,7 +33,6 @@ public class SubmodelMapper extends ElementMapper implements Mapper<Submodel> {
     private final Supplier<Boolean> onlySubmodelsDecision;
 
     public SubmodelMapper(Supplier<Boolean> onlySubmodelsDecision) {
-        super();
         this.onlySubmodelsDecision = onlySubmodelsDecision;
     }
 

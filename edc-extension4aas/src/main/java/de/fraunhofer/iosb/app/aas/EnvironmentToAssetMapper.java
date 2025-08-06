@@ -17,8 +17,9 @@ package de.fraunhofer.iosb.app.aas;
 
 import de.fraunhofer.iosb.aas.lib.model.AasProvider;
 import de.fraunhofer.iosb.aas.lib.model.impl.Service;
+import de.fraunhofer.iosb.app.aas.mapper.AssetAdministrationShellMapper;
 import de.fraunhofer.iosb.app.aas.mapper.ConceptDescriptionMapper;
-import de.fraunhofer.iosb.app.aas.mapper.ShellToAssetMapper;
+import de.fraunhofer.iosb.app.aas.mapper.Mapper;
 import de.fraunhofer.iosb.app.aas.mapper.SubmodelMapper;
 import de.fraunhofer.iosb.app.pipeline.PipelineFailure;
 import de.fraunhofer.iosb.app.pipeline.PipelineResult;
@@ -53,9 +54,9 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<Service, Environm
     private static final String SUBMODELS = "submodels";
 
     private final Supplier<Boolean> onlySubmodelsDecision;
-    private final ShellToAssetMapper shellMapper = new ShellToAssetMapper();
-    private final SubmodelMapper submodelMapper;
-    private final ConceptDescriptionMapper conceptDescriptionMapper = new ConceptDescriptionMapper();
+    private final Mapper<AssetAdministrationShell> shellMapper = new AssetAdministrationShellMapper();
+    private final Mapper<Submodel> submodelMapper;
+    private final Mapper<ConceptDescription> conceptDescriptionMapper = new ConceptDescriptionMapper();
 
 
     public EnvironmentToAssetMapper(Supplier<Boolean> onlySubmodelsDecision) {

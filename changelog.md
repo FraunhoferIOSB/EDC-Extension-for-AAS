@@ -2,7 +2,7 @@
 
 ## Current development version
 
-Compatibility: **Eclipse Dataspace Connector v0.13.0**
+Compatibility: **Eclipse Dataspace Connector v0.13.0, v0.13.2**
 
 **New Features**
 
@@ -32,6 +32,8 @@ Compatibility: **Eclipse Dataspace Connector v0.13.0**
 
 * NPE on transfer terminated signal when transferring data to the extension
 * Null-checks in various files
+* Set docker-compose extension versions to "latest"
+* 
 
 **Miscellaneous**
 
@@ -51,8 +53,8 @@ Compatibility: **Eclipse Dataspace Connector v0.13.0**
       described above.
     * This makes the extension not rely on custom data classes which can be invalidated through an update of AAS or EDC
     * It also makes (de)serialization of AAS environments easier
-* Updated FA³ST to version v1.1.0
-* Updated EDC to version v0.10.0
+* Updated FA³ST to version v1.2.0
+* Updated EDC to version v0.13.2
 * Removed custom dependency injection because of transitive dependency issue from FA³ST service
     * This was in `example/build.gradle.kts`
 * Added tests

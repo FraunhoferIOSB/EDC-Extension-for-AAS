@@ -5,6 +5,7 @@ plugins {
 
 val javaVersion: String by project
 val edcVersion: String by project
+val edcFederatedCatalogCore2025Version: String by project
 val mockitoVersion: String by project
 val mockserverVersion: String by project
 val jerseyVersion: String by project
@@ -28,7 +29,7 @@ dependencies {
     implementation("$group:data-plane-http-spi:$edcVersion") // EDC HttpDataAddress
     implementation("$group:dsp-catalog-http-dispatcher:$edcVersion") // DSP HTTP constant
     implementation("$group:json-ld-lib:$edcVersion") // JsonLD expansion
-    implementation("$group:federated-catalog-core-2025:$edcVersion") // JsonObjectTo*Transformer
+    implementation("$group:federated-catalog-core-2025:$edcFederatedCatalogCore2025Version") // JsonObjectToCatalogTransformer
 
     testImplementation("$group:junit:$edcVersion")
     testImplementation("org.glassfish.jersey.core:jersey-common:$jerseyVersion")

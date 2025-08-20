@@ -26,12 +26,16 @@ import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 
 import java.util.Map;
 
+import static de.fraunhofer.iosb.aas.lib.type.AasConstants.AAS_PREFIX;
+import static de.fraunhofer.iosb.aas.lib.type.AasConstants.AAS_V30_NAMESPACE;
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.PROPERTY_ID;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_PREFIX;
 
 public class SelfDescriptionSerializer {
 
-    private static final String[] SKIPPED_FIELDS = new String[]{"dataAddress", "privateProperties", "createdAt",
-            PROPERTY_ID};
+    private static final String[] SKIPPED_FIELDS = new String[]{ "dataAddress", "privateProperties", "createdAt",
+            PROPERTY_ID };
     private static final ObjectWriter OBJECT_WRITER = createObjectWriter();
 
     private SelfDescriptionSerializer() {
@@ -50,7 +54,9 @@ public class SelfDescriptionSerializer {
                     "shells", asset.getProperty("shells"),
                     "submodels", asset.getProperty("submodels"),
                     "conceptDescriptions", asset.getProperty("conceptDescriptions"));
-            return OBJECT_WRITER.writeValueAsString(environmentList);
+            return OBJECT_WRITER.writeValueAsString(environmentList)
+                    .replace(AAS_V30_NAMESPACE, AAS_PREFIX.concat(":"))
+                    .replace(EDC_NAMESPACE, EDC_PREFIX.concat(":"));
         } catch (JsonProcessingException e) {
             return "";
         }

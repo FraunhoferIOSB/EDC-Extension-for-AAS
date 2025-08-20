@@ -2,7 +2,7 @@
 
 ## Current development version
 
-Compatibility: **Eclipse Dataspace Connector v0.13.0, v0.13.2**
+Compatibility: **Eclipse Dataspace Connector v0.13.0, v0.13.2, v0.14.0**
 
 **New Features**
 
@@ -13,6 +13,24 @@ Compatibility: **Eclipse Dataspace Connector v0.13.0, v0.13.2**
         * Better integration into existing EDC deployments
         * Use existing Http DataPlane
         * If there is no need for proxy functionality like ProxyMethod or ProxyBody to trigger AAS operations
+
+**Bugfixes**
+
+* NPE on transfer terminated signal when transferring data to the extension
+* Set docker-compose extension versions to "latest"
+
+**Miscellaneous**
+
+* Separated control-plane parts from data-plane parts to allow for distributed deployment scenarios
+* Updated FA³ST to version v1.2.0
+* Updated and tested compatibility to EDC version v0.13.0, v0.13.2, v0.14.0
+
+## V2.2.0
+
+This version is compatible to **Eclipse Dataspace Connector v0.10.0**
+
+**New Features**
+
 * AAS registries (spec, example) can now be registered at the extension.
     * Add a FA³ST Registry / AAS registry by URL
     * The extension reads the shell-/submodel-descriptors and registers assets for their endpoints
@@ -30,19 +48,7 @@ Compatibility: **Eclipse Dataspace Connector v0.13.0, v0.13.2**
 
 **Bugfixes**
 
-* NPE on transfer terminated signal when transferring data to the extension
 * Null-checks in various files
-* Set docker-compose extension versions to "latest"
-* 
-
-**Miscellaneous**
-
-* Important: URLs for an AAS Service / Registry must now be provided fully until the /shells, /submodels and
-  /concept-descriptions endpoints
-    * Until last version, ´/api/v3.0´ was appended to the access URL of each AAS service/registry.
-    * Now, a URL must be provided such that appending /shells, /submodels and /concept-descriptions yields the
-      respective resources.
-* Separated control-plane parts from data-plane parts to allow for distributed deployment scenarios
 * The synchronization of the EDC AssetIndex/ContractStore to the AAS services/registries is updated to a pipeline
   architecture.
 * The extension does not use custom AAS models for internal persistence any longer
@@ -53,12 +59,18 @@ Compatibility: **Eclipse Dataspace Connector v0.13.0, v0.13.2**
       described above.
     * This makes the extension not rely on custom data classes which can be invalidated through an update of AAS or EDC
     * It also makes (de)serialization of AAS environments easier
-* Updated FA³ST to version v1.2.0
-* Updated EDC to version v0.13.2
 * Removed custom dependency injection because of transitive dependency issue from FA³ST service
     * This was in `example/build.gradle.kts`
 * Added tests
 * Wrapped some raw return values with Result, StreamResult etc.
+
+**Miscellaneous**
+
+* Important: URLs for an AAS Service / Registry must now be provided fully until the /shells, /submodels and
+  /concept-descriptions endpoints
+    * Until last version, ´/api/v3.0´ was appended to the access URL of each AAS service/registry.
+    * Now, a URL must be provided such that appending /shells, /submodels and /concept-descriptions yields the
+      respective resources.
 
 ## V2.1.2
 

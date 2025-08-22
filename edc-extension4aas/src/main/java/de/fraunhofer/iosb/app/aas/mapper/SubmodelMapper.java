@@ -27,6 +27,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Supplier;
 
+import static de.fraunhofer.iosb.aas.lib.type.AasConstants.AAS_V30_NAMESPACE;
+
 public class SubmodelMapper extends ElementMapper implements Mapper<Submodel> {
 
     private final SubmodelElementMapper submodelElementMapper = new SubmodelElementMapper();
@@ -55,8 +57,8 @@ public class SubmodelMapper extends ElementMapper implements Mapper<Submodel> {
         return mapIdentifiableToAssetBuilder(submodel)
                 .id(getId(dataAddress))
                 .properties(Map.of(
-                        "semanticId", semanticId,
-                        "submodelElements", children))
+                        AAS_V30_NAMESPACE + "HasSemantics/" + "semanticId", semanticId,
+                        AAS_V30_NAMESPACE + "Submodel/" + "submodelElements", children))
                 .dataAddress(dataAddress)
                 .build();
     }

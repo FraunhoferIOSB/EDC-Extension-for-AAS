@@ -25,6 +25,7 @@ dependencies {
     implementation("${group}:http-lib:${edcVersion}")
     implementation("${group}:data-plane-http-spi:${edcVersion}") // HTTPDataAddress
     implementation("$group:asset-api:$edcVersion")
+    implementation("${group}:json-ld-spi:${edcVersion}") // Add aas NS to context
 
     testImplementation("$group:junit:$edcVersion")
     testImplementation("org.glassfish.jersey.core:jersey-common:$jerseyVersion")

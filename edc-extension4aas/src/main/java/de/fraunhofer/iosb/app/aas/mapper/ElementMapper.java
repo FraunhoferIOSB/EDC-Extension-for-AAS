@@ -22,7 +22,6 @@ import org.eclipse.digitaltwin.aas4j.v3.model.Identifiable;
 import org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes;
 import org.eclipse.digitaltwin.aas4j.v3.model.Referable;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
-import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultAdministrativeInformation;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultKey;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultReference;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
@@ -31,15 +30,16 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Supplier;
+
+import static de.fraunhofer.iosb.aas.lib.type.AasConstants.AAS_V30_NAMESPACE;
 
 /**
  * Contains base logic for mapping AAS elements to Assets
  */
 public class ElementMapper {
+
 
     private final Supplier<Boolean> useAasDataAddress = () -> Configuration.getInstance().isUseAasDataPlane();
 
@@ -47,38 +47,62 @@ public class ElementMapper {
     }
 
     protected <R extends Referable> Asset.Builder mapReferableToAssetBuilder(R referable) {
-        return Asset.Builder.newInstance()
-                .properties(Map.of(
-                        "idShort", Optional.ofNullable(referable.getIdShort()).orElse(""),
-                        "name", referable.getDisplayName(),
-                        "description", referable.getDescription()));
+        var referableNamespace = AAS_V30_NAMESPACE.concat("Referable/");
+        var assetBuilder = Asset.Builder.newInstance();
+
+        if (referable.getIdShort() != null && !referable.getIdShort().isEmpty()) {
+            assetBuilder.property(referableNamespace.concat("idShort"), referable.getIdShort());
+        }
+
+        if (referable.getDisplayName() != null && !referable.getDisplayName().isEmpty()) {
+            assetBuilder.property(referableNamespace.concat("displayName"), referable.getDisplayName());
+        }
+
+        if (referable.getDescription() != null && !referable.getDescription().isEmpty()) {
+            assetBuilder.property(referableNamespace.concat("description"), referable.getDescription());
+        }
+
+        return assetBuilder;
     }
 
     protected <I extends Identifiable> Asset.Builder mapIdentifiableToAssetBuilder(I identifiable) {
-        var admin = Optional.ofNullable(identifiable.getAdministration())
-                .orElse(new DefaultAdministrativeInformation.Builder().build());
-        var version = null != admin.getVersion() && null != admin.getRevision() ?
-                String.valueOf(admin.getVersion()).concat(":").concat(String.valueOf(admin.getRevision())) : null;
+        var identifiableNamespace = AAS_V30_NAMESPACE.concat("Identifiable/");
 
-        return mapReferableToAssetBuilder(identifiable)
-                .version(version)
+        var admin = identifiable.getAdministration();
+
+        var assetBuilder = mapReferableToAssetBuilder(identifiable)
                 .contentType("application/json")
-                .properties(Map.of(
-                        "id", identifiable.getId(),
-                        "embeddedDataSpecifications", admin.getEmbeddedDataSpecifications()));
+                .property(identifiableNamespace.concat("id"),
+                        identifiable.getId());
+
+        if (admin == null) {
+            return assetBuilder;
+        }
+
+        if (admin.getEmbeddedDataSpecifications() != null && !admin.getEmbeddedDataSpecifications().isEmpty()) {
+            assetBuilder.property(AAS_V30_NAMESPACE + "HasDataSpecification/" + "embeddedDataSpecifications", admin.getEmbeddedDataSpecifications());
+        }
+
+        if (admin.getVersion() != null) {
+            assetBuilder.property(AAS_V30_NAMESPACE + "AdministrativeInformation/" + "version", admin.getVersion());
+        }
+
+        if (admin.getRevision() != null) {
+            assetBuilder.property(AAS_V30_NAMESPACE + "AdministrativeInformation/" + "revision", admin.getRevision());
+        }
+
+        return assetBuilder;
     }
 
 
     protected @NotNull String getId(DataAddress dataAddress) {
         if (dataAddress.getType().equals("AasData")) {
             var aasDataAddress = (AasDataAddress) dataAddress;
-            return String.valueOf("%s:%s".formatted((aasDataAddress.getAccessUrl().getContent().toString()),
-                    aasDataAddress.getPath()).hashCode());
+            return String.valueOf("%s:%s".formatted((aasDataAddress.getAccessUrl().getContent().toString()), aasDataAddress.getPath()).hashCode());
         } else if (dataAddress.getType().equals("HttpData")) {
             var httpDataAddress = (HttpDataAddress) dataAddress;
 
-            return String.valueOf("%s:%s".formatted(httpDataAddress.getBaseUrl(),
-                    httpDataAddress.getPath()).hashCode());
+            return String.valueOf("%s:%s".formatted(httpDataAddress.getBaseUrl(), httpDataAddress.getPath()).hashCode());
         } else {
             String idProperty = "id";
             if (dataAddress.hasProperty(idProperty)) {

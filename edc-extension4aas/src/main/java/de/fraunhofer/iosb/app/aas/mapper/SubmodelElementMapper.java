@@ -29,6 +29,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static de.fraunhofer.iosb.aas.lib.type.AasConstants.AAS_V30_NAMESPACE;
+
 /**
  * Not an ElementMapper since we have a different method signature.
  */
@@ -61,18 +63,14 @@ class SubmodelElementMapper {
                 "modelingType", modelingType,
                 "value", children));
 
-        if (submodelElement.getEmbeddedDataSpecifications() != null) {
-            additionalProperties.put("embeddedDataSpecifications", submodelElement.getEmbeddedDataSpecifications());
-        }
-
-        if (submodelElement.getSemanticId() != null) {
-            additionalProperties.put("semanticId", submodelElement.getSemanticId());
+        if (submodelElement.getSemanticId() != null && !submodelElement.getSemanticId().getKeys().isEmpty()) {
+            additionalProperties.put(AAS_V30_NAMESPACE + "HasSemantics/" + "semanticId", submodelElement.getSemanticId());
         }
 
         if (submodelElement instanceof Operation operation) {
-            additionalProperties.put("inputVariables", operation.getInputVariables());
-            additionalProperties.put("inoutputVariables", operation.getInoutputVariables());
-            additionalProperties.put("outputVariables", operation.getOutputVariables());
+            additionalProperties.put(AAS_V30_NAMESPACE + "Operation/" + "inputVariables", operation.getInputVariables());
+            additionalProperties.put(AAS_V30_NAMESPACE + "Operation/" + "inoutputVariables", operation.getInoutputVariables());
+            additionalProperties.put(AAS_V30_NAMESPACE + "Operation/" + "outputVariables", operation.getOutputVariables());
         }
 
         return elementMapper.mapReferableToAssetBuilder(submodelElement)

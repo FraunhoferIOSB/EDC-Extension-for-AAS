@@ -45,21 +45,17 @@ public class SelfDescriptionSerializer {
     /**
      * Serialize Asset into (kind of) IDS SelfDescription form
      *
-     * @param asset Asset containing environment to be serialized
-     * @return SelfDescription or empty string on exception
+     * @param asset  Asset containing environment to be serialized
+     * @return The self-description representing the current state of this AAS
+     * @throws JsonProcessingException failed to serialize self description
      */
-    public static String assetToString(Asset asset) {
-        try {
-            var environmentList = Map.of(
-                    "shells", asset.getProperty("shells"),
-                    "submodels", asset.getProperty("submodels"),
-                    "conceptDescriptions", asset.getProperty("conceptDescriptions"));
-            return OBJECT_WRITER.writeValueAsString(environmentList)
-                    .replace(AAS_V30_NAMESPACE, AAS_PREFIX.concat(":"))
-                    .replace(EDC_NAMESPACE, EDC_PREFIX.concat(":"));
-        } catch (JsonProcessingException e) {
-            return "";
-        }
+    public static String assetToString(Asset asset) throws JsonProcessingException {
+        var environmentList = Map.of(
+                "shells", asset.getProperty("shells"),
+                "submodels", asset.getProperty("submodels"),
+                "conceptDescriptions", asset.getProperty("conceptDescriptions"));
+
+        return OBJECT_WRITER.writeValueAsString(environmentList);
     }
 
     private static ObjectWriter createObjectWriter() {

@@ -21,6 +21,9 @@ import de.fraunhofer.iosb.app.model.ChangeSet;
 import de.fraunhofer.iosb.app.util.Pair;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultEnvironment;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
+import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
+import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
+import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -38,6 +41,7 @@ import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
 
 public class SynchronizerTest {
 
@@ -50,7 +54,7 @@ public class SynchronizerTest {
 
     @BeforeEach
     public void setUp() {
-        testSubject = new Synchronizer();
+        testSubject = new Synchronizer(mock(AssetIndex.class), mock(ContractDefinitionStore.class), mock(PolicyDefinitionStore.class));
     }
 
     @Test

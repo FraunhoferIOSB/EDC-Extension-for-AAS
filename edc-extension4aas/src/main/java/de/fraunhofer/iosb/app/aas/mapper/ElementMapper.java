@@ -64,7 +64,7 @@ public class ElementMapper {
                 .version(version)
                 .contentType("application/json")
                 .properties(Map.of(
-                        "id", identifiable.getId(),
+                        "aas:id", identifiable.getId(),
                         "embeddedDataSpecifications", admin.getEmbeddedDataSpecifications()));
     }
 

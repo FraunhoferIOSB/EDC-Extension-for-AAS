@@ -65,8 +65,7 @@ public class InetTools {
      * @return True if host is reachable under given port within timeout seconds.
      */
     public static boolean pingHost(String host, int port, int timeout) {
-        try (Socket socket = new Socket()) {
-            socket.connect(new InetSocketAddress(host, port), timeout);
+        try (Socket socket = new Socket(host, port)) {
             return true;
         } catch (IOException e) {
             return false; // Either timeout or unreachable or failed DNS lookup.

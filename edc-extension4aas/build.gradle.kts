@@ -22,9 +22,11 @@ dependencies {
     implementation(project(":aas-lib"))
 
     implementation("de.fraunhofer.iosb.ilt.faaast.service:starter:$faaastVersion")
-    implementation("${group}:http-lib:${edcVersion}")
-    implementation("${group}:data-plane-http-spi:${edcVersion}") // HTTPDataAddress
-    implementation("$group:asset-api:$edcVersion")
+    implementation("$group:http-lib:$edcVersion")
+    implementation("$group:data-plane-http-spi:$edcVersion") // HTTPDataAddress
+    implementation("$group:asset-spi:$edcVersion")
+    implementation("${group}:contract-spi:${edcVersion}")
+    implementation("${group}:json-ld-spi:${edcVersion}") // Policy action attributes
 
     testImplementation("$group:junit:$edcVersion")
     testImplementation("org.glassfish.jersey.core:jersey-common:$jerseyVersion")

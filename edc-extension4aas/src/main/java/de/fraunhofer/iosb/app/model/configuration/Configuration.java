@@ -43,13 +43,13 @@ public class Configuration {
     private String aasServiceConfigPath;
 
     @JsonProperty(SETTINGS_PREFIX + "syncPeriod")
-    private int syncPeriod = 50; // Seconds
+    private final int syncPeriod = 50; // Seconds
 
     @JsonProperty(SETTINGS_PREFIX + "onlySubmodels")
-    private boolean onlySubmodels = true;
+    private final boolean onlySubmodels = true;
 
     @JsonProperty(SETTINGS_PREFIX + "exposeSelfDescription")
-    private boolean exposeSelfDescription = true;
+    private final boolean exposeSelfDescription = true;
 
     @JsonProperty(SETTINGS_PREFIX + "defaultAccessPolicyPath")
     private String defaultAccessPolicyPath;

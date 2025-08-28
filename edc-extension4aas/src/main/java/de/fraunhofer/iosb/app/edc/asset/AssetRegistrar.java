@@ -15,17 +15,11 @@
  */
 package de.fraunhofer.iosb.app.edc.asset;
 
-import de.fraunhofer.iosb.app.model.ChangeSet;
 import de.fraunhofer.iosb.app.pipeline.PipelineFailure;
 import de.fraunhofer.iosb.app.pipeline.PipelineResult;
-import de.fraunhofer.iosb.app.pipeline.PipelineStep;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
-import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.StoreFailure;
-
-import java.util.List;
 
 /**
  * Adds and removes assets given a change set of assets and asset IDs.

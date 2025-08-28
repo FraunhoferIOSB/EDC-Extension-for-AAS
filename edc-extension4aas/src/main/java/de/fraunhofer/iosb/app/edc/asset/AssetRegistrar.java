@@ -23,6 +23,7 @@ import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.AbstractResult;
+import org.eclipse.edc.spi.result.StoreFailure;
 
 import java.util.List;
 
@@ -30,63 +31,31 @@ import java.util.List;
  * Adds and removes assets given a change set of assets and asset IDs.
  * Passes the asset IDs of both the added and removed on to the next pipeline step.
  */
-public class AssetRegistrar extends PipelineStep<ChangeSet<Asset, String>, ChangeSet<String, String>> {
+public class AssetRegistrar {
 
     private final AssetIndex assetIndex;
-    private final Monitor monitor;
 
     /**
      * Class constructor
      *
      * @param assetIndex Add / remove assets from the EDC asset index.
-     * @param monitor    Debug log message on how many assets were added/removed (only if >0)
      */
-    public AssetRegistrar(AssetIndex assetIndex, Monitor monitor) {
+    public AssetRegistrar(AssetIndex assetIndex) {
         this.assetIndex = assetIndex;
-        this.monitor = monitor;
     }
 
-    /**
-     * Adds/Removes assets given the change set.
-     *
-     * @param changeSet Assets to add/remove.
-     * @return Asset IDs of all the added/removed assets
-     */
-    @Override
-    public PipelineResult<ChangeSet<String, String>> apply(ChangeSet<Asset, String> changeSet) {
-        var added = changeSet.toAdd().stream().map(this::createAsset).toList();
-        var removed = changeSet.toRemove().stream().map(this::removeAsset).toList();
-
-        var changeSetIds = new ChangeSet.Builder<String, String>()
-                .add(added.stream()
-                        .filter(AbstractResult::succeeded)
-                        .map(AbstractResult::getContent)
-                        .toList())
-                .remove(removed.stream()
-                        .filter(AbstractResult::succeeded)
-                        .map(AbstractResult::getContent)
-                        .toList())
-                .build();
-
-        if (!changeSetIds.toAdd().isEmpty() || !changeSetIds.toRemove().isEmpty()) {
-            monitor.info("Added %s, removed %s assets".formatted(changeSetIds.toAdd().size(),
-                    changeSetIds.toRemove().size()));
-        }
-
-        if (added.stream().anyMatch(AbstractResult::failed) || removed.stream().anyMatch(AbstractResult::failed)) {
-            return PipelineResult.recoverableFailure(changeSetIds,
-                    PipelineFailure.warning(added.stream().filter(AbstractResult::failed).map(AbstractResult::getFailureMessages).flatMap(List::stream).toList()));
-        }
-
-        return PipelineResult.success(changeSetIds);
-    }
-
-    private PipelineResult<String> createAsset(Asset asset) {
+    public PipelineResult<String> createAsset(Asset asset) {
         var storeResult = assetIndex.create(asset);
+        if (storeResult.failed() && storeResult.getFailure().getReason().equals(StoreFailure.Reason.GENERAL_ERROR)) {
+            return PipelineResult.failure(PipelineFailure.warning(storeResult.getFailureMessages()));
+        }
+        if (storeResult.failed() && storeResult.getFailure().getReason().equals(StoreFailure.Reason.ALREADY_EXISTS)) {
+            return PipelineResult.failure(PipelineFailure.warning(storeResult.getFailureMessages())).withContent(asset.getId());
+        }
         return PipelineResult.from(storeResult).withContent(asset.getId());
     }
 
-    private PipelineResult<String> removeAsset(String assetId) {
+    public PipelineResult<String> removeAsset(String assetId) {
         var storeResult = assetIndex.deleteById(assetId);
         return PipelineResult.from(storeResult).withContent(assetId);
     }

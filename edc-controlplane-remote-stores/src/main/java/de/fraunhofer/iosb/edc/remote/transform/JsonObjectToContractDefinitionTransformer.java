@@ -15,8 +15,6 @@
 
 package de.fraunhofer.iosb.edc.remote.transform;
 
-import jakarta.json.JsonArray;
-import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;

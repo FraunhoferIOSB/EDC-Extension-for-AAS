@@ -30,9 +30,9 @@ import java.net.URL;
  */
 public class ControlPlaneConnection {
 
-    private String proto;
-    private String hostname;
-    private int port;
+    private final String proto;
+    private final String hostname;
+    private final int port;
     private String path;
     private final AuthenticationHeaderSupplier authSupplier;
 

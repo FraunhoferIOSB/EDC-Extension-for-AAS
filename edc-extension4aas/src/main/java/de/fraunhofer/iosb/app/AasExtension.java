@@ -26,8 +26,7 @@ import de.fraunhofer.iosb.app.controller.AasController;
 import de.fraunhofer.iosb.app.controller.ConfigurationController;
 import de.fraunhofer.iosb.app.controller.SelfDescriptionController;
 import de.fraunhofer.iosb.app.edc.CleanUpService;
-import de.fraunhofer.iosb.app.edc.asset.AssetRegistrar;
-import de.fraunhofer.iosb.app.edc.contract.ContractRegistrar;
+import de.fraunhofer.iosb.app.edc.ResourceRegistrar;
 import de.fraunhofer.iosb.app.model.aas.registry.RegistryRepository;
 import de.fraunhofer.iosb.app.model.aas.registry.RegistryRepositoryUpdater;
 import de.fraunhofer.iosb.app.model.aas.service.ServiceRepository;
@@ -59,6 +58,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.function.Function;
 
 import static de.fraunhofer.iosb.app.controller.SelfDescriptionController.SELF_DESCRIPTION_PATH;
@@ -73,6 +73,7 @@ import static de.fraunhofer.iosb.app.util.InetTools.isConnectionTrusted;
 public class AasExtension implements ServiceExtension {
 
     public static final String NAME = "EDC4AAS Extension";
+    public static final String ID = UUID.randomUUID().toString();
 
     private static final String SETTINGS_PREFIX = "edc.aas";
 
@@ -93,16 +94,30 @@ public class AasExtension implements ServiceExtension {
     private Monitor monitor;
     private VariableRateScheduler servicePipeline;
     private VariableRateScheduler registryPipeline;
+    ServiceRepository serviceRepository;
+    private RegistryRepository registryRepository;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-
         this.monitor = context.getMonitor().withPrefix(NAME);
         webService.registerResource(new ConfigurationController(context.getConfig(SETTINGS_PREFIX), monitor));
         aasController = new AasController(monitor);
-        var serviceRepository = new ServiceRepository();
-        var registryRepository = new RegistryRepository();
 
+        serviceRepository = new ServiceRepository();
+        registryRepository = new RegistryRepository();
+
+        // Add public endpoint if wanted by config
+        if (Configuration.getInstance().isExposeSelfDescription()) {
+            publicApiManagementService.addEndpoints(List.of(new de.fraunhofer.iosb.api.model.Endpoint(SELF_DESCRIPTION_PATH, HttpMethod.GET,
+                    Map.of())));
+        }
+
+        webService.registerResource(new SelfDescriptionController(monitor, serviceRepository, registryRepository));
+        webService.registerResource(new Endpoint(serviceRepository, registryRepository, aasController, monitor));
+    }
+
+    @Override
+    public void start() {
         // This is to allow for self-signed services
         serviceRepository.registerListener(aasController);
         registryRepository.registerListener(aasController);
@@ -114,9 +129,8 @@ public class AasExtension implements ServiceExtension {
                 .step(new InputOutputZipper<>(new ServiceAgent(edcHttpClient, monitor), Function.identity()))
                 .step(new EnvironmentToAssetMapper(() -> Configuration.getInstance().isOnlySubmodels()))
                 .step(new CollectionFeeder<>(new ServiceRepositoryUpdater(serviceRepository)))
-                .step(new Synchronizer())
-                .step(new AssetRegistrar(assetIndex, monitor.withPrefix("Service Pipeline")))
-                .step(new ContractRegistrar(contractDefinitionStore, policyDefinitionStore, monitor))
+                .step(new Synchronizer(assetIndex, contractDefinitionStore, policyDefinitionStore))
+                .step(new ResourceRegistrar(assetIndex, contractDefinitionStore, policyDefinitionStore, monitor.withPrefix("Service Pipeline")))
                 .build();
 
         servicePipeline = new VariableRateScheduler(1, serviceSynchronization, monitor);
@@ -138,9 +152,8 @@ public class AasExtension implements ServiceExtension {
                         .map(registry -> registry.getKey().with(registry.getValue()))
                         .toList()))
                 .step(new RegistryRepositoryUpdater(registryRepository))
-                .step(new Synchronizer())
-                .step(new AssetRegistrar(assetIndex, monitor.withPrefix("Registry Pipeline")))
-                .step(new ContractRegistrar(contractDefinitionStore, policyDefinitionStore, monitor))
+                .step(new Synchronizer(assetIndex, contractDefinitionStore, policyDefinitionStore))
+                .step(new ResourceRegistrar(assetIndex, contractDefinitionStore, policyDefinitionStore, monitor.withPrefix("Registry Pipeline")))
                 .build();
 
         registryPipeline = new VariableRateScheduler(1, registrySynchronization, monitor);
@@ -157,17 +170,9 @@ public class AasExtension implements ServiceExtension {
 
         serviceRepository.registerListener(cleanUpService);
         registryRepository.registerListener(cleanUpService);
-
-        // Add public endpoint if wanted by config
-        if (Configuration.getInstance().isExposeSelfDescription()) {
-            publicApiManagementService.addEndpoints(List.of(new de.fraunhofer.iosb.api.model.Endpoint(SELF_DESCRIPTION_PATH, HttpMethod.GET,
-                    Map.of())));
-        }
-
-        webService.registerResource(new SelfDescriptionController(monitor, serviceRepository, registryRepository));
-        webService.registerResource(new Endpoint(serviceRepository, registryRepository, aasController, monitor));
-
         registerAasServicesByConfig(serviceRepository);
+
+        monitor.info("AAS Extension started.");
     }
 
     private void registerAasServicesByConfig(ServiceRepository serviceRepository) {

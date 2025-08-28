@@ -17,8 +17,6 @@ package de.fraunhofer.iosb.app.edc;
 
 import de.fraunhofer.iosb.aas.lib.model.impl.Registry;
 import de.fraunhofer.iosb.aas.lib.model.impl.Service;
-import de.fraunhofer.iosb.app.edc.asset.AssetRegistrar;
-import de.fraunhofer.iosb.app.edc.contract.ContractRegistrar;
 import de.fraunhofer.iosb.app.model.ChangeSet;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionChangeListener;
 import de.fraunhofer.iosb.app.pipeline.Pipeline;
@@ -122,11 +120,8 @@ public class CleanUpService implements SelfDescriptionChangeListener {
                         monitor.debug("Started pipeline for %s assets.".formatted(input.toRemove().size()));
                         return input;
                     }))
-                    .step(new AssetRegistrar(Objects.requireNonNull(assetIndex), monitor))
-                    .step(new ContractRegistrar(
-                            Objects.requireNonNull(contractDefinitionStore),
-                            Objects.requireNonNull(policyDefinitionStore),
-                            monitor))
+                    .step(new ResourceRegistrar(assetIndex, contractDefinitionStore, policyDefinitionStore,
+                            monitor.withPrefix("Cleanup Service")))
                     .monitor(monitor)
                     .build();
 

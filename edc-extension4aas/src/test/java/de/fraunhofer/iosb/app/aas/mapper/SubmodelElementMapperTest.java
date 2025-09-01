@@ -29,6 +29,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 
+import static de.fraunhofer.iosb.aas.lib.type.AasConstants.AAS_V30_NAMESPACE;
 import static de.fraunhofer.iosb.app.testutils.AasCreator.getProperty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -78,9 +79,9 @@ class SubmodelElementMapperTest {
 
         var resultAsset = testSubject.map(mockParent, mockOperation, mockService());
 
-        assertEquals(mockInputVariables, resultAsset.getProperty("inputVariables"));
-        assertEquals(mockInoutputVariables, resultAsset.getProperty("inoutputVariables"));
-        assertEquals(mockOutputVariables, resultAsset.getProperty("outputVariables"));
+        assertEquals(mockInputVariables, resultAsset.getProperty(AAS_V30_NAMESPACE + "Operation/" + "inputVariables"));
+        assertEquals(mockInoutputVariables, resultAsset.getProperty(AAS_V30_NAMESPACE + "Operation/" + "inoutputVariables"));
+        assertEquals(mockOutputVariables, resultAsset.getProperty(AAS_V30_NAMESPACE + "Operation/" + "outputVariables"));
     }
 
     private Service mockService() {

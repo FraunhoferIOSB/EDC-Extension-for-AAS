@@ -61,7 +61,8 @@ public class FaaastServiceManagerTest {
     @Test
     public void startServiceFalsePathTest() throws IOException {
         try {
-            testSubject.startService(Path.of("fake-path"), 12345);
+            var freePort = getFreePort();
+            testSubject.startService(Path.of("fake-path"), freePort);
             fail("EdcException should have been thrown");
         } catch (EdcException expected) {
         }
@@ -71,8 +72,9 @@ public class FaaastServiceManagerTest {
     public void startServiceOverwritePortTest() throws IOException {
         Path testPath = Path.of("./src/test/resources/aasEnvironment.json");
         // Fa³st config path irrelevant, configHelper creates new config with port 8080
-        var response = testSubject.startService(testPath, testPath, 12345);
-        assertEquals(12345, response.getPort());
+        var freePort = getFreePort();
+        var response = testSubject.startService(testPath, testPath, freePort);
+        assertEquals(freePort, response.getPort());
     }
 
     @Test

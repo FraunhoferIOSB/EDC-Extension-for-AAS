@@ -26,11 +26,7 @@ import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 
 import java.util.Map;
 
-import static de.fraunhofer.iosb.aas.lib.type.AasConstants.AAS_PREFIX;
-import static de.fraunhofer.iosb.aas.lib.type.AasConstants.AAS_V30_NAMESPACE;
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.PROPERTY_ID;
-import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
-import static org.eclipse.edc.spi.constants.CoreConstants.EDC_PREFIX;
 
 public class SelfDescriptionSerializer {
 
@@ -45,7 +41,7 @@ public class SelfDescriptionSerializer {
     /**
      * Serialize Asset into (kind of) IDS SelfDescription form
      *
-     * @param asset  Asset containing environment to be serialized
+     * @param asset Asset containing environment to be serialized
      * @return The self-description representing the current state of this AAS
      * @throws JsonProcessingException failed to serialize self description
      */

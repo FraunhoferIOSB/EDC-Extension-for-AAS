@@ -116,7 +116,7 @@ public class AasExtension implements ServiceExtension {
         var serviceSynchronization = new Pipeline.Builder<Void, Void>()
                 .monitor(monitor.withPrefix("Service Pipeline"))
                 .supplier(serviceRepository::getAll)
-                .step(new Filter<>(InetTools::pingHost))
+                .step(new Filter<>(InetTools::pingHost, "Connection Test"))
                 .step(new InputOutputZipper<>(new ServiceAgent(edcHttpClient, monitor), Function.identity()))
                 .step(new EnvironmentToAssetMapper(() -> Configuration.getInstance().isOnlySubmodels()))
                 .step(new CollectionFeeder<>(new ServiceRepositoryUpdater(serviceRepository)))
@@ -132,7 +132,7 @@ public class AasExtension implements ServiceExtension {
         var registrySynchronization = new Pipeline.Builder<Void, Void>()
                 .monitor(monitor.withPrefix("Registry Pipeline"))
                 .supplier(registryRepository::getAll)
-                .step(new Filter<>(InetTools::pingHost))
+                .step(new Filter<>(InetTools::pingHost, "Connection Test"))
                 .step(new InputOutputZipper<>(new RegistryAgent(edcHttpClient, monitor),
                         Function.identity()))
                 .step(new MapValueProcessor<>(

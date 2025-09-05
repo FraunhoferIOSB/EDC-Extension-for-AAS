@@ -15,9 +15,11 @@
  */
 package de.fraunhofer.iosb.app.pipeline.helper;
 
+import de.fraunhofer.iosb.app.pipeline.PipelineFailure;
 import de.fraunhofer.iosb.app.pipeline.PipelineResult;
 import de.fraunhofer.iosb.app.pipeline.PipelineStep;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.function.Predicate;
 
@@ -30,12 +32,31 @@ public class Filter<T> extends PipelineStep<Collection<T>, Collection<T>> {
 
     private final Predicate<T> filterFunction;
 
+    private String name;
+
     public Filter(Predicate<T> filterFunction) {
         this.filterFunction = filterFunction;
     }
 
+    public Filter(Predicate<T> filterFunction, String name) {
+        this.filterFunction = filterFunction;
+        this.name = name;
+    }
+
+    @Override
+    public String getName() {
+        return name != null ? name : super.getName();
+    }
+
     @Override
     public PipelineResult<Collection<T>> apply(Collection<T> ts) {
-        return PipelineResult.success(ts.stream().filter(filterFunction).toList());
+        var filtered = ts.stream().filter(filterFunction).toList();
+        if (filtered.size() != ts.size()) {
+            var messages = new ArrayList<String>();
+            messages.add(String.format("Filtered %s elements", ts.size() - filtered.size()));
+            
+            return PipelineResult.recoverableFailure(filtered, PipelineFailure.info(messages));
+        }
+        return PipelineResult.success(filtered);
     }
 }

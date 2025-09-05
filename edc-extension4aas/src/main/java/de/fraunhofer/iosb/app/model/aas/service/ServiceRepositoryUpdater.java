@@ -15,11 +15,15 @@
  */
 package de.fraunhofer.iosb.app.model.aas.service;
 
+import java.util.List;
+
+import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
+
 import de.fraunhofer.iosb.aas.lib.model.impl.Service;
+import de.fraunhofer.iosb.app.pipeline.PipelineFailure;
 import de.fraunhofer.iosb.app.pipeline.PipelineResult;
 import de.fraunhofer.iosb.app.pipeline.PipelineStep;
 import de.fraunhofer.iosb.app.util.Pair;
-import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 
 /**
  * TODO correct package?
@@ -33,7 +37,8 @@ public class ServiceRepositoryUpdater extends PipelineStep<Service, Pair<Asset, 
     }
 
     /**
-     * For each service incoming: First, check if the service is offered by a registry.
+     * For each service incoming: First, check if the service is offered by a
+     * registry.
      * If it is, then the updated environment asset is stored within the registry.
      * Else, store as standalone service.
      *
@@ -42,15 +47,21 @@ public class ServiceRepositoryUpdater extends PipelineStep<Service, Pair<Asset, 
      */
     @Override
     public PipelineResult<Pair<Asset, Asset>> apply(Service service) {
-        var old = services.getEnvironment(service.getAccessUrl());
+        Asset currentEnvironment;
+        try {
+            currentEnvironment = services.getEnvironment(service.getAccessUrl());
+        } catch (IllegalArgumentException noServiceException) {
+            return PipelineResult.failure(
+                    PipelineFailure.warning(List.of("Service not found", service.getAccessUrl().toString())));
+        }
 
-        if (old != null) {
+        if (currentEnvironment != null) {
             // Create deep copy of old asset
-            old = old.toBuilder().build();
+            currentEnvironment = currentEnvironment.toBuilder().build();
         }
         services.update(service);
 
-        return PipelineResult.success(new Pair<>(old, service.environment()));
+        return PipelineResult.success(new Pair<>(currentEnvironment, service.environment()));
     }
 
 }

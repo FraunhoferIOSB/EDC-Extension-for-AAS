@@ -13,6 +13,7 @@ Compatibility: **Eclipse Dataspace Connector v0.13.0, v0.13.2, v0.14.0**
         * Better integration into existing EDC deployments
         * Use existing Http DataPlane
         * If there is no need for proxy functionality like ProxyMethod or ProxyBody to trigger AAS operations
+* Add namespaces to registered AAS elements' properties using admin-shell.io namespacing
 
 **Bugfixes**
 

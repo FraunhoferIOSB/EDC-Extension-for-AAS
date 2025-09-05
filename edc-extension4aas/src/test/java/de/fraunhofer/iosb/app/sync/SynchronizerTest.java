@@ -29,6 +29,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import static de.fraunhofer.iosb.aas.lib.type.AasConstants.AAS_V30_NAMESPACE;
 import static de.fraunhofer.iosb.app.testutils.AasCreator.getEmptyEnvironment;
 import static de.fraunhofer.iosb.app.testutils.AasCreator.getEmptySubmodel;
 import static de.fraunhofer.iosb.app.testutils.AasCreator.getEnvironment;
@@ -121,7 +122,7 @@ public class SynchronizerTest {
         assertNotNull(result.getContent());
 
         var emptySubmodelId = getChildren(oldEnvironmentAsset.getContent().environment(), "submodels").stream()
-                .filter(asset -> asset.getProperty("idShort").equals(emptySubmodel.getIdShort()))
+                .filter(asset -> asset.getProperty(AAS_V30_NAMESPACE + "Referable/" + "idShort").equals(emptySubmodel.getIdShort()))
                 .findFirst().orElseThrow()
                 .getId();
 

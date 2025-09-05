@@ -38,12 +38,12 @@ import java.util.Optional;
 import static de.fraunhofer.iosb.aas.lib.model.impl.Service.CONCEPT_DESCRIPTIONS_PATH;
 import static de.fraunhofer.iosb.aas.lib.model.impl.Service.SHELLS_PATH;
 import static de.fraunhofer.iosb.aas.lib.model.impl.Service.SUBMODELS_PATH;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toMap;
 
-
 /**
- * Inspired by  org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress
+ * Inspired by org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress
  * Enables more specific communication with AAS services
  */
 @JsonTypeName
@@ -82,11 +82,13 @@ public class AasDataAddress extends DataAddress {
     }
 
     private boolean hasProvider() {
-        return getProperties().get(PROVIDER) != null;
+        return properties.get(EDC_NAMESPACE + PROVIDER) != null || properties.get(PROVIDER) != null;
     }
 
     private AasProvider getProvider() {
-        Object provider = super.getProperties().get(PROVIDER);
+        Object provider = Optional
+        .ofNullable(super.getProperties().get(EDC_NAMESPACE + PROVIDER))
+                .orElse(super.getProperties().get(PROVIDER));
         if (provider instanceof AasProvider) {
             return (AasProvider) provider;
         }
@@ -104,18 +106,23 @@ public class AasDataAddress extends DataAddress {
         Map<String, String> headers = hasProvider() ? getProvider().getHeaders() : new HashMap<>();
         headers.putAll(getProperties().entrySet().stream()
                 .filter(entry -> entry.getKey().startsWith(ADDITIONAL_HEADER))
-                .collect(toMap(headerName -> headerName.getKey().replace(ADDITIONAL_HEADER, ""), headerValue -> (String) headerValue.getValue())));
+                .collect(toMap(headerName -> headerName.getKey().replace(ADDITIONAL_HEADER, ""),
+                        headerValue -> (String) headerValue.getValue())));
         return headers;
     }
 
     /**
-     * If an explicit path is available, return this path. Else, return the following:
+     * If an explicit path is available, return this path. Else, return the
+     * following:
      * <p>
-     * build and returns the HTTP URL path required to access this AAS data at the AAS service.
-     * Example: ReferenceChain: [Submodel x, SubmodelElementCollection y, SubmodelElement z]
+     * build and returns the HTTP URL path required to access this AAS data at the
+     * AAS service.
+     * Example: ReferenceChain: [Submodel x, SubmodelElementCollection y,
+     * SubmodelElement z]
      * --> path: submodels/base64(x)/submodel-elements/y.z
      *
-     * @return Explicitly defined path or path correlating to reference chain stored in this DataAddress (no leading '/').
+     * @return Explicitly defined path or path correlating to reference chain stored
+     *         in this DataAddress (no leading '/').
      */
     public String getPath() {
         return getStringProperty(PATH, referenceChainAsPath());
@@ -127,13 +134,14 @@ public class AasDataAddress extends DataAddress {
         for (var key : getReferenceChain().getKeys()) {
             var value = key.getValue();
             String[] toAppend = switch (key.getType()) {
-                case ASSET_ADMINISTRATION_SHELL -> new String[]{ SHELLS_PATH, b64(value) };
-                case SUBMODEL -> new String[]{ SUBMODELS_PATH, b64(value) };
-                case CONCEPT_DESCRIPTION -> new String[]{ CONCEPT_DESCRIPTIONS_PATH, b64(value) };
+                case ASSET_ADMINISTRATION_SHELL -> new String[] { SHELLS_PATH, b64(value) };
+                case SUBMODEL -> new String[] { SUBMODELS_PATH, b64(value) };
+                case CONCEPT_DESCRIPTION -> new String[] { CONCEPT_DESCRIPTIONS_PATH, b64(value) };
                 case SUBMODEL_ELEMENT, SUBMODEL_ELEMENT_COLLECTION, SUBMODEL_ELEMENT_LIST ->
-                        new String[]{ urlBuilder.indexOf("/submodel-elements/") == -1 ?
-                                "/submodel-elements/".concat(value) : ".".concat(value) };
-                default -> throw new EdcException(new IllegalStateException("Element type not recognized: %s".formatted(key)));
+                    new String[] { urlBuilder.indexOf("/submodel-elements/") == -1 ? "/submodel-elements/".concat(value)
+                            : ".".concat(value) };
+                default ->
+                    throw new EdcException(new IllegalStateException("Element type not recognized: %s".formatted(key)));
             };
 
             urlBuilder.append(String.join("/", toAppend));
@@ -191,9 +199,9 @@ public class AasDataAddress extends DataAddress {
         }
 
         /*
-            Why not use Operation.class or InputVariable.class/InOutputVariable.class?
-            - Values of any type other than String get removed when sending the DA from
-              consumer to provider (during "compaction" phase when serializing the DA)
+         * Why not use Operation.class or InputVariable.class/InOutputVariable.class?
+         * - Values of any type other than String get removed when sending the DA from
+         * consumer to provider (during "compaction" phase when serializing the DA)
          */
         public Builder operation(String operation) {
             this.property(OPERATION, operation);

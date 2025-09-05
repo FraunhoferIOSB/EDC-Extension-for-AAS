@@ -90,7 +90,7 @@ public class ClientEndpoint {
         if (counterPartyUrl == null || counterPartyId == null || assetId == null ||
                 assetId.isEmpty()) {
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(MISSING_QUERY_PARAMETER_MESSAGE.formatted("providerUrl, counterPartyId, assetId")).build();
+                    .entity(MISSING_QUERY_PARAMETER_MESSAGE.formatted("providerUrl, providerId, assetId")).build();
         }
 
         Result<ContractOffer> contractOfferResult =

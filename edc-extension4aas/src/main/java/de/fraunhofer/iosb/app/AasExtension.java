@@ -46,6 +46,7 @@ import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.http.spi.EdcHttpClient;
+import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -61,6 +62,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 
+import static de.fraunhofer.iosb.aas.lib.type.AasConstants.AAS_PREFIX;
+import static de.fraunhofer.iosb.aas.lib.type.AasConstants.AAS_V30_NAMESPACE;
 import static de.fraunhofer.iosb.app.controller.SelfDescriptionController.SELF_DESCRIPTION_PATH;
 import static de.fraunhofer.iosb.app.pipeline.PipelineFailure.Type.FATAL;
 import static de.fraunhofer.iosb.app.util.InetTools.getSelfSignedCertificate;
@@ -88,6 +91,8 @@ public class AasExtension implements ServiceExtension {
     private PolicyDefinitionStore policyDefinitionStore;
     @Inject // Register http endpoint at EDC
     private WebService webService;
+    @Inject // Add AAS namespace to JSON LD context
+    private JsonLd jsonLd;
 
     private AasController aasController;
     private Monitor monitor;
@@ -96,6 +101,7 @@ public class AasExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
+        jsonLd.registerNamespace(AAS_PREFIX, AAS_V30_NAMESPACE);
 
         this.monitor = context.getMonitor().withPrefix(NAME);
         webService.registerResource(new ConfigurationController(context.getConfig(SETTINGS_PREFIX), monitor));
@@ -110,7 +116,7 @@ public class AasExtension implements ServiceExtension {
         var serviceSynchronization = new Pipeline.Builder<Void, Void>()
                 .monitor(monitor.withPrefix("Service Pipeline"))
                 .supplier(serviceRepository::getAll)
-                .step(new Filter<>(InetTools::pingHost))
+                .step(new Filter<>(InetTools::pingHost, "Connection Test"))
                 .step(new InputOutputZipper<>(new ServiceAgent(edcHttpClient, monitor), Function.identity()))
                 .step(new EnvironmentToAssetMapper(() -> Configuration.getInstance().isOnlySubmodels()))
                 .step(new CollectionFeeder<>(new ServiceRepositoryUpdater(serviceRepository)))
@@ -126,7 +132,7 @@ public class AasExtension implements ServiceExtension {
         var registrySynchronization = new Pipeline.Builder<Void, Void>()
                 .monitor(monitor.withPrefix("Registry Pipeline"))
                 .supplier(registryRepository::getAll)
-                .step(new Filter<>(InetTools::pingHost))
+                .step(new Filter<>(InetTools::pingHost, "Connection Test"))
                 .step(new InputOutputZipper<>(new RegistryAgent(edcHttpClient, monitor),
                         Function.identity()))
                 .step(new MapValueProcessor<>(

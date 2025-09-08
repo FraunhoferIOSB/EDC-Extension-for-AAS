@@ -4,6 +4,7 @@ plugins {
 
 val edcVersion: String by project
 val javaVersion: String by project
+val edcClientVersion: String by project
 
 java {
     toolchain {
@@ -12,7 +13,6 @@ java {
 }
 
 dependencies {
-    //implementation("$group:boot-spi:$edcVersion")
     implementation("$group:asset-spi:$edcVersion")
     implementation("$group:http-spi:$edcVersion")
     implementation("$group:policy-spi:$edcVersion")

@@ -30,8 +30,6 @@ import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -42,13 +40,8 @@ import java.util.stream.Stream;
  */
 public class RemoteAssetIndex extends ControlPlaneConnectionHandler implements AssetIndex {
 
-    private RemoteAssetIndex(EdcHttpClient httpClient, Monitor monitor, String protocol, String hostname, int managementPort, String managementPath,
-                             ControlPlaneConnection versionConnection, Codec codec, String resourceName) throws IOException {
-        super(httpClient, monitor, protocol, hostname, managementPort, managementPath, versionConnection, codec, resourceName);
-    }
-
-    private RemoteAssetIndex(EdcHttpClient httpClient, Monitor monitor, String fullManagementUrl, Codec codec, String resourceName) throws MalformedURLException {
-        super(httpClient, monitor, fullManagementUrl, codec, resourceName);
+    private RemoteAssetIndex(Monitor monitor, EdcHttpClient httpClient, Codec codec, ControlPlaneConnection connection) {
+        super(monitor, httpClient, codec, connection);
     }
 
     @Override
@@ -174,7 +167,7 @@ public class RemoteAssetIndex extends ControlPlaneConnectionHandler implements A
 
     public static class Builder extends ControlPlaneConnectionHandler.Builder<RemoteAssetIndex, Builder> {
 
-        public static final String ASSETS = "assets";
+        protected String resourceName = "assets";
 
         @Override
         protected Builder self() {
@@ -182,14 +175,8 @@ public class RemoteAssetIndex extends ControlPlaneConnectionHandler implements A
         }
 
         @Override
-        protected RemoteAssetIndex create(EdcHttpClient httpClient, Monitor monitor, String protocol, String hostname, int managementPort,
-                                          String managementPath, ControlPlaneConnection versionConnection, Codec codec) throws IOException {
-            return new RemoteAssetIndex(httpClient, monitor, protocol, hostname, managementPort, managementPath, versionConnection, codec, ASSETS);
-        }
-
-        @Override
-        protected RemoteAssetIndex create(EdcHttpClient httpClient, Monitor monitor, String fullManagementUrl, Codec codec) throws MalformedURLException {
-            return new RemoteAssetIndex(httpClient, monitor, fullManagementUrl, codec, ASSETS);
+        protected RemoteAssetIndex create(Monitor monitor, EdcHttpClient httpClient, Codec codec, ControlPlaneConnection connection) {
+            return new RemoteAssetIndex(monitor, httpClient, codec, connection);
         }
     }
 }

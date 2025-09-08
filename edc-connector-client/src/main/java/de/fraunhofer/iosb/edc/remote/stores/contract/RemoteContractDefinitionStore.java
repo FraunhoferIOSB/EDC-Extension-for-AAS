@@ -29,20 +29,14 @@ import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
 import java.util.Objects;
 import java.util.stream.Stream;
 
 public class RemoteContractDefinitionStore extends ControlPlaneConnectionHandler implements ContractDefinitionStore {
 
-    public RemoteContractDefinitionStore(EdcHttpClient httpClient, Monitor monitor, String protocol, String hostname, int managementPort,
-                                         String managementPath, ControlPlaneConnection versionConnection, Codec codec, String resourceName) throws IOException {
-        super(httpClient, monitor, protocol, hostname, managementPort, managementPath, versionConnection, codec, resourceName);
-    }
 
-    public RemoteContractDefinitionStore(EdcHttpClient httpClient, Monitor monitor, String fullManagementUrl, Codec codec, String resourceName) throws MalformedURLException {
-        super(httpClient, monitor, fullManagementUrl, codec, resourceName);
+    public RemoteContractDefinitionStore(Monitor monitor, EdcHttpClient httpClient, Codec codec, ControlPlaneConnection connection) {
+        super(monitor, httpClient, codec, connection);
     }
 
     @Override
@@ -144,7 +138,7 @@ public class RemoteContractDefinitionStore extends ControlPlaneConnectionHandler
 
     public static class Builder extends ControlPlaneConnectionHandler.Builder<RemoteContractDefinitionStore, RemoteContractDefinitionStore.Builder> {
 
-        public static final String CONTRACTDEFINITIONS = "contractdefinitions";
+        protected final String resourceName = "contractdefinitions";
 
         @Override
         protected RemoteContractDefinitionStore.Builder self() {
@@ -152,16 +146,8 @@ public class RemoteContractDefinitionStore extends ControlPlaneConnectionHandler
         }
 
         @Override
-        protected RemoteContractDefinitionStore create(EdcHttpClient httpClient, Monitor monitor, String protocol, String hostname,
-                                                       int managementPort,
-                                                       String managementPath, ControlPlaneConnection versionConnection, Codec codec) throws IOException {
-            return new RemoteContractDefinitionStore(httpClient, monitor, protocol, hostname, managementPort, managementPath, versionConnection,
-                    codec, CONTRACTDEFINITIONS);
-        }
-
-        @Override
-        protected RemoteContractDefinitionStore create(EdcHttpClient httpClient, Monitor monitor, String fullManagementUrl, Codec codec) throws MalformedURLException {
-            return new RemoteContractDefinitionStore(httpClient, monitor, fullManagementUrl, codec, CONTRACTDEFINITIONS);
+        protected RemoteContractDefinitionStore create(Monitor monitor, EdcHttpClient httpClient, Codec codec, ControlPlaneConnection connection) {
+            return new RemoteContractDefinitionStore(monitor, httpClient, codec, connection);
         }
     }
 }

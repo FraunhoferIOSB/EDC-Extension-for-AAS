@@ -28,20 +28,13 @@ import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.result.StoreResult;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
 import java.util.Objects;
 import java.util.stream.Stream;
 
 public class RemotePolicyDefinitionStore extends ControlPlaneConnectionHandler implements PolicyDefinitionStore {
 
-    private RemotePolicyDefinitionStore(EdcHttpClient httpClient, Monitor monitor, String protocol, String hostname, int managementPort,
-                                        String managementPath, ControlPlaneConnection versionConnection, Codec codec, String resourceName) throws IOException {
-        super(httpClient, monitor, protocol, hostname, managementPort, managementPath, versionConnection, codec, resourceName);
-    }
-
-    private RemotePolicyDefinitionStore(EdcHttpClient httpClient, Monitor monitor, String fullManagementUrl, Codec codec, String resourceName) throws MalformedURLException {
-        super(httpClient, monitor, fullManagementUrl, codec, resourceName);
+    private RemotePolicyDefinitionStore(Monitor monitor, EdcHttpClient httpClient, Codec codec, ControlPlaneConnection connection) {
+        super(monitor, httpClient, codec, connection);
     }
 
 
@@ -146,7 +139,7 @@ public class RemotePolicyDefinitionStore extends ControlPlaneConnectionHandler i
 
     public static class Builder extends ControlPlaneConnectionHandler.Builder<RemotePolicyDefinitionStore, Builder> {
 
-        public static final String POLICYDEFINITIONS = "policydefinitions";
+        protected final String resourceName = "policydefinitions";
 
         @Override
         protected Builder self() {
@@ -154,15 +147,8 @@ public class RemotePolicyDefinitionStore extends ControlPlaneConnectionHandler i
         }
 
         @Override
-        protected RemotePolicyDefinitionStore create(EdcHttpClient httpClient, Monitor monitor, String protocol, String hostname, int managementPort,
-                                                     String managementPath, ControlPlaneConnection versionConnection, Codec codec) throws IOException {
-            return new RemotePolicyDefinitionStore(httpClient, monitor, protocol, hostname, managementPort, managementPath, versionConnection,
-                    codec, POLICYDEFINITIONS);
-        }
-
-        @Override
-        protected RemotePolicyDefinitionStore create(EdcHttpClient httpClient, Monitor monitor, String fullManagementUrl, Codec codec) throws MalformedURLException {
-            return new RemotePolicyDefinitionStore(httpClient, monitor, fullManagementUrl, codec, POLICYDEFINITIONS);
+        protected RemotePolicyDefinitionStore create(Monitor monitor, EdcHttpClient httpClient, Codec codec, ControlPlaneConnection connection) {
+            return new RemotePolicyDefinitionStore(monitor, httpClient, codec, connection);
         }
     }
 }

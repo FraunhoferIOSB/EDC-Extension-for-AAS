@@ -1,0 +1,92 @@
+/*
+ * Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
+ * Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
+ * Forschung e.V.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package de.fraunhofer.iosb.edc.remote;
+
+import okhttp3.HttpUrl;
+import okhttp3.MediaType;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+
+import java.net.URI;
+import java.util.Objects;
+import java.util.function.UnaryOperator;
+
+/**
+ * Connection data object providing the URL from which the EDC control plane is available
+ */
+public class ControlPlaneConnection {
+
+    private final HttpUrl connectionUri;
+    private final String resourceName;
+
+    private final UnaryOperator<Request.Builder> authSupplier;
+
+    public ControlPlaneConnection(URI connectionUri, String resourceName) {
+        this.connectionUri = Objects.requireNonNull(HttpUrl.get(connectionUri));
+        this.resourceName = resourceName;
+        this.authSupplier = UnaryOperator.identity();
+    }
+
+
+    public ControlPlaneConnection(URI connectionUri, String resourceName, String apiKey) {
+        this.connectionUri = Objects.requireNonNull(HttpUrl.get(connectionUri));
+        this.resourceName = resourceName;
+        this.authSupplier = request -> request.header("x-api-key", apiKey);
+    }
+
+    /**
+     * Builds a request with control-plane url and auth.
+     *
+     * @param method HTTP method for this request
+     * @param body   Request body to be sent
+     * @return OkHttp3 request ready to be sent
+     */
+    public Request prepareRequest(HttpMethod method, String body) {
+        return prepareRequest(method, resourceName, body);
+    }
+
+    /**
+     * Builds a request with control-plane url and auth.
+     *
+     * @param method         HTTP method for this request
+     * @param additionalPath Additional path to specify request, e.g., /request
+     * @param body           Request body to be sent
+     * @return OkHttp3 request ready to be sent
+     */
+    public Request prepareRequest(HttpMethod method, String additionalPath, String body) {
+        var requestBuilder = new Request.Builder();
+
+        requestBuilder.url(connectionUri.newBuilder()
+                .addPathSegments(resourceName)
+                .addPathSegments(additionalPath)
+                .build());
+
+        // auth
+        authSupplier.apply(requestBuilder);
+
+        requestBuilder.header("accept", "application/json");
+
+        // body
+        RequestBody requestBody = null;
+        if (body != null) {
+            requestBuilder.header("Content-Type", "application/json");
+            requestBody = RequestBody.create(body, MediaType.parse(("application/json")));
+        }
+        requestBuilder.method(method.name(), requestBody);
+
+        return requestBuilder.build();
+    }
+}

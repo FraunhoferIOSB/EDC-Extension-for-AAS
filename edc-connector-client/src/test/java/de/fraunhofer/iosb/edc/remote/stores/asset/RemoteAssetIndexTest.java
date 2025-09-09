@@ -1,0 +1,142 @@
+package de.fraunhofer.iosb.edc.remote.stores.asset;
+
+import de.fraunhofer.iosb.edc.remote.stores.AbstractControlPlaneConnectionHandlerTest;
+import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
+import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.ServiceFailure;
+import org.junit.jupiter.api.Test;
+
+import java.util.List;
+import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+class RemoteAssetIndexTest extends AbstractControlPlaneConnectionHandlerTest {
+
+    @Test
+    void remoteAssetIndex_queryAssetsFoundAndReturned() {
+        var querySpec = QuerySpec.none();
+        var testSubject = testSubject();
+
+        when(mockCodec.serializeQuerySpec(querySpec)).thenReturn("test-body");
+
+        mockResponseForPost("/assets/request");
+
+        List<Asset> assets = List.of(getAsset(), getAsset());
+        when(mockCodec.deserializeAssets("test-return-body")).thenReturn(assets);
+
+        var response = testSubject.queryAssets(querySpec);
+
+        assertEquals(assets, response.toList());
+    }
+
+    @Test
+    void remoteAssetIndex_queryAssetsEmptyResponse() {
+        var querySpec = QuerySpec.none();
+        var testSubject = testSubject();
+
+        when(mockCodec.serializeQuerySpec(querySpec)).thenReturn("test-body");
+
+        mockResponseForPost("/assets/request");
+
+        List<Asset> assets = List.of();
+        when(mockCodec.deserializeAssets("test-return-body")).thenReturn(assets);
+
+        var response = testSubject.queryAssets(querySpec);
+
+        assertEquals(assets, response.toList());
+    }
+
+    @Test
+    void findAssetById_assetFoundAndReturned() {
+        var id = UUID.randomUUID().toString();
+        var testSubject = testSubject();
+
+        var asset = getAsset();
+        when(mockCodec.deserializeAsset("test-return-body")).thenReturn(asset);
+
+        mockResponseForGet(String.format("/assets/%s", id));
+
+        var response = testSubject.findById(id);
+
+        assertEquals(asset, response);
+    }
+
+    @Test
+    void findAssetById_assetNotFound() {
+        var id = UUID.randomUUID().toString();
+        var testSubject = testSubject();
+
+        // Returns 404 for the id request
+        //mockResponseForGet(String.format("/assets/%s", id));
+
+        var response = testSubject.findById(id);
+
+        verify(monitor).debug(contains(ServiceFailure.Reason.NOT_FOUND.toString()));
+
+        assertNull(response);
+    }
+
+    @Test
+    void connectionHandler_authorizes() {
+        authorizedServer();
+
+        var testSubject = testSubject();
+
+        when(mockCodec.serializeQuerySpec(any())).thenReturn("{" +
+                "  \"@context\": {" +
+                "    \"@vocab\": \"https://w3id.org/edc/v0.0.1/ns/\"" +
+                "  }," +
+                "  \"@type\": \"QuerySpec\"" +
+                "}");
+
+        var response = testSubject.queryAssets(QuerySpec.max());
+        assertNotNull(response);
+    }
+
+    @Test
+    void connectionHandler_wrongPasswordNoFailure_andLogs() {
+        authorizedServer();
+
+        var testSubject = new RemoteAssetIndex.Builder()
+                .apiKey(apiKey.concat("prefixMakingApiKeyFalse"))
+                .managementUri(String.format("http://localhost:%s", server.getPort()))
+                .codec(mockCodec)
+                .httpClient(httpClient)
+                .monitor(monitor)
+                .build();
+
+        when(mockCodec.serializeQuerySpec(any())).thenReturn(
+                "{" +
+                        "  \"@context\": {" +
+                        "    \"@vocab\": \"https://w3id.org/edc/v0.0.1/ns/\"" +
+                        "  }," +
+                        "  \"@type\": \"QuerySpec\"" +
+                        "}");
+
+        var response = testSubject.queryAssets(QuerySpec.max());
+
+        verify(monitor).warning(contains(ServiceFailure.Reason.UNAUTHORIZED.toString()));
+        assertNotNull(response);
+    }
+
+    private RemoteAssetIndex testSubject() {
+        return new RemoteAssetIndex.Builder()
+                .apiKey(apiKey)
+                .managementUri(String.format("http://localhost:%s", server.getPort()))
+                .codec(mockCodec)
+                .httpClient(httpClient)
+                .monitor(monitor)
+                .build();
+    }
+
+    private Asset getAsset() {
+        return Asset.Builder.newInstance().property("aas:id", UUID.randomUUID().toString()).build();
+    }
+}

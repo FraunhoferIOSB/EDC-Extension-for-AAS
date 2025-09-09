@@ -5,6 +5,10 @@ plugins {
 val edcVersion: String by project
 val javaVersion: String by project
 val edcClientVersion: String by project
+val junitPlatformLauncherVersion: String by project
+val mockitoVersion: String by project
+val jerseyVersion: String by project
+val jupiterVersion: String by project
 
 java {
     toolchain {
@@ -24,9 +28,12 @@ dependencies {
     implementation("${group}:runtime-core:${edcVersion}")
     implementation("${group}:connector-core:${edcVersion}")
 
-    testImplementation(platform("org.junit:junit-bom:5.10.0"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation("${group}:http-lib:${edcVersion}") // EdcHttpClientImpl
+    testImplementation("org.mockito:mockito-core:${mockitoVersion}")
+
+    testImplementation("com.github.tomakehurst:wiremock:3.0.1")
+    testImplementation("org.junit.jupiter:junit-jupiter:${jupiterVersion}")
+    testImplementation("org.junit.platform:junit-platform-launcher")
 }
 
 repositories {

@@ -24,7 +24,7 @@ dependencies {
 
     implementation(project(":edc-extension4aas"))
     // This is needed to communicate w/ the control-plane
-    implementation(project(":edc-controlplane-remote-stores"))
+    implementation(project(":edc-connector-client"))
 }
 
 application {

@@ -48,7 +48,6 @@ import org.eclipse.edc.transform.transformer.edc.from.JsonObjectFromQuerySpecTra
 import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToCriterionTransformer;
 import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToDataAddressTransformer;
 
-import java.net.URI;
 import java.util.Map;
 
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;

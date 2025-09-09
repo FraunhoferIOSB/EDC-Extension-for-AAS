@@ -31,13 +31,20 @@ import static org.mockito.Mockito.spy;
 
 public abstract class AbstractControlPlaneConnectionHandlerTest {
 
-    @Spy
-    protected Monitor monitor = spy(new ConsoleMonitor());
-
-    protected Codec mockCodec = mock(Codec.class);
+    @RegisterExtension
+    protected static WireMockExtension server = WireMockExtension.newInstance()
+            .options(wireMockConfig().dynamicPort())
+            .build();
     protected final EdcHttpClient httpClient = new EdcHttpClientImpl(new OkHttpClient(), RetryPolicy.ofDefaults(), new ConsoleMonitor());
     protected final String apiKey = UUID.randomUUID().toString();
+    @Spy
+    protected Monitor monitor = spy(new ConsoleMonitor());
+    protected Codec mockCodec = mock(Codec.class);
 
+    @AfterAll
+    static void tearDownAll() {
+        server.shutdownServer();
+    }
 
     @AfterEach
     void tearDown() {
@@ -45,16 +52,6 @@ public abstract class AbstractControlPlaneConnectionHandlerTest {
         mockCodec = mock(Codec.class);
         server.resetAll();
     }
-
-    @AfterAll
-    static void tearDownAll() {
-        server.shutdownServer();
-    }
-
-    @RegisterExtension
-    protected static WireMockExtension server = WireMockExtension.newInstance()
-            .options(wireMockConfig().dynamicPort())
-            .build();
 
     protected void mockResponseForGet(String path) {
         server.stubFor(WireMock.get(urlPathEqualTo(path))
@@ -78,7 +75,4 @@ public abstract class AbstractControlPlaneConnectionHandlerTest {
         server.stubFor(post(anyUrl()).withHeader("x-api-key", not(matching(apiKey))).willReturn(aResponse().withStatus(403)));
     }
 
-    protected void unauthorizedServer() {
-        server.stubFor(post(anyUrl()).willReturn(aResponse().withStatus(200)));
-    }
 }

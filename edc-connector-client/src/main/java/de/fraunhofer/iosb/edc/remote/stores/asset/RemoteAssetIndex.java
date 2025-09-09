@@ -52,8 +52,8 @@ public class RemoteAssetIndex extends ControlPlaneConnectionHandler implements A
 
         var response = executeRequest(request);
 
-        if (!response.succeeded()) {
-            monitor.warning(String.format("Failed querying assets: %s", response.getFailureDetail()));
+        if (response.failed()) {
+            monitor.warning(String.format("Failed querying assets. %s: %s", response.getFailure().getReason(), response.getFailureDetail()));
             return Stream.empty();
         }
 
@@ -70,12 +70,11 @@ public class RemoteAssetIndex extends ControlPlaneConnectionHandler implements A
         var response = executeRequest(request);
 
         if (response.failed()) {
-            monitor.debug(String.format("RemoteAssetIndex.findById failed: %s", response.getFailureDetail()));
+            monitor.debug(String.format("Asset not found. %s: %s", response.reason(), response.getFailureDetail()));
             return null;
         }
 
         var assetJson = response.getContent();
-
 
         return codec.deserializeAsset(assetJson);
     }
@@ -95,11 +94,11 @@ public class RemoteAssetIndex extends ControlPlaneConnectionHandler implements A
         var response = executeRequest(request);
 
         if (response.failed()) {
-            if (Objects.requireNonNull(response.getFailure().getReason()) == ServiceFailure.Reason.CONFLICT) {
+            if (response.reason() == ServiceFailure.Reason.CONFLICT) {
                 return StoreResult.alreadyExists(response.getFailureDetail());
             }
-            return StoreResult.generalError(String.format(UNEXPECTED_ERROR, response.getFailure().getClass().getSimpleName(),
-                    response.getFailureDetail()));
+            return StoreResult.generalError(String.format(UNEXPECTED_ERROR, response.reason())
+                    .concat(response.getFailureDetail()));
         }
 
         return StoreResult.success();
@@ -127,7 +126,7 @@ public class RemoteAssetIndex extends ControlPlaneConnectionHandler implements A
                 // InMemoryAssetIndex deletes assets regardless, this case is not intended...
                 return StoreResult.alreadyLeased(response.getFailureDetail());
             }
-            throw new EdcException(String.format(UNEXPECTED_ERROR, response.getFailure().getClass().getSimpleName(), response.getFailureDetail()));
+            throw new EdcException(String.format(UNEXPECTED_ERROR, response.getFailureDetail()));
         }
 
         return StoreResult.success(asset);
@@ -151,7 +150,7 @@ public class RemoteAssetIndex extends ControlPlaneConnectionHandler implements A
             if (Objects.requireNonNull(response.getFailure().getReason()) == ServiceFailure.Reason.NOT_FOUND) {
                 return StoreResult.notFound(response.getFailureDetail());
             }
-            throw new EdcException(String.format(UNEXPECTED_ERROR, response.getFailure().getClass().getSimpleName(), response.getFailureDetail()));
+            throw new EdcException(String.format(UNEXPECTED_ERROR, response.getFailureDetail()));
         }
 
         return StoreResult.success(findById(asset.getId()));
@@ -167,11 +166,14 @@ public class RemoteAssetIndex extends ControlPlaneConnectionHandler implements A
 
     public static class Builder extends ControlPlaneConnectionHandler.Builder<RemoteAssetIndex, Builder> {
 
-        protected String resourceName = "assets";
-
         @Override
         protected Builder self() {
             return this;
+        }
+
+        public RemoteAssetIndex build() {
+            this.resourceName = "assets";
+            return super.build();
         }
 
         @Override

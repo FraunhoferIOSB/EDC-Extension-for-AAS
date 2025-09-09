@@ -35,14 +35,14 @@ public class ControlPlaneConnection {
     private final UnaryOperator<Request.Builder> authSupplier;
 
     public ControlPlaneConnection(URI connectionUri, String resourceName) {
-        this.connectionUri = Objects.requireNonNull(HttpUrl.get(connectionUri));
+        this.connectionUri = Objects.requireNonNull(HttpUrl.parse(connectionUri.toString()));
         this.resourceName = resourceName;
         this.authSupplier = UnaryOperator.identity();
     }
 
 
     public ControlPlaneConnection(URI connectionUri, String resourceName, String apiKey) {
-        this.connectionUri = Objects.requireNonNull(HttpUrl.get(connectionUri));
+        this.connectionUri = Objects.requireNonNull(HttpUrl.parse(connectionUri.toString()));
         this.resourceName = resourceName;
         this.authSupplier = request -> request.header("x-api-key", apiKey);
     }
@@ -55,7 +55,7 @@ public class ControlPlaneConnection {
      * @return OkHttp3 request ready to be sent
      */
     public Request prepareRequest(HttpMethod method, String body) {
-        return prepareRequest(method, resourceName, body);
+        return prepareRequest(method, "", body);
     }
 
     /**

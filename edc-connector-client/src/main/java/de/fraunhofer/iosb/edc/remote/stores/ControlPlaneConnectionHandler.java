@@ -31,9 +31,9 @@ import java.util.Objects;
 
 public abstract class ControlPlaneConnectionHandler {
 
-    public static final String UNEXPECTED_ERROR = "Unexpected error from (remote) control-plane, %s: %s";
-    public static final String MALFORMED_ERROR = "MalformedRequestError from (remote) control-plane, %s: %s";
-    public static final String NO_MESSAGE = "No message.";
+    public static final String UNEXPECTED_ERROR = "Unexpected error from control-plane: %s";
+    public static final String MALFORMED_ERROR = "MalformedRequestError from control-plane: %s";
+    public static final String NO_MESSAGE = "No message from control-plane.";
 
     protected final ControlPlaneConnection controlPlane;
     protected final EdcHttpClient httpClient;
@@ -52,14 +52,20 @@ public abstract class ControlPlaneConnectionHandler {
 
             ResponseBody body = response.body();
             if (!response.isSuccessful()) {
-                // User error: 404, 409
+                // User errors: 404, 409, 403
+
+                String responseMessage = body != null ? body.string() : NO_MESSAGE;
+
+                if (responseMessage.isBlank()) {
+                    responseMessage = NO_MESSAGE;
+                }
+
                 return switch (response.code()) {
-                    case 404 -> ServiceResult.notFound(response.body() != null ? response.body().string() : NO_MESSAGE);
-                    case 409 -> ServiceResult.conflict(response.body() != null ? response.body().string() : NO_MESSAGE);
-                    case 400 -> throw new EdcException(String.format(MALFORMED_ERROR, response.message(),
-                            response.body() != null ? response.body().string() : NO_MESSAGE));
-                    default -> throw new EdcException(String.format(UNEXPECTED_ERROR, response.message(),
-                            response.body() != null ? response.body().string() : NO_MESSAGE));
+                    case 404 -> ServiceResult.notFound(responseMessage);
+                    case 409 -> ServiceResult.conflict(responseMessage);
+                    case 403 -> ServiceResult.unauthorized(responseMessage);
+                    case 400 -> ServiceResult.badRequest(responseMessage);
+                    default -> throw new EdcException(String.format(UNEXPECTED_ERROR, responseMessage));
                 };
             }
             return ServiceResult.success(body != null ? body.string() : NO_MESSAGE);
@@ -72,7 +78,7 @@ public abstract class ControlPlaneConnectionHandler {
     public static abstract class Builder<T extends ControlPlaneConnectionHandler, B extends Builder<T, B>> {
         protected EdcHttpClient httpClient;
         protected Monitor monitor;
-        protected URI managementUri;
+        protected String managementUri;
         protected String resourceName;
         private String apiKey;
         private Codec codec;
@@ -96,7 +102,7 @@ public abstract class ControlPlaneConnectionHandler {
             return self();
         }
 
-        public B managementUri(URI managementUri) {
+        public B managementUri(String managementUri) {
             this.managementUri = managementUri;
             return self();
         }
@@ -107,16 +113,16 @@ public abstract class ControlPlaneConnectionHandler {
         }
 
         public T build() {
-            Objects.requireNonNull(httpClient, "httpClient must not be null");
-            Objects.requireNonNull(monitor, "monitor must not be null");
-            Objects.requireNonNull(codec, "codec must not be null");
-            Objects.requireNonNull(resourceName, "resourceName must not be null");
+            Objects.requireNonNull(httpClient);
+            Objects.requireNonNull(monitor);
+            Objects.requireNonNull(codec);
+            Objects.requireNonNull(managementUri);
 
             ControlPlaneConnection connection;
             if (apiKey != null) {
-                connection = new ControlPlaneConnection(managementUri, resourceName, apiKey);
+                connection = new ControlPlaneConnection(URI.create(managementUri), resourceName, apiKey);
             } else {
-                connection = new ControlPlaneConnection(managementUri, resourceName);
+                connection = new ControlPlaneConnection(URI.create(managementUri), resourceName);
             }
 
             return create(monitor, httpClient, codec, connection);

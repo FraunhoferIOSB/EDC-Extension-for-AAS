@@ -62,8 +62,8 @@ public class EdcConnectorClientExtension implements ServiceExtension {
     public static final String CONTROL_PLANE = "edc.controlplane.";
 
 
-    @Setting(description = "Remote control plane full management API URL", key = MGMT_API + "url", required = false)
-    private URI managementUri;
+    @Setting(description = "Remote control plane full management API URL", key = MGMT_API + "url")
+    private String managementUri;
 
     @Setting(description = "Remote control-plane protocol", key = CONTROL_PLANE + "apiKey", required = false)
     private String apiKey;
@@ -106,6 +106,7 @@ public class EdcConnectorClientExtension implements ServiceExtension {
                 .monitor(context.getMonitor())
                 .codec(codec)
                 .managementUri(managementUri)
+                .apiKey(apiKey)
                 .build();
     }
 
@@ -116,6 +117,7 @@ public class EdcConnectorClientExtension implements ServiceExtension {
                 .monitor(context.getMonitor())
                 .codec(codec)
                 .managementUri(managementUri)
+                .apiKey(apiKey)
                 .build();
     }
 

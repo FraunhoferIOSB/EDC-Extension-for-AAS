@@ -46,11 +46,8 @@ public class RemotePolicyDefinitionStore extends ControlPlaneConnectionHandler i
         var response = executeRequest(request);
 
         if (response.failed()) {
-            if (Objects.requireNonNull(response.getFailure().getReason()) == ServiceFailure.Reason.NOT_FOUND) {
-                monitor.info(String.format(POLICY_NOT_FOUND, policyId));
-            } else {
-                monitor.warning(String.format("RemotePolicyDefinitionStore.findById failed: %s", response.getFailureDetail()));
-            }
+            monitor.debug(String.format(POLICY_NOT_FOUND, policyId).concat(String.format(". %s: %s", response.reason(),
+                    response.getFailureDetail())));
 
             return null;
         }
@@ -68,8 +65,8 @@ public class RemotePolicyDefinitionStore extends ControlPlaneConnectionHandler i
 
         var response = executeRequest(request);
 
-        if (!response.succeeded()) {
-            monitor.warning(String.format("Failed querying policy definitions: %s", response.getFailureDetail()));
+        if (response.failed()) {
+            monitor.warning(String.format("Failed querying policy definitions. %s %s", response.reason(), response.getFailureDetail()));
             return Stream.empty();
         }
 
@@ -90,7 +87,7 @@ public class RemotePolicyDefinitionStore extends ControlPlaneConnectionHandler i
             if (Objects.requireNonNull(response.getFailure().getReason()) == ServiceFailure.Reason.CONFLICT) {
                 return StoreResult.alreadyExists(policyDefinition.getId());
             }
-            throw new EdcException(String.format(UNEXPECTED_ERROR, response.getFailure().getReason(), response.getFailureDetail()));
+            throw new EdcException(String.format(UNEXPECTED_ERROR, response.getFailureDetail()));
         }
 
         // To be sure, we fetch the created policy definition from the control plane
@@ -109,7 +106,7 @@ public class RemotePolicyDefinitionStore extends ControlPlaneConnectionHandler i
             if (Objects.requireNonNull(response.getFailure().getReason()) == ServiceFailure.Reason.NOT_FOUND) {
                 return StoreResult.notFound(policyDefinition.getId());
             }
-            throw new EdcException(String.format(UNEXPECTED_ERROR, response.getFailure().getReason(), response.getFailureDetail()));
+            throw new EdcException(String.format(UNEXPECTED_ERROR, response.getFailureDetail()));
         }
 
         return StoreResult.success(findById(policyDefinition.getId()));
@@ -131,7 +128,7 @@ public class RemotePolicyDefinitionStore extends ControlPlaneConnectionHandler i
             if (Objects.requireNonNull(response.getFailure().getReason()) == ServiceFailure.Reason.NOT_FOUND) {
                 return StoreResult.notFound(policyDefinitionId);
             }
-            throw new EdcException(String.format(UNEXPECTED_ERROR, response.getFailure().getReason(), response.getFailureDetail()));
+            throw new EdcException(String.format(UNEXPECTED_ERROR, response.getFailureDetail()));
         }
 
         return StoreResult.success(toBeDeleted);
@@ -139,11 +136,14 @@ public class RemotePolicyDefinitionStore extends ControlPlaneConnectionHandler i
 
     public static class Builder extends ControlPlaneConnectionHandler.Builder<RemotePolicyDefinitionStore, Builder> {
 
-        protected final String resourceName = "policydefinitions";
-
         @Override
         protected Builder self() {
             return this;
+        }
+
+        public RemotePolicyDefinitionStore build() {
+            this.resourceName = "policydefinitions";
+            return super.build();
         }
 
         @Override

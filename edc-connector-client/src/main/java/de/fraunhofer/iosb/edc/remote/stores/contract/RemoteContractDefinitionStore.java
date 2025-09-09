@@ -29,7 +29,6 @@ import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Objects;
 import java.util.stream.Stream;
 
 public class RemoteContractDefinitionStore extends ControlPlaneConnectionHandler implements ContractDefinitionStore {
@@ -47,8 +46,8 @@ public class RemoteContractDefinitionStore extends ControlPlaneConnectionHandler
 
         var response = executeRequest(request);
 
-        if (!response.succeeded()) {
-            monitor.warning(String.format("Failed querying contract definitions: %s", response.getFailureDetail()));
+        if (response.failed()) {
+            monitor.warning(String.format("Failed querying contract definitions. %s: %s", response.reason(), response.getFailureDetail()));
             return Stream.empty();
         }
 
@@ -64,8 +63,9 @@ public class RemoteContractDefinitionStore extends ControlPlaneConnectionHandler
 
         var response = executeRequest(request);
 
-        if (!response.succeeded()) {
-            monitor.warning(String.format("Failed querying contract definition with id: %s", response.getFailureDetail()));
+        if (response.failed()) {
+            monitor.debug(String.format(CONTRACT_DEFINITION_NOT_FOUND, contractDefinitionId).concat(String.format(". %s: %s", response.reason(),
+                    response.getFailureDetail())));
             return null;
         }
 
@@ -89,10 +89,10 @@ public class RemoteContractDefinitionStore extends ControlPlaneConnectionHandler
         var response = executeRequest(request);
 
         if (response.failed()) {
-            if (Objects.requireNonNull(response.getFailure().getReason()) == ServiceFailure.Reason.CONFLICT) {
+            if (response.reason().equals(ServiceFailure.Reason.CONFLICT)) {
                 return StoreResult.alreadyExists(contractDefinition.getId());
             }
-            return StoreResult.generalError(String.format(UNEXPECTED_ERROR, response.getFailure().getClass().getSimpleName(),
+            return StoreResult.generalError(String.format("Failed saving contract definition. %s: %s", response.reason(),
                     response.getFailureDetail()));
         }
 
@@ -107,11 +107,11 @@ public class RemoteContractDefinitionStore extends ControlPlaneConnectionHandler
 
         var response = executeRequest(request);
 
-        if (!response.succeeded()) {
-            if (Objects.requireNonNull(response.getFailure().getReason()) == ServiceFailure.Reason.NOT_FOUND) {
+        if (response.failed()) {
+            if (response.reason().equals(ServiceFailure.Reason.NOT_FOUND)) {
                 return StoreResult.notFound(response.getFailureDetail());
             }
-            throw new EdcException(String.format(UNEXPECTED_ERROR, response.getFailure().getClass().getSimpleName(), response.getFailureDetail()));
+            throw new EdcException(String.format(UNEXPECTED_ERROR, response.getFailureDetail()));
         }
 
         return StoreResult.success();
@@ -125,11 +125,11 @@ public class RemoteContractDefinitionStore extends ControlPlaneConnectionHandler
 
         var response = executeRequest(request);
 
-        if (!response.succeeded()) {
-            if (Objects.requireNonNull(response.getFailure().getReason()) == ServiceFailure.Reason.NOT_FOUND) {
+        if (response.failed()) {
+            if (response.reason().equals(ServiceFailure.Reason.NOT_FOUND)) {
                 return StoreResult.notFound(response.getFailureDetail());
             }
-            throw new EdcException(String.format(UNEXPECTED_ERROR, response.getFailure().getClass().getSimpleName(), response.getFailureDetail()));
+            throw new EdcException(String.format(UNEXPECTED_ERROR, response.getFailureDetail()));
         }
 
         return StoreResult.success(contractDefinition);
@@ -138,11 +138,15 @@ public class RemoteContractDefinitionStore extends ControlPlaneConnectionHandler
 
     public static class Builder extends ControlPlaneConnectionHandler.Builder<RemoteContractDefinitionStore, RemoteContractDefinitionStore.Builder> {
 
-        protected final String resourceName = "contractdefinitions";
 
         @Override
         protected RemoteContractDefinitionStore.Builder self() {
             return this;
+        }
+
+        public RemoteContractDefinitionStore build() {
+            this.resourceName = "contractdefinitions";
+            return super.build();
         }
 
         @Override

@@ -57,8 +57,8 @@ import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 public class EdcConnectorClientExtension implements ServiceExtension {
 
     public static final String NAME = "Remote Control-Plane Store Accessors";
-    public static final String MGMT_API = "edc.controlplane.management.";
     public static final String CONTROL_PLANE = "edc.controlplane.";
+    public static final String MGMT_API = "edc.controlplane.management.";
 
 
     @Setting(description = "Remote control plane full management API URL", key = MGMT_API + "url")
@@ -85,6 +85,7 @@ public class EdcConnectorClientExtension implements ServiceExtension {
         registerTransformers();
 
         codec = new Codec(typeTransformerRegistry, typeManager, jsonLd);
+        context.getMonitor().warning("Initialized");
     }
 
     @Provider

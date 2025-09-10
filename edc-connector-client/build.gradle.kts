@@ -29,6 +29,9 @@ dependencies {
     implementation("${group}:connector-core:${edcVersion}")
 
     testImplementation("${group}:http-lib:${edcVersion}") // EdcHttpClientImpl
+    testImplementation("${group}:junit:${edcVersion}")
+    testImplementation("${group}:json-lib:${edcVersion}")
+    testImplementation("${group}:json-ld-lib:${edcVersion}")
     testImplementation("org.mockito:mockito-core:${mockitoVersion}")
 
     testImplementation("com.github.tomakehurst:wiremock:3.0.1")

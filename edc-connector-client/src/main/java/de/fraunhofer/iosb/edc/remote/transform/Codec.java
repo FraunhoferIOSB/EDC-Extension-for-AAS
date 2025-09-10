@@ -27,6 +27,7 @@ import org.eclipse.edc.spi.entity.Entity;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.StringReader;
 import java.util.List;
@@ -56,6 +57,7 @@ public class Codec {
     public Asset deserializeAsset(String assetJsonString) {
         try {
             var deserialized = typeManager.getMapper().readValue(assetJsonString, Asset.class);
+
             // TypeManager assigns new random UUID to the asset. We need the original one though
             deserialized = deserialized.toBuilder().id(deserialized.getProperty("id").toString()).build();
             return deserialized;
@@ -65,7 +67,7 @@ public class Codec {
         }
     }
 
-    public String serialize(Entity toSerialize) {
+    public String serialize(@NotNull Entity toSerialize) {
         var jsonRepresentation =
                 transformers.transform(toSerialize, JsonObject.class).orElseThrow(failure -> new EdcException(String.format(SERIALIZATION_ERROR,
                         toSerialize.getClass().getSimpleName(), failure.getFailureDetail())));
@@ -88,7 +90,17 @@ public class Codec {
                 jsonLd.expand(policyDefinitionJsonObject).orElseThrow(failure -> new EdcException(String.format(EXPANSION_ERROR,
                         failure.getClass().getSimpleName(), failure.getFailureDetail())));
 
-        return transformers.transform(expansionResult, PolicyDefinition.class).orElseThrow(failure -> new EdcException(String.format(DESERIALIZATION_ERROR, failure.getClass().getSimpleName(), failure.getFailureDetail())));
+        var policyDefinition = transformers.transform(expansionResult, PolicyDefinition.class)
+                .orElseThrow(failure -> new EdcException(String.format(DESERIALIZATION_ERROR, PolicyDefinition.class.getSimpleName(),
+                        failure.getFailureDetail())));
+
+        // Transformer assigns random UUID to the asset. We don't need it.
+        var policy = policyDefinition.getPolicy().toBuilder().build();
+
+        return PolicyDefinition.Builder.newInstance()
+                .privateProperties(policyDefinition.getPrivateProperties())
+                .policy(policy).id(policyDefinition.getId())
+                .build();
     }
 
     public String serializeQuerySpec(QuerySpec spec) {

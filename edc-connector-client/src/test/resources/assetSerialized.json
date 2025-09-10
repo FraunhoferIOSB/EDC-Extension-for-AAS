@@ -1,0 +1,19 @@
+{
+  "@id": "my-test-asset-id",
+  "@type": "Asset",
+  "properties": {
+    "description": "test-description",
+    "aas:test-property": "test-property-value",
+    "id": "my-test-asset-id",
+    "contenttype": "test-content-type",
+    "aas:test-property-2": "test-property-2-value"
+  },
+  "privateProperties": {
+    "aas:test-private-property": "test-private-property-value",
+    "aas:test-private-property-2": "test-private-property-2-value"
+  },
+  "@context": {
+    "@vocab": "https://w3id.org/edc/v0.0.1/ns/",
+    "aas": "https://admin-shell.io/aas/3/0/"
+  }
+}

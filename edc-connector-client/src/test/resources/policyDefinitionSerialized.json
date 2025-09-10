@@ -1,0 +1,106 @@
+{
+  "@id": "my-test-contract-definition-id",
+  "@type": "PolicyDefinition",
+  "createdAt": 1757489606034,
+  "policy": {
+    "@id": "7673c8a5-a9f9-42f2-bc3e-d0da7fa3b5e7",
+    "@type": "http://www.w3.org/ns/odrl/2/Set",
+    "http://www.w3.org/ns/odrl/2/permission": [
+      {
+        "http://www.w3.org/ns/odrl/2/action": {},
+        "http://www.w3.org/ns/odrl/2/duty": {
+          "http://www.w3.org/ns/odrl/2/action": {}
+        }
+      },
+      {
+        "http://www.w3.org/ns/odrl/2/action": {},
+        "http://www.w3.org/ns/odrl/2/duty": {
+          "http://www.w3.org/ns/odrl/2/action": {
+            "http://www.w3.org/ns/odrl/2/action": {
+              "@id": "USE"
+            },
+            "http://www.w3.org/ns/odrl/2/refinement": {
+              "http://www.w3.org/ns/odrl/2/or": {
+                "http://www.w3.org/ns/odrl/2/leftOperand": {
+                  "@id": "my-test-expression-left"
+                },
+                "http://www.w3.org/ns/odrl/2/operator": {
+                  "@id": "http://www.w3.org/ns/odrl/2/gt"
+                },
+                "http://www.w3.org/ns/odrl/2/rightOperand": "my-test-expression-left"
+              }
+            }
+          }
+        }
+      }
+    ],
+    "http://www.w3.org/ns/odrl/2/prohibition": [
+      {
+        "http://www.w3.org/ns/odrl/2/action": {},
+        "http://www.w3.org/ns/odrl/2/remedy": {
+          "http://www.w3.org/ns/odrl/2/action": {}
+        }
+      },
+      {
+        "http://www.w3.org/ns/odrl/2/action": {},
+        "http://www.w3.org/ns/odrl/2/remedy": {
+          "http://www.w3.org/ns/odrl/2/action": {
+            "http://www.w3.org/ns/odrl/2/action": {
+              "@id": "USE"
+            },
+            "http://www.w3.org/ns/odrl/2/refinement": {
+              "http://www.w3.org/ns/odrl/2/or": {
+                "http://www.w3.org/ns/odrl/2/leftOperand": {
+                  "@id": "my-test-expression-left"
+                },
+                "http://www.w3.org/ns/odrl/2/operator": {
+                  "@id": "http://www.w3.org/ns/odrl/2/gt"
+                },
+                "http://www.w3.org/ns/odrl/2/rightOperand": "my-test-expression-left"
+              }
+            }
+          }
+        }
+      }
+    ],
+    "http://www.w3.org/ns/odrl/2/obligation": [
+      {
+        "http://www.w3.org/ns/odrl/2/action": {},
+        "http://www.w3.org/ns/odrl/2/consequence": {
+          "http://www.w3.org/ns/odrl/2/action": {}
+        }
+      },
+      {
+        "http://www.w3.org/ns/odrl/2/action": {},
+        "http://www.w3.org/ns/odrl/2/consequence": {
+          "http://www.w3.org/ns/odrl/2/action": {
+            "http://www.w3.org/ns/odrl/2/action": {
+              "@id": "USE"
+            },
+            "http://www.w3.org/ns/odrl/2/refinement": {
+              "http://www.w3.org/ns/odrl/2/or": {
+                "http://www.w3.org/ns/odrl/2/leftOperand": {
+                  "@id": "my-test-expression-left"
+                },
+                "http://www.w3.org/ns/odrl/2/operator": {
+                  "@id": "http://www.w3.org/ns/odrl/2/gt"
+                },
+                "http://www.w3.org/ns/odrl/2/rightOperand": "my-test-expression-left"
+              }
+            }
+          }
+        }
+      }
+    ],
+    "http://www.w3.org/ns/odrl/2/assignee": "my-policy-definition-policy-assignee",
+    "http://www.w3.org/ns/odrl/2/assigner": "my-policy-definition-policy-assigner",
+    "http://www.w3.org/ns/odrl/2/target": {
+      "@id": "my-policy-definition-policy-target"
+    }
+  },
+  "privateProperties": {},
+  "@context": {
+    "@vocab": "https://w3id.org/edc/v0.0.1/ns/",
+    "aas": "https://admin-shell.io/aas/3/0/"
+  }
+}

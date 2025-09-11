@@ -16,23 +16,22 @@
 package de.fraunhofer.iosb.edc.remote.stores.contract;
 
 import de.fraunhofer.iosb.edc.remote.ControlPlaneConnection;
-import de.fraunhofer.iosb.edc.remote.HttpMethod;
 import de.fraunhofer.iosb.edc.remote.stores.ControlPlaneConnectionHandler;
 import de.fraunhofer.iosb.edc.remote.transform.Codec;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.http.spi.EdcHttpClient;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
-import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.stream.Stream;
 
-public class RemoteContractDefinitionStore extends ControlPlaneConnectionHandler implements ContractDefinitionStore {
+public class RemoteContractDefinitionStore extends ControlPlaneConnectionHandler<ContractDefinition> implements ContractDefinitionStore {
 
+    protected String NOT_FOUND_TEMPLATE = ContractDefinitionStore.CONTRACT_DEFINITION_NOT_FOUND;
+    protected String EXISTS_TEMPLATE = ContractDefinitionStore.CONTRACT_DEFINITION_EXISTS;
 
     public RemoteContractDefinitionStore(Monitor monitor, EdcHttpClient httpClient, Codec codec, ControlPlaneConnection connection) {
         super(monitor, httpClient, codec, connection);
@@ -40,38 +39,12 @@ public class RemoteContractDefinitionStore extends ControlPlaneConnectionHandler
 
     @Override
     public @NotNull Stream<ContractDefinition> findAll(QuerySpec querySpec) {
-        String querySpecString = codec.serializeQuerySpec(querySpec);
-
-        var request = controlPlane.prepareRequest(HttpMethod.POST, "request", querySpecString);
-
-        var response = executeRequest(request);
-
-        if (response.failed()) {
-            monitor.warning(String.format("Failed querying contract definitions. %s: %s", response.reason(), response.getFailureDetail()));
-            return Stream.empty();
-        }
-
-        var contractDefinitionsJsonString = response.getContent();
-
-        return codec.deserializeContractDefinitions(contractDefinitionsJsonString).stream();
+        return queryEntities(querySpec, ContractDefinition.class);
     }
 
     @Override
     public ContractDefinition findById(String contractDefinitionId) {
-
-        var request = controlPlane.prepareRequest(HttpMethod.GET, contractDefinitionId, null);
-
-        var response = executeRequest(request);
-
-        if (response.failed()) {
-            monitor.debug(String.format(CONTRACT_DEFINITION_NOT_FOUND, contractDefinitionId).concat(String.format(". %s: %s", response.reason(),
-                    response.getFailureDetail())));
-            return null;
-        }
-
-        var contractDefinitionJsonString = response.getContent();
-
-        return codec.deserializeContractDefinition(contractDefinitionJsonString);
+        return findById(contractDefinitionId, ContractDefinition.class);
     }
 
     /**
@@ -82,57 +55,29 @@ public class RemoteContractDefinitionStore extends ControlPlaneConnectionHandler
      */
     @Override
     public StoreResult<Void> save(ContractDefinition contractDefinition) {
-        var contractDefinitionJsonString = codec.serialize(contractDefinition);
+        var result = createEntity(contractDefinition, ContractDefinition.class);
 
-        var request = controlPlane.prepareRequest(HttpMethod.POST, contractDefinitionJsonString);
-
-        var response = executeRequest(request);
-
-        if (response.failed()) {
-            if (response.reason().equals(ServiceFailure.Reason.CONFLICT)) {
-                return StoreResult.alreadyExists(contractDefinition.getId());
-            }
-            return StoreResult.generalError(String.format("Failed saving contract definition. %s: %s", response.reason(),
-                    response.getFailureDetail()));
+        // This is the only case where Void is returned.
+        if (result.succeeded()) {
+            return StoreResult.success();
         }
-
-        return StoreResult.success();
+        return StoreResult.alreadyExists(result.getFailureDetail());
     }
 
     @Override
     public StoreResult<Void> update(ContractDefinition contractDefinition) {
-        var contractDefinitionJsonString = codec.serialize(contractDefinition);
+        var result = updateEntity(contractDefinition, ContractDefinition.class);
 
-        var request = controlPlane.prepareRequest(HttpMethod.PUT, contractDefinitionJsonString);
-
-        var response = executeRequest(request);
-
-        if (response.failed()) {
-            if (response.reason().equals(ServiceFailure.Reason.NOT_FOUND)) {
-                return StoreResult.notFound(response.getFailureDetail());
-            }
-            throw new EdcException(String.format(UNEXPECTED_ERROR, response.getFailureDetail()));
+        // This is the only case where Void is returned.
+        if (result.succeeded()) {
+            return StoreResult.success();
         }
-
-        return StoreResult.success();
+        return StoreResult.alreadyExists(result.getFailureDetail());
     }
 
     @Override
     public StoreResult<ContractDefinition> deleteById(String contractDefinitionId) {
-        var contractDefinition = findById(contractDefinitionId);
-
-        var request = controlPlane.prepareRequest(HttpMethod.DELETE, contractDefinitionId, null);
-
-        var response = executeRequest(request);
-
-        if (response.failed()) {
-            if (response.reason().equals(ServiceFailure.Reason.NOT_FOUND)) {
-                return StoreResult.notFound(response.getFailureDetail());
-            }
-            throw new EdcException(String.format(UNEXPECTED_ERROR, response.getFailureDetail()));
-        }
-
-        return StoreResult.success(contractDefinition);
+        return deleteById(contractDefinitionId, ContractDefinition.class);
     }
 
 

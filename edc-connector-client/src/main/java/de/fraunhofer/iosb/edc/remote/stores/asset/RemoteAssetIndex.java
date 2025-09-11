@@ -16,29 +16,28 @@
 package de.fraunhofer.iosb.edc.remote.stores.asset;
 
 import de.fraunhofer.iosb.edc.remote.ControlPlaneConnection;
-import de.fraunhofer.iosb.edc.remote.HttpMethod;
 import de.fraunhofer.iosb.edc.remote.stores.ControlPlaneConnectionHandler;
 import de.fraunhofer.iosb.edc.remote.transform.Codec;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.http.spi.EdcHttpClient;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
-import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
 /**
  * AssetIndex implementation where the control plane is reached via http
  */
-public class RemoteAssetIndex extends ControlPlaneConnectionHandler implements AssetIndex {
+public class RemoteAssetIndex extends ControlPlaneConnectionHandler<Asset> implements AssetIndex {
+
+    protected String NOT_FOUND_TEMPLATE = AssetIndex.ASSET_NOT_FOUND_TEMPLATE;
+    protected String EXISTS_TEMPLATE = AssetIndex.ASSET_EXISTS_TEMPLATE;
 
     private RemoteAssetIndex(Monitor monitor, EdcHttpClient httpClient, Codec codec, ControlPlaneConnection connection) {
         super(monitor, httpClient, codec, connection);
@@ -46,37 +45,12 @@ public class RemoteAssetIndex extends ControlPlaneConnectionHandler implements A
 
     @Override
     public Stream<Asset> queryAssets(QuerySpec querySpec) {
-        var querySpecString = codec.serializeQuerySpec(querySpec);
-
-        var request = controlPlane.prepareRequest(HttpMethod.POST, "request", querySpecString);
-
-        var response = executeRequest(request);
-
-        if (response.failed()) {
-            monitor.warning(String.format("Failed querying assets. %s: %s", response.getFailure().getReason(), response.getFailureDetail()));
-            return Stream.empty();
-        }
-
-        var assetListJsonString = response.getContent();
-
-        return codec.deserializeAssets(assetListJsonString).stream();
+        return queryEntities(querySpec, Asset.class);
     }
 
     @Override
     public Asset findById(String assetId) {
-        // Send request
-        var request = controlPlane.prepareRequest(HttpMethod.GET, assetId, null);
-        // Deserialize response
-        var response = executeRequest(request);
-
-        if (response.failed()) {
-            monitor.debug(String.format("Asset not found. %s: %s", response.reason(), response.getFailureDetail()));
-            return null;
-        }
-
-        var assetJson = response.getContent();
-
-        return codec.deserializeAsset(assetJson);
+        return findById(assetId, Asset.class);
     }
 
     /**
@@ -87,49 +61,18 @@ public class RemoteAssetIndex extends ControlPlaneConnectionHandler implements A
      */
     @Override
     public StoreResult<Void> create(Asset asset) {
-        var assetString = codec.serialize(asset);
+        var result = createEntity(asset, Asset.class);
 
-        var request = controlPlane.prepareRequest(HttpMethod.POST, assetString);
-
-        var response = executeRequest(request);
-
-        if (response.failed()) {
-            if (response.reason() == ServiceFailure.Reason.CONFLICT) {
-                return StoreResult.alreadyExists(response.getFailureDetail());
-            }
-            return StoreResult.generalError(String.format(UNEXPECTED_ERROR, response.reason())
-                    .concat(response.getFailureDetail()));
+        // This is the only case where Void is returned.
+        if (result.succeeded()) {
+            return StoreResult.success();
         }
-
-        return StoreResult.success();
+        return StoreResult.alreadyExists(result.getFailureDetail());
     }
 
     @Override
     public StoreResult<Asset> deleteById(String assetId) {
-        // NOTE: since deleteById requires the deleted asset as return value and the mgmt-api does not return it, we have to get it first.
-        var asset = findById(assetId);
-
-        if (asset == null) {
-            return StoreResult.notFound(String.format(ASSET_NOT_FOUND_TEMPLATE, assetId));
-        }
-
-        // Send request
-        var request = controlPlane.prepareRequest(HttpMethod.DELETE, assetId, null);
-        // Deserialize response
-        var response = executeRequest(request);
-
-        if (!response.succeeded()) {
-            monitor.debug(String.format("RemoteAssetIndex.deleteById failed: %s", response.getFailureDetail()));
-            if (Objects.requireNonNull(response.getFailure().getReason()) == ServiceFailure.Reason.NOT_FOUND) {
-                return StoreResult.notFound(response.getFailureDetail());
-            } else if (Objects.requireNonNull(response.getFailure().getReason()) == ServiceFailure.Reason.CONFLICT) {
-                // InMemoryAssetIndex deletes assets regardless, this case is not intended...
-                return StoreResult.alreadyLeased(response.getFailureDetail());
-            }
-            throw new EdcException(String.format(UNEXPECTED_ERROR, response.getFailureDetail()));
-        }
-
-        return StoreResult.success(asset);
+        return deleteById(assetId, Asset.class);
     }
 
     @Override
@@ -139,21 +82,7 @@ public class RemoteAssetIndex extends ControlPlaneConnectionHandler implements A
 
     @Override
     public StoreResult<Asset> updateAsset(Asset asset) {
-        var assetString = codec.serialize(asset);
-
-        var request = controlPlane.prepareRequest(HttpMethod.PUT, assetString);
-
-        var response = executeRequest(request);
-
-        if (!response.succeeded()) {
-            monitor.debug(String.format("RemoteAssetIndex.updateAsset failed: %s", response.getFailureDetail()));
-            if (Objects.requireNonNull(response.getFailure().getReason()) == ServiceFailure.Reason.NOT_FOUND) {
-                return StoreResult.notFound(response.getFailureDetail());
-            }
-            throw new EdcException(String.format(UNEXPECTED_ERROR, response.getFailureDetail()));
-        }
-
-        return StoreResult.success(findById(asset.getId()));
+        return updateEntity(asset, Asset.class);
     }
 
     @Override

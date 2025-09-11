@@ -28,8 +28,11 @@ import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.connector.controlplane.transform.edc.from.JsonObjectFromAssetTransformer;
+import org.eclipse.edc.connector.controlplane.transform.edc.to.JsonObjectToAssetTransformer;
 import org.eclipse.edc.connector.controlplane.transform.odrl.OdrlTransformersFactory;
 import org.eclipse.edc.connector.controlplane.transform.odrl.from.JsonObjectFromPolicyTransformer;
+import org.eclipse.edc.connector.controlplane.transform.odrl.to.JsonObjectToActionTransformer;
+import org.eclipse.edc.connector.controlplane.transform.odrl.to.JsonObjectToPolicyTransformer;
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.participant.spi.ParticipantIdMapper;
@@ -47,6 +50,8 @@ import org.eclipse.edc.transform.transformer.edc.from.JsonObjectFromDataAddressT
 import org.eclipse.edc.transform.transformer.edc.from.JsonObjectFromQuerySpecTransformer;
 import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToCriterionTransformer;
 import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToDataAddressTransformer;
+import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToQuerySpecTransformer;
+import org.eclipse.edc.transform.transformer.edc.to.JsonValueToGenericTypeTransformer;
 
 import java.util.Map;
 
@@ -126,16 +131,23 @@ public class EdcConnectorClientExtension implements ServiceExtension {
         // Register (de)serializers
         OdrlTransformersFactory.jsonObjectToOdrlTransformers(participantIdMapper)
                 .forEach(typeTransformerRegistry::register);
+        typeTransformerRegistry.register(new JsonObjectFromCriterionTransformer(jsonFactory, typeManager, JSON_LD));
         typeTransformerRegistry.register(new JsonObjectFromPolicyTransformer(jsonFactory, participantIdMapper));
+        typeTransformerRegistry.register(new JsonObjectFromPolicyDefinitionTransformer(jsonFactory, typeManager, JSON_LD));
+        typeTransformerRegistry.register(new JsonObjectFromContractDefinitionTransformer(jsonFactory, typeManager, JSON_LD));
         typeTransformerRegistry.register(new JsonObjectFromQuerySpecTransformer(jsonFactory));
         typeTransformerRegistry.register(new JsonObjectFromAssetTransformer(jsonFactory, typeManager, JSON_LD));
         typeTransformerRegistry.register(new JsonObjectFromDataAddressTransformer(jsonFactory));
-        typeTransformerRegistry.register(new JsonObjectToDataAddressTransformer());
-        typeTransformerRegistry.register(new JsonObjectToPolicyDefinitionTransformer());
-        typeTransformerRegistry.register(new JsonObjectFromPolicyDefinitionTransformer(jsonFactory, typeManager, JSON_LD));
-        typeTransformerRegistry.register(new JsonObjectFromContractDefinitionTransformer(jsonFactory, typeManager, JSON_LD));
-        typeTransformerRegistry.register(new JsonObjectToContractDefinitionTransformer());
-        typeTransformerRegistry.register(new JsonObjectFromCriterionTransformer(jsonFactory, typeManager, JSON_LD));
+
+        typeTransformerRegistry.register(new JsonObjectToActionTransformer());
         typeTransformerRegistry.register(new JsonObjectToCriterionTransformer());
+        typeTransformerRegistry.register(new JsonObjectToPolicyTransformer(participantIdMapper));
+        typeTransformerRegistry.register(new JsonObjectToPolicyDefinitionTransformer());
+        typeTransformerRegistry.register(new JsonObjectToContractDefinitionTransformer());
+        typeTransformerRegistry.register(new JsonObjectToQuerySpecTransformer());
+        typeTransformerRegistry.register(new JsonObjectToAssetTransformer());
+        typeTransformerRegistry.register(new JsonObjectToDataAddressTransformer());
+        typeTransformerRegistry.register(new JsonValueToGenericTypeTransformer(typeManager, JSON_LD));
+
     }
 }

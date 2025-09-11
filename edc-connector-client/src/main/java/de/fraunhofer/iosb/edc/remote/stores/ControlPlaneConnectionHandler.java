@@ -16,23 +16,29 @@
 package de.fraunhofer.iosb.edc.remote.stores;
 
 import de.fraunhofer.iosb.edc.remote.ControlPlaneConnection;
+import de.fraunhofer.iosb.edc.remote.ControlPlaneConnectionException;
+import de.fraunhofer.iosb.edc.remote.HttpMethod;
 import de.fraunhofer.iosb.edc.remote.transform.Codec;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.entity.Entity;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.result.ServiceResult;
+import org.eclipse.edc.spi.result.StoreResult;
 
 import java.io.IOException;
 import java.net.URI;
 import java.util.Objects;
+import java.util.stream.Stream;
 
-public abstract class ControlPlaneConnectionHandler {
+public abstract class ControlPlaneConnectionHandler<T extends Entity> {
 
     public static final String UNEXPECTED_ERROR = "Unexpected error from control-plane: %s";
-    public static final String MALFORMED_ERROR = "MalformedRequestError from control-plane: %s";
     public static final String NO_MESSAGE = "No message from control-plane.";
 
     protected final ControlPlaneConnection controlPlane;
@@ -40,11 +46,114 @@ public abstract class ControlPlaneConnectionHandler {
     protected final Monitor monitor;
     protected final Codec codec;
 
+    protected String NOT_FOUND_TEMPLATE = "Not found: Entity with ID %s";
+    protected String EXISTS_TEMPLATE = "Entity with ID %s already exists";
+
     public ControlPlaneConnectionHandler(Monitor monitor, EdcHttpClient httpClient, Codec codec, ControlPlaneConnection connection) {
         this.monitor = monitor;
         this.httpClient = httpClient;
         this.codec = codec;
         this.controlPlane = connection;
+    }
+
+    protected Stream<T> queryEntities(QuerySpec spec, Class<T> clazz) {
+        String querySpecString = codec.serialize(spec);
+
+        var request = controlPlane.prepareRequest(HttpMethod.POST, "request", querySpecString);
+
+        // Failure to connect to/communicate with the control-plane is exceptional behavior
+        var responseJsonString = executeRequest(request)
+                .orElseThrow(failure -> new ControlPlaneConnectionException(String.format("Failed querying %s. %s %s",
+                        clazz.getSimpleName(), failure.getReason(), failure.getFailureDetail())));
+
+        return codec.deserializeList(responseJsonString, clazz).stream();
+    }
+
+    protected T findById(String entityId, Class<T> clazz) {
+        var request = controlPlane.prepareRequest(HttpMethod.GET, entityId, null);
+
+        var responseJsonOrNull = executeRequest(request)
+                .orElse(failure -> {
+                    if (failure.getReason().equals(ServiceFailure.Reason.NOT_FOUND)) {
+                        return null;
+                    } else {
+                        throw new ControlPlaneConnectionException(
+                                String.format("%s not found. %s: %s",
+                                        clazz.getSimpleName(), failure.getReason(), failure.getFailureDetail()));
+                    }
+                });
+
+        return codec.deserialize(responseJsonOrNull, clazz);
+    }
+
+    protected StoreResult<T> createEntity(T entity, Class<T> clazz) {
+        var serialized = codec.serialize(entity);
+
+        var request = controlPlane.prepareRequest(HttpMethod.POST, serialized);
+
+        var response = executeRequest(request);
+
+        if (response.failed()) {
+            if (response.reason() == ServiceFailure.Reason.CONFLICT) {
+                return StoreResult.alreadyExists(String.format(this.EXISTS_TEMPLATE, entity.getId()));
+            }
+            throw new ControlPlaneConnectionException(
+                    String.format("%s could not be created. %s: %s",
+                            clazz.getSimpleName(), response.reason(), response.getFailure().getFailureDetail()));
+        }
+
+        return StoreResult.success(codec.deserialize(response.getContent(), clazz));
+    }
+
+    protected StoreResult<T> deleteById(String entityId, Class<T> clazz) {
+        // NOTE: since deleteById requires the deleted asset as return value and the mgmt-api does not return it, we have to get it first.
+        var entity = this.findById(entityId, clazz);
+
+        if (entity == null) {
+            return StoreResult.notFound(String.format(this.NOT_FOUND_TEMPLATE, entityId));
+        }
+
+        // Send request
+        var request = controlPlane.prepareRequest(HttpMethod.DELETE, entityId, null);
+        // Deserialize response
+        var response = executeRequest(request);
+
+        if (!response.succeeded()) {
+            monitor.debug(String.format("Failed deleting %s. %s: %s", clazz, response.reason(), response.getFailureDetail()));
+            if (Objects.requireNonNull(response.getFailure().getReason()) == ServiceFailure.Reason.NOT_FOUND) {
+                return StoreResult.notFound(response.getFailureDetail());
+            } else if (Objects.requireNonNull(response.getFailure().getReason()) == ServiceFailure.Reason.CONFLICT) {
+                // InMemoryAssetIndex deletes assets regardless, this case is not intended...
+                return StoreResult.alreadyLeased(response.getFailureDetail());
+            }
+            throw new ControlPlaneConnectionException(String.format("%s with ID %s could not be deleted. %s: %s",
+                    clazz.getSimpleName(), entityId, response.reason(), response.getFailure().getFailureDetail()));
+        }
+
+        return StoreResult.success(entity);
+    }
+
+    protected StoreResult<T> updateEntity(T entity, Class<T> clazz) {
+        var entityString = codec.serialize(entity);
+
+        var request = controlPlane.prepareRequest(HttpMethod.PUT, entityString);
+
+        var response = executeRequest(request);
+
+        if (!response.succeeded()) {
+            monitor.debug(String.format("Failed updating %s. %s: %s", clazz.getSimpleName(), response.reason(),
+                    response.getFailure().getFailureDetail()));
+
+            if (Objects.requireNonNull(response.getFailure().getReason()) == ServiceFailure.Reason.NOT_FOUND) {
+                return StoreResult.notFound(String.format(this.NOT_FOUND_TEMPLATE, entity.getId()));
+            }
+
+            throw new ControlPlaneConnectionException(String.format("%s with could not be updated. %s: %s",
+                    clazz.getSimpleName(), response.reason(), response.getFailure().getFailureDetail()));
+        }
+
+        return StoreResult.success(findById(entity.getId(), clazz));
+
     }
 
     protected ServiceResult<String> executeRequest(Request request) {

@@ -15,16 +15,12 @@
  */
 package de.fraunhofer.iosb.edc.remote.transform;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
-import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.entity.Entity;
-import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.jetbrains.annotations.NotNull;
@@ -49,38 +45,20 @@ public class Codec {
         this.jsonLd = jsonLd;
     }
 
-    public List<Asset> deserializeAssets(String assetJsonString) {
-        var assetsJsonArray = Json.createReader(new StringReader(assetJsonString)).readArray();
-        return assetsJsonArray.stream().map(asset -> deserializeAsset(asset.toString())).toList();
+    public <T extends Entity> List<T> deserializeList(String entitiesJson, Class<T> type) {
+        var assetsJsonArray = Json.createReader(new StringReader(entitiesJson)).readArray();
+        return assetsJsonArray.stream().map(asset -> deserialize(asset.toString(), type)).toList();
     }
 
-    public Asset deserializeAsset(String assetJsonString) {
-        try {
-            var deserialized = typeManager.getMapper().readValue(assetJsonString, Asset.class);
+    public <T extends Entity> T deserialize(String entityJson, Class<T> type) {
+        var assetJsonObject = Json.createReader(new StringReader(entityJson)).readObject();
 
-            // TypeManager assigns new random UUID to the asset. We need the original one though
-            deserialized = deserialized.toBuilder().id(deserialized.getProperty("id").toString()).build();
-            return deserialized;
-        } catch (JsonProcessingException assetDeserializationException) {
-            throw new EdcException(String.format(DESERIALIZATION_ERROR, Asset.class.getSimpleName(), assetDeserializationException.getMessage()),
-                    assetDeserializationException);
-        }
-    }
+        var expanded = jsonLd.expand(assetJsonObject)
+                .orElseThrow(failure -> new EdcException(String.format(EXPANSION_ERROR, failure.getClass().getSimpleName(),
+                        failure.getFailureDetail())));
 
-    public String serialize(@NotNull Entity toSerialize) {
-        var jsonRepresentation =
-                transformers.transform(toSerialize, JsonObject.class).orElseThrow(failure -> new EdcException(String.format(SERIALIZATION_ERROR,
-                        toSerialize.getClass().getSimpleName(), failure.getFailureDetail())));
-
-        var compacted = jsonLd.compact(jsonRepresentation).orElseThrow(failure -> new EdcException(String.format(COMPACTION_ERROR,
-                toSerialize.getClass().getSimpleName(), failure.getFailureDetail())));
-
-        return compacted.toString();
-    }
-
-    public List<PolicyDefinition> deserializePolicyDefinitions(String policyDefinitionJson) {
-        var policyDefinitionsJsonArray = Json.createReader(new StringReader(policyDefinitionJson)).readArray();
-        return policyDefinitionsJsonArray.stream().map(def -> deserializePolicyDefinition(def.toString())).toList();
+        return transformers.transform(expanded, type).orElseThrow(failure -> new EdcException(String.format(DESERIALIZATION_ERROR,
+                type.getSimpleName(), failure.getFailureDetail())));
     }
 
     public PolicyDefinition deserializePolicyDefinition(String policyDefinitionJson) {
@@ -94,7 +72,7 @@ public class Codec {
                 .orElseThrow(failure -> new EdcException(String.format(DESERIALIZATION_ERROR, PolicyDefinition.class.getSimpleName(),
                         failure.getFailureDetail())));
 
-        // Transformer assigns random UUID to the asset. We don't need it.
+        // Transformer assigns random UUID to the asset. We don't need that.
         var policy = policyDefinition.getPolicy().toBuilder().build();
 
         return PolicyDefinition.Builder.newInstance()
@@ -103,28 +81,14 @@ public class Codec {
                 .build();
     }
 
-    public String serializeQuerySpec(QuerySpec spec) {
-        var querySpecSerializationResult =
-                transformers.transform(spec, JsonObject.class).orElseThrow(failure -> new EdcException(String.format(SERIALIZATION_ERROR
-                        , spec.getClass().getSimpleName(), failure.getFailureDetail())));
+    public String serialize(@NotNull Object toSerialize) {
+        var jsonRepresentation =
+                transformers.transform(toSerialize, JsonObject.class).orElseThrow(failure -> new EdcException(String.format(SERIALIZATION_ERROR,
+                        toSerialize.getClass().getSimpleName(), failure.getFailureDetail())));
 
-        return querySpecSerializationResult.toString();
+        var compacted = jsonLd.compact(jsonRepresentation).orElseThrow(failure -> new EdcException(String.format(COMPACTION_ERROR,
+                toSerialize.getClass().getSimpleName(), failure.getFailureDetail())));
+
+        return compacted.toString();
     }
-
-    public List<ContractDefinition> deserializeContractDefinitions(String contractDefinitionsJsonString) {
-        var contractDefinitionsJsonArray = Json.createReader(new StringReader(contractDefinitionsJsonString)).readArray();
-        return contractDefinitionsJsonArray.stream().map(contract -> deserializeContractDefinition(contract.toString())).toList();
-    }
-
-    public ContractDefinition deserializeContractDefinition(String contractDefinitionJsonString) {
-        var contractDefinitionJsonObject = Json.createReader(new StringReader(contractDefinitionJsonString)).readObject();
-
-        var expansionResult =
-                jsonLd.expand(contractDefinitionJsonObject).orElseThrow(failure -> new EdcException(String.format(EXPANSION_ERROR,
-                        failure.getClass().getSimpleName(), failure.getFailureDetail())));
-
-        return transformers.transform(expansionResult, ContractDefinition.class).orElseThrow(failure -> new EdcException(String.format(DESERIALIZATION_ERROR,
-                failure.getClass().getSimpleName(), failure.getFailureDetail())));
-    }
-
 }

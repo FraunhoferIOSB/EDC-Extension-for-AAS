@@ -16,22 +16,21 @@
 package de.fraunhofer.iosb.edc.remote.stores.policy;
 
 import de.fraunhofer.iosb.edc.remote.ControlPlaneConnection;
-import de.fraunhofer.iosb.edc.remote.HttpMethod;
 import de.fraunhofer.iosb.edc.remote.stores.ControlPlaneConnectionHandler;
 import de.fraunhofer.iosb.edc.remote.transform.Codec;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.http.spi.EdcHttpClient;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
-import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.result.StoreResult;
 
-import java.util.Objects;
 import java.util.stream.Stream;
 
-public class RemotePolicyDefinitionStore extends ControlPlaneConnectionHandler implements PolicyDefinitionStore {
+public class RemotePolicyDefinitionStore extends ControlPlaneConnectionHandler<PolicyDefinition> implements PolicyDefinitionStore {
+
+    protected String NOT_FOUND_TEMPLATE = PolicyDefinitionStore.POLICY_NOT_FOUND;
+    protected String EXISTS_TEMPLATE = PolicyDefinitionStore.POLICY_ALREADY_EXISTS;
 
     private RemotePolicyDefinitionStore(Monitor monitor, EdcHttpClient httpClient, Codec codec, ControlPlaneConnection connection) {
         super(monitor, httpClient, codec, connection);
@@ -40,98 +39,27 @@ public class RemotePolicyDefinitionStore extends ControlPlaneConnectionHandler i
 
     @Override
     public PolicyDefinition findById(String policyId) {
-        // Send request
-        var request = controlPlane.prepareRequest(HttpMethod.GET, policyId, null);
-        // Deserialize response
-        var response = executeRequest(request);
-
-        if (response.failed()) {
-            monitor.debug(String.format(POLICY_NOT_FOUND, policyId).concat(String.format(". %s: %s", response.reason(),
-                    response.getFailureDetail())));
-
-            return null;
-        }
-
-        var policyDefinitionJsonString = response.getContent();
-
-        return codec.deserializePolicyDefinition(policyDefinitionJsonString);
+        return findById(policyId, PolicyDefinition.class);
     }
 
     @Override
     public Stream<PolicyDefinition> findAll(QuerySpec spec) {
-        String querySpecString = codec.serializeQuerySpec(spec);
-
-        var request = controlPlane.prepareRequest(HttpMethod.POST, "request", querySpecString);
-
-        var response = executeRequest(request);
-
-        if (response.failed()) {
-            monitor.warning(String.format("Failed querying policy definitions. %s %s", response.reason(), response.getFailureDetail()));
-            return Stream.empty();
-        }
-
-        var policyDefinitionsJsonString = response.getContent();
-
-        return codec.deserializePolicyDefinitions(policyDefinitionsJsonString).stream();
+        return queryEntities(spec, PolicyDefinition.class);
     }
 
     @Override
     public StoreResult<PolicyDefinition> create(PolicyDefinition policyDefinition) {
-        var policyDefinitionString = codec.serialize(policyDefinition);
-
-        var request = controlPlane.prepareRequest(HttpMethod.POST, policyDefinitionString);
-
-        var response = executeRequest(request);
-
-        if (response.failed()) {
-            if (Objects.requireNonNull(response.getFailure().getReason()) == ServiceFailure.Reason.CONFLICT) {
-                return StoreResult.alreadyExists(policyDefinition.getId());
-            }
-            throw new EdcException(String.format(UNEXPECTED_ERROR, response.getFailureDetail()));
-        }
-
-        // To be sure, we fetch the created policy definition from the control plane
-        return StoreResult.success(findById(policyDefinition.getId()));
+        return createEntity(policyDefinition, PolicyDefinition.class);
     }
 
     @Override
     public StoreResult<PolicyDefinition> update(PolicyDefinition policyDefinition) {
-        var policyDefinitionString = codec.serialize(policyDefinition);
-
-        var request = controlPlane.prepareRequest(HttpMethod.PUT, policyDefinition.getId(), policyDefinitionString);
-
-        var response = executeRequest(request);
-
-        if (response.failed()) {
-            if (Objects.requireNonNull(response.getFailure().getReason()) == ServiceFailure.Reason.NOT_FOUND) {
-                return StoreResult.notFound(policyDefinition.getId());
-            }
-            throw new EdcException(String.format(UNEXPECTED_ERROR, response.getFailureDetail()));
-        }
-
-        return StoreResult.success(findById(policyDefinition.getId()));
+        return updateEntity(policyDefinition, PolicyDefinition.class);
     }
 
     @Override
     public StoreResult<PolicyDefinition> delete(String policyDefinitionId) {
-        var toBeDeleted = findById(policyDefinitionId);
-
-        if (toBeDeleted == null) {
-            return StoreResult.notFound(policyDefinitionId);
-        }
-
-        var request = controlPlane.prepareRequest(HttpMethod.DELETE, policyDefinitionId, null);
-
-        var response = executeRequest(request);
-
-        if (response.failed()) {
-            if (Objects.requireNonNull(response.getFailure().getReason()) == ServiceFailure.Reason.NOT_FOUND) {
-                return StoreResult.notFound(policyDefinitionId);
-            }
-            throw new EdcException(String.format(UNEXPECTED_ERROR, response.getFailureDetail()));
-        }
-
-        return StoreResult.success(toBeDeleted);
+        return deleteById(policyDefinitionId, PolicyDefinition.class);
     }
 
     public static class Builder extends ControlPlaneConnectionHandler.Builder<RemotePolicyDefinitionStore, Builder> {

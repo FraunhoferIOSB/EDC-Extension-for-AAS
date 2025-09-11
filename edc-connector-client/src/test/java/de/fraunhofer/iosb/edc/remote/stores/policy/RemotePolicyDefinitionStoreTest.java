@@ -1,5 +1,6 @@
 package de.fraunhofer.iosb.edc.remote.stores.policy;
 
+import de.fraunhofer.iosb.edc.remote.ControlPlaneConnectionException;
 import de.fraunhofer.iosb.edc.remote.stores.AbstractControlPlaneConnectionHandlerTest;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.policy.model.Policy;
@@ -13,6 +14,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.verify;
@@ -25,12 +27,12 @@ class RemotePolicyDefinitionStoreTest extends AbstractControlPlaneConnectionHand
         var querySpec = QuerySpec.none();
         var testSubject = testSubject();
 
-        when(mockCodec.serializeQuerySpec(querySpec)).thenReturn("test-body");
+        when(mockCodec.serialize(querySpec)).thenReturn("test-body");
 
         mockResponseForPost("/policydefinitions/request");
 
         List<PolicyDefinition> policyDefinitions = List.of(getPolicyDefinition(), getPolicyDefinition());
-        when(mockCodec.deserializePolicyDefinitions("test-return-body")).thenReturn(policyDefinitions);
+        when(mockCodec.deserializeList("test-return-body", PolicyDefinition.class)).thenReturn(policyDefinitions);
 
         var response = testSubject.findAll(querySpec);
 
@@ -42,12 +44,12 @@ class RemotePolicyDefinitionStoreTest extends AbstractControlPlaneConnectionHand
         var querySpec = QuerySpec.none();
         var testSubject = testSubject();
 
-        when(mockCodec.serializeQuerySpec(querySpec)).thenReturn("test-body");
+        when(mockCodec.serialize(querySpec)).thenReturn("test-body");
 
         mockResponseForPost("/policydefinitions/request");
 
         List<PolicyDefinition> policyDefinitions = List.of();
-        when(mockCodec.deserializePolicyDefinitions("test-return-body"))
+        when(mockCodec.deserializeList("test-return-body", PolicyDefinition.class))
                 .thenReturn(policyDefinitions);
 
         var response = testSubject.findAll(querySpec);
@@ -92,7 +94,7 @@ class RemotePolicyDefinitionStoreTest extends AbstractControlPlaneConnectionHand
 
         var testSubject = testSubject();
 
-        when(mockCodec.serializeQuerySpec(any())).thenReturn("test");
+        when(mockCodec.serialize(any())).thenReturn("test");
 
         var response = testSubject.findAll(QuerySpec.max());
         assertNotNull(response);
@@ -110,7 +112,7 @@ class RemotePolicyDefinitionStoreTest extends AbstractControlPlaneConnectionHand
                 .monitor(monitor)
                 .build();
 
-        when(mockCodec.serializeQuerySpec(any())).thenReturn(
+        when(mockCodec.serialize(any())).thenReturn(
                 "{" +
                         "  \"@context\": {" +
                         "    \"@vocab\": \"https://w3id.org/edc/v0.0.1/ns/\"" +
@@ -118,10 +120,11 @@ class RemotePolicyDefinitionStoreTest extends AbstractControlPlaneConnectionHand
                         "  \"@type\": \"QuerySpec\"" +
                         "}");
 
-        var response = testSubject.findAll(QuerySpec.max());
-
-        verify(monitor).warning(contains(ServiceFailure.Reason.UNAUTHORIZED.toString()));
-        assertNotNull(response);
+        try {
+            var response = testSubject.findAll(QuerySpec.max());
+            fail();
+        } catch (ControlPlaneConnectionException expected) {
+        }
     }
 
     private RemotePolicyDefinitionStore testSubject() {

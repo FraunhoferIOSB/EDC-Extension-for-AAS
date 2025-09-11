@@ -1,9 +1,9 @@
 package de.fraunhofer.iosb.edc.remote.stores.asset;
 
+import de.fraunhofer.iosb.edc.remote.ControlPlaneConnectionException;
 import de.fraunhofer.iosb.edc.remote.stores.AbstractControlPlaneConnectionHandlerTest;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.spi.query.QuerySpec;
-import org.eclipse.edc.spi.result.ServiceFailure;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -12,9 +12,8 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.contains;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class RemoteAssetIndexTest extends AbstractControlPlaneConnectionHandlerTest {
@@ -24,12 +23,12 @@ class RemoteAssetIndexTest extends AbstractControlPlaneConnectionHandlerTest {
         var querySpec = QuerySpec.none();
         var testSubject = testSubject();
 
-        when(mockCodec.serializeQuerySpec(querySpec)).thenReturn("test-body");
+        when(mockCodec.serialize(querySpec)).thenReturn("test-body");
 
         mockResponseForPost("/assets/request");
 
         List<Asset> assets = List.of(getAsset(), getAsset());
-        when(mockCodec.deserializeAssets("test-return-body")).thenReturn(assets);
+        when(mockCodec.deserializeList("test-return-body", Asset.class)).thenReturn(assets);
 
         var response = testSubject.queryAssets(querySpec);
 
@@ -41,12 +40,12 @@ class RemoteAssetIndexTest extends AbstractControlPlaneConnectionHandlerTest {
         var querySpec = QuerySpec.none();
         var testSubject = testSubject();
 
-        when(mockCodec.serializeQuerySpec(querySpec)).thenReturn("test-body");
+        when(mockCodec.serialize(querySpec)).thenReturn("test-body");
 
         mockResponseForPost("/assets/request");
 
         List<Asset> assets = List.of();
-        when(mockCodec.deserializeAssets("test-return-body")).thenReturn(assets);
+        when(mockCodec.deserializeList("test-return-body", Asset.class)).thenReturn(assets);
 
         var response = testSubject.queryAssets(querySpec);
 
@@ -59,7 +58,7 @@ class RemoteAssetIndexTest extends AbstractControlPlaneConnectionHandlerTest {
         var testSubject = testSubject();
 
         var asset = getAsset();
-        when(mockCodec.deserializeAsset("test-return-body")).thenReturn(asset);
+        when(mockCodec.deserialize("test-return-body", Asset.class)).thenReturn(asset);
 
         mockResponseForGet(String.format("/assets/%s", id));
 
@@ -78,8 +77,6 @@ class RemoteAssetIndexTest extends AbstractControlPlaneConnectionHandlerTest {
 
         var response = testSubject.findById(id);
 
-        verify(monitor).debug(contains(ServiceFailure.Reason.NOT_FOUND.toString()));
-
         assertNull(response);
     }
 
@@ -89,7 +86,7 @@ class RemoteAssetIndexTest extends AbstractControlPlaneConnectionHandlerTest {
 
         var testSubject = testSubject();
 
-        when(mockCodec.serializeQuerySpec(any())).thenReturn("{" +
+        when(mockCodec.serialize(any())).thenReturn("{" +
                 "  \"@context\": {" +
                 "    \"@vocab\": \"https://w3id.org/edc/v0.0.1/ns/\"" +
                 "  }," +
@@ -112,18 +109,18 @@ class RemoteAssetIndexTest extends AbstractControlPlaneConnectionHandlerTest {
                 .monitor(monitor)
                 .build();
 
-        when(mockCodec.serializeQuerySpec(any())).thenReturn(
+        when(mockCodec.serialize(any())).thenReturn(
                 "{" +
                         "  \"@context\": {" +
                         "    \"@vocab\": \"https://w3id.org/edc/v0.0.1/ns/\"" +
                         "  }," +
                         "  \"@type\": \"QuerySpec\"" +
                         "}");
-
-        var response = testSubject.queryAssets(QuerySpec.max());
-
-        verify(monitor).warning(contains(ServiceFailure.Reason.UNAUTHORIZED.toString()));
-        assertNotNull(response);
+        try {
+            var response = testSubject.queryAssets(QuerySpec.max());
+            fail();
+        } catch (ControlPlaneConnectionException expected) {
+        }
     }
 
     private RemoteAssetIndex testSubject() {

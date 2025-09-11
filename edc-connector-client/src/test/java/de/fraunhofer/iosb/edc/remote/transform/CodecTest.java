@@ -8,21 +8,15 @@ import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
-import org.eclipse.edc.policy.model.Action;
-import org.eclipse.edc.policy.model.AtomicConstraint;
-import org.eclipse.edc.policy.model.Duty;
-import org.eclipse.edc.policy.model.LiteralExpression;
-import org.eclipse.edc.policy.model.Operator;
-import org.eclipse.edc.policy.model.OrConstraint;
-import org.eclipse.edc.policy.model.Permission;
+import org.eclipse.edc.policy.model.OdrlNamespace;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.policy.model.Prohibition;
+import org.eclipse.edc.spi.message.Range;
 import org.eclipse.edc.spi.query.Criterion;
+import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -76,6 +70,7 @@ class CodecTest {
         JsonLd jsonLd = runtime.getService(JsonLd.class);
         jsonLd.registerNamespace(VOCAB, EDC_NAMESPACE);
         jsonLd.registerNamespace(AAS_PREFIX, AAS_NAMESPACE);
+        jsonLd.registerNamespace(OdrlNamespace.ODRL_PREFIX, OdrlNamespace.ODRL_SCHEMA);
         testSubject = new Codec(typeTransformerRegistry, typeManager, jsonLd);
     }
 
@@ -93,8 +88,7 @@ class CodecTest {
         var toMatch = getAsset();
         var serializedList = String.format("[%s,%s]", serialized, serialized);
 
-        var deserializedList = testSubject.deserializeAssets(serializedList);
-        // Why is aas: not expanded?
+        var deserializedList = testSubject.deserializeList(serializedList, Asset.class);
         deserializedList.forEach(asset -> compareAssets(toMatch, asset));
     }
 
@@ -102,7 +96,7 @@ class CodecTest {
     void deserializeAsset() throws IOException {
         var serialized = readFile("assetSerialized.json");
 
-        var deserialized = testSubject.deserializeAsset(serialized);
+        var deserialized = testSubject.deserialize(serialized, Asset.class);
 
         var toMatch = getAsset();
         compareAssets(toMatch, deserialized);
@@ -114,19 +108,10 @@ class CodecTest {
         assertEquals(assetA.getDescription(), assetB.getDescription());
         assertEquals(assetA.getDataAddress(), assetB.getDataAddress());
 
-        boolean b = true;
-        for (Map.Entry<String, Object> stringObjectEntry : assetA.getProperties()
-                .entrySet()) {
-            if (stringObjectEntry.getKey().equals("id")) {
-                continue;
-            }
-            if (assetB.getProperty(stringObjectEntry.getKey()) != stringObjectEntry.getValue()) {
-                System.err.println(stringObjectEntry.getKey());
-                b = false;
-                break;
-            }
-        }
-        assertTrue(b);
+        assertTrue(assetA.getProperties()
+                .entrySet().stream()
+                .allMatch(entry -> assetB.getProperty(entry.getKey()).equals(entry.getValue())));
+
         assertTrue(assetA.getPrivateProperties()
                 .entrySet().stream()
                 .allMatch(entry -> assetB.getPrivateProperty(entry.getKey()).equals(entry.getValue())));
@@ -160,7 +145,6 @@ class CodecTest {
         assertEqualsIgnoreWhiteSpace(toMatch, serializationResult);
     }
 
-    @Disabled("deserialization of Action.class not possible ")
     @Test
     void serializePolicyDefinition() throws IOException {
         var policyDefinition = PolicyDefinition.Builder.newInstance()
@@ -170,56 +154,10 @@ class CodecTest {
                         .assignee("my-policy-definition-policy-assignee")
                         .assigner("my-policy-definition-policy-assigner")
                         .inheritsFrom("my-policy-definition-policy-does-not-inherit")
-                        .permissions(List.of(Permission.Builder.newInstance()
-                                        .duty(new Duty()).build(),
-                                Permission.Builder.newInstance()
-                                        .duty(Duty.Builder.newInstance()
-                                                .action(Action.Builder.newInstance()
-                                                        .type("USE")
-                                                        .constraint(OrConstraint.Builder.newInstance()
-                                                                .constraint(AtomicConstraint.Builder.newInstance()
-                                                                        .leftExpression(new LiteralExpression("my-test-expression-left"))
-                                                                        .rightExpression(new LiteralExpression("my-test-expression-left"))
-                                                                        .operator(Operator.GT)
-                                                                        .build())
-                                                                .build())
-                                                        .build())
-                                                .build())
-                                        .build()))
-                        .prohibitions(List.of(Prohibition.Builder.newInstance()
-                                        .remedy(new Duty()).build(),
-                                Prohibition.Builder.newInstance()
-                                        .remedy(Duty.Builder.newInstance()
-                                                .action(Action.Builder.newInstance()
-                                                        .type("USE")
-                                                        .constraint(OrConstraint.Builder.newInstance()
-                                                                .constraint(AtomicConstraint.Builder.newInstance()
-                                                                        .leftExpression(new LiteralExpression("my-test-expression-left"))
-                                                                        .rightExpression(new LiteralExpression("my-test-expression-left"))
-                                                                        .operator(Operator.GT)
-                                                                        .build())
-                                                                .build())
-                                                        .build())
-                                                .build())
-                                        .build()))
-                        .duties(List.of(Duty.Builder.newInstance()
-                                .consequence(new Duty()).build(), Duty.Builder.newInstance()
-                                .consequence(Duty.Builder.newInstance()
-                                        .action(Action.Builder.newInstance()
-                                                .type("USE")
-                                                .constraint(OrConstraint.Builder.newInstance()
-                                                        .constraint(AtomicConstraint.Builder.newInstance()
-                                                                .leftExpression(new LiteralExpression("my-test-expression-left"))
-                                                                .rightExpression(new LiteralExpression("my-test-expression-left"))
-                                                                .operator(Operator.GT)
-                                                                .build())
-                                                        .build())
-                                                .build())
-                                        .build())
-                                .build()))
-                        .build())
-                //.privateProperty("https://admin-shell.io/aas/3/0/test-private-property", "test-private-property-value")
-                //.privateProperty("https://admin-shell.io/aas/3/0/test-private-property-2", "test-private-property-2-value")
+                        .build()
+                )
+                .privateProperty("https://admin-shell.io/aas/3/0/test-private-property", "test-private-property-value")
+                .privateProperty("https://admin-shell.io/aas/3/0/test-private-property-2", "test-private-property-2-value")
                 .build();
 
         var serializationResult = testSubject.serialize(policyDefinition);
@@ -244,6 +182,15 @@ class CodecTest {
 
     @Test
     void serializeQuerySpec() {
+        QuerySpec querySpec = QuerySpec.Builder.newInstance()
+                .range(new Range(0, 31415926)).limit(761370123)
+                .offset(42)
+                .filter(Criterion.criterion("aas:id", "=", "my-test-aas-id"))
+                .build();
+
+        var y = testSubject.serialize(querySpec);
+
+        var z = 3;
     }
 
     @Test

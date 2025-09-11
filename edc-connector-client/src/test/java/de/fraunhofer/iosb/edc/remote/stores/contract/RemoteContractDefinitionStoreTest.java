@@ -24,12 +24,12 @@ class RemoteContractDefinitionStoreTest extends AbstractControlPlaneConnectionHa
         var querySpec = QuerySpec.none();
         var testSubject = testSubject();
 
-        when(mockCodec.serializeQuerySpec(querySpec)).thenReturn("test-body");
+        when(mockCodec.serialize(querySpec)).thenReturn("test-body");
 
         mockResponseForPost("/contractdefinitions/request");
 
         List<ContractDefinition> contractDefinitions = List.of(getContractDefinition(), getContractDefinition());
-        when(mockCodec.deserializeContractDefinitions("test-return-body")).thenReturn(contractDefinitions);
+        when(mockCodec.deserializeList("test-return-body", ContractDefinition.class)).thenReturn(contractDefinitions);
 
         var response = testSubject.findAll(querySpec);
 
@@ -41,12 +41,12 @@ class RemoteContractDefinitionStoreTest extends AbstractControlPlaneConnectionHa
         var querySpec = QuerySpec.none();
         var testSubject = testSubject();
 
-        when(mockCodec.serializeQuerySpec(querySpec)).thenReturn("test-body");
+        when(mockCodec.serialize(querySpec)).thenReturn("test-body");
 
         mockResponseForPost("/contractdefinitions/request");
 
         List<ContractDefinition> contractDefinitions = List.of();
-        when(mockCodec.deserializeContractDefinitions("test-return-body"))
+        when(mockCodec.deserializeList("test-return-body", ContractDefinition.class))
                 .thenReturn(contractDefinitions);
 
         var response = testSubject.findAll(querySpec);
@@ -60,7 +60,7 @@ class RemoteContractDefinitionStoreTest extends AbstractControlPlaneConnectionHa
         var testSubject = testSubject();
 
         var contractDefinition = getContractDefinition();
-        when(mockCodec.deserializeContractDefinition("test-return-body"))
+        when(mockCodec.deserialize("test-return-body", ContractDefinition.class))
                 .thenReturn(contractDefinition);
 
         mockResponseForGet(String.format("/contractdefinitions/%s", id));
@@ -91,7 +91,7 @@ class RemoteContractDefinitionStoreTest extends AbstractControlPlaneConnectionHa
 
         var testSubject = testSubject();
 
-        when(mockCodec.serializeQuerySpec(any())).thenReturn("test");
+        when(mockCodec.serialize(any())).thenReturn("test");
 
         var response = testSubject.findAll(QuerySpec.max());
         assertNotNull(response);
@@ -109,7 +109,7 @@ class RemoteContractDefinitionStoreTest extends AbstractControlPlaneConnectionHa
                 .monitor(monitor)
                 .build();
 
-        when(mockCodec.serializeQuerySpec(any())).thenReturn(
+        when(mockCodec.serialize(any())).thenReturn(
                 "{" +
                         "  \"@context\": {" +
                         "    \"@vocab\": \"https://w3id.org/edc/v0.0.1/ns/\"" +

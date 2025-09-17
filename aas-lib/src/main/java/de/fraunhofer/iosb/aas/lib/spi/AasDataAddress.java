@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import de.fraunhofer.iosb.aas.lib.model.AasProvider;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultReference;
+import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -38,9 +39,9 @@ import java.util.Optional;
 import static de.fraunhofer.iosb.aas.lib.model.impl.Service.CONCEPT_DESCRIPTIONS_PATH;
 import static de.fraunhofer.iosb.aas.lib.model.impl.Service.SHELLS_PATH;
 import static de.fraunhofer.iosb.aas.lib.model.impl.Service.SUBMODELS_PATH;
-import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toMap;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 /**
  * Inspired by org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress
@@ -87,7 +88,7 @@ public class AasDataAddress extends DataAddress {
 
     private AasProvider getProvider() {
         Object provider = Optional
-        .ofNullable(super.getProperties().get(EDC_NAMESPACE + PROVIDER))
+                .ofNullable(super.getProperties().get(EDC_NAMESPACE + PROVIDER))
                 .orElse(super.getProperties().get(PROVIDER));
         if (provider instanceof AasProvider) {
             return (AasProvider) provider;
@@ -134,14 +135,13 @@ public class AasDataAddress extends DataAddress {
         for (var key : getReferenceChain().getKeys()) {
             var value = key.getValue();
             String[] toAppend = switch (key.getType()) {
-                case ASSET_ADMINISTRATION_SHELL -> new String[] { SHELLS_PATH, b64(value) };
-                case SUBMODEL -> new String[] { SUBMODELS_PATH, b64(value) };
-                case CONCEPT_DESCRIPTION -> new String[] { CONCEPT_DESCRIPTIONS_PATH, b64(value) };
+                case ASSET_ADMINISTRATION_SHELL -> new String[]{ SHELLS_PATH, b64(value) };
+                case SUBMODEL -> new String[]{ SUBMODELS_PATH, b64(value) };
+                case CONCEPT_DESCRIPTION -> new String[]{ CONCEPT_DESCRIPTIONS_PATH, b64(value) };
                 case SUBMODEL_ELEMENT, SUBMODEL_ELEMENT_COLLECTION, SUBMODEL_ELEMENT_LIST ->
-                    new String[] { urlBuilder.indexOf("/submodel-elements/") == -1 ? "/submodel-elements/".concat(value)
-                            : ".".concat(value) };
-                default ->
-                    throw new EdcException(new IllegalStateException("Element type not recognized: %s".formatted(key)));
+                        new String[]{ urlBuilder.indexOf("/submodel-elements/") == -1 ? "/submodel-elements/".concat(value)
+                                : ".".concat(value) };
+                default -> throw new EdcException(new IllegalStateException("Element type not recognized: %s".formatted(key)));
             };
 
             urlBuilder.append(String.join("/", toAppend));
@@ -156,7 +156,7 @@ public class AasDataAddress extends DataAddress {
         return Base64.getEncoder().encodeToString(toBeEncoded.getBytes());
     }
 
-    private Reference getReferenceChain() {
+    public Reference getReferenceChain() {
         var referenceChain = properties.get(REFERENCE_CHAIN);
 
         if (referenceChain == null) {
@@ -168,6 +168,18 @@ public class AasDataAddress extends DataAddress {
         }
 
         throw new EdcException(new IllegalStateException(("Faulty reference chain: %s").formatted(referenceChain)));
+    }
+
+    public HttpDataAddress asHttpDataAddress() {
+        HttpDataAddress.Builder httpDataAddress = HttpDataAddress.Builder.newInstance();
+        this.getProvider().getHeaders().forEach(httpDataAddress::addAdditionalHeader);
+
+        return httpDataAddress
+                .baseUrl(this.getAccessUrl().getContent().toString())
+                .method(this.getMethod())
+                .path(this.getPath())
+                .build();
+
     }
 
     @JsonPOJOBuilder(withPrefix = "")

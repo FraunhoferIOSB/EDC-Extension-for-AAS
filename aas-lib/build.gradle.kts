@@ -11,7 +11,8 @@ repositories {
 }
 
 dependencies {
-    implementation("$group:asset-spi:${edcVersion}")
+    implementation("${group}:asset-spi:${edcVersion}")
+    implementation("${group}:data-plane-http-spi:${edcVersion}")
     implementation("org.eclipse.digitaltwin.aas4j:aas4j-model:${aas4jVersion}")
 
     testImplementation("$group:junit:$edcVersion")

@@ -17,7 +17,6 @@ package de.fraunhofer.iosb.app.aas.mapper;
 
 import de.fraunhofer.iosb.aas.lib.model.AasProvider;
 import de.fraunhofer.iosb.aas.lib.spi.AasDataAddress;
-import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import org.eclipse.digitaltwin.aas4j.v3.model.Identifiable;
 import org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes;
 import org.eclipse.digitaltwin.aas4j.v3.model.Referable;
@@ -31,7 +30,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Objects;
-import java.util.function.Supplier;
 
 import static de.fraunhofer.iosb.aas.lib.type.AasConstants.AAS_V30_NAMESPACE;
 
@@ -40,8 +38,6 @@ import static de.fraunhofer.iosb.aas.lib.type.AasConstants.AAS_V30_NAMESPACE;
  */
 public class ElementMapper {
 
-
-    private final Supplier<Boolean> useAasDataAddress = () -> Configuration.getInstance().isUseAasDataPlane();
 
     protected ElementMapper() {
     }
@@ -117,18 +113,7 @@ public class ElementMapper {
                 .aasProvider(provider)
                 .referenceChain(reference)
                 .build();
-        if (this.useAasDataAddress.get()) {
-            return aasDataAddress;
-        } else {
-            var httpDataAddress = HttpDataAddress.Builder.newInstance();
-            provider.getHeaders().forEach(httpDataAddress::addAdditionalHeader);
-            return httpDataAddress
-                    .baseUrl(aasDataAddress.getAccessUrl().getContent().toString())
-                    .method(aasDataAddress.getMethod())
-                    .path(aasDataAddress.getPath())
-                    .build();
-        }
-
+        return aasDataAddress;
     }
 
     protected Reference createReference(KeyTypes type, String value) {

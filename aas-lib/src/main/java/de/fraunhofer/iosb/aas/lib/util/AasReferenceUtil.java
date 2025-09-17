@@ -1,6 +1,7 @@
 package de.fraunhofer.iosb.aas.lib.util;
 
 import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShell;
+import org.eclipse.digitaltwin.aas4j.v3.model.ConceptDescription;
 import org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.digitaltwin.aas4j.v3.model.ReferenceTypes;
@@ -21,6 +22,15 @@ public final class AasReferenceUtil {
                 .build();
     }
 
+    public static Reference toReference(ConceptDescription conceptDescription) {
+        return getReferenceBuilder()
+                .keys(new DefaultKey.Builder()
+                        .type(KeyTypes.CONCEPT_DESCRIPTION)
+                        .value(conceptDescription.getId())
+                        .build())
+                .build();
+    }
+
     public static Reference toReference(Submodel submodel) {
         return getReferenceBuilder()
                 .keys(new DefaultKey.Builder()
@@ -31,19 +41,21 @@ public final class AasReferenceUtil {
     }
 
     public static Reference toReference(Submodel submodel, String idShortPath) {
-        return getReferenceBuilder()
+        List<String> idShortPathList = List.of(idShortPath.split("\\."));
+        var referenceBuilder = getReferenceBuilder()
                 .keys(List.of(
-                                new DefaultKey.Builder()
-                                        .type(KeyTypes.SUBMODEL)
-                                        .value(submodel.getId())
-                                        .build(),
-                                new DefaultKey.Builder()
-                                        .type(KeyTypes.SUBMODEL_ELEMENT)
-                                        .value(idShortPath)
-                                        .build()
-                        )
-                )
-                .build();
+                        new DefaultKey.Builder()
+                                .type(KeyTypes.SUBMODEL)
+                                .value(submodel.getId())
+                                .build())
+                );
+        idShortPathList.forEach(idShort ->
+                referenceBuilder.keys(new DefaultKey.Builder()
+                        .type(KeyTypes.SUBMODEL_ELEMENT)
+                        .value(idShort)
+                        .build()));
+
+        return referenceBuilder.build();
     }
 
     private static DefaultReference.Builder getReferenceBuilder() {

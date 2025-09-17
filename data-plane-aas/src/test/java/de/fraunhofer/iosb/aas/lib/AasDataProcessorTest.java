@@ -103,7 +103,7 @@ class AasDataProcessorTest {
 
     private AasDataAddress getAddress() {
         return AasDataAddress.Builder.newInstance()
-                .aasProvider(new Service(aasUrl)).method(HttpMethod.GET)
+                .aasProvider(new Service.Builder().url(aasUrl).build()).method(HttpMethod.GET)
                 .referenceChain(new DefaultReference.Builder()
                         .keys(List.of(new DefaultKey.Builder().type(KeyTypes.ASSET_ADMINISTRATION_SHELL)
                                 .value(UUID.randomUUID().toString()).build()))

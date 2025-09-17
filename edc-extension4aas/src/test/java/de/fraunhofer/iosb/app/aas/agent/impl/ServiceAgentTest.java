@@ -79,11 +79,11 @@ class ServiceAgentTest {
     }
 
     @Test
-    void test_apply_emptyEnvironment() {
+    void test_apply_emptyGetEnvironment() {
         var emptyEnvironment = getEmptyEnvironment();
         answerWith(emptyEnvironment);
 
-        PipelineResult<Environment> result = testSubject.apply(new Service(mockServerUrl));
+        PipelineResult<Environment> result = testSubject.apply(new Service.Builder().url(mockServerUrl).build());
 
         assertTrue(result.succeeded());
         assertNotNull(result.getContent());
@@ -94,11 +94,11 @@ class ServiceAgentTest {
     }
 
     @Test
-    void test_apply_validEnvironment() {
+    void test_apply_validGetEnvironment() {
         var environment = getEnvironment();
         answerWith(environment);
 
-        PipelineResult<Environment> result = testSubject.apply(new Service(mockServerUrl));
+        PipelineResult<Environment> result = testSubject.apply(new Service.Builder().url(mockServerUrl).build());
 
         assertTrue(result.succeeded());
         assertNotNull(result.getContent());
@@ -108,7 +108,7 @@ class ServiceAgentTest {
 
     @Test
     void testApplyUnknownHost() throws MalformedURLException {
-        var result = testSubject.apply(new Service(new URL("http://anonymous.invalid")));
+        var result = testSubject.apply(new Service.Builder().url(new URL("http://anonymous.invalid")).build());
 
         assertTrue(result.failed());
         assertEquals(WARNING, result.getFailure().getFailureType());
@@ -117,7 +117,7 @@ class ServiceAgentTest {
 
     @Test
     void testApplyUnreachable() throws MalformedURLException {
-        var result = testSubject.apply(new Service(new URL("http://localhost:" + getFreePort())));
+        var result = testSubject.apply(new Service.Builder().url(new URL("http://localhost:" + getFreePort())).build());
 
         assertTrue(result.failed());
         assertEquals(WARNING, result.getFailure().getFailureType());
@@ -127,7 +127,7 @@ class ServiceAgentTest {
     @Test
     void test_apply_notActuallyService() {
         // Here, mock server returns no valid response (it is not an AAS service)
-        var result = testSubject.apply(new Service(mockServerUrl));
+        var result = testSubject.apply(new Service.Builder().url(mockServerUrl).build());
 
         assertTrue(result.failed());
         assertEquals(WARNING, result.getFailure().getFailureType());

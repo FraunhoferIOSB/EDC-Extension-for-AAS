@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 import de.fraunhofer.iosb.aas.lib.auth.AuthenticationMethod;
 import de.fraunhofer.iosb.aas.lib.auth.impl.NoAuth;
 import de.fraunhofer.iosb.aas.lib.net.AasAccessUrl;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 
 import java.net.URL;
 import java.util.HashMap;
@@ -34,8 +35,8 @@ public abstract class AasProvider {
     protected final AuthenticationMethod authentication;
 
     public AasProvider(AasAccessUrl url, AuthenticationMethod authentication) {
-        this.url = url;
-        this.authentication = authentication;
+        this.url = Objects.requireNonNull(url);
+        this.authentication = Objects.requireNonNull(authentication);
     }
 
     public AasProvider(AasAccessUrl url) {
@@ -75,7 +76,7 @@ public abstract class AasProvider {
 
     public static abstract class Builder<B extends Builder<B>> {
         protected AasAccessUrl url;
-        protected AuthenticationMethod authentication;
+        protected AuthenticationMethod authentication = new NoAuth();
         protected List<PolicyBinding> policyBindings = null;
 
         public B policyBindings(List<PolicyBinding> policyBindings) {

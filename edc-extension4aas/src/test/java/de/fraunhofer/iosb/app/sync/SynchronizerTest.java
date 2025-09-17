@@ -72,13 +72,13 @@ public class SynchronizerTest {
         var oldEnvironment = getEmptyEnvironment();
         var newEnvironment = getEnvironment();
 
-        var oldEnvironmentAsset = new EnvironmentToAssetMapper(() -> false).executeSingle(new Service(accessUrl),
+        var oldEnvironmentAsset = new EnvironmentToAssetMapper(() -> false).executeSingle(new Service.Builder().url(accessUrl).build(),
                 oldEnvironment);
-        var newEnvironmentAsset = new EnvironmentToAssetMapper(() -> false).executeSingle(new Service(accessUrl),
+        var newEnvironmentAsset = new EnvironmentToAssetMapper(() -> false).executeSingle(new Service.Builder().url(accessUrl).build(),
                 newEnvironment);
 
-        var pair = new Pair<>(oldEnvironmentAsset.getContent().environment(),
-                newEnvironmentAsset.getContent().environment());
+        var pair = new Pair<>(oldEnvironmentAsset.getContent().getEnvironment(),
+                newEnvironmentAsset.getContent().getEnvironment());
 
         var result = testSubject.apply(List.of(pair));
 
@@ -86,7 +86,7 @@ public class SynchronizerTest {
         assertNotNull(result.getContent());
 
         var shouldBe =
-                new ChangeSet.Builder<Asset, String>().add(flatMapAssets(newEnvironmentAsset.getContent().environment())).build();
+                new ChangeSet.Builder<Asset, String>().add(flatMapAssets(newEnvironmentAsset.getContent().getEnvironment())).build();
 
         assertEquals(shouldBe, result.getContent());
     }
@@ -108,20 +108,20 @@ public class SynchronizerTest {
                 .conceptDescriptions(oldEnvironment.getConceptDescriptions())
                 .build();
 
-        var oldEnvironmentAsset = new EnvironmentToAssetMapper(() -> false).executeSingle(new Service(accessUrl),
+        var oldEnvironmentAsset = new EnvironmentToAssetMapper(() -> false).executeSingle(new Service.Builder().url(accessUrl).build(),
                 oldEnvironment);
-        var newEnvironmentAsset = new EnvironmentToAssetMapper(() -> false).executeSingle(new Service(accessUrl),
+        var newEnvironmentAsset = new EnvironmentToAssetMapper(() -> false).executeSingle(new Service.Builder().url(accessUrl).build(),
                 newEnvironment);
 
-        var pair = new Pair<>(oldEnvironmentAsset.getContent().environment(),
-                newEnvironmentAsset.getContent().environment());
+        var pair = new Pair<>(oldEnvironmentAsset.getContent().getEnvironment(),
+                newEnvironmentAsset.getContent().getEnvironment());
 
         var result = testSubject.apply(List.of(pair));
 
         assertTrue(result.succeeded());
         assertNotNull(result.getContent());
 
-        var emptySubmodelId = getChildren(oldEnvironmentAsset.getContent().environment(), "submodels").stream()
+        var emptySubmodelId = getChildren(oldEnvironmentAsset.getContent().getEnvironment(), "submodels").stream()
                 .filter(asset -> asset.getProperty(AAS_V30_NAMESPACE + "Referable/" + "idShort").equals(emptySubmodel.getIdShort()))
                 .findFirst().orElseThrow()
                 .getId();

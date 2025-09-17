@@ -32,7 +32,7 @@ public class ServiceRepository extends AasProviderRepository<Service> {
 
     public Collection<Asset> getAllEnvironments() {
         return getAll().stream()
-                .map(Service::environment)
+                .map(Service::getEnvironment)
                 .filter(Objects::nonNull)
                 .toList();
     }
@@ -53,7 +53,7 @@ public class ServiceRepository extends AasProviderRepository<Service> {
                 .findAny()
                 .orElseThrow(() ->
                         new IllegalArgumentException("AAS service with URL %s not found".formatted(serviceUrl)))
-                .environment();
+                .getEnvironment();
     }
 
     @Override

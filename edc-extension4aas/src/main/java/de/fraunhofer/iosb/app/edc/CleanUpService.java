@@ -50,8 +50,8 @@ public class CleanUpService implements SelfDescriptionChangeListener {
 
     @Override
     public void removed(Service service) {
-        if (service.environment() != null) {
-            servicePipeline.execute(service.environment());
+        if (service.getEnvironment() != null) {
+            servicePipeline.execute(service.getEnvironment());
         }
     }
 
@@ -59,7 +59,7 @@ public class CleanUpService implements SelfDescriptionChangeListener {
     public void removed(Registry registry) {
         Optional.ofNullable(registry.services())
                 .orElse(List.of()).stream()
-                .map(Service::environment)
+                .map(Service::getEnvironment)
                 .forEach(servicePipeline::execute);
     }
 

@@ -82,7 +82,7 @@ public class SelfDescriptionController {
 
         if (registry != null) {
             var environments = registry.stream()
-                    .map(Service::environment)
+                    .map(Service::getEnvironment)
                     .toList();
 
             return Response.ok(environmentsAsSelfDescriptionString(environments)).build();
@@ -104,7 +104,7 @@ public class SelfDescriptionController {
         var environments = new ArrayList<>(serviceRepository.getAllEnvironments());
 
         environments.addAll(registryRepository.getAllEnvironments().stream()
-                .map(Service::environment)
+                .map(Service::getEnvironment)
                 .toList());
 
         return environmentsAsSelfDescriptionString(environments);

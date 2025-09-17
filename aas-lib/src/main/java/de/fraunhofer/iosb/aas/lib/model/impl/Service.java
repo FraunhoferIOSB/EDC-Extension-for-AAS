@@ -21,7 +21,6 @@ import de.fraunhofer.iosb.aas.lib.model.PolicyBinding;
 import de.fraunhofer.iosb.aas.lib.net.AasAccessUrl;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -60,12 +59,16 @@ public final class Service extends AasProvider {
         return this.toBuilder().environment(environment).build();
     }
 
-    public Asset environment() {
+    public Asset getEnvironment() {
         return environment;
     }
 
 
-    public @Nullable List<PolicyBinding> policyBindings() {
+    public boolean hasSelectiveRegistration() {
+        return null != policyBindings;
+    }
+
+    public List<PolicyBinding> getPolicyBindings() {
         return policyBindings;
     }
 

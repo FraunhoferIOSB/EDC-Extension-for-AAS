@@ -180,7 +180,9 @@ public class AasExtension implements ServiceExtension {
         var configInstance = Configuration.getInstance();
 
         if (Objects.nonNull(configInstance.getRemoteAasLocation())) {
-            serviceRepository.create(new Service(configInstance.getRemoteAasLocation()));
+            serviceRepository.create(new Service.Builder()
+                    .url(configInstance.getRemoteAasLocation())
+                    .build());
         }
 
         if (Objects.isNull(configInstance.getLocalAasModelPath())) {
@@ -209,7 +211,9 @@ public class AasExtension implements ServiceExtension {
         // - has a valid certificate OR
         // - has a self-signed one AND we accept self-signed
         if (isConnectionTrusted(serviceUrl) || (configInstance.isAllowSelfSignedCertificates() && getSelfSignedCertificate(serviceUrl).succeeded())) {
-            serviceRepository.create(new Service(serviceUrl));
+            serviceRepository.create(new Service.Builder()
+                    .url(serviceUrl)
+                    .build());
         } else {
             aasController.stopService(serviceUrl);
             monitor.severe("AAS service uses self-signed (not allowed) or otherwise invalid certificate.");
@@ -225,4 +229,3 @@ public class AasExtension implements ServiceExtension {
         aasController.stopServices();
     }
 }
-

@@ -110,7 +110,11 @@ public class Endpoint {
         if (serviceUrl.failed()) {
             return Response.status(Status.BAD_REQUEST).entity(serviceUrl.getFailureDetail()).build();
         }
-        var service = auth == null ? new Service(serviceUrl.getContent()) : new Service(serviceUrl.getContent(), auth);
+        Service service = new Service.Builder()
+                .url(serviceUrl.getContent())
+                .authentication(auth)
+                .build();
+
         return createEntity(serviceRepository, service);
     }
 
@@ -181,7 +185,10 @@ public class Endpoint {
         }
 
         // From here, do the same as if it were a remote service.
-        try (var creationResponse = createEntity(serviceRepository, new Service(serviceAccessUrl))) {
+        Service service = new Service.Builder()
+                .url(serviceAccessUrl)
+                .build();
+        try (var creationResponse = createEntity(serviceRepository, service)) {
             if (creationResponse.getStatusInfo().getFamily().equals(Status.Family.SUCCESSFUL)) {
                 return Response.status(Status.CREATED).entity(serviceAccessUrl).build();
             } else {

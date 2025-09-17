@@ -18,7 +18,6 @@ package de.fraunhofer.iosb.aas.lib.model;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import de.fraunhofer.iosb.aas.lib.auth.AuthenticationMethod;
 import de.fraunhofer.iosb.aas.lib.auth.impl.NoAuth;
-import de.fraunhofer.iosb.aas.lib.model.impl.Service;
 import de.fraunhofer.iosb.aas.lib.net.AasAccessUrl;
 
 import java.net.URL;

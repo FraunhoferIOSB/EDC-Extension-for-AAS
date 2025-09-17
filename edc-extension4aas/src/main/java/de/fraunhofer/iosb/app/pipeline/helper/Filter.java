@@ -54,7 +54,7 @@ public class Filter<T> extends PipelineStep<Collection<T>, Collection<T>> {
         if (filtered.size() != ts.size()) {
             var messages = new ArrayList<String>();
             messages.add(String.format("Filtered %s elements", ts.size() - filtered.size()));
-            
+
             return PipelineResult.recoverableFailure(filtered, PipelineFailure.info(messages));
         }
         return PipelineResult.success(filtered);

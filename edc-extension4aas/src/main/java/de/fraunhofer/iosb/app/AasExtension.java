@@ -181,7 +181,7 @@ public class AasExtension implements ServiceExtension {
 
         if (Objects.nonNull(configInstance.getRemoteAasLocation())) {
             serviceRepository.create(new Service.Builder()
-                    .url(configInstance.getRemoteAasLocation())
+                    .withUrl(configInstance.getRemoteAasLocation())
                     .build());
         }
 
@@ -212,7 +212,7 @@ public class AasExtension implements ServiceExtension {
         // - has a self-signed one AND we accept self-signed
         if (isConnectionTrusted(serviceUrl) || (configInstance.isAllowSelfSignedCertificates() && getSelfSignedCertificate(serviceUrl).succeeded())) {
             serviceRepository.create(new Service.Builder()
-                    .url(serviceUrl)
+                    .withUrl(serviceUrl)
                     .build());
         } else {
             aasController.stopService(serviceUrl);

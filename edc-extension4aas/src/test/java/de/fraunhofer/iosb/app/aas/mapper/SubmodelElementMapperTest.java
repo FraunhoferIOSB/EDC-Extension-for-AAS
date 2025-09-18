@@ -86,7 +86,7 @@ class SubmodelElementMapperTest {
 
     private Service mockService() {
         try {
-            return new Service.Builder().url(new URL("https://test-url:1234/api/v3.0")).build();
+            return new Service.Builder().withUrl(new URL("https://test-url:1234/api/v3.0")).build();
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }

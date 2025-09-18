@@ -15,6 +15,8 @@
  */
 package de.fraunhofer.iosb.aas.lib.auth.impl;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import de.fraunhofer.iosb.aas.lib.auth.AuthenticationMethod;
 
 import java.util.AbstractMap;
@@ -29,10 +31,12 @@ public class ApiKey extends AuthenticationMethod {
     private final String keyName;
     private final String keyValue;
 
-    public ApiKey(String key, String keyValue) {
-        this.keyName = key;
+    @JsonCreator
+    public ApiKey(@JsonProperty("keyName") String keyName, @JsonProperty("keyValue") String keyValue) {
+        this.keyName = keyName;
         this.keyValue = keyValue;
     }
+
 
     @Override
     public Map.Entry<String, String> getHeader() {

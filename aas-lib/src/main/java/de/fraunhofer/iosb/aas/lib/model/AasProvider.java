@@ -78,12 +78,12 @@ public abstract class AasProvider {
         protected AuthenticationMethod authentication = new NoAuth();
         protected List<PolicyBinding> policyBindings = null;
 
-        public B policyBindings(List<PolicyBinding> policyBindings) {
+        public B withPolicyBindings(List<PolicyBinding> policyBindings) {
             this.policyBindings = policyBindings;
             return self();
         }
 
-        public B url(URL url) {
+        public B withUrl(URL url) {
             this.url = new AasAccessUrl(url);
             return self();
         }
@@ -93,7 +93,7 @@ public abstract class AasProvider {
             return self();
         }
 
-        public B authentication(AuthenticationMethod authentication) {
+        public B withAuthenticationMethod(AuthenticationMethod authentication) {
             this.authentication = Objects.requireNonNull(authentication);
             return self();
         }

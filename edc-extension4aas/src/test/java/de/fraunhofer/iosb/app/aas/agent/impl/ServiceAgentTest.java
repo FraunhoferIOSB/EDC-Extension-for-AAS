@@ -37,11 +37,11 @@ import java.net.UnknownHostException;
 import static de.fraunhofer.iosb.aas.lib.model.impl.Service.CONCEPT_DESCRIPTIONS_PATH;
 import static de.fraunhofer.iosb.aas.lib.model.impl.Service.SHELLS_PATH;
 import static de.fraunhofer.iosb.aas.lib.model.impl.Service.SUBMODELS_PATH;
+import static de.fraunhofer.iosb.aas.test.StringMethods.resultOfCollection;
 import static de.fraunhofer.iosb.api.model.HttpMethod.GET;
 import static de.fraunhofer.iosb.app.pipeline.PipelineFailure.Type.WARNING;
 import static de.fraunhofer.iosb.app.testutils.AasCreator.getEmptyEnvironment;
 import static de.fraunhofer.iosb.app.testutils.AasCreator.getEnvironment;
-import static de.fraunhofer.iosb.app.testutils.StringMethods.resultOfCollection;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -83,7 +83,7 @@ class ServiceAgentTest {
         var emptyEnvironment = getEmptyEnvironment();
         answerWith(emptyEnvironment);
 
-        PipelineResult<Environment> result = testSubject.apply(new Service.Builder().url(mockServerUrl).build());
+        PipelineResult<Environment> result = testSubject.apply(new Service.Builder().withUrl(mockServerUrl).build());
 
         assertTrue(result.succeeded());
         assertNotNull(result.getContent());
@@ -98,7 +98,7 @@ class ServiceAgentTest {
         var environment = getEnvironment();
         answerWith(environment);
 
-        PipelineResult<Environment> result = testSubject.apply(new Service.Builder().url(mockServerUrl).build());
+        PipelineResult<Environment> result = testSubject.apply(new Service.Builder().withUrl(mockServerUrl).build());
 
         assertTrue(result.succeeded());
         assertNotNull(result.getContent());
@@ -108,7 +108,7 @@ class ServiceAgentTest {
 
     @Test
     void testApplyUnknownHost() throws MalformedURLException {
-        var result = testSubject.apply(new Service.Builder().url(new URL("http://anonymous.invalid")).build());
+        var result = testSubject.apply(new Service.Builder().withUrl(new URL("http://anonymous.invalid")).build());
 
         assertTrue(result.failed());
         assertEquals(WARNING, result.getFailure().getFailureType());
@@ -117,7 +117,7 @@ class ServiceAgentTest {
 
     @Test
     void testApplyUnreachable() throws MalformedURLException {
-        var result = testSubject.apply(new Service.Builder().url(new URL("http://localhost:" + getFreePort())).build());
+        var result = testSubject.apply(new Service.Builder().withUrl(new URL("http://localhost:" + getFreePort())).build());
 
         assertTrue(result.failed());
         assertEquals(WARNING, result.getFailure().getFailureType());
@@ -127,7 +127,7 @@ class ServiceAgentTest {
     @Test
     void test_apply_notActuallyService() {
         // Here, mock server returns no valid response (it is not an AAS service)
-        var result = testSubject.apply(new Service.Builder().url(mockServerUrl).build());
+        var result = testSubject.apply(new Service.Builder().withUrl(mockServerUrl).build());
 
         assertTrue(result.failed());
         assertEquals(WARNING, result.getFailure().getFailureType());

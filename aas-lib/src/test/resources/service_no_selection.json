@@ -1,0 +1,9 @@
+{
+  "url": "https://localhost:443/api/v3.0",
+  "authenticationMethod": {
+    "type": "api-key",
+    "keyName": "x-api-key",
+    "keyValue": "password"
+  },
+  "policyBindings": []
+}

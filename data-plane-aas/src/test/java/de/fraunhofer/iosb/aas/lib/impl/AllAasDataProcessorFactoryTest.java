@@ -64,7 +64,7 @@ class AllAasDataProcessorFactoryTest {
 
     private AasDataAddress getDataAddress(URL baseUrl) {
         return AasDataAddress.Builder.newInstance()
-                .aasProvider(new Service.Builder().url(baseUrl).build())
+                .aasProvider(new Service.Builder().withUrl(baseUrl).build())
                 .method("GET")
                 .referenceChain(new DefaultReference())
                 .build();

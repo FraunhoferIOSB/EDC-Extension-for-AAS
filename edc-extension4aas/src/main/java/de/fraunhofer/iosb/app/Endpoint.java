@@ -107,15 +107,32 @@ public class Endpoint {
     @Path(SERVICE_PATH)
     public Response createService(@QueryParam("url") String serviceUrlString, AuthenticationMethod auth) {
         monitor.info("POST /%s".formatted(SERVICE_PATH));
-        var serviceUrl = parseUrl(serviceUrlString);
-        if (serviceUrl.failed()) {
-            return Response.status(Status.BAD_REQUEST).entity(serviceUrl.getFailureDetail()).build();
+        var urlParseResult = parseUrl(serviceUrlString);
+
+        if (urlParseResult.failed()) {
+            return Response.status(Status.BAD_REQUEST).entity(urlParseResult.getFailureDetail()).build();
         }
+
         Service service = new Service.Builder()
-                .url(serviceUrl.getContent())
-                .authentication(null != auth? auth: new NoAuth())
+                .withUrl(urlParseResult.getContent())
+                .withAuthenticationMethod(null != auth? auth: new NoAuth())
                 .build();
 
+        return createEntity(serviceRepository, service);
+    }
+
+
+    /**
+     * Register an AAS service to this extension
+     *
+     * @param service Serialized form of a {@link Service}
+     *
+     * @return Status message about the success of this operation.
+     */
+    @POST
+    @Path(SERVICE_PATH)
+    public Response createService(Service service) {
+        monitor.info("POST /%s".formatted(SERVICE_PATH));
         return createEntity(serviceRepository, service);
     }
 
@@ -187,7 +204,7 @@ public class Endpoint {
 
         // From here, do the same as if it were a remote service.
         Service service = new Service.Builder()
-                .url(serviceAccessUrl)
+                .withUrl(serviceAccessUrl)
                 .build();
         try (var creationResponse = createEntity(serviceRepository, service)) {
             if (creationResponse.getStatusInfo().getFamily().equals(Status.Family.SUCCESSFUL)) {

@@ -73,7 +73,7 @@ class AasDataSourceFactoryTest {
 
         when(mockedDataFlowStartMessage.getSourceDataAddress())
                 .thenReturn(AasDataAddress.Builder.newInstance()
-                        .aasProvider(new Service.Builder().url(accessUrl).build())
+                        .aasProvider(new Service.Builder().withUrl(accessUrl).build())
                         .build());
 
         // Destination of not type AasData

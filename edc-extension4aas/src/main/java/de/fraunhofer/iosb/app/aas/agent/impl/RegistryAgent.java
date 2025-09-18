@@ -134,7 +134,7 @@ public class RegistryAgent extends AasAgent<Registry, Map<Service, Environment>>
         for (URL submodelUrl : submodelEndpointUrlsSorted) {
             for (SubmodelDescriptor descriptor : submodelDescriptors) {
                 Service service = new Service.Builder()
-                        .url(getBaseUrl(submodelUrl))
+                        .withUrl(getBaseUrl(submodelUrl))
                         .build();
 
                 var descriptorAsSubmodel = asSubmodel(descriptor);
@@ -159,7 +159,7 @@ public class RegistryAgent extends AasAgent<Registry, Map<Service, Environment>>
         for (URL shellUrl : shellEndpointUrlsSorted) {
             for (AssetAdministrationShellDescriptor descriptor : shellDescriptors) {
                 Service service = new Service.Builder()
-                        .url(getBaseUrl(shellUrl))
+                        .withUrl(getBaseUrl(shellUrl))
                         .build();
                 var descriptorAsEnvironment = asEnvironment(descriptor);
 

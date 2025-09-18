@@ -29,7 +29,7 @@ class ServiceTest {
 
     @Test
     void testWithReturnsDifferentObjectReference() throws MalformedURLException {
-        Service myService = new Service.Builder().url(new URL("http://aas-access-url")).build();
+        Service myService = new Service.Builder().withUrl(new URL("http://aas-access-url")).build();
 
         var environment = Asset.Builder.newInstance().build();
         Service withedService = myService.with(environment);

@@ -37,7 +37,7 @@ class AasDataAddressTest {
     void test_build_accessUrlBuiltCorrectly() throws MalformedURLException {
         var addressBuilder = AasDataAddress.Builder.newInstance();
 
-        addressBuilder.aasProvider(new Service.Builder().url(new URL("http://localhost:8080")).build());
+        addressBuilder.aasProvider(new Service.Builder().withUrl(new URL("http://localhost:8080")).build());
         addressBuilder.path("/path/to/resource");
 
         var address = addressBuilder.build();
@@ -51,7 +51,7 @@ class AasDataAddressTest {
     void test_build_accessUrlBuiltCorrectlyWithProvider() throws MalformedURLException {
         var addressBuilder = AasDataAddress.Builder.newInstance();
 
-        addressBuilder.aasProvider(new Service.Builder().url(new URL("http://aas-provider:8081")).build());
+        addressBuilder.aasProvider(new Service.Builder().withUrl(new URL("http://aas-provider:8081")).build());
 
         addressBuilder.path("/path/to/resource");
 

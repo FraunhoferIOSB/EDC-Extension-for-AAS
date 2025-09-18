@@ -35,13 +35,13 @@ import java.util.Optional;
 
 import static de.fraunhofer.iosb.aas.lib.model.impl.Registry.SHELL_DESCRIPTORS_PATH;
 import static de.fraunhofer.iosb.aas.lib.model.impl.Registry.SUBMODEL_DESCRIPTORS_PATH;
+import static de.fraunhofer.iosb.aas.test.StringMethods.resultOf;
 import static de.fraunhofer.iosb.api.model.HttpMethod.GET;
 import static de.fraunhofer.iosb.app.pipeline.PipelineFailure.Type.WARNING;
 import static de.fraunhofer.iosb.app.testutils.RegistryElementCreator.getEmptyShellDescriptor;
 import static de.fraunhofer.iosb.app.testutils.RegistryElementCreator.getEmptySubmodelDescriptor;
 import static de.fraunhofer.iosb.app.testutils.RegistryElementCreator.getShellDescriptor;
 import static de.fraunhofer.iosb.app.testutils.RegistryElementCreator.getSubmodelDescriptor;
-import static de.fraunhofer.iosb.app.testutils.StringMethods.resultOf;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -97,7 +97,7 @@ class RegistryAgentTest {
         assertEquals(1, bodyAsEnvironment.size());
 
         // We know the endpoint url from getEmptyShellDescriptor()...
-        var env = bodyAsEnvironment.get(new Service.Builder().url(new URL("https://localhost:12345")).build());
+        var env = bodyAsEnvironment.get(new Service.Builder().withUrl(new URL("https://localhost:12345")).build());
 
         var shell = Optional.ofNullable(env.getAssetAdministrationShells().get(0)).orElseThrow();
 
@@ -130,7 +130,7 @@ class RegistryAgentTest {
 
         assertEquals(1, bodyAsEnvironment.size());
 
-        var env = bodyAsEnvironment.get(new Service.Builder().url(new URL("https://localhost:12345")).build());
+        var env = bodyAsEnvironment.get(new Service.Builder().withUrl(new URL("https://localhost:12345")).build());
 
         var shell = Optional.ofNullable(env.getAssetAdministrationShells().get(0)).orElseThrow();
 
@@ -162,7 +162,7 @@ class RegistryAgentTest {
         assertEquals(1, bodyAsEnvironment.size());
 
         var submodel = Optional.ofNullable(Optional
-                        .ofNullable(bodyAsEnvironment.get(new Service.Builder().url(new URL("https://localhost:12345")).build()))
+                        .ofNullable(bodyAsEnvironment.get(new Service.Builder().withUrl(new URL("https://localhost:12345")).build()))
                         .orElseThrow()
                         .getSubmodels()
                         .get(0))
@@ -196,7 +196,7 @@ class RegistryAgentTest {
         assertEquals(1, bodyAsEnvironment.size());
 
         var submodel = Optional.ofNullable(Optional
-                        .ofNullable(bodyAsEnvironment.get(new Service.Builder().url(new URL("https://localhost:12345")).build()))
+                        .ofNullable(bodyAsEnvironment.get(new Service.Builder().withUrl(new URL("https://localhost:12345")).build()))
                         .orElseThrow()
                         .getSubmodels()
                         .get(0))

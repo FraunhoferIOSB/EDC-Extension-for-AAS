@@ -28,6 +28,8 @@ dependencies {
     implementation("${group}:json-ld-spi:${edcVersion}") // Add aas NS to context
     implementation("${group}:policy-engine-lib:${edcVersion}")
 
+    testImplementation(testFixtures(project(":aas-lib")))
+
     testImplementation("$group:junit:$edcVersion")
     testImplementation("org.glassfish.jersey.core:jersey-common:$jerseyVersion")
     testImplementation("org.mockito:mockito-core:${mockitoVersion}")

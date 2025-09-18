@@ -15,8 +15,8 @@
  */
 package de.fraunhofer.iosb.app.controller;
 
+import de.fraunhofer.iosb.aas.test.FileManager;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
-import de.fraunhofer.iosb.app.testutils.FileManager;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;

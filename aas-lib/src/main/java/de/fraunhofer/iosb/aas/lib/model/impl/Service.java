@@ -15,6 +15,7 @@
  */
 package de.fraunhofer.iosb.aas.lib.model.impl;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import de.fraunhofer.iosb.aas.lib.auth.AuthenticationMethod;
 import de.fraunhofer.iosb.aas.lib.model.AasProvider;
 import de.fraunhofer.iosb.aas.lib.model.PolicyBinding;
@@ -27,6 +28,7 @@ import java.util.List;
 /**
  * An AAS service representation as seen in <a href="https://github.com/FraunhoferIOSB/FAAAST-Service">FA³ST Service</a>
  */
+@JsonDeserialize(builder = Service.Builder.class)
 public final class Service extends AasProvider {
 
     public static final String SHELLS_PATH = "shells";
@@ -82,8 +84,8 @@ public final class Service extends AasProvider {
     private Builder toBuilder() {
         return new Builder()
                 .aasAccessUrl(this.url)
-                .authentication(this.authentication)
-                .policyBindings(this.policyBindings)
+                .withAuthenticationMethod(this.authentication)
+                .withPolicyBindings(this.policyBindings)
                 .environment(this.environment);
     }
 

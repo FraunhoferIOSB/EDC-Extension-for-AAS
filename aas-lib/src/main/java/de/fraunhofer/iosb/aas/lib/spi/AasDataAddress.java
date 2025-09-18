@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import de.fraunhofer.iosb.aas.lib.model.AasProvider;
+import org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultReference;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
@@ -32,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
 import java.net.URL;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -54,12 +56,12 @@ public class AasDataAddress extends DataAddress {
     public static final String AAS_DATA_TYPE = "AasData";
 
     // See aas4j operation
-    public static final String OPERATION = "operation";
     private static final String ADDITIONAL_HEADER = "header:";
     private static final String METHOD = "method";
     private static final String PROVIDER = "AAS-Provider";
     private static final String REFERENCE_CHAIN = "referenceChain";
     private static final String PATH = "PATH";
+    public static final String OPERATION_NAME = KeyTypes.OPERATION.name().toLowerCase(Locale.ROOT);
 
     private AasDataAddress() {
         super();
@@ -67,11 +69,11 @@ public class AasDataAddress extends DataAddress {
     }
 
     public boolean isOperation() {
-        return this.hasProperty(OPERATION);
+        return this.hasProperty(OPERATION_NAME);
     }
 
     public @Nullable String getOperation() {
-        return isOperation() ? this.getStringProperty(OPERATION) : null;
+        return isOperation() ? this.getStringProperty(OPERATION_NAME) : null;
     }
 
     @JsonIgnore
@@ -131,14 +133,15 @@ public class AasDataAddress extends DataAddress {
 
     private String referenceChainAsPath() {
         StringBuilder urlBuilder = new StringBuilder();
-
         for (var key : getReferenceChain().getKeys()) {
             var value = key.getValue();
             String[] toAppend = switch (key.getType()) {
                 case ASSET_ADMINISTRATION_SHELL -> new String[]{ SHELLS_PATH, b64(value) };
                 case SUBMODEL -> new String[]{ SUBMODELS_PATH, b64(value) };
                 case CONCEPT_DESCRIPTION -> new String[]{ CONCEPT_DESCRIPTIONS_PATH, b64(value) };
-                case SUBMODEL_ELEMENT, SUBMODEL_ELEMENT_COLLECTION, SUBMODEL_ELEMENT_LIST ->
+                case SUBMODEL_ELEMENT, SUBMODEL_ELEMENT_COLLECTION, SUBMODEL_ELEMENT_LIST, PROPERTY,
+                     ANNOTATED_RELATIONSHIP_ELEMENT, RELATIONSHIP_ELEMENT, DATA_ELEMENT, MULTI_LANGUAGE_PROPERTY, RANGE, FILE, BLOB,
+                     REFERENCE_ELEMENT, CAPABILITY, ENTITY, EVENT_ELEMENT, BASIC_EVENT_ELEMENT, OPERATION ->
                         new String[]{ urlBuilder.indexOf("/submodel-elements/") == -1 ? "/submodel-elements/".concat(value)
                                 : ".".concat(value) };
                 default -> throw new EdcException(new IllegalStateException("Element type not recognized: %s".formatted(key)));
@@ -216,7 +219,7 @@ public class AasDataAddress extends DataAddress {
          * consumer to provider (during "compaction" phase when serializing the DA)
          */
         public Builder operation(String operation) {
-            this.property(OPERATION, operation);
+            this.property(OPERATION_NAME, operation);
             return this;
         }
 

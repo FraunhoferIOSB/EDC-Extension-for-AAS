@@ -19,7 +19,6 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 import de.fraunhofer.iosb.aas.lib.auth.AuthenticationMethod;
 import de.fraunhofer.iosb.aas.lib.auth.impl.NoAuth;
 import de.fraunhofer.iosb.aas.lib.net.AasAccessUrl;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 
 import java.net.URL;
 import java.util.HashMap;
@@ -95,7 +94,7 @@ public abstract class AasProvider {
         }
 
         public B authentication(AuthenticationMethod authentication) {
-            this.authentication = authentication;
+            this.authentication = Objects.requireNonNull(authentication);
             return self();
         }
 

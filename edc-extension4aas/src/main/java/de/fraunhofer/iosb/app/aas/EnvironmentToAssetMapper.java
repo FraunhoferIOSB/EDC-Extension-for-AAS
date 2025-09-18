@@ -111,11 +111,12 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<Service, Environm
             conceptDescriptions = handleConceptDescriptions(environment.getConceptDescriptions(), service);
         }
 
-        var selectedAasElements = service.getPolicyBindings().stream()
-                .map(PolicyBinding::referredElement)
-                .toList();
 
         if (service.hasSelectiveRegistration()) {
+            var selectedAasElements = service.getPolicyBindings().stream()
+                    .map(PolicyBinding::referredElement)
+                    .toList();
+
             submodels = filterBySelection(submodels, selectedAasElements);
             shells = filterBySelection(shells, selectedAasElements);
             conceptDescriptions = filterBySelection(conceptDescriptions, selectedAasElements);

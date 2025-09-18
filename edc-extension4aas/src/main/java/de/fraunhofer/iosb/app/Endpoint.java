@@ -16,6 +16,7 @@
 package de.fraunhofer.iosb.app;
 
 import de.fraunhofer.iosb.aas.lib.auth.AuthenticationMethod;
+import de.fraunhofer.iosb.aas.lib.auth.impl.NoAuth;
 import de.fraunhofer.iosb.aas.lib.model.AasProvider;
 import de.fraunhofer.iosb.aas.lib.model.impl.Registry;
 import de.fraunhofer.iosb.aas.lib.model.impl.Service;
@@ -112,7 +113,7 @@ public class Endpoint {
         }
         Service service = new Service.Builder()
                 .url(serviceUrl.getContent())
-                .authentication(auth)
+                .authentication(null != auth? auth: new NoAuth())
                 .build();
 
         return createEntity(serviceRepository, service);

@@ -109,11 +109,10 @@ public class ElementMapper {
     }
 
     protected DataAddress createDataAddress(AasProvider provider, Reference reference) {
-        var aasDataAddress = AasDataAddress.Builder.newInstance()
+        return AasDataAddress.Builder.newInstance()
                 .aasProvider(provider)
                 .referenceChain(reference)
                 .build();
-        return aasDataAddress;
     }
 
     protected Reference createReference(KeyTypes type, String value) {

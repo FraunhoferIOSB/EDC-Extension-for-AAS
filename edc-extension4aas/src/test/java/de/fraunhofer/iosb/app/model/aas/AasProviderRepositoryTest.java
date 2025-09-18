@@ -36,8 +36,8 @@ class AasProviderRepositoryTest {
     @Test
     void test_create_multipleEqualServices() {
         AasProviderRepository<Service> testSubject = new ServiceRepository();
-        assertTrue(testSubject.create(new Service(accessUrl)));
-        assertFalse(testSubject.create(new Service(accessUrl)));
+        assertTrue(testSubject.create(new Service.Builder().url(accessUrl).build()));
+        assertFalse(testSubject.create(new Service.Builder().url(accessUrl).build()));
     }
 
     @Test

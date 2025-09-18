@@ -97,7 +97,7 @@ class RegistryAgentTest {
         assertEquals(1, bodyAsEnvironment.size());
 
         // We know the endpoint url from getEmptyShellDescriptor()...
-        var env = bodyAsEnvironment.get(new Service(new URL("https://localhost:12345")));
+        var env = bodyAsEnvironment.get(new Service.Builder().url(new URL("https://localhost:12345")).build());
 
         var shell = Optional.ofNullable(env.getAssetAdministrationShells().get(0)).orElseThrow();
 
@@ -130,7 +130,7 @@ class RegistryAgentTest {
 
         assertEquals(1, bodyAsEnvironment.size());
 
-        var env = bodyAsEnvironment.get(new Service(new URL("https://localhost:12345")));
+        var env = bodyAsEnvironment.get(new Service.Builder().url(new URL("https://localhost:12345")).build());
 
         var shell = Optional.ofNullable(env.getAssetAdministrationShells().get(0)).orElseThrow();
 
@@ -162,7 +162,7 @@ class RegistryAgentTest {
         assertEquals(1, bodyAsEnvironment.size());
 
         var submodel = Optional.ofNullable(Optional
-                        .ofNullable(bodyAsEnvironment.get(new Service(new URL("https://localhost:12345"))))
+                        .ofNullable(bodyAsEnvironment.get(new Service.Builder().url(new URL("https://localhost:12345")).build()))
                         .orElseThrow()
                         .getSubmodels()
                         .get(0))
@@ -196,7 +196,7 @@ class RegistryAgentTest {
         assertEquals(1, bodyAsEnvironment.size());
 
         var submodel = Optional.ofNullable(Optional
-                        .ofNullable(bodyAsEnvironment.get(new Service(new URL("https://localhost:12345"))))
+                        .ofNullable(bodyAsEnvironment.get(new Service.Builder().url(new URL("https://localhost:12345")).build()))
                         .orElseThrow()
                         .getSubmodels()
                         .get(0))

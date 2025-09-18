@@ -18,17 +18,13 @@ package de.fraunhofer.iosb.app.aas.mapper;
 import de.fraunhofer.iosb.aas.lib.model.AasProvider;
 import de.fraunhofer.iosb.aas.lib.spi.AasDataAddress;
 import org.eclipse.digitaltwin.aas4j.v3.model.Identifiable;
-import org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes;
 import org.eclipse.digitaltwin.aas4j.v3.model.Referable;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
-import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultKey;
-import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultReference;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.Objects;
 
 import static de.fraunhofer.iosb.aas.lib.type.AasConstants.AAS_V30_NAMESPACE;
@@ -112,19 +108,6 @@ public class ElementMapper {
         return AasDataAddress.Builder.newInstance()
                 .aasProvider(provider)
                 .referenceChain(reference)
-                .build();
-    }
-
-    protected Reference createReference(KeyTypes type, String value) {
-        return new DefaultReference.Builder()
-                .keys(new DefaultKey.Builder().type(type).value(value).build())
-                .build();
-    }
-
-    protected Reference createReference(String value, Reference parent) {
-        return new DefaultReference.Builder()
-                .keys(new ArrayList<>(parent.getKeys()))
-                .keys(new DefaultKey.Builder().type(KeyTypes.SUBMODEL_ELEMENT).value(value).build())
                 .build();
     }
 }

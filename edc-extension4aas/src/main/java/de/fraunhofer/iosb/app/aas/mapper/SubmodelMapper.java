@@ -16,7 +16,8 @@
 package de.fraunhofer.iosb.app.aas.mapper;
 
 import de.fraunhofer.iosb.aas.lib.model.AasProvider;
-import org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes;
+import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.util.AasUtils;
+import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.digitaltwin.aas4j.v3.model.Submodel;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultReference;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
@@ -40,7 +41,7 @@ public class SubmodelMapper extends ElementMapper implements Mapper<Submodel> {
 
     @Override
     public Asset map(Submodel submodel, AasProvider provider) {
-        var reference = createReference(KeyTypes.SUBMODEL, submodel.getId());
+        Reference reference = AasUtils.toReference(submodel);
         Collection<Asset> children = new ArrayList<>();
         if (!onlySubmodelsDecision.get()) {
             children = submodel.getSubmodelElements().stream()

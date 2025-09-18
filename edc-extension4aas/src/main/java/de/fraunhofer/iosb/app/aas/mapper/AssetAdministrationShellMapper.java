@@ -16,15 +16,17 @@
 package de.fraunhofer.iosb.app.aas.mapper;
 
 import de.fraunhofer.iosb.aas.lib.model.AasProvider;
+import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.util.AasUtils;
 import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShell;
-import org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes;
+import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 
 public class AssetAdministrationShellMapper extends ElementMapper implements Mapper<AssetAdministrationShell> {
 
     public Asset map(AssetAdministrationShell shell, AasProvider provider) {
-        var dataAddress = createDataAddress(provider, createReference(KeyTypes.ASSET_ADMINISTRATION_SHELL,
-                shell.getId()));
+        Reference reference = AasUtils.toReference(shell);
+
+        var dataAddress = createDataAddress(provider, reference);
 
         return mapIdentifiableToAssetBuilder(shell)
                 .id(getId(dataAddress))

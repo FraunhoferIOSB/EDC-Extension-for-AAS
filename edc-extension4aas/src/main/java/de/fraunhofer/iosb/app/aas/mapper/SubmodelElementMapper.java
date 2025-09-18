@@ -16,6 +16,7 @@
 package de.fraunhofer.iosb.app.aas.mapper;
 
 import de.fraunhofer.iosb.aas.lib.model.AasProvider;
+import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.util.AasUtils;
 import org.eclipse.digitaltwin.aas4j.v3.model.Operation;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElement;
@@ -44,7 +45,7 @@ class SubmodelElementMapper {
 
     /* May contain traces of recursion */
     <E extends SubmodelElement> Asset map(Reference parent, E submodelElement, AasProvider provider) {
-        var reference = elementMapper.createReference(submodelElement.getIdShort(), parent);
+        Reference reference = AasUtils.toReference(parent, submodelElement);
 
         var children = getContainerElements(submodelElement).stream()
                 .map(elem -> map(reference, elem, provider))

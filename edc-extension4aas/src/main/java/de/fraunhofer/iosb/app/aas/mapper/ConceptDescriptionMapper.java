@@ -16,16 +16,18 @@
 package de.fraunhofer.iosb.app.aas.mapper;
 
 import de.fraunhofer.iosb.aas.lib.model.AasProvider;
+import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.util.AasUtils;
 import org.eclipse.digitaltwin.aas4j.v3.model.ConceptDescription;
-import org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes;
+import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 
 public class ConceptDescriptionMapper extends ElementMapper implements Mapper<ConceptDescription> {
 
     @Override
     public Asset map(ConceptDescription conceptDescription, AasProvider provider) {
-        var dataAddress = createDataAddress(provider, createReference(KeyTypes.CONCEPT_DESCRIPTION,
-                conceptDescription.getId()));
+        Reference reference = AasUtils.toReference(conceptDescription);
+
+        var dataAddress = createDataAddress(provider, reference);
 
         return mapIdentifiableToAssetBuilder(conceptDescription)
                 .id(getId(dataAddress))

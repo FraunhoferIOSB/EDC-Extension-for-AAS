@@ -87,7 +87,7 @@ class EnvironmentToAssetMapperTest {
 
         assertNull(result.getContent().stream()
                 .filter(service -> service.getAccessUrl().toString().equals(accessUrl.toString()))
-                .findFirst().orElse(new Service.Builder().build())
+                .findFirst().orElse(new Service.Builder().url(new URL("http://localhost")).build())
                 .getEnvironment());
     }
 

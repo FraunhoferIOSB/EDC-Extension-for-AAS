@@ -123,10 +123,10 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<Service, Environm
         }
 
         // We convert data addresses this late to exploit their ReferenceChains when selecting elements to register.
-        if (this.useAasDataAddress.get()) {
-            convertDataAddresses(submodels);
-            convertDataAddresses(shells);
-            convertDataAddresses(conceptDescriptions);
+        if (!this.useAasDataAddress.get()) {
+            submodels = convertDataAddresses(submodels);
+            shells = convertDataAddresses(shells);
+            conceptDescriptions = convertDataAddresses(conceptDescriptions);
         }
 
         var environmentAsset = Asset.Builder.newInstance()
@@ -144,10 +144,9 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<Service, Environm
                 .toList();
     }
 
-    private void convertDataAddresses(List<Asset> assets) {
-        assets.forEach(referable -> referable.toBuilder()
-                .dataAddress(((AasDataAddress) referable.getDataAddress())
-                        .asHttpDataAddress()));
+    private List<Asset> convertDataAddresses(List<Asset> assets) {
+        return assets.stream().map(asset -> asset.toBuilder().dataAddress(((AasDataAddress) asset.getDataAddress())
+                .asHttpDataAddress()).build()).toList();
     }
 
     private @NotNull List<Asset> handleSubmodels(Collection<Submodel> submodels, AasProvider provider) {

@@ -23,7 +23,7 @@ import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 
 public class AssetAdministrationShellMapper extends ElementMapper implements Mapper<AssetAdministrationShell> {
 
-    public Asset map(AssetAdministrationShell shell, AasProvider provider) {
+    public Asset apply(AssetAdministrationShell shell, AasProvider provider) {
         Reference reference = AasUtils.toReference(shell);
 
         var dataAddress = createDataAddress(provider, reference);

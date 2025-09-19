@@ -24,7 +24,7 @@ import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 public class ConceptDescriptionMapper extends ElementMapper implements Mapper<ConceptDescription> {
 
     @Override
-    public Asset map(ConceptDescription conceptDescription, AasProvider provider) {
+    public Asset apply(ConceptDescription conceptDescription, AasProvider provider) {
         Reference reference = AasUtils.toReference(conceptDescription);
 
         var dataAddress = createDataAddress(provider, reference);

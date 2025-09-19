@@ -15,11 +15,16 @@
  */
 package de.fraunhofer.iosb.app.util;
 
+import org.eclipse.digitaltwin.aas4j.v3.model.Referable;
+import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElement;
+import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElementCollection;
+import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElementList;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Predicate;
 import javax.annotation.Nonnull;
 
 public class AssetUtil {
@@ -66,6 +71,28 @@ public class AssetUtil {
         }
         return new ArrayList<>();
     }
+
+    public static List<SubmodelElement> filterSubmodelElementsRec(List<SubmodelElement> submodelElements, Predicate<Referable> filter) {
+        List<SubmodelElement> result = new ArrayList<>();
+
+        for (SubmodelElement element : submodelElements) {
+            if (element instanceof SubmodelElementCollection collection) {
+                if (!filterSubmodelElementsRec(collection.getValue(), filter).isEmpty() || filter.test(element)) {
+                    result.add(element);
+                }
+            } else if (element instanceof SubmodelElementList list) {
+                if (!filterSubmodelElementsRec(list.getValue(), filter).isEmpty() || filter.test(element)) {
+                    result.add(element);
+
+                }
+            } else if (filter.test(element)) {
+                result.add(element);
+            }
+        }
+
+        return result;
+    }
+
 
     private static Collection<Asset> getChildrenRec(Asset parent) {
         var children = getChildren(parent, "value");

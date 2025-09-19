@@ -30,6 +30,7 @@ import de.fraunhofer.iosb.app.pipeline.PipelineStep;
 import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShell;
 import org.eclipse.digitaltwin.aas4j.v3.model.ConceptDescription;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
+import org.eclipse.digitaltwin.aas4j.v3.model.Identifiable;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.digitaltwin.aas4j.v3.model.Submodel;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
@@ -42,6 +43,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Supplier;
 
+import static de.fraunhofer.iosb.aas.lib.type.AasConstants.AAS_V30_NAMESPACE;
 import static de.fraunhofer.iosb.app.pipeline.util.PipelineUtils.extractContents;
 import static de.fraunhofer.iosb.app.pipeline.util.PipelineUtils.handleError;
 
@@ -102,22 +104,31 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<Service, Environm
                             .formatted(service.getAccessUrl()))));
         }
 
-        var submodels = handleSubmodels(environment.getSubmodels(), service);
+        // TODO for each selected submodel element:
+        //  1. find all parents up to submodel
+        //  2. Get those parents and the selected element to stay in the environment asset
+        //  3. If the parent elements were not in the selection, give them policies/a marker, showing no registration shall be done to edc stores
+
+
+        var submodels = handleIdentifiables(environment.getSubmodels(), service, submodelMapper);
         List<Asset> shells = List.of();
         List<Asset> conceptDescriptions = List.of();
 
         if (!service.hasSelectiveRegistration() && !onlySubmodelsDecision.get()) {
-            shells = handleShells(environment.getAssetAdministrationShells(), service);
-            conceptDescriptions = handleConceptDescriptions(environment.getConceptDescriptions(), service);
+            shells = handleIdentifiables(environment.getAssetAdministrationShells(), service, shellMapper);
+            conceptDescriptions = handleIdentifiables(environment.getConceptDescriptions(), service, conceptDescriptionMapper);
         }
 
-
-        if (service.hasSelectiveRegistration()) {
+        if (service.hasSelectiveRegistration() && !service.getPolicyBindings().isEmpty()) {
             var selectedAasElements = service.getPolicyBindings().stream()
                     .map(PolicyBinding::referredElement)
                     .toList();
 
             submodels = filterBySelection(submodels, selectedAasElements);
+
+            // TODO after fine-grained element filtering, remove this next line.
+            submodels = submodels.stream().map(submodel -> submodel.toBuilder().property(AAS_V30_NAMESPACE + "Submodel/" + "submodelElements",
+                    null).build()).toList();
             shells = filterBySelection(shells, selectedAasElements);
             conceptDescriptions = filterBySelection(conceptDescriptions, selectedAasElements);
         }
@@ -139,8 +150,8 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<Service, Environm
     }
 
     private List<Asset> filterBySelection(List<Asset> toFilter, List<Reference> selectedElements) {
-        return toFilter.stream().filter(referable -> selectedElements
-                        .contains(((AasDataAddress) referable.getDataAddress()).getReferenceChain()))
+        return toFilter.stream().filter(reference -> selectedElements
+                        .contains(((AasDataAddress) reference.getDataAddress()).getReferenceChain()))
                 .toList();
     }
 
@@ -149,22 +160,10 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<Service, Environm
                 .asHttpDataAddress()).build()).toList();
     }
 
-    private @NotNull List<Asset> handleSubmodels(Collection<Submodel> submodels, AasProvider provider) {
-        return submodels.stream()
-                .map(submodel -> submodelMapper.map(submodel, provider))
-                .toList();
-    }
-
-    private @NotNull List<Asset> handleShells(Collection<AssetAdministrationShell> shells, AasProvider provider) {
-        return shells.stream()
-                .map(shell -> shellMapper.map(shell, provider))
-                .toList();
-    }
-
-    private @NotNull List<Asset> handleConceptDescriptions(Collection<ConceptDescription> conceptDescriptions,
-                                                           AasProvider provider) {
-        return conceptDescriptions.stream()
-                .map(conceptDescription -> conceptDescriptionMapper.map(conceptDescription, provider))
+    private @NotNull <I extends Identifiable> List<Asset> handleIdentifiables(Collection<I> identifiables, AasProvider provider,
+                                                                              Mapper<I> identifiableHandler) {
+        return identifiables.stream()
+                .map(submodel -> identifiableHandler.apply(submodel, provider))
                 .toList();
     }
 }

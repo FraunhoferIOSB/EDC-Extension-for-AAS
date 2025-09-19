@@ -97,42 +97,33 @@ public class Endpoint {
         return createEntity(registryRepository, new Registry(registryUrl.getContent()));
     }
 
+
     /**
      * Register an AAS service to this extension
      *
      * @param serviceUrlString The URL of the AAS service
+     * @param service Serialized form of a {@link Service}
      * @return Status message about the success of this operation.
      */
     @POST
     @Path(SERVICE_PATH)
-    public Response createService(@QueryParam("url") String serviceUrlString, AuthenticationMethod auth) {
+    public Response createService(@QueryParam("url") String serviceUrlString, Service service) {
         monitor.info("POST /%s".formatted(SERVICE_PATH));
+
+        if (Objects.isNull(serviceUrlString)) {
+            return createEntity(serviceRepository, service);
+        }
+
         var urlParseResult = parseUrl(serviceUrlString);
 
         if (urlParseResult.failed()) {
             return Response.status(Status.BAD_REQUEST).entity(urlParseResult.getFailureDetail()).build();
         }
 
-        Service service = new Service.Builder()
+        service = service.toBuilder()
                 .withUrl(urlParseResult.getContent())
-                .withAuthenticationMethod(null != auth? auth: new NoAuth())
                 .build();
 
-        return createEntity(serviceRepository, service);
-    }
-
-
-    /**
-     * Register an AAS service to this extension
-     *
-     * @param service Serialized form of a {@link Service}
-     *
-     * @return Status message about the success of this operation.
-     */
-    @POST
-    @Path(SERVICE_PATH)
-    public Response createService(Service service) {
-        monitor.info("POST /%s".formatted(SERVICE_PATH));
         return createEntity(serviceRepository, service);
     }
 

@@ -81,7 +81,7 @@ public final class Service extends AasProvider {
                 "environment=" + environment + ']';
     }
 
-    private Builder toBuilder() {
+    public Builder toBuilder() {
         return new Builder()
                 .aasAccessUrl(this.url)
                 .withAuthenticationMethod(this.authentication)

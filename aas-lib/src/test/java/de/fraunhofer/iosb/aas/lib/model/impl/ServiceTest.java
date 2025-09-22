@@ -18,7 +18,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ServiceTest {
 
-    private Service testSubject;
     private final Reference referenceToMatch = new DefaultReference.Builder()
             .type(ReferenceTypes.MODEL_REFERENCE)
             .keys(List.of(new DefaultKey.Builder()

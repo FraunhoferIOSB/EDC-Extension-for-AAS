@@ -17,7 +17,6 @@ package de.fraunhofer.iosb.app.aas.mapper;
 
 import de.fraunhofer.iosb.aas.lib.model.AasProvider;
 import org.eclipse.digitaltwin.aas4j.v3.model.Identifiable;
-import org.eclipse.digitaltwin.aas4j.v3.model.Referable;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 
 import java.util.function.BiFunction;

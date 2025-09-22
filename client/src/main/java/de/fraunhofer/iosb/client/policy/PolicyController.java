@@ -49,7 +49,7 @@ import static de.fraunhofer.iosb.client.ClientEndpoint.MISSING_REQUEST_BODY_MESS
  * Provides API for accepted policy management and provider dataset retrieval.
  * For documentation see {@link de.fraunhofer.iosb.client.ClientEndpoint}
  */
-@Consumes({MediaType.APPLICATION_JSON})
+@Consumes({ MediaType.APPLICATION_JSON })
 @Path(ClientEndpoint.AUTOMATED_PATH)
 public class PolicyController {
 

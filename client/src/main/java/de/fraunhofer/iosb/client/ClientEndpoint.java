@@ -41,8 +41,8 @@ import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DA
 /**
  * Automated contract negotiation
  */
-@Consumes({MediaType.APPLICATION_JSON, MediaType.WILDCARD})
-@Produces({MediaType.APPLICATION_JSON})
+@Consumes({ MediaType.APPLICATION_JSON, MediaType.WILDCARD })
+@Produces({ MediaType.APPLICATION_JSON })
 @Path(ClientEndpoint.AUTOMATED_PATH)
 public class ClientEndpoint {
     /*

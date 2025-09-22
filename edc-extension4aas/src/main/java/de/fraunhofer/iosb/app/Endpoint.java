@@ -15,8 +15,6 @@
  */
 package de.fraunhofer.iosb.app;
 
-import de.fraunhofer.iosb.aas.lib.auth.AuthenticationMethod;
-import de.fraunhofer.iosb.aas.lib.auth.impl.NoAuth;
 import de.fraunhofer.iosb.aas.lib.model.AasProvider;
 import de.fraunhofer.iosb.aas.lib.model.impl.Registry;
 import de.fraunhofer.iosb.aas.lib.model.impl.Service;
@@ -102,7 +100,7 @@ public class Endpoint {
      * Register an AAS service to this extension
      *
      * @param serviceUrlString The URL of the AAS service
-     * @param service Serialized form of a {@link Service}
+     * @param service          Serialized form of a {@link Service}
      * @return Status message about the success of this operation.
      */
     @POST

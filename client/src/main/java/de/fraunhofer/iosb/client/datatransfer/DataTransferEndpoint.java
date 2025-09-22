@@ -32,8 +32,8 @@ import static java.lang.String.format;
 /**
  * Endpoint for automated data transfer
  */
-@Consumes({MediaType.APPLICATION_JSON, MediaType.WILDCARD})
-@Produces({MediaType.APPLICATION_JSON})
+@Consumes({ MediaType.APPLICATION_JSON, MediaType.WILDCARD })
+@Produces({ MediaType.APPLICATION_JSON })
 @Path(ClientEndpoint.AUTOMATED_PATH)
 public class DataTransferEndpoint {
 

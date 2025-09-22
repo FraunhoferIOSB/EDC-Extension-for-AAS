@@ -54,14 +54,13 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 public class AasDataAddress extends DataAddress {
 
     public static final String AAS_DATA_TYPE = "AasData";
-
+    public static final String OPERATION_NAME = KeyTypes.OPERATION.name().toLowerCase(Locale.ROOT);
     // See aas4j operation
     private static final String ADDITIONAL_HEADER = "header:";
     private static final String METHOD = "method";
     private static final String PROVIDER = "AAS-Provider";
     private static final String REFERENCE_CHAIN = "referenceChain";
     private static final String PATH = "PATH";
-    public static final String OPERATION_NAME = KeyTypes.OPERATION.name().toLowerCase(Locale.ROOT);
 
     private AasDataAddress() {
         super();

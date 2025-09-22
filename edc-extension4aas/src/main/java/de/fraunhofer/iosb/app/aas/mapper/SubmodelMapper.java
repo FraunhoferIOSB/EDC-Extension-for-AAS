@@ -47,7 +47,8 @@ public class SubmodelMapper extends ElementMapper implements Mapper<Submodel> {
         DataAddress dataAddress = createDataAddress(provider, reference);
 
         Asset.Builder assetBuilder = mapIdentifiableToAssetBuilder(submodel)
-                .id(getId(dataAddress));
+                .id(getId(dataAddress))
+                .dataAddress(dataAddress);
 
         // Add submodel Elements
         if (!onlySubmodelsDecision.get()
@@ -63,7 +64,6 @@ public class SubmodelMapper extends ElementMapper implements Mapper<Submodel> {
 
         if (Objects.nonNull(submodel.getSemanticId())) {
             assetBuilder.property(AAS_V30_NAMESPACE + "HasSemantics/" + "semanticId", submodel.getSemanticId());
-
         }
 
         return assetBuilder.build();

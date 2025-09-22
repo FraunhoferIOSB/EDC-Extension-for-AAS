@@ -19,18 +19,20 @@ import de.fraunhofer.iosb.app.model.ChangeSet;
 import de.fraunhofer.iosb.app.pipeline.PipelineFailure;
 import de.fraunhofer.iosb.app.pipeline.PipelineResult;
 import de.fraunhofer.iosb.app.pipeline.PipelineStep;
+import de.fraunhofer.iosb.app.util.Pair;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.AbstractResult;
+import org.eclipse.edc.spi.result.StoreResult;
 
-import java.util.List;
+import static org.eclipse.edc.spi.result.StoreFailure.Reason.ALREADY_EXISTS;
 
 /**
  * Adds and removes assets given a change set of assets and asset IDs.
  * Passes the asset IDs of both the added and removed on to the next pipeline step.
  */
-public class AssetRegistrar extends PipelineStep<ChangeSet<Asset, String>, ChangeSet<String, String>> {
+public class AssetRegistrar extends PipelineStep<ChangeSet<Asset, String>, ChangeSet<Asset, Asset>> {
 
     private final AssetIndex assetIndex;
     private final Monitor monitor;
@@ -53,17 +55,22 @@ public class AssetRegistrar extends PipelineStep<ChangeSet<Asset, String>, Chang
      * @return Asset IDs of all the added/removed assets
      */
     @Override
-    public PipelineResult<ChangeSet<String, String>> apply(ChangeSet<Asset, String> changeSet) {
-        var added = changeSet.toAdd().stream().map(this::createAsset).toList();
-        var removed = changeSet.toRemove().stream().map(this::removeAsset).toList();
+    public PipelineResult<ChangeSet<Asset, Asset>> apply(ChangeSet<Asset, String> changeSet) {
+        var added = changeSet.toAdd().stream().map(this::create).toList();
 
-        var changeSetIds = new ChangeSet.Builder<String, String>()
+        var removed = changeSet.toRemove().stream().map(this::remove).toList();
+
+        // Add contracts for successfully added assets
+        var changeSetIds = new ChangeSet.Builder<Asset, Asset>()
                 .add(added.stream()
-                        .filter(AbstractResult::succeeded)
-                        .map(AbstractResult::getContent)
+                        .filter(assetIdResultPair ->
+                                assetIdResultPair.second().succeeded() ||
+                                        ALREADY_EXISTS.equals(assetIdResultPair.second().reason())
+                        )
+                        .map(Pair::first)
                         .toList())
                 .remove(removed.stream()
-                        .filter(AbstractResult::succeeded)
+                        .filter(StoreResult::succeeded)
                         .map(AbstractResult::getContent)
                         .toList())
                 .build();
@@ -73,21 +80,24 @@ public class AssetRegistrar extends PipelineStep<ChangeSet<Asset, String>, Chang
                     changeSetIds.toRemove().size()));
         }
 
-        if (added.stream().anyMatch(AbstractResult::failed) || removed.stream().anyMatch(AbstractResult::failed)) {
+        if (added.stream().anyMatch(pair -> pair.second().failed()) || removed.stream().anyMatch(AbstractResult::failed)) {
             return PipelineResult.recoverableFailure(changeSetIds,
-                    PipelineFailure.warning(added.stream().filter(AbstractResult::failed).map(AbstractResult::getFailureMessages).flatMap(List::stream).toList()));
+                    PipelineFailure.warning(added.stream()
+                            .map(Pair::second)
+                            .filter(AbstractResult::failed)
+                            .map(AbstractResult::getFailureDetail)
+                            .toList()));
         }
 
         return PipelineResult.success(changeSetIds);
     }
 
-    private PipelineResult<String> createAsset(Asset asset) {
-        var storeResult = assetIndex.create(asset);
-        return PipelineResult.from(storeResult).withContent(asset.getId());
+    private Pair<Asset, StoreResult<Void>> create(Asset asset) {
+        return new Pair<>(asset, assetIndex.create(asset));
     }
 
-    private PipelineResult<String> removeAsset(String assetId) {
-        var storeResult = assetIndex.deleteById(assetId);
-        return PipelineResult.from(storeResult).withContent(assetId);
+    private StoreResult<Asset> remove(String assetId) {
+        return assetIndex.deleteById(assetId);
     }
+
 }

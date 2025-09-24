@@ -16,7 +16,7 @@
 package de.fraunhofer.iosb.app.sync;
 
 import de.fraunhofer.iosb.aas.lib.model.impl.Service;
-import de.fraunhofer.iosb.app.aas.EnvironmentToAssetMapper;
+import de.fraunhofer.iosb.app.aas.mapper.environment.EnvironmentToAssetMapper;
 import de.fraunhofer.iosb.app.model.ChangeSet;
 import de.fraunhofer.iosb.app.util.Pair;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultEnvironment;

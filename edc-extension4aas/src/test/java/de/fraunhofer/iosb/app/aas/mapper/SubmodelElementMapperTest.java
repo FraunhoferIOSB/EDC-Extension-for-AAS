@@ -16,6 +16,7 @@
 package de.fraunhofer.iosb.app.aas.mapper;
 
 import de.fraunhofer.iosb.aas.lib.model.impl.Service;
+import de.fraunhofer.iosb.app.aas.mapper.environment.referable.SubmodelElementMapper;
 import org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes;
 import org.eclipse.digitaltwin.aas4j.v3.model.OperationVariable;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultKey;

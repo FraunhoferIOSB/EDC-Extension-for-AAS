@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.app.aas.mapper;
+package de.fraunhofer.iosb.app.aas.mapper.environment.referable.identifiable;
 
 import de.fraunhofer.iosb.aas.lib.model.AasProvider;
+import de.fraunhofer.iosb.app.aas.mapper.Mapper;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.util.AasUtils;
 import org.eclipse.digitaltwin.aas4j.v3.model.ConceptDescription;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 
-public class ConceptDescriptionMapper extends ElementMapper implements Mapper<ConceptDescription> {
+public class ConceptDescriptionMapper extends IdentifiableMapper implements Mapper<ConceptDescription> {
 
     @Override
     public Asset apply(ConceptDescription conceptDescription, AasProvider provider) {
@@ -29,8 +30,8 @@ public class ConceptDescriptionMapper extends ElementMapper implements Mapper<Co
 
         var dataAddress = createDataAddress(provider, reference);
 
-        return mapIdentifiableToAssetBuilder(conceptDescription)
-                .id(getId(dataAddress))
+        return super.map(conceptDescription)
+                .id(generateId(dataAddress))
                 .dataAddress(dataAddress)
                 .build();
     }

@@ -30,7 +30,9 @@ dependencies {
 
     testImplementation(testFixtures(project(":aas-lib")))
 
-    testImplementation("$group:junit:$edcVersion")
+    testImplementation("${group}:junit:${edcVersion}")
+    testImplementation("${group}:control-plane-core:${edcVersion}")
+    testImplementation("${group}:query-lib:${edcVersion}")
     testImplementation("org.glassfish.jersey.core:jersey-common:$jerseyVersion")
     testImplementation("org.mockito:mockito-core:${mockitoVersion}")
     testImplementation("org.mock-server:mockserver-junit-jupiter:$mockserverVersion")

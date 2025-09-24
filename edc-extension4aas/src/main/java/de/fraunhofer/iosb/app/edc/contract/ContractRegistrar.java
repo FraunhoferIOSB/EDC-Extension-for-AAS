@@ -48,8 +48,8 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static de.fraunhofer.iosb.app.aas.EnvironmentToAssetMapper.ACCESS_POLICY_FIELD;
-import static de.fraunhofer.iosb.app.aas.EnvironmentToAssetMapper.CONTRACT_POLICY_FIELD;
+import static de.fraunhofer.iosb.app.aas.mapper.environment.EnvironmentToAssetMapper.ACCESS_POLICY_FIELD;
+import static de.fraunhofer.iosb.app.aas.mapper.environment.EnvironmentToAssetMapper.CONTRACT_POLICY_FIELD;
 import static java.lang.String.format;
 import static org.eclipse.edc.spi.query.CriterionOperatorRegistry.EQUAL;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.ALREADY_EXISTS;

@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.app.aas;
+package de.fraunhofer.iosb.app.aas.mapper.environment;
 
 import de.fraunhofer.iosb.aas.lib.model.AasProvider;
 import de.fraunhofer.iosb.aas.lib.model.PolicyBinding;
 import de.fraunhofer.iosb.aas.lib.model.impl.Service;
 import de.fraunhofer.iosb.aas.lib.spi.AasDataAddress;
-import de.fraunhofer.iosb.app.aas.mapper.AssetAdministrationShellMapper;
-import de.fraunhofer.iosb.app.aas.mapper.ConceptDescriptionMapper;
 import de.fraunhofer.iosb.app.aas.mapper.Mapper;
-import de.fraunhofer.iosb.app.aas.mapper.SubmodelMapper;
+import de.fraunhofer.iosb.app.aas.mapper.environment.referable.identifiable.AssetAdministrationShellMapper;
+import de.fraunhofer.iosb.app.aas.mapper.environment.referable.identifiable.ConceptDescriptionMapper;
+import de.fraunhofer.iosb.app.aas.mapper.environment.referable.identifiable.SubmodelMapper;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import de.fraunhofer.iosb.app.pipeline.PipelineFailure;
 import de.fraunhofer.iosb.app.pipeline.PipelineResult;

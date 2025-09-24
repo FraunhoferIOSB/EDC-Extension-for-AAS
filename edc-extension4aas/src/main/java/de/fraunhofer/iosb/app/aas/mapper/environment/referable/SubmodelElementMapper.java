@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.app.aas.mapper;
+package de.fraunhofer.iosb.app.aas.mapper.environment.referable;
 
 import de.fraunhofer.iosb.aas.lib.model.AasProvider;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.util.AasUtils;
+import org.eclipse.digitaltwin.aas4j.v3.model.Blob;
+import org.eclipse.digitaltwin.aas4j.v3.model.File;
 import org.eclipse.digitaltwin.aas4j.v3.model.Operation;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElement;
@@ -24,65 +26,54 @@ import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElementCollection;
 import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElementList;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 
 import static de.fraunhofer.iosb.aas.lib.type.AasConstants.AAS_V30_NAMESPACE;
 
-/**
- * Not an ElementMapper since we have a different method signature.
- */
-class SubmodelElementMapper {
-
-    private final ElementMapper elementMapper;
-
-    SubmodelElementMapper() {
-        this.elementMapper = new ElementMapper();
-    }
+public class SubmodelElementMapper extends ReferableMapper {
 
     /* May contain traces of recursion */
-    <E extends SubmodelElement> Asset map(Reference parent, E submodelElement, AasProvider provider) {
+    public <E extends SubmodelElement> Asset map(Reference parent, E submodelElement, AasProvider provider) {
+        Asset.Builder assetBuilder = super.map(submodelElement);
+
         Reference reference = AasUtils.toReference(parent, submodelElement);
 
-        var children = getContainerElements(submodelElement).stream()
+        var children = getChildElements(submodelElement).stream()
                 .map(elem -> map(reference, elem, provider))
                 .toList();
 
-        var dataAddress = elementMapper.createDataAddress(provider, reference);
+        var dataAddress = createDataAddress(provider, reference);
 
-        // Display the modeling type of the element, i.e. "Property"/"Operation"/...
-        // Get the implemented interface, else we will have Default<Name> instead of <Name>
-        var modelingType = Arrays.stream(submodelElement.getClass().getInterfaces())
-                .findFirst()
-                .map(Class::getSimpleName)
-                .orElse("SubmodelElement");
+        assetBuilder.dataAddress(dataAddress)
+                .id(generateId(dataAddress))
+                .property("modelingType", submodelElement.getClass().getSimpleName());
 
-        var additionalProperties = new HashMap<>(Map.of(
-                "modelingType", modelingType,
-                "value", children));
+        if (!children.isEmpty()) {
+            assetBuilder.property("value", children);
+        }
 
         if (submodelElement.getSemanticId() != null && !submodelElement.getSemanticId().getKeys().isEmpty()) {
-            additionalProperties.put(AAS_V30_NAMESPACE + "HasSemantics/" + "semanticId", submodelElement.getSemanticId());
+            assetBuilder.property(AAS_V30_NAMESPACE + "HasSemantics/" + "semanticId", submodelElement.getSemanticId());
         }
 
         if (submodelElement instanceof Operation operation) {
-            additionalProperties.put(AAS_V30_NAMESPACE + "Operation/" + "inputVariables", operation.getInputVariables());
-            additionalProperties.put(AAS_V30_NAMESPACE + "Operation/" + "inoutputVariables", operation.getInoutputVariables());
-            additionalProperties.put(AAS_V30_NAMESPACE + "Operation/" + "outputVariables", operation.getOutputVariables());
+            assetBuilder.property(AAS_V30_NAMESPACE + "Operation/" + "inputVariables", operation.getInputVariables());
+            assetBuilder.property(AAS_V30_NAMESPACE + "Operation/" + "inoutputVariables", operation.getInoutputVariables());
+            assetBuilder.property(AAS_V30_NAMESPACE + "Operation/" + "outputVariables", operation.getOutputVariables());
         }
 
-        return elementMapper.mapReferableToAssetBuilder(submodelElement)
-                .id(elementMapper.getId(dataAddress))
-                .contentType("application/json")
-                .properties(additionalProperties)
-                .dataAddress(dataAddress)
+        if (submodelElement instanceof File file) {
+            assetBuilder.contentType(file.getContentType());
+        } else if (submodelElement instanceof Blob blob) {
+            assetBuilder.contentType(blob.getContentType());
+        }
+
+        return assetBuilder
                 .build();
     }
 
-    private <T extends SubmodelElement> Collection<SubmodelElement> getContainerElements(T submodelElement) {
+    private <T extends SubmodelElement> Collection<SubmodelElement> getChildElements(T submodelElement) {
         if (submodelElement instanceof SubmodelElementCollection) {
             return ((SubmodelElementCollection) submodelElement).getValue();
         } else if (submodelElement instanceof SubmodelElementList) {

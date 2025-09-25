@@ -108,7 +108,7 @@ public class Endpoint {
     public Response createService(@QueryParam("url") String serviceUrlString, Service service) {
         monitor.info("POST /%s".formatted(SERVICE_PATH));
 
-        if (Objects.isNull(serviceUrlString)) {
+        if (Objects.isNull(serviceUrlString) && Objects.nonNull(service)) {
             return createEntity(serviceRepository, service);
         }
 
@@ -118,9 +118,13 @@ public class Endpoint {
             return Response.status(Status.BAD_REQUEST).entity(urlParseResult.getFailureDetail()).build();
         }
 
-        service = service.toBuilder()
-                .withUrl(urlParseResult.getContent())
-                .build();
+        if (Objects.isNull(service)) {
+            service = new Service.Builder().withUrl(urlParseResult.getContent()).build();
+        } else {
+            service = service.toBuilder()
+                    .withUrl(urlParseResult.getContent())
+                    .build();
+        }
 
         return createEntity(serviceRepository, service);
     }

@@ -122,7 +122,7 @@ public class AasExtension implements ServiceExtension {
                 .step(new CollectionFeeder<>(new ServiceRepositoryUpdater(serviceRepository)))
                 .step(new Synchronizer())
                 .step(new AssetRegistrar(assetIndex, monitor.withPrefix("Service Pipeline")))
-                .step(new ContractRegistrar(contractDefinitionStore, policyDefinitionStore, monitor))
+                .step(new ContractRegistrar(contractDefinitionStore, policyDefinitionStore, monitor, context.getParticipantId()))
                 .build();
 
         servicePipeline = new VariableRateScheduler(1, serviceSynchronization, monitor);
@@ -146,7 +146,7 @@ public class AasExtension implements ServiceExtension {
                 .step(new RegistryRepositoryUpdater(registryRepository))
                 .step(new Synchronizer())
                 .step(new AssetRegistrar(assetIndex, monitor.withPrefix("Registry Pipeline")))
-                .step(new ContractRegistrar(contractDefinitionStore, policyDefinitionStore, monitor))
+                .step(new ContractRegistrar(contractDefinitionStore, policyDefinitionStore, monitor, context.getParticipantId()))
                 .build();
 
         registryPipeline = new VariableRateScheduler(1, registrySynchronization, monitor);

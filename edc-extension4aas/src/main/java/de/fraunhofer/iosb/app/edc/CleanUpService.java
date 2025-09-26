@@ -126,7 +126,7 @@ public class CleanUpService implements SelfDescriptionChangeListener {
                     .step(new ContractRegistrar(
                             Objects.requireNonNull(contractDefinitionStore),
                             Objects.requireNonNull(policyDefinitionStore),
-                            monitor))
+                            monitor, "dummy-participant-id"))
                     .monitor(monitor)
                     .build();
 

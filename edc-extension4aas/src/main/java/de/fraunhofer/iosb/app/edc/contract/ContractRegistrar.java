@@ -73,26 +73,26 @@ public class ContractRegistrar extends PipelineStep<ChangeSet<Asset, Asset>, Voi
     private final Configuration configuration;
     private final Monitor monitor;
     private final ObjectReader objectReader;
-    private final Policy defaultPolicy;
+    private final String participantId;
 
     /**
      * Class constructor
      *
      * @param contractStore Add/remove EDC contracts.
      * @param policyStore   Add/remove EDC policies.
+     * @param participantId Participant ID of this connector. Needed for contract policies.
      */
     public ContractRegistrar(ContractDefinitionStore contractStore, PolicyDefinitionStore policyStore,
-                             Monitor monitor) {
+                             Monitor monitor, String participantId) {
         this.contractDefinitionStore = Objects.requireNonNull(contractStore);
         this.policyDefinitionStore = Objects.requireNonNull(policyStore);
         this.monitor = monitor;
 
         configuration = Configuration.getInstance();
         objectReader = new ObjectMapper().readerFor(Policy.class);
-
+        this.participantId = participantId;
         // In the future, this could be done with an additional extension.
-        defaultPolicy = initializeDefaultPolicy();
-        createDefaultContract();
+        registerDefaultPolicies();
     }
 
     /**
@@ -129,7 +129,6 @@ public class ContractRegistrar extends PipelineStep<ChangeSet<Asset, Asset>, Voi
     }
 
     private StoreResult<Void> registerWithContract(Asset asset) {
-        String assetId = asset.getId();
         String accessPolicyId = getAccessPolicyIdOrDefault(asset);
         String contractPolicyId = getContractPolicyIdOrDefault(asset);
 
@@ -140,38 +139,18 @@ public class ContractRegistrar extends PipelineStep<ChangeSet<Asset, Asset>, Voi
             monitor.warning(String.format("ContractPolicyDefinitions with id %s not found.", contractPolicyId));
         }
 
-        Criterion assetIdCriterion = getAssetIdCriterion(assetId);
-
-        var maybeContract = findCorrespondingContract(asset, true);
-
-        ContractDefinition updatedContract;
+        Optional<ContractDefinition> maybeContract = findCorrespondingContract(asset);
 
         if (maybeContract.isPresent()) {
-            updatedContract = maybeContract.get();
-            var updatedAssetsSelector = updatedContract.getAssetsSelector();
-            if (!updatedAssetsSelector.contains(assetIdCriterion)) {
-                updatedAssetsSelector.add(assetIdCriterion);
-            }
-            updatedContract = ContractDefinition.Builder.newInstance()
-                    .accessPolicyId(accessPolicyId)
-                    .contractPolicyId(contractPolicyId)
-                    .assetsSelector(updatedAssetsSelector)
-                    .privateProperties(updatedContract.getPrivateProperties())
-                    .id(updatedContract.getId())
-                    .createdAt(updatedContract.getCreatedAt())
-                    .build();
+            ContractDefinition updatedContract = getContractDefinition(asset, maybeContract.get());
             return contractDefinitionStore.update(updatedContract);
         }
 
-        return contractDefinitionStore.save(ContractDefinition.Builder.newInstance()
-                .accessPolicyId(accessPolicyId)
-                .contractPolicyId(contractPolicyId)
-                .assetsSelectorCriterion(assetIdCriterion)
-                .build());
+        return contractDefinitionStore.save(getContractDefinition(asset));
     }
 
     private Criterion getAssetIdCriterion(String assetId) {
-        return Criterion.criterion(assetId, "=", Asset.PROPERTY_ID);
+        return Criterion.criterion(Asset.PROPERTY_ID, "=", assetId);
     }
 
     private void doThrow(Exception exception) {
@@ -185,7 +164,7 @@ public class ContractRegistrar extends PipelineStep<ChangeSet<Asset, Asset>, Voi
         Criterion assetIdCriterion = getAssetIdCriterion(asset.getId());
 
         if (findCorrespondingContract(asset).isEmpty()) {
-            return StoreResult.generalError("Contract to remove not found, indicating an invalid state!");
+            return StoreResult.generalError(String.format("Contract for asset %s to remove not found, indicating an invalid state!", asset.getId()));
         }
 
         while (findCorrespondingContract(asset).isPresent()) {
@@ -228,10 +207,6 @@ public class ContractRegistrar extends PipelineStep<ChangeSet<Asset, Asset>, Voi
     }
 
     private Optional<ContractDefinition> findCorrespondingContract(Asset asset) {
-        return findCorrespondingContract(asset, false);
-    }
-
-    private Optional<ContractDefinition> findCorrespondingContract(Asset asset, boolean possiblyNew) {
         String accessPolicyId = getAccessPolicyIdOrDefault(asset);
         String contractPolicyId = getContractPolicyIdOrDefault(asset);
 
@@ -241,24 +216,42 @@ public class ContractRegistrar extends PipelineStep<ChangeSet<Asset, Asset>, Voi
         var searchQuery = QuerySpec.Builder.newInstance()
                 .filter(Criterion.criterion("accessPolicyId", EQUAL, accessPolicyId))
                 .filter(Criterion.criterion("contractPolicyId", EQUAL, contractPolicyId))
-                .limit(1);
-
-        if (!possiblyNew) {
-            searchQuery.filter(Criterion.criterion(opLeft, EQUAL, asset.getId()))
-                    .filter(Criterion.criterion(opRight, EQUAL, Asset.PROPERTY_ID));
-        }
+                .limit(1)
+                .filter(Criterion.criterion(opLeft, EQUAL, asset.getId()))
+                .filter(Criterion.criterion(opRight, EQUAL, Asset.PROPERTY_ID));
 
         return contractDefinitionStore.findAll(searchQuery.build())
                 .findFirst();
     }
 
 
-    private void createDefaultContract() {
+    private ContractDefinition getContractDefinition(Asset asset) {
+        return ContractDefinition.Builder.newInstance()
+                .accessPolicyId(getAccessPolicyIdOrDefault(asset))
+                .contractPolicyId(getContractPolicyIdOrDefault(asset))
+                .assetsSelectorCriterion(getAssetIdCriterion(asset.getId()))
+                .privateProperty("creator", "AAS-Extension")
+                .build();
+    }
+
+    private ContractDefinition getContractDefinition(Asset asset, ContractDefinition from) {
+        return ContractDefinition.Builder.newInstance()
+                .accessPolicyId(getAccessPolicyIdOrFrom(asset, from))
+                .contractPolicyId(getContractPolicyIdOrFrom(asset, from))
+                .assetsSelectorCriterion(getAssetIdCriterion(asset.getId()))
+                .id(from.getId())
+                .privateProperty("creator", "AAS-Extension")
+                .build();
+    }
+
+    private void registerDefaultPolicies() {
         var defaultAccessPolicyPath = configuration.getDefaultAccessPolicyPath();
         var defaultContractPolicyPath = configuration.getDefaultContractPolicyPath();
 
-        var defaultAccessPolicy = getPolicyDefinitionFromFile(defaultAccessPolicyPath).orElse(defaultPolicy);
-        var defaultContractPolicy = getPolicyDefinitionFromFile(defaultContractPolicyPath).orElse(defaultPolicy);
+        var defaultAccessPolicy = getPolicyDefinitionFromFile(defaultAccessPolicyPath)
+                .orElse(initializeDefaultPolicy());
+        var defaultContractPolicy = getPolicyDefinitionFromFile(defaultContractPolicyPath)
+                .orElse(initializeDefaultPolicy());
 
         var defaultAccessPolicyDefinition = PolicyDefinition.Builder.newInstance()
                 .id(DEFAULT_ACCESS_POLICY_DEFINITION_ID)
@@ -296,6 +289,30 @@ public class ContractRegistrar extends PipelineStep<ChangeSet<Asset, Asset>, Voi
         }
     }
 
+    private String getAccessPolicyIdOrDefault(Asset asset) {
+        return (String) Optional
+                .ofNullable(asset.getPrivateProperty(ACCESS_POLICY_FIELD))
+                .orElse(DEFAULT_ACCESS_POLICY_DEFINITION_ID);
+    }
+
+    private String getAccessPolicyIdOrFrom(Asset asset, ContractDefinition from) {
+        return (String) Optional
+                .ofNullable(asset.getPrivateProperty(ACCESS_POLICY_FIELD))
+                .orElse(from.getAccessPolicyId());
+    }
+
+    private String getContractPolicyIdOrFrom(Asset asset, ContractDefinition from) {
+        return (String) Optional
+                .ofNullable(asset.getPrivateProperty(CONTRACT_POLICY_FIELD))
+                .orElse(from.getContractPolicyId());
+    }
+
+    private String getContractPolicyIdOrDefault(Asset asset) {
+        return (String) Optional
+                .ofNullable(asset.getPrivateProperty(CONTRACT_POLICY_FIELD))
+                .orElse(DEFAULT_CONTRACT_POLICY_DEFINITION_ID);
+    }
+
     private Policy initializeDefaultPolicy() {
         return Policy.Builder.newInstance()
                 .permission(Permission.Builder.newInstance()
@@ -303,19 +320,8 @@ public class ContractRegistrar extends PipelineStep<ChangeSet<Asset, Asset>, Voi
                                 .type("USE")
                                 .build())
                         .build())
+                .assigner(participantId)
                 .build();
-    }
-
-    private String getAccessPolicyIdOrDefault(Asset asset) {
-        return (String) Optional
-                .ofNullable(asset.getPrivateProperty(ACCESS_POLICY_FIELD))
-                .orElse(DEFAULT_ACCESS_POLICY_DEFINITION_ID);
-    }
-
-    private String getContractPolicyIdOrDefault(Asset asset) {
-        return (String) Optional
-                .ofNullable(asset.getPrivateProperty(CONTRACT_POLICY_FIELD))
-                .orElse(DEFAULT_CONTRACT_POLICY_DEFINITION_ID);
     }
 
 }

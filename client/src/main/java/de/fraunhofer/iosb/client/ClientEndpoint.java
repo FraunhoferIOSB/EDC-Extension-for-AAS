@@ -115,8 +115,8 @@ public class ClientEndpoint {
         if (agreementResult.failed()) {
             monitor.severe("Negotiation failed for provider %s and contractOffer %s: %s".formatted(
                     counterPartyUrl, contractOfferResult.getContent().getId(), agreementResult.getFailureDetail()));
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(agreementResult.getFailureDetail()).build();
+
+            return Response.serverError().entity(agreementResult.getFailureDetail()).build();
         }
 
         return transferController.getData(counterPartyUrl, agreementResult.getContent().getId(), dataAddress);

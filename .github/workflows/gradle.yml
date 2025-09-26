@@ -46,7 +46,7 @@ jobs:
         run: |
           VERSION=$(./gradlew properties -q | grep "^version:" | awk '{print $2}')
           echo "VERSION=$VERSION" >> $GITHUB_ENV
-          
+
       - name: Build and push docker image - extension
         uses: docker/build-push-action@v6
         with:

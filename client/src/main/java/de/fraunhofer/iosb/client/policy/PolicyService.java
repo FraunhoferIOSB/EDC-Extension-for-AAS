@@ -147,7 +147,7 @@ class PolicyService {
         return acceptablePolicy.map(idPolicyEntry ->
                         Result.success(ContractOffer.Builder.newInstance()
                                 .id(idPolicyEntry.getKey())
-                                .policy(idPolicyEntry.getValue())
+                                .policy(idPolicyEntry.getValue().withTarget(assetId))
                                 .assetId(assetId)
                                 .build()))
                 .orElse(Result.failure("Could not find acceptable policyDefinition"));

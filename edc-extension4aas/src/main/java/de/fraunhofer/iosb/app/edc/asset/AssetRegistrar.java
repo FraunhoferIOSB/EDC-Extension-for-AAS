@@ -15,42 +15,88 @@
  */
 package de.fraunhofer.iosb.app.edc.asset;
 
+import de.fraunhofer.iosb.app.model.ChangeSet;
 import de.fraunhofer.iosb.app.pipeline.PipelineFailure;
 import de.fraunhofer.iosb.app.pipeline.PipelineResult;
+import de.fraunhofer.iosb.app.pipeline.PipelineStep;
+import de.fraunhofer.iosb.app.util.Pair;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
-import org.eclipse.edc.spi.result.StoreFailure;
+import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.result.AbstractResult;
+import org.eclipse.edc.spi.result.StoreResult;
+
+import static org.eclipse.edc.spi.result.StoreFailure.Reason.ALREADY_EXISTS;
 
 /**
  * Adds and removes assets given a change set of assets and asset IDs.
  * Passes the asset IDs of both the added and removed on to the next pipeline step.
  */
-public class AssetRegistrar {
+public class AssetRegistrar extends PipelineStep<ChangeSet<Asset, String>, ChangeSet<Asset, Asset>> {
 
     private final AssetIndex assetIndex;
+    private final Monitor monitor;
 
     /**
      * Class constructor
      *
      * @param assetIndex Add / remove assets from the EDC asset index.
+     * @param monitor    Debug log message on how many assets were added/removed (only if >0)
      */
-    public AssetRegistrar(AssetIndex assetIndex) {
+    public AssetRegistrar(AssetIndex assetIndex, Monitor monitor) {
         this.assetIndex = assetIndex;
+        this.monitor = monitor;
     }
 
-    public PipelineResult<String> createAsset(Asset asset) {
-        var storeResult = assetIndex.create(asset);
-        if (storeResult.failed() && storeResult.getFailure().getReason().equals(StoreFailure.Reason.GENERAL_ERROR)) {
-            return PipelineResult.failure(PipelineFailure.warning(storeResult.getFailureMessages()));
+    /**
+     * Adds/Removes assets given the change set.
+     *
+     * @param changeSet Assets to add/remove.
+     * @return Asset IDs of all the added/removed assets
+     */
+    @Override
+    public PipelineResult<ChangeSet<Asset, Asset>> apply(ChangeSet<Asset, String> changeSet) {
+        var added = changeSet.toAdd().stream().map(this::create).toList();
+
+        var removed = changeSet.toRemove().stream().map(this::remove).toList();
+
+        // Add contracts for successfully added assets
+        var changeSetIds = new ChangeSet.Builder<Asset, Asset>()
+                .add(added.stream()
+                        .filter(assetIdResultPair ->
+                                assetIdResultPair.second().succeeded() ||
+                                        ALREADY_EXISTS.equals(assetIdResultPair.second().reason())
+                        )
+                        .map(Pair::first)
+                        .toList())
+                .remove(removed.stream()
+                        .filter(StoreResult::succeeded)
+                        .map(AbstractResult::getContent)
+                        .toList())
+                .build();
+
+        if (!changeSetIds.toAdd().isEmpty() || !changeSetIds.toRemove().isEmpty()) {
+            monitor.info("Added %s, removed %s assets".formatted(changeSetIds.toAdd().size(),
+                    changeSetIds.toRemove().size()));
         }
-        if (storeResult.failed() && storeResult.getFailure().getReason().equals(StoreFailure.Reason.ALREADY_EXISTS)) {
-            return PipelineResult.failure(PipelineFailure.warning(storeResult.getFailureMessages())).withContent(asset.getId());
+
+        if (added.stream().anyMatch(pair -> pair.second().failed()) || removed.stream().anyMatch(AbstractResult::failed)) {
+            return PipelineResult.recoverableFailure(changeSetIds,
+                    PipelineFailure.warning(added.stream()
+                            .map(Pair::second)
+                            .filter(AbstractResult::failed)
+                            .map(AbstractResult::getFailureDetail)
+                            .toList()));
         }
-        return PipelineResult.from(storeResult).withContent(asset.getId());
+
+        return PipelineResult.success(changeSetIds);
     }
 
-    public PipelineResult<String> removeAsset(String assetId) {
-        var storeResult = assetIndex.deleteById(assetId);
-        return PipelineResult.from(storeResult).withContent(assetId);
+    private Pair<Asset, StoreResult<Void>> create(Asset asset) {
+        return new Pair<>(asset, assetIndex.create(asset));
+    }
+
+    private StoreResult<Asset> remove(String assetId) {
+        return assetIndex.deleteById(assetId);
     }
 }

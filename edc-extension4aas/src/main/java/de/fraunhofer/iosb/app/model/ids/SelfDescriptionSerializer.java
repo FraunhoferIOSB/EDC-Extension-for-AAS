@@ -30,8 +30,8 @@ import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.PROP
 
 public class SelfDescriptionSerializer {
 
-    private static final String[] SKIPPED_FIELDS = new String[]{"dataAddress", "privateProperties", "createdAt",
-            PROPERTY_ID};
+    private static final String[] SKIPPED_FIELDS = new String[]{ "dataAddress", "privateProperties", "createdAt",
+            PROPERTY_ID };
     private static final ObjectWriter OBJECT_WRITER = createObjectWriter();
 
     private SelfDescriptionSerializer() {
@@ -42,18 +42,16 @@ public class SelfDescriptionSerializer {
      * Serialize Asset into (kind of) IDS SelfDescription form
      *
      * @param asset Asset containing environment to be serialized
-     * @return SelfDescription or empty string on exception
+     * @return The self-description representing the current state of this AAS
+     * @throws JsonProcessingException failed to serialize self description
      */
-    public static String assetToString(Asset asset) {
-        try {
-            var environmentList = Map.of(
-                    "shells", asset.getProperty("shells"),
-                    "submodels", asset.getProperty("submodels"),
-                    "conceptDescriptions", asset.getProperty("conceptDescriptions"));
-            return OBJECT_WRITER.writeValueAsString(environmentList);
-        } catch (JsonProcessingException e) {
-            return "";
-        }
+    public static String assetToString(Asset asset) throws JsonProcessingException {
+        var environmentList = Map.of(
+                "shells", asset.getProperty("shells"),
+                "submodels", asset.getProperty("submodels"),
+                "conceptDescriptions", asset.getProperty("conceptDescriptions"));
+
+        return OBJECT_WRITER.writeValueAsString(environmentList);
     }
 
     private static ObjectWriter createObjectWriter() {

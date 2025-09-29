@@ -38,7 +38,7 @@ public class AasController implements SelfDescriptionChangeListener {
     /**
      * Class constructor
      *
-     * @param monitor            Logging
+     * @param monitor Logging
      */
     public AasController(Monitor monitor) {
         this.monitor = monitor;

@@ -48,7 +48,7 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
  *     </li>
  * </ul>
  */
-@Provides({AasDataProcessorFactory.class})
+@Provides({ AasDataProcessorFactory.class })
 @Extension(value = DataPlaneAasExtension.NAME)
 public class DataPlaneAasExtension implements ServiceExtension {
 

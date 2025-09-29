@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.app.testutils;
+package de.fraunhofer.iosb.aas.test;
 
 import org.apache.commons.io.IOUtils;
 
@@ -22,8 +22,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-
-import static org.junit.jupiter.api.Assertions.fail;
 
 public class FileManager {
 
@@ -36,11 +34,9 @@ public class FileManager {
         try (FileInputStream x = new FileInputStream(new File(RESOURCES_DIRECTORY, fileName))) {
             return IOUtils.toString(x, StandardCharsets.UTF_8);
         } catch (FileNotFoundException e) {
-            fail("File not found exception on file " + fileName);
-            return null;
+            throw new IllegalArgumentException("File not found exception on file " + fileName);
         } catch (IOException e) {
-            fail("IO exception on file " + fileName);
-            return null;
+            throw new IllegalStateException("IO exception on file " + fileName);
         }
     }
 }

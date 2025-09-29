@@ -55,7 +55,7 @@ public class RegistryRepositoryUpdater extends PipelineStep<Collection<Registry>
                     .forEach(service ->
                             result.add(new Pair<>(
                                     getCorresponding(storedEnvironments, service),
-                                    service.environment())));
+                                    service.getEnvironment())));
 
             registryRepository.update(registry);
         });
@@ -70,7 +70,7 @@ public class RegistryRepositoryUpdater extends PipelineStep<Collection<Registry>
         return services.stream()
                 .filter(toFind::equals)
                 .findFirst()
-                .map(Service::environment)
+                .map(Service::getEnvironment)
                 .orElse(null);
     }
 }

@@ -16,6 +16,7 @@
 package de.fraunhofer.iosb.app.aas.mapper;
 
 import de.fraunhofer.iosb.aas.lib.model.impl.Service;
+import de.fraunhofer.iosb.app.aas.mapper.environment.referable.SubmodelElementMapper;
 import org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes;
 import org.eclipse.digitaltwin.aas4j.v3.model.OperationVariable;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultKey;
@@ -29,6 +30,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 
+import static de.fraunhofer.iosb.aas.lib.type.AasConstants.AAS_V30_NAMESPACE;
 import static de.fraunhofer.iosb.app.testutils.AasCreator.getProperty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -78,14 +80,14 @@ class SubmodelElementMapperTest {
 
         var resultAsset = testSubject.map(mockParent, mockOperation, mockService());
 
-        assertEquals(mockInputVariables, resultAsset.getProperty("inputVariables"));
-        assertEquals(mockInoutputVariables, resultAsset.getProperty("inoutputVariables"));
-        assertEquals(mockOutputVariables, resultAsset.getProperty("outputVariables"));
+        assertEquals(mockInputVariables, resultAsset.getProperty(AAS_V30_NAMESPACE + "Operation/" + "inputVariables"));
+        assertEquals(mockInoutputVariables, resultAsset.getProperty(AAS_V30_NAMESPACE + "Operation/" + "inoutputVariables"));
+        assertEquals(mockOutputVariables, resultAsset.getProperty(AAS_V30_NAMESPACE + "Operation/" + "outputVariables"));
     }
 
     private Service mockService() {
         try {
-            return new Service(new URL("https://test-url:1234/api/v3.0"));
+            return new Service.Builder().withUrl(new URL("https://test-url:1234/api/v3.0")).build();
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }

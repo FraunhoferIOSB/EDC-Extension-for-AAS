@@ -17,6 +17,8 @@ package de.fraunhofer.iosb.app.edc;
 
 import de.fraunhofer.iosb.aas.lib.model.impl.Registry;
 import de.fraunhofer.iosb.aas.lib.model.impl.Service;
+import de.fraunhofer.iosb.app.edc.asset.AssetRegistrar;
+import de.fraunhofer.iosb.app.edc.contract.ContractRegistrar;
 import de.fraunhofer.iosb.app.model.ChangeSet;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionChangeListener;
 import de.fraunhofer.iosb.app.pipeline.Pipeline;
@@ -48,8 +50,8 @@ public class CleanUpService implements SelfDescriptionChangeListener {
 
     @Override
     public void removed(Service service) {
-        if (service.environment() != null) {
-            servicePipeline.execute(service.environment());
+        if (service.getEnvironment() != null) {
+            servicePipeline.execute(service.getEnvironment());
         }
     }
 
@@ -57,7 +59,7 @@ public class CleanUpService implements SelfDescriptionChangeListener {
     public void removed(Registry registry) {
         Optional.ofNullable(registry.services())
                 .orElse(List.of()).stream()
-                .map(Service::environment)
+                .map(Service::getEnvironment)
                 .forEach(servicePipeline::execute);
     }
 
@@ -120,8 +122,11 @@ public class CleanUpService implements SelfDescriptionChangeListener {
                         monitor.debug("Started pipeline for %s assets.".formatted(input.toRemove().size()));
                         return input;
                     }))
-                    .step(new ResourceRegistrar(assetIndex, contractDefinitionStore, policyDefinitionStore,
-                            monitor.withPrefix("Cleanup Service")))
+                    .step(new AssetRegistrar(Objects.requireNonNull(assetIndex), monitor))
+                    .step(new ContractRegistrar(
+                            Objects.requireNonNull(contractDefinitionStore),
+                            Objects.requireNonNull(policyDefinitionStore),
+                            monitor, "dummy-participant-id"))
                     .monitor(monitor)
                     .build();
 

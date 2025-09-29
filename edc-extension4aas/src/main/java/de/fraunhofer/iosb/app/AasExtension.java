@@ -19,14 +19,15 @@ import de.fraunhofer.iosb.aas.lib.model.impl.Registry;
 import de.fraunhofer.iosb.aas.lib.model.impl.Service;
 import de.fraunhofer.iosb.api.PublicApiManagementService;
 import de.fraunhofer.iosb.api.model.HttpMethod;
-import de.fraunhofer.iosb.app.aas.EnvironmentToAssetMapper;
 import de.fraunhofer.iosb.app.aas.agent.impl.RegistryAgent;
 import de.fraunhofer.iosb.app.aas.agent.impl.ServiceAgent;
+import de.fraunhofer.iosb.app.aas.mapper.environment.EnvironmentToAssetMapper;
 import de.fraunhofer.iosb.app.controller.AasController;
 import de.fraunhofer.iosb.app.controller.ConfigurationController;
 import de.fraunhofer.iosb.app.controller.SelfDescriptionController;
 import de.fraunhofer.iosb.app.edc.CleanUpService;
-import de.fraunhofer.iosb.app.edc.ResourceRegistrar;
+import de.fraunhofer.iosb.app.edc.asset.AssetRegistrar;
+import de.fraunhofer.iosb.app.edc.contract.ContractRegistrar;
 import de.fraunhofer.iosb.app.model.aas.registry.RegistryRepository;
 import de.fraunhofer.iosb.app.model.aas.registry.RegistryRepositoryUpdater;
 import de.fraunhofer.iosb.app.model.aas.service.ServiceRepository;
@@ -45,6 +46,7 @@ import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.http.spi.EdcHttpClient;
+import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -58,9 +60,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.UUID;
 import java.util.function.Function;
 
+import static de.fraunhofer.iosb.aas.lib.type.AasConstants.AAS_PREFIX;
+import static de.fraunhofer.iosb.aas.lib.type.AasConstants.AAS_V30_NAMESPACE;
 import static de.fraunhofer.iosb.app.controller.SelfDescriptionController.SELF_DESCRIPTION_PATH;
 import static de.fraunhofer.iosb.app.pipeline.PipelineFailure.Type.FATAL;
 import static de.fraunhofer.iosb.app.util.InetTools.getSelfSignedCertificate;
@@ -73,7 +76,6 @@ import static de.fraunhofer.iosb.app.util.InetTools.isConnectionTrusted;
 public class AasExtension implements ServiceExtension {
 
     public static final String NAME = "EDC4AAS Extension";
-    public static final String ID = UUID.randomUUID().toString();
 
     private static final String SETTINGS_PREFIX = "edc.aas";
 
@@ -89,16 +91,21 @@ public class AasExtension implements ServiceExtension {
     private PolicyDefinitionStore policyDefinitionStore;
     @Inject // Register http endpoint at EDC
     private WebService webService;
+    @Inject // Add AAS namespace to JSON LD context
+    private JsonLd jsonLd;
 
     private AasController aasController;
     private Monitor monitor;
     private VariableRateScheduler servicePipeline;
     private VariableRateScheduler registryPipeline;
+    private String participantId;
     ServiceRepository serviceRepository;
     private RegistryRepository registryRepository;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
+        jsonLd.registerNamespace(AAS_PREFIX, AAS_V30_NAMESPACE);
+
         this.monitor = context.getMonitor().withPrefix(NAME);
         webService.registerResource(new ConfigurationController(context.getConfig(SETTINGS_PREFIX), monitor));
         aasController = new AasController(monitor);
@@ -114,6 +121,8 @@ public class AasExtension implements ServiceExtension {
 
         webService.registerResource(new SelfDescriptionController(monitor, serviceRepository, registryRepository));
         webService.registerResource(new Endpoint(serviceRepository, registryRepository, aasController, monitor));
+
+        this.participantId = context.getParticipantId();
     }
 
     @Override
@@ -125,12 +134,13 @@ public class AasExtension implements ServiceExtension {
         var serviceSynchronization = new Pipeline.Builder<Void, Void>()
                 .monitor(monitor.withPrefix("Service Pipeline"))
                 .supplier(serviceRepository::getAll)
-                .step(new Filter<>(InetTools::pingHost))
+                .step(new Filter<>(InetTools::pingHost, "Connection Test"))
                 .step(new InputOutputZipper<>(new ServiceAgent(edcHttpClient, monitor), Function.identity()))
                 .step(new EnvironmentToAssetMapper(() -> Configuration.getInstance().isOnlySubmodels()))
                 .step(new CollectionFeeder<>(new ServiceRepositoryUpdater(serviceRepository)))
-                .step(new Synchronizer(assetIndex, contractDefinitionStore, policyDefinitionStore))
-                .step(new ResourceRegistrar(assetIndex, contractDefinitionStore, policyDefinitionStore, monitor.withPrefix("Service Pipeline")))
+                .step(new Synchronizer())
+                .step(new AssetRegistrar(assetIndex, monitor.withPrefix("Service Pipeline")))
+                .step(new ContractRegistrar(contractDefinitionStore, policyDefinitionStore, monitor, participantId))
                 .build();
 
         servicePipeline = new VariableRateScheduler(1, serviceSynchronization, monitor);
@@ -140,7 +150,7 @@ public class AasExtension implements ServiceExtension {
         var registrySynchronization = new Pipeline.Builder<Void, Void>()
                 .monitor(monitor.withPrefix("Registry Pipeline"))
                 .supplier(registryRepository::getAll)
-                .step(new Filter<>(InetTools::pingHost))
+                .step(new Filter<>(InetTools::pingHost, "Connection Test"))
                 .step(new InputOutputZipper<>(new RegistryAgent(edcHttpClient, monitor),
                         Function.identity()))
                 .step(new MapValueProcessor<>(
@@ -152,8 +162,9 @@ public class AasExtension implements ServiceExtension {
                         .map(registry -> registry.getKey().with(registry.getValue()))
                         .toList()))
                 .step(new RegistryRepositoryUpdater(registryRepository))
-                .step(new Synchronizer(assetIndex, contractDefinitionStore, policyDefinitionStore))
-                .step(new ResourceRegistrar(assetIndex, contractDefinitionStore, policyDefinitionStore, monitor.withPrefix("Registry Pipeline")))
+                .step(new Synchronizer())
+                .step(new AssetRegistrar(assetIndex, monitor.withPrefix("Registry Pipeline")))
+                .step(new ContractRegistrar(contractDefinitionStore, policyDefinitionStore, monitor, participantId))
                 .build();
 
         registryPipeline = new VariableRateScheduler(1, registrySynchronization, monitor);
@@ -179,7 +190,9 @@ public class AasExtension implements ServiceExtension {
         var configInstance = Configuration.getInstance();
 
         if (Objects.nonNull(configInstance.getRemoteAasLocation())) {
-            serviceRepository.create(new Service(configInstance.getRemoteAasLocation()));
+            serviceRepository.create(new Service.Builder()
+                    .withUrl(configInstance.getRemoteAasLocation())
+                    .build());
         }
 
         if (Objects.isNull(configInstance.getLocalAasModelPath())) {
@@ -208,7 +221,9 @@ public class AasExtension implements ServiceExtension {
         // - has a valid certificate OR
         // - has a self-signed one AND we accept self-signed
         if (isConnectionTrusted(serviceUrl) || (configInstance.isAllowSelfSignedCertificates() && getSelfSignedCertificate(serviceUrl).succeeded())) {
-            serviceRepository.create(new Service(serviceUrl));
+            serviceRepository.create(new Service.Builder()
+                    .withUrl(serviceUrl)
+                    .build());
         } else {
             aasController.stopService(serviceUrl);
             monitor.severe("AAS service uses self-signed (not allowed) or otherwise invalid certificate.");

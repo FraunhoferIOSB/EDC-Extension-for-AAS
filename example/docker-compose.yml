@@ -1,8 +1,6 @@
-version: "3.9"
-
 services:
   provider:
-    image: fraunhoferiosb/edc-extension4aas:2.2.1
+    image: fraunhoferiosb/edc-extension4aas:latest
     ports:
       - "8181:8181"
       - "8281:8281"

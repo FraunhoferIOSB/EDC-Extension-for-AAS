@@ -18,8 +18,11 @@ package de.fraunhofer.iosb.app;
 import org.eclipse.edc.boot.system.injection.ObjectFactory;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
+import org.eclipse.edc.connector.controlplane.defaults.storage.contractdefinition.InMemoryContractDefinitionStore;
+import org.eclipse.edc.connector.controlplane.defaults.storage.policydefinition.InMemoryPolicyDefinitionStore;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
+import org.eclipse.edc.query.CriterionOperatorRegistryImpl;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -41,9 +44,9 @@ public class AasExtensionTest {
     @BeforeEach
     void setup(ServiceExtensionContext context, ObjectFactory factory) {
         context.registerService(AssetIndex.class, mock(AssetIndex.class));
-        context.registerService(ContractDefinitionStore.class, mock(ContractDefinitionStore.class));
+        context.registerService(ContractDefinitionStore.class, new InMemoryContractDefinitionStore(new CriterionOperatorRegistryImpl()));
         context.registerService(Monitor.class, new ConsoleMonitor());
-        context.registerService(PolicyDefinitionStore.class, mock(PolicyDefinitionStore.class));
+        context.registerService(PolicyDefinitionStore.class, new InMemoryPolicyDefinitionStore(new CriterionOperatorRegistryImpl()));
         context.registerService(WebService.class, mock(WebService.class));
 
         when(context.getConfig()).thenReturn(mock(Config.class));

@@ -37,6 +37,10 @@ public class PipelineResult<T> extends AbstractResult<T, PipelineFailure, Pipeli
         return new PipelineResult<>(content, null);
     }
 
+    public static <T> PipelineResult<T> success() {
+        return new PipelineResult<>(null, null);
+    }
+
     /**
      * An irrecoverable failure. This means that the pipeline step produced an erroneous result or nothing at all.
      *

@@ -15,6 +15,7 @@
  */
 package de.fraunhofer.iosb.app.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import de.fraunhofer.iosb.aas.lib.model.impl.Service;
 import de.fraunhofer.iosb.app.model.aas.registry.RegistryRepository;
 import de.fraunhofer.iosb.app.model.aas.service.ServiceRepository;
@@ -25,12 +26,12 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Objects;
-import java.util.stream.Collectors;
+import java.util.List;
 import java.util.stream.Stream;
 
 import static de.fraunhofer.iosb.app.controller.SelfDescriptionController.SELF_DESCRIPTION_PATH;
@@ -51,8 +52,9 @@ public class SelfDescriptionController {
     /**
      * Class constructor
      *
-     * @param monitor           Logs
-     * @param serviceRepository Manage self descriptions
+     * @param monitor            Logs
+     * @param serviceRepository  Read services for self-description
+     * @param registryRepository Read registries for self-description
      */
     public SelfDescriptionController(Monitor monitor, ServiceRepository serviceRepository,
                                      RegistryRepository registryRepository) {
@@ -69,42 +71,58 @@ public class SelfDescriptionController {
      * @return Self description(s)
      */
     @GET
-    public Response getSelfDescription(@QueryParam("url") URL aasServiceUrl) {
-        if (Objects.isNull(aasServiceUrl)) {
-            monitor.debug("GET /selfDescription");
-
-            var services = serviceRepository.getAllEnvironments().stream()
-                    .filter(Objects::nonNull)
-                    .map(SelfDescriptionSerializer::assetToString)
-                    .collect(Collectors.toCollection(ArrayList::new));
-
-            services.addAll(registryRepository.getAllEnvironments().stream()
-                    .filter(Objects::nonNull)
-                    .map(Service::environment)
-                    .filter(Objects::nonNull)
-                    .map(SelfDescriptionSerializer::assetToString)
-                    .toList());
-
-            return Response.ok(intoJsonArray(services.stream())).build();
-
-        } else {
-            monitor.debug("GET /selfDescription/%s".formatted(aasServiceUrl));
-
-            var registry = registryRepository.getEnvironments(aasServiceUrl);
-            if (registry != null) {
-                return Response.ok(intoJsonArray(registry.stream().map(Service::environment).map(SelfDescriptionSerializer::assetToString))).build();
-            }
-
-            var service = serviceRepository.getEnvironment(aasServiceUrl);
-
-            if (service != null) {
-                return Response.ok(SelfDescriptionSerializer.assetToString(service)).build();
-            }
-
-            monitor.warning("URL %s not found.".formatted(aasServiceUrl));
-            return Response.status(Response.Status.NOT_FOUND).build();
+    public Response getSelfDescription(@QueryParam("url") URL aasServiceUrl) throws JsonProcessingException {
+        if (aasServiceUrl == null) {
+            monitor.debug(String.format("GET /%s", SELF_DESCRIPTION_PATH));
+            return Response.ok(getAllSelfDescriptions()).build();
         }
+
+        monitor.debug(String.format("GET /%s/%s", SELF_DESCRIPTION_PATH, aasServiceUrl));
+        var registry = registryRepository.getEnvironments(aasServiceUrl);
+
+        if (registry != null) {
+            var environments = registry.stream()
+                    .map(Service::getEnvironment)
+                    .toList();
+
+            return Response.ok(environmentsAsSelfDescriptionString(environments)).build();
+        }
+
+        var service = serviceRepository.getEnvironment(aasServiceUrl);
+
+        if (service != null) {
+            return Response.ok(environmentsAsSelfDescriptionString(List.of(service))).build();
+        }
+
+        monitor.warning("URL %s not found.".formatted(aasServiceUrl));
+        return Response.status(Response.Status.NOT_FOUND).build();
     }
+
+
+    private String getAllSelfDescriptions() throws JsonProcessingException {
+        // Service and Registry environments can be null if they have not been fetched yet
+        var environments = new ArrayList<>(serviceRepository.getAllEnvironments());
+
+        environments.addAll(registryRepository.getAllEnvironments().stream()
+                .map(Service::getEnvironment)
+                .toList());
+
+        return environmentsAsSelfDescriptionString(environments);
+    }
+
+    private String environmentsAsSelfDescriptionString(List<Asset> environments) throws JsonProcessingException {
+        var selfDescription = new ArrayList<String>();
+        for (Asset environment : environments) {
+            if (environment == null) {
+                continue;
+            }
+            String s = SelfDescriptionSerializer.assetToString(environment);
+            selfDescription.add(s);
+        }
+
+        return intoJsonArray(selfDescription.stream());
+    }
+
 
     private String intoJsonArray(Stream<String> contents) {
         return "[%s]".formatted(contents.reduce("%s,%s"::formatted).orElse(null));

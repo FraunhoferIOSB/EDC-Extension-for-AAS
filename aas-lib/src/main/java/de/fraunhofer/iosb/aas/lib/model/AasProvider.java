@@ -22,29 +22,28 @@ import de.fraunhofer.iosb.aas.lib.net.AasAccessUrl;
 
 import java.net.URL;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 public abstract class AasProvider {
 
     @JsonAlias("url")
-    private final AasAccessUrl url;
+    protected final AasAccessUrl url;
     @JsonAlias("auth")
-    private final AuthenticationMethod authentication;
-
-    public AasProvider(AasAccessUrl url) {
-        this.url = url;
-        this.authentication = new NoAuth();
-    }
+    protected final AuthenticationMethod authentication;
 
     public AasProvider(AasAccessUrl url, AuthenticationMethod authentication) {
-        this.url = url;
-        this.authentication = authentication;
+        this.url = Objects.requireNonNull(url);
+        this.authentication = Objects.requireNonNull(authentication);
+    }
+
+    public AasProvider(AasAccessUrl url) {
+        this(url, new NoAuth());
     }
 
     protected AasProvider(AasProvider from) {
-        this.url = from.url;
-        this.authentication = from.authentication;
+        this(from.url, from.authentication);
     }
 
     public Map<String, String> getHeaders() {
@@ -72,5 +71,44 @@ public abstract class AasProvider {
 
     public URL getAccessUrl() {
         return url.url();
+    }
+
+    public static abstract class Builder<B extends Builder<B>> {
+        protected AasAccessUrl url;
+        protected AuthenticationMethod authentication = new NoAuth();
+        protected List<PolicyBinding> policyBindings = null;
+
+        public B withPolicyBindings(List<PolicyBinding> policyBindings) {
+            this.policyBindings = policyBindings;
+            return self();
+        }
+
+        public B withUrl(URL url) {
+            this.url = new AasAccessUrl(url);
+            return self();
+        }
+
+        public B aasAccessUrl(AasAccessUrl url) {
+            this.url = url;
+            return self();
+        }
+
+        public B withAuthenticationMethod(AuthenticationMethod authentication) {
+            this.authentication = Objects.requireNonNull(authentication);
+            return self();
+        }
+
+        public B from(AasProvider from) {
+            this.url = from.url;
+            this.authentication = from.authentication;
+            return self();
+        }
+
+        public abstract AasProvider build();
+
+        @SuppressWarnings("unchecked")
+        private B self() {
+            return (B) this;
+        }
     }
 }

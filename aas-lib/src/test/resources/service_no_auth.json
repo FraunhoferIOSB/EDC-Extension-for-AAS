@@ -1,0 +1,10 @@
+{
+  "url": "https://localhost:443/api/v3.0",
+  "policyBindings": [
+    {
+      "referredElement": "[ModelRef](Submodel)xyz, (SubmodelElementCollection)coll, (Property)prop",
+      "accessPolicyId": "default-access-policy",
+      "usagePolicyId": "default-usage-policy"
+    }
+  ]
+}

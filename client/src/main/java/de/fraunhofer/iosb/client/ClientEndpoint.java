@@ -41,8 +41,8 @@ import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DA
 /**
  * Automated contract negotiation
  */
-@Consumes({MediaType.APPLICATION_JSON, MediaType.WILDCARD})
-@Produces({MediaType.APPLICATION_JSON})
+@Consumes({ MediaType.APPLICATION_JSON, MediaType.WILDCARD })
+@Produces({ MediaType.APPLICATION_JSON })
 @Path(ClientEndpoint.AUTOMATED_PATH)
 public class ClientEndpoint {
     /*
@@ -90,7 +90,7 @@ public class ClientEndpoint {
         if (counterPartyUrl == null || counterPartyId == null || assetId == null ||
                 assetId.isEmpty()) {
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(MISSING_QUERY_PARAMETER_MESSAGE.formatted("providerUrl, counterPartyId, assetId")).build();
+                    .entity(MISSING_QUERY_PARAMETER_MESSAGE.formatted("providerUrl, providerId, assetId")).build();
         }
 
         Result<ContractOffer> contractOfferResult =
@@ -115,8 +115,8 @@ public class ClientEndpoint {
         if (agreementResult.failed()) {
             monitor.severe("Negotiation failed for provider %s and contractOffer %s: %s".formatted(
                     counterPartyUrl, contractOfferResult.getContent().getId(), agreementResult.getFailureDetail()));
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(agreementResult.getFailureDetail()).build();
+
+            return Response.serverError().entity(agreementResult.getFailureDetail()).build();
         }
 
         return transferController.getData(counterPartyUrl, agreementResult.getContent().getId(), dataAddress);

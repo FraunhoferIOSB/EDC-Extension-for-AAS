@@ -21,8 +21,10 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import de.fraunhofer.iosb.aas.lib.model.AasProvider;
+import org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultReference;
+import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -31,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
 import java.net.URL;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -40,10 +43,10 @@ import static de.fraunhofer.iosb.aas.lib.model.impl.Service.SHELLS_PATH;
 import static de.fraunhofer.iosb.aas.lib.model.impl.Service.SUBMODELS_PATH;
 import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toMap;
-
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 /**
- * Inspired by  org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress
+ * Inspired by org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress
  * Enables more specific communication with AAS services
  */
 @JsonTypeName
@@ -51,9 +54,8 @@ import static java.util.stream.Collectors.toMap;
 public class AasDataAddress extends DataAddress {
 
     public static final String AAS_DATA_TYPE = "AasData";
-
+    public static final String OPERATION_NAME = KeyTypes.OPERATION.name().toLowerCase(Locale.ROOT);
     // See aas4j operation
-    public static final String OPERATION = "operation";
     private static final String ADDITIONAL_HEADER = "header:";
     private static final String METHOD = "method";
     private static final String PROVIDER = "AAS-Provider";
@@ -66,11 +68,11 @@ public class AasDataAddress extends DataAddress {
     }
 
     public boolean isOperation() {
-        return this.hasProperty(OPERATION);
+        return this.hasProperty(OPERATION_NAME);
     }
 
     public @Nullable String getOperation() {
-        return isOperation() ? this.getStringProperty(OPERATION) : null;
+        return isOperation() ? this.getStringProperty(OPERATION_NAME) : null;
     }
 
     @JsonIgnore
@@ -82,11 +84,13 @@ public class AasDataAddress extends DataAddress {
     }
 
     private boolean hasProvider() {
-        return getProperties().get(PROVIDER) != null;
+        return properties.get(EDC_NAMESPACE + PROVIDER) != null || properties.get(PROVIDER) != null;
     }
 
     private AasProvider getProvider() {
-        Object provider = super.getProperties().get(PROVIDER);
+        Object provider = Optional
+                .ofNullable(super.getProperties().get(EDC_NAMESPACE + PROVIDER))
+                .orElse(super.getProperties().get(PROVIDER));
         if (provider instanceof AasProvider) {
             return (AasProvider) provider;
         }
@@ -104,18 +108,23 @@ public class AasDataAddress extends DataAddress {
         Map<String, String> headers = hasProvider() ? getProvider().getHeaders() : new HashMap<>();
         headers.putAll(getProperties().entrySet().stream()
                 .filter(entry -> entry.getKey().startsWith(ADDITIONAL_HEADER))
-                .collect(toMap(headerName -> headerName.getKey().replace(ADDITIONAL_HEADER, ""), headerValue -> (String) headerValue.getValue())));
+                .collect(toMap(headerName -> headerName.getKey().replace(ADDITIONAL_HEADER, ""),
+                        headerValue -> (String) headerValue.getValue())));
         return headers;
     }
 
     /**
-     * If an explicit path is available, return this path. Else, return the following:
+     * If an explicit path is available, return this path. Else, return the
+     * following:
      * <p>
-     * build and returns the HTTP URL path required to access this AAS data at the AAS service.
-     * Example: ReferenceChain: [Submodel x, SubmodelElementCollection y, SubmodelElement z]
+     * build and returns the HTTP URL path required to access this AAS data at the
+     * AAS service.
+     * Example: ReferenceChain: [Submodel x, SubmodelElementCollection y,
+     * SubmodelElement z]
      * --> path: submodels/base64(x)/submodel-elements/y.z
      *
-     * @return Explicitly defined path or path correlating to reference chain stored in this DataAddress (no leading '/').
+     * @return Explicitly defined path or path correlating to reference chain stored
+     *         in this DataAddress (no leading '/').
      */
     public String getPath() {
         return getStringProperty(PATH, referenceChainAsPath());
@@ -123,16 +132,17 @@ public class AasDataAddress extends DataAddress {
 
     private String referenceChainAsPath() {
         StringBuilder urlBuilder = new StringBuilder();
-
         for (var key : getReferenceChain().getKeys()) {
             var value = key.getValue();
             String[] toAppend = switch (key.getType()) {
                 case ASSET_ADMINISTRATION_SHELL -> new String[]{ SHELLS_PATH, b64(value) };
                 case SUBMODEL -> new String[]{ SUBMODELS_PATH, b64(value) };
                 case CONCEPT_DESCRIPTION -> new String[]{ CONCEPT_DESCRIPTIONS_PATH, b64(value) };
-                case SUBMODEL_ELEMENT, SUBMODEL_ELEMENT_COLLECTION, SUBMODEL_ELEMENT_LIST ->
-                        new String[]{ urlBuilder.indexOf("/submodel-elements/") == -1 ?
-                                "/submodel-elements/".concat(value) : ".".concat(value) };
+                case SUBMODEL_ELEMENT, SUBMODEL_ELEMENT_COLLECTION, SUBMODEL_ELEMENT_LIST, PROPERTY,
+                     ANNOTATED_RELATIONSHIP_ELEMENT, RELATIONSHIP_ELEMENT, DATA_ELEMENT, MULTI_LANGUAGE_PROPERTY, RANGE, FILE, BLOB,
+                     REFERENCE_ELEMENT, CAPABILITY, ENTITY, EVENT_ELEMENT, BASIC_EVENT_ELEMENT, OPERATION ->
+                        new String[]{ urlBuilder.indexOf("/submodel-elements/") == -1 ? "/submodel-elements/".concat(value)
+                                : ".".concat(value) };
                 default -> throw new EdcException(new IllegalStateException("Element type not recognized: %s".formatted(key)));
             };
 
@@ -148,7 +158,7 @@ public class AasDataAddress extends DataAddress {
         return Base64.getEncoder().encodeToString(toBeEncoded.getBytes());
     }
 
-    private Reference getReferenceChain() {
+    public Reference getReferenceChain() {
         var referenceChain = properties.get(REFERENCE_CHAIN);
 
         if (referenceChain == null) {
@@ -160,6 +170,18 @@ public class AasDataAddress extends DataAddress {
         }
 
         throw new EdcException(new IllegalStateException(("Faulty reference chain: %s").formatted(referenceChain)));
+    }
+
+    public HttpDataAddress asHttpDataAddress() {
+        HttpDataAddress.Builder httpDataAddress = HttpDataAddress.Builder.newInstance();
+        this.getProvider().getHeaders().forEach(httpDataAddress::addAdditionalHeader);
+
+        return httpDataAddress
+                .baseUrl(this.getAccessUrl().getContent().toString())
+                .method(this.getMethod())
+                .path(this.getPath())
+                .build();
+
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -191,12 +213,12 @@ public class AasDataAddress extends DataAddress {
         }
 
         /*
-            Why not use Operation.class or InputVariable.class/InOutputVariable.class?
-            - Values of any type other than String get removed when sending the DA from
-              consumer to provider (during "compaction" phase when serializing the DA)
+         * Why not use Operation.class or InputVariable.class/InOutputVariable.class?
+         * - Values of any type other than String get removed when sending the DA from
+         * consumer to provider (during "compaction" phase when serializing the DA)
          */
         public Builder operation(String operation) {
-            this.property(OPERATION, operation);
+            this.property(OPERATION_NAME, operation);
             return this;
         }
 

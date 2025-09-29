@@ -17,6 +17,7 @@ package de.fraunhofer.iosb.app.aas;
 
 import de.fraunhofer.iosb.aas.lib.model.impl.Service;
 import de.fraunhofer.iosb.aas.lib.spi.AasDataAddress;
+import de.fraunhofer.iosb.app.aas.mapper.environment.EnvironmentToAssetMapper;
 import de.fraunhofer.iosb.app.controller.ConfigurationController;
 import de.fraunhofer.iosb.app.pipeline.PipelineFailure;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
@@ -73,8 +74,8 @@ class EnvironmentToAssetMapperTest {
         var realEnvironmentAccessUrl = new URL("https://example.com");
 
         var input = new HashMap<Service, Environment>();
-        input.put(new Service(realEnvironmentAccessUrl), environment);
-        input.put(new Service(accessUrl), null);
+        input.put(new Service.Builder().withUrl(realEnvironmentAccessUrl).build(), environment);
+        input.put(new Service.Builder().withUrl(accessUrl).build(), null);
 
         var result = testSubject.apply(input);
 
@@ -83,12 +84,12 @@ class EnvironmentToAssetMapperTest {
         assertEquals(PipelineFailure.Type.WARNING, result.getFailure().getFailureType());
         assertNotNull(result.getContent().stream()
                 .filter(service -> service.getAccessUrl().toString()
-                        .equals(realEnvironmentAccessUrl.toString())).findFirst().orElseThrow().environment());
+                        .equals(realEnvironmentAccessUrl.toString())).findFirst().orElseThrow().getEnvironment());
 
         assertNull(result.getContent().stream()
                 .filter(service -> service.getAccessUrl().toString().equals(accessUrl.toString()))
-                .findFirst().orElse(new Service((URL) null))
-                .environment());
+                .findFirst().orElse(new Service.Builder().withUrl(new URL("http://localhost")).build())
+                .getEnvironment());
     }
 
     @Test
@@ -96,9 +97,9 @@ class EnvironmentToAssetMapperTest {
         var environment = getEnvironment();
         var emptyEnvironment = getEmptyEnvironment();
 
-        var input = new HashMap<>(Map.of(new Service(accessUrl), environment,
-                new Service(new URL("http://localhost:8080")), emptyEnvironment));
-        input.put(new Service(accessUrl), null);
+        var input = new HashMap<>(Map.of(new Service.Builder().withUrl(accessUrl).build(), environment,
+                new Service.Builder().withUrl(new URL("http://localhost:8080")).build(), emptyEnvironment));
+        input.put(new Service.Builder().withUrl(accessUrl).build(), null);
         input.put(null, environment);
 
         var result = testSubject.apply(input);
@@ -112,14 +113,14 @@ class EnvironmentToAssetMapperTest {
     @Test
     void testApply() {
         var env = getEnvironment();
-        var result = testSubject.apply(Map.of(new Service(accessUrl), env));
+        var result = testSubject.apply(Map.of(new Service.Builder().withUrl(accessUrl).build(), env));
         assertTrue(result.succeeded());
         assertNotNull(result.getContent());
         var envAsset = result.getContent().stream()
                 .filter(service -> service
                         .getAccessUrl().toString()
                         .equals(accessUrl.toString()))
-                .map(Service::environment)
+                .map(Service::getEnvironment)
                 .findFirst()
                 .orElseThrow();
 
@@ -142,7 +143,7 @@ class EnvironmentToAssetMapperTest {
 
     @Test
     void testNullEnvironment() {
-        var res = testSubject.executeSingle(new Service(accessUrl), null);
+        var res = testSubject.executeSingle(new Service.Builder().withUrl(accessUrl).build(), null);
         assertTrue(res.failed());
     }
 
@@ -154,11 +155,11 @@ class EnvironmentToAssetMapperTest {
 
     @Test
     void testEmptyEnvironment() {
-        var result = testSubject.executeSingle(new Service(accessUrl), new DefaultEnvironment()).getContent();
+        var result = testSubject.executeSingle(new Service.Builder().withUrl(accessUrl).build(), new DefaultEnvironment()).getContent();
 
-        assertEquals(emptyList, result.environment().getProperty(SUBMODELS));
-        assertEquals(emptyList, result.environment().getProperty(SHELLS));
-        assertEquals(emptyList, result.environment().getProperty(CONCEPT_DESCRIPTIONS));
+        assertEquals(emptyList, result.getEnvironment().getProperty(SUBMODELS));
+        assertEquals(emptyList, result.getEnvironment().getProperty(SHELLS));
+        assertEquals(emptyList, result.getEnvironment().getProperty(CONCEPT_DESCRIPTIONS));
     }
 
     @Test
@@ -167,22 +168,22 @@ class EnvironmentToAssetMapperTest {
 
         var env = getEnvironment();
 
-        var result = testSubject.executeSingle(new Service(accessUrl), env).getContent();
+        var result = testSubject.executeSingle(new Service.Builder().withUrl(accessUrl).build(), env).getContent();
 
-        assertEquals(env.getSubmodels().size(), getChildren(result.environment(), SUBMODELS).size());
-        assertEquals(emptyList, result.environment().getProperty(SHELLS));
-        assertEquals(emptyList, result.environment().getProperty(CONCEPT_DESCRIPTIONS));
+        assertEquals(env.getSubmodels().size(), getChildren(result.getEnvironment(), SUBMODELS).size());
+        assertEquals(emptyList, result.getEnvironment().getProperty(SHELLS));
+        assertEquals(emptyList, result.getEnvironment().getProperty(CONCEPT_DESCRIPTIONS));
     }
 
     @Test
     void testWholeEnvironmentIdEquality() {
         var env = getEnvironment();
 
-        var result = testSubject.executeSingle(new Service(accessUrl), env);
+        var result = testSubject.executeSingle(new Service.Builder().withUrl(accessUrl).build(), env);
 
         assertTrue(result.succeeded());
 
-        var res = result.getContent().environment();
+        var res = result.getContent().getEnvironment();
 
         assertEquals(env.getSubmodels().size(), getChildren(res, SUBMODELS).size());
 
@@ -197,13 +198,13 @@ class EnvironmentToAssetMapperTest {
         configController.updateConfiguration("{\"edc.aas.useAasDataPlane\":\"false\"}");
 
         var env = getEnvironment();
-        var result = testSubject.executeSingle(new Service(accessUrl), env).getContent();
+        var result = testSubject.executeSingle(new Service.Builder().withUrl(accessUrl).build(), env).getContent();
         var shellDataAddress =
-                (HttpDataAddress) getChildren(result.environment(), SHELLS).stream().map(Asset::getDataAddress).toList().get(0);
+                (HttpDataAddress) getChildren(result.getEnvironment(), SHELLS).stream().map(Asset::getDataAddress).toList().get(0);
         var submodelDataAddress =
-                (HttpDataAddress) getChildren(result.environment(), SUBMODELS).stream().map(Asset::getDataAddress).toList().get(0);
+                (HttpDataAddress) getChildren(result.getEnvironment(), SUBMODELS).stream().map(Asset::getDataAddress).toList().get(0);
         var conceptDescriptionDataAddress =
-                (HttpDataAddress) getChildren(result.environment(), CONCEPT_DESCRIPTIONS).stream().map(Asset::getDataAddress).toList().get(0);
+                (HttpDataAddress) getChildren(result.getEnvironment(), CONCEPT_DESCRIPTIONS).stream().map(Asset::getDataAddress).toList().get(0);
 
         assertTrue(shellDataAddress.getBaseUrl().startsWith(accessUrl.toString()));
         assertEquals("%s/%s".formatted(SHELLS,
@@ -223,13 +224,13 @@ class EnvironmentToAssetMapperTest {
         configController.updateConfiguration("{\"edc.aas.useAasDataPlane\":\"true\"}");
 
         var env = getEnvironment();
-        var result = testSubject.executeSingle(new Service(accessUrl), env).getContent();
+        var result = testSubject.executeSingle(new Service.Builder().withUrl(accessUrl).build(), env).getContent();
         var shellDataAddress =
-                (AasDataAddress) getChildren(result.environment(), SHELLS).stream().map(Asset::getDataAddress).toList().get(0);
+                (AasDataAddress) getChildren(result.getEnvironment(), SHELLS).stream().map(Asset::getDataAddress).toList().get(0);
         var submodelDataAddress =
-                (AasDataAddress) getChildren(result.environment(), SUBMODELS).stream().map(Asset::getDataAddress).toList().get(0);
+                (AasDataAddress) getChildren(result.getEnvironment(), SUBMODELS).stream().map(Asset::getDataAddress).toList().get(0);
         var conceptDescriptionDataAddress =
-                (AasDataAddress) getChildren(result.environment(), CONCEPT_DESCRIPTIONS).stream().map(Asset::getDataAddress).toList().get(0);
+                (AasDataAddress) getChildren(result.getEnvironment(), CONCEPT_DESCRIPTIONS).stream().map(Asset::getDataAddress).toList().get(0);
 
         assertTrue(shellDataAddress.getAccessUrl().getContent().toString().startsWith(accessUrl.toString()));
         assertEquals("%s/%s".formatted(SHELLS,

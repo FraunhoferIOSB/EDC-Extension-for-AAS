@@ -15,7 +15,6 @@
  */
 package de.fraunhofer.iosb.app;
 
-import de.fraunhofer.iosb.aas.lib.auth.AuthenticationMethod;
 import de.fraunhofer.iosb.aas.lib.model.AasProvider;
 import de.fraunhofer.iosb.aas.lib.model.impl.Registry;
 import de.fraunhofer.iosb.aas.lib.model.impl.Service;
@@ -96,21 +95,37 @@ public class Endpoint {
         return createEntity(registryRepository, new Registry(registryUrl.getContent()));
     }
 
+
     /**
      * Register an AAS service to this extension
      *
      * @param serviceUrlString The URL of the AAS service
+     * @param service          Serialized form of a {@link Service}
      * @return Status message about the success of this operation.
      */
     @POST
     @Path(SERVICE_PATH)
-    public Response createService(@QueryParam("url") String serviceUrlString, AuthenticationMethod auth) {
+    public Response createService(@QueryParam("url") String serviceUrlString, Service service) {
         monitor.info("POST /%s".formatted(SERVICE_PATH));
-        var serviceUrl = parseUrl(serviceUrlString);
-        if (serviceUrl.failed()) {
-            return Response.status(Status.BAD_REQUEST).entity(serviceUrl.getFailureDetail()).build();
+
+        if (Objects.isNull(serviceUrlString) && Objects.nonNull(service)) {
+            return createEntity(serviceRepository, service);
         }
-        var service = auth == null ? new Service(serviceUrl.getContent()) : new Service(serviceUrl.getContent(), auth);
+
+        var urlParseResult = parseUrl(serviceUrlString);
+
+        if (urlParseResult.failed()) {
+            return Response.status(Status.BAD_REQUEST).entity(urlParseResult.getFailureDetail()).build();
+        }
+
+        if (Objects.isNull(service)) {
+            service = new Service.Builder().withUrl(urlParseResult.getContent()).build();
+        } else {
+            service = service.toBuilder()
+                    .withUrl(urlParseResult.getContent())
+                    .build();
+        }
+
         return createEntity(serviceRepository, service);
     }
 
@@ -181,7 +196,10 @@ public class Endpoint {
         }
 
         // From here, do the same as if it were a remote service.
-        try (var creationResponse = createEntity(serviceRepository, new Service(serviceAccessUrl))) {
+        Service service = new Service.Builder()
+                .withUrl(serviceAccessUrl)
+                .build();
+        try (var creationResponse = createEntity(serviceRepository, service)) {
             if (creationResponse.getStatusInfo().getFamily().equals(Status.Family.SUCCESSFUL)) {
                 return Response.status(Status.CREATED).entity(serviceAccessUrl).build();
             } else {

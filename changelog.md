@@ -6,6 +6,34 @@ Compatibility: **Eclipse Dataspace Connector v0.13.0, v0.13.2, v0.14.0**
 
 **New Features**
 
+* Selective AAS registration
+  * Now, individual elements of an AAS can be selected to be registered
+  * Also, customized policies per element can be assigned (if not, default policy is used)
+    * Only the selected elements are synchronized
+      * Selection is provided via "service" json-object
+        * referredElement is a Reference Chain to the selected element within the service
+        * accessPolicyId (nullable) is the access policy definition ID (already existing in EDC)
+        * usagePolicyId (nullable) is the usage/contract policy definition ID (already existing in EDC)
+        * ```json
+          {
+            "url": "http://localhost:12345/api/v3.0",
+            "authenticationMethod": {
+                "type": "api-key",
+                "keyName": "x-api-key",
+                "keyValue": "password"
+            },
+            "policyBindings": [
+                {
+                    "referredElement": "[ModelRef](Submodel)https://example.com/ids/Submodel/1234_5678_9012_3456",
+                    "accessPolicyId": "dbc58fc7-9d1f-49ed-9299-8a513943408c",
+                    "usagePolicyId": "dbc58fc7-9d1f-49ed-9299-8a513943408c"
+                },
+                {
+                   "referredElement": "[ModelRef](AssetAdministrationShell)https://example.com/ids/AssetAdministrationShell/8713_3322_8055_2940"
+                }
+            ]
+          }
+          ```
 * Added tractus-x example configurations to showcase compatibility
 * AAS DataPlane is now optional
     * Configuration variable `edc.aas.useAasDataPlane`, default value `False`

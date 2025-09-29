@@ -67,7 +67,7 @@ public class AasDataSourceFactory implements DataSourceFactory {
     }
 
     private boolean isOperationRequest(DataAddress address) {
-        return address.hasProperty(AasDataAddress.OPERATION);
+        return address.hasProperty(AasDataAddress.OPERATION_NAME);
     }
 
     @Override

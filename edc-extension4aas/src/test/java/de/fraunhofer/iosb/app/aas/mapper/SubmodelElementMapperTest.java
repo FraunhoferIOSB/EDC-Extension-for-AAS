@@ -16,6 +16,7 @@
 package de.fraunhofer.iosb.app.aas.mapper;
 
 import de.fraunhofer.iosb.aas.lib.model.impl.Service;
+import de.fraunhofer.iosb.app.aas.mapper.environment.referable.SubmodelElementMapper;
 import org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes;
 import org.eclipse.digitaltwin.aas4j.v3.model.OperationVariable;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultKey;
@@ -86,7 +87,7 @@ class SubmodelElementMapperTest {
 
     private Service mockService() {
         try {
-            return new Service(new URL("https://test-url:1234/api/v3.0"));
+            return new Service.Builder().withUrl(new URL("https://test-url:1234/api/v3.0")).build();
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }

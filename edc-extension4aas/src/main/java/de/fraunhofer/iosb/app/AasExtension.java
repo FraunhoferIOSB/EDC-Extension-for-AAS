@@ -19,9 +19,9 @@ import de.fraunhofer.iosb.aas.lib.model.impl.Registry;
 import de.fraunhofer.iosb.aas.lib.model.impl.Service;
 import de.fraunhofer.iosb.api.PublicApiManagementService;
 import de.fraunhofer.iosb.api.model.HttpMethod;
-import de.fraunhofer.iosb.app.aas.EnvironmentToAssetMapper;
 import de.fraunhofer.iosb.app.aas.agent.impl.RegistryAgent;
 import de.fraunhofer.iosb.app.aas.agent.impl.ServiceAgent;
+import de.fraunhofer.iosb.app.aas.mapper.environment.EnvironmentToAssetMapper;
 import de.fraunhofer.iosb.app.controller.AasController;
 import de.fraunhofer.iosb.app.controller.ConfigurationController;
 import de.fraunhofer.iosb.app.controller.SelfDescriptionController;
@@ -122,7 +122,7 @@ public class AasExtension implements ServiceExtension {
                 .step(new CollectionFeeder<>(new ServiceRepositoryUpdater(serviceRepository)))
                 .step(new Synchronizer())
                 .step(new AssetRegistrar(assetIndex, monitor.withPrefix("Service Pipeline")))
-                .step(new ContractRegistrar(contractDefinitionStore, policyDefinitionStore, monitor))
+                .step(new ContractRegistrar(contractDefinitionStore, policyDefinitionStore, monitor, context.getParticipantId()))
                 .build();
 
         servicePipeline = new VariableRateScheduler(1, serviceSynchronization, monitor);
@@ -146,7 +146,7 @@ public class AasExtension implements ServiceExtension {
                 .step(new RegistryRepositoryUpdater(registryRepository))
                 .step(new Synchronizer())
                 .step(new AssetRegistrar(assetIndex, monitor.withPrefix("Registry Pipeline")))
-                .step(new ContractRegistrar(contractDefinitionStore, policyDefinitionStore, monitor))
+                .step(new ContractRegistrar(contractDefinitionStore, policyDefinitionStore, monitor, context.getParticipantId()))
                 .build();
 
         registryPipeline = new VariableRateScheduler(1, registrySynchronization, monitor);
@@ -180,7 +180,9 @@ public class AasExtension implements ServiceExtension {
         var configInstance = Configuration.getInstance();
 
         if (Objects.nonNull(configInstance.getRemoteAasLocation())) {
-            serviceRepository.create(new Service(configInstance.getRemoteAasLocation()));
+            serviceRepository.create(new Service.Builder()
+                    .withUrl(configInstance.getRemoteAasLocation())
+                    .build());
         }
 
         if (Objects.isNull(configInstance.getLocalAasModelPath())) {
@@ -209,7 +211,9 @@ public class AasExtension implements ServiceExtension {
         // - has a valid certificate OR
         // - has a self-signed one AND we accept self-signed
         if (isConnectionTrusted(serviceUrl) || (configInstance.isAllowSelfSignedCertificates() && getSelfSignedCertificate(serviceUrl).succeeded())) {
-            serviceRepository.create(new Service(serviceUrl));
+            serviceRepository.create(new Service.Builder()
+                    .withUrl(serviceUrl)
+                    .build());
         } else {
             aasController.stopService(serviceUrl);
             monitor.severe("AAS service uses self-signed (not allowed) or otherwise invalid certificate.");
@@ -225,4 +229,3 @@ public class AasExtension implements ServiceExtension {
         aasController.stopServices();
     }
 }
-

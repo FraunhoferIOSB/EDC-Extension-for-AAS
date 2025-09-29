@@ -16,24 +16,15 @@
 package de.fraunhofer.iosb.app.aas.mapper;
 
 import de.fraunhofer.iosb.aas.lib.model.AasProvider;
+import de.fraunhofer.iosb.aas.lib.model.impl.Service;
 import de.fraunhofer.iosb.aas.lib.spi.AasDataAddress;
-import de.fraunhofer.iosb.app.model.configuration.Configuration;
-import org.eclipse.digitaltwin.aas4j.v3.model.Identifiable;
-import org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes;
-import org.eclipse.digitaltwin.aas4j.v3.model.Referable;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
-import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultKey;
-import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultReference;
-import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
+import java.net.URL;
 import java.util.Objects;
-import java.util.function.Supplier;
-
-import static de.fraunhofer.iosb.aas.lib.type.AasConstants.AAS_V30_NAMESPACE;
 
 /**
  * Contains base logic for mapping AAS elements to Assets
@@ -41,61 +32,10 @@ import static de.fraunhofer.iosb.aas.lib.type.AasConstants.AAS_V30_NAMESPACE;
 public class ElementMapper {
 
 
-    private final Supplier<Boolean> useAasDataAddress = () -> Configuration.getInstance().isUseAasDataPlane();
-
     protected ElementMapper() {
     }
 
-    protected <R extends Referable> Asset.Builder mapReferableToAssetBuilder(R referable) {
-        var referableNamespace = AAS_V30_NAMESPACE.concat("Referable/");
-        var assetBuilder = Asset.Builder.newInstance();
-
-        if (referable.getIdShort() != null && !referable.getIdShort().isEmpty()) {
-            assetBuilder.property(referableNamespace.concat("idShort"), referable.getIdShort());
-        }
-
-        if (referable.getDisplayName() != null && !referable.getDisplayName().isEmpty()) {
-            assetBuilder.property(referableNamespace.concat("displayName"), referable.getDisplayName());
-        }
-
-        if (referable.getDescription() != null && !referable.getDescription().isEmpty()) {
-            assetBuilder.property(referableNamespace.concat("description"), referable.getDescription());
-        }
-
-        return assetBuilder;
-    }
-
-    protected <I extends Identifiable> Asset.Builder mapIdentifiableToAssetBuilder(I identifiable) {
-        var identifiableNamespace = AAS_V30_NAMESPACE.concat("Identifiable/");
-
-        var admin = identifiable.getAdministration();
-
-        var assetBuilder = mapReferableToAssetBuilder(identifiable)
-                .contentType("application/json")
-                .property(identifiableNamespace.concat("id"),
-                        identifiable.getId());
-
-        if (admin == null) {
-            return assetBuilder;
-        }
-
-        if (admin.getEmbeddedDataSpecifications() != null && !admin.getEmbeddedDataSpecifications().isEmpty()) {
-            assetBuilder.property(AAS_V30_NAMESPACE + "HasDataSpecification/" + "embeddedDataSpecifications", admin.getEmbeddedDataSpecifications());
-        }
-
-        if (admin.getVersion() != null) {
-            assetBuilder.property(AAS_V30_NAMESPACE + "AdministrativeInformation/" + "version", admin.getVersion());
-        }
-
-        if (admin.getRevision() != null) {
-            assetBuilder.property(AAS_V30_NAMESPACE + "AdministrativeInformation/" + "revision", admin.getRevision());
-        }
-
-        return assetBuilder;
-    }
-
-
-    protected @NotNull String getId(DataAddress dataAddress) {
+    protected @NotNull String generateId(DataAddress dataAddress) {
         if (dataAddress.getType().equals("AasData")) {
             var aasDataAddress = (AasDataAddress) dataAddress;
             return String.valueOf("%s:%s".formatted((aasDataAddress.getAccessUrl().getContent().toString()), aasDataAddress.getPath()).hashCode());
@@ -113,34 +53,15 @@ public class ElementMapper {
     }
 
     protected DataAddress createDataAddress(AasProvider provider, Reference reference) {
-        var aasDataAddress = AasDataAddress.Builder.newInstance()
+        return AasDataAddress.Builder.newInstance()
                 .aasProvider(provider)
                 .referenceChain(reference)
                 .build();
-        if (this.useAasDataAddress.get()) {
-            return aasDataAddress;
-        } else {
-            var httpDataAddress = HttpDataAddress.Builder.newInstance();
-            provider.getHeaders().forEach(httpDataAddress::addAdditionalHeader);
-            return httpDataAddress
-                    .baseUrl(aasDataAddress.getAccessUrl().getContent().toString())
-                    .method(aasDataAddress.getMethod())
-                    .path(aasDataAddress.getPath())
-                    .build();
-        }
-
     }
 
-    protected Reference createReference(KeyTypes type, String value) {
-        return new DefaultReference.Builder()
-                .keys(new DefaultKey.Builder().type(type).value(value).build())
-                .build();
-    }
-
-    protected Reference createReference(String value, Reference parent) {
-        return new DefaultReference.Builder()
-                .keys(new ArrayList<>(parent.getKeys()))
-                .keys(new DefaultKey.Builder().type(KeyTypes.SUBMODEL_ELEMENT).value(value).build())
+    protected DataAddress createDataAddress(URL href) {
+        return AasDataAddress.Builder.newInstance()
+                .aasProvider(new Service.Builder().withUrl(href).build())
                 .build();
     }
 }

@@ -15,33 +15,28 @@
  */
 package de.fraunhofer.iosb.aas.lib.model.impl;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import de.fraunhofer.iosb.aas.lib.auth.AuthenticationMethod;
 import de.fraunhofer.iosb.aas.lib.model.AasProvider;
+import de.fraunhofer.iosb.aas.lib.model.PolicyBinding;
 import de.fraunhofer.iosb.aas.lib.net.AasAccessUrl;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.jetbrains.annotations.NotNull;
 
-import java.net.URL;
+import java.util.List;
 
 /**
  * An AAS service representation as seen in <a href="https://github.com/FraunhoferIOSB/FAAAST-Service">FA³ST Service</a>
  */
+@JsonDeserialize(builder = Service.Builder.class)
 public final class Service extends AasProvider {
 
     public static final String SHELLS_PATH = "shells";
     public static final String SUBMODELS_PATH = "submodels";
     public static final String CONCEPT_DESCRIPTIONS_PATH = "concept-descriptions";
 
-    private Asset environment;
-
-    /**
-     * Create a new service with given access url and no environment and no required authentication.
-     *
-     * @param accessUrl URL for accessing the service.
-     */
-    public Service(URL accessUrl) {
-        super(new AasAccessUrl(accessUrl));
-    }
+    private final Asset environment;
+    private final List<PolicyBinding> policyBindings;
 
     /**
      * Create a new service representation with given access url and empty environment and given authentication method.
@@ -49,38 +44,34 @@ public final class Service extends AasProvider {
      * @param accessUrl            URL for accessing the service.
      * @param authenticationMethod The authentication method required to access this AAS service
      */
-    public Service(URL accessUrl, AuthenticationMethod authenticationMethod) {
-        super(new AasAccessUrl(accessUrl), authenticationMethod);
-        this.environment = null;
-    }
-
-    /**
-     * Create a new service from another object
-     *
-     * @param provider Provider to replicate.
-     */
-    public Service(AasProvider provider) {
-        super(provider);
-    }
-
-    private Service(AasProvider provider, Asset environment) {
-        super(provider);
+    private Service(AasAccessUrl accessUrl, AuthenticationMethod authenticationMethod, Asset environment, List<PolicyBinding> policyBindings) {
+        super(accessUrl, authenticationMethod);
         this.environment = environment;
+        this.policyBindings = policyBindings;
     }
 
     /**
-     * Return the current Service with the given environment.
+     * Attach an environment to a service.
      * This creates a new object reference.
      *
      * @param environment The environment
      * @return A new object containing this service's metadata and the environment.
      */
     public @NotNull Service with(Asset environment) {
-        return new Service(this, environment);
+        return this.toBuilder().environment(environment).build();
     }
 
-    public Asset environment() {
+    public Asset getEnvironment() {
         return environment;
+    }
+
+
+    public boolean hasSelectiveRegistration() {
+        return null != policyBindings;
+    }
+
+    public List<PolicyBinding> getPolicyBindings() {
+        return policyBindings;
     }
 
     @Override
@@ -88,5 +79,27 @@ public final class Service extends AasProvider {
         return "Service[" +
                 "accessUrl=" + getAccessUrl() + ", " +
                 "environment=" + environment + ']';
+    }
+
+    public Builder toBuilder() {
+        return new Builder()
+                .aasAccessUrl(this.url)
+                .withAuthenticationMethod(this.authentication)
+                .withPolicyBindings(this.policyBindings)
+                .environment(this.environment);
+    }
+
+    public static class Builder extends AasProvider.Builder<Service.Builder> {
+
+        private Asset environment;
+
+        public Builder environment(Asset environment) {
+            this.environment = environment;
+            return this;
+        }
+
+        public Service build() {
+            return new Service(url, authentication, environment, policyBindings);
+        }
     }
 }

@@ -152,7 +152,7 @@ public class DataTransferController {
         } catch (InterruptedException | ExecutionException futureException) {
             monitor.severe("Data transfer failed for provider %s and agreementId %s".formatted(providerUrl,
                     agreementId), futureException);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+            return Response.serverError()
                     .entity(futureException.getMessage())
                     .build();
         }

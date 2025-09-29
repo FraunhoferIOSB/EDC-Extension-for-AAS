@@ -17,6 +17,7 @@ package de.fraunhofer.iosb.app.edc.contract;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
+import de.fraunhofer.iosb.app.AasExtension;
 import de.fraunhofer.iosb.app.model.ChangeSet;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import de.fraunhofer.iosb.app.pipeline.PipelineFailure;
@@ -30,22 +31,33 @@ import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionS
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.Failure;
+import org.eclipse.edc.spi.result.StoreResult;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import static de.fraunhofer.iosb.app.aas.mapper.environment.EnvironmentToAssetMapper.ACCESS_POLICY_FIELD;
+import static de.fraunhofer.iosb.app.aas.mapper.environment.EnvironmentToAssetMapper.CONTRACT_POLICY_FIELD;
 import static java.lang.String.format;
+import static org.eclipse.edc.spi.query.CriterionOperatorRegistry.EQUAL;
+import static org.eclipse.edc.spi.query.CriterionOperatorRegistry.IN;
+import static org.eclipse.edc.spi.result.StoreFailure.Reason.ALREADY_EXISTS;
+import static org.eclipse.edc.spi.result.StoreFailure.Reason.NOT_FOUND;
 
 /**
  * Handle interactions with the ContractDefinitionStore, PolicyDefinitionStore.
@@ -57,31 +69,35 @@ import static java.lang.String.format;
  * the difference between Access-/Contract-Policy, see
  * {@link ContractDefinition} documentation.
  */
-public class ContractRegistrar extends PipelineStep<ChangeSet<String, String>, Void> {
+public class ContractRegistrar extends PipelineStep<ChangeSet<Asset, Asset>, Void> {
 
+    public static final String DEFAULT_CONTRACT_POLICY_DEFINITION_ID = UUID.randomUUID().toString();
+    public static final String DEFAULT_ACCESS_POLICY_DEFINITION_ID = UUID.randomUUID().toString();
     private final ContractDefinitionStore contractDefinitionStore;
     private final PolicyDefinitionStore policyDefinitionStore;
     private final Configuration configuration;
     private final Monitor monitor;
     private final ObjectReader objectReader;
-    private final Policy defaultPolicy;
+    private final String participantId;
 
     /**
      * Class constructor
      *
      * @param contractStore Add/remove EDC contracts.
      * @param policyStore   Add/remove EDC policies.
+     * @param participantId Participant ID of this connector. Needed for contract policies.
      */
     public ContractRegistrar(ContractDefinitionStore contractStore, PolicyDefinitionStore policyStore,
-                             Monitor monitor) {
+                             Monitor monitor, String participantId) {
         this.contractDefinitionStore = Objects.requireNonNull(contractStore);
         this.policyDefinitionStore = Objects.requireNonNull(policyStore);
         this.monitor = monitor;
 
-        defaultPolicy = initializeDefaultPolicy();
-
         configuration = Configuration.getInstance();
         objectReader = new ObjectMapper().readerFor(Policy.class);
+        this.participantId = participantId;
+        // In the future, this could be done with an additional extension.
+        registerDefaultPolicies();
     }
 
     /**
@@ -92,9 +108,9 @@ public class ContractRegistrar extends PipelineStep<ChangeSet<String, String>, V
      * @return No content, possibly a PipelineFailure.
      */
     @Override
-    public PipelineResult<Void> apply(ChangeSet<String, String> changeSet) {
-        var addedResults = changeSet.toAdd().stream().map(this::createDefaultContract).toList();
-        var removedResults = changeSet.toRemove().stream().map(this::removeContract).toList();
+    public PipelineResult<Void> apply(ChangeSet<Asset, Asset> changeSet) {
+        var addedResults = changeSet.toAdd().stream().map(this::registerWithContract).toList();
+        var removedResults = changeSet.toRemove().stream().map(this::removeFromContracts).toList();
 
         if (addedResults.stream().anyMatch(AbstractResult::failed) || removedResults.stream().anyMatch(AbstractResult::failed)) {
             var addedFailureMessages = addedResults.stream()
@@ -114,66 +130,162 @@ public class ContractRegistrar extends PipelineStep<ChangeSet<String, String>, V
             addedFailureMessages.addAll(removedFailureMessages);
             return PipelineResult.failure(PipelineFailure.warning(addedFailureMessages));
         }
-        return PipelineResult.success(null);
+        return PipelineResult.success();
     }
 
-    private PipelineResult<Void> createDefaultContract(String assetId) {
+    private StoreResult<Void> registerWithContract(Asset asset) {
+        String accessPolicyId = getAccessPolicy(asset).orElse(DEFAULT_ACCESS_POLICY_DEFINITION_ID);
+        String contractPolicyId = getContractPolicy(asset).orElse(DEFAULT_CONTRACT_POLICY_DEFINITION_ID);
+
+        if (Objects.isNull(policyDefinitionStore.findById(accessPolicyId))) {
+            monitor.warning(String.format("AccessPolicyDefinition with id %s not found.", accessPolicyId));
+        }
+        if (Objects.isNull(policyDefinitionStore.findById(contractPolicyId))) {
+            monitor.warning(String.format("ContractPolicyDefinition with id %s not found.", contractPolicyId));
+        }
+
+        Optional<ContractDefinition> maybeContract = findContracts(accessPolicyId, contractPolicyId).findFirst();
+
+        if (maybeContract.isPresent()) {
+            ContractDefinition updatedContract = getContractDefinition(asset, maybeContract.get());
+            return contractDefinitionStore.update(updatedContract);
+        }
+
+        return contractDefinitionStore.save(getBaseContractDefinition()
+                .accessPolicyId(getAccessPolicy(asset).orElse(DEFAULT_ACCESS_POLICY_DEFINITION_ID))
+                .contractPolicyId(getContractPolicy(asset).orElse(DEFAULT_CONTRACT_POLICY_DEFINITION_ID))
+                .assetsSelectorCriterion(getAssetIdCriterion(asset.getId()))
+                .build()
+        );
+    }
+
+    private StoreResult<Void> removeFromContracts(Asset asset) {
+        String accessPolicyId = getAccessPolicy(asset).orElse(DEFAULT_ACCESS_POLICY_DEFINITION_ID);
+        String contractPolicyId = getContractPolicy(asset).orElse(DEFAULT_CONTRACT_POLICY_DEFINITION_ID);
+
+        var correspondingContracts = findCorrespondingContracts(accessPolicyId, contractPolicyId, asset.getId());
+
+        for (ContractDefinition contractDefinition : correspondingContracts) {
+            var updatedContract = getBaseContractDefinition()
+                    .id(contractDefinition.getId())
+                    .accessPolicyId(contractDefinition.getAccessPolicyId())
+                    .contractPolicyId(contractDefinition.getContractPolicyId())
+                    .assetsSelector(contractDefinition.getAssetsSelector().stream().map(
+                            predicate -> predicate.getOperandLeft().equals(Asset.PROPERTY_ID) && predicate.getOperator().equals(IN) ?
+                                    Criterion.criterion(predicate.getOperandLeft(), predicate.getOperator(),
+                                            ((List<?>) predicate.getOperandRight()).stream().filter(assetId -> !asset.getId().equals(assetId)).toList()) :
+                                    predicate
+                    ).toList())
+                    .privateProperties(contractDefinition.getPrivateProperties())
+                    .build();
+
+            // Tie up loose ends
+            StoreResult<?> modifyResult;
+            if (((List<?>) updatedContract.getAssetsSelector().get(0).getOperandRight()).isEmpty()) {
+                modifyResult = contractDefinitionStore.deleteById(updatedContract.getId());
+            } else {
+                modifyResult = contractDefinitionStore.update(updatedContract);
+            }
+
+            if (modifyResult.succeeded()) {
+                continue;
+            } else if (modifyResult.failed() && modifyResult.reason().equals(NOT_FOUND)) {
+                monitor.warning(String.format("%s received when trying to update existing contract definition with id %s",
+                        NOT_FOUND, contractDefinition.getId()));
+                continue;
+            }
+            return StoreResult.generalError(modifyResult.getFailureDetail());
+        }
+        return StoreResult.success();
+    }
+
+    private List<ContractDefinition> findCorrespondingContracts(String accessPolicyId, String contractPolicyId, String assetId) {
+        Stream<ContractDefinition> contractDefinitions = findContracts(accessPolicyId, contractPolicyId);
+
+        // ContainsPredicate does not seem to work, so implement it here
+        return contractDefinitions.filter(
+                contractDefinition -> contractDefinition.getAssetsSelector()
+                        .stream().filter(predicate -> predicate.getOperandLeft().equals(Asset.PROPERTY_ID))
+                        .filter(predicate -> predicate.getOperator().equalsIgnoreCase(IN))
+                        .anyMatch(predicate -> ((List<?>) predicate.getOperandRight()).contains(assetId))
+        ).toList();
+    }
+
+    private @NotNull Stream<ContractDefinition> findContracts(String accessPolicyId, String contractPolicyId) {
+        var searchQuery = QuerySpec.Builder.newInstance()
+                .filter(Criterion.criterion(ACCESS_POLICY_FIELD, EQUAL, accessPolicyId))
+                .filter(Criterion.criterion(CONTRACT_POLICY_FIELD, EQUAL, contractPolicyId))
+                .filter(Criterion.criterion("privateProperties.creator", EQUAL, AasExtension.NAME))
+                .build();
+
+        return contractDefinitionStore.findAll(searchQuery);
+    }
+
+    private Criterion getAssetIdCriterion(String assetId) {
+        return Criterion.criterion(Asset.PROPERTY_ID, IN, List.of(assetId));
+    }
+
+    @SuppressWarnings("unchecked")
+    private ContractDefinition getContractDefinition(Asset asset, ContractDefinition from) {
+        // Contracts by this extension have exactly one AssetsSelectorCriterion.
+        Criterion assetsSelector = from.getAssetsSelector().get(0);
+
+        List<String> selectedAssets = List.of();
+        if (assetsSelector.getOperandRight() instanceof Collection<?> assets &&
+                !assets.isEmpty() &&
+                assets.stream().allMatch(elem -> elem instanceof String)) {
+
+            selectedAssets = new ArrayList<>((Collection<String>) assets);
+
+        } else {
+            doThrow(new IllegalStateException("ContractDefinition created by AAS Extension was malformed"));
+        }
+
+        if (!selectedAssets.contains(asset.getId())) {
+            selectedAssets.add(asset.getId());
+        }
+        Criterion updatedAssetsSelector = new Criterion(Asset.PROPERTY_ID, IN, selectedAssets);
+
+        return getBaseContractDefinition()
+                .accessPolicyId(getAccessPolicy(asset).orElse(from.getAccessPolicyId()))
+                .contractPolicyId(getContractPolicy(asset).orElse(from.getAccessPolicyId()))
+                .assetsSelectorCriterion(updatedAssetsSelector)
+                .id(from.getId())
+                .build();
+    }
+
+    private ContractDefinition.Builder getBaseContractDefinition() {
+        return ContractDefinition.Builder.newInstance()
+                .privateProperty("creator", AasExtension.NAME);
+    }
+
+    private void registerDefaultPolicies() {
         var defaultAccessPolicyPath = configuration.getDefaultAccessPolicyPath();
         var defaultContractPolicyPath = configuration.getDefaultContractPolicyPath();
 
-        var defaultAccessPolicy = getPolicyDefinitionFromFile(defaultAccessPolicyPath).orElse(defaultPolicy);
-        var defaultContractPolicy = getPolicyDefinitionFromFile(defaultContractPolicyPath).orElse(defaultPolicy);
+        var defaultAccessPolicy = getPolicyDefinitionFromFile(defaultAccessPolicyPath)
+                .orElse(defaultPolicy());
+        var defaultContractPolicy = getPolicyDefinitionFromFile(defaultContractPolicyPath)
+                .orElse(defaultPolicy());
 
         var defaultAccessPolicyDefinition = PolicyDefinition.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
-                .policy(defaultAccessPolicy.withTarget(assetId))
+                .id(DEFAULT_ACCESS_POLICY_DEFINITION_ID)
+                .policy(defaultAccessPolicy)
                 .build();
         var defaultContractPolicyDefinition = PolicyDefinition.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
-                .policy(defaultContractPolicy.withTarget(assetId))
+                .id(DEFAULT_CONTRACT_POLICY_DEFINITION_ID)
+                .policy(defaultContractPolicy)
                 .build();
 
         var accessPolicyResult = policyDefinitionStore.create(defaultAccessPolicyDefinition);
         var contractPolicyResult = policyDefinitionStore.create(defaultContractPolicyDefinition);
 
-        if (accessPolicyResult.failed()) {
-            return PipelineResult.from(accessPolicyResult).withContent(null);
-        } else if (contractPolicyResult.failed()) {
-            return PipelineResult.from(contractPolicyResult).withContent(null);
+        if (accessPolicyResult.failed() && !ALREADY_EXISTS.equals(accessPolicyResult.reason())) {
+            doThrow(new IllegalStateException(accessPolicyResult.getFailureDetail()));
+        } else if (contractPolicyResult.failed() && !ALREADY_EXISTS.equals(contractPolicyResult.reason())) {
+            doThrow(new IllegalStateException(contractPolicyResult.getFailureDetail()));
         }
-
-        var defaultContractDefinition = ContractDefinition.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
-                .accessPolicyId(defaultAccessPolicyDefinition.getId())
-                .contractPolicyId(defaultContractPolicyDefinition.getId())
-                .assetsSelectorCriterion(Criterion.criterion(Asset.PROPERTY_ID, "=", assetId))
-                .build();
-
-        return PipelineResult.from(contractDefinitionStore.save(defaultContractDefinition));
     }
-
-    private PipelineResult<Void> removeContract(String assetId) {
-        var assetFilterExpression = new Criterion(Asset.PROPERTY_ID, "=", assetId);
-        var queryAssetFilter = QuerySpec.Builder.newInstance().filter(List.of(assetFilterExpression)).build();
-
-        var removeResult = contractDefinitionStore.findAll(queryAssetFilter)
-                .map(contract -> contractDefinitionStore.deleteById(contract.getId()))
-                .filter(AbstractResult::failed).toList();
-
-        if (!removeResult.isEmpty()) {
-            // Not being able to remove a contract can be considered a fatal error
-            return PipelineResult.failure(
-                    PipelineFailure.fatal(
-                            removeResult.stream()
-                                    .filter(AbstractResult::failed)
-                                    .map(AbstractResult::getFailureMessages)
-                                    .flatMap(List::stream)
-                                    .toList()));
-        }
-
-        return PipelineResult.success(null);
-    }
-
 
     private Optional<Policy> getPolicyDefinitionFromFile(String filePath) {
         if (Objects.isNull(filePath)) {
@@ -192,15 +304,26 @@ public class ContractRegistrar extends PipelineStep<ChangeSet<String, String>, V
         }
     }
 
-    private Policy initializeDefaultPolicy() {
+    private Optional<String> getAccessPolicy(Asset asset) {
+        return Optional.ofNullable(asset.getPrivateProperty(ACCESS_POLICY_FIELD).toString());
+    }
+
+    private Optional<String> getContractPolicy(Asset asset) {
+        return Optional.ofNullable(asset.getPrivateProperty(CONTRACT_POLICY_FIELD).toString());
+    }
+
+    private Policy defaultPolicy() {
         return Policy.Builder.newInstance()
                 .permission(Permission.Builder.newInstance()
                         .action(Action.Builder.newInstance()
                                 .type("USE")
                                 .build())
                         .build())
-                .assigner("provider")
+                .assigner(participantId)
                 .build();
     }
 
+    private void doThrow(Exception exception) {
+        throw new EdcException(exception);
+    }
 }

@@ -13,23 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.app.aas.mapper;
+package de.fraunhofer.iosb.app.aas.mapper.environment.referable.identifiable;
 
 import de.fraunhofer.iosb.aas.lib.model.AasProvider;
-import org.eclipse.digitaltwin.aas4j.v3.model.ConceptDescription;
-import org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes;
+import de.fraunhofer.iosb.app.aas.mapper.Mapper;
+import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.util.AasUtils;
+import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShell;
+import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 
-public class ConceptDescriptionMapper extends ElementMapper implements Mapper<ConceptDescription> {
+public class AssetAdministrationShellMapper extends IdentifiableMapper implements Mapper<AssetAdministrationShell> {
 
-    @Override
-    public Asset map(ConceptDescription conceptDescription, AasProvider provider) {
-        var dataAddress = createDataAddress(provider, createReference(KeyTypes.CONCEPT_DESCRIPTION,
-                conceptDescription.getId()));
+    public Asset apply(AssetAdministrationShell shell, AasProvider provider) {
+        Reference reference = AasUtils.toReference(shell);
 
-        return mapIdentifiableToAssetBuilder(conceptDescription)
-                .id(getId(dataAddress))
+        var dataAddress = createDataAddress(provider, reference);
+
+        return super.map(shell)
+                .id(generateId(dataAddress))
                 .dataAddress(dataAddress)
                 .build();
     }
+
 }

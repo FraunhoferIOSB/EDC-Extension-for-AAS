@@ -1,6 +1,6 @@
 # Configuration files for the tractus-x EDC fork
 
-### Important: For data transfer to work, the connectors need to be correctly configured w.r.t. vault and oauth2-service. This example only demonstrates compatibility of the EDC-Extension-for-AAS with tractus-x EDC. 
+### Important: For data transfer to work, the connectors need to be correctly configured w.r.t. vault and oauth2-service. This example only demonstrates compatibility of the EDC-Extension-for-AAS with tractus-x EDC.
 
 ## Structure:
 
@@ -32,6 +32,7 @@ docker compose up -d
 ```
 
 The self-description can be found at:
+
 ```shell
 curl -i http://localhost:8281/api/selfDescription
 ```

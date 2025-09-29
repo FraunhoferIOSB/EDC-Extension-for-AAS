@@ -15,15 +15,14 @@
  */
 package de.fraunhofer.iosb.app.model.aas.service;
 
-import java.util.List;
-
-import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
-
 import de.fraunhofer.iosb.aas.lib.model.impl.Service;
 import de.fraunhofer.iosb.app.pipeline.PipelineFailure;
 import de.fraunhofer.iosb.app.pipeline.PipelineResult;
 import de.fraunhofer.iosb.app.pipeline.PipelineStep;
 import de.fraunhofer.iosb.app.util.Pair;
+import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
+
+import java.util.List;
 
 /**
  * TODO correct package?
@@ -61,7 +60,7 @@ public class ServiceRepositoryUpdater extends PipelineStep<Service, Pair<Asset, 
         }
         services.update(service);
 
-        return PipelineResult.success(new Pair<>(currentEnvironment, service.environment()));
+        return PipelineResult.success(new Pair<>(currentEnvironment, service.getEnvironment()));
     }
 
 }

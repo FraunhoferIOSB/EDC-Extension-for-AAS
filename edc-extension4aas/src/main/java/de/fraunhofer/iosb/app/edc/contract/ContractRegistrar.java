@@ -17,6 +17,7 @@ package de.fraunhofer.iosb.app.edc.contract;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
+import de.fraunhofer.iosb.app.AasExtension;
 import de.fraunhofer.iosb.app.model.ChangeSet;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import de.fraunhofer.iosb.app.pipeline.PipelineFailure;
@@ -36,23 +37,27 @@ import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.Failure;
-import org.eclipse.edc.spi.result.StoreFailure;
 import org.eclipse.edc.spi.result.StoreResult;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static de.fraunhofer.iosb.app.aas.mapper.environment.EnvironmentToAssetMapper.ACCESS_POLICY_FIELD;
 import static de.fraunhofer.iosb.app.aas.mapper.environment.EnvironmentToAssetMapper.CONTRACT_POLICY_FIELD;
 import static java.lang.String.format;
 import static org.eclipse.edc.spi.query.CriterionOperatorRegistry.EQUAL;
+import static org.eclipse.edc.spi.query.CriterionOperatorRegistry.IN;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.ALREADY_EXISTS;
+import static org.eclipse.edc.spi.result.StoreFailure.Reason.NOT_FOUND;
 
 /**
  * Handle interactions with the ContractDefinitionStore, PolicyDefinitionStore.
@@ -133,115 +138,129 @@ public class ContractRegistrar extends PipelineStep<ChangeSet<Asset, Asset>, Voi
         String contractPolicyId = getContractPolicyIdOrDefault(asset);
 
         if (Objects.isNull(policyDefinitionStore.findById(accessPolicyId))) {
-            monitor.warning(String.format("AccessPolicyDefinitions with id %s not found.", accessPolicyId));
+            monitor.warning(String.format("AccessPolicyDefinition with id %s not found.", accessPolicyId));
         }
         if (Objects.isNull(policyDefinitionStore.findById(contractPolicyId))) {
-            monitor.warning(String.format("ContractPolicyDefinitions with id %s not found.", contractPolicyId));
+            monitor.warning(String.format("ContractPolicyDefinition with id %s not found.", contractPolicyId));
         }
 
-        Optional<ContractDefinition> maybeContract = findCorrespondingContract(asset);
+        Optional<ContractDefinition> maybeContract = findCorrespondingContract(accessPolicyId, contractPolicyId);
 
         if (maybeContract.isPresent()) {
             ContractDefinition updatedContract = getContractDefinition(asset, maybeContract.get());
             return contractDefinitionStore.update(updatedContract);
         }
 
-        return contractDefinitionStore.save(getContractDefinition(asset));
-    }
-
-    private Criterion getAssetIdCriterion(String assetId) {
-        return Criterion.criterion(Asset.PROPERTY_ID, "=", assetId);
-    }
-
-    private void doThrow(Exception exception) {
-        throw new EdcException(exception);
+        return contractDefinitionStore.save(getBaseContractDefinition()
+                .accessPolicyId(getAccessPolicyIdOrDefault(asset))
+                .contractPolicyId(getContractPolicyIdOrDefault(asset))
+                .assetsSelectorCriterion(getAssetIdCriterion(asset.getId()))
+                .build()
+        );
     }
 
     private StoreResult<Void> removeFromContracts(Asset asset) {
         String accessPolicyId = getAccessPolicyIdOrDefault(asset);
         String contractPolicyId = getContractPolicyIdOrDefault(asset);
 
-        Criterion assetIdCriterion = getAssetIdCriterion(asset.getId());
+        var correspondingContracts = findCorrespondingContracts(accessPolicyId, contractPolicyId, asset.getId());
 
-        if (findCorrespondingContract(asset).isEmpty()) {
-            return StoreResult.generalError(String.format("Contract for asset %s to remove not found, indicating an invalid state!", asset.getId()));
-        }
+        for (ContractDefinition contractDefinition : correspondingContracts) {
+            var updatedContract = getBaseContractDefinition()
+                    .id(contractDefinition.getId())
+                    .accessPolicyId(contractDefinition.getAccessPolicyId())
+                    .contractPolicyId(contractDefinition.getContractPolicyId())
+                    .assetsSelector(contractDefinition.getAssetsSelector().stream().map(
+                            predicate -> predicate.getOperandLeft().equals(Asset.PROPERTY_ID) && predicate.getOperator().equals(IN) ?
+                                    Criterion.criterion(predicate.getOperandLeft(), predicate.getOperator(),
+                                            ((List<?>) predicate.getOperandRight()).stream().filter(assetId -> !asset.getId().equals(assetId)).toList()) :
+                                    predicate
+                    ).toList())
+                    .privateProperties(contractDefinition.getPrivateProperties())
+                    .build();
 
-        while (findCorrespondingContract(asset).isPresent()) {
-            var contractToRemove = findCorrespondingContract(asset).get();
-
-            if (contractToRemove.getAssetsSelector().size() != 1) {
-                var updatedContract = ContractDefinition.Builder.newInstance()
-                        .accessPolicyId(accessPolicyId)
-                        .contractPolicyId(contractPolicyId)
-                        .assetsSelector(contractToRemove.getAssetsSelector().stream()
-                                .filter(criterion -> !criterion.equals(assetIdCriterion))
-                                .toList())
-                        .privateProperties(contractToRemove.getPrivateProperties())
-                        .id(contractToRemove.getId())
-                        .createdAt(contractToRemove.getCreatedAt())
-                        .build();
-                var updateResult = contractDefinitionStore.update(updatedContract);
-                if (updateResult.succeeded()) {
-                    continue;
-                } else if (updateResult.failed() && updateResult.reason().equals(StoreFailure.Reason.NOT_FOUND)) {
-                    monitor.warning(String.format("NOT_FOUND received when trying to update existing contract definition with id %s",
-                            contractToRemove.getId()));
-                    continue;
-                }
-                return StoreResult.generalError(updateResult.getFailureDetail());
+            // Tie up loose ends
+            StoreResult<?> modifyResult;
+            if (((List<?>) updatedContract.getAssetsSelector().get(0).getOperandRight()).isEmpty()) {
+                modifyResult = contractDefinitionStore.deleteById(updatedContract.getId());
+            } else {
+                modifyResult = contractDefinitionStore.update(updatedContract);
             }
 
-            // If the contract only contains this asset as assetsSelector, remove contract altogether.
-            var deletionResult = contractDefinitionStore.deleteById(contractToRemove.getId());
-            if (deletionResult.succeeded()) {
+            if (modifyResult.succeeded()) {
                 continue;
-            } else if (deletionResult.failed() && deletionResult.reason().equals(StoreFailure.Reason.NOT_FOUND)) {
-                monitor.warning(String.format("NOT_FOUND received when trying to remove existing contract definition with id %s",
-                        contractToRemove.getId()));
+            } else if (modifyResult.failed() && modifyResult.reason().equals(NOT_FOUND)) {
+                monitor.warning(String.format("%s received when trying to update existing contract definition with id %s",
+                        NOT_FOUND, contractDefinition.getId()));
                 continue;
             }
-            return StoreResult.generalError(deletionResult.getFailureDetail());
+            return StoreResult.generalError(modifyResult.getFailureDetail());
         }
         return StoreResult.success();
     }
 
-    private Optional<ContractDefinition> findCorrespondingContract(Asset asset) {
-        String accessPolicyId = getAccessPolicyIdOrDefault(asset);
-        String contractPolicyId = getContractPolicyIdOrDefault(asset);
+    private Optional<ContractDefinition> findCorrespondingContract(String accessPolicyId, String contractPolicyId) {
+        return findContracts(accessPolicyId, contractPolicyId).findFirst();
+    }
 
-        String opLeft = String.format("%s.%s", "assetsSelector", "operandLeft");
-        String opRight = String.format("%s.%s", "assetsSelector", "operandRight");
+    private List<ContractDefinition> findCorrespondingContracts(String accessPolicyId, String contractPolicyId, String assetId) {
+        Stream<ContractDefinition> contractDefinitions = findContracts(accessPolicyId, contractPolicyId);
 
+        // ContainsPredicate does not seem to work, so implement it here
+        return contractDefinitions.filter(
+                contractDefinition -> contractDefinition.getAssetsSelector()
+                        .stream().filter(predicate -> predicate.getOperandLeft().equals(Asset.PROPERTY_ID))
+                        .filter(predicate -> predicate.getOperator().equalsIgnoreCase(IN))
+                        .anyMatch(predicate -> ((List<?>) predicate.getOperandRight()).contains(assetId))
+        ).toList();
+    }
+
+    private @NotNull Stream<ContractDefinition> findContracts(String accessPolicyId, String contractPolicyId) {
         var searchQuery = QuerySpec.Builder.newInstance()
-                .filter(Criterion.criterion("accessPolicyId", EQUAL, accessPolicyId))
-                .filter(Criterion.criterion("contractPolicyId", EQUAL, contractPolicyId))
-                .limit(1)
-                .filter(Criterion.criterion(opLeft, EQUAL, asset.getId()))
-                .filter(Criterion.criterion(opRight, EQUAL, Asset.PROPERTY_ID));
-
-        return contractDefinitionStore.findAll(searchQuery.build())
-                .findFirst();
-    }
-
-
-    private ContractDefinition getContractDefinition(Asset asset) {
-        return ContractDefinition.Builder.newInstance()
-                .accessPolicyId(getAccessPolicyIdOrDefault(asset))
-                .contractPolicyId(getContractPolicyIdOrDefault(asset))
-                .assetsSelectorCriterion(getAssetIdCriterion(asset.getId()))
-                .privateProperty("creator", "AAS-Extension")
+                .filter(Criterion.criterion(ACCESS_POLICY_FIELD, EQUAL, accessPolicyId))
+                .filter(Criterion.criterion(CONTRACT_POLICY_FIELD, EQUAL, contractPolicyId))
+                .filter(Criterion.criterion("privateProperties.creator", EQUAL, AasExtension.NAME))
                 .build();
+
+        return contractDefinitionStore.findAll(searchQuery);
     }
 
+    private Criterion getAssetIdCriterion(String assetId) {
+        return Criterion.criterion(Asset.PROPERTY_ID, IN, List.of(assetId));
+    }
+
+    @SuppressWarnings("unchecked")
     private ContractDefinition getContractDefinition(Asset asset, ContractDefinition from) {
-        return ContractDefinition.Builder.newInstance()
+        // Contracts by this extension have exactly one AssetsSelectorCriterion.
+        Criterion assetsSelector = from.getAssetsSelector().get(0);
+
+        List<String> selectedAssets = List.of();
+        if (assetsSelector.getOperandRight() instanceof Collection<?> assets &&
+                !assets.isEmpty() &&
+                assets.stream().allMatch(elem -> elem instanceof String)) {
+
+            selectedAssets = new ArrayList<>((Collection<String>) assets);
+
+        } else {
+            doThrow(new IllegalStateException("ContractDefinition created by AAS Extension was malformed"));
+        }
+
+        if (!selectedAssets.contains(asset.getId())) {
+            selectedAssets.add(asset.getId());
+        }
+        Criterion updatedAssetsSelector = new Criterion(Asset.PROPERTY_ID, IN, selectedAssets);
+
+        return getBaseContractDefinition()
                 .accessPolicyId(getAccessPolicyIdOrFrom(asset, from))
                 .contractPolicyId(getContractPolicyIdOrFrom(asset, from))
-                .assetsSelectorCriterion(getAssetIdCriterion(asset.getId()))
+                .assetsSelectorCriterion(updatedAssetsSelector)
                 .id(from.getId())
-                .privateProperty("creator", "AAS-Extension")
                 .build();
+    }
+
+    private ContractDefinition.Builder getBaseContractDefinition() {
+        return ContractDefinition.Builder.newInstance()
+                .privateProperty("creator", AasExtension.NAME);
     }
 
     private void registerDefaultPolicies() {
@@ -322,6 +341,10 @@ public class ContractRegistrar extends PipelineStep<ChangeSet<Asset, Asset>, Voi
                         .build())
                 .assigner(participantId)
                 .build();
+    }
+
+    private void doThrow(Exception exception) {
+        throw new EdcException(exception);
     }
 
 }

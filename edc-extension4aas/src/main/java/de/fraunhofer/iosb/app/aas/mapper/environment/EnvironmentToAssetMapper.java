@@ -56,8 +56,8 @@ import static de.fraunhofer.iosb.app.pipeline.util.PipelineUtils.handleError;
  */
 public class EnvironmentToAssetMapper extends PipelineStep<Map<Service, Environment>, Collection<Service>> {
 
-    public static final String ACCESS_POLICY_FIELD = "access-policy";
-    public static final String CONTRACT_POLICY_FIELD = "contract-policy";
+    public static final String ACCESS_POLICY_FIELD = "accessPolicyId";
+    public static final String CONTRACT_POLICY_FIELD = "contractPolicyId";
     private static final String CONCEPT_DESCRIPTIONS = "conceptDescriptions";
     private static final String SHELLS = "shells";
     private static final String SUBMODELS = "submodels";

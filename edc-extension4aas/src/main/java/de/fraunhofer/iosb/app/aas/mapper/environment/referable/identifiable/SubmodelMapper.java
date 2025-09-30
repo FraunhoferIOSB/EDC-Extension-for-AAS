@@ -36,6 +36,8 @@ import static de.fraunhofer.iosb.aas.lib.type.AasConstants.AAS_V30_NAMESPACE;
  */
 public class SubmodelMapper extends IdentifiableMapper implements Mapper<Submodel> {
 
+    public static final String SUBMODEL_ELEMENT_LOCATION = AAS_V30_NAMESPACE + "Submodel/" + "submodelElements";
+
     private final SubmodelElementMapper submodelElementMapper = new SubmodelElementMapper();
     private final Supplier<Boolean> onlySubmodelsDecision;
 
@@ -65,7 +67,7 @@ public class SubmodelMapper extends IdentifiableMapper implements Mapper<Submode
         }
 
         if (Objects.nonNull(submodel.getSemanticId())) {
-            assetBuilder.property(AAS_V30_NAMESPACE + "HasSemantics/" + "semanticId", submodel.getSemanticId());
+            assetBuilder.property(SUBMODEL_ELEMENT_LOCATION, submodel.getSemanticId());
         }
 
         return assetBuilder.build();

@@ -58,9 +58,10 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<Service, Environm
 
     public static final String ACCESS_POLICY_FIELD = "accessPolicyId";
     public static final String CONTRACT_POLICY_FIELD = "contractPolicyId";
-    private static final String CONCEPT_DESCRIPTIONS = "conceptDescriptions";
-    private static final String SHELLS = "shells";
-    private static final String SUBMODELS = "submodels";
+    public static final String CONCEPT_DESCRIPTIONS_LOCATION = "conceptDescriptions";
+    public static final String SHELLS_LOCATION = "shells";
+    public static final String SUBMODELS_LOCATION = "submodels";
+
     private final Supplier<Boolean> useAasDataAddress = () -> Configuration.getInstance().isUseAasDataPlane();
     private final Supplier<Boolean> onlySubmodelsDecision;
     private final Mapper<AssetAdministrationShell> shellMapper = new AssetAdministrationShellMapper();
@@ -120,14 +121,14 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<Service, Environm
             conceptDescriptions = handleIdentifiables(environment.getConceptDescriptions(), service, conceptDescriptionMapper);
         }
 
-        if (service.hasSelectiveRegistration() && !service.getPolicyBindings().isEmpty()) {
+        if (service.hasSelectiveRegistration()) {
             var policyBindings = service.getPolicyBindings();
 
             submodels = filterBySelection(submodels, policyBindings);
 
             // TODO after fine-grained element filtering, remove this next line.
             submodels = submodels.stream().map(submodel -> submodel.toBuilder().property(AAS_V30_NAMESPACE + "Submodel/" + "submodelElements",
-                    null).build()).toList();
+                     null).build()).toList();
 
             shells = filterBySelection(shells, policyBindings);
             conceptDescriptions = filterBySelection(conceptDescriptions, policyBindings);
@@ -136,14 +137,15 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<Service, Environm
         // We convert data addresses this late to exploit their ReferenceChains when selecting elements to register.
         if (!useAasDataAddress.get()) {
             submodels = convertDataAddresses(submodels);
+            // TODO convert submodelElements as well
             shells = convertDataAddresses(shells);
             conceptDescriptions = convertDataAddresses(conceptDescriptions);
         }
 
         var environmentAsset = Asset.Builder.newInstance()
-                .property(SUBMODELS, submodels)
-                .property(SHELLS, shells)
-                .property(CONCEPT_DESCRIPTIONS, conceptDescriptions)
+                .property(SUBMODELS_LOCATION, submodels)
+                .property(SHELLS_LOCATION, shells)
+                .property(CONCEPT_DESCRIPTIONS_LOCATION, conceptDescriptions)
                 .privateProperty(PolicyBinding.class.getSimpleName(), service.getPolicyBindings())
                 .build();
 

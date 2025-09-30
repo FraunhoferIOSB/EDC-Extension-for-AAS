@@ -68,7 +68,7 @@ public final class Service extends AasProvider {
 
     /**
      * Returns whether this service is equipped with AAS-entity-level selection of elements to register and attached policies
-     * @return
+     * @return true if selective registration is wanted
      */
     public boolean hasSelectiveRegistration() {
         return null != policyBindings && !policyBindings.isEmpty();

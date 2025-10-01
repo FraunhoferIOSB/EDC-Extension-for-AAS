@@ -6,7 +6,7 @@ import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 
 import static de.fraunhofer.iosb.aas.lib.type.AasConstants.AAS_V30_NAMESPACE;
 
-public class IdentifiableMapper extends ReferableMapper {
+public abstract class IdentifiableMapper extends ReferableMapper {
     private static final String IDENTIFIABLE_NAMESPACE = AAS_V30_NAMESPACE.concat("Identifiable/");
 
     protected Asset.Builder map(Identifiable identifiable) {

@@ -45,9 +45,11 @@ public class SubmodelElementMapper extends ReferableMapper {
 
         var dataAddress = createDataAddress(provider, reference);
 
+        String modelingType = submodelElement.getClass().getSimpleName();
+
         assetBuilder.dataAddress(dataAddress)
                 .id(generateId(dataAddress))
-                .property("modelingType", submodelElement.getClass().getSimpleName());
+                .property("modelingType", modelingType.replace("Default", ""));
 
         if (!children.isEmpty()) {
             assetBuilder.property("value", children);

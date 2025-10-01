@@ -248,7 +248,7 @@ public class ContractRegistrar extends PipelineStep<ChangeSet<Asset, Asset>, Voi
 
         return getBaseContractDefinition()
                 .accessPolicyId(getAccessPolicy(asset).orElse(from.getAccessPolicyId()))
-                .contractPolicyId(getContractPolicy(asset).orElse(from.getAccessPolicyId()))
+                .contractPolicyId(getContractPolicy(asset).orElse(from.getContractPolicyId()))
                 .assetsSelectorCriterion(updatedAssetsSelector)
                 .id(from.getId())
                 .build();
@@ -305,11 +305,11 @@ public class ContractRegistrar extends PipelineStep<ChangeSet<Asset, Asset>, Voi
     }
 
     private Optional<String> getAccessPolicy(Asset asset) {
-        return Optional.ofNullable(asset.getPrivateProperty(ACCESS_POLICY_FIELD).toString());
+        return Optional.ofNullable(asset.getPrivateProperty(ACCESS_POLICY_FIELD)).map(Object::toString);
     }
 
     private Optional<String> getContractPolicy(Asset asset) {
-        return Optional.ofNullable(asset.getPrivateProperty(CONTRACT_POLICY_FIELD).toString());
+        return Optional.ofNullable(asset.getPrivateProperty(CONTRACT_POLICY_FIELD)).map(Object::toString);
     }
 
     private Policy defaultPolicy() {

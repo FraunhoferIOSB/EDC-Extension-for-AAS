@@ -32,7 +32,6 @@ import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceResult;
@@ -40,6 +39,7 @@ import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
 import java.net.URL;
+import java.util.List;
 import java.util.Objects;
 
 import static de.fraunhofer.iosb.client.ClientEndpoint.MISSING_QUERY_PARAMETER_MESSAGE;
@@ -126,16 +126,15 @@ public class PolicyController {
         }
     }
 
-    private ContractOffer buildResponseFrom(Dataset dataset) {
+    private List<ContractOffer> buildResponseFrom(Dataset dataset) {
         return dataset.getOffers().entrySet().stream()
-                .findFirst()
                 .map(entry ->
                         ContractOffer.Builder.newInstance()
                                 .id(entry.getKey())
-                                .policy(entry.getValue())
-                                .assetId(entry.getValue().getTarget())
+                                .policy(entry.getValue().withTarget(dataset.getId()))
+                                .assetId(dataset.getId())
                                 .build())
-                .orElseThrow(() -> new EdcException("Failed building response policyDefinition"));
+                .toList();
     }
 
     /**

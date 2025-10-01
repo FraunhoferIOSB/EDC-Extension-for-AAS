@@ -26,6 +26,9 @@ import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 
 import java.util.Map;
 
+import static de.fraunhofer.iosb.app.aas.mapper.environment.EnvironmentToAssetMapper.CONCEPT_DESCRIPTIONS_LOCATION;
+import static de.fraunhofer.iosb.app.aas.mapper.environment.EnvironmentToAssetMapper.SHELLS_LOCATION;
+import static de.fraunhofer.iosb.app.aas.mapper.environment.EnvironmentToAssetMapper.SUBMODELS_LOCATION;
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.PROPERTY_ID;
 
 public class SelfDescriptionSerializer {
@@ -47,9 +50,9 @@ public class SelfDescriptionSerializer {
      */
     public static String assetToString(Asset asset) throws JsonProcessingException {
         var environmentList = Map.of(
-                "shells", asset.getProperty("shells"),
-                "submodels", asset.getProperty("submodels"),
-                "conceptDescriptions", asset.getProperty("conceptDescriptions"));
+                SHELLS_LOCATION, asset.getProperty(SHELLS_LOCATION),
+                SUBMODELS_LOCATION, asset.getProperty(SUBMODELS_LOCATION),
+                CONCEPT_DESCRIPTIONS_LOCATION, asset.getProperty(CONCEPT_DESCRIPTIONS_LOCATION));
 
         return OBJECT_WRITER.writeValueAsString(environmentList);
     }

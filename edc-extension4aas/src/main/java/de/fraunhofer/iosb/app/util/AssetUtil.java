@@ -27,6 +27,11 @@ import java.util.List;
 import java.util.function.Predicate;
 import javax.annotation.Nonnull;
 
+import static de.fraunhofer.iosb.app.aas.mapper.environment.EnvironmentToAssetMapper.CONCEPT_DESCRIPTIONS_LOCATION;
+import static de.fraunhofer.iosb.app.aas.mapper.environment.EnvironmentToAssetMapper.SHELLS_LOCATION;
+import static de.fraunhofer.iosb.app.aas.mapper.environment.EnvironmentToAssetMapper.SUBMODELS_LOCATION;
+import static de.fraunhofer.iosb.app.aas.mapper.environment.referable.identifiable.SubmodelMapper.SUBMODEL_ELEMENT_LOCATION;
+
 public class AssetUtil {
 
     private AssetUtil() {
@@ -45,15 +50,15 @@ public class AssetUtil {
      * @return Flattened collection of all assets
      */
     public static Collection<Asset> flatMapAssets(@Nonnull Asset environmentAsset) {
-        var assets = getChildren(environmentAsset, "shells");
-        assets.addAll(getChildren(environmentAsset, "conceptDescriptions"));
+        var assets = getChildren(environmentAsset, SHELLS_LOCATION);
+        assets.addAll(getChildren(environmentAsset, CONCEPT_DESCRIPTIONS_LOCATION));
 
-        var submodels = getChildren(environmentAsset, "submodels");
+        var submodels = getChildren(environmentAsset, SUBMODELS_LOCATION);
         assets.addAll(submodels);
 
         // Recursively flatten submodel element structure
         assets.addAll(submodels.stream()
-                .map(submodel -> getChildren(submodel, "submodelElements"))
+                .map(submodel -> getChildren(submodel, SUBMODEL_ELEMENT_LOCATION))
                 .peek(assets::addAll)
                 .flatMap(Collection::stream)
                 .map(AssetUtil::getChildrenRec)

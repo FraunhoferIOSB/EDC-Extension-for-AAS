@@ -80,23 +80,8 @@ class AasDataProcessorTest {
     }
 
     @Test
-    void testSendAddressOnly() throws IOException {
-        try (var response = testSubject.send(getAddress())) {
-            assertEquals(234, response.code());
-        }
-    }
-
-    @Test
-    void testSendWithBody() throws IOException {
-        try (var response = testSubject.send(getAddress(), "testBody", MediaType.get("application/json").toString())) {
-            assertEquals(234, response.code());
-        }
-    }
-
-    @Test
-    void testSendWithPart() throws IOException {
-        try (var response = testSubject.send(getAddress(), new AasPart("test", InputStream.nullInputStream(),
-                MediaType.get("application/json").toString()))) {
+    void testGetFromAasAddressOnly() throws IOException {
+        try (var response = testSubject.getFromAas(getAddress())) {
             assertEquals(234, response.code());
         }
     }

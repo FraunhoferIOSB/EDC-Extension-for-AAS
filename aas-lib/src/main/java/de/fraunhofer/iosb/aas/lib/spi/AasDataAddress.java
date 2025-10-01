@@ -21,19 +21,16 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import de.fraunhofer.iosb.aas.lib.model.AasProvider;
-import org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultReference;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.jetbrains.annotations.Nullable;
 
 import java.net.URL;
 import java.util.Base64;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -54,7 +51,10 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 public class AasDataAddress extends DataAddress {
 
     public static final String AAS_DATA_TYPE = "AasData";
-    public static final String OPERATION_NAME = KeyTypes.OPERATION.name().toLowerCase(Locale.ROOT);
+    public static final String PROXY_OPERATION = "proxyOperation";
+    public static final String PROXY_METHOD = "proxyMethod";
+    public static final String PROXY_PATH = "proxyPath";
+    public static final String PROXY_BODY = "proxyBody";
     // See aas4j operation
     private static final String ADDITIONAL_HEADER = "header:";
     private static final String METHOD = "method";
@@ -65,14 +65,6 @@ public class AasDataAddress extends DataAddress {
     private AasDataAddress() {
         super();
         this.setType(AAS_DATA_TYPE);
-    }
-
-    public boolean isOperation() {
-        return this.hasProperty(OPERATION_NAME);
-    }
-
-    public @Nullable String getOperation() {
-        return isOperation() ? this.getStringProperty(OPERATION_NAME) : null;
     }
 
     @JsonIgnore
@@ -99,7 +91,7 @@ public class AasDataAddress extends DataAddress {
 
     @JsonIgnore
     public String getMethod() {
-        return getStringProperty(METHOD);
+        return getStringProperty(METHOD, "GET");
     }
 
     @JsonIgnore
@@ -212,13 +204,23 @@ public class AasDataAddress extends DataAddress {
             return this;
         }
 
-        /*
-         * Why not use Operation.class or InputVariable.class/InOutputVariable.class?
-         * - Values of any type other than String get removed when sending the DA from
-         * consumer to provider (during "compaction" phase when serializing the DA)
-         */
-        public Builder operation(String operation) {
-            this.property(OPERATION_NAME, operation);
+        public Builder proxyOperation(String operation) {
+            this.property(PROXY_OPERATION, operation);
+            return this;
+        }
+
+        public Builder proxyBody(String proxyBody) {
+            this.property(PROXY_BODY, proxyBody);
+            return this;
+        }
+
+        public Builder proxyMethod(String proxyMethod) {
+            this.property(PROXY_METHOD, proxyMethod);
+            return this;
+        }
+
+        public Builder proxyPath(String proxyPath) {
+            this.property(PROXY_PATH, proxyPath);
             return this;
         }
 

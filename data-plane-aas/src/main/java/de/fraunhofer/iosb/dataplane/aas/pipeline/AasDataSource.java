@@ -102,8 +102,8 @@ public class AasDataSource implements DataSource {
                         monitor.severe("Failed to get data from source: %s".formatted(response.code()));
                         return StreamResult.notFound();
                     } else {
-                        return StreamResult.error(format("Received code transferring AAS data: %s - %s.",
-                                response.code(), response.message()));
+                        return StreamResult.error(format("Received code transferring AAS data: %s - %s. More Information: %s",
+                                response.code(), response.message(), response.body().string()));
                     }
                 } finally {
                     try {

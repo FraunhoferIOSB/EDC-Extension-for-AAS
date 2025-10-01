@@ -148,7 +148,7 @@ public class ClientEndpoint {
                     .entity(agreementResult.getFailureDetail()).build();
         }
 
-        return Response.ok(Map.of("agreement-id", agreementResult.getContent().getId())).build();
+        return Response.ok(Map.of("agreementId", agreementResult.getContent().getId())).build();
     }
 
     public static class Builder {

@@ -80,8 +80,12 @@ public class NegotiationController {
         ContractNegotiation negotiation;
         try {
             negotiation = agreementFuture.get(timeout, TimeUnit.SECONDS);
-        } catch (TimeoutException | InterruptedException | ExecutionException waitForAgreementException) {
-            return Result.failure("Exception thrown while waiting for agreement: %s".formatted(waitForAgreementException.getMessage()));
+        } catch (TimeoutException timeoutWhileWaitingException) {
+            return Result.failure("Timed out while waiting for agreement: %s".formatted(timeoutWhileWaitingException.getMessage()));
+        } catch (InterruptedException interruptedWhileWaitingException) {
+            return Result.failure("Interrupted while waiting for agreement: %s".formatted(interruptedWhileWaitingException.getMessage()));
+        } catch (ExecutionException executionException) {
+            return Result.failure("ExecutionException thrown while waiting for agreement: %s".formatted(executionException.getMessage()));
         }
 
         listener.removeListener(negotiationId);

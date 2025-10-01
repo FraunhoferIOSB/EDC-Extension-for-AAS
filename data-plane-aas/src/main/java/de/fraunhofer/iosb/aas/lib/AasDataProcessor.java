@@ -29,6 +29,11 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
+import static de.fraunhofer.iosb.aas.lib.spi.AasDataAddress.PROXY_BODY;
+import static de.fraunhofer.iosb.aas.lib.spi.AasDataAddress.PROXY_METHOD;
+import static de.fraunhofer.iosb.aas.lib.spi.AasDataAddress.PROXY_OPERATION;
+import static de.fraunhofer.iosb.aas.lib.spi.AasDataAddress.PROXY_PATH;
+
 /**
  * Communication to an AAS service via an OkHttpClient.
  */
@@ -42,46 +47,14 @@ public class AasDataProcessor {
     }
 
     /**
-     * Send data to an AAS service with no requestBody
+     * Get data from an AAS service.
      *
-     * @param aasDataAddress The address of the AAS service.
+     * @param sourceDataAddress The address of the AAS service.
      * @return Response by the AAS service.
      * @throws IOException If communication with AAS service fails.
      */
-    public Response send(@NotNull AasDataAddress aasDataAddress) throws IOException {
-        return send(aasDataAddress, (byte[]) null, null);
-    }
-
-    /**
-     * Send data to an AAS service.
-     *
-     * @param aasDataAddress The address of the AAS service.
-     * @param body           The data to be sent.
-     * @param mediaType      MediaType of the data to be sent. (only relevant if body != null)
-     * @return Response by the AAS service.
-     * @throws IOException If communication with AAS service fails.
-     */
-    public Response send(@NotNull AasDataAddress aasDataAddress, String body, String mediaType) throws IOException {
-        var bytes = body == null ? null : body.getBytes(StandardCharsets.UTF_8);
-        return send(aasDataAddress, bytes, mediaType);
-    }
-
-    /**
-     * Send data to an AAS service.
-     *
-     * @param aasDataAddress The address of the AAS service.
-     * @param part           The data to be sent.
-     * @return Response by the AAS service.
-     * @throws IOException If communication with AAS service fails.
-     */
-    public Response send(@NotNull AasDataAddress aasDataAddress, @NotNull Part part) throws IOException {
-        var bytes = part.openStream().readAllBytes();
-
-        return send(aasDataAddress, bytes, part.mediaType());
-    }
-
-    private Response send(AasDataAddress aasDataAddress, byte[] bytes, String mediaType) throws IOException {
-        var accessUrl = aasDataAddress.getAccessUrl();
+    public Response getFromAas(AasDataAddress sourceDataAddress) throws IOException {
+        var accessUrl = sourceDataAddress.getAccessUrl();
 
         if (accessUrl.failed()) {
             throw new IllegalArgumentException("No access url found");
@@ -89,7 +62,7 @@ public class AasDataProcessor {
 
         var requestUrlBuilder = HttpUrl.get(accessUrl.getContent().toString()).newBuilder();
 
-        var requestPath = aasDataAddress.getPath();
+        var requestPath = sourceDataAddress.getPath();
 
         if (!requestPath.isEmpty()) {
             // Remove leading forward slash
@@ -97,24 +70,80 @@ public class AasDataProcessor {
             requestUrlBuilder.addPathSegments(requestPath);
         }
 
-        // This is also called on the destination address, so ensure no payload is present
-        if (aasDataAddress.isOperation() && (bytes == null || bytes.length == 0)) {
+        var requestBuilder = new Request.Builder()
+                .headers(Headers.of(sourceDataAddress.getAdditionalHeaders()));
+
+        if (sourceDataAddress.hasProperty(PROXY_OPERATION)) {
             // https://faaast-service.readthedocs.io/en/latest/interfaces/endpoint.html#invoking-operations
             requestUrlBuilder.addPathSegments("invoke/$value");
-            bytes = aasDataAddress.getOperation().getBytes(StandardCharsets.UTF_8);
-            mediaType = APPLICATION_JSON;
+            byte[] bytes = sourceDataAddress.getStringProperty(PROXY_OPERATION).getBytes(StandardCharsets.UTF_8);
+            var requestBody = new AasTransferRequestBody(bytes, APPLICATION_JSON);
+            requestBuilder.method("POST", requestBody);
+        } else {
+            String method = sourceDataAddress.getStringProperty(PROXY_METHOD, sourceDataAddress.getMethod());
+
+            String body = sourceDataAddress.getStringProperty(PROXY_BODY);
+            if (body != null) {
+                requestBuilder.method(method,
+                        HttpMethod.permitsRequestBody(method) ?
+                                new AasTransferRequestBody(body.getBytes(StandardCharsets.UTF_8), "application/json") :
+                                null);
+            } else {
+                requestBuilder.method(method, null);
+            }
+
+            requestUrlBuilder.addPathSegments(sourceDataAddress.getStringProperty(PROXY_PATH, ""));
         }
 
-        var requestUrl = requestUrlBuilder.build().url();
-        var requestBody = new AasTransferRequestBody(bytes, mediaType);
+        var request = requestBuilder
+                .url(requestUrlBuilder.build()) // .url(HttpUrl) is marked as "internal"
+                // getAdditionalHeaders() includes authentication needed to access the service
+
+                .build();
+
+        return httpClient.execute(request);
+    }
+
+    /**
+     * Send data to an AAS service.
+     *
+     * @param destinationDataAddress The address of the AAS service.
+     * @param part                   The data to be sent.
+     * @return Response by the AAS service.
+     * @throws IOException If communication with AAS service fails.
+     */
+    public Response send(@NotNull AasDataAddress destinationDataAddress, @NotNull Part part) throws IOException {
+        var bytes = part.openStream().readAllBytes();
+        var mediaType = part.mediaType();
+
+        var accessUrl = destinationDataAddress.getAccessUrl();
+
+        if (accessUrl.failed()) {
+            throw new IllegalArgumentException("No access url found");
+        }
+
+        if (HttpMethod.permitsRequestBody(destinationDataAddress.getMethod())) {
+            throw new IllegalArgumentException(String.format("Destination address method does not allow request body: %s",
+                    destinationDataAddress.getMethod()));
+        }
+
+        var requestUrlBuilder = HttpUrl.get(accessUrl.getContent().toString()).newBuilder();
+
+        var requestPath = destinationDataAddress.getPath();
+
+        if (!requestPath.isEmpty()) {
+            // Remove leading forward slash
+            requestPath = requestPath.startsWith("/") ? requestPath.substring(1) : requestPath;
+            requestUrlBuilder.addPathSegments(requestPath);
+        }
 
         var request = new Request.Builder()
                 .method(
-                        aasDataAddress.getMethod(),
-                        HttpMethod.permitsRequestBody(aasDataAddress.getMethod()) ? requestBody : null)
-                .url(requestUrl) // .url(HttpUrl) is marked as "internal"
+                        destinationDataAddress.getMethod(),
+                        new AasTransferRequestBody(bytes, mediaType))
+                .url(requestUrlBuilder.build().url()) // .url(HttpUrl) is marked as "internal"
                 // getAdditionalHeaders() includes authentication needed to access the service
-                .headers(Headers.of(aasDataAddress.getAdditionalHeaders()))
+                .headers(Headers.of(destinationDataAddress.getAdditionalHeaders()))
                 .build();
 
         return httpClient.execute(request);

@@ -79,7 +79,7 @@ public class AasDataSource implements DataSource {
         try {
             // NB: Do not close the response as the body input stream needs to be read after this method returns. The
             // response closes the body stream.
-            var response = aasDataProcessorResult.getContent().send(aasDataAddress);
+            var response = aasDataProcessorResult.getContent().getFromAas(aasDataAddress);
 
             if (response.isSuccessful()) {
                 var body = response.body();

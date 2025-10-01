@@ -20,7 +20,6 @@ import org.eclipse.edc.spi.result.Result;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URL;
 import java.security.KeyManagementException;
@@ -65,8 +64,7 @@ public class InetTools {
      * @return True if host is reachable under given port within timeout seconds.
      */
     public static boolean pingHost(String host, int port, int timeout) {
-        try (Socket socket = new Socket()) {
-            socket.connect(new InetSocketAddress(host, port), timeout);
+        try (Socket socket = new Socket(host, port)) {
             return true;
         } catch (IOException e) {
             return false; // Either timeout or unreachable or failed DNS lookup.
@@ -107,7 +105,7 @@ public class InetTools {
         try {
             var conn = url.openConnection();
             if (conn instanceof HttpsURLConnection) {
-                conn = (HttpsURLConnection) url.openConnection();
+                conn = url.openConnection();
                 conn.connect();
                 // Connection with standard java library succeeded
                 // -> according to this system, the server has a trusted certificate

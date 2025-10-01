@@ -54,6 +54,8 @@ import java.util.stream.Stream;
 import static de.fraunhofer.iosb.app.aas.mapper.environment.EnvironmentToAssetMapper.ACCESS_POLICY_FIELD;
 import static de.fraunhofer.iosb.app.aas.mapper.environment.EnvironmentToAssetMapper.CONTRACT_POLICY_FIELD;
 import static java.lang.String.format;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_USE_ACTION_ATTRIBUTE;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.query.CriterionOperatorRegistry.EQUAL;
 import static org.eclipse.edc.spi.query.CriterionOperatorRegistry.IN;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.ALREADY_EXISTS;
@@ -316,7 +318,7 @@ public class ContractRegistrar extends PipelineStep<ChangeSet<Asset, Asset>, Voi
         return Policy.Builder.newInstance()
                 .permission(Permission.Builder.newInstance()
                         .action(Action.Builder.newInstance()
-                                .type("USE")
+                                .type(ODRL_USE_ACTION_ATTRIBUTE)
                                 .build())
                         .build())
                 .assigner(participantId)

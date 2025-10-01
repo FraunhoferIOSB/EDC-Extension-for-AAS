@@ -99,5 +99,4 @@ public class AssetRegistrar extends PipelineStep<ChangeSet<Asset, String>, Chang
     private StoreResult<Asset> remove(String assetId) {
         return assetIndex.deleteById(assetId);
     }
-
 }

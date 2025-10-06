@@ -15,6 +15,10 @@
  */
 package de.fraunhofer.iosb.edc.remote;
 
+import de.fraunhofer.iosb.aas.lib.auth.AuthenticationMethod;
+import de.fraunhofer.iosb.aas.lib.auth.impl.ApiKey;
+import de.fraunhofer.iosb.aas.lib.auth.impl.NoAuth;
+import de.fraunhofer.iosb.aas.lib.auth.impl.VaultAuth;
 import de.fraunhofer.iosb.edc.remote.stores.asset.RemoteAssetIndex;
 import de.fraunhofer.iosb.edc.remote.stores.contract.RemoteContractDefinitionStore;
 import de.fraunhofer.iosb.edc.remote.stores.policy.RemotePolicyDefinitionStore;
@@ -41,6 +45,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -69,8 +74,11 @@ public class EdcConnectorClientExtension implements ServiceExtension {
     @Setting(description = "Remote control plane full management API URL", key = MGMT_API + "url")
     private String managementUri;
 
-    @Setting(description = "Remote control-plane API Key", key = CONTROL_PLANE + "apiKey", required = false)
+    @Setting(description = "Remote control-plane API Key", key = CONTROL_PLANE + "auth.key", required = false)
     private String apiKey;
+
+    @Setting(description = "Remote control-plane vault secret alias for authentication", key = CONTROL_PLANE + "auth.key.alias", required = false)
+    private String apiKeyAlias;
 
     @Inject
     private EdcHttpClient edcHttpClient;
@@ -82,46 +90,56 @@ public class EdcConnectorClientExtension implements ServiceExtension {
     private TypeManager typeManager;
     @Inject
     private TypeTransformerRegistry typeTransformerRegistry;
+    @Inject(required = false)
+    private Vault vault;
 
     private Codec codec;
+    private AuthenticationMethod authenticationMethod;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
         registerTransformers();
 
         codec = new Codec(typeTransformerRegistry, typeManager, jsonLd);
+        if (apiKeyAlias != null && vault != null) {
+            authenticationMethod = new VaultAuth(vault, apiKeyAlias);
+        } else if (apiKey != null) {
+            authenticationMethod = new ApiKey("x-api-key", apiKey);
+        } else {
+            authenticationMethod = new NoAuth();
+        }
     }
 
     @Provider
     public AssetIndex provideAssetIndex(ServiceExtensionContext context) {
         return new RemoteAssetIndex.Builder()
-                .httpClient(edcHttpClient)
                 .monitor(context.getMonitor())
-                .codec(codec)
+                .httpClient(edcHttpClient)
                 .managementUri(managementUri)
-                .apiKey(apiKey)
+                .authenticationMethod(authenticationMethod)
+                .codec(codec)
                 .build();
     }
 
     @Provider
     public PolicyDefinitionStore providePolicyDefinitionStore(ServiceExtensionContext context) {
         return new RemotePolicyDefinitionStore.Builder()
-                .httpClient(edcHttpClient)
                 .monitor(context.getMonitor())
-                .codec(codec)
+                .httpClient(edcHttpClient)
                 .managementUri(managementUri)
-                .apiKey(apiKey)
+                .authenticationMethod(authenticationMethod)
+                .codec(codec)
                 .build();
     }
 
     @Provider
     public ContractDefinitionStore provideContractDefinitionStore(ServiceExtensionContext context) {
         return new RemoteContractDefinitionStore.Builder()
-                .httpClient(edcHttpClient)
                 .monitor(context.getMonitor())
-                .codec(codec)
+                .httpClient(edcHttpClient)
                 .managementUri(managementUri)
-                .apiKey(apiKey)
+                .authenticationMethod(authenticationMethod)
+                .codec(codec)
                 .build();
     }
 
@@ -147,6 +165,5 @@ public class EdcConnectorClientExtension implements ServiceExtension {
         typeTransformerRegistry.register(new JsonObjectToAssetTransformer());
         typeTransformerRegistry.register(new JsonObjectToDataAddressTransformer());
         typeTransformerRegistry.register(new JsonValueToGenericTypeTransformer(typeManager, JSON_LD));
-
     }
 }

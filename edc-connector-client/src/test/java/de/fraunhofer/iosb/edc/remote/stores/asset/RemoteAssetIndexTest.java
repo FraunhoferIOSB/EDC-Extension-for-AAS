@@ -1,5 +1,6 @@
 package de.fraunhofer.iosb.edc.remote.stores.asset;
 
+import de.fraunhofer.iosb.aas.lib.auth.impl.ApiKey;
 import de.fraunhofer.iosb.edc.remote.ControlPlaneConnectionException;
 import de.fraunhofer.iosb.edc.remote.stores.AbstractControlPlaneConnectionHandlerTest;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
@@ -103,7 +104,7 @@ class RemoteAssetIndexTest extends AbstractControlPlaneConnectionHandlerTest {
         authorizedServer();
 
         var testSubject = new RemoteAssetIndex.Builder()
-                .apiKey(apiKey.concat("prefixMakingApiKeyFalse"))
+                .authenticationMethod(new ApiKey("x-api-key", apiKey.concat("prefixMakingApiKeyFalse")))
                 .managementUri(String.format("http://localhost:%s", server.getPort()))
                 .codec(mockCodec)
                 .httpClient(httpClient)
@@ -126,7 +127,7 @@ class RemoteAssetIndexTest extends AbstractControlPlaneConnectionHandlerTest {
 
     private RemoteAssetIndex testSubject() {
         return new RemoteAssetIndex.Builder()
-                .apiKey(apiKey)
+                .authenticationMethod(new ApiKey("x-api-key", apiKey))
                 .managementUri(String.format("http://localhost:%s", server.getPort()))
                 .codec(mockCodec)
                 .httpClient(httpClient)

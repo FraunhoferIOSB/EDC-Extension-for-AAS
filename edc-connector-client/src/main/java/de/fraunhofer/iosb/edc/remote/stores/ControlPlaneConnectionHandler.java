@@ -16,8 +16,8 @@
 package de.fraunhofer.iosb.edc.remote.stores;
 
 import de.fraunhofer.iosb.aas.lib.auth.AuthenticationMethod;
-import de.fraunhofer.iosb.aas.lib.auth.impl.ApiKey;
 import de.fraunhofer.iosb.aas.lib.auth.impl.NoAuth;
+import de.fraunhofer.iosb.aas.lib.auth.impl.VaultAuth;
 import de.fraunhofer.iosb.edc.remote.ControlPlaneConnection;
 import de.fraunhofer.iosb.edc.remote.ControlPlaneConnectionException;
 import de.fraunhofer.iosb.edc.remote.HttpMethod;
@@ -34,6 +34,7 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.result.StoreResult;
+import org.eclipse.edc.spi.security.Vault;
 
 import java.io.IOException;
 import java.net.URI;
@@ -238,8 +239,8 @@ public abstract class ControlPlaneConnectionHandler<T extends Entity> {
             return self();
         }
 
-        public B apiKey(String apiKey) {
-            this.authenticationMethod = new ApiKey("x-api-key", apiKey);
+        public B authenticationMethod(AuthenticationMethod authenticationMethod) {
+            this.authenticationMethod = authenticationMethod;
             return self();
         }
 
@@ -248,11 +249,12 @@ public abstract class ControlPlaneConnectionHandler<T extends Entity> {
             Objects.requireNonNull(monitor);
             Objects.requireNonNull(codec);
             Objects.requireNonNull(managementUri);
-            authenticationMethod = Objects.requireNonNullElse(authenticationMethod, new NoAuth());
+            Objects.requireNonNull(authenticationMethod);
 
             ControlPlaneConnection connection = new ControlPlaneConnection(URI.create(managementUri), resourceName, authenticationMethod);
 
             return create(monitor, httpClient, codec, connection);
         }
+
     }
 }

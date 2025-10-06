@@ -1,5 +1,6 @@
 package de.fraunhofer.iosb.edc.remote.stores.contract;
 
+import de.fraunhofer.iosb.aas.lib.auth.impl.ApiKey;
 import de.fraunhofer.iosb.edc.remote.stores.AbstractControlPlaneConnectionHandlerTest;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -104,7 +105,7 @@ class RemoteContractDefinitionStoreTest extends AbstractControlPlaneConnectionHa
         authorizedServer();
 
         var testSubject = new RemoteContractDefinitionStore.Builder()
-                .apiKey(apiKey.concat("prefixMakingApiKeyFalse"))
+                .authenticationMethod(new ApiKey("x-api-key", apiKey.concat("prefixMakingApiKeyFalse")))
                 .managementUri(String.format("http://localhost:%s", server.getPort()))
                 .codec(mockCodec)
                 .httpClient(httpClient)
@@ -127,7 +128,7 @@ class RemoteContractDefinitionStoreTest extends AbstractControlPlaneConnectionHa
 
     private RemoteContractDefinitionStore testSubject() {
         return new RemoteContractDefinitionStore.Builder()
-                .apiKey(apiKey)
+                .authenticationMethod(new ApiKey("x-api-key", apiKey))
                 .managementUri(String.format("http://localhost:%s", server.getPort()))
                 .codec(mockCodec)
                 .httpClient(httpClient)

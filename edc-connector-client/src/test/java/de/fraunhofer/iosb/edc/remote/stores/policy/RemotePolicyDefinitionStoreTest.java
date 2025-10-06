@@ -1,5 +1,6 @@
 package de.fraunhofer.iosb.edc.remote.stores.policy;
 
+import de.fraunhofer.iosb.aas.lib.auth.impl.ApiKey;
 import de.fraunhofer.iosb.edc.remote.ControlPlaneConnectionException;
 import de.fraunhofer.iosb.edc.remote.stores.AbstractControlPlaneConnectionHandlerTest;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
@@ -106,7 +107,7 @@ class RemotePolicyDefinitionStoreTest extends AbstractControlPlaneConnectionHand
         authorizedServer();
 
         var testSubject = new RemotePolicyDefinitionStore.Builder()
-                .apiKey(apiKey.concat("prefixMakingApiKeyFalse"))
+                .authenticationMethod(new ApiKey("x-api-key", apiKey.concat("prefixMakingApiKeyFalse")))
                 .managementUri(String.format("http://localhost:%s", server.getPort()))
                 .codec(mockCodec)
                 .httpClient(httpClient)
@@ -130,7 +131,7 @@ class RemotePolicyDefinitionStoreTest extends AbstractControlPlaneConnectionHand
 
     private RemotePolicyDefinitionStore testSubject() {
         return new RemotePolicyDefinitionStore.Builder()
-                .apiKey(apiKey)
+                .authenticationMethod(new ApiKey("x-api-key", apiKey))
                 .managementUri(String.format("http://localhost:%s", server.getPort()))
                 .codec(mockCodec)
                 .httpClient(httpClient)

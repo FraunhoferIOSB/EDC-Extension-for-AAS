@@ -15,7 +15,6 @@
  */
 package de.fraunhofer.iosb.app.sync;
 
-import de.fraunhofer.iosb.app.AasExtension;
 import de.fraunhofer.iosb.app.model.ChangeSet;
 import de.fraunhofer.iosb.app.pipeline.PipelineFailure;
 import de.fraunhofer.iosb.app.pipeline.PipelineResult;
@@ -23,18 +22,11 @@ import de.fraunhofer.iosb.app.pipeline.PipelineStep;
 import de.fraunhofer.iosb.app.util.AssetUtil;
 import de.fraunhofer.iosb.app.util.Pair;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
-import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
-import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
-import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
-import org.eclipse.edc.spi.query.Criterion;
-import org.eclipse.edc.spi.query.QuerySpec;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-
-import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 
 /**
@@ -47,12 +39,7 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
  */
 public class Synchronizer extends PipelineStep<Collection<Pair<Asset, Asset>>, ChangeSet<Asset, String>> {
 
-    private final AssetIndex assetIndex;
-    private final ContractDefinitionStore contractDefinitionStore;
-
-    public Synchronizer(AssetIndex assetIndex, ContractDefinitionStore contractDefinitionStore, PolicyDefinitionStore policyDefinitionStore) {
-        this.assetIndex = assetIndex;
-        this.contractDefinitionStore = contractDefinitionStore;
+    public Synchronizer() {
     }
 
     /**
@@ -67,6 +54,7 @@ public class Synchronizer extends PipelineStep<Collection<Pair<Asset, Asset>>, C
      */
     @Override
     public PipelineResult<ChangeSet<Asset, String>> apply(Collection<Pair<Asset, Asset>> oldAndNewAssets) {
+        // TODO probably return Service here as toAdd for transactionality. First, fix all errors though
         if (oldAndNewAssets == null) {
             return PipelineResult.failure(PipelineFailure.warning(List.of("Empty input for synchronizer")));
         }
@@ -82,55 +70,9 @@ public class Synchronizer extends PipelineStep<Collection<Pair<Asset, Asset>>, C
 
             var newEnvironment = AssetUtil.flatMapAssets(entry.second());
 
-            var newAssetIds = newEnvironment.stream().map(Asset::getId).toList();
-
-            var alreadyStoredAssetsQuerySpec = QuerySpec.Builder.newInstance()
-                    .filter(Criterion.criterion(Asset.PROPERTY_ID, "in", newAssetIds))
-                    .build();
-
-            List<Asset> alreadyStoredAssets = assetIndex.queryAssets(alreadyStoredAssetsQuerySpec).toList();
-
             toRemove.addAll(oldEnvironment.stream().filter(oldElement -> absent(newEnvironment, oldElement)).map(Asset::getId).toList());
-            toAdd.addAll(newEnvironment.stream()
-                    .filter(newElement -> absent(oldEnvironment, newElement))
-                    // If AssetIndex cannot find element, we need to add it again.
-                    .filter(asset -> absent(alreadyStoredAssets, asset))
-                    .toList());
-
-            var contract =
-                    contractDefinitionStore.findAll(QuerySpec.max())
-                            .filter(contractDefinition -> contractDefinition.getPrivateProperty(EDC_NAMESPACE + "creator") != null)
-                            .filter(contractDefinition -> contractDefinition.getPrivateProperty(EDC_NAMESPACE + "creator").equals(AasExtension.ID))
-                            .findFirst().orElse(null);
-
-            if (contract != null) {
-                var assetsSelector =
-                        contract.getAssetsSelector().stream()
-                                .map(Criterion::getOperandRight)
-                                .map(x -> (List<String>) x)
-                                .map(x -> x.get(0))
-                                .toList();
-
-                // Re-add all Assets that are not registered to the default contract.
-                toAdd.addAll(newEnvironment.stream()
-                        .filter(asset -> assetsSelector.stream()
-                                .noneMatch(contractRegisteredAssetId -> asset.getId().equals(contractRegisteredAssetId)))
-                        .toList());
-
-                // Re-remove all Assets that are still registered to the default contract
-                toRemove.addAll(assetsSelector.stream()
-                        .filter(registeredAsset ->
-                                newEnvironment.stream()
-                                        .map(Asset::getId)
-                                        .noneMatch(registeredAsset::equals)
-                        )
-                        .toList());
-            }
-
+            toAdd.addAll(newEnvironment.stream().filter(newElement -> absent(oldEnvironment, newElement)).toList());
         }
-
-        toAdd = toAdd.stream().distinct().toList();
-        toRemove = toRemove.stream().distinct().toList();
 
         return PipelineResult.success(new ChangeSet.Builder<Asset, String>().add(toAdd).remove(toRemove).build());
     }

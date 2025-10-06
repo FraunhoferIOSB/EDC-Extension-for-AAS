@@ -128,7 +128,7 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<Service, Environm
 
             // TODO after fine-grained element filtering, remove this next line.
             submodels = submodels.stream().map(submodel -> submodel.toBuilder().property(AAS_V30_NAMESPACE + "Submodel/" + "submodelElements",
-                     null).build()).toList();
+                    null).build()).toList();
 
             shells = filterBySelection(shells, policyBindings);
             conceptDescriptions = filterBySelection(conceptDescriptions, policyBindings);

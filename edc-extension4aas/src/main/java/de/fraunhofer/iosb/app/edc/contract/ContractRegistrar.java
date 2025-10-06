@@ -47,7 +47,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -73,8 +72,8 @@ import static org.eclipse.edc.spi.result.StoreFailure.Reason.NOT_FOUND;
  */
 public class ContractRegistrar extends PipelineStep<ChangeSet<Asset, Asset>, Void> {
 
-    public static final String DEFAULT_CONTRACT_POLICY_DEFINITION_ID = UUID.randomUUID().toString();
-    public static final String DEFAULT_ACCESS_POLICY_DEFINITION_ID = UUID.randomUUID().toString();
+    public static final String DEFAULT_ACCESS_POLICY_DEFINITION_ID = "AAS_DEFAULT_ACCESS_POLICY";
+    public static final String DEFAULT_CONTRACT_POLICY_DEFINITION_ID = "AAS_DEFAULT_CONTRACT_POLICY";
     private final ContractDefinitionStore contractDefinitionStore;
     private final PolicyDefinitionStore policyDefinitionStore;
     private final Configuration configuration;
@@ -217,7 +216,7 @@ public class ContractRegistrar extends PipelineStep<ChangeSet<Asset, Asset>, Voi
         var searchQuery = QuerySpec.Builder.newInstance()
                 .filter(Criterion.criterion(ACCESS_POLICY_FIELD, EQUAL, accessPolicyId))
                 .filter(Criterion.criterion(CONTRACT_POLICY_FIELD, EQUAL, contractPolicyId))
-                .filter(Criterion.criterion("privateProperties.creator", EQUAL, AasExtension.NAME))
+                .filter(Criterion.criterion(String.format("privateProperties.'%screator'", EDC_NAMESPACE), EQUAL, AasExtension.NAME))
                 .build();
 
         return contractDefinitionStore.findAll(searchQuery);
@@ -258,7 +257,7 @@ public class ContractRegistrar extends PipelineStep<ChangeSet<Asset, Asset>, Voi
 
     private ContractDefinition.Builder getBaseContractDefinition() {
         return ContractDefinition.Builder.newInstance()
-                .privateProperty("creator", AasExtension.NAME);
+                .privateProperty(EDC_NAMESPACE + "creator", AasExtension.NAME);
     }
 
     private void registerDefaultPolicies() {

@@ -78,7 +78,6 @@ public class AasExtension implements ServiceExtension {
     public static final String NAME = "EDC4AAS Extension";
 
     private static final String SETTINGS_PREFIX = "edc.aas";
-
     @Inject // Register public endpoints
     private PublicApiManagementService publicApiManagementService;
     @Inject
@@ -93,14 +92,13 @@ public class AasExtension implements ServiceExtension {
     private WebService webService;
     @Inject // Add AAS namespace to JSON LD context
     private JsonLd jsonLd;
-
     private AasController aasController;
     private Monitor monitor;
     private VariableRateScheduler servicePipeline;
     private VariableRateScheduler registryPipeline;
     private String participantId;
-    ServiceRepository serviceRepository;
     private RegistryRepository registryRepository;
+    private ServiceRepository serviceRepository;
 
     @Override
     public void initialize(ServiceExtensionContext context) {

@@ -26,7 +26,7 @@ dependencies {
     implementation("$group:data-plane-http-spi:$edcVersion") // HTTPDataAddress
     implementation("${group}:contract-spi:${edcVersion}")
     implementation("${group}:json-ld-spi:${edcVersion}") // Policy action attributes
-    implementation("$group:asset-api:$edcVersion")
+    implementation("$group:asset-spi:$edcVersion")
     implementation("${group}:policy-engine-lib:${edcVersion}")
 
     testImplementation(testFixtures(project(":aas-lib")))

@@ -158,6 +158,7 @@ public class ContractRegistrar extends PipelineStep<ChangeSet<Asset, Asset>, Voi
             if (updateResult.failed()) {
                 invokeForEach(listener -> listener.storeFailure(asset.getId()));
             }
+            return updateResult;
         }
 
         StoreResult<Void> saveResult = contractDefinitionStore.save(getBaseContractDefinition()

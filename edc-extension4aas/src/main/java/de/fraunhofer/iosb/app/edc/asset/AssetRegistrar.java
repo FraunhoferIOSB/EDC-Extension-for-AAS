@@ -26,7 +26,11 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.StoreResult;
 
+import java.util.Collection;
+import java.util.stream.Stream;
+
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.ALREADY_EXISTS;
+import static org.eclipse.edc.spi.result.StoreFailure.Reason.NOT_FOUND;
 
 /**
  * Adds and removes assets given a change set of assets and asset IDs.
@@ -80,14 +84,24 @@ public class AssetRegistrar extends PipelineStep<ChangeSet<Asset, String>, Chang
                     changeSetIds.toRemove().size()));
         }
 
-        if (added.stream().anyMatch(pair -> pair.second().failed()) || removed.stream().anyMatch(AbstractResult::failed)) {
+        var addFailureMessages = added.stream()
+                .map(Pair::second)
+                .filter(AbstractResult::failed)
+                // Don't list "already exists" as warning.
+                .filter(voidStoreResult -> !ALREADY_EXISTS.equals(voidStoreResult.reason()))
+                .map(AbstractResult::getFailureDetail)
+                .toList();
+
+        var removeFailureMessages = removed.stream()
+                .filter(AbstractResult::failed)
+                .filter(result -> !NOT_FOUND.equals(result.reason()))
+                .map(AbstractResult::getFailureDetail)
+                .toList();
+
+        if (!(addFailureMessages.isEmpty()  && removeFailureMessages.isEmpty())) {
             return PipelineResult.recoverableFailure(changeSetIds,
-                    PipelineFailure.warning(added.stream()
-                            .map(Pair::second)
-                            .filter(AbstractResult::failed)
-                            // Don't list "already exists" as warning.
-                            .filter(voidStoreResult -> !ALREADY_EXISTS.equals(voidStoreResult.reason()))
-                            .map(AbstractResult::getFailureDetail)
+                    PipelineFailure.warning(Stream.of(addFailureMessages, removeFailureMessages)
+                            .flatMap(Collection::stream)
                             .toList()));
         }
 

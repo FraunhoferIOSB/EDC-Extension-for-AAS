@@ -18,6 +18,7 @@ package de.fraunhofer.iosb.app.edc.contract;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import de.fraunhofer.iosb.app.AasExtension;
+import de.fraunhofer.iosb.app.edc.StoreFailureListener;
 import de.fraunhofer.iosb.app.model.ChangeSet;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import de.fraunhofer.iosb.app.pipeline.PipelineFailure;
@@ -33,6 +34,7 @@ import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.observe.Observable;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.AbstractResult;
@@ -70,7 +72,7 @@ import static org.eclipse.edc.spi.result.StoreFailure.Reason.NOT_FOUND;
  * the difference between Access-/Contract-Policy, see
  * {@link ContractDefinition} documentation.
  */
-public class ContractRegistrar extends PipelineStep<ChangeSet<Asset, Asset>, Void> {
+public class ContractRegistrar extends PipelineStep<ChangeSet<Asset, Asset>, Void> implements Observable<StoreFailureListener> {
 
     public static final String DEFAULT_ACCESS_POLICY_DEFINITION_ID = "AAS_DEFAULT_ACCESS_POLICY";
     public static final String DEFAULT_CONTRACT_POLICY_DEFINITION_ID = "AAS_DEFAULT_CONTRACT_POLICY";
@@ -80,6 +82,8 @@ public class ContractRegistrar extends PipelineStep<ChangeSet<Asset, Asset>, Voi
     private final Monitor monitor;
     private final ObjectReader objectReader;
     private final String participantId;
+
+    private final List<StoreFailureListener> listeners = new ArrayList<>();
 
     /**
      * Class constructor
@@ -139,25 +143,33 @@ public class ContractRegistrar extends PipelineStep<ChangeSet<Asset, Asset>, Voi
         String contractPolicyId = getContractPolicy(asset).orElse(DEFAULT_CONTRACT_POLICY_DEFINITION_ID);
 
         if (Objects.isNull(policyDefinitionStore.findById(accessPolicyId))) {
-            monitor.warning(String.format("AccessPolicyDefinition with id %s not found.", accessPolicyId));
+            monitor.warning(format("AccessPolicyDefinition with id %s not found.", accessPolicyId));
         }
         if (Objects.isNull(policyDefinitionStore.findById(contractPolicyId))) {
-            monitor.warning(String.format("ContractPolicyDefinition with id %s not found.", contractPolicyId));
+            monitor.warning(format("ContractPolicyDefinition with id %s not found.", contractPolicyId));
         }
 
         Optional<ContractDefinition> maybeContract = findContracts(accessPolicyId, contractPolicyId).findFirst();
 
         if (maybeContract.isPresent()) {
             ContractDefinition updatedContract = getContractDefinition(asset, maybeContract.get());
-            return contractDefinitionStore.update(updatedContract);
+            StoreResult<Void> updateResult = contractDefinitionStore.update(updatedContract);
+
+            if (updateResult.failed()) {
+                invokeForEach(listener -> listener.storeFailure(asset.getId()));
+            }
         }
 
-        return contractDefinitionStore.save(getBaseContractDefinition()
-                .accessPolicyId(getAccessPolicy(asset).orElse(DEFAULT_ACCESS_POLICY_DEFINITION_ID))
-                .contractPolicyId(getContractPolicy(asset).orElse(DEFAULT_CONTRACT_POLICY_DEFINITION_ID))
+        StoreResult<Void> saveResult = contractDefinitionStore.save(getBaseContractDefinition()
+                .accessPolicyId(accessPolicyId)
+                .contractPolicyId(contractPolicyId)
                 .assetsSelectorCriterion(getAssetIdCriterion(asset.getId()))
-                .build()
-        );
+                .build());
+
+        if (saveResult.failed()) {
+            invokeForEach(listener -> listener.storeFailure(asset.getId()));
+        }
+        return saveResult;
     }
 
     private StoreResult<Void> removeFromContracts(Asset asset) {
@@ -191,10 +203,12 @@ public class ContractRegistrar extends PipelineStep<ChangeSet<Asset, Asset>, Voi
             if (modifyResult.succeeded()) {
                 continue;
             } else if (modifyResult.failed() && modifyResult.reason().equals(NOT_FOUND)) {
-                monitor.warning(String.format("%s received when trying to update existing contract definition with id %s",
+                invokeForEach(listener -> listener.storeFailure(asset.getId()));
+                monitor.warning(format("%s received when trying to update existing contract definition with id %s",
                         NOT_FOUND, contractDefinition.getId()));
                 continue;
             }
+            invokeForEach(listener -> listener.storeFailure(asset.getId()));
             return StoreResult.generalError(modifyResult.getFailureDetail());
         }
         return StoreResult.success();
@@ -216,7 +230,7 @@ public class ContractRegistrar extends PipelineStep<ChangeSet<Asset, Asset>, Voi
         var searchQuery = QuerySpec.Builder.newInstance()
                 .filter(Criterion.criterion(ACCESS_POLICY_FIELD, EQUAL, accessPolicyId))
                 .filter(Criterion.criterion(CONTRACT_POLICY_FIELD, EQUAL, contractPolicyId))
-                .filter(Criterion.criterion(String.format("privateProperties.'%screator'", EDC_NAMESPACE), EQUAL, AasExtension.NAME))
+                .filter(Criterion.criterion(format("privateProperties.'%screator'", EDC_NAMESPACE), EQUAL, AasExtension.NAME))
                 .build();
 
         return contractDefinitionStore.findAll(searchQuery);
@@ -327,4 +341,20 @@ public class ContractRegistrar extends PipelineStep<ChangeSet<Asset, Asset>, Voi
     private void doThrow(Exception exception) {
         throw new EdcException(exception);
     }
+
+    @Override
+    public Collection<StoreFailureListener> getListeners() {
+        return listeners;
+    }
+
+    @Override
+    public void registerListener(StoreFailureListener storeFailureListener) {
+        listeners.add(storeFailureListener);
+    }
+
+    @Override
+    public void unregisterListener(StoreFailureListener storeFailureListener) {
+        listeners.remove(storeFailureListener);
+    }
+
 }

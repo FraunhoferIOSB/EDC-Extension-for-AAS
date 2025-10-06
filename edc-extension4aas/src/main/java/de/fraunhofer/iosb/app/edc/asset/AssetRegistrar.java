@@ -85,6 +85,8 @@ public class AssetRegistrar extends PipelineStep<ChangeSet<Asset, String>, Chang
                     PipelineFailure.warning(added.stream()
                             .map(Pair::second)
                             .filter(AbstractResult::failed)
+                            // Don't list "already exists" as warning.
+                            .filter(voidStoreResult -> !ALREADY_EXISTS.equals(voidStoreResult.reason()))
                             .map(AbstractResult::getFailureDetail)
                             .toList()));
         }

@@ -37,13 +37,6 @@ public class ControlPlaneConnection {
 
     private final UnaryOperator<Request.Builder> authSupplier;
 
-    public ControlPlaneConnection(URI connectionUri, String resourceName) {
-        this.connectionUri = Objects.requireNonNull(HttpUrl.parse(connectionUri.toString()));
-        this.resourceName = resourceName;
-        this.authSupplier = UnaryOperator.identity();
-    }
-
-
     public ControlPlaneConnection(URI connectionUri, String resourceName, AuthenticationMethod authenticationMethod) {
         this.connectionUri = Objects.requireNonNull(HttpUrl.parse(connectionUri.toString()));
         this.resourceName = resourceName;

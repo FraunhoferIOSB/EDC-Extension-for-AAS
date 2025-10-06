@@ -49,7 +49,20 @@ public class RemotePolicyDefinitionStore extends ControlPlaneConnectionHandler<P
 
     @Override
     public StoreResult<PolicyDefinition> create(PolicyDefinition policyDefinition) {
-        return createEntity(policyDefinition, PolicyDefinition.class);
+        StoreResult<Void> createResult = createEntity(policyDefinition);
+        if (createResult.succeeded()) {
+            return StoreResult.success(policyDefinition);
+        }
+
+        // Since you cannot create StoreResult<T> from StoreResult<U>:
+        String failureDetail = createResult.getFailureDetail();
+        return switch (createResult.reason()) {
+            case NOT_FOUND -> StoreResult.notFound(String.format(NOT_FOUND_TEMPLATE, policyDefinition.getId()));
+            case ALREADY_EXISTS -> StoreResult.alreadyExists(String.format(POLICY_ALREADY_EXISTS, policyDefinition.getId()));
+            case DUPLICATE_KEYS -> StoreResult.duplicateKeys(failureDetail);
+            case ALREADY_LEASED -> StoreResult.alreadyLeased(failureDetail);
+            default -> StoreResult.generalError(failureDetail);
+        };
     }
 
     @Override

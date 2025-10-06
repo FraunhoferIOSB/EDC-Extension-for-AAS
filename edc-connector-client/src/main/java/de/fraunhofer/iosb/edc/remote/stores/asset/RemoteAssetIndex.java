@@ -61,7 +61,7 @@ public class RemoteAssetIndex extends ControlPlaneConnectionHandler<Asset> imple
      */
     @Override
     public StoreResult<Void> create(Asset asset) {
-        var result = createEntity(asset, Asset.class);
+        var result = createEntity(asset);
 
         // This is the only case where Void is returned.
         if (result.succeeded()) {

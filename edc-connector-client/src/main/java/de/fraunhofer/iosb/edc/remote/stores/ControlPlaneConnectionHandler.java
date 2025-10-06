@@ -27,12 +27,14 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.entity.Entity;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.result.StoreResult;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 
@@ -66,7 +68,13 @@ public abstract class ControlPlaneConnectionHandler<T extends Entity> {
                 .orElseThrow(failure -> new ControlPlaneConnectionException(String.format("Failed querying %s. %s %s",
                         clazz.getSimpleName(), failure.getReason(), failure.getFailureDetail())));
 
-        return codec.deserializeList(responseJsonString, clazz).stream();
+        Result<List<T>> deserialized = codec.deserializeList(responseJsonString, clazz);
+
+        if (deserialized.failed()) {
+            monitor.warning(deserialized.getFailureDetail());
+        }
+
+        return deserialized.getContent().stream();
     }
 
     protected T findById(String entityId, Class<T> clazz) {
@@ -83,10 +91,17 @@ public abstract class ControlPlaneConnectionHandler<T extends Entity> {
                     }
                 });
 
-        return codec.deserialize(responseJsonOrNull, clazz);
+        Result<T> deserialized = codec.deserialize(responseJsonOrNull, clazz);
+
+        if (deserialized.failed()) {
+            monitor.warning(deserialized.getFailureDetail());
+            return null;
+        }
+
+        return deserialized.getContent();
     }
 
-    protected StoreResult<T> createEntity(T entity, Class<T> clazz) {
+    protected StoreResult<Void> createEntity(T entity) {
         var serialized = codec.serialize(entity);
 
         var request = controlPlane.prepareRequest(HttpMethod.POST, serialized);
@@ -99,10 +114,10 @@ public abstract class ControlPlaneConnectionHandler<T extends Entity> {
             }
             throw new ControlPlaneConnectionException(
                     String.format("%s could not be created. %s: %s",
-                            clazz.getSimpleName(), response.reason(), response.getFailure().getFailureDetail()));
+                            entity.getClass().getSimpleName(), response.reason(), response.getFailure().getFailureDetail()));
         }
 
-        return StoreResult.success(codec.deserialize(response.getContent(), clazz));
+        return StoreResult.success();
     }
 
     protected StoreResult<T> deleteById(String entityId, Class<T> clazz) {

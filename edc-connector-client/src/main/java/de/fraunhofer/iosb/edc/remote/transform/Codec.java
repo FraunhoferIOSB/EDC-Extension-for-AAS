@@ -21,6 +21,8 @@ import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.entity.Entity;
+import org.eclipse.edc.spi.result.Failure;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.jetbrains.annotations.NotNull;
@@ -45,20 +47,38 @@ public class Codec {
         this.jsonLd = jsonLd;
     }
 
-    public <T extends Entity> List<T> deserializeList(String entitiesJson, Class<T> type) {
+    public <T extends Entity> Result<List<T>> deserializeList(String entitiesJson, Class<T> type) {
         var assetsJsonArray = Json.createReader(new StringReader(entitiesJson)).readArray();
-        return assetsJsonArray.stream().map(asset -> deserialize(asset.toString(), type)).toList();
+
+        var deserializedAssets = assetsJsonArray.stream()
+                .map(asset -> deserialize(asset.toString(), type))
+                .toList();
+
+        // If any of the deserializations failed, fail the whole operation
+        if (deserializedAssets.stream().anyMatch(Result::failed)) {
+            List<String> errorMessages = deserializedAssets
+                    .stream()
+                    .filter(Result::failed)
+                    .map(Result::getFailureDetail)
+                    .toList();
+
+            return Result.failure(errorMessages);
+        }
+        return Result.success(deserializedAssets.stream().map(Result::getContent).toList());
     }
 
-    public <T extends Entity> T deserialize(String entityJson, Class<T> type) {
+    public <T extends Entity> Result<T> deserialize(String entityJson, Class<T> type) {
         var assetJsonObject = Json.createReader(new StringReader(entityJson)).readObject();
 
-        var expanded = jsonLd.expand(assetJsonObject)
-                .orElseThrow(failure -> new EdcException(String.format(EXPANSION_ERROR, failure.getClass().getSimpleName(),
-                        failure.getFailureDetail())));
+        var expandedResult = jsonLd.expand(assetJsonObject);
 
-        return transformers.transform(expanded, type).orElseThrow(failure -> new EdcException(String.format(DESERIALIZATION_ERROR,
-                type.getSimpleName(), failure.getFailureDetail())));
+        if (expandedResult.failed()) {
+            Failure failure = expandedResult.getFailure();
+            return Result.failure(String.format(EXPANSION_ERROR, failure.getClass().getSimpleName(),
+                    failure.getFailureDetail()));
+        }
+
+        return transformers.transform(expandedResult.getContent(), type);
     }
 
     public PolicyDefinition deserializePolicyDefinition(String policyDefinitionJson) {

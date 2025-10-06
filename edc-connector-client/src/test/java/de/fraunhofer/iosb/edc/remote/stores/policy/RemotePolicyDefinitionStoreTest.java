@@ -5,6 +5,7 @@ import de.fraunhofer.iosb.edc.remote.stores.AbstractControlPlaneConnectionHandle
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceFailure;
 import org.junit.jupiter.api.Test;
 
@@ -32,7 +33,7 @@ class RemotePolicyDefinitionStoreTest extends AbstractControlPlaneConnectionHand
         mockResponseForPost("/policydefinitions/request");
 
         List<PolicyDefinition> policyDefinitions = List.of(getPolicyDefinition(), getPolicyDefinition());
-        when(mockCodec.deserializeList("test-return-body", PolicyDefinition.class)).thenReturn(policyDefinitions);
+        when(mockCodec.deserializeList("test-return-body", PolicyDefinition.class)).thenReturn(Result.success(policyDefinitions));
 
         var response = testSubject.findAll(querySpec);
 
@@ -50,7 +51,7 @@ class RemotePolicyDefinitionStoreTest extends AbstractControlPlaneConnectionHand
 
         List<PolicyDefinition> policyDefinitions = List.of();
         when(mockCodec.deserializeList("test-return-body", PolicyDefinition.class))
-                .thenReturn(policyDefinitions);
+                .thenReturn(Result.success(policyDefinitions));
 
         var response = testSubject.findAll(querySpec);
 

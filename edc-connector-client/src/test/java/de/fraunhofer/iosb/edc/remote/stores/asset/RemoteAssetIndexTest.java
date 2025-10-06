@@ -4,6 +4,7 @@ import de.fraunhofer.iosb.edc.remote.ControlPlaneConnectionException;
 import de.fraunhofer.iosb.edc.remote.stores.AbstractControlPlaneConnectionHandlerTest;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.Result;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -28,7 +29,7 @@ class RemoteAssetIndexTest extends AbstractControlPlaneConnectionHandlerTest {
         mockResponseForPost("/assets/request");
 
         List<Asset> assets = List.of(getAsset(), getAsset());
-        when(mockCodec.deserializeList("test-return-body", Asset.class)).thenReturn(assets);
+        when(mockCodec.deserializeList("test-return-body", Asset.class)).thenReturn(Result.success(assets));
 
         var response = testSubject.queryAssets(querySpec);
 
@@ -45,7 +46,7 @@ class RemoteAssetIndexTest extends AbstractControlPlaneConnectionHandlerTest {
         mockResponseForPost("/assets/request");
 
         List<Asset> assets = List.of();
-        when(mockCodec.deserializeList("test-return-body", Asset.class)).thenReturn(assets);
+        when(mockCodec.deserializeList("test-return-body", Asset.class)).thenReturn(Result.success(assets));
 
         var response = testSubject.queryAssets(querySpec);
 
@@ -58,7 +59,7 @@ class RemoteAssetIndexTest extends AbstractControlPlaneConnectionHandlerTest {
         var testSubject = testSubject();
 
         var asset = getAsset();
-        when(mockCodec.deserialize("test-return-body", Asset.class)).thenReturn(asset);
+        when(mockCodec.deserialize("test-return-body", Asset.class)).thenReturn(Result.success(asset));
 
         mockResponseForGet(String.format("/assets/%s", id));
 
@@ -117,7 +118,7 @@ class RemoteAssetIndexTest extends AbstractControlPlaneConnectionHandlerTest {
                         "  \"@type\": \"QuerySpec\"" +
                         "}");
         try {
-            var response = testSubject.queryAssets(QuerySpec.max());
+            testSubject.queryAssets(QuerySpec.max());
             fail();
         } catch (ControlPlaneConnectionException expected) {
         }

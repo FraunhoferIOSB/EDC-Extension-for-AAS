@@ -55,7 +55,7 @@ public class RemoteContractDefinitionStore extends ControlPlaneConnectionHandler
      */
     @Override
     public StoreResult<Void> save(ContractDefinition contractDefinition) {
-        var result = createEntity(contractDefinition, ContractDefinition.class);
+        var result = createEntity(contractDefinition);
 
         // This is the only case where Void is returned.
         if (result.succeeded()) {

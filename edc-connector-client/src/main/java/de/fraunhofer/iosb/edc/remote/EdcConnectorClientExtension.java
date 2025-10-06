@@ -69,7 +69,7 @@ public class EdcConnectorClientExtension implements ServiceExtension {
     @Setting(description = "Remote control plane full management API URL", key = MGMT_API + "url")
     private String managementUri;
 
-    @Setting(description = "Remote control-plane protocol", key = CONTROL_PLANE + "apiKey", required = false)
+    @Setting(description = "Remote control-plane API Key", key = CONTROL_PLANE + "apiKey", required = false)
     private String apiKey;
 
     @Inject
@@ -90,7 +90,6 @@ public class EdcConnectorClientExtension implements ServiceExtension {
         registerTransformers();
 
         codec = new Codec(typeTransformerRegistry, typeManager, jsonLd);
-        context.getMonitor().warning("Initialized");
     }
 
     @Provider
@@ -137,7 +136,7 @@ public class EdcConnectorClientExtension implements ServiceExtension {
         typeTransformerRegistry.register(new JsonObjectFromContractDefinitionTransformer(jsonFactory, typeManager, JSON_LD));
         typeTransformerRegistry.register(new JsonObjectFromQuerySpecTransformer(jsonFactory));
         typeTransformerRegistry.register(new JsonObjectFromAssetTransformer(jsonFactory, typeManager, JSON_LD));
-        typeTransformerRegistry.register(new JsonObjectFromDataAddressTransformer(jsonFactory));
+        typeTransformerRegistry.register(new JsonObjectFromDataAddressTransformer(jsonFactory, typeManager, JSON_LD));
 
         typeTransformerRegistry.register(new JsonObjectToActionTransformer());
         typeTransformerRegistry.register(new JsonObjectToCriterionTransformer());

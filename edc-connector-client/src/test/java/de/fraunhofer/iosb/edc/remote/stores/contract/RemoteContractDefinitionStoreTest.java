@@ -3,6 +3,7 @@ package de.fraunhofer.iosb.edc.remote.stores.contract;
 import de.fraunhofer.iosb.edc.remote.stores.AbstractControlPlaneConnectionHandlerTest;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceFailure;
 import org.junit.jupiter.api.Test;
 
@@ -29,7 +30,8 @@ class RemoteContractDefinitionStoreTest extends AbstractControlPlaneConnectionHa
         mockResponseForPost("/contractdefinitions/request");
 
         List<ContractDefinition> contractDefinitions = List.of(getContractDefinition(), getContractDefinition());
-        when(mockCodec.deserializeList("test-return-body", ContractDefinition.class)).thenReturn(contractDefinitions);
+        when(mockCodec.deserializeList("test-return-body", ContractDefinition.class))
+                .thenReturn(Result.success(contractDefinitions));
 
         var response = testSubject.findAll(querySpec);
 
@@ -47,7 +49,7 @@ class RemoteContractDefinitionStoreTest extends AbstractControlPlaneConnectionHa
 
         List<ContractDefinition> contractDefinitions = List.of();
         when(mockCodec.deserializeList("test-return-body", ContractDefinition.class))
-                .thenReturn(contractDefinitions);
+                .thenReturn(Result.success(contractDefinitions));
 
         var response = testSubject.findAll(querySpec);
 
@@ -61,7 +63,7 @@ class RemoteContractDefinitionStoreTest extends AbstractControlPlaneConnectionHa
 
         var contractDefinition = getContractDefinition();
         when(mockCodec.deserialize("test-return-body", ContractDefinition.class))
-                .thenReturn(contractDefinition);
+                .thenReturn(Result.success(contractDefinition));
 
         mockResponseForGet(String.format("/contractdefinitions/%s", id));
 

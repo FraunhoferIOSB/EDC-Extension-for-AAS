@@ -91,6 +91,10 @@ public abstract class ControlPlaneConnectionHandler<T extends Entity> {
                     }
                 });
 
+        if (responseJsonOrNull == null) {
+            return null;
+        }
+
         Result<T> deserialized = codec.deserialize(responseJsonOrNull, clazz);
 
         if (deserialized.failed()) {

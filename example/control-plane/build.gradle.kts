@@ -19,13 +19,13 @@ val edcVersion: String by project
 dependencies {
     // ---- CONTROL PLANE ----
     runtimeOnly("$group:controlplane-base-bom:$edcVersion")
-    implementation("${group}:management-api-configuration:${edcVersion}") // auth for mgmt api
+    implementation("$group:management-api-configuration:$edcVersion") // auth for mgmt api
     implementation("$group:configuration-filesystem:$edcVersion")  // read config from files
-    implementation("${group}:auth-tokenbased:${edcVersion}")
-    implementation ("${group}:vault-hashicorp:${edcVersion}")
-    implementation ("${group}:iam-mock:${edcVersion}")
-    implementation("${group}:api-core:${edcVersion}") // ApiAuthenticationRegistry
-    implementation("${group}:auth-configuration:${edcVersion}")
+    implementation("$group:auth-tokenbased:$edcVersion")
+    implementation("$group:vault-hashicorp:$edcVersion")
+    implementation("$group:iam-mock:$edcVersion")
+    implementation("$group:api-core:$edcVersion") // ApiuthenticationRegistry
+    implementation("$group:auth-configuration:$edcVersion}")
 }
 
 application {

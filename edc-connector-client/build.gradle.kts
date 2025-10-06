@@ -25,17 +25,17 @@ dependencies {
     implementation("$group:transform-lib:$edcVersion")
     implementation("$group:control-plane-transform:$edcVersion")
     implementation("$group:json-ld:$edcVersion")
-    implementation("${group}:runtime-core:${edcVersion}")
-    implementation("${group}:connector-core:${edcVersion}")
+    implementation("$group:runtime-core:$edcVersion")
+    implementation("$group:connector-core:$edcVersion")
 
-    testImplementation("${group}:http-lib:${edcVersion}") // EdcHttpClientImpl
-    testImplementation("${group}:junit:${edcVersion}")
-    testImplementation("${group}:json-lib:${edcVersion}")
-    testImplementation("${group}:json-ld-lib:${edcVersion}")
-    testImplementation("org.mockito:mockito-core:${mockitoVersion}")
+    testImplementation("$group:http-lib:$edcVersion") // EdcHttpClientImpl
+    testImplementation("$group:junit:$edcVersion")
+    testImplementation("$group:json-lib:$edcVersion")
+    testImplementation("$group:json-ld-lib:$edcVersion")
+    testImplementation("org.mockito:mockito-core:$mockitoVersion")
 
     testImplementation("com.github.tomakehurst:wiremock:3.0.1")
-    testImplementation("org.junit.jupiter:junit-jupiter:${jupiterVersion}")
+    testImplementation("org.junit.jupiter:junit-jupiter:$jupiterVersion")
     testImplementation("org.junit.platform:junit-platform-launcher")
 }
 

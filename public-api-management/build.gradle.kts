@@ -18,10 +18,10 @@ java {
 
 dependencies {
     // See this project's README.MD for explanations
-    implementation("${group}:auth-spi:${edcVersion}")
-    implementation ("${group}:jetty-core:${edcVersion}") // WebService
-    implementation("${group}:jersey-core:${edcVersion}") // WebService
-    implementation ("${group}:api-core:${edcVersion}") // ApiAuthenticationRegistry
+    implementation("$group:auth-spi:$edcVersion")
+    implementation("$group:jetty-core:$edcVersion") // WebService
+    implementation("$group:jersey-core:$edcVersion") // WebService
+    implementation("$group:api-core:$edcVersion") // ApiAuthenticationRegistry
 
     testImplementation("$group:junit:$edcVersion")
     testImplementation("org.glassfish.jersey.core:jersey-common:$jerseyVersion")

@@ -30,9 +30,6 @@ import java.util.stream.Stream;
 
 public class RemoteContractDefinitionStore extends ControlPlaneConnectionHandler<ContractDefinition> implements ContractDefinitionStore {
 
-    protected String NOT_FOUND_TEMPLATE = ContractDefinitionStore.CONTRACT_DEFINITION_NOT_FOUND;
-    protected String EXISTS_TEMPLATE = ContractDefinitionStore.CONTRACT_DEFINITION_EXISTS;
-
     public RemoteContractDefinitionStore(Monitor monitor, EdcHttpClient httpClient, Codec codec, ControlPlaneConnection connection) {
         super(monitor, httpClient, codec, connection);
     }
@@ -78,6 +75,17 @@ public class RemoteContractDefinitionStore extends ControlPlaneConnectionHandler
     @Override
     public StoreResult<ContractDefinition> deleteById(String contractDefinitionId) {
         return deleteById(contractDefinitionId, ContractDefinition.class);
+    }
+
+    @Override
+    protected String getExistsTemplate() {
+        return CONTRACT_DEFINITION_EXISTS;
+    }
+
+
+    @Override
+    protected String getNotFoundTemplate() {
+        return CONTRACT_DEFINITION_NOT_FOUND;
     }
 
 

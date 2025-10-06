@@ -15,6 +15,9 @@
  */
 package de.fraunhofer.iosb.edc.remote.stores;
 
+import de.fraunhofer.iosb.aas.lib.auth.AuthenticationMethod;
+import de.fraunhofer.iosb.aas.lib.auth.impl.ApiKey;
+import de.fraunhofer.iosb.aas.lib.auth.impl.NoAuth;
 import de.fraunhofer.iosb.edc.remote.ControlPlaneConnection;
 import de.fraunhofer.iosb.edc.remote.ControlPlaneConnectionException;
 import de.fraunhofer.iosb.edc.remote.HttpMethod;
@@ -47,9 +50,6 @@ public abstract class ControlPlaneConnectionHandler<T extends Entity> {
     protected final EdcHttpClient httpClient;
     protected final Monitor monitor;
     protected final Codec codec;
-
-    protected String NOT_FOUND_TEMPLATE = "Not found: Entity with ID %s";
-    protected String EXISTS_TEMPLATE = "Entity with ID %s already exists";
 
     public ControlPlaneConnectionHandler(Monitor monitor, EdcHttpClient httpClient, Codec codec, ControlPlaneConnection connection) {
         this.monitor = monitor;
@@ -110,7 +110,7 @@ public abstract class ControlPlaneConnectionHandler<T extends Entity> {
 
         if (response.failed()) {
             if (response.reason() == ServiceFailure.Reason.CONFLICT) {
-                return StoreResult.alreadyExists(String.format(this.EXISTS_TEMPLATE, entity.getId()));
+                return StoreResult.alreadyExists(String.format(getExistsTemplate(), entity.getId()));
             }
             throw new ControlPlaneConnectionException(
                     String.format("%s could not be created. %s: %s",
@@ -125,7 +125,7 @@ public abstract class ControlPlaneConnectionHandler<T extends Entity> {
         var entity = this.findById(entityId, clazz);
 
         if (entity == null) {
-            return StoreResult.notFound(String.format(this.NOT_FOUND_TEMPLATE, entityId));
+            return StoreResult.notFound(String.format(getNotFoundTemplate(), entityId));
         }
 
         // Send request
@@ -138,7 +138,6 @@ public abstract class ControlPlaneConnectionHandler<T extends Entity> {
             if (Objects.requireNonNull(response.getFailure().getReason()) == ServiceFailure.Reason.NOT_FOUND) {
                 return StoreResult.notFound(response.getFailureDetail());
             } else if (Objects.requireNonNull(response.getFailure().getReason()) == ServiceFailure.Reason.CONFLICT) {
-                // InMemoryAssetIndex deletes assets regardless, this case is not intended...
                 return StoreResult.alreadyLeased(response.getFailureDetail());
             }
             throw new ControlPlaneConnectionException(String.format("%s with ID %s could not be deleted. %s: %s",
@@ -160,7 +159,7 @@ public abstract class ControlPlaneConnectionHandler<T extends Entity> {
                     response.getFailure().getFailureDetail()));
 
             if (Objects.requireNonNull(response.getFailure().getReason()) == ServiceFailure.Reason.NOT_FOUND) {
-                return StoreResult.notFound(String.format(this.NOT_FOUND_TEMPLATE, entity.getId()));
+                return StoreResult.notFound(String.format(getNotFoundTemplate(), entity.getId()));
             }
 
             throw new ControlPlaneConnectionException(String.format("%s with could not be updated. %s: %s",
@@ -171,28 +170,32 @@ public abstract class ControlPlaneConnectionHandler<T extends Entity> {
 
     }
 
+    protected abstract String getExistsTemplate();
+
+    protected abstract String getNotFoundTemplate();
+
     protected ServiceResult<String> executeRequest(Request request) {
         try (Response response = this.httpClient.execute(request)) {
 
             ResponseBody body = response.body();
             if (!response.isSuccessful()) {
-                // User errors: 404, 409, 403
+                // User errors: 404, 409, 403, 400
 
-                String responseMessage = body != null ? body.string() : NO_MESSAGE;
+                String responseMessage = body.string();
 
                 if (responseMessage.isBlank()) {
                     responseMessage = NO_MESSAGE;
                 }
 
                 return switch (response.code()) {
+                    case 400 -> ServiceResult.badRequest(responseMessage);
+                    case 403 -> ServiceResult.unauthorized(responseMessage);
                     case 404 -> ServiceResult.notFound(responseMessage);
                     case 409 -> ServiceResult.conflict(responseMessage);
-                    case 403 -> ServiceResult.unauthorized(responseMessage);
-                    case 400 -> ServiceResult.badRequest(responseMessage);
                     default -> throw new EdcException(String.format(UNEXPECTED_ERROR, responseMessage));
                 };
             }
-            return ServiceResult.success(body != null ? body.string() : NO_MESSAGE);
+            return ServiceResult.success(body.string());
 
         } catch (IOException controlPlaneConnectionException) {
             return ServiceResult.unexpected(controlPlaneConnectionException.getMessage());
@@ -204,7 +207,7 @@ public abstract class ControlPlaneConnectionHandler<T extends Entity> {
         protected Monitor monitor;
         protected String managementUri;
         protected String resourceName;
-        private String apiKey;
+        private AuthenticationMethod authenticationMethod;
         private Codec codec;
 
         protected abstract B self();
@@ -232,7 +235,7 @@ public abstract class ControlPlaneConnectionHandler<T extends Entity> {
         }
 
         public B apiKey(String apiKey) {
-            this.apiKey = apiKey;
+            this.authenticationMethod = new ApiKey("x-api-key", apiKey);
             return self();
         }
 
@@ -241,13 +244,9 @@ public abstract class ControlPlaneConnectionHandler<T extends Entity> {
             Objects.requireNonNull(monitor);
             Objects.requireNonNull(codec);
             Objects.requireNonNull(managementUri);
+            authenticationMethod = Objects.requireNonNullElse(authenticationMethod, new NoAuth());
 
-            ControlPlaneConnection connection;
-            if (apiKey != null) {
-                connection = new ControlPlaneConnection(URI.create(managementUri), resourceName, apiKey);
-            } else {
-                connection = new ControlPlaneConnection(URI.create(managementUri), resourceName);
-            }
+            ControlPlaneConnection connection = new ControlPlaneConnection(URI.create(managementUri), resourceName, authenticationMethod);
 
             return create(monitor, httpClient, codec, connection);
         }

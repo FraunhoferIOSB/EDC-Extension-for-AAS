@@ -29,9 +29,6 @@ import java.util.stream.Stream;
 
 public class RemotePolicyDefinitionStore extends ControlPlaneConnectionHandler<PolicyDefinition> implements PolicyDefinitionStore {
 
-    protected String NOT_FOUND_TEMPLATE = PolicyDefinitionStore.POLICY_NOT_FOUND;
-    protected String EXISTS_TEMPLATE = PolicyDefinitionStore.POLICY_ALREADY_EXISTS;
-
     private RemotePolicyDefinitionStore(Monitor monitor, EdcHttpClient httpClient, Codec codec, ControlPlaneConnection connection) {
         super(monitor, httpClient, codec, connection);
     }
@@ -57,8 +54,8 @@ public class RemotePolicyDefinitionStore extends ControlPlaneConnectionHandler<P
         // Since you cannot create StoreResult<T> from StoreResult<U>:
         String failureDetail = createResult.getFailureDetail();
         return switch (createResult.reason()) {
-            case NOT_FOUND -> StoreResult.notFound(String.format(NOT_FOUND_TEMPLATE, policyDefinition.getId()));
-            case ALREADY_EXISTS -> StoreResult.alreadyExists(String.format(POLICY_ALREADY_EXISTS, policyDefinition.getId()));
+            case NOT_FOUND -> StoreResult.notFound(createResult.getFailureDetail());
+            case ALREADY_EXISTS -> StoreResult.alreadyExists(createResult.getFailureDetail());
             case DUPLICATE_KEYS -> StoreResult.duplicateKeys(failureDetail);
             case ALREADY_LEASED -> StoreResult.alreadyLeased(failureDetail);
             default -> StoreResult.generalError(failureDetail);
@@ -74,6 +71,19 @@ public class RemotePolicyDefinitionStore extends ControlPlaneConnectionHandler<P
     public StoreResult<PolicyDefinition> delete(String policyDefinitionId) {
         return deleteById(policyDefinitionId, PolicyDefinition.class);
     }
+
+
+    @Override
+    protected String getExistsTemplate() {
+        return POLICY_ALREADY_EXISTS;
+    }
+
+
+    @Override
+    protected String getNotFoundTemplate() {
+        return POLICY_NOT_FOUND;
+    }
+
 
     public static class Builder extends ControlPlaneConnectionHandler.Builder<RemotePolicyDefinitionStore, Builder> {
 

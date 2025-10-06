@@ -17,6 +17,8 @@ java {
 }
 
 dependencies {
+    implementation(project(":aas-lib")) // AuthenticationMethod
+
     implementation("$group:asset-spi:$edcVersion")
     implementation("$group:http-spi:$edcVersion")
     implementation("$group:policy-spi:$edcVersion")

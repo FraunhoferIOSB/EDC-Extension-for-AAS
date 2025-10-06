@@ -36,9 +36,6 @@ import java.util.stream.Stream;
  */
 public class RemoteAssetIndex extends ControlPlaneConnectionHandler<Asset> implements AssetIndex {
 
-    protected String NOT_FOUND_TEMPLATE = AssetIndex.ASSET_NOT_FOUND_TEMPLATE;
-    protected String EXISTS_TEMPLATE = AssetIndex.ASSET_EXISTS_TEMPLATE;
-
     private RemoteAssetIndex(Monitor monitor, EdcHttpClient httpClient, Codec codec, ControlPlaneConnection connection) {
         super(monitor, httpClient, codec, connection);
     }
@@ -61,14 +58,9 @@ public class RemoteAssetIndex extends ControlPlaneConnectionHandler<Asset> imple
      */
     @Override
     public StoreResult<Void> create(Asset asset) {
-        var result = createEntity(asset);
-
-        // This is the only case where Void is returned.
-        if (result.succeeded()) {
-            return StoreResult.success();
-        }
-        return StoreResult.alreadyExists(result.getFailureDetail());
+        return createEntity(asset);
     }
+
 
     @Override
     public StoreResult<Asset> deleteById(String assetId) {
@@ -91,6 +83,17 @@ public class RemoteAssetIndex extends ControlPlaneConnectionHandler<Asset> imple
         return Optional.ofNullable(asset)
                 .map(Asset::getDataAddress)
                 .orElse(null);
+    }
+
+    @Override
+    protected String getExistsTemplate() {
+        return ASSET_EXISTS_TEMPLATE;
+    }
+
+
+    @Override
+    protected String getNotFoundTemplate() {
+        return ASSET_NOT_FOUND_TEMPLATE;
     }
 
     public static class Builder extends ControlPlaneConnectionHandler.Builder<RemoteAssetIndex, Builder> {

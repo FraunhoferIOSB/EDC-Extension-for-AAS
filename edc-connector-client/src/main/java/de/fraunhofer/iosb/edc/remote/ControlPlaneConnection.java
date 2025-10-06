@@ -15,12 +15,15 @@
  */
 package de.fraunhofer.iosb.edc.remote;
 
+import de.fraunhofer.iosb.aas.lib.auth.AuthenticationMethod;
+import okhttp3.Headers;
 import okhttp3.HttpUrl;
 import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 
 import java.net.URI;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.UnaryOperator;
 
@@ -41,10 +44,11 @@ public class ControlPlaneConnection {
     }
 
 
-    public ControlPlaneConnection(URI connectionUri, String resourceName, String apiKey) {
+    public ControlPlaneConnection(URI connectionUri, String resourceName, AuthenticationMethod authenticationMethod) {
         this.connectionUri = Objects.requireNonNull(HttpUrl.parse(connectionUri.toString()));
         this.resourceName = resourceName;
-        this.authSupplier = request -> request.header("x-api-key", apiKey);
+
+        this.authSupplier = request -> request.headers(Headers.of(Map.ofEntries(authenticationMethod.getHeader())));
     }
 
     /**

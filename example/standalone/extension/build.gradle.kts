@@ -19,12 +19,14 @@ val edcVersion: String by project
 dependencies {
     implementation("$group:boot:$edcVersion") // Runtime
     implementation("$group:configuration-filesystem:$edcVersion")
-    // Identity and access management MOCK -> only for testing
-    implementation("$group:iam-mock:$edcVersion")
 
     implementation(project(":edc-extension4aas"))
     // This is needed to communicate w/ the control-plane
     implementation(project(":edc-connector-client"))
+
+    runtimeOnly("$group:auth-tokenbased:$edcVersion") // tokenbased auth
+    runtimeOnly("${group}:auth-configuration:${edcVersion}") // auth config
+    implementation("$group:vault-hashicorp:$edcVersion") // vault integration
 }
 
 application {
@@ -35,7 +37,7 @@ tasks.shadowJar {
     isZip64 = true
     exclude("**/pom.properties", "**/pom.xm")
     mergeServiceFiles()
-    archiveFileName.set("dataspace-connector.jar")
+    archiveFileName.set("aas-extension-standalone.jar")
     from(project.configurations.runtimeClasspath.get().map { if (it.isDirectory) it else project.zipTree(it) })
 }
 

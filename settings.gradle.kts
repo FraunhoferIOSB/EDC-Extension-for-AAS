@@ -11,5 +11,5 @@ include("example")
 // tractus-x example
 include("example:tractus-x:control-plane")
 include("example:tractus-x:data-plane")
-include("example:standalone")
-include("example:control-plane")
+include("example:standalone:extension")
+include("example:standalone:control-plane")

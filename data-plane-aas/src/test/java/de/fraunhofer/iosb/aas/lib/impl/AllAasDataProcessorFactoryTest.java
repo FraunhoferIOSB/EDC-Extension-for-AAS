@@ -41,7 +41,7 @@ import static org.mockito.Mockito.mock;
 class AllAasDataProcessorFactoryTest {
 
     @Test
-    void testSendForeign() throws IOException {
+    void testGetFromAasForeign() throws IOException {
         var testSubject = new AllAasDataProcessorFactory(new DefaultSelfSignedCertificateRetriever(),
                 mock(OkHttpClient.class), RetryPolicy.ofDefaults(), new ConsoleMonitor());
         var port = getFreePort(443);
@@ -52,7 +52,7 @@ class AllAasDataProcessorFactoryTest {
             // If this fails, certificate could not be retrieved from foreignService
             var processor = testSubject.processorFor(baseUrl);
 
-            try (var response = processor.getContent().send(getDataAddress(baseUrl))) {
+            try (var response = processor.getContent().getFromAas(getDataAddress(baseUrl))) {
                 // This means the HTTP request went through --> no certificate problems etc.
                 assertNotEquals(500, response.code());
             }

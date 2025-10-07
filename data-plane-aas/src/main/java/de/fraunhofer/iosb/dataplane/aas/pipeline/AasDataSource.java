@@ -79,7 +79,7 @@ public class AasDataSource implements DataSource {
         try {
             // NB: Do not close the response as the body input stream needs to be read after this method returns. The
             // response closes the body stream.
-            var response = aasDataProcessorResult.getContent().send(aasDataAddress);
+            var response = aasDataProcessorResult.getContent().getFromAas(aasDataAddress);
 
             if (response.isSuccessful()) {
                 var body = response.body();
@@ -102,8 +102,8 @@ public class AasDataSource implements DataSource {
                         monitor.severe("Failed to get data from source: %s".formatted(response.code()));
                         return StreamResult.notFound();
                     } else {
-                        return StreamResult.error(format("Received code transferring AAS data: %s - %s.",
-                                response.code(), response.message()));
+                        return StreamResult.error(format("Received code transferring AAS data: %s - %s. More Information: %s",
+                                response.code(), response.message(), response.body().string()));
                     }
                 } finally {
                     try {

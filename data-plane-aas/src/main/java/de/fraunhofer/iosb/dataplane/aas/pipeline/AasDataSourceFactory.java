@@ -21,11 +21,14 @@ import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSourceFactory;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.jetbrains.annotations.NotNull;
 
 import static de.fraunhofer.iosb.aas.lib.spi.AasDataAddress.AAS_DATA_TYPE;
+import static de.fraunhofer.iosb.aas.lib.spi.AasDataAddress.PROXY_BODY;
+import static de.fraunhofer.iosb.aas.lib.spi.AasDataAddress.PROXY_METHOD;
+import static de.fraunhofer.iosb.aas.lib.spi.AasDataAddress.PROXY_OPERATION;
+import static de.fraunhofer.iosb.aas.lib.spi.AasDataAddress.PROXY_PATH;
 
 
 /**
@@ -48,26 +51,24 @@ public class AasDataSourceFactory implements DataSourceFactory {
 
     @Override
     public DataSource createSource(DataFlowStartMessage request) {
-        var dataAddress = AasDataAddress.Builder.newInstance()
-                .copyFrom(request.getSourceDataAddress());
-        var destination = request.getDestinationDataAddress();
-        if (isOperationRequest(destination)) {
-            // TODO Currently injecting source DA with destination DA properties
-            // https://faaast-service.readthedocs.io/en/latest/interfaces/endpoint.html#http
-            dataAddress.method("POST")
-                    .operation(AasDataAddress.Builder.newInstance().copyFrom(destination).build().getOperation());
-        }
-
-        return AasDataSource.Builder.newInstance()
+        var dataSource = AasDataSource.Builder.newInstance()
                 .aasDataProcessorFactory(aasDataProcessorFactory)
                 .monitor(monitor)
-                .requestId(request.getId())
+                .requestId(request.getId());
+
+        var destination = request.getDestinationDataAddress();
+
+        // https://faaast-service.readthedocs.io/en/latest/interfaces/endpoint.html#http
+        var dataAddress = AasDataAddress.Builder.newInstance()
+                .copyFrom(request.getSourceDataAddress())
+                .proxyOperation(destination.getStringProperty(PROXY_OPERATION))
+                .proxyMethod(destination.getStringProperty(PROXY_METHOD))
+                .proxyBody(destination.getStringProperty(PROXY_BODY))
+                .proxyPath(destination.getStringProperty(PROXY_PATH));
+
+        return dataSource
                 .aasDataAddress(dataAddress.build())
                 .build();
-    }
-
-    private boolean isOperationRequest(DataAddress address) {
-        return address.hasProperty(AasDataAddress.OPERATION_NAME);
     }
 
     @Override

@@ -42,7 +42,7 @@ class AasDataAddressTest {
 
         var address = addressBuilder.build();
 
-        assertEquals("http://localhost:8080", address.getAccessUrl().getContent().toString());
+        assertEquals("http://localhost:8080", address.getBaseUrl());
 
         assertEquals("/path/to/resource", address.getPath());
     }
@@ -56,7 +56,7 @@ class AasDataAddressTest {
         addressBuilder.path("/path/to/resource");
 
         var address = addressBuilder.build();
-        assertEquals("http://aas-provider:8081", address.getAccessUrl().getContent().toString());
+        assertEquals("http://aas-provider:8081", address.getBaseUrl());
 
         assertEquals("/path/to/resource", address.getPath());
     }

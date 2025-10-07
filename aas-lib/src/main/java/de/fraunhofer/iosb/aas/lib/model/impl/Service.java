@@ -82,14 +82,14 @@ public final class Service extends AasProvider {
     @Override
     public String toString() {
         return "Service[" +
-                "accessUrl=" + getAccessUrl() + ", " +
+                "accessUrl=" + baseUrl() + ", " +
                 "environment=" + environment + ']';
     }
 
     public Builder toBuilder() {
         return new Builder()
                 .aasAccessUrl(this.url)
-                .withAuthenticationMethod(this.authentication)
+                .withAuth(this.auth)
                 .withPolicyBindings(this.policyBindings)
                 .environment(this.environment);
     }

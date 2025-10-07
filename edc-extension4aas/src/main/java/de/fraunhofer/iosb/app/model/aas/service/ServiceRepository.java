@@ -50,7 +50,7 @@ public class ServiceRepository extends AasProviderRepository<Service> implements
     public @Nullable Asset getEnvironment(URL serviceUrl) {
         return getAll().stream()
                 .filter(service ->
-                        service.getAccessUrl().toString()
+                        service.baseUrl().toString()
                                 .equals(serviceUrl.toString()))
                 .findAny()
                 .orElseThrow(() ->

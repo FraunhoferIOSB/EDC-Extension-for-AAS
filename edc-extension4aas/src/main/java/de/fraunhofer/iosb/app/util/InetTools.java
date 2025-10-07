@@ -87,15 +87,15 @@ public class InetTools {
 
 
     public static boolean pingHost(AasProvider provider) {
-        var host = provider.getAccessUrl().getHost();
-        var port = provider.getAccessUrl().getPort();
+        var host = provider.baseUrl().getHost();
+        var port = provider.baseUrl().getPort();
         // If no port available, port should be 443 or 80
         if (port == -1) {
             // Iff http:// go with port 80
             port = host.startsWith("http:") ? 80 : 443;
         }
 
-        return pingHost(host, port, 10) || checkUrlAvailability(provider.getAccessUrl());
+        return pingHost(host, port, 10) || checkUrlAvailability(provider.baseUrl());
     }
 
 

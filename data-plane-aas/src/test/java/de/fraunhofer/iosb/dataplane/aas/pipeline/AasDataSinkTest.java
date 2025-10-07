@@ -78,7 +78,7 @@ class AasDataSinkTest {
         when(mockDataSource.openPartStream()).thenReturn(StreamResult.success(Stream.of(mockAasPart)));
 
         // Destination address mock
-        when(mockAasDataAddress.getAccessUrl()).thenReturn(Result.success(destinationUrl));
+        when(mockAasDataAddress.getBaseUrl()).thenReturn(destinationUrl.toString());
 
         AasDataProcessor mockAasDataProcessor = mock(AasDataProcessor.class);
         when(mockAasDataprocessorFactory.processorFor(any())).thenReturn(Result.success(mockAasDataProcessor));

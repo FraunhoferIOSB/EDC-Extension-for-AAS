@@ -44,7 +44,7 @@ public class RegistryRepository extends AasProviderRepository<Registry> {
      * @return The environments of this registry or null
      */
     public @Nullable Collection<Service> getEnvironments(@Nonnull URL registryUrl) {
-        return getEnvironments(registry -> registry.getAccessUrl().toString().equals(registryUrl.toString()));
+        return getEnvironments(registry -> registry.baseUrl().toString().equals(registryUrl.toString()));
     }
 
     @Override

@@ -80,7 +80,7 @@ public abstract class AasAgent<T extends AasProvider, U> extends PipelineStep<T,
     }
 
     private Result<Response> executeRequest(AasProvider provider, String path) {
-        var accessUrl = provider.getAccessUrl();
+        var accessUrl = provider.baseUrl();
 
         var httpClient = getHttpClient(accessUrl);
 

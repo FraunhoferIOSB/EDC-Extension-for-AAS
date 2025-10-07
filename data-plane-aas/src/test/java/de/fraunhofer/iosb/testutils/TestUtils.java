@@ -39,8 +39,7 @@ public class TestUtils {
         var port = getFreePort();
 
         try (var ignored = startFaaastService(port)) {
-            var url = new URL("https://localhost:" + port);
-            var certResult = new DefaultSelfSignedCertificateRetriever().getSelfSignedCertificate(url);
+            var certResult = new DefaultSelfSignedCertificateRetriever().getSelfSignedCertificate("https://localhost:" + port);
             return certResult.getContent();
         } catch (Exception e) {
             throw new RuntimeException(e);

@@ -89,7 +89,7 @@ class CodecTest {
         var serializedList = String.format("[%s,%s]", serialized, serialized);
 
         var deserializedList = testSubject.deserializeList(serializedList, Asset.class);
-        deserializedList.forEach(asset -> compareAssets(toMatch, asset));
+        deserializedList.getContent().forEach(asset -> compareAssets(toMatch, asset));
     }
 
     @Test
@@ -99,7 +99,7 @@ class CodecTest {
         var deserialized = testSubject.deserialize(serialized, Asset.class);
 
         var toMatch = getAsset();
-        compareAssets(toMatch, deserialized);
+        compareAssets(toMatch, deserialized.getContent());
     }
 
     private void compareAssets(Asset assetA, Asset assetB) {

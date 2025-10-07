@@ -98,7 +98,7 @@ public class AssetRegistrar extends PipelineStep<ChangeSet<Asset, String>, Chang
                 .map(AbstractResult::getFailureDetail)
                 .toList();
 
-        if (!(addFailureMessages.isEmpty()  && removeFailureMessages.isEmpty())) {
+        if (!(addFailureMessages.isEmpty() && removeFailureMessages.isEmpty())) {
             return PipelineResult.recoverableFailure(changeSetIds,
                     PipelineFailure.warning(Stream.of(addFailureMessages, removeFailureMessages)
                             .flatMap(Collection::stream)

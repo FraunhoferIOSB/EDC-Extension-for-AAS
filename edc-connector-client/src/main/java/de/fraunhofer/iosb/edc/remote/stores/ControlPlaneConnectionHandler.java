@@ -16,8 +16,6 @@
 package de.fraunhofer.iosb.edc.remote.stores;
 
 import de.fraunhofer.iosb.aas.lib.auth.AuthenticationMethod;
-import de.fraunhofer.iosb.aas.lib.auth.impl.NoAuth;
-import de.fraunhofer.iosb.aas.lib.auth.impl.VaultAuth;
 import de.fraunhofer.iosb.edc.remote.ControlPlaneConnection;
 import de.fraunhofer.iosb.edc.remote.ControlPlaneConnectionException;
 import de.fraunhofer.iosb.edc.remote.HttpMethod;
@@ -34,7 +32,6 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.result.StoreResult;
-import org.eclipse.edc.spi.security.Vault;
 
 import java.io.IOException;
 import java.net.URI;

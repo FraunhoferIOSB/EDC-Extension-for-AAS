@@ -108,7 +108,6 @@ public class Codec {
 
         var compacted = jsonLd.compact(jsonRepresentation).orElseThrow(failure -> new EdcException(String.format(COMPACTION_ERROR,
                 toSerialize.getClass().getSimpleName(), failure.getFailureDetail())));
-
         return compacted.toString();
     }
 }

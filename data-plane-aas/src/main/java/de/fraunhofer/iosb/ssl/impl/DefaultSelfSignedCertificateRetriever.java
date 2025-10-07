@@ -19,6 +19,7 @@ import de.fraunhofer.iosb.ssl.SelfSignedCertificateRetriever;
 import org.eclipse.edc.spi.result.Result;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -55,9 +56,14 @@ public class DefaultSelfSignedCertificateRetriever implements SelfSignedCertific
         }
     } };
 
-    public static boolean isTrusted(URL url) {
+    public static boolean isTrusted(String urlString) {
         HttpsURLConnection.setDefaultSSLSocketFactory((SSLSocketFactory) SSLSocketFactory.getDefault());
-
+        URL url;
+        try {
+            url = new URL(urlString);
+        } catch (MalformedURLException malformedURLException) {
+            return false;
+        }
         try {
             var conn = (HttpsURLConnection) url.openConnection();
             conn.connect();
@@ -69,8 +75,14 @@ public class DefaultSelfSignedCertificateRetriever implements SelfSignedCertific
         }
     }
 
-    public Result<Certificate[]> getSelfSignedCertificate(URL url) {
+    public Result<Certificate[]> getSelfSignedCertificate(String urlString) {
         SSLContext sslContext;
+        URL url;
+        try {
+            url = new URL(urlString);
+        } catch (MalformedURLException malformedURLException) {
+            return Result.failure(List.of(malformedURLException.getMessage()));
+        }
 
         try {
             sslContext = SSLContext.getInstance("TLS");

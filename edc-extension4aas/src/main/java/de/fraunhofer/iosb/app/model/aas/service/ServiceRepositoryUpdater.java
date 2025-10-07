@@ -48,10 +48,10 @@ public class ServiceRepositoryUpdater extends PipelineStep<Service, Pair<Asset, 
     public PipelineResult<Pair<Asset, Asset>> apply(Service service) {
         Asset currentEnvironment;
         try {
-            currentEnvironment = services.getEnvironment(service.getAccessUrl());
+            currentEnvironment = services.getEnvironment(service.baseUrl());
         } catch (IllegalArgumentException noServiceException) {
             return PipelineResult.failure(
-                    PipelineFailure.warning(List.of("Service not found", service.getAccessUrl().toString())));
+                    PipelineFailure.warning(List.of("Service not found", service.baseUrl().toString())));
         }
 
         if (currentEnvironment != null) {

@@ -72,7 +72,7 @@ class AasDataSourceFactoryTest {
                         .message("")
                         .body(ResponseBody.create("{\"test\": \"ok\"}".getBytes(StandardCharsets.UTF_8), okhttp3.MediaType.get("application/json")))
                         .build());
-        when(mockedDataProcessorFactory.processorFor(accessUrl)).thenReturn(Result.success(mockedProcessor));
+        when(mockedDataProcessorFactory.processorFor(accessUrl.toString())).thenReturn(Result.success(mockedProcessor));
 
         when(mockedDataFlowStartMessage.getSourceDataAddress())
                 .thenReturn(AasDataAddress.Builder.newInstance()
@@ -95,7 +95,7 @@ class AasDataSourceFactoryTest {
             source.openPartStream();
         }
 
-        verify(mockedDataProcessorFactory, times(1)).processorFor(accessUrl);
+        verify(mockedDataProcessorFactory, times(1)).processorFor(accessUrl.toString());
 
         // Here is the actual tested feat
         verify(mockedProcessor).getFromAas(argThat(aasDataAddress -> aasDataAddress.hasProperty(PROXY_OPERATION)));

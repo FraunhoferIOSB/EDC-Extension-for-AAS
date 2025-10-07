@@ -21,16 +21,17 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import de.fraunhofer.iosb.aas.lib.model.AasProvider;
+import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.DeserializationException;
+import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.SerializationException;
+import org.eclipse.digitaltwin.aas4j.v3.dataformat.json.JsonDeserializer;
+import org.eclipse.digitaltwin.aas4j.v3.dataformat.json.JsonSerializer;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultReference;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
 import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 
-import java.net.URL;
 import java.util.Base64;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -38,8 +39,10 @@ import java.util.Optional;
 import static de.fraunhofer.iosb.aas.lib.model.impl.Service.CONCEPT_DESCRIPTIONS_PATH;
 import static de.fraunhofer.iosb.aas.lib.model.impl.Service.SHELLS_PATH;
 import static de.fraunhofer.iosb.aas.lib.model.impl.Service.SUBMODELS_PATH;
+import static de.fraunhofer.iosb.aas.lib.type.AasConstants.AAS_V30_NAMESPACE;
 import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toMap;
+import static org.eclipse.edc.dataaddress.httpdata.spi.HttpDataAddressSchema.BASE_URL;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 /**
@@ -51,16 +54,19 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 public class AasDataAddress extends DataAddress {
 
     public static final String AAS_DATA_TYPE = "AasData";
-    public static final String PROXY_OPERATION = "proxyOperation";
-    public static final String PROXY_METHOD = "proxyMethod";
-    public static final String PROXY_PATH = "proxyPath";
-    public static final String PROXY_BODY = "proxyBody";
+    public static final String PROXY_OPERATION = AAS_V30_NAMESPACE + "proxyOperation";
+    public static final String PROXY_METHOD = AAS_V30_NAMESPACE + "proxyMethod";
+    public static final String PROXY_PATH = AAS_V30_NAMESPACE + "proxyPath";
+    public static final String PROXY_BODY = AAS_V30_NAMESPACE + "proxyBody";
     // See aas4j operation
-    private static final String ADDITIONAL_HEADER = "header:";
-    private static final String METHOD = "method";
-    private static final String PROVIDER = "AAS-Provider";
-    private static final String REFERENCE_CHAIN = "referenceChain";
-    private static final String PATH = "PATH";
+    private static final String ADDITIONAL_HEADER = "aas:header:";
+    private static final String METHOD = EDC_NAMESPACE + "method";
+    private static final String PROVIDER = AAS_V30_NAMESPACE + "provider";
+    private static final String REFERENCE_CHAIN = AAS_V30_NAMESPACE + "referenceChain";
+    private static final String PATH = AAS_V30_NAMESPACE + "path";
+
+    private static final JsonSerializer jsonSerializer = new JsonSerializer();
+    private static final JsonDeserializer jsonDeserializer = new JsonDeserializer();
 
     private AasDataAddress() {
         super();
@@ -68,11 +74,8 @@ public class AasDataAddress extends DataAddress {
     }
 
     @JsonIgnore
-    public Result<URL> getAccessUrl() {
-        if (hasProvider()) {
-            return Result.success(getProvider().getAccessUrl());
-        }
-        return Result.failure("No URL available for this AasDataAddress");
+    public String getBaseUrl() {
+        return getStringProperty(BASE_URL);
     }
 
     private boolean hasProvider() {
@@ -81,7 +84,7 @@ public class AasDataAddress extends DataAddress {
 
     private AasProvider getProvider() {
         Object provider = Optional
-                .ofNullable(super.getProperties().get(EDC_NAMESPACE + PROVIDER))
+                .ofNullable(super.getProperties().get(AAS_V30_NAMESPACE + PROVIDER))
                 .orElse(super.getProperties().get(PROVIDER));
         if (provider instanceof AasProvider) {
             return (AasProvider) provider;
@@ -96,13 +99,9 @@ public class AasDataAddress extends DataAddress {
 
     @JsonIgnore
     public Map<String, String> getAdditionalHeaders() {
-        // First get authentication headers from aas provider, then additional ones
-        Map<String, String> headers = hasProvider() ? getProvider().getHeaders() : new HashMap<>();
-        headers.putAll(getProperties().entrySet().stream()
+        return getProperties().entrySet().stream()
                 .filter(entry -> entry.getKey().startsWith(ADDITIONAL_HEADER))
-                .collect(toMap(headerName -> headerName.getKey().replace(ADDITIONAL_HEADER, ""),
-                        headerValue -> (String) headerValue.getValue())));
-        return headers;
+                .collect(toMap(entry -> entry.getKey().replace(ADDITIONAL_HEADER, ""), it -> (String) it.getValue()));
     }
 
     /**
@@ -151,17 +150,20 @@ public class AasDataAddress extends DataAddress {
     }
 
     public Reference getReferenceChain() {
-        var referenceChain = properties.get(REFERENCE_CHAIN);
+        Reference referenceChain = null;
 
-        if (referenceChain == null) {
+        String referenceString = getStringProperty(REFERENCE_CHAIN);
+        if (referenceString == null) {
             return new DefaultReference();
         }
 
-        if (referenceChain instanceof Reference reference && reference.getKeys() != null) {
-            return reference;
+        try {
+            referenceChain = jsonDeserializer.read(getStringProperty(REFERENCE_CHAIN), Reference.class);
+        } catch (DeserializationException e) {
+            throw new EdcException(new IllegalStateException(("Faulty reference chain: %s").formatted(referenceChain)));
         }
 
-        throw new EdcException(new IllegalStateException(("Faulty reference chain: %s").formatted(referenceChain)));
+        return referenceChain;
     }
 
     public HttpDataAddress asHttpDataAddress() {
@@ -169,11 +171,10 @@ public class AasDataAddress extends DataAddress {
         this.getProvider().getHeaders().forEach(httpDataAddress::addAdditionalHeader);
 
         return httpDataAddress
-                .baseUrl(this.getAccessUrl().getContent().toString())
+                .baseUrl(this.getBaseUrl())
                 .method(this.getMethod())
                 .path(this.getPath())
                 .build();
-
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -190,7 +191,8 @@ public class AasDataAddress extends DataAddress {
         }
 
         public Builder aasProvider(AasProvider provider) {
-            this.property(PROVIDER, provider);
+            this.property(BASE_URL, provider.baseUrl().toString());
+            provider.getHeaders().forEach((k, v) -> this.property(ADDITIONAL_HEADER + k, v));
             return this;
         }
 
@@ -225,7 +227,11 @@ public class AasDataAddress extends DataAddress {
         }
 
         public Builder referenceChain(Reference referenceChain) {
-            this.property(REFERENCE_CHAIN, referenceChain);
+            try {
+                this.property(REFERENCE_CHAIN, jsonSerializer.write(referenceChain));
+            } catch (SerializationException e) {
+                throw new EdcException(e);
+            }
             return this;
         }
 

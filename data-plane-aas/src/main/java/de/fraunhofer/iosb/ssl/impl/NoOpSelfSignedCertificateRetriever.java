@@ -18,7 +18,6 @@ package de.fraunhofer.iosb.ssl.impl;
 import de.fraunhofer.iosb.ssl.SelfSignedCertificateRetriever;
 import org.eclipse.edc.spi.result.Result;
 
-import java.net.URL;
 import java.security.cert.Certificate;
 
 /**
@@ -27,7 +26,7 @@ import java.security.cert.Certificate;
  */
 public class NoOpSelfSignedCertificateRetriever implements SelfSignedCertificateRetriever {
     @Override
-    public Result<Certificate[]> getSelfSignedCertificate(URL url) {
+    public Result<Certificate[]> getSelfSignedCertificate(String urlString) {
         return Result.failure("Self-signed certificates not allowed");
     }
 }

@@ -83,11 +83,11 @@ class EnvironmentToAssetMapperTest {
         assertTrue(result.failed());
         assertEquals(PipelineFailure.Type.WARNING, result.getFailure().getFailureType());
         assertNotNull(result.getContent().stream()
-                .filter(service -> service.getAccessUrl().toString()
+                .filter(service -> service.baseUrl().toString()
                         .equals(realEnvironmentAccessUrl.toString())).findFirst().orElseThrow().getEnvironment());
 
         assertNull(result.getContent().stream()
-                .filter(service -> service.getAccessUrl().toString().equals(accessUrl.toString()))
+                .filter(service -> service.baseUrl().toString().equals(accessUrl.toString()))
                 .findFirst().orElse(new Service.Builder().withUrl(new URL("http://localhost")).build())
                 .getEnvironment());
     }
@@ -118,7 +118,7 @@ class EnvironmentToAssetMapperTest {
         assertNotNull(result.getContent());
         var envAsset = result.getContent().stream()
                 .filter(service -> service
-                        .getAccessUrl().toString()
+                        .baseUrl().toString()
                         .equals(accessUrl.toString()))
                 .map(Service::getEnvironment)
                 .findFirst()
@@ -232,15 +232,15 @@ class EnvironmentToAssetMapperTest {
         var conceptDescriptionDataAddress =
                 (AasDataAddress) getChildren(result.getEnvironment(), CONCEPT_DESCRIPTIONS).stream().map(Asset::getDataAddress).toList().get(0);
 
-        assertTrue(shellDataAddress.getAccessUrl().getContent().toString().startsWith(accessUrl.toString()));
+        assertTrue(shellDataAddress.getBaseUrl().startsWith(accessUrl.toString()));
         assertEquals("%s/%s".formatted(SHELLS,
                         Base64.getEncoder().encodeToString(env.getAssetAdministrationShells().get(0).getId().getBytes())),
                 shellDataAddress.getPath());
-        assertTrue(submodelDataAddress.getAccessUrl().getContent().toString().startsWith(accessUrl.toString()));
+        assertTrue(submodelDataAddress.getBaseUrl().startsWith(accessUrl.toString()));
         assertEquals("%s/%s".formatted(SUBMODELS,
                         Base64.getEncoder().encodeToString(env.getSubmodels().get(0).getId().getBytes())),
                 submodelDataAddress.getPath());
-        assertTrue(conceptDescriptionDataAddress.getAccessUrl().getContent().toString().startsWith(accessUrl.toString()));
+        assertTrue(conceptDescriptionDataAddress.getBaseUrl().startsWith(accessUrl.toString()));
         assertEquals("concept-descriptions/%s".formatted(Base64.getEncoder().encodeToString(env.getConceptDescriptions().get(0).getId().getBytes())), conceptDescriptionDataAddress.getPath());
     }
 

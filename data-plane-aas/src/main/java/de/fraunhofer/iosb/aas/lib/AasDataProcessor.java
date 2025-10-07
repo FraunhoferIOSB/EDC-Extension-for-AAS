@@ -54,13 +54,13 @@ public class AasDataProcessor {
      * @throws IOException If communication with AAS service fails.
      */
     public Response getFromAas(AasDataAddress sourceDataAddress) throws IOException {
-        var accessUrl = sourceDataAddress.getAccessUrl();
+        String accessUrl = sourceDataAddress.getBaseUrl();
 
-        if (accessUrl.failed()) {
+        if (accessUrl == null) {
             throw new IllegalArgumentException("No access url found");
         }
 
-        var requestUrlBuilder = HttpUrl.get(accessUrl.getContent().toString()).newBuilder();
+        var requestUrlBuilder = HttpUrl.get(accessUrl).newBuilder();
 
         var requestPath = sourceDataAddress.getPath();
 
@@ -116,18 +116,18 @@ public class AasDataProcessor {
         var bytes = part.openStream().readAllBytes();
         var mediaType = part.mediaType();
 
-        var accessUrl = destinationDataAddress.getAccessUrl();
+        String accessUrl = destinationDataAddress.getBaseUrl();
 
-        if (accessUrl.failed()) {
+        if (accessUrl == null) {
             throw new IllegalArgumentException("No access url found");
         }
 
-        if (HttpMethod.permitsRequestBody(destinationDataAddress.getMethod())) {
+        if (!HttpMethod.permitsRequestBody(destinationDataAddress.getMethod())) {
             throw new IllegalArgumentException(String.format("Destination address method does not allow request body: %s",
                     destinationDataAddress.getMethod()));
         }
 
-        var requestUrlBuilder = HttpUrl.get(accessUrl.getContent().toString()).newBuilder();
+        var requestUrlBuilder = HttpUrl.get(accessUrl).newBuilder();
 
         var requestPath = destinationDataAddress.getPath();
 

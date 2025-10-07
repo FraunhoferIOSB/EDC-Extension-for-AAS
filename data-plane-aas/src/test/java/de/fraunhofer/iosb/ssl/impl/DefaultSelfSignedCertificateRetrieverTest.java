@@ -45,13 +45,12 @@ class DefaultSelfSignedCertificateRetrieverTest {
     private static final String WRONG_HOST = "https://wrong.host.badssl.com";
 
     @Test
-    void getSelfSignedCertificate() throws MalformedURLException {
+    void getSelfSignedCertificate() {
         var port = getFreePort();
-        var url = new URL(LOCALHOST_URL + port);
 
         Result<Certificate[]> certResult;
         try (var ignored = new TestUtils().startFaaastService(port)) {
-            certResult = new DefaultSelfSignedCertificateRetriever().getSelfSignedCertificate(url);
+            certResult = new DefaultSelfSignedCertificateRetriever().getSelfSignedCertificate(LOCALHOST_URL + port);
         } catch (MessageBusException | EndpointException | ConfigurationException | AssetConnectionException |
                  PersistenceException e) {
             fail("Failed starting FA³ST service");
@@ -66,9 +65,8 @@ class DefaultSelfSignedCertificateRetrieverTest {
     }
 
     @Test
-    void isTrusted() throws MalformedURLException {
-        var url = new URL(VALID);
-        var trusted = DefaultSelfSignedCertificateRetriever.isTrusted(url);
+    void isTrusted() {
+        var trusted = DefaultSelfSignedCertificateRetriever.isTrusted(VALID);
 
         if (!trusted) {
             fail();
@@ -76,9 +74,8 @@ class DefaultSelfSignedCertificateRetrieverTest {
     }
 
     @Test
-    void getExpiredCertificate() throws MalformedURLException {
-        var url = new URL(EXPIRED);
-        var certResult = new DefaultSelfSignedCertificateRetriever().getSelfSignedCertificate(url);
+    void getExpiredCertificate() {
+        var certResult = new DefaultSelfSignedCertificateRetriever().getSelfSignedCertificate(EXPIRED);
 
         if (certResult.succeeded()) {
             fail();
@@ -88,9 +85,8 @@ class DefaultSelfSignedCertificateRetrieverTest {
     }
 
     @Test
-    void getWrongHostCertificate() throws MalformedURLException {
-        var url = new URL(WRONG_HOST);
-        var certResult = new DefaultSelfSignedCertificateRetriever().getSelfSignedCertificate(url);
+    void getWrongHostCertificate() {
+        var certResult = new DefaultSelfSignedCertificateRetriever().getSelfSignedCertificate(WRONG_HOST);
 
         if (certResult.succeeded()) {
             fail();

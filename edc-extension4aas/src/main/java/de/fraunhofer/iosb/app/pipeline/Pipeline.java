@@ -47,7 +47,7 @@ public class Pipeline<I, O> implements Runnable {
      * @return The final result
      */
     @SuppressWarnings("unchecked")
-    public O execute(I input) {
+    public synchronized O execute(I input) {
         Object intermediateResult = input;
         for (var step : pipelineSteps) {
             var result = ((PipelineStep<Object, Object>) step).apply(intermediateResult);

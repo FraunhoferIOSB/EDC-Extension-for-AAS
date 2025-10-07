@@ -56,7 +56,7 @@ public abstract class AasProviderRepository<T extends AasProvider> extends Obser
      */
     public boolean delete(URL accessUrl) {
         T entity = content.stream()
-                .filter(s -> s.getAccessUrl().toString().equals(accessUrl.toString()))
+                .filter(s -> s.baseUrl().toString().equals(accessUrl.toString()))
                 .findFirst()
                 .orElse(null);
 

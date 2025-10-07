@@ -22,9 +22,9 @@ dependencies {
     testImplementation("$group:junit:$edcVersion")
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher:${junitPlatformLauncherVersion}")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher:$junitPlatformLauncherVersion")
 
-    testFixturesRuntimeOnly("org.junit.platform:junit-platform-launcher:${junitPlatformLauncherVersion}")
+    testFixturesRuntimeOnly("org.junit.platform:junit-platform-launcher:$junitPlatformLauncherVersion")
     testFixturesImplementation("org.junit.jupiter:junit-jupiter")
     testFixturesImplementation(platform("org.junit:junit-bom:5.10.0"))
     testFixturesImplementation("$group:junit:$edcVersion")

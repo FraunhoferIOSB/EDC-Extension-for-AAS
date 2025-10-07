@@ -38,7 +38,7 @@ public class ElementMapper {
     protected @NotNull String generateId(DataAddress dataAddress) {
         if (dataAddress.getType().equals("AasData")) {
             var aasDataAddress = (AasDataAddress) dataAddress;
-            return String.valueOf("%s:%s".formatted((aasDataAddress.getAccessUrl().getContent().toString()), aasDataAddress.getPath()).hashCode());
+            return String.valueOf("%s:%s".formatted((aasDataAddress.getBaseUrl()), aasDataAddress.getPath()).hashCode());
         } else if (dataAddress.getType().equals("HttpData")) {
             var httpDataAddress = (HttpDataAddress) dataAddress;
 

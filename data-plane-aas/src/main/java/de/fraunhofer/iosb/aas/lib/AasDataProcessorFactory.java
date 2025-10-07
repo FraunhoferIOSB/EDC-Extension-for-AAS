@@ -24,7 +24,6 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.jetbrains.annotations.Nullable;
 
-import java.net.URL;
 import java.security.cert.Certificate;
 
 import static de.fraunhofer.iosb.aas.lib.http.HttpClientProvider.clientFor;
@@ -58,8 +57,8 @@ public abstract class AasDataProcessorFactory {
      * @param aasUrl URL of AAS service without element access suffix (e.g., /submodels)
      * @return AAS Processor allowing communication with AAS service using AAS data addresses
      */
-    public Result<AasDataProcessor> processorFor(URL aasUrl) {
-        if (!aasUrl.getProtocol().equalsIgnoreCase(HTTPS)) {
+    public Result<AasDataProcessor> processorFor(String aasUrl) {
+        if (!HTTPS.equalsIgnoreCase(aasUrl.substring(0, 5))) {
             return Result.success(new AasDataProcessor(
                     new EdcHttpClientImpl(edcOkHttpClient, edcRetryPolicy, monitor)));
         }
@@ -85,8 +84,8 @@ public abstract class AasDataProcessorFactory {
         return Result.success(new AasDataProcessor(new EdcHttpClientImpl(client, edcRetryPolicy, monitor)));
     }
 
-    protected Result<@Nullable Certificate[]> retrieveCertificates(URL aasUrl) {
-        if (isTrusted(aasUrl) || "http".equalsIgnoreCase(aasUrl.getProtocol())) {
+    protected Result<@Nullable Certificate[]> retrieveCertificates(String aasUrl) {
+        if (isTrusted(aasUrl) || "http".equalsIgnoreCase(aasUrl.substring(0, 4))) {
             return Result.success(null);
         }
 

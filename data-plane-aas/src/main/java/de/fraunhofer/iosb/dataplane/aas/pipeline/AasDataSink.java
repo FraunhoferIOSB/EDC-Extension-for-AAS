@@ -23,10 +23,8 @@ import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamFailure;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.AbstractResult;
-import org.eclipse.edc.spi.result.Result;
 
 import java.io.IOException;
-import java.net.URL;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -61,20 +59,20 @@ public class AasDataSink implements DataSink {
     }
 
     private StreamResult<Object> transferPart(DataSource.Part part) {
-        Result<URL> accessUrlResult = aasDataAddress.getAccessUrl();
+        String accessUrl = aasDataAddress.getBaseUrl();
 
-        if (accessUrlResult.failed()) {
+        if (accessUrl == null) {
             return StreamResult.failure(
                     new StreamFailure(
-                            List.of(accessUrlResult.getFailureDetail()),
+                            List.of("No base url found"),
                             StreamFailure.Reason.GENERAL_ERROR));
         }
 
-        var aasDataProcessor = aasDataProcessorFactory.processorFor(accessUrlResult.getContent());
+        var aasDataProcessor = aasDataProcessorFactory.processorFor(accessUrl);
 
         if (aasDataProcessor.failed()) {
             monitor.severe("Error writing HTTP data %s to endpoint %s:\n%s".formatted(part.name(),
-                    accessUrlResult.getContent(),
+                    accessUrl,
                     aasDataProcessor.getFailureMessages()));
 
             return StreamResult.failure(new StreamFailure(aasDataProcessor.getFailureMessages(),

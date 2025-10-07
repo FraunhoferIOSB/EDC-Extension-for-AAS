@@ -225,11 +225,11 @@ public class Endpoint {
     }
 
     private <T extends AasProvider> Response createEntity(AasProviderRepository<T> repository, T entity) {
-        if (entity == null || entity.getAccessUrl() == null) {
+        if (entity == null || entity.baseUrl() == null) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Missing query parameter 'url'").build();
         }
 
-        if (!CONFIGURATION.isAllowSelfSignedCertificates() && !isConnectionTrusted(entity.getAccessUrl())) {
+        if (!CONFIGURATION.isAllowSelfSignedCertificates() && !isConnectionTrusted(entity.baseUrl())) {
             return Response.status(Status.BAD_REQUEST)
                     .entity("Service to register has untrusted certificate.")
                     .build();

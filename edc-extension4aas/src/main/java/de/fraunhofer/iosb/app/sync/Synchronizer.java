@@ -28,7 +28,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
-
 /**
  * A synchronizer gets as input two assets:
  * - The asset holding the currently stored assets for an AAS service
@@ -38,9 +37,6 @@ import java.util.Objects;
  * consisting of the new assets and the IDs of the assets to be removed.
  */
 public class Synchronizer extends PipelineStep<Collection<Pair<Asset, Asset>>, ChangeSet<Asset, String>> {
-
-    public Synchronizer() {
-    }
 
     /**
      * Receives pairs of AAS environment assets and computes their deltas,
@@ -58,20 +54,30 @@ public class Synchronizer extends PipelineStep<Collection<Pair<Asset, Asset>>, C
             return PipelineResult.failure(PipelineFailure.warning(List.of("Empty input for synchronizer")));
         }
 
-        Collection<String> toRemove = new ArrayList<>();
-        Collection<Asset> toAdd = new ArrayList<>();
+        Collection<Asset> allCurrentlyStored = oldAndNewAssets.stream()
+                .map(Pair::first)
+                .filter(Objects::nonNull)
+                .map(AssetUtil::flatMapAssets)
+                .flatMap(Collection::stream)
+                .toList();
 
-        for (var entry : oldAndNewAssets) {
-            // New environment cannot be null.
-            Objects.requireNonNull(entry.second());
-            var oldEnvironment = entry.first() != null ? AssetUtil.flatMapAssets(entry.first()) :
-                    new ArrayList<Asset>();
+        Collection<Asset> allNewAssets = oldAndNewAssets.stream()
+                .map(Pair::second)
+                .filter(Objects::nonNull)
+                .map(AssetUtil::flatMapAssets)
+                .flatMap(Collection::stream)
+                .toList();
 
-            var newEnvironment = AssetUtil.flatMapAssets(entry.second());
+        Collection<String> toRemove =
+                new ArrayList<>(allCurrentlyStored.stream()
+                        .filter(currentElement -> absent(allNewAssets, currentElement))
+                        .map(Asset::getId)
+                        .toList());
 
-            toRemove.addAll(oldEnvironment.stream().filter(oldElement -> absent(newEnvironment, oldElement)).map(Asset::getId).toList());
-            toAdd.addAll(newEnvironment.stream().filter(newElement -> absent(oldEnvironment, newElement)).toList());
-        }
+        Collection<Asset> toAdd = new ArrayList<>(allNewAssets.stream()
+                .filter(newElement -> absent(allCurrentlyStored, newElement))
+                .toList());
+
 
         return PipelineResult.success(new ChangeSet.Builder<Asset, String>().add(toAdd).remove(toRemove).build());
     }

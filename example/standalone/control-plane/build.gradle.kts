@@ -23,7 +23,7 @@ dependencies {
     implementation("$group:configuration-filesystem:$edcVersion")  // read config from files
     implementation("$group:auth-tokenbased:$edcVersion")
     implementation("$group:vault-hashicorp:$edcVersion")
-    implementation("$group:iam-mock:$edcVersion")
+    implementation("$group:iam-mock:$edcVersion") // DefaultParticipantIdExtraction
     implementation("$group:api-core:$edcVersion") // ApiAuthenticationRegistry
     implementation("$group:auth-configuration:$edcVersion}")
 }

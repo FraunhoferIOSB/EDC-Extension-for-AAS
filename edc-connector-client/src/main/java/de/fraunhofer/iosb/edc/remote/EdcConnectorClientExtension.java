@@ -100,7 +100,7 @@ public class EdcConnectorClientExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         registerTransformers();
 
-        codec = new Codec(typeTransformerRegistry, typeManager, jsonLd);
+        codec = new Codec(typeTransformerRegistry, jsonLd);
         if (apiKeyAlias != null && vault != null) {
             authenticationMethod = new VaultAuth(vault, apiKeyAlias);
         } else if (apiKey != null) {

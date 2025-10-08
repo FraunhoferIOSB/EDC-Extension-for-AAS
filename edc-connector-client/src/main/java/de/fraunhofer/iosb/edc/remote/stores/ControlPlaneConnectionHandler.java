@@ -39,6 +39,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 
+import static org.eclipse.edc.spi.result.ServiceFailure.Reason.CONFLICT;
+
 public abstract class ControlPlaneConnectionHandler<T extends Entity> {
 
     public static final String UNEXPECTED_ERROR = "Unexpected error from control-plane: %s";
@@ -111,7 +113,7 @@ public abstract class ControlPlaneConnectionHandler<T extends Entity> {
         var response = executeRequest(request);
 
         if (response.failed()) {
-            if (response.reason() == ServiceFailure.Reason.CONFLICT) {
+            if (response.reason() == CONFLICT) {
                 return StoreResult.alreadyExists(String.format(getExistsTemplate(), entity.getId()));
             }
             throw new ControlPlaneConnectionException(
@@ -139,7 +141,7 @@ public abstract class ControlPlaneConnectionHandler<T extends Entity> {
             monitor.debug(String.format("Failed deleting %s. %s: %s", clazz, response.reason(), response.getFailureDetail()));
             if (Objects.requireNonNull(response.getFailure().getReason()) == ServiceFailure.Reason.NOT_FOUND) {
                 return StoreResult.notFound(response.getFailureDetail());
-            } else if (Objects.requireNonNull(response.getFailure().getReason()) == ServiceFailure.Reason.CONFLICT) {
+            } else if (Objects.requireNonNull(response.getFailure().getReason()) == CONFLICT) {
                 return StoreResult.alreadyLeased(response.getFailureDetail());
             }
             throw new ControlPlaneConnectionException(String.format("%s with ID %s could not be deleted. %s: %s",

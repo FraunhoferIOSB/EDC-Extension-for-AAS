@@ -66,12 +66,11 @@ class CodecTest {
     @BeforeAll
     static void setUp() {
         TypeTransformerRegistry typeTransformerRegistry = runtime.getService(TypeTransformerRegistry.class);
-        TypeManager typeManager = runtime.getService(TypeManager.class);
         JsonLd jsonLd = runtime.getService(JsonLd.class);
         jsonLd.registerNamespace(VOCAB, EDC_NAMESPACE);
         jsonLd.registerNamespace(AAS_PREFIX, AAS_NAMESPACE);
         jsonLd.registerNamespace(OdrlNamespace.ODRL_PREFIX, OdrlNamespace.ODRL_SCHEMA);
-        testSubject = new Codec(typeTransformerRegistry, typeManager, jsonLd);
+        testSubject = new Codec(typeTransformerRegistry, jsonLd);
     }
 
     public static void assertEqualsIgnoreWhiteSpace(String expected, String actual) {

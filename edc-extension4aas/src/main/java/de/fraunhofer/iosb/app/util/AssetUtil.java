@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 import javax.annotation.Nonnull;
 
 import static de.fraunhofer.iosb.app.aas.mapper.environment.EnvironmentToAssetMapper.CONCEPT_DESCRIPTIONS_LOCATION;
@@ -71,33 +72,17 @@ public class AssetUtil {
     @SuppressWarnings("unchecked") // I checked
     public static Collection<Asset> getChildren(Asset parent, String childPropertyName) {
         var childrenMaybe = parent.getProperty(childPropertyName);
-        if (childrenMaybe instanceof List && !((List<?>) childrenMaybe).isEmpty() && ((List<?>) childrenMaybe).get(0) instanceof Asset) {
+        if (childrenMaybe instanceof List<?> childrenMaybeList &&
+                !childrenMaybeList.isEmpty() &&
+                childrenMaybeList.get(0) instanceof Asset) {
             return new ArrayList<>((List<Asset>) childrenMaybe);
         }
         return new ArrayList<>();
     }
 
-    public static List<SubmodelElement> filterSubmodelElementsRec(List<SubmodelElement> submodelElements, Predicate<Referable> filter) {
-        List<SubmodelElement> result = new ArrayList<>();
-
-        for (SubmodelElement element : submodelElements) {
-            if (element instanceof SubmodelElementCollection collection) {
-                if (!filterSubmodelElementsRec(collection.getValue(), filter).isEmpty() || filter.test(element)) {
-                    result.add(element);
-                }
-            } else if (element instanceof SubmodelElementList list) {
-                if (!filterSubmodelElementsRec(list.getValue(), filter).isEmpty() || filter.test(element)) {
-                    result.add(element);
-
-                }
-            } else if (filter.test(element)) {
-                result.add(element);
-            }
-        }
-
-        return result;
+    public static void forEachSubmodelElementAssetRec(Asset parent, UnaryOperator<Asset> function) {
+        getChildrenRec(parent).forEach(function::apply);
     }
-
 
     private static Collection<Asset> getChildrenRec(Asset parent) {
         var children = getChildren(parent, "value");

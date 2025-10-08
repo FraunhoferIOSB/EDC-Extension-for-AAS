@@ -61,7 +61,6 @@ public class AssetRegistrar extends PipelineStep<ChangeSet<Asset, String>, Chang
     @Override
     public PipelineResult<ChangeSet<Asset, Asset>> apply(ChangeSet<Asset, String> changeSet) {
         var added = changeSet.toAdd().stream().map(this::create).toList();
-
         var removed = changeSet.toRemove().stream().map(this::remove).toList();
 
         // Add contracts for successfully added assets
@@ -69,7 +68,7 @@ public class AssetRegistrar extends PipelineStep<ChangeSet<Asset, String>, Chang
                 .add(added.stream()
                         .filter(assetIdResultPair ->
                                 assetIdResultPair.second().succeeded() ||
-                                        ALREADY_EXISTS.equals(assetIdResultPair.second().reason())
+                                        ALREADY_EXISTS == assetIdResultPair.second().reason()
                         )
                         .map(Pair::first)
                         .toList())
@@ -80,21 +79,41 @@ public class AssetRegistrar extends PipelineStep<ChangeSet<Asset, String>, Chang
                 .build();
 
         if (!changeSetIds.toAdd().isEmpty() || !changeSetIds.toRemove().isEmpty()) {
-            monitor.info("Added %s, removed %s assets".formatted(changeSetIds.toAdd().size(),
-                    changeSetIds.toRemove().size()));
+            long numberAdded = added.stream()
+                    .map(Pair::second)
+                    .filter(AbstractResult::succeeded).count();
+            long numberRemoved = removed.stream()
+                    .filter(AbstractResult::succeeded).count();
+
+            monitor.info("Added %s, removed %s assets".formatted(numberAdded, numberRemoved));
+        }
+
+        if (!changeSetIds.toAdd().isEmpty() && added.stream()
+                .map(Pair::second)
+                .filter(AbstractResult::failed)
+                .map(StoreResult::reason)
+                .anyMatch(reason -> ALREADY_EXISTS == reason)) {
+
+            long numberExisted = added.stream()
+                    .map(Pair::second)
+                    .filter(AbstractResult::failed)
+                    .map(StoreResult::reason)
+                    .filter(ALREADY_EXISTS::equals).count();
+
+            monitor.info("%s assets existed".formatted(numberExisted));
         }
 
         var addFailureMessages = added.stream()
                 .map(Pair::second)
                 .filter(AbstractResult::failed)
                 // Don't list "already exists" as warning.
-                .filter(voidStoreResult -> !ALREADY_EXISTS.equals(voidStoreResult.reason()))
+                .filter(voidStoreResult -> ALREADY_EXISTS != voidStoreResult.reason())
                 .map(AbstractResult::getFailureDetail)
                 .toList();
 
         var removeFailureMessages = removed.stream()
                 .filter(AbstractResult::failed)
-                .filter(result -> !NOT_FOUND.equals(result.reason()))
+                .filter(result -> NOT_FOUND != result.reason())
                 .map(AbstractResult::getFailureDetail)
                 .toList();
 

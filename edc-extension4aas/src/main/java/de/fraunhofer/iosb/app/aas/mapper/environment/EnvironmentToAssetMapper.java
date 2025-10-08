@@ -47,6 +47,7 @@ import java.util.stream.Collectors;
 import static de.fraunhofer.iosb.aas.lib.type.AasConstants.AAS_V30_NAMESPACE;
 import static de.fraunhofer.iosb.app.pipeline.util.PipelineUtils.extractContents;
 import static de.fraunhofer.iosb.app.pipeline.util.PipelineUtils.handleError;
+import static de.fraunhofer.iosb.app.util.AssetUtil.forEachSubmodelElementAssetRec;
 
 /**
  * Create a mapping from an AAS environment to EDC assets. This is not a holistic transformation but rather maps key
@@ -62,15 +63,14 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<Service, Environm
     public static final String SHELLS_LOCATION = "shells";
     public static final String SUBMODELS_LOCATION = "submodels";
 
-    private final Supplier<Boolean> useAasDataAddress = () -> Configuration.getInstance().isUseAasDataPlane();
-    private final Supplier<Boolean> onlySubmodelsDecision;
+    private final Supplier<Boolean> useAasDataAddress = () -> Configuration.getInstance().useAasDataPlane();
+    private final Supplier<Boolean> onlySubmodelsDecision = () -> Configuration.getInstance().onlySubmodels();
     private final Mapper<AssetAdministrationShell> shellMapper = new AssetAdministrationShellMapper();
     private final Mapper<Submodel> submodelMapper;
     private final Mapper<ConceptDescription> conceptDescriptionMapper = new ConceptDescriptionMapper();
 
 
-    public EnvironmentToAssetMapper(Supplier<Boolean> onlySubmodelsDecision) {
-        this.onlySubmodelsDecision = onlySubmodelsDecision;
+    public EnvironmentToAssetMapper() {
         submodelMapper = new SubmodelMapper(onlySubmodelsDecision);
     }
 
@@ -125,7 +125,6 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<Service, Environm
             var policyBindings = service.getPolicyBindings();
 
             submodels = filterBySelection(submodels, policyBindings);
-
             // TODO after fine-grained element filtering, remove this next line.
             submodels = submodels.stream().map(submodel -> submodel.toBuilder().property(AAS_V30_NAMESPACE + "Submodel/" + "submodelElements",
                     null).build()).toList();
@@ -136,10 +135,10 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<Service, Environm
 
         // We convert data addresses this late to exploit their ReferenceChains when selecting elements to register.
         if (!useAasDataAddress.get()) {
-            submodels = convertDataAddresses(submodels);
-            // TODO convert submodelElements as well
-            shells = convertDataAddresses(shells);
-            conceptDescriptions = convertDataAddresses(conceptDescriptions);
+            submodels.forEach(this::convertDataAddress);
+            submodels.forEach(submodel -> forEachSubmodelElementAssetRec(submodel, this::convertDataAddress));
+            shells.forEach(this::convertDataAddress);
+            conceptDescriptions.forEach(this::convertDataAddress);
         }
 
         var environmentAsset = Asset.Builder.newInstance()
@@ -179,18 +178,17 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<Service, Environm
         return map;
     }
 
-    private List<Asset> convertDataAddresses(List<Asset> assets) {
-        return assets.stream().map(asset -> asset.toBuilder()
-                        .dataAddress(((AasDataAddress) asset.getDataAddress())
-                                .asHttpDataAddress())
-                        .build())
-                .toList();
+    private Asset convertDataAddress(Asset asset) {
+        return asset.toBuilder()
+                .dataAddress(((AasDataAddress) asset.getDataAddress())
+                        .asHttpDataAddress())
+                .build();
     }
 
     private @NotNull <I extends Identifiable> List<Asset> handleIdentifiables(Collection<I> identifiables, AasProvider provider,
                                                                               Mapper<I> identifiableHandler) {
         return identifiables.stream()
-                .map(submodel -> identifiableHandler.apply(submodel, provider))
+                .map(identifiable -> identifiableHandler.apply(identifiable, provider))
                 .toList();
     }
 }

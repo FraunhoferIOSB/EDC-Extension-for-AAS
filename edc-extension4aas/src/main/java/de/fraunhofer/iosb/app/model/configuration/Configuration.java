@@ -27,11 +27,11 @@ public class Configuration {
     private static final String SETTINGS_PREFIX = "edc.aas.";
     private static Configuration instance;
     @JsonProperty(SETTINGS_PREFIX + "syncPeriod")
-    private final int syncPeriod = 50; // Seconds
+    private int syncPeriod = 50; // Seconds
     @JsonProperty(SETTINGS_PREFIX + "onlySubmodels")
-    private final boolean onlySubmodels = true;
+    private boolean onlySubmodels = true;
     @JsonProperty(SETTINGS_PREFIX + "exposeSelfDescription")
-    private final boolean exposeSelfDescription = true;
+    private boolean exposeSelfDescription = true;
     @JsonProperty(SETTINGS_PREFIX + "allowSelfSignedCertificates")
     private boolean allowSelfSignedCertificates;
     @JsonProperty(SETTINGS_PREFIX + "remoteAASLocation")
@@ -79,7 +79,7 @@ public class Configuration {
         return syncPeriod;
     }
 
-    public boolean isOnlySubmodels() {
+    public boolean onlySubmodels() {
         return onlySubmodels;
     }
 
@@ -99,7 +99,7 @@ public class Configuration {
         return allowSelfSignedCertificates;
     }
 
-    public boolean isUseAasDataPlane() {
+    public boolean useAasDataPlane() {
         return useAasDataPlane;
     }
 

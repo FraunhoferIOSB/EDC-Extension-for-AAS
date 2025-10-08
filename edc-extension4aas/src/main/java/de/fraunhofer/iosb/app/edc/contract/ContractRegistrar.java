@@ -296,9 +296,9 @@ public class ContractRegistrar extends PipelineStep<ChangeSet<Asset, Asset>, Voi
         var accessPolicyResult = policyDefinitionStore.create(defaultAccessPolicyDefinition);
         var contractPolicyResult = policyDefinitionStore.create(defaultContractPolicyDefinition);
 
-        if (accessPolicyResult.failed() && !ALREADY_EXISTS.equals(accessPolicyResult.reason())) {
+        if (accessPolicyResult.failed() && ALREADY_EXISTS != accessPolicyResult.reason()) {
             doThrow(new IllegalStateException(accessPolicyResult.getFailureDetail()));
-        } else if (contractPolicyResult.failed() && !ALREADY_EXISTS.equals(contractPolicyResult.reason())) {
+        } else if (contractPolicyResult.failed() && ALREADY_EXISTS != contractPolicyResult.reason()) {
             doThrow(new IllegalStateException(contractPolicyResult.getFailureDetail()));
         }
     }

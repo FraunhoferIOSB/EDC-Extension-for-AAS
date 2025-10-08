@@ -37,13 +37,11 @@ public class Codec {
     private static final String COMPACTION_ERROR = "Failed compacting json-ld %s: %s";
     private static final String EXPANSION_ERROR = "Failed expanding json-ld %s: %s";
 
-    protected final TypeTransformerRegistry transformers;
-    protected final TypeManager typeManager;
-    protected final JsonLd jsonLd;
+    private final TypeTransformerRegistry transformers;
+    private final JsonLd jsonLd;
 
-    public Codec(TypeTransformerRegistry transformers, TypeManager typeManager, JsonLd jsonLd) {
+    public Codec(TypeTransformerRegistry transformers, JsonLd jsonLd) {
         this.transformers = transformers;
-        this.typeManager = typeManager;
         this.jsonLd = jsonLd;
     }
 
@@ -108,6 +106,6 @@ public class Codec {
 
         var compacted = jsonLd.compact(jsonRepresentation).orElseThrow(failure -> new EdcException(String.format(COMPACTION_ERROR,
                 toSerialize.getClass().getSimpleName(), failure.getFailureDetail())));
-        return compacted.toString();
+        return jsonRepresentation.toString();
     }
 }

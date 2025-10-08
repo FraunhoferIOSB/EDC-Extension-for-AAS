@@ -134,7 +134,7 @@ public class AasExtension implements ServiceExtension {
                 .supplier(serviceRepository::getAll)
                 .step(new Filter<>(InetTools::pingHost, "Connection Test"))
                 .step(new InputOutputZipper<>(new ServiceAgent(edcHttpClient, monitor), Function.identity()))
-                .step(new EnvironmentToAssetMapper(() -> Configuration.getInstance().isOnlySubmodels()))
+                .step(new EnvironmentToAssetMapper())
                 .step(new CollectionFeeder<>(new ServiceRepositoryUpdater(serviceRepository)))
                 .step(new Synchronizer())
                 .step(new AssetRegistrar(assetIndex, monitor.withPrefix("Service Pipeline")))
@@ -152,7 +152,7 @@ public class AasExtension implements ServiceExtension {
                 .step(new InputOutputZipper<>(new RegistryAgent(edcHttpClient, monitor),
                         Function.identity()))
                 .step(new MapValueProcessor<>(
-                        new EnvironmentToAssetMapper(() -> Configuration.getInstance().isOnlySubmodels()),
+                        new EnvironmentToAssetMapper(),
                         // Remove fatal results from further processing
                         result -> result.failed() && FATAL.equals(result.getFailure().getFailureType()) ? null : result)
                 )

@@ -36,6 +36,8 @@ import java.util.stream.Stream;
  */
 public class RemoteAssetIndex extends ControlPlaneConnectionHandler<Asset> implements AssetIndex {
 
+    private static final String MGMT_API_RESOURCE_ACCESSOR = "assets";
+
     private RemoteAssetIndex(Monitor monitor, EdcHttpClient httpClient, Codec codec, ControlPlaneConnection connection) {
         super(monitor, httpClient, codec, connection);
     }
@@ -69,7 +71,11 @@ public class RemoteAssetIndex extends ControlPlaneConnectionHandler<Asset> imple
 
     @Override
     public long countAssets(List<Criterion> criteria) {
-        throw new UnsupportedOperationException("Please request assets via QuerySpec and count them.");
+        QuerySpec querySpec = QuerySpec.Builder.newInstance()
+                .filter(criteria)
+                .build();
+
+        return queryAssets(querySpec).count();
     }
 
     @Override
@@ -104,7 +110,7 @@ public class RemoteAssetIndex extends ControlPlaneConnectionHandler<Asset> imple
         }
 
         public RemoteAssetIndex build() {
-            this.resourceName = "assets";
+            this.resourceName = MGMT_API_RESOURCE_ACCESSOR;
             return super.build();
         }
 

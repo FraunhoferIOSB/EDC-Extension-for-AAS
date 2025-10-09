@@ -29,6 +29,8 @@ import java.util.stream.Stream;
 
 public class RemotePolicyDefinitionStore extends ControlPlaneConnectionHandler<PolicyDefinition> implements PolicyDefinitionStore {
 
+    private static final String MGMT_API_RESOURCE_ACCESSOR = "policydefinitions";
+
     private RemotePolicyDefinitionStore(Monitor monitor, EdcHttpClient httpClient, Codec codec, ControlPlaneConnection connection) {
         super(monitor, httpClient, codec, connection);
     }
@@ -93,7 +95,7 @@ public class RemotePolicyDefinitionStore extends ControlPlaneConnectionHandler<P
         }
 
         public RemotePolicyDefinitionStore build() {
-            this.resourceName = "policydefinitions";
+            this.resourceName = MGMT_API_RESOURCE_ACCESSOR;
             return super.build();
         }
 

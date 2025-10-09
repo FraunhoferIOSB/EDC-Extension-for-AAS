@@ -17,19 +17,16 @@ package de.fraunhofer.iosb.edc.remote.stores;
 
 import de.fraunhofer.iosb.aas.lib.auth.AuthenticationMethod;
 import de.fraunhofer.iosb.edc.remote.ControlPlaneConnection;
-import de.fraunhofer.iosb.edc.remote.ControlPlaneConnectionException;
 import de.fraunhofer.iosb.edc.remote.HttpMethod;
 import de.fraunhofer.iosb.edc.remote.transform.Codec;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.eclipse.edc.http.spi.EdcHttpClient;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.entity.Entity;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.result.StoreResult;
 
@@ -40,10 +37,11 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.CONFLICT;
+import static org.eclipse.edc.spi.result.ServiceFailure.Reason.NOT_FOUND;
 
 public abstract class ControlPlaneConnectionHandler<T extends Entity> {
 
-    public static final String UNEXPECTED_ERROR = "Unexpected error from control-plane: %s";
+    public static final String MESSAGE_CODE_TEMPLATE = "Message: %s; Status code: %d";
     public static final String NO_MESSAGE = "No message from control-plane.";
 
     protected final ControlPlaneConnection controlPlane;
@@ -63,10 +61,15 @@ public abstract class ControlPlaneConnectionHandler<T extends Entity> {
 
         var request = controlPlane.prepareRequest(HttpMethod.POST, "request", querySpecString);
 
-        // Failure to connect to/communicate with the control-plane is exceptional behavior
         var responseJsonString = executeRequest(request)
-                .orElseThrow(failure -> new ControlPlaneConnectionException(String.format("Failed querying %s. %s %s",
-                        clazz.getSimpleName(), failure.getReason(), failure.getFailureDetail())));
+                .orElse(failure -> {
+                    monitor.severe(failure.getFailureDetail());
+                    return null;
+                });
+
+        if (responseJsonString == null || responseJsonString.isBlank()) {
+            return Stream.of();
+        }
 
         Result<List<T>> deserialized = codec.deserializeList(responseJsonString, clazz);
 
@@ -82,13 +85,10 @@ public abstract class ControlPlaneConnectionHandler<T extends Entity> {
 
         var responseJsonOrNull = executeRequest(request)
                 .orElse(failure -> {
-                    if (failure.getReason().equals(ServiceFailure.Reason.NOT_FOUND)) {
-                        return null;
-                    } else {
-                        throw new ControlPlaneConnectionException(
-                                String.format("%s not found. %s: %s",
-                                        clazz.getSimpleName(), failure.getReason(), failure.getFailureDetail()));
+                    if (NOT_FOUND != failure.getReason()) {
+                        monitor.severe(failure.getFailureDetail());
                     }
+                    return null;
                 });
 
         if (responseJsonOrNull == null) {
@@ -116,9 +116,8 @@ public abstract class ControlPlaneConnectionHandler<T extends Entity> {
             if (response.reason() == CONFLICT) {
                 return StoreResult.alreadyExists(String.format(getExistsTemplate(), entity.getId()));
             }
-            throw new ControlPlaneConnectionException(
-                    String.format("%s could not be created. %s: %s",
-                            entity.getClass().getSimpleName(), response.reason(), response.getFailure().getFailureDetail()));
+            monitor.severe(response.getFailureDetail());
+            return StoreResult.generalError(response.getFailureDetail());
         }
 
         return StoreResult.success();
@@ -138,14 +137,13 @@ public abstract class ControlPlaneConnectionHandler<T extends Entity> {
         var response = executeRequest(request);
 
         if (!response.succeeded()) {
-            monitor.debug(String.format("Failed deleting %s. %s: %s", clazz, response.reason(), response.getFailureDetail()));
-            if (Objects.requireNonNull(response.getFailure().getReason()) == ServiceFailure.Reason.NOT_FOUND) {
+            if (NOT_FOUND == response.reason()) {
                 return StoreResult.notFound(response.getFailureDetail());
-            } else if (Objects.requireNonNull(response.getFailure().getReason()) == CONFLICT) {
+            } else if (CONFLICT == response.reason()) {
                 return StoreResult.alreadyLeased(response.getFailureDetail());
             }
-            throw new ControlPlaneConnectionException(String.format("%s with ID %s could not be deleted. %s: %s",
-                    clazz.getSimpleName(), entityId, response.reason(), response.getFailure().getFailureDetail()));
+            monitor.severe(response.getFailureDetail());
+            return StoreResult.generalError(response.getFailureDetail());
         }
 
         return StoreResult.success(entity);
@@ -159,19 +157,15 @@ public abstract class ControlPlaneConnectionHandler<T extends Entity> {
         var response = executeRequest(request);
 
         if (!response.succeeded()) {
-            monitor.debug(String.format("Failed updating %s. %s: %s", clazz.getSimpleName(), response.reason(),
-                    response.getFailure().getFailureDetail()));
 
-            if (Objects.requireNonNull(response.getFailure().getReason()) == ServiceFailure.Reason.NOT_FOUND) {
+            if (NOT_FOUND == response.reason()) {
                 return StoreResult.notFound(String.format(getNotFoundTemplate(), entity.getId()));
             }
-
-            throw new ControlPlaneConnectionException(String.format("%s with could not be updated. %s: %s",
-                    clazz.getSimpleName(), response.reason(), response.getFailure().getFailureDetail()));
+            monitor.severe(response.getFailureDetail());
+            return StoreResult.generalError(response.getFailureDetail());
         }
 
         return StoreResult.success(findById(entity.getId(), clazz));
-
     }
 
     protected abstract String getExistsTemplate();
@@ -191,12 +185,13 @@ public abstract class ControlPlaneConnectionHandler<T extends Entity> {
                     responseMessage = NO_MESSAGE;
                 }
 
-                return switch (response.code()) {
+                int responseCode = response.code();
+                return switch (responseCode) {
                     case 400 -> ServiceResult.badRequest(responseMessage);
-                    case 403 -> ServiceResult.unauthorized(responseMessage);
+                    case 401, 403, 407 -> ServiceResult.unauthorized(String.format(MESSAGE_CODE_TEMPLATE, responseMessage, responseCode));
                     case 404 -> ServiceResult.notFound(responseMessage);
                     case 409 -> ServiceResult.conflict(responseMessage);
-                    default -> throw new EdcException(String.format(UNEXPECTED_ERROR, responseMessage));
+                    default -> ServiceResult.unexpected(String.format(MESSAGE_CODE_TEMPLATE, responseMessage, responseCode));
                 };
             }
             return ServiceResult.success(body.string());

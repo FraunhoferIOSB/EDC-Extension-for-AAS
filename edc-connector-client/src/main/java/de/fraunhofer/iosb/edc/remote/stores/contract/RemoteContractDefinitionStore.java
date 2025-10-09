@@ -30,6 +30,8 @@ import java.util.stream.Stream;
 
 public class RemoteContractDefinitionStore extends ControlPlaneConnectionHandler<ContractDefinition> implements ContractDefinitionStore {
 
+    private static final String MGMT_API_RESOURCE_ACCESSOR = "contractdefinitions";
+
     public RemoteContractDefinitionStore(Monitor monitor, EdcHttpClient httpClient, Codec codec, ControlPlaneConnection connection) {
         super(monitor, httpClient, codec, connection);
     }
@@ -69,7 +71,7 @@ public class RemoteContractDefinitionStore extends ControlPlaneConnectionHandler
         if (result.succeeded()) {
             return StoreResult.success();
         }
-        return StoreResult.alreadyExists(result.getFailureDetail());
+        return StoreResult.notFound(result.getFailureDetail());
     }
 
     @Override
@@ -98,7 +100,7 @@ public class RemoteContractDefinitionStore extends ControlPlaneConnectionHandler
         }
 
         public RemoteContractDefinitionStore build() {
-            this.resourceName = "contractdefinitions";
+            this.resourceName = MGMT_API_RESOURCE_ACCESSOR;
             return super.build();
         }
 

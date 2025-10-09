@@ -24,8 +24,6 @@ import de.fraunhofer.iosb.testutils.TestUtils;
 import org.eclipse.edc.spi.result.Result;
 import org.junit.jupiter.api.Test;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.security.cert.Certificate;
 import java.util.List;
 

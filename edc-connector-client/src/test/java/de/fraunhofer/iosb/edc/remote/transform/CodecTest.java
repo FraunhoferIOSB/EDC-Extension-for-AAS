@@ -1,6 +1,5 @@
 package de.fraunhofer.iosb.edc.remote.transform;
 
-import org.apache.commons.io.FileUtils;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
@@ -20,14 +19,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
+import static de.fraunhofer.iosb.aas.test.FileManager.loadResource;
 import static de.fraunhofer.iosb.aas.test.StringMethods.assertEqualsIgnoreWhiteSpace;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
@@ -69,6 +66,37 @@ class CodecTest {
         jsonLd.registerNamespace(AAS_PREFIX, AAS_NAMESPACE);
         jsonLd.registerNamespace(OdrlNamespace.ODRL_PREFIX, OdrlNamespace.ODRL_SCHEMA);
         testSubject = new Codec(typeTransformerRegistry, jsonLd);
+    }
+
+    private static PolicyDefinition getPolicyDefinition() {
+        return PolicyDefinition.Builder.newInstance()
+                .id("my-test-contract-definition-id")
+                .policy(Policy.Builder.newInstance()
+                        .target("my-policy-definition-policy-target")
+                        .assignee("my-policy-definition-policy-assignee")
+                        .assigner("my-policy-definition-policy-assigner")
+                        .inheritsFrom("my-policy-definition-policy-does-not-inherit")
+                        .build()
+                )
+                .privateProperty("https://admin-shell.io/aas/3/0/test-private-property", "test-private-property-value")
+                .privateProperty("https://admin-shell.io/aas/3/0/test-private-property-2", "test-private-property-2-value")
+                .build();
+    }
+
+    private static ContractDefinition getContractDefinition() {
+        return ContractDefinition.Builder.newInstance()
+                .id("my-test-contract-definition-id")
+                .contractPolicyId("my-test-contract-definition-contract-policy-id")
+                .accessPolicyId("my-test-contract-definition-access-policy-id")
+                .assetsSelector(List.of(
+                        Criterion.Builder.newInstance().operandLeft("my-test-custom-string-operand-left")
+                                .operator("?custom-operator\\")
+                                .operandRight(new ArrayList<>()).build(),
+                        Criterion.criterion("left", "operand", "right")
+                ))
+                .privateProperty("https://admin-shell.io/aas/3/0/test-private-property", "test-private-property-value")
+                .privateProperty("https://admin-shell.io/aas/3/0/test-private-property-2", "test-private-property-2-value")
+                .build();
     }
 
     @Test
@@ -135,46 +163,9 @@ class CodecTest {
 
         String serialized = testSubject.serialize(querySpec);
 
-        var toMatch = readFile("querySpec.json");
+        var toMatch = loadResource("querySpec.json");
 
         assertEqualsIgnoreWhiteSpace(toMatch, serialized);
-    }
-
-    private String readFile(String path) throws IOException {
-        ClassLoader classLoader = getClass().getClassLoader();
-        return FileUtils.readFileToString(new File(Objects.requireNonNull(classLoader.getResource(path)).getFile()),
-                StandardCharsets.UTF_8.toString());
-    }
-
-    private static PolicyDefinition getPolicyDefinition() {
-        return PolicyDefinition.Builder.newInstance()
-                .id("my-test-contract-definition-id")
-                .policy(Policy.Builder.newInstance()
-                        .target("my-policy-definition-policy-target")
-                        .assignee("my-policy-definition-policy-assignee")
-                        .assigner("my-policy-definition-policy-assigner")
-                        .inheritsFrom("my-policy-definition-policy-does-not-inherit")
-                        .build()
-                )
-                .privateProperty("https://admin-shell.io/aas/3/0/test-private-property", "test-private-property-value")
-                .privateProperty("https://admin-shell.io/aas/3/0/test-private-property-2", "test-private-property-2-value")
-                .build();
-    }
-
-    private static ContractDefinition getContractDefinition() {
-        return ContractDefinition.Builder.newInstance()
-                .id("my-test-contract-definition-id")
-                .contractPolicyId("my-test-contract-definition-contract-policy-id")
-                .accessPolicyId("my-test-contract-definition-access-policy-id")
-                .assetsSelector(List.of(
-                        Criterion.Builder.newInstance().operandLeft("my-test-custom-string-operand-left")
-                                .operator("?custom-operator\\")
-                                .operandRight(new ArrayList<>()).build(),
-                        Criterion.criterion("left", "operand", "right")
-                ))
-                .privateProperty("https://admin-shell.io/aas/3/0/test-private-property", "test-private-property-value")
-                .privateProperty("https://admin-shell.io/aas/3/0/test-private-property-2", "test-private-property-2-value")
-                .build();
     }
 
     private Asset getAsset() {

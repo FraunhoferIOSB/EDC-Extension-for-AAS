@@ -78,20 +78,6 @@ public class AasDataAddress extends DataAddress {
         return getStringProperty(BASE_URL);
     }
 
-    private boolean hasProvider() {
-        return properties.get(EDC_NAMESPACE + PROVIDER) != null || properties.get(PROVIDER) != null;
-    }
-
-    private AasProvider getProvider() {
-        Object provider = Optional
-                .ofNullable(super.getProperties().get(AAS_V30_NAMESPACE + PROVIDER))
-                .orElse(super.getProperties().get(PROVIDER));
-        if (provider instanceof AasProvider) {
-            return (AasProvider) provider;
-        }
-        throw new EdcException(new IllegalStateException("Provider not set correctly: %s".formatted(provider)));
-    }
-
     @JsonIgnore
     public String getMethod() {
         return getStringProperty(METHOD, "GET");
@@ -168,7 +154,7 @@ public class AasDataAddress extends DataAddress {
 
     public HttpDataAddress asHttpDataAddress() {
         HttpDataAddress.Builder httpDataAddress = HttpDataAddress.Builder.newInstance();
-        this.getProvider().getHeaders().forEach(httpDataAddress::addAdditionalHeader);
+        this.getAdditionalHeaders().forEach(httpDataAddress::addAdditionalHeader);
 
         return httpDataAddress
                 .baseUrl(this.getBaseUrl())

@@ -18,9 +18,6 @@ package de.fraunhofer.iosb.ssl.impl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class NoOpSelfSignedCertificateRetrieverTest {

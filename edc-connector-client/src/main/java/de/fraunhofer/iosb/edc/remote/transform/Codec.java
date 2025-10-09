@@ -23,7 +23,6 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.entity.Entity;
 import org.eclipse.edc.spi.result.Failure;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.jetbrains.annotations.NotNull;
 

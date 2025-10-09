@@ -72,9 +72,9 @@ public class SynchronizerTest {
         var oldEnvironment = getEmptyEnvironment();
         var newEnvironment = getEnvironment();
 
-        var oldEnvironmentAsset = new EnvironmentToAssetMapper(() -> false).executeSingle(new Service.Builder().withUrl(accessUrl).build(),
+        var oldEnvironmentAsset = new EnvironmentToAssetMapper().executeSingle(new Service.Builder().withUrl(accessUrl).build(),
                 oldEnvironment);
-        var newEnvironmentAsset = new EnvironmentToAssetMapper(() -> false).executeSingle(new Service.Builder().withUrl(accessUrl).build(),
+        var newEnvironmentAsset = new EnvironmentToAssetMapper().executeSingle(new Service.Builder().withUrl(accessUrl).build(),
                 newEnvironment);
 
         var pair = new Pair<>(oldEnvironmentAsset.getContent().getEnvironment(),
@@ -108,9 +108,9 @@ public class SynchronizerTest {
                 .conceptDescriptions(oldEnvironment.getConceptDescriptions())
                 .build();
 
-        var oldEnvironmentAsset = new EnvironmentToAssetMapper(() -> false).executeSingle(new Service.Builder().withUrl(accessUrl).build(),
+        var oldEnvironmentAsset = new EnvironmentToAssetMapper().executeSingle(new Service.Builder().withUrl(accessUrl).build(),
                 oldEnvironment);
-        var newEnvironmentAsset = new EnvironmentToAssetMapper(() -> false).executeSingle(new Service.Builder().withUrl(accessUrl).build(),
+        var newEnvironmentAsset = new EnvironmentToAssetMapper().executeSingle(new Service.Builder().withUrl(accessUrl).build(),
                 newEnvironment);
 
         var pair = new Pair<>(oldEnvironmentAsset.getContent().getEnvironment(),

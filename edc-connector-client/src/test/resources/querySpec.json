@@ -1,0 +1,14 @@
+{
+  "@type": "https://w3id.org/edc/v0.0.1/ns/QuerySpec",
+  "https://w3id.org/edc/v0.0.1/ns/limit": 761370123,
+  "https://w3id.org/edc/v0.0.1/ns/offset": 42,
+  "https://w3id.org/edc/v0.0.1/ns/sortOrder": "ASC",
+  "https://w3id.org/edc/v0.0.1/ns/filterExpression": [
+    {
+      "@type": "https://w3id.org/edc/v0.0.1/ns/Criterion",
+      "https://w3id.org/edc/v0.0.1/ns/operandLeft": "aas:id",
+      "https://w3id.org/edc/v0.0.1/ns/operator": "=",
+      "https://w3id.org/edc/v0.0.1/ns/operandRight": "my-test-aas-id"
+    }
+  ]
+}

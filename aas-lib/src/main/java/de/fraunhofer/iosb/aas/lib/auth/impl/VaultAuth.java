@@ -7,7 +7,7 @@ import java.util.AbstractMap;
 import java.util.Map;
 
 /**
- * Get vault secret for authentication
+ * Get vault secret for authentication with x-api-key
  */
 public class VaultAuth extends AuthenticationMethod {
 

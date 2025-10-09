@@ -30,6 +30,8 @@ dependencies {
     implementation("$group:runtime-core:$edcVersion")
     implementation("$group:connector-core:$edcVersion")
 
+    testImplementation(testFixtures(project(":aas-lib")))
+
     testImplementation("$group:http-lib:$edcVersion") // EdcHttpClientImpl
     testImplementation("$group:junit:$edcVersion")
     testImplementation("$group:json-lib:$edcVersion")

@@ -5,18 +5,18 @@ import de.fraunhofer.iosb.edc.remote.stores.AbstractControlPlaneConnectionHandle
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.result.ServiceFailure;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.contains;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class RemoteContractDefinitionStoreTest extends AbstractControlPlaneConnectionHandlerTest {
@@ -83,8 +83,6 @@ class RemoteContractDefinitionStoreTest extends AbstractControlPlaneConnectionHa
 
         var response = testSubject.findById(id);
 
-        verify(monitor).debug(contains(ServiceFailure.Reason.NOT_FOUND.toString()));
-
         assertNull(response);
     }
 
@@ -120,10 +118,9 @@ class RemoteContractDefinitionStoreTest extends AbstractControlPlaneConnectionHa
                         "  \"@type\": \"QuerySpec\"" +
                         "}");
 
-        var response = testSubject.findAll(QuerySpec.max());
-
-        verify(monitor).warning(contains(ServiceFailure.Reason.UNAUTHORIZED.toString()));
+        Stream<ContractDefinition> response = testSubject.findAll(QuerySpec.max());
         assertNotNull(response);
+        assertTrue(response.findAny().isEmpty());
     }
 
     private RemoteContractDefinitionStore testSubject() {

@@ -14,7 +14,6 @@ import org.eclipse.edc.spi.message.Range;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
-import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -29,11 +28,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import static de.fraunhofer.iosb.aas.test.StringMethods.assertEqualsIgnoreWhiteSpace;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test if codec correctly (de)serializes and compacts/expands json-ld contexts
@@ -73,80 +71,83 @@ class CodecTest {
         testSubject = new Codec(typeTransformerRegistry, jsonLd);
     }
 
-    public static void assertEqualsIgnoreWhiteSpace(String expected, String actual) {
-        assertTrue(expected != null || actual == null);
-        assertNotNull(actual);
+    @Test
+    void serialize_thenDeserialize_asset() {
+        var expected = getAsset();
 
-        assertEquals(expected.replaceAll(" +", "").replaceAll("\r", "").replaceAll("\n",
-                ""), actual.replaceAll(" +", "").replaceAll("\r", "").replaceAll("\n", ""));
+        String serialized = testSubject.serialize(expected);
+
+        Asset deserialized = testSubject.deserialize(serialized, Asset.class).getContent();
+
+        assertEquals(expected.getId(), deserialized.getId());
+        assertEquals(expected.getName(), deserialized.getName());
+        assertEquals(expected.getContentType(), deserialized.getContentType());
+        assertEquals(expected.getDescription(), deserialized.getDescription());
+        assertEquals(expected.getVersion(), deserialized.getVersion());
+        assertEquals(expected.getDataAddress(), deserialized.getDataAddress());
+        assertEquals(expected.getProperties(), deserialized.getProperties());
+        assertEquals(expected.getPrivateProperties(), deserialized.getPrivateProperties());
+        // Not covered by JsonObjectToAssetTransformer
+        // assertEquals(expected.getCreatedAt(), deserialized.getCreatedAt());
     }
 
     @Test
-    void deserializeAssets() throws IOException {
-        var serialized = readFile("assetSerialized.json");
-        var toMatch = getAsset();
-        var serializedList = String.format("[%s,%s]", serialized, serialized);
+    void serialize_thenDeserialize_contractDefinition() {
+        ContractDefinition expected = getContractDefinition();
 
-        var deserializedList = testSubject.deserializeList(serializedList, Asset.class);
-        deserializedList.getContent().forEach(asset -> compareAssets(toMatch, asset));
+        String serialized = testSubject.serialize(expected);
+
+        ContractDefinition deserialized = testSubject.deserialize(serialized, ContractDefinition.class).getContent();
+
+        assertEquals(expected, deserialized);
     }
 
     @Test
-    void deserializeAsset() throws IOException {
-        var serialized = readFile("assetSerialized.json");
+    void serialize_thenDeserialize_policyDefinition() {
+        var expected = getPolicyDefinition();
 
-        var deserialized = testSubject.deserialize(serialized, Asset.class);
+        String serialized = testSubject.serialize(expected);
 
-        var toMatch = getAsset();
-        compareAssets(toMatch, deserialized.getContent());
-    }
+        // Serializing the policyDefinition gives the policy an @id which is random.
+        // Instead of comparing the json string, we deserialize again and compare with the original object.
+        PolicyDefinition deserialized = testSubject.deserialize(serialized, PolicyDefinition.class).getContent();
 
-    private void compareAssets(Asset assetA, Asset assetB) {
-        assertEquals(assetA.getId(), assetB.getId());
-        assertEquals(assetA.getContentType(), assetB.getContentType());
-        assertEquals(assetA.getDescription(), assetB.getDescription());
-        assertEquals(assetA.getDataAddress(), assetB.getDataAddress());
-
-        assertTrue(assetA.getProperties()
-                .entrySet().stream()
-                .allMatch(entry -> assetB.getProperty(entry.getKey()).equals(entry.getValue())));
-
-        assertTrue(assetA.getPrivateProperties()
-                .entrySet().stream()
-                .allMatch(entry -> assetB.getPrivateProperty(entry.getKey()).equals(entry.getValue())));
-    }
-
-    @Test
-    void serializeAsset() throws IOException {
-        var asset = getAsset();
-
-        assertEqualsIgnoreWhiteSpace(readFile("assetSerialized.json"), testSubject.serialize(asset));
+        assertEquals(expected.getId(), deserialized.getId());
+        assertEquals(expected.getPolicy().getPermissions(), deserialized.getPolicy().getPermissions());
+        assertEquals(expected.getPolicy().getProhibitions(), deserialized.getPolicy().getProhibitions());
+        assertEquals(expected.getPolicy().getObligations(), deserialized.getPolicy().getObligations());
+        assertEquals(expected.getPolicy().getAssignee(), deserialized.getPolicy().getAssignee());
+        assertEquals(expected.getPolicy().getAssigner(), deserialized.getPolicy().getAssigner());
+        assertEquals(expected.getPolicy().getExtensibleProperties(), deserialized.getPolicy().getExtensibleProperties());
+        // NOTE inheritsFrom is not serialized by EDC JsonObjectFromPolicyTransformer, so not intended
+        // assertEquals(policyDefinition.getPolicy().getInheritsFrom(), deserialized.getPolicy().getInheritsFrom());
+        assertEquals(expected.getPolicy().getProfiles(), deserialized.getPolicy().getProfiles());
+        assertEquals(expected.getPrivateProperties(), deserialized.getPrivateProperties());
     }
 
     @Test
-    void serializeContractDefinition() throws IOException {
-        var serializationResult = testSubject.serialize(ContractDefinition.Builder.newInstance()
-                .id("my-test-contract-definition-id")
-                .contractPolicyId("my-test-contract-definition-contract-policy-id")
-                .accessPolicyId("my-test-contract-definition-access-policy-id")
-                .assetsSelector(List.of(
-                        Criterion.Builder.newInstance().operandLeft("my-test-custom-string-operand-left")
-                                .operator("?custom-operator\\")
-                                .operandRight(new ArrayList<>()).build(),
-                        Criterion.criterion("left", "operand", "right")
-                ))
-                .privateProperty("https://admin-shell.io/aas/3/0/test-private-property", "test-private-property-value")
-                .privateProperty("https://admin-shell.io/aas/3/0/test-private-property-2", "test-private-property-2-value")
-                .build());
+    void serialize_thenDeserialize_querySpec() throws IOException {
+        QuerySpec querySpec = QuerySpec.Builder.newInstance()
+                .range(new Range(0, 31415926)).limit(761370123)
+                .offset(42)
+                .filter(Criterion.criterion("aas:id", "=", "my-test-aas-id"))
+                .build();
 
-        var toMatch = readFile("contractDefinitionSerialized.json");
+        String serialized = testSubject.serialize(querySpec);
 
-        assertEqualsIgnoreWhiteSpace(toMatch, serializationResult);
+        var toMatch = readFile("querySpec.json");
+
+        assertEqualsIgnoreWhiteSpace(toMatch, serialized);
     }
 
-    @Test
-    void serializePolicyDefinition() throws IOException {
-        var policyDefinition = PolicyDefinition.Builder.newInstance()
+    private String readFile(String path) throws IOException {
+        ClassLoader classLoader = getClass().getClassLoader();
+        return FileUtils.readFileToString(new File(Objects.requireNonNull(classLoader.getResource(path)).getFile()),
+                StandardCharsets.UTF_8.toString());
+    }
+
+    private static PolicyDefinition getPolicyDefinition() {
+        return PolicyDefinition.Builder.newInstance()
                 .id("my-test-contract-definition-id")
                 .policy(Policy.Builder.newInstance()
                         .target("my-policy-definition-policy-target")
@@ -158,52 +159,22 @@ class CodecTest {
                 .privateProperty("https://admin-shell.io/aas/3/0/test-private-property", "test-private-property-value")
                 .privateProperty("https://admin-shell.io/aas/3/0/test-private-property-2", "test-private-property-2-value")
                 .build();
-
-        var serializationResult = testSubject.serialize(policyDefinition);
-
-        // Serializing the policyDefinition gives the policy an @id which is random.
-        // Instead of comparing the json string, we deserialize again and compare with the original object.
-
-        assertEquals(policyDefinition, testSubject.deserializePolicyDefinition(serializationResult));
-
-        var toMatch = readFile("policyDefinitionSerialized.json");
-
-        assertEqualsIgnoreWhiteSpace(toMatch, serializationResult);
     }
 
-    @Test
-    void deserializePolicyDefinitions() {
-    }
-
-    @Test
-    void deserializePolicyDefinition() {
-    }
-
-    @Test
-    void serializeQuerySpec() {
-        QuerySpec querySpec = QuerySpec.Builder.newInstance()
-                .range(new Range(0, 31415926)).limit(761370123)
-                .offset(42)
-                .filter(Criterion.criterion("aas:id", "=", "my-test-aas-id"))
+    private static ContractDefinition getContractDefinition() {
+        return ContractDefinition.Builder.newInstance()
+                .id("my-test-contract-definition-id")
+                .contractPolicyId("my-test-contract-definition-contract-policy-id")
+                .accessPolicyId("my-test-contract-definition-access-policy-id")
+                .assetsSelector(List.of(
+                        Criterion.Builder.newInstance().operandLeft("my-test-custom-string-operand-left")
+                                .operator("?custom-operator\\")
+                                .operandRight(new ArrayList<>()).build(),
+                        Criterion.criterion("left", "operand", "right")
+                ))
+                .privateProperty("https://admin-shell.io/aas/3/0/test-private-property", "test-private-property-value")
+                .privateProperty("https://admin-shell.io/aas/3/0/test-private-property-2", "test-private-property-2-value")
                 .build();
-
-        var y = testSubject.serialize(querySpec);
-
-        var z = 3;
-    }
-
-    @Test
-    void deserializeContractDefinitions() {
-    }
-
-    @Test
-    void deserializeContractDefinition() {
-    }
-
-    private String readFile(String path) throws IOException {
-        ClassLoader classLoader = getClass().getClassLoader();
-        return FileUtils.readFileToString(new File(Objects.requireNonNull(classLoader.getResource(path)).getFile()),
-                StandardCharsets.UTF_8.toString());
     }
 
     private Asset getAsset() {

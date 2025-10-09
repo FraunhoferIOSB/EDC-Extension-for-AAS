@@ -27,6 +27,7 @@ import org.eclipse.edc.spi.entity.Entity;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.result.StoreResult;
 
@@ -63,7 +64,7 @@ public abstract class ControlPlaneConnectionHandler<T extends Entity> {
 
         var responseJsonString = executeRequest(request)
                 .orElse(failure -> {
-                    monitor.severe(failure.getFailureDetail());
+                    reportError(failure);
                     return null;
                 });
 
@@ -86,7 +87,7 @@ public abstract class ControlPlaneConnectionHandler<T extends Entity> {
         var responseJsonOrNull = executeRequest(request)
                 .orElse(failure -> {
                     if (NOT_FOUND != failure.getReason()) {
-                        monitor.severe(failure.getFailureDetail());
+                        reportError(failure);
                     }
                     return null;
                 });
@@ -98,7 +99,7 @@ public abstract class ControlPlaneConnectionHandler<T extends Entity> {
         Result<T> deserialized = codec.deserialize(responseJsonOrNull, clazz);
 
         if (deserialized.failed()) {
-            monitor.warning(deserialized.getFailureDetail());
+            monitor.severe(deserialized.getFailureDetail());
             return null;
         }
 
@@ -116,7 +117,7 @@ public abstract class ControlPlaneConnectionHandler<T extends Entity> {
             if (response.reason() == CONFLICT) {
                 return StoreResult.alreadyExists(String.format(getExistsTemplate(), entity.getId()));
             }
-            monitor.severe(response.getFailureDetail());
+            reportError(response.getFailure());
             return StoreResult.generalError(response.getFailureDetail());
         }
 
@@ -142,7 +143,7 @@ public abstract class ControlPlaneConnectionHandler<T extends Entity> {
             } else if (CONFLICT == response.reason()) {
                 return StoreResult.alreadyLeased(response.getFailureDetail());
             }
-            monitor.severe(response.getFailureDetail());
+            reportError(response.getFailure());
             return StoreResult.generalError(response.getFailureDetail());
         }
 
@@ -161,7 +162,7 @@ public abstract class ControlPlaneConnectionHandler<T extends Entity> {
             if (NOT_FOUND == response.reason()) {
                 return StoreResult.notFound(String.format(getNotFoundTemplate(), entity.getId()));
             }
-            monitor.severe(response.getFailureDetail());
+            reportError(response.getFailure());
             return StoreResult.generalError(response.getFailureDetail());
         }
 
@@ -199,6 +200,10 @@ public abstract class ControlPlaneConnectionHandler<T extends Entity> {
         } catch (IOException controlPlaneConnectionException) {
             return ServiceResult.unexpected(controlPlaneConnectionException.getMessage());
         }
+    }
+
+    private void reportError(ServiceFailure failure) {
+        monitor.severe(String.format("%s: %s", failure.getReason(), failure.getFailureDetail()));
     }
 
     public static abstract class Builder<T extends ControlPlaneConnectionHandler, B extends Builder<T, B>> {

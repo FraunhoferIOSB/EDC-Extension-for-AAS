@@ -32,6 +32,8 @@ import java.util.function.UnaryOperator;
  */
 public class ControlPlaneConnection {
 
+    private static final String CONTENT_TYPE = "content-type";
+    public static final String APPLICATION_JSON = "application/json";
     private final HttpUrl connectionUri;
     private final String resourceName;
 
@@ -74,13 +76,13 @@ public class ControlPlaneConnection {
         // auth
         authSupplier.apply(requestBuilder);
 
-        requestBuilder.header("accept", "application/json");
+        requestBuilder.header("accept", APPLICATION_JSON);
 
         // body
         RequestBody requestBody = null;
         if (body != null) {
-            requestBuilder.header("Content-Type", "application/json");
-            requestBody = RequestBody.create(body, MediaType.parse(("application/json")));
+            requestBuilder.header(CONTENT_TYPE, APPLICATION_JSON);
+            requestBody = RequestBody.create(body, MediaType.parse(APPLICATION_JSON));
         }
         requestBuilder.method(method.name(), requestBody);
 

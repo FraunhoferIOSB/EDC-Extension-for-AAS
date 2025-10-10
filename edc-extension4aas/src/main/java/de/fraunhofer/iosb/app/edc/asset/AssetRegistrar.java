@@ -27,8 +27,11 @@ import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.StoreResult;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
 import java.util.stream.Stream;
 
+import static de.fraunhofer.iosb.app.aas.mapper.environment.referable.identifiable.SubmodelMapper.SUBMODEL_ELEMENT_LOCATION;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.ALREADY_EXISTS;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.NOT_FOUND;
 
@@ -38,6 +41,8 @@ import static org.eclipse.edc.spi.result.StoreFailure.Reason.NOT_FOUND;
  */
 public class AssetRegistrar extends PipelineStep<ChangeSet<Asset, String>, ChangeSet<Asset, Asset>> {
 
+
+    private final List<String> propertiesToFilter = List.of(SUBMODEL_ELEMENT_LOCATION);
     private final AssetIndex assetIndex;
     private final Monitor monitor;
 
@@ -60,8 +65,8 @@ public class AssetRegistrar extends PipelineStep<ChangeSet<Asset, String>, Chang
      */
     @Override
     public PipelineResult<ChangeSet<Asset, Asset>> apply(ChangeSet<Asset, String> changeSet) {
-        var added = changeSet.toAdd().stream().map(this::create).toList();
         var removed = changeSet.toRemove().stream().map(this::remove).toList();
+        var added = changeSet.toAdd().stream().map(this::create).toList();
 
         // Add contracts for successfully added assets
         var changeSetIds = new ChangeSet.Builder<Asset, Asset>()
@@ -128,7 +133,29 @@ public class AssetRegistrar extends PipelineStep<ChangeSet<Asset, String>, Chang
     }
 
     private Pair<Asset, StoreResult<Void>> create(Asset asset) {
-        return new Pair<>(asset, assetIndex.create(asset));
+        var updatedProperties = new HashMap<>(asset.getProperties());
+
+        propertiesToFilter.forEach(updatedProperties::remove);
+
+        Asset updatedAsset = Asset.Builder.newInstance()
+                .id(asset.getId())
+                .createdAt(asset.getCreatedAt())
+                .dataAddress(asset.getDataAddress())
+                .properties(updatedProperties)
+                .privateProperties(asset.getPrivateProperties())
+                .build();
+
+        StoreResult<Void> createResult = assetIndex.create(updatedAsset);
+
+        // Update if exists
+        if (createResult.failed() && ALREADY_EXISTS == createResult.reason()) {
+            StoreResult<Asset> updateResult = assetIndex.updateAsset(updatedAsset);
+            if (updateResult.failed()) {
+                return new Pair<>(updatedAsset, StoreResult.generalError(updateResult.getFailureDetail()));
+            }
+            return new Pair<>(updatedAsset, StoreResult.success());
+        }
+        return new Pair<>(updatedAsset, createResult);
     }
 
     private StoreResult<Asset> remove(String assetId) {

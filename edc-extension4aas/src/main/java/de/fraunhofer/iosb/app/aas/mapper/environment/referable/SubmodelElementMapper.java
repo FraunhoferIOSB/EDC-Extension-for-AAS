@@ -33,6 +33,8 @@ import static de.fraunhofer.iosb.aas.lib.type.AasConstants.AAS_V30_NAMESPACE;
 
 public class SubmodelElementMapper extends ReferableMapper {
 
+    public static final String SMC_CHILDREN_LOCATION = "value";
+
     /* May contain traces of recursion */
     public <E extends SubmodelElement> Asset map(Reference parent, E submodelElement, AasProvider provider) {
         Asset.Builder assetBuilder = super.map(submodelElement);
@@ -52,7 +54,7 @@ public class SubmodelElementMapper extends ReferableMapper {
                 .property("modelingType", modelingType.replace("Default", ""));
 
         if (!children.isEmpty()) {
-            assetBuilder.property("value", children);
+            assetBuilder.property(SMC_CHILDREN_LOCATION, children);
         }
 
         if (submodelElement.getSemanticId() != null && !submodelElement.getSemanticId().getKeys().isEmpty()) {

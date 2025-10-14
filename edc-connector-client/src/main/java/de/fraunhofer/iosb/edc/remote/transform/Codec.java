@@ -103,6 +103,7 @@ public class Codec {
 
         // Remove namespaces to keep aas properties
         String jsonRepresentationClean = jsonRepresentation.toString().replaceAll(EDC_NAMESPACE, "");
+        jsonRepresentationClean = jsonRepresentationClean.replaceAll("creator", EDC_NAMESPACE.concat("creator"));
         JsonObject jsonObjectClean;
 
         try (JsonReader jsonReader = Json.createReader(new StringReader(jsonRepresentationClean))) {

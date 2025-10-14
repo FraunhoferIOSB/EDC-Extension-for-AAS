@@ -21,7 +21,12 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import de.fraunhofer.iosb.aas.lib.model.AasProvider;
+import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.DeserializationException;
+import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.SerializationException;
+import org.eclipse.digitaltwin.aas4j.v3.dataformat.json.JsonDeserializer;
+import org.eclipse.digitaltwin.aas4j.v3.dataformat.json.JsonSerializer;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
+import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultReference;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -56,8 +61,12 @@ public class AasDataAddress extends DataAddress {
     // See aas4j operation
     private static final String ADDITIONAL_HEADER = "aas:header:";
     private static final String METHOD = EDC_NAMESPACE + "method";
-    private static final String reference = AAS_V30_NAMESPACE + "reference";
+    private static final String PROVIDER = AAS_V30_NAMESPACE + "provider";
+    private static final String REFERENCE_CHAIN = AAS_V30_NAMESPACE + "referenceChain";
     private static final String PATH = AAS_V30_NAMESPACE + "path";
+
+    private static final JsonSerializer jsonSerializer = new JsonSerializer();
+    private static final JsonDeserializer jsonDeserializer = new JsonDeserializer();
 
     private AasDataAddress() {
         super();
@@ -127,7 +136,20 @@ public class AasDataAddress extends DataAddress {
     }
 
     public Reference getReferenceChain() {
-        return (Reference) getProperty(reference);
+        Reference referenceChain = null;
+
+        String referenceString = getStringProperty(REFERENCE_CHAIN);
+        if (referenceString == null) {
+            return new DefaultReference();
+        }
+
+        try {
+            referenceChain = jsonDeserializer.read(getStringProperty(REFERENCE_CHAIN), Reference.class);
+        } catch (DeserializationException e) {
+            throw new EdcException(new IllegalStateException(("Faulty reference chain: %s").formatted(referenceChain)));
+        }
+
+        return referenceChain;
     }
 
     public HttpDataAddress asHttpDataAddress() {
@@ -191,7 +213,11 @@ public class AasDataAddress extends DataAddress {
         }
 
         public Builder referenceChain(Reference referenceChain) {
-            this.property(reference, referenceChain);
+            try {
+                this.property(REFERENCE_CHAIN, jsonSerializer.write(referenceChain));
+            } catch (SerializationException e) {
+                throw new EdcException(e);
+            }
             return this;
         }
 

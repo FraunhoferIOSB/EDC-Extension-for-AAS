@@ -31,6 +31,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static de.fraunhofer.iosb.app.aas.mapper.environment.EnvironmentToAssetMapper.ACCESS_POLICY_FIELD;
+import static de.fraunhofer.iosb.app.aas.mapper.environment.EnvironmentToAssetMapper.CONTRACT_POLICY_FIELD;
 import static de.fraunhofer.iosb.app.aas.mapper.environment.referable.SubmodelElementMapper.SMC_CHILDREN_LOCATION;
 import static de.fraunhofer.iosb.app.aas.mapper.environment.referable.identifiable.SubmodelMapper.SUBMODEL_ELEMENT_LOCATION;
 
@@ -65,6 +67,8 @@ public class Synchronizer extends PipelineStep<Collection<Pair<Asset, Asset>>, C
                 .filter(Objects::nonNull)
                 .map(AssetUtil::flatMapAssets)
                 .flatMap(Collection::stream)
+                .filter(asset -> null != asset.getPrivateProperty(ACCESS_POLICY_FIELD))
+                .filter(asset -> null != asset.getPrivateProperty(CONTRACT_POLICY_FIELD))
                 .toList();
 
         Collection<Asset> allNewAssets = oldAndNewAssets.stream()
@@ -72,6 +76,8 @@ public class Synchronizer extends PipelineStep<Collection<Pair<Asset, Asset>>, C
                 .filter(Objects::nonNull)
                 .map(AssetUtil::flatMapAssets)
                 .flatMap(Collection::stream)
+                .filter(asset -> null != asset.getPrivateProperty(ACCESS_POLICY_FIELD))
+                .filter(asset -> null != asset.getPrivateProperty(CONTRACT_POLICY_FIELD))
                 .toList();
 
         Collection<String> toRemove =

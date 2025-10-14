@@ -139,17 +139,21 @@ public class ContractRegistrar extends PipelineStep<ChangeSet<Asset, Asset>, Voi
     }
 
     private StoreResult<Void> registerWithContract(Asset asset) {
-        String accessPolicyId = getAccessPolicy(asset).orElse(DEFAULT_ACCESS_POLICY_DEFINITION_ID);
-        String contractPolicyId = getContractPolicy(asset).orElse(DEFAULT_CONTRACT_POLICY_DEFINITION_ID);
+        Optional<String> accessPolicyId = getAccessPolicy(asset);
+        Optional<String> contractPolicyId = getContractPolicy(asset);
 
-        if (Objects.isNull(policyDefinitionStore.findById(accessPolicyId))) {
+        if (accessPolicyId.isEmpty() || contractPolicyId.isEmpty()) {
+            return StoreResult.success();
+        }
+
+        if (Objects.isNull(policyDefinitionStore.findById(accessPolicyId.get()))) {
             monitor.warning(format("AccessPolicyDefinition with id %s not found.", accessPolicyId));
         }
-        if (Objects.isNull(policyDefinitionStore.findById(contractPolicyId))) {
+        if (Objects.isNull(policyDefinitionStore.findById(contractPolicyId.get()))) {
             monitor.warning(format("ContractPolicyDefinition with id %s not found.", contractPolicyId));
         }
 
-        Optional<ContractDefinition> maybeContract = findContracts(accessPolicyId, contractPolicyId).findFirst();
+        Optional<ContractDefinition> maybeContract = findContracts(accessPolicyId.get(), contractPolicyId.get()).findFirst();
 
         if (maybeContract.isPresent()) {
             ContractDefinition updatedContract = getContractDefinition(asset, maybeContract.get());
@@ -162,8 +166,8 @@ public class ContractRegistrar extends PipelineStep<ChangeSet<Asset, Asset>, Voi
         }
 
         StoreResult<Void> saveResult = contractDefinitionStore.save(getBaseContractDefinition()
-                .accessPolicyId(accessPolicyId)
-                .contractPolicyId(contractPolicyId)
+                .accessPolicyId(accessPolicyId.get())
+                .contractPolicyId(contractPolicyId.get())
                 .assetsSelectorCriterion(getAssetIdCriterion(asset.getId()))
                 .build());
 

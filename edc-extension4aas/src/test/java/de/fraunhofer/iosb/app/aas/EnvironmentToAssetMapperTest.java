@@ -20,6 +20,8 @@ import de.fraunhofer.iosb.aas.lib.spi.AasDataAddress;
 import de.fraunhofer.iosb.app.aas.mapper.environment.EnvironmentToAssetMapper;
 import de.fraunhofer.iosb.app.controller.ConfigurationController;
 import de.fraunhofer.iosb.app.pipeline.PipelineFailure;
+import de.fraunhofer.iosb.app.util.AssetUtil;
+import de.fraunhofer.iosb.ilt.faaast.service.util.ReferenceHelper;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultEnvironment;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
@@ -36,8 +38,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static de.fraunhofer.iosb.app.aas.mapper.environment.referable.identifiable.SubmodelMapper.SUBMODEL_ELEMENT_LOCATION;
 import static de.fraunhofer.iosb.app.testutils.AasCreator.getEmptyEnvironment;
 import static de.fraunhofer.iosb.app.testutils.AasCreator.getEnvironment;
+import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -52,20 +56,19 @@ class EnvironmentToAssetMapperTest {
     public static final String CONCEPT_DESCRIPTIONS = "conceptDescriptions";
     public static final String SHELLS = "shells";
     public static final String SUBMODELS = "submodels";
-    private final URL accessUrl = new URL("http://localhost:%s".formatted(12345));
+    private final URL accessUrl = new URL("http://localhost:%s".formatted(getFreePort()));
     private final List<Object> emptyList = List.of();
     private EnvironmentToAssetMapper testSubject;
     // Change for test case if needed
-    private boolean onlySubmodelsDecider;
 
     EnvironmentToAssetMapperTest() throws MalformedURLException {
     }
 
     @BeforeEach
     void setUp() {
-        onlySubmodelsDecider = false;
+        onlySubmodels(false);
 
-        testSubject = new EnvironmentToAssetMapper(() -> this.onlySubmodelsDecider);
+        testSubject = new EnvironmentToAssetMapper();
     }
 
     @Test
@@ -164,7 +167,7 @@ class EnvironmentToAssetMapperTest {
 
     @Test
     void testOnlySubmodels() {
-        onlySubmodelsDecider = true;
+        onlySubmodels(true);
 
         var env = getEnvironment();
 
@@ -194,8 +197,7 @@ class EnvironmentToAssetMapperTest {
 
     @Test
     void testCorrectAccessUrlsHttpDataAddress() {
-        var configController = new ConfigurationController(ConfigFactory.empty(), new ConsoleMonitor());
-        configController.updateConfiguration("{\"edc.aas.useAasDataPlane\":\"false\"}");
+        useAasDataPlane(false);
 
         var env = getEnvironment();
         var result = testSubject.executeSingle(new Service.Builder().withUrl(accessUrl).build(), env).getContent();
@@ -203,6 +205,9 @@ class EnvironmentToAssetMapperTest {
                 (HttpDataAddress) getChildren(result.getEnvironment(), SHELLS).stream().map(Asset::getDataAddress).toList().get(0);
         var submodelDataAddress =
                 (HttpDataAddress) getChildren(result.getEnvironment(), SUBMODELS).stream().map(Asset::getDataAddress).toList().get(0);
+        var submodelElementDataAddress =
+                (HttpDataAddress) getChildren(result.getEnvironment(), SUBMODELS).stream().map(submodel -> AssetUtil.getChildren(submodel,
+                        SUBMODEL_ELEMENT_LOCATION)).findAny().orElseThrow().stream().findAny().orElseThrow().getDataAddress();
         var conceptDescriptionDataAddress =
                 (HttpDataAddress) getChildren(result.getEnvironment(), CONCEPT_DESCRIPTIONS).stream().map(Asset::getDataAddress).toList().get(0);
 
@@ -210,18 +215,21 @@ class EnvironmentToAssetMapperTest {
         assertEquals("%s/%s".formatted(SHELLS,
                         Base64.getEncoder().encodeToString(env.getAssetAdministrationShells().get(0).getId().getBytes())),
                 shellDataAddress.getPath());
+
         assertTrue(submodelDataAddress.getBaseUrl().startsWith(accessUrl.toString()));
         assertEquals("%s/%s".formatted(SUBMODELS,
                         Base64.getEncoder().encodeToString(env.getSubmodels().get(0).getId().getBytes())),
                 submodelDataAddress.getPath());
+
+        assertTrue(submodelElementDataAddress.getBaseUrl().startsWith(accessUrl.toString()));
+
         assertTrue(conceptDescriptionDataAddress.getBaseUrl().startsWith(accessUrl.toString()));
         assertEquals("concept-descriptions/%s".formatted(Base64.getEncoder().encodeToString(env.getConceptDescriptions().get(0).getId().getBytes())), conceptDescriptionDataAddress.getPath());
     }
 
     @Test
     void testCorrectAccessUrlsAasDataAddress() {
-        var configController = new ConfigurationController(ConfigFactory.empty(), new ConsoleMonitor());
-        configController.updateConfiguration("{\"edc.aas.useAasDataPlane\":\"true\"}");
+        useAasDataPlane(true);
 
         var env = getEnvironment();
         var result = testSubject.executeSingle(new Service.Builder().withUrl(accessUrl).build(), env).getContent();
@@ -242,6 +250,16 @@ class EnvironmentToAssetMapperTest {
                 submodelDataAddress.getPath());
         assertTrue(conceptDescriptionDataAddress.getBaseUrl().startsWith(accessUrl.toString()));
         assertEquals("concept-descriptions/%s".formatted(Base64.getEncoder().encodeToString(env.getConceptDescriptions().get(0).getId().getBytes())), conceptDescriptionDataAddress.getPath());
+    }
+
+    private static void useAasDataPlane(boolean useAasDataPlane) {
+        var configController = new ConfigurationController(ConfigFactory.empty(), new ConsoleMonitor());
+        configController.updateConfiguration(String.format("{\"edc.aas.useAasDataPlane\":\"%b\"}", useAasDataPlane));
+    }
+
+    private static void onlySubmodels(boolean onlySubmodels) {
+        var configController = new ConfigurationController(ConfigFactory.empty(), new ConsoleMonitor());
+        configController.updateConfiguration(String.format("{\"edc.aas.onlySubmodels\":\"%b\"}", onlySubmodels));
     }
 
     @SuppressWarnings("unchecked")

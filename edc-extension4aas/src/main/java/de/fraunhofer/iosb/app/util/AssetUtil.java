@@ -15,22 +15,18 @@
  */
 package de.fraunhofer.iosb.app.util;
 
-import org.eclipse.digitaltwin.aas4j.v3.model.Referable;
-import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElement;
-import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElementCollection;
-import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElementList;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 import javax.annotation.Nonnull;
 
 import static de.fraunhofer.iosb.app.aas.mapper.environment.EnvironmentToAssetMapper.CONCEPT_DESCRIPTIONS_LOCATION;
 import static de.fraunhofer.iosb.app.aas.mapper.environment.EnvironmentToAssetMapper.SHELLS_LOCATION;
 import static de.fraunhofer.iosb.app.aas.mapper.environment.EnvironmentToAssetMapper.SUBMODELS_LOCATION;
+import static de.fraunhofer.iosb.app.aas.mapper.environment.referable.SubmodelElementMapper.SMC_CHILDREN_LOCATION;
 import static de.fraunhofer.iosb.app.aas.mapper.environment.referable.identifiable.SubmodelMapper.SUBMODEL_ELEMENT_LOCATION;
 
 public class AssetUtil {
@@ -80,12 +76,19 @@ public class AssetUtil {
         return new ArrayList<>();
     }
 
-    public static void forEachSubmodelElementAssetRec(Asset parent, UnaryOperator<Asset> function) {
-        getChildrenRec(parent).forEach(function::apply);
+
+    public static void mapEachSubmodelElementAssetRec(Asset parent, UnaryOperator<Asset> function) {
+        var children = getChildren(parent, SMC_CHILDREN_LOCATION);
+        if (!children.isEmpty()) {
+            children.forEach(child -> mapEachSubmodelElementAssetRec(child, function));
+            children.forEach(function::apply);
+        }
+        function.apply(parent);
     }
 
+
     private static Collection<Asset> getChildrenRec(Asset parent) {
-        var children = getChildren(parent, "value");
+        var children = getChildren(parent, SMC_CHILDREN_LOCATION);
         if (!children.isEmpty()) {
             var grandChildren = children.stream().map(AssetUtil::getChildrenRec).flatMap(Collection::stream).toList();
             children.addAll(grandChildren);

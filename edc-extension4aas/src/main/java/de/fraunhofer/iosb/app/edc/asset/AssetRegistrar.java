@@ -42,7 +42,7 @@ import static org.eclipse.edc.spi.result.StoreFailure.Reason.NOT_FOUND;
 public class AssetRegistrar extends PipelineStep<ChangeSet<Asset, String>, ChangeSet<Asset, Asset>> {
 
 
-    private final List<String> propertiesToFilter = List.of(SUBMODEL_ELEMENT_LOCATION);
+    private final List<String> propertiesToFilter = List.of(SUBMODEL_ELEMENT_LOCATION, "value");
     private final AssetIndex assetIndex;
     private final Monitor monitor;
 

@@ -21,7 +21,6 @@ import de.fraunhofer.iosb.app.aas.mapper.environment.EnvironmentToAssetMapper;
 import de.fraunhofer.iosb.app.controller.ConfigurationController;
 import de.fraunhofer.iosb.app.pipeline.PipelineFailure;
 import de.fraunhofer.iosb.app.util.AssetUtil;
-import de.fraunhofer.iosb.ilt.faaast.service.util.ReferenceHelper;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultEnvironment;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
@@ -34,11 +33,12 @@ import org.junit.jupiter.api.Test;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Base64;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static de.fraunhofer.iosb.app.aas.mapper.environment.referable.identifiable.SubmodelMapper.SUBMODEL_ELEMENT_LOCATION;
+import static de.fraunhofer.iosb.app.aas.mapper.environment.referable.identifiable.IdentifiableMapper.SUBMODEL_ELEMENT_LOCATION;
 import static de.fraunhofer.iosb.app.testutils.AasCreator.getEmptyEnvironment;
 import static de.fraunhofer.iosb.app.testutils.AasCreator.getEnvironment;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
@@ -62,6 +62,16 @@ class EnvironmentToAssetMapperTest {
     // Change for test case if needed
 
     EnvironmentToAssetMapperTest() throws MalformedURLException {
+    }
+
+    private static void useAasDataPlane(boolean useAasDataPlane) {
+        var configController = new ConfigurationController(ConfigFactory.empty(), new ConsoleMonitor());
+        configController.updateConfiguration(String.format("{\"edc.aas.useAasDataPlane\":\"%b\"}", useAasDataPlane));
+    }
+
+    private static void onlySubmodels(boolean onlySubmodels) {
+        var configController = new ConfigurationController(ConfigFactory.empty(), new ConsoleMonitor());
+        configController.updateConfiguration(String.format("{\"edc.aas.onlySubmodels\":\"%b\"}", onlySubmodels));
     }
 
     @BeforeEach
@@ -205,11 +215,16 @@ class EnvironmentToAssetMapperTest {
                 (HttpDataAddress) getChildren(result.getEnvironment(), SHELLS).stream().map(Asset::getDataAddress).toList().get(0);
         var submodelDataAddress =
                 (HttpDataAddress) getChildren(result.getEnvironment(), SUBMODELS).stream().map(Asset::getDataAddress).toList().get(0);
-        var submodelElementDataAddress =
-                (HttpDataAddress) getChildren(result.getEnvironment(), SUBMODELS).stream().map(submodel -> AssetUtil.getChildren(submodel,
-                        SUBMODEL_ELEMENT_LOCATION)).findAny().orElseThrow().stream().findAny().orElseThrow().getDataAddress();
         var conceptDescriptionDataAddress =
                 (HttpDataAddress) getChildren(result.getEnvironment(), CONCEPT_DESCRIPTIONS).stream().map(Asset::getDataAddress).toList().get(0);
+
+        var submodelElementDataAddress =
+                (HttpDataAddress) getChildren(result.getEnvironment(), SUBMODELS).stream()
+                        .map(submodel -> AssetUtil.getChildren(submodel, SUBMODEL_ELEMENT_LOCATION))
+                        .flatMap(Collection::stream)
+                        .map(Asset::getDataAddress)
+                        .filter(HttpDataAddress.class::isInstance)
+                        .findAny().orElseThrow();
 
         assertTrue(shellDataAddress.getBaseUrl().startsWith(accessUrl.toString()));
         assertEquals("%s/%s".formatted(SHELLS,
@@ -250,16 +265,6 @@ class EnvironmentToAssetMapperTest {
                 submodelDataAddress.getPath());
         assertTrue(conceptDescriptionDataAddress.getBaseUrl().startsWith(accessUrl.toString()));
         assertEquals("concept-descriptions/%s".formatted(Base64.getEncoder().encodeToString(env.getConceptDescriptions().get(0).getId().getBytes())), conceptDescriptionDataAddress.getPath());
-    }
-
-    private static void useAasDataPlane(boolean useAasDataPlane) {
-        var configController = new ConfigurationController(ConfigFactory.empty(), new ConsoleMonitor());
-        configController.updateConfiguration(String.format("{\"edc.aas.useAasDataPlane\":\"%b\"}", useAasDataPlane));
-    }
-
-    private static void onlySubmodels(boolean onlySubmodels) {
-        var configController = new ConfigurationController(ConfigFactory.empty(), new ConsoleMonitor());
-        configController.updateConfiguration(String.format("{\"edc.aas.onlySubmodels\":\"%b\"}", onlySubmodels));
     }
 
     @SuppressWarnings("unchecked")

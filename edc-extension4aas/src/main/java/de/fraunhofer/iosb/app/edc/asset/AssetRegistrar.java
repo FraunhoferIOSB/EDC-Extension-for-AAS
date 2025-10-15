@@ -31,7 +31,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static de.fraunhofer.iosb.app.aas.mapper.environment.referable.identifiable.SubmodelMapper.SUBMODEL_ELEMENT_LOCATION;
+import static de.fraunhofer.iosb.app.aas.mapper.environment.referable.SubmodelElementMapper.SMC_CHILDREN_LOCATION;
+import static de.fraunhofer.iosb.app.aas.mapper.environment.referable.identifiable.IdentifiableMapper.SUBMODEL_ELEMENT_LOCATION;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.ALREADY_EXISTS;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.NOT_FOUND;
 
@@ -42,7 +43,7 @@ import static org.eclipse.edc.spi.result.StoreFailure.Reason.NOT_FOUND;
 public class AssetRegistrar extends PipelineStep<ChangeSet<Asset, String>, ChangeSet<Asset, Asset>> {
 
 
-    private final List<String> propertiesToFilter = List.of(SUBMODEL_ELEMENT_LOCATION, "value");
+    private final List<String> propertiesToFilter = List.of(SUBMODEL_ELEMENT_LOCATION, SMC_CHILDREN_LOCATION);
     private final AssetIndex assetIndex;
     private final Monitor monitor;
 

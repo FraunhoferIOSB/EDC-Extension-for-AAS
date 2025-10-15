@@ -19,21 +19,15 @@ import de.fraunhofer.iosb.aas.lib.model.AasProvider;
 import de.fraunhofer.iosb.aas.lib.model.PolicyBinding;
 import de.fraunhofer.iosb.aas.lib.model.impl.Service;
 import de.fraunhofer.iosb.aas.lib.spi.AasDataAddress;
-import de.fraunhofer.iosb.app.aas.mapper.Mapper;
-import de.fraunhofer.iosb.app.aas.mapper.environment.referable.identifiable.AssetAdministrationShellMapper;
-import de.fraunhofer.iosb.app.aas.mapper.environment.referable.identifiable.ConceptDescriptionMapper;
-import de.fraunhofer.iosb.app.aas.mapper.environment.referable.identifiable.SubmodelMapper;
+import de.fraunhofer.iosb.app.aas.mapper.environment.referable.identifiable.IdentifiableMapper;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import de.fraunhofer.iosb.app.pipeline.PipelineFailure;
 import de.fraunhofer.iosb.app.pipeline.PipelineResult;
 import de.fraunhofer.iosb.app.pipeline.PipelineStep;
 import de.fraunhofer.iosb.app.util.AssetUtil;
-import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShell;
-import org.eclipse.digitaltwin.aas4j.v3.model.ConceptDescription;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
 import org.eclipse.digitaltwin.aas4j.v3.model.Identifiable;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
-import org.eclipse.digitaltwin.aas4j.v3.model.Submodel;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.jetbrains.annotations.NotNull;
 
@@ -46,12 +40,12 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static de.fraunhofer.iosb.app.aas.mapper.environment.referable.identifiable.SubmodelMapper.SUBMODEL_ELEMENT_LOCATION;
+import static de.fraunhofer.iosb.app.aas.mapper.environment.referable.identifiable.IdentifiableMapper.SUBMODEL_ELEMENT_LOCATION;
 import static de.fraunhofer.iosb.app.edc.contract.ContractRegistrar.DEFAULT_ACCESS_POLICY_DEFINITION_ID;
 import static de.fraunhofer.iosb.app.edc.contract.ContractRegistrar.DEFAULT_CONTRACT_POLICY_DEFINITION_ID;
 import static de.fraunhofer.iosb.app.pipeline.util.PipelineUtils.extractContents;
 import static de.fraunhofer.iosb.app.pipeline.util.PipelineUtils.handleError;
-import static de.fraunhofer.iosb.app.util.AssetUtil.mapEachSubmodelElementAssetRec;
+import static de.fraunhofer.iosb.app.util.AssetUtil.applyRecursive;
 
 /**
  * Create a mapping from an AAS environment to EDC assets. This is not a holistic transformation but rather maps key
@@ -69,14 +63,8 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<Service, Environm
 
     private final Supplier<Boolean> useAasDataAddress = () -> Configuration.getInstance().useAasDataPlane();
     private final Supplier<Boolean> onlySubmodelsDecision = () -> Configuration.getInstance().onlySubmodels();
-    private final Mapper<AssetAdministrationShell> shellMapper = new AssetAdministrationShellMapper();
-    private final Mapper<Submodel> submodelMapper;
-    private final Mapper<ConceptDescription> conceptDescriptionMapper = new ConceptDescriptionMapper();
+    private final IdentifiableMapper identifiableMapper = new IdentifiableMapper();
 
-
-    public EnvironmentToAssetMapper() {
-        submodelMapper = new SubmodelMapper(onlySubmodelsDecision);
-    }
 
     /**
      * Create a nested EDC asset from this environment structure. The top level asset is just to hold the shells,
@@ -111,27 +99,28 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<Service, Environm
                             .formatted(service.baseUrl()))));
         }
 
-        var submodels = mapIdentifiableList(environment.getSubmodels(), service, submodelMapper);
+        var submodels = mapIdentifiableList(environment.getSubmodels(), service);
         List<Asset> shells = List.of();
         List<Asset> conceptDescriptions = List.of();
 
         if (!onlySubmodelsDecision.get()) {
-            shells = mapIdentifiableList(environment.getAssetAdministrationShells(), service, shellMapper);
-            conceptDescriptions = mapIdentifiableList(environment.getConceptDescriptions(), service, conceptDescriptionMapper);
+            shells = mapIdentifiableList(environment.getAssetAdministrationShells(), service);
+            conceptDescriptions = mapIdentifiableList(environment.getConceptDescriptions(), service);
         }
 
         if (service.hasSelectiveRegistration()) {
             var policyBindings = service.getPolicyBindings();
 
             mapPolicies(submodels, policyBindings);
-            submodels.stream().map(AssetUtil::flatMapAssets).flatMap(Collection::stream).forEach(asset -> mapPolicies(asset, policyBindings));
+            submodels.stream().map(AssetUtil::flatMapAssets).flatMap(Collection::stream)
+                    .forEach(asset -> mapPolicies(asset, policyBindings));
 
             mapPolicies(shells, policyBindings);
             mapPolicies(conceptDescriptions, policyBindings);
         } else {
             mapPolicies(submodels);
             submodels.forEach(submodel -> AssetUtil.getChildren(submodel, SUBMODEL_ELEMENT_LOCATION)
-                    .forEach(submodelElement -> mapEachSubmodelElementAssetRec(submodelElement, this::mapPolicies)));
+                    .forEach(submodelElement -> applyRecursive(submodelElement, this::mapPolicies)));
             mapPolicies(shells);
             mapPolicies(conceptDescriptions);
         }
@@ -139,8 +128,11 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<Service, Environm
         // We convert data addresses this late to exploit their ReferenceChains when selecting elements to register.
         if (!useAasDataAddress.get()) {
             submodels = submodels.stream().map(this::convertDataAddress).toList();
-            submodels.forEach(submodel -> AssetUtil.getChildren(submodel, SUBMODEL_ELEMENT_LOCATION)
-                    .forEach(submodelElement -> mapEachSubmodelElementAssetRec(submodelElement, this::convertDataAddress)));
+            for (var submodel : submodels) {
+                var smes = AssetUtil.getChildren(submodel, SUBMODEL_ELEMENT_LOCATION);
+                smes = smes.stream().map(sme -> applyRecursive(sme, this::convertDataAddress)).toList();
+                submodel.getProperties().put(SUBMODEL_ELEMENT_LOCATION, smes);
+            }
             shells = shells.stream().map(this::convertDataAddress).toList();
             conceptDescriptions = conceptDescriptions.stream().map(this::convertDataAddress).toList();
         }
@@ -198,10 +190,9 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<Service, Environm
                 .build();
     }
 
-    private @NotNull <I extends Identifiable> List<Asset> mapIdentifiableList(Collection<I> identifiables, AasProvider provider,
-                                                                              Mapper<I> identifiableHandler) {
-        return identifiables.stream()
-                .map(identifiable -> identifiableHandler.apply(identifiable, provider))
+    private @NotNull <I extends Identifiable> List<Asset> mapIdentifiableList(Collection<I> identifiableList, AasProvider provider) {
+        return identifiableList.stream()
+                .map(identifiable -> identifiableMapper.map(identifiable, provider))
                 .toList();
     }
 }

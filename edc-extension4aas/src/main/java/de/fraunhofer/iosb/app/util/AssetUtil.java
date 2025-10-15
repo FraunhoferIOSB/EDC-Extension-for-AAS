@@ -27,7 +27,7 @@ import static de.fraunhofer.iosb.app.aas.mapper.environment.EnvironmentToAssetMa
 import static de.fraunhofer.iosb.app.aas.mapper.environment.EnvironmentToAssetMapper.SHELLS_LOCATION;
 import static de.fraunhofer.iosb.app.aas.mapper.environment.EnvironmentToAssetMapper.SUBMODELS_LOCATION;
 import static de.fraunhofer.iosb.app.aas.mapper.environment.referable.SubmodelElementMapper.SMC_CHILDREN_LOCATION;
-import static de.fraunhofer.iosb.app.aas.mapper.environment.referable.identifiable.SubmodelMapper.SUBMODEL_ELEMENT_LOCATION;
+import static de.fraunhofer.iosb.app.aas.mapper.environment.referable.identifiable.IdentifiableMapper.SUBMODEL_ELEMENT_LOCATION;
 
 public class AssetUtil {
 
@@ -76,14 +76,26 @@ public class AssetUtil {
         return new ArrayList<>();
     }
 
-
-    public static void mapEachSubmodelElementAssetRec(Asset parent, UnaryOperator<Asset> function) {
-        var children = getChildren(parent, SMC_CHILDREN_LOCATION);
-        if (!children.isEmpty()) {
-            children.forEach(child -> mapEachSubmodelElementAssetRec(child, function));
-            children.forEach(function::apply);
+    @SuppressWarnings("unchecked") // I checked
+    public static List<Asset> getChildrenReferenceSafe(Asset parent, String childPropertyName) {
+        var childrenMaybe = parent.getProperty(childPropertyName);
+        if (childrenMaybe instanceof List<?> childrenMaybeList &&
+                !childrenMaybeList.isEmpty() &&
+                childrenMaybeList.get(0) instanceof Asset) {
+            return (List<Asset>) childrenMaybeList;
         }
-        function.apply(parent);
+        return new ArrayList<>();
+    }
+
+
+    public static Asset applyRecursive(Asset parent, UnaryOperator<Asset> function) {
+        var children = getChildrenReferenceSafe(parent, SMC_CHILDREN_LOCATION);
+        if (!children.isEmpty()) {
+            children = children.stream().map(child -> applyRecursive(child, function)).toList();
+            parent.getProperties().put(SMC_CHILDREN_LOCATION, children);
+        }
+
+        return function.apply(parent);
     }
 
 

@@ -20,7 +20,6 @@ import de.fraunhofer.iosb.aas.lib.type.AasConstants;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.util.AasUtils;
 import org.eclipse.digitaltwin.aas4j.v3.model.Blob;
 import org.eclipse.digitaltwin.aas4j.v3.model.File;
-import org.eclipse.digitaltwin.aas4j.v3.model.Operation;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElement;
 import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElementCollection;
@@ -30,7 +29,6 @@ import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Map;
 
 import static de.fraunhofer.iosb.aas.lib.type.AasConstants.AAS_V30_NAMESPACE;
 
@@ -62,13 +60,14 @@ public class SubmodelElementMapper extends ReferableMapper {
             assetBuilder.property(SMC_CHILDREN_LOCATION, children);
         }
 
-        if (submodelElement instanceof Operation operation) {
-            assetBuilder.property(OPERATION,
-                    Map.of(OPERATION.concat("/inputVariables"), getNamespacedList(operation.getInputVariables()),
-                            OPERATION.concat("/inoutputVariables"), getNamespacedList(operation.getInoutputVariables()),
-                            OPERATION.concat("/outputVariables"), getNamespacedList(operation.getOutputVariables()))
-            );
-        }
+        // TODO decide if these are advertised in catalog/self-description
+//        if (submodelElement instanceof Operation operation) {
+//            assetBuilder.property(OPERATION,
+//                    Map.of(OPERATION.concat("/inputVariables"), getNamespacedList(operation.getInputVariables()),
+//                            OPERATION.concat("/inoutputVariables"), getNamespacedList(operation.getInoutputVariables()),
+//                            OPERATION.concat("/outputVariables"), getNamespacedList(operation.getOutputVariables()))
+//            );
+//        }
 
         if (submodelElement instanceof File file) {
             assetBuilder.contentType(file.getContentType());

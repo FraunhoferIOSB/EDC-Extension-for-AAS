@@ -15,6 +15,7 @@
  */
 package de.fraunhofer.iosb.app.aas.mapper;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import de.fraunhofer.iosb.aas.lib.model.impl.Service;
 import de.fraunhofer.iosb.app.aas.mapper.environment.referable.SubmodelElementMapper;
 import org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes;
@@ -24,6 +25,7 @@ import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultOperation;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultOperationVariable;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultReference;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.net.MalformedURLException;
@@ -44,8 +46,9 @@ class SubmodelElementMapperTest {
     }
 
 
+    @Disabled("TODO decide if operation variables are advertised (see SubmodelElementMapper.java")
     @Test
-    void test_map_operation() {
+    void test_map_operation() throws JsonProcessingException {
         var mockParent = new DefaultReference.Builder()
                 .keys(new DefaultKey.Builder()
                         .type(KeyTypes.SUBMODEL)

@@ -17,7 +17,6 @@ package de.fraunhofer.iosb.edc.remote.transform;
 
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
-import jakarta.json.JsonReader;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.entity.Entity;
@@ -28,26 +27,13 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.StringReader;
 import java.util.List;
-import java.util.Map;
-
-import static com.apicatalog.jsonld.lang.Keywords.VOCAB;
-import static de.fraunhofer.iosb.aas.lib.type.AasConstants.AAS_PREFIX;
-import static de.fraunhofer.iosb.aas.lib.type.AasConstants.AAS_V30_NAMESPACE;
-import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_PREFIX;
-import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
-import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
-import static org.eclipse.edc.spi.constants.CoreConstants.EDC_PREFIX;
 
 public class Codec {
 
-    private static final String SERIALIZATION_ERROR = "Failed serializing %s: %s";
+    private static final String COMPACTION_ERROR = "Failed compacting json-ld %s: %s";
     private static final String EXPANSION_ERROR = "Failed expanding json-ld %s: %s";
+    private static final String SERIALIZATION_ERROR = "Failed serializing %s: %s";
 
-    private static final Map<String, String> contextMap = Map.of(
-            VOCAB, EDC_NAMESPACE,
-            AAS_PREFIX, AAS_V30_NAMESPACE,
-            EDC_PREFIX, EDC_NAMESPACE,
-            ODRL_PREFIX, ODRL_SCHEMA);
     private final TypeTransformerRegistry transformers;
     private final JsonLd jsonLd;
 
@@ -91,35 +77,18 @@ public class Codec {
     }
 
     /**
-     * Try to serialize any POJO into jakarta JsonObjects using EDC JsonObjectFrom*Transformers. Also includes JSON-LD @context.
+     * Try to serialize any POJO into jakarta JsonObjects using EDC JsonObjectFrom*Transformers.
      *
      * @param toSerialize The object to serialize
-     * @return Serialized object including json-ld context
+     * @return Serialized object in compacted json-ld form.
      */
     public String serialize(@NotNull Object toSerialize) {
         var jsonRepresentation =
                 transformers.transform(toSerialize, JsonObject.class).orElseThrow(failure -> new EdcException(String.format(SERIALIZATION_ERROR,
                         toSerialize.getClass().getSimpleName(), failure.getFailureDetail())));
 
-        // Remove namespaces to keep aas properties
-        String jsonRepresentationClean = jsonRepresentation.toString().replaceAll(EDC_NAMESPACE, "");
-        jsonRepresentationClean = jsonRepresentationClean.replaceAll("creator", EDC_NAMESPACE.concat("creator"));
-        JsonObject jsonObjectClean;
-
-        try (JsonReader jsonReader = Json.createReader(new StringReader(jsonRepresentationClean))) {
-            jsonObjectClean = jsonReader.readObject();
-        }
-
-        JsonObject contextualized = provideContext(jsonObjectClean);
-
-        return contextualized.toString();
-    }
-
-    private JsonObject provideContext(JsonObject uncontextualizedJsonObject) {
-        // Note: Since no compaction takes place before requests are sent to control-plane,
-        // we need to add the context manually.
-        return Json.createObjectBuilder(uncontextualizedJsonObject)
-                .add("@context", Json.createObjectBuilder(contextMap).build())
-                .build();
+        var compacted = jsonLd.compact(jsonRepresentation).orElseThrow(failure -> new EdcException(String.format(COMPACTION_ERROR,
+                toSerialize.getClass().getSimpleName(), failure.getFailureDetail())));
+        return compacted.toString();
     }
 }

@@ -1,14 +1,17 @@
 {
-  "@type": "https://w3id.org/edc/v0.0.1/ns/QuerySpec",
-  "https://w3id.org/edc/v0.0.1/ns/limit": 761370123,
-  "https://w3id.org/edc/v0.0.1/ns/offset": 42,
-  "https://w3id.org/edc/v0.0.1/ns/sortOrder": "ASC",
-  "https://w3id.org/edc/v0.0.1/ns/filterExpression": [
-    {
-      "@type": "https://w3id.org/edc/v0.0.1/ns/Criterion",
-      "https://w3id.org/edc/v0.0.1/ns/operandLeft": "aas:id",
-      "https://w3id.org/edc/v0.0.1/ns/operator": "=",
-      "https://w3id.org/edc/v0.0.1/ns/operandRight": "my-test-aas-id"
-    }
-  ]
+  "@type": "QuerySpec",
+  "limit": 761370123,
+  "offset": 42,
+  "sortOrder": "ASC",
+  "filterExpression": {
+    "@type": "Criterion",
+    "operandLeft": "aas:id",
+    "operator": "=",
+    "operandRight": "my-test-aas-id"
+  },
+  "@context": {
+    "@vocab": "https://w3id.org/edc/v0.0.1/ns/",
+    "aas": "https://admin-shell.io/aas/3/0/",
+    "odrl": "http://www.w3.org/ns/odrl/2/"
+  }
 }

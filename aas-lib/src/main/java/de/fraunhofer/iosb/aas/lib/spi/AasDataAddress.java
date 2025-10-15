@@ -61,7 +61,6 @@ public class AasDataAddress extends DataAddress {
     // See aas4j operation
     private static final String ADDITIONAL_HEADER = "aas:header:";
     private static final String METHOD = EDC_NAMESPACE + "method";
-    private static final String PROVIDER = AAS_V30_NAMESPACE + "provider";
     private static final String REFERENCE_CHAIN = AAS_V30_NAMESPACE + "referenceChain";
     private static final String PATH = AAS_V30_NAMESPACE + "path";
 

@@ -32,8 +32,8 @@ import java.util.function.UnaryOperator;
  */
 public class ControlPlaneConnection {
 
-    private static final String CONTENT_TYPE = "content-type";
     public static final String APPLICATION_JSON = "application/json";
+    private static final String CONTENT_TYPE = "content-type";
     private final HttpUrl connectionUri;
     private final String resourceName;
 

@@ -6,6 +6,10 @@ Compatibility: **Eclipse Dataspace Connector v0.13.0, v0.13.2, v0.14.0**
 
 **New Features**
 
+* Standalone feature
+  * The extension can now be deployed **alongside** a running control-plane (and data-plane)
+  * Previously, deployment was only possible by adding the extension dependency to the control-plane's build file
+  * Now, the extension can be supplied with the edc-connector-client to communicate with the control-plane over its mgmt API
 * Selective AAS registration
   * Now, individual elements of an AAS can be selected to be registered
   * Also, customized policies per element can be assigned (if not, default policy is used)

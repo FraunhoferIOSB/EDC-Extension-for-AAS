@@ -1,6 +1,7 @@
 package de.fraunhofer.iosb.app.aas.mapper.environment.referable.identifiable;
 
 import de.fraunhofer.iosb.app.aas.mapper.environment.referable.ReferableMapper;
+import org.eclipse.digitaltwin.aas4j.v3.model.HasSemantics;
 import org.eclipse.digitaltwin.aas4j.v3.model.Identifiable;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 
@@ -30,6 +31,11 @@ public abstract class IdentifiableMapper extends ReferableMapper {
 
         if (admin.getRevision() != null && !admin.getRevision().isEmpty()) {
             builder.property(AAS_V30_NAMESPACE + "AdministrativeInformation/" + "revision", admin.getRevision());
+        }
+
+        if (identifiable instanceof HasSemantics semanticsHavingIdentifiable &&
+                semanticsHavingIdentifiable.getSemanticId() != null && !semanticsHavingIdentifiable.getSemanticId().getKeys().isEmpty()) {
+            builder.property(AAS_V30_NAMESPACE + "HasSemantics/" + "semanticId", semanticsHavingIdentifiable.getSemanticId());
         }
 
         return builder;

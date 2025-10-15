@@ -66,10 +66,6 @@ public class SubmodelMapper extends IdentifiableMapper implements Mapper<Submode
             assetBuilder.property(SUBMODEL_ELEMENT_LOCATION, children);
         }
 
-        if (Objects.nonNull(submodel.getSemanticId())) {
-            assetBuilder.property(AAS_V30_NAMESPACE + "HasSemantics/" + "semanticId", submodel.getSemanticId());
-        }
-
         return assetBuilder.build();
     }
 }

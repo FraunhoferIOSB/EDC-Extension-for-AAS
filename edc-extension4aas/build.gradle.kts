@@ -23,11 +23,10 @@ dependencies {
 
     implementation("de.fraunhofer.iosb.ilt.faaast.service:starter:$faaastVersion")
     implementation("$group:http-lib:$edcVersion")
-    implementation("$group:data-plane-http-spi:$edcVersion") // HTTPDataAddress
+    implementation("$group:data-plane-http-spi:$edcVersion")
     implementation("$group:contract-spi:$edcVersion")
-    implementation("$group:json-ld-spi:$edcVersion") // Policy action attributes
+    implementation("$group:json-ld-spi:$edcVersion")
     implementation("$group:asset-spi:$edcVersion")
-    implementation("$group:policy-engine-lib:$edcVersion")
 
     testImplementation(testFixtures(project(":aas-lib")))
 

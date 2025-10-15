@@ -20,8 +20,6 @@ dependencies {
     implementation(project(":aas-lib")) // AuthenticationMethod
 
     implementation("$group:asset-spi:$edcVersion")
-    implementation("$group:http-spi:$edcVersion")
-    implementation("$group:policy-spi:$edcVersion")
     implementation("$group:contract-spi:$edcVersion")
 
     implementation("$group:transform-lib:$edcVersion")

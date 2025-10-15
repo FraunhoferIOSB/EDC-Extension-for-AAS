@@ -100,7 +100,10 @@ In this section, dependencies from EDC and third-party are listed. (Dependencies
 | aas-lib (local)                               | Provides common objects for AAS data plane and AAS extension                                        |
 | de.fraunhofer.iosb.ilt.faaast.service:starter | [FA³ST Service](https://github.com/FraunhoferIOSB/FAAAST-Service) to start AAS services internally. |
 | org.eclipse.edc:http-lib                      | OkHttp3 Fields                                                                                      |
-| org.eclipse.edc:asset-api                     | EDC Asset/Contract Management                                                                       |
+| org.eclipse.edc:data-plane-http-spi           | HTTPDataAddress                                                                                     |
+| org.eclipse.edc:json-ld-spi                   | Policy action attributes                                                                            |
+| org.eclipse.edc:asset-spi                     | EDC Asset                                                                                           |
+| org.eclipse.edc:contract-spi                  | EDC Contract/Policy                                                                                 |
 
 </details>
 <details>
@@ -125,6 +128,21 @@ In this section, dependencies from EDC and third-party are listed. (Dependencies
 | org.eclipse.edc:data-plane-spi            | Data-plane functionality                                                           |
 | org.eclipse.edc:lib                       | OkHttp3 Fields + EdcHttpClient implementation                                      |
 | org.eclipse.digitaltwin.aas4j:aas4j-model | [Eclipse AAS4J java model](https://github.com/eclipse-aas4j/aas4j/tree/main/model) |
+
+</details>
+<details>
+<summary>EDC-Connector-Client</summary>
+
+| Name                                    | Description                                                  |
+|:----------------------------------------|:-------------------------------------------------------------|
+| aas-lib (local)                         | Provides common objects for AAS data plane and AAS extension |
+| org.eclipse.edc:asset-spi               | EDC Asset                                                    |
+| org.eclipse.edc:contract-spi            | EDC Policy/Contract                                          |
+| org.eclipse.edc:transform-lib           | Transformers to / from JSON                                  |
+| org.eclipse.edc:control-plane-transform | Transformers to / from JSON                                  |
+| org.eclipse.edc:json-ld                 | JSON-LD expansion / compaction                               |
+| org.eclipse.edc:runtime-core            | Core services                                                |
+| org.eclipse.edc:connector-core          | Core services                                                |
 
 </details>
 <details>

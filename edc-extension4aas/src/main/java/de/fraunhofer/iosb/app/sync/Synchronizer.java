@@ -26,8 +26,15 @@ import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+import static de.fraunhofer.iosb.app.aas.mapper.environment.EnvironmentToAssetMapper.ACCESS_POLICY_FIELD;
+import static de.fraunhofer.iosb.app.aas.mapper.environment.EnvironmentToAssetMapper.CONTRACT_POLICY_FIELD;
+import static de.fraunhofer.iosb.app.aas.mapper.environment.referable.SubmodelElementMapper.SMC_CHILDREN_LOCATION;
+import static de.fraunhofer.iosb.app.aas.mapper.environment.referable.identifiable.IdentifiableMapper.SUBMODEL_ELEMENT_LOCATION;
 
 /**
  * A synchronizer gets as input two assets:
@@ -38,9 +45,6 @@ import java.util.Objects;
  * consisting of the new assets and the IDs of the assets to be removed.
  */
 public class Synchronizer extends PipelineStep<Collection<Pair<Asset, Asset>>, ChangeSet<Asset, String>> {
-
-    public Synchronizer() {
-    }
 
     /**
      * Receives pairs of AAS environment assets and computes their deltas,
@@ -58,25 +62,59 @@ public class Synchronizer extends PipelineStep<Collection<Pair<Asset, Asset>>, C
             return PipelineResult.failure(PipelineFailure.warning(List.of("Empty input for synchronizer")));
         }
 
-        Collection<String> toRemove = new ArrayList<>();
-        Collection<Asset> toAdd = new ArrayList<>();
+        Collection<Asset> allCurrentlyStored = oldAndNewAssets.stream()
+                .map(Pair::first)
+                .filter(Objects::nonNull)
+                .map(AssetUtil::flatMapAssets)
+                .flatMap(Collection::stream)
+                .filter(asset -> null != asset.getPrivateProperty(ACCESS_POLICY_FIELD))
+                .filter(asset -> null != asset.getPrivateProperty(CONTRACT_POLICY_FIELD))
+                .toList();
 
-        for (var entry : oldAndNewAssets) {
-            // New environment cannot be null.
-            Objects.requireNonNull(entry.second());
-            var oldEnvironment = entry.first() != null ? AssetUtil.flatMapAssets(entry.first()) :
-                    new ArrayList<Asset>();
+        Collection<Asset> allNewAssets = oldAndNewAssets.stream()
+                .map(Pair::second)
+                .filter(Objects::nonNull)
+                .map(AssetUtil::flatMapAssets)
+                .flatMap(Collection::stream)
+                .filter(asset -> null != asset.getPrivateProperty(ACCESS_POLICY_FIELD))
+                .filter(asset -> null != asset.getPrivateProperty(CONTRACT_POLICY_FIELD))
+                .toList();
 
-            var newEnvironment = AssetUtil.flatMapAssets(entry.second());
+        Collection<String> toRemove =
+                new ArrayList<>(allCurrentlyStored.stream()
+                        .filter(currentElement -> absent(allNewAssets, currentElement))
+                        .map(Asset::getId)
+                        .toList());
 
-            toRemove.addAll(oldEnvironment.stream().filter(oldElement -> absent(newEnvironment, oldElement)).map(Asset::getId).toList());
-            toAdd.addAll(newEnvironment.stream().filter(newElement -> absent(oldEnvironment, newElement)).toList());
-        }
+        Collection<Asset> toAdd = new ArrayList<>(allNewAssets.stream()
+                .filter(newElement -> absent(allCurrentlyStored, newElement))
+                .toList());
+
 
         return PipelineResult.success(new ChangeSet.Builder<Asset, String>().add(toAdd).remove(toRemove).build());
     }
 
     private boolean absent(Collection<Asset> assets, Asset asset) {
-        return assets.stream().noneMatch(a -> a.getId().equals(asset.getId()));
+        return assets.stream().noneMatch(a -> assetsEquality(a, asset));
+    }
+
+    private boolean assetsEquality(Asset a, Asset b) {
+        // Don't check for submodelElements or collectionElements as they are handled on their own
+        Set<Map.Entry<String, Object>> aFilteredProperties =
+                a.getProperties().entrySet().stream()
+                        .filter(entry -> !SUBMODEL_ELEMENT_LOCATION.equals(entry.getKey()))
+                        .filter(entry -> !SMC_CHILDREN_LOCATION.equals(entry.getKey()))
+                        .collect(Collectors.toSet());
+        Set<Map.Entry<String, Object>> bFilteredProperties =
+                b.getProperties().entrySet().stream()
+                        .filter(entry -> !SUBMODEL_ELEMENT_LOCATION.equals(entry.getKey()))
+                        .filter(entry -> !SMC_CHILDREN_LOCATION.equals(entry.getKey()))
+                        .collect(Collectors.toSet());
+
+        return Objects.equals(a.getId(), b.getId()) &&
+                Objects.equals(aFilteredProperties, bFilteredProperties) &&
+                Objects.equals(a.getDataAddress().getProperties(), b.getDataAddress().getProperties()) &&
+                Objects.equals(a.getDataAddress().getClass(), b.getDataAddress().getClass()) &&
+                Objects.equals(a.getPrivateProperties(), b.getPrivateProperties());
     }
 }

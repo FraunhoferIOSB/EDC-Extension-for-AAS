@@ -1,12 +1,14 @@
 package de.fraunhofer.iosb.app.aas.mapper.environment.referable;
 
 import de.fraunhofer.iosb.app.aas.mapper.ElementMapper;
+import org.eclipse.digitaltwin.aas4j.v3.model.HasSemantics;
 import org.eclipse.digitaltwin.aas4j.v3.model.Referable;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 
 import static de.fraunhofer.iosb.aas.lib.type.AasConstants.AAS_V30_NAMESPACE;
 
 public abstract class ReferableMapper extends ElementMapper {
+
     public static final String CONTENT_TYPE = "application/json";
     private static final String REFERABLE_NAMESPACE = AAS_V30_NAMESPACE.concat("Referable/");
 
@@ -18,13 +20,20 @@ public abstract class ReferableMapper extends ElementMapper {
         }
 
         if (referable.getDisplayName() != null && !referable.getDisplayName().isEmpty()) {
-            assetBuilder.property(REFERABLE_NAMESPACE.concat("displayName"), referable.getDisplayName());
+            assetBuilder.property(REFERABLE_NAMESPACE.concat("displayName"), getNamespacedList(referable.getDisplayName()));
         }
 
         if (referable.getDescription() != null && !referable.getDescription().isEmpty()) {
-            assetBuilder.property(REFERABLE_NAMESPACE.concat("description"), referable.getDescription());
+            assetBuilder.property(REFERABLE_NAMESPACE.concat("description"), getNamespacedList(referable.getDescription()));
+        }
+
+        if (referable instanceof HasSemantics semanticsHavingIdentifiable &&
+                semanticsHavingIdentifiable.getSemanticId() != null &&
+                !semanticsHavingIdentifiable.getSemanticId().getKeys().isEmpty()) {
+            assetBuilder.property(AAS_V30_NAMESPACE + "HasSemantics/" + "semanticId", getNamespaced(semanticsHavingIdentifiable.getSemanticId()));
         }
 
         return assetBuilder.contentType(CONTENT_TYPE);
     }
+
 }

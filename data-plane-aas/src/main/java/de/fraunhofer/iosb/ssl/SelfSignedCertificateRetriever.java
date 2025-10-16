@@ -17,10 +17,9 @@ package de.fraunhofer.iosb.ssl;
 
 import org.eclipse.edc.spi.result.Result;
 
-import java.net.URL;
 import java.security.cert.Certificate;
 
 public interface SelfSignedCertificateRetriever {
 
-    Result<Certificate[]> getSelfSignedCertificate(URL url);
+    Result<Certificate[]> getSelfSignedCertificate(String urlString);
 }

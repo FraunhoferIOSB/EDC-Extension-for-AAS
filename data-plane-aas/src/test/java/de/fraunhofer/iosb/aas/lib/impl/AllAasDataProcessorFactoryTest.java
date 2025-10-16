@@ -50,7 +50,7 @@ class AllAasDataProcessorFactoryTest {
 
         try (var ignored = new TestUtils().startFaaastService(port)) {
             // If this fails, certificate could not be retrieved from foreignService
-            var processor = testSubject.processorFor(baseUrl);
+            var processor = testSubject.processorFor(baseUrl.toString());
 
             try (var response = processor.getContent().getFromAas(getDataAddress(baseUrl))) {
                 // This means the HTTP request went through --> no certificate problems etc.

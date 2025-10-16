@@ -24,12 +24,10 @@ import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamFailure;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.result.Result;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
-import java.util.List;
+import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
@@ -58,17 +56,17 @@ public class AasDataSource implements DataSource {
 
     @Override
     public StreamResult<Stream<Part>> openPartStream() {
-        Result<URL> accessUrlResult = aasDataAddress.getAccessUrl();
+        String baseUrlString = aasDataAddress.getBaseUrl();
 
-        if (accessUrlResult.failed()) {
-            monitor.severe("Failed to open part stream: %s".formatted(accessUrlResult.getFailureDetail()));
+        if (baseUrlString == null) {
+            monitor.severe("Failed to open part stream: No base URL");
             return StreamResult.failure(
                     new StreamFailure(
-                            List.of(accessUrlResult.getFailureDetail()),
+                            Collections.singletonList("Failed to open part stream: No base URL"),
                             StreamFailure.Reason.GENERAL_ERROR));
         }
 
-        var aasDataProcessorResult = aasDataProcessorFactory.processorFor(accessUrlResult.getContent());
+        var aasDataProcessorResult = aasDataProcessorFactory.processorFor(baseUrlString);
 
         if (aasDataProcessorResult.failed()) {
             monitor.severe("Failed to create aas data processor: %s".formatted(aasDataProcessorResult.getFailureDetail()));

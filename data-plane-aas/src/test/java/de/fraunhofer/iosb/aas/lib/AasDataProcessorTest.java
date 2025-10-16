@@ -18,11 +18,9 @@ package de.fraunhofer.iosb.aas.lib;
 import de.fraunhofer.iosb.aas.lib.impl.AllAasDataProcessorFactory;
 import de.fraunhofer.iosb.aas.lib.model.impl.Service;
 import de.fraunhofer.iosb.aas.lib.spi.AasDataAddress;
-import de.fraunhofer.iosb.dataplane.aas.pipeline.AasPart;
 import de.fraunhofer.iosb.ssl.impl.DefaultSelfSignedCertificateRetriever;
 import dev.failsafe.RetryPolicy;
 import jakarta.ws.rs.HttpMethod;
-import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultKey;
@@ -35,7 +33,6 @@ import org.junit.jupiter.api.Test;
 import org.mockserver.integration.ClientAndServer;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
@@ -64,7 +61,7 @@ class AasDataProcessorTest {
                 mock(OkHttpClient.class),
                 RetryPolicy.ofDefaults(),
                 new ConsoleMonitor())
-                .processorFor(aasUrl).getContent();
+                .processorFor(aasUrl.toString()).getContent();
 
     }
 

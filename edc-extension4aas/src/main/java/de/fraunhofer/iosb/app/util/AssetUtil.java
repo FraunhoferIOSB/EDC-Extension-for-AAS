@@ -15,22 +15,19 @@
  */
 package de.fraunhofer.iosb.app.util;
 
-import org.eclipse.digitaltwin.aas4j.v3.model.Referable;
-import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElement;
-import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElementCollection;
-import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElementList;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 import javax.annotation.Nonnull;
 
 import static de.fraunhofer.iosb.app.aas.mapper.environment.EnvironmentToAssetMapper.CONCEPT_DESCRIPTIONS_LOCATION;
 import static de.fraunhofer.iosb.app.aas.mapper.environment.EnvironmentToAssetMapper.SHELLS_LOCATION;
 import static de.fraunhofer.iosb.app.aas.mapper.environment.EnvironmentToAssetMapper.SUBMODELS_LOCATION;
-import static de.fraunhofer.iosb.app.aas.mapper.environment.referable.identifiable.SubmodelMapper.SUBMODEL_ELEMENT_LOCATION;
+import static de.fraunhofer.iosb.app.aas.mapper.environment.referable.SubmodelElementMapper.SMC_CHILDREN_LOCATION;
+import static de.fraunhofer.iosb.app.aas.mapper.environment.referable.identifiable.IdentifiableMapper.SUBMODEL_ELEMENT_LOCATION;
 
 public class AssetUtil {
 
@@ -71,36 +68,39 @@ public class AssetUtil {
     @SuppressWarnings("unchecked") // I checked
     public static Collection<Asset> getChildren(Asset parent, String childPropertyName) {
         var childrenMaybe = parent.getProperty(childPropertyName);
-        if (childrenMaybe instanceof List && !((List<?>) childrenMaybe).isEmpty() && ((List<?>) childrenMaybe).get(0) instanceof Asset) {
+        if (childrenMaybe instanceof List<?> childrenMaybeList &&
+                !childrenMaybeList.isEmpty() &&
+                childrenMaybeList.get(0) instanceof Asset) {
             return new ArrayList<>((List<Asset>) childrenMaybe);
         }
         return new ArrayList<>();
     }
 
-    public static List<SubmodelElement> filterSubmodelElementsRec(List<SubmodelElement> submodelElements, Predicate<Referable> filter) {
-        List<SubmodelElement> result = new ArrayList<>();
+    @SuppressWarnings("unchecked") // I checked
+    public static List<Asset> getChildrenReferenceSafe(Asset parent, String childPropertyName) {
+        var childrenMaybe = parent.getProperty(childPropertyName);
+        if (childrenMaybe instanceof List<?> childrenMaybeList &&
+                !childrenMaybeList.isEmpty() &&
+                childrenMaybeList.get(0) instanceof Asset) {
+            return (List<Asset>) childrenMaybeList;
+        }
+        return new ArrayList<>();
+    }
 
-        for (SubmodelElement element : submodelElements) {
-            if (element instanceof SubmodelElementCollection collection) {
-                if (!filterSubmodelElementsRec(collection.getValue(), filter).isEmpty() || filter.test(element)) {
-                    result.add(element);
-                }
-            } else if (element instanceof SubmodelElementList list) {
-                if (!filterSubmodelElementsRec(list.getValue(), filter).isEmpty() || filter.test(element)) {
-                    result.add(element);
 
-                }
-            } else if (filter.test(element)) {
-                result.add(element);
-            }
+    public static Asset applyRecursive(Asset parent, UnaryOperator<Asset> function) {
+        var children = getChildrenReferenceSafe(parent, SMC_CHILDREN_LOCATION);
+        if (!children.isEmpty()) {
+            children = children.stream().map(child -> applyRecursive(child, function)).toList();
+            parent.getProperties().put(SMC_CHILDREN_LOCATION, children);
         }
 
-        return result;
+        return function.apply(parent);
     }
 
 
     private static Collection<Asset> getChildrenRec(Asset parent) {
-        var children = getChildren(parent, "value");
+        var children = getChildren(parent, SMC_CHILDREN_LOCATION);
         if (!children.isEmpty()) {
             var grandChildren = children.stream().map(AssetUtil::getChildrenRec).flatMap(Collection::stream).toList();
             children.addAll(grandChildren);

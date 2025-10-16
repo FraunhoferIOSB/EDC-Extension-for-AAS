@@ -16,14 +16,15 @@
 package de.fraunhofer.iosb.app.aas.mapper.environment.referable;
 
 import de.fraunhofer.iosb.aas.lib.model.AasProvider;
+import de.fraunhofer.iosb.aas.lib.type.AasConstants;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.util.AasUtils;
 import org.eclipse.digitaltwin.aas4j.v3.model.Blob;
 import org.eclipse.digitaltwin.aas4j.v3.model.File;
-import org.eclipse.digitaltwin.aas4j.v3.model.Operation;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElement;
 import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElementCollection;
 import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElementList;
+import org.eclipse.digitaltwin.aas4j.v3.model.annotations.IRI;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 
 import java.util.Collection;
@@ -33,37 +34,40 @@ import static de.fraunhofer.iosb.aas.lib.type.AasConstants.AAS_V30_NAMESPACE;
 
 public class SubmodelElementMapper extends ReferableMapper {
 
+    public static final String SMC_CHILDREN_LOCATION = "value";
+    public static final String OPERATION = AasConstants.AAS_V30_NAMESPACE + "Operation";
+
     /* May contain traces of recursion */
     public <E extends SubmodelElement> Asset map(Reference parent, E submodelElement, AasProvider provider) {
-        Asset.Builder assetBuilder = super.map(submodelElement);
-
         Reference reference = AasUtils.toReference(parent, submodelElement);
+        var dataAddress = createDataAddress(provider, reference);
+
+        Asset.Builder assetBuilder = super.map(submodelElement)
+                .dataAddress(dataAddress)
+                .id(generateId(dataAddress));
+
+        String[] modelingType = submodelElement.getClass().getAnnotation(IRI.class).value();
+
+        if (modelingType.length > 0) {
+            assetBuilder.property(AAS_V30_NAMESPACE.concat("modelingType"), modelingType[0]);
+        }
 
         var children = getChildElements(submodelElement).stream()
                 .map(elem -> map(reference, elem, provider))
                 .toList();
 
-        var dataAddress = createDataAddress(provider, reference);
-
-        String modelingType = submodelElement.getClass().getSimpleName();
-
-        assetBuilder.dataAddress(dataAddress)
-                .id(generateId(dataAddress))
-                .property("modelingType", modelingType.replace("Default", ""));
-
         if (!children.isEmpty()) {
-            assetBuilder.property("value", children);
+            assetBuilder.property(SMC_CHILDREN_LOCATION, children);
         }
 
-        if (submodelElement.getSemanticId() != null && !submodelElement.getSemanticId().getKeys().isEmpty()) {
-            assetBuilder.property(AAS_V30_NAMESPACE + "HasSemantics/" + "semanticId", submodelElement.getSemanticId());
-        }
-
-        if (submodelElement instanceof Operation operation) {
-            assetBuilder.property(AAS_V30_NAMESPACE + "Operation/" + "inputVariables", operation.getInputVariables());
-            assetBuilder.property(AAS_V30_NAMESPACE + "Operation/" + "inoutputVariables", operation.getInoutputVariables());
-            assetBuilder.property(AAS_V30_NAMESPACE + "Operation/" + "outputVariables", operation.getOutputVariables());
-        }
+        // TODO decide if these are advertised in catalog/self-description
+//        if (submodelElement instanceof Operation operation) {
+//            assetBuilder.property(OPERATION,
+//                    Map.of(OPERATION.concat("/inputVariables"), getNamespacedList(operation.getInputVariables()),
+//                            OPERATION.concat("/inoutputVariables"), getNamespacedList(operation.getInoutputVariables()),
+//                            OPERATION.concat("/outputVariables"), getNamespacedList(operation.getOutputVariables()))
+//            );
+//        }
 
         if (submodelElement instanceof File file) {
             assetBuilder.contentType(file.getContentType());
@@ -76,10 +80,10 @@ public class SubmodelElementMapper extends ReferableMapper {
     }
 
     private <T extends SubmodelElement> Collection<SubmodelElement> getChildElements(T submodelElement) {
-        if (submodelElement instanceof SubmodelElementCollection) {
-            return ((SubmodelElementCollection) submodelElement).getValue();
-        } else if (submodelElement instanceof SubmodelElementList) {
-            return ((SubmodelElementList) submodelElement).getValue();
+        if (submodelElement instanceof SubmodelElementCollection collection) {
+            return collection.getValue();
+        } else if (submodelElement instanceof SubmodelElementList list) {
+            return list.getValue();
         } else { // Can not have any child elements...
             return Collections.emptyList();
         }

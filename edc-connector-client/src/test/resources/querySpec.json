@@ -1,0 +1,17 @@
+{
+  "@type": "QuerySpec",
+  "limit": 761370123,
+  "offset": 42,
+  "sortOrder": "ASC",
+  "filterExpression": {
+    "@type": "Criterion",
+    "operandLeft": "aas:id",
+    "operator": "=",
+    "operandRight": "my-test-aas-id"
+  },
+  "@context": {
+    "@vocab": "https://w3id.org/edc/v0.0.1/ns/",
+    "aas": "https://admin-shell.io/aas/3/0/",
+    "odrl": "http://www.w3.org/ns/odrl/2/"
+  }
+}

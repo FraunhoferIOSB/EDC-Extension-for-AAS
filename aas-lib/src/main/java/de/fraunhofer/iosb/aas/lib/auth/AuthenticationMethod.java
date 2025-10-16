@@ -20,15 +20,20 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import de.fraunhofer.iosb.aas.lib.auth.impl.ApiKey;
 import de.fraunhofer.iosb.aas.lib.auth.impl.BasicAuth;
 import de.fraunhofer.iosb.aas.lib.auth.impl.NoAuth;
+import org.eclipse.edc.spi.security.Vault;
 
 import java.util.AbstractMap;
 import java.util.Map;
 
 
+/**
+ * Describes authentication methods for HTTP authentication, i.e. key-value pairs appended to the headers of an HTTP request.
+ */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes({
         @JsonSubTypes.Type(value = BasicAuth.class, name = "basic"),
         @JsonSubTypes.Type(value = ApiKey.class, name = "api-key"),
+        @JsonSubTypes.Type(value = Vault.class, name = "vault"),
         @JsonSubTypes.Type(value = NoAuth.class)
 })
 public abstract class AuthenticationMethod {

@@ -19,34 +19,33 @@ import de.fraunhofer.iosb.aas.lib.model.AasProvider;
 import de.fraunhofer.iosb.aas.lib.model.PolicyBinding;
 import de.fraunhofer.iosb.aas.lib.model.impl.Service;
 import de.fraunhofer.iosb.aas.lib.spi.AasDataAddress;
-import de.fraunhofer.iosb.app.aas.mapper.Mapper;
-import de.fraunhofer.iosb.app.aas.mapper.environment.referable.identifiable.AssetAdministrationShellMapper;
-import de.fraunhofer.iosb.app.aas.mapper.environment.referable.identifiable.ConceptDescriptionMapper;
-import de.fraunhofer.iosb.app.aas.mapper.environment.referable.identifiable.SubmodelMapper;
+import de.fraunhofer.iosb.app.aas.mapper.environment.referable.identifiable.IdentifiableMapper;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import de.fraunhofer.iosb.app.pipeline.PipelineFailure;
 import de.fraunhofer.iosb.app.pipeline.PipelineResult;
 import de.fraunhofer.iosb.app.pipeline.PipelineStep;
-import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShell;
-import org.eclipse.digitaltwin.aas4j.v3.model.ConceptDescription;
+import de.fraunhofer.iosb.app.util.AssetUtil;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
 import org.eclipse.digitaltwin.aas4j.v3.model.Identifiable;
-import org.eclipse.digitaltwin.aas4j.v3.model.Submodel;
+import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static de.fraunhofer.iosb.aas.lib.type.AasConstants.AAS_V30_NAMESPACE;
+import static de.fraunhofer.iosb.app.aas.mapper.environment.referable.identifiable.IdentifiableMapper.SUBMODEL_ELEMENT_LOCATION;
+import static de.fraunhofer.iosb.app.edc.contract.ContractRegistrar.DEFAULT_ACCESS_POLICY_DEFINITION_ID;
+import static de.fraunhofer.iosb.app.edc.contract.ContractRegistrar.DEFAULT_CONTRACT_POLICY_DEFINITION_ID;
 import static de.fraunhofer.iosb.app.pipeline.util.PipelineUtils.extractContents;
 import static de.fraunhofer.iosb.app.pipeline.util.PipelineUtils.handleError;
+import static de.fraunhofer.iosb.app.util.AssetUtil.applyRecursive;
 
 /**
  * Create a mapping from an AAS environment to EDC assets. This is not a holistic transformation but rather maps key
@@ -62,17 +61,10 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<Service, Environm
     public static final String SHELLS_LOCATION = "shells";
     public static final String SUBMODELS_LOCATION = "submodels";
 
-    private final Supplier<Boolean> useAasDataAddress = () -> Configuration.getInstance().isUseAasDataPlane();
-    private final Supplier<Boolean> onlySubmodelsDecision;
-    private final Mapper<AssetAdministrationShell> shellMapper = new AssetAdministrationShellMapper();
-    private final Mapper<Submodel> submodelMapper;
-    private final Mapper<ConceptDescription> conceptDescriptionMapper = new ConceptDescriptionMapper();
+    private final Supplier<Boolean> useAasDataAddress = () -> Configuration.getInstance().useAasDataPlane();
+    private final Supplier<Boolean> onlySubmodelsDecision = () -> Configuration.getInstance().onlySubmodels();
+    private final IdentifiableMapper identifiableMapper = new IdentifiableMapper();
 
-
-    public EnvironmentToAssetMapper(Supplier<Boolean> onlySubmodelsDecision) {
-        this.onlySubmodelsDecision = onlySubmodelsDecision;
-        submodelMapper = new SubmodelMapper(onlySubmodelsDecision);
-    }
 
     /**
      * Create a nested EDC asset from this environment structure. The top level asset is just to hold the shells,
@@ -99,47 +91,50 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<Service, Environm
     }
 
     public PipelineResult<Service> executeSingle(Service service, Environment environment) {
-        if (service == null || service.getAccessUrl() == null) {
+        if (service == null || service.baseUrl() == null) {
             return PipelineResult.failure(PipelineFailure.fatal(List.of("Mapping failure: accessUrl is null")));
         } else if (environment == null) {
             return PipelineResult.recoverableFailure(service,
                     PipelineFailure.warning(List.of("Mapping failure for accessUrl %s: environment is null"
-                            .formatted(service.getAccessUrl()))));
+                            .formatted(service.baseUrl()))));
         }
 
-        // TODO for each selected submodel element:
-        //  1. find all parents up to submodel
-        //  2. Get those parents and the selected element to stay in the environment asset
-        //  3. If the parent elements were not in the selection, give them policies/a marker, showing no registration shall be done to edc stores
-
-        var submodels = handleIdentifiables(environment.getSubmodels(), service, submodelMapper);
+        var submodels = mapIdentifiableList(environment.getSubmodels(), service);
         List<Asset> shells = List.of();
         List<Asset> conceptDescriptions = List.of();
 
         if (!onlySubmodelsDecision.get()) {
-            shells = handleIdentifiables(environment.getAssetAdministrationShells(), service, shellMapper);
-            conceptDescriptions = handleIdentifiables(environment.getConceptDescriptions(), service, conceptDescriptionMapper);
+            shells = mapIdentifiableList(environment.getAssetAdministrationShells(), service);
+            conceptDescriptions = mapIdentifiableList(environment.getConceptDescriptions(), service);
         }
 
         if (service.hasSelectiveRegistration()) {
             var policyBindings = service.getPolicyBindings();
 
-            submodels = filterBySelection(submodels, policyBindings);
+            mapPolicies(submodels, policyBindings);
+            submodels.stream().map(AssetUtil::flatMapAssets).flatMap(Collection::stream)
+                    .forEach(asset -> mapPolicies(asset, policyBindings));
 
-            // TODO after fine-grained element filtering, remove this next line.
-            submodels = submodels.stream().map(submodel -> submodel.toBuilder().property(AAS_V30_NAMESPACE + "Submodel/" + "submodelElements",
-                     null).build()).toList();
-
-            shells = filterBySelection(shells, policyBindings);
-            conceptDescriptions = filterBySelection(conceptDescriptions, policyBindings);
+            mapPolicies(shells, policyBindings);
+            mapPolicies(conceptDescriptions, policyBindings);
+        } else {
+            mapPolicies(submodels);
+            submodels.forEach(submodel -> AssetUtil.getChildren(submodel, SUBMODEL_ELEMENT_LOCATION)
+                    .forEach(submodelElement -> applyRecursive(submodelElement, this::mapPolicies)));
+            mapPolicies(shells);
+            mapPolicies(conceptDescriptions);
         }
 
         // We convert data addresses this late to exploit their ReferenceChains when selecting elements to register.
         if (!useAasDataAddress.get()) {
-            submodels = convertDataAddresses(submodels);
-            // TODO convert submodelElements as well
-            shells = convertDataAddresses(shells);
-            conceptDescriptions = convertDataAddresses(conceptDescriptions);
+            submodels = submodels.stream().map(this::convertDataAddress).toList();
+            for (var submodel : submodels) {
+                var smes = AssetUtil.getChildren(submodel, SUBMODEL_ELEMENT_LOCATION);
+                smes = smes.stream().map(sme -> applyRecursive(sme, this::convertDataAddress)).toList();
+                submodel.getProperties().put(SUBMODEL_ELEMENT_LOCATION, smes);
+            }
+            shells = shells.stream().map(this::convertDataAddress).toList();
+            conceptDescriptions = conceptDescriptions.stream().map(this::convertDataAddress).toList();
         }
 
         var environmentAsset = Asset.Builder.newInstance()
@@ -152,45 +147,52 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<Service, Environm
         return PipelineResult.success(service.with(environmentAsset));
     }
 
-    private List<Asset> filterBySelection(List<Asset> toFilter, List<PolicyBinding> selectedElements) {
-        var referredElements = selectedElements.stream()
-                .map(PolicyBinding::referredElement)
-                .toList();
-
-        var policiesForSelection = selectedElements.stream().collect(Collectors.toMap(PolicyBinding::referredElement, this::createMap));
-
-        toFilter = toFilter.stream()
-                .filter(reference -> referredElements
-                        .contains(((AasDataAddress) reference.getDataAddress()).getReferenceChain()))
-                .toList();
-
-        toFilter = toFilter.stream().map(asset -> asset.toBuilder()
-                        .privateProperties(policiesForSelection.get(((AasDataAddress) asset.getDataAddress()).getReferenceChain()))
-                        .build())
-                .toList();
-
-        return toFilter;
+    private void mapPolicies(List<Asset> toMap, List<PolicyBinding> selectedElements) {
+        toMap.forEach(asset -> mapPolicies(asset, selectedElements));
     }
 
-    private HashMap<String, Object> createMap(PolicyBinding binding) {
-        var map = new HashMap<String, Object>(2);
-        map.put(ACCESS_POLICY_FIELD, binding.accessPolicyDefinitionId());
-        map.put(CONTRACT_POLICY_FIELD, binding.contractPolicyDefinitionId());
-        return map;
+    private void mapPolicies(Asset toMap, List<PolicyBinding> selectedElements) {
+        Map<Reference, Map<String, Object>> policyLookupTable = selectedElements.stream().collect(Collectors.toMap(PolicyBinding::referredElement,
+                this::createPolicyMap));
+
+        toMap.getPrivateProperties().putAll(policyLookupTable.get(((AasDataAddress) toMap.getDataAddress()).getReferenceChain()));
     }
 
-    private List<Asset> convertDataAddresses(List<Asset> assets) {
-        return assets.stream().map(asset -> asset.toBuilder()
-                        .dataAddress(((AasDataAddress) asset.getDataAddress())
-                                .asHttpDataAddress())
-                        .build())
-                .toList();
+    private void mapPolicies(List<Asset> toMap) {
+        toMap.forEach(this::mapPolicies);
     }
 
-    private @NotNull <I extends Identifiable> List<Asset> handleIdentifiables(Collection<I> identifiables, AasProvider provider,
-                                                                              Mapper<I> identifiableHandler) {
-        return identifiables.stream()
-                .map(submodel -> identifiableHandler.apply(submodel, provider))
+    private Asset mapPolicies(Asset toMap) {
+        Map<String, Object> defaultPolicies = Map.of(ACCESS_POLICY_FIELD, DEFAULT_ACCESS_POLICY_DEFINITION_ID,
+                CONTRACT_POLICY_FIELD, DEFAULT_CONTRACT_POLICY_DEFINITION_ID);
+
+        toMap.getPrivateProperties().putAll(defaultPolicies);
+
+        return toMap;
+    }
+
+    private Map<String, Object> createPolicyMap(PolicyBinding binding) {
+        String accessPolicyId =
+                Optional.ofNullable(binding.accessPolicyDefinitionId())
+                        .orElse(DEFAULT_ACCESS_POLICY_DEFINITION_ID);
+
+        String contractPolicyId =
+                Optional.ofNullable(binding.contractPolicyDefinitionId())
+                        .orElse(DEFAULT_CONTRACT_POLICY_DEFINITION_ID);
+
+        return Map.of(ACCESS_POLICY_FIELD, accessPolicyId, CONTRACT_POLICY_FIELD, contractPolicyId);
+    }
+
+    private Asset convertDataAddress(Asset asset) {
+        return asset.toBuilder()
+                .dataAddress(((AasDataAddress) asset.getDataAddress())
+                        .asHttpDataAddress())
+                .build();
+    }
+
+    private @NotNull <I extends Identifiable> List<Asset> mapIdentifiableList(Collection<I> identifiableList, AasProvider provider) {
+        return identifiableList.stream()
+                .map(identifiable -> identifiableMapper.map(identifiable, provider))
                 .toList();
     }
 }

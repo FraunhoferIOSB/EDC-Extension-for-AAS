@@ -15,7 +15,7 @@
  */
 package de.fraunhofer.iosb.aas.lib.model;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import de.fraunhofer.iosb.aas.lib.auth.AuthenticationMethod;
 import de.fraunhofer.iosb.aas.lib.auth.impl.NoAuth;
 import de.fraunhofer.iosb.aas.lib.net.AasAccessUrl;
@@ -26,16 +26,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import static de.fraunhofer.iosb.aas.lib.type.AasConstants.AAS_V30_NAMESPACE;
+
 public abstract class AasProvider {
 
-    @JsonAlias("url")
+    public static final String AAS_PROVIDER_TYPE = AAS_V30_NAMESPACE + "AasProvider";
+    public static final String AAS_PROVIDER_AUTH = AAS_V30_NAMESPACE + "auth";
+    public static final String AAS_PROVIDER_URL = AAS_V30_NAMESPACE + "url";
     protected final AasAccessUrl url;
-    @JsonAlias("auth")
-    protected final AuthenticationMethod authentication;
 
-    public AasProvider(AasAccessUrl url, AuthenticationMethod authentication) {
+    @JsonProperty(AAS_PROVIDER_AUTH)
+    protected final AuthenticationMethod auth;
+
+    public AasProvider(AasAccessUrl url, AuthenticationMethod auth) {
         this.url = Objects.requireNonNull(url);
-        this.authentication = Objects.requireNonNull(authentication);
+        this.auth = Objects.requireNonNull(auth);
     }
 
     public AasProvider(AasAccessUrl url) {
@@ -43,17 +48,22 @@ public abstract class AasProvider {
     }
 
     protected AasProvider(AasProvider from) {
-        this(from.url, from.authentication);
+        this(from.url, from.auth);
     }
 
     public Map<String, String> getHeaders() {
-        var header = authentication.getHeader();
+        var header = auth.getHeader();
         var responseMap = new HashMap<String, String>();
         if (header != null) {
             responseMap.put(header.getKey(), header.getValue());
         }
 
         return responseMap;
+    }
+
+    @JsonProperty(AAS_PROVIDER_AUTH)
+    public AuthenticationMethod getAuth() {
+        return auth;
     }
 
     @Override
@@ -69,7 +79,8 @@ public abstract class AasProvider {
         return Objects.hashCode(url);
     }
 
-    public URL getAccessUrl() {
+    @JsonProperty(AAS_PROVIDER_URL)
+    public URL baseUrl() {
         return url.url();
     }
 
@@ -93,14 +104,14 @@ public abstract class AasProvider {
             return self();
         }
 
-        public B withAuthenticationMethod(AuthenticationMethod authentication) {
+        public B withAuth(AuthenticationMethod authentication) {
             this.authentication = Objects.requireNonNull(authentication);
             return self();
         }
 
         public B from(AasProvider from) {
             this.url = from.url;
-            this.authentication = from.authentication;
+            this.authentication = from.auth;
             return self();
         }
 

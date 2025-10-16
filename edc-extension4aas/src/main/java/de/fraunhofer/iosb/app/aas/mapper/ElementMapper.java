@@ -15,15 +15,25 @@
  */
 package de.fraunhofer.iosb.app.aas.mapper;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyName;
+import com.fasterxml.jackson.databind.introspect.Annotated;
+import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 import de.fraunhofer.iosb.aas.lib.model.AasProvider;
 import de.fraunhofer.iosb.aas.lib.model.impl.Service;
 import de.fraunhofer.iosb.aas.lib.spi.AasDataAddress;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
+import org.eclipse.digitaltwin.aas4j.v3.model.annotations.IRI;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.URL;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -31,17 +41,25 @@ import java.util.Objects;
  */
 public class ElementMapper {
 
+    private final ObjectMapper objectMapper;
+    private final TypeReference<Map<String, Object>> jsonMapTypeRef = new TypeReference<>() {
+    };
+    private final TypeReference<List<Object>> jsonListTypeRef = new TypeReference<>() {
+    };
 
     protected ElementMapper() {
+        objectMapper = new ObjectMapper()
+                .setAnnotationIntrospector(new NamespacingIntrospector())
+                // Disable auto-detection from method names
+                .setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE)
+                // Enable auto-detection by field names (where @IRI is placed)
+                .setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
     }
 
     protected @NotNull String generateId(DataAddress dataAddress) {
-        if (dataAddress.getType().equals("AasData")) {
-            var aasDataAddress = (AasDataAddress) dataAddress;
-            return String.valueOf("%s:%s".formatted((aasDataAddress.getAccessUrl().getContent().toString()), aasDataAddress.getPath()).hashCode());
-        } else if (dataAddress.getType().equals("HttpData")) {
-            var httpDataAddress = (HttpDataAddress) dataAddress;
-
+        if (dataAddress instanceof AasDataAddress aasDataAddress) {
+            return String.valueOf("%s:%s".formatted((aasDataAddress.getBaseUrl()), aasDataAddress.getPath()).hashCode());
+        } else if (dataAddress instanceof HttpDataAddress httpDataAddress) {
             return String.valueOf("%s:%s".formatted(httpDataAddress.getBaseUrl(), httpDataAddress.getPath()).hashCode());
         } else {
             String idProperty = "id";
@@ -63,5 +81,25 @@ public class ElementMapper {
         return AasDataAddress.Builder.newInstance()
                 .aasProvider(new Service.Builder().withUrl(href).build())
                 .build();
+    }
+
+    protected Map<String, Object> getNamespaced(Object object) {
+        return objectMapper.convertValue(object, jsonMapTypeRef);
+    }
+
+    protected List<Object> getNamespacedList(Object object) {
+        return objectMapper.convertValue(object, jsonListTypeRef);
+    }
+
+    private static class NamespacingIntrospector extends JacksonAnnotationIntrospector {
+
+        @Override
+        public PropertyName findNameForSerialization(Annotated a) {
+            IRI iri = a.getAnnotation(IRI.class);
+            if (iri != null && iri.value().length > 0) {
+                return PropertyName.construct(iri.value()[0]);
+            }
+            return super.findNameForSerialization(a);
+        }
     }
 }

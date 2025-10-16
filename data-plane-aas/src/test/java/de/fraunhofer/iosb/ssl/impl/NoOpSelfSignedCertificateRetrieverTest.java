@@ -18,17 +18,14 @@ package de.fraunhofer.iosb.ssl.impl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class NoOpSelfSignedCertificateRetrieverTest {
 
     @Test
-    void testGetSelfSignedCertificate() throws MalformedURLException {
+    void testGetSelfSignedCertificate() {
         var testSubject = new NoOpSelfSignedCertificateRetriever();
-        var result = testSubject.getSelfSignedCertificate(new URL("https://example.com"))
+        var result = testSubject.getSelfSignedCertificate("https://example.com")
                 .onSuccess(Assertions::assertNull);
         // .onFailure(fail()) did not work
         assertTrue(result.failed());

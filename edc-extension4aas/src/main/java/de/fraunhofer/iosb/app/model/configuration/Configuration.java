@@ -26,31 +26,22 @@ public class Configuration {
 
     private static final String SETTINGS_PREFIX = "edc.aas.";
     private static Configuration instance;
-
-    @JsonProperty(SETTINGS_PREFIX + "allowSelfSignedCertificates")
-    private boolean allowSelfSignedCertificates;
-
-    @JsonProperty(SETTINGS_PREFIX + "remoteAASLocation")
-    private URL remoteAasLocation;
-
-    @JsonProperty(SETTINGS_PREFIX + "localAASModelPath")
-    private String localAasModelPath;
-
-    @JsonProperty(SETTINGS_PREFIX + "localAASServicePort")
-    private int localAasServicePort;
-
-    @JsonProperty(SETTINGS_PREFIX + "localAASServiceConfigPath")
-    private String aasServiceConfigPath;
-
     @JsonProperty(SETTINGS_PREFIX + "syncPeriod")
     private int syncPeriod = 50; // Seconds
-
     @JsonProperty(SETTINGS_PREFIX + "onlySubmodels")
     private boolean onlySubmodels = true;
-
     @JsonProperty(SETTINGS_PREFIX + "exposeSelfDescription")
     private boolean exposeSelfDescription = true;
-
+    @JsonProperty(SETTINGS_PREFIX + "allowSelfSignedCertificates")
+    private boolean allowSelfSignedCertificates;
+    @JsonProperty(SETTINGS_PREFIX + "remoteAASLocation")
+    private URL remoteAasLocation;
+    @JsonProperty(SETTINGS_PREFIX + "localAASModelPath")
+    private String localAasModelPath;
+    @JsonProperty(SETTINGS_PREFIX + "localAASServicePort")
+    private int localAasServicePort;
+    @JsonProperty(SETTINGS_PREFIX + "localAASServiceConfigPath")
+    private String aasServiceConfigPath;
     @JsonProperty(SETTINGS_PREFIX + "defaultAccessPolicyPath")
     private String defaultAccessPolicyPath;
 
@@ -88,7 +79,7 @@ public class Configuration {
         return syncPeriod;
     }
 
-    public boolean isOnlySubmodels() {
+    public boolean onlySubmodels() {
         return onlySubmodels;
     }
 
@@ -108,7 +99,7 @@ public class Configuration {
         return allowSelfSignedCertificates;
     }
 
-    public boolean isUseAasDataPlane() {
+    public boolean useAasDataPlane() {
         return useAasDataPlane;
     }
 

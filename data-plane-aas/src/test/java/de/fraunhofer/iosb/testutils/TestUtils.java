@@ -27,7 +27,6 @@ import de.fraunhofer.iosb.ilt.faaast.service.persistence.memory.PersistenceInMem
 import de.fraunhofer.iosb.ilt.faaast.service.starter.util.ServiceConfigHelper;
 import de.fraunhofer.iosb.ssl.impl.DefaultSelfSignedCertificateRetriever;
 
-import java.net.URL;
 import java.nio.file.Path;
 import java.security.cert.Certificate;
 
@@ -39,8 +38,7 @@ public class TestUtils {
         var port = getFreePort();
 
         try (var ignored = startFaaastService(port)) {
-            var url = new URL("https://localhost:" + port);
-            var certResult = new DefaultSelfSignedCertificateRetriever().getSelfSignedCertificate(url);
+            var certResult = new DefaultSelfSignedCertificateRetriever().getSelfSignedCertificate("https://localhost:" + port);
             return certResult.getContent();
         } catch (Exception e) {
             throw new RuntimeException(e);

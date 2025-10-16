@@ -68,6 +68,7 @@ public final class Service extends AasProvider {
 
     /**
      * Returns whether this service is equipped with AAS-entity-level selection of elements to register and attached policies
+     *
      * @return true if selective registration is wanted
      */
     public boolean hasSelectiveRegistration() {
@@ -81,14 +82,14 @@ public final class Service extends AasProvider {
     @Override
     public String toString() {
         return "Service[" +
-                "accessUrl=" + getAccessUrl() + ", " +
+                "accessUrl=" + baseUrl() + ", " +
                 "environment=" + environment + ']';
     }
 
     public Builder toBuilder() {
         return new Builder()
                 .aasAccessUrl(this.url)
-                .withAuthenticationMethod(this.authentication)
+                .withAuth(this.auth)
                 .withPolicyBindings(this.policyBindings)
                 .environment(this.environment);
     }

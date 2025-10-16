@@ -94,7 +94,7 @@ public class AasController implements SelfDescriptionChangeListener {
 
     @Override
     public void removed(Service service) {
-        stopService(service.getAccessUrl());
+        stopService(service.baseUrl());
     }
 
 }

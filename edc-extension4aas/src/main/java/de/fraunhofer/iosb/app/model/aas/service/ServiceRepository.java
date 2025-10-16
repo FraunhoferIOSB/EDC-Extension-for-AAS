@@ -16,7 +16,9 @@
 package de.fraunhofer.iosb.app.model.aas.service;
 
 import de.fraunhofer.iosb.aas.lib.model.impl.Service;
+import de.fraunhofer.iosb.app.edc.StoreFailureListener;
 import de.fraunhofer.iosb.app.model.aas.AasProviderRepository;
+import de.fraunhofer.iosb.app.util.AssetUtil;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 
 import java.net.URL;
@@ -28,7 +30,7 @@ import javax.annotation.Nullable;
  * Self-description repository, also an observable so that on removal
  * of self-description, AssetIndex / ContractStore can be synchronized
  */
-public class ServiceRepository extends AasProviderRepository<Service> {
+public class ServiceRepository extends AasProviderRepository<Service> implements StoreFailureListener {
 
     public Collection<Asset> getAllEnvironments() {
         return getAll().stream()
@@ -48,7 +50,7 @@ public class ServiceRepository extends AasProviderRepository<Service> {
     public @Nullable Asset getEnvironment(URL serviceUrl) {
         return getAll().stream()
                 .filter(service ->
-                        service.getAccessUrl().toString()
+                        service.baseUrl().toString()
                                 .equals(serviceUrl.toString()))
                 .findAny()
                 .orElseThrow(() ->
@@ -70,4 +72,15 @@ public class ServiceRepository extends AasProviderRepository<Service> {
     protected void removed(Service removed) {
         invokeForEach(listener -> listener.removed(removed));
     }
+
+    @Override
+    public void storeFailure(String assetId) {
+        getAll().stream()
+                .filter(service -> AssetUtil.flatMapAssets(service.getEnvironment()).stream()
+                        .map(Asset::getId)
+                        .toList()
+                        .contains(assetId))
+                .findFirst().ifPresent(affectedService -> update(affectedService.with(null)));
+    }
+
 }

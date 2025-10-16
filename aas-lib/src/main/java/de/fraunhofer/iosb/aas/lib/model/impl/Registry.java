@@ -78,7 +78,7 @@ public final class Registry extends AasProvider {
 
     @Override
     public String toString() {
-        return "Registry[" + "accessUrl=" + super.getAccessUrl() + ", " + "services=" + services + ']';
+        return "Registry[" + "accessUrl=" + super.baseUrl() + ", " + "services=" + services + ']';
     }
 
 }

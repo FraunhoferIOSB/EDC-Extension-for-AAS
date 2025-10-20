@@ -73,7 +73,6 @@ subprojects {
             val dockerTask = tasks.register<DockerBuildImage>("dockerize") {
                 dockerFile.set(File("build/resources/docker/Dockerfile"))
 
-
                 val dockerContextDir = project.projectDir
                 images.add("${project.name}:${project.version}")
                 images.add("${project.name}:latest")

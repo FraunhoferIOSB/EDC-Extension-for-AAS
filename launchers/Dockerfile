@@ -10,7 +10,7 @@ ARG ADDITIONAL_FILES
 ENV EDC_FS_CONFIG=$EDC_FS_CONFIG
 
 COPY ./build/libs/${PROJECT}.jar app.jar
-COPY ADDITIONAL_FILES ./
+COPY ${ADDITIONAL_FILES} ./
 
 ENTRYPOINT ["java", \
      "-Djava.security.egd=file:/dev/urandom", \

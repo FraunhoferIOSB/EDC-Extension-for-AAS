@@ -154,7 +154,7 @@ class CodecTest {
     }
 
     @Test
-    void serialize_thenDeserialize_querySpec() throws IOException {
+    void serialize_thenDeserialize_querySpec() {
         QuerySpec querySpec = QuerySpec.Builder.newInstance()
                 .range(new Range(0, 31415926)).limit(761370123)
                 .offset(42)

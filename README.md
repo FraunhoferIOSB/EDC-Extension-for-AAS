@@ -34,7 +34,7 @@ The repository contains several material:
 ## Example Usage
 
 For a data transfer example using two connectors communicating with the DSP protocol, check
-the [example's README](example/README.md).
+the [samples README](samples/README.md).
 
 ## Functionality
 

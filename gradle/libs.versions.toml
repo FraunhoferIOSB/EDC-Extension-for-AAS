@@ -23,9 +23,7 @@ aas4j-dataformat-json = { module = "org.eclipse.digitaltwin.aas4j:aas4j-dataform
 aas4j-model = { module = "org.eclipse.digitaltwin.aas4j:aas4j-model", version.ref = "aas4j" }
 edc-controlplane-base-bom = { module = "org.eclipse.edc:controlplane-base-bom", version.ref = "edc" }
 edc-dataplane-base-bom = { module = "org.eclipse.edc:dataplane-base-bom", version.ref = "edc" }
-tx-edc-controlplane-base = { module = "org.eclipse.tractusx.edc:edc-controlplane-base", version.ref = "tractusx" }
 tx-edc-runtime-memory = { module = "org.eclipse.tractusx.edc:edc-runtime-memory", version.ref = "tractusx" }
-tx-edc-dataplane-base = { module = "org.eclipse.tractusx.edc:edc-dataplane-base", version.ref = "tractusx" }
 
 edc-api-core = { module = "org.eclipse.edc:api-core", version.ref = "edc" }
 edc-asset-spi = { module = "org.eclipse.edc:asset-spi", version.ref = "edc" }

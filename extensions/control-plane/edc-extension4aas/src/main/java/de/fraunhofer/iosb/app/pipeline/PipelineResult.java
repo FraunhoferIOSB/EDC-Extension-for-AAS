@@ -101,21 +101,6 @@ public class PipelineResult<T> extends AbstractResult<T, PipelineFailure, Pipeli
         return failure(PipelineFailure.warning(result.getFailureMessages()));
     }
 
-    /**
-     * Return the same pipeline result with new content. The new content can also have a new type.
-     *
-     * @param content The new content with possibly a new type.
-     * @param <N>     The possibly new content type.
-     * @return A pipeline result with new content
-     */
-    public <N> PipelineResult<N> withContent(N content) {
-        if (this.succeeded()) {
-            return success(content);
-        } else {
-            return recoverableFailure(content, this.getFailure());
-        }
-    }
-
     @NotNull
     @SuppressWarnings("unchecked")
     @Override

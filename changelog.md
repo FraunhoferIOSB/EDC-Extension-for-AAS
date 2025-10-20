@@ -6,6 +6,10 @@ Compatibility: **Eclipse Dataspace Connector v0.13.0, v0.13.2, v0.14.0**
 
 **New Features**
 
+* Restructure project
+  * use extensions/, launchers/, samples/ structure from upstream/other related projects
+  * use libs.versions.toml to manage dependencies
+  * use base build.gradle.kts to manage common elements such as maven repository
 * Standalone feature
   * The extension can now be deployed **alongside** a running control-plane (and data-plane)
   * Previously, deployment was only possible by adding the extension dependency to the control-plane's build file

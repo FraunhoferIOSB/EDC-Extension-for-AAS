@@ -1,0 +1,36 @@
+services:
+  extension:
+    image: fraunhoferiosb/edc-extension4aas
+    ports:
+      - "8080:8080"
+      - "8181:8181" # control
+      - "8281:8281" # api
+      - "8182:8182" # management
+      - "8282:8282" # dsp
+      - "8183:8183" # version
+    environment:
+      EDC_FS_CONFIG: /config/config.properties
+    volumes:
+      - ./config:/config
+      - ./resources:/resources#
+    restart: always
+    networks:
+      extension-net:
+
+  vault:
+    image: hashicorp/vault
+    ports:
+      - "8200:8200"
+    volumes:
+      - ./vault/file:/vault/file:rw
+      - ./vault/config:/vault/config:rw
+    restart: always
+    cap_add:
+      - IPC_LOCK
+    entrypoint: vault server -config=/vault/config/vault.json
+    networks:
+      extension-net:
+
+networks:
+  extension-net:
+    driver: bridge

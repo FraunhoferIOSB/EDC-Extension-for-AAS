@@ -15,13 +15,19 @@ model via the EDC.
 ## Repo Structure
 
 The repository contains several material:
-
-- `client`: The client extension: Automated contract negotiation from HTTP endpoints
-- `config`: Checkstyle files for code formatting
-- `data-plane-aas`: AAS data plane implementation (following HTTP data plane)
-- `edc-extension4aas`: The AAS extension
-- `example`: Example use case for the AAS extension with a preconfigured EDC launcher.
-- `public-api-management`: Managing outward facing endpoints (http) which require no authentication
+- `extensions`: Extensions to the Eclipse Dataspace Components (EDC)
+  - `control-plane`: Extensions to the EDC control-plane
+    - `edc-extension4aas`: The AAS extension
+      - `client`: The client extension: Automated contract negotiation from HTTP endpoints
+      - `public-api-management`: Managing outward facing endpoints (http) which require no authentication
+  - `data-plane`: Extensions to the EDC data-plane
+    - `data-plane-aas`: AAS data plane implementation (following HTTP data plane)
+  - `edc-connector-client`: Communicate with the EntityStores of a remote control-plane instance over its management API
+- `launchers`: several connector configurations: control-planes, data-planes, standalone extension, tractus-x, ...
+- `samples`: Example use cases for the extensions
+- `misc`: Supplemental files for the project
+  - `checkstyle`: Checkstyle files for code formatting
+  - `http`: Postman and Bruno files for HTTP requests (coming soon :tm: ) 
 
 <!-- ------------------Template Section --------------------------- -->
 

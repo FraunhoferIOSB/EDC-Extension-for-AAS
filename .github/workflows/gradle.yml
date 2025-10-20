@@ -1,24 +1,30 @@
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-# This workflow will build a Java project with Gradle and cache/restore any dependencies to improve the workflow execution time
-# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-gradle
+# Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
+# Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
+# Forschung e.V.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# http://www.apache.org/licenses/LICENSE-2.0
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-name: Java CI with Gradle
+name: Build and publish on docker registry
 
 on:
   push:
     branches: [ "main" ]
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v5
       - name: Set up JDK 17
@@ -26,33 +32,5 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-      - name: Build with Gradle
-        uses: gradle/gradle-build-action@ac2d340dc04d9e1113182899e983b5400c17cda1
-        with:
-          arguments: clean build
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-      - name: Login to DockerHub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_TOKEN }}
-
-      - name: Extract version from Gradle
-        id: get_version
-        run: |
-          VERSION=$(./gradlew properties -q | grep "^version:" | awk '{print $2}')
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-
-      - name: Build and push docker image - extension
-        uses: docker/build-push-action@v6
-        with:
-          platforms: linux/amd64,linux/arm64
-          context: "./launchers"
-          push: true
-          tags: |
-            fraunhoferiosb/edc-extension4aas:latest
-            fraunhoferiosb/edc-extension4aas:${{ env.VERSION }}
+      - uses: ./.github/actions/checks/build_all.yaml
+      - uses: ./.github/workflows/trigger_docker_publish.yaml

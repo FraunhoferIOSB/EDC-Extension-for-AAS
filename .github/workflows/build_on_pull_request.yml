@@ -12,20 +12,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-version: 2
-updates:
-  - package-ecosystem: "gradle"
-    target-branch: main
-    directory: /
-    labels:
-    - "dependabot"
-    schedule:
-    interval: "weekly"
+name: Build project on PR
 
-  - package-ecosystem: "github-actions"
-    target-branch: main
-    directory: /
-    labels:
-    - "dependabot"
-    schedule:
-    interval: "weekly"
+on:
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      - name: Build project and docker image
+        uses: ./.github/actions/checks/build_all.yaml

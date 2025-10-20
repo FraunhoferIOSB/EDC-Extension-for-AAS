@@ -14,25 +14,39 @@
 
 name: Docker publish
 
+inputs:
+  registry_name:
+    description: 'The docker registry URL'
+    default: "ghcr.io"
+  organisation_name:
+    description: 'The docker registry organisation'
+  project_name:
+    description: 'The project name in the docker registry'
+    default: "edc-extension4aas"
+  docker_username:
+    description: 'Docker registry username'
+  docker_token:
+    description: 'Docker registry token'
+
 runs:
   using: "composite"
   steps:
     - name: Set up JDK
       uses: actions/setup-java@v5
       with:
-       java-version: '17'
-       distribution: 'temurin'
+        java-version: '17'
+        distribution: 'temurin'
     - name: Build project and docker image
       uses: ./.github/actions/setup/build
     - name: Login to DockerHub
       uses: docker/login-action@v3
       with:
-        username: ${{ DOCKER_USERNAME }}
-        password: ${{ DOCKER_TOKEN }}
+        username: ${{ input.docker_username }}
+        password: ${{ input.docker_token }}
     - uses: ./.github/actions/docker/publish
       name: Publish ${{ inputs.project_name }}
     - name: Push docker image to DockerHub
       shell: bash
       run: |
         docker load < result
-        docker push --all-tags ${{ REGISTRY_NAME }}/${{ ORGANISATION_NAME }}/${{ PROJECT_NAME }}
+        docker push --all-tags ${{ input.registry_name }}/${{ input.organisation_name }}/${{ input.project_name }}

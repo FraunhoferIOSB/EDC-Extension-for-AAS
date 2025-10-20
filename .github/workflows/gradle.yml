@@ -67,8 +67,8 @@ jobs:
       - uses: ./.github/actions/docker/publish
         name: Publish ${{ inputs.project_name }}
         with:
-          REGISTRY_NAME: ${{ inputs.registry_name }}
-          ORGANISATION_NAME: ${{ inputs.organisation_name || github.repository_owner }}
-          PROJECT_NAME: ${{ inputs.project_name }}
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
+          registry_name: ${{ inputs.registry_name }}
+          organisation_name: ${{ inputs.organisation_name || github.repository_owner }}
+          project_name: ${{ inputs.project_name }}
+          docker_username: ${{ secrets.DOCKER_USERNAME }}
+          docker_token: ${{ secrets.DOCKER_TOKEN }}

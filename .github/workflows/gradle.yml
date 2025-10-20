@@ -26,7 +26,6 @@ on:
         type: string
         description: 'The docker registry organisation'
         required: false
-        default: ${{ github.repository_owner }}
       project_name:
         type: string
         description: 'The project name in the docker registry'

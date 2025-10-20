@@ -12,18 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: Build default
+name: Docker publish
 
 runs:
   using: "composite"
   steps:
-    - name: Checkout sources
-      uses: actions/checkout@v4
-    - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v3
-    - name: Clean possible debris
-      run: ./gradlew clean
-    - name: Build the default launcher
-      run: ./gradlew :launchers:provider:build
-    - name: Create docker image with the current version and 'latest' as tags
-      run: ./gradlew :launchers:provider:dockerize
+    - name: Set up JDK
+      uses: actions/setup-java@v5
+      with:
+       java-version: '17'
+       distribution: 'temurin'
+    - name: Build project and docker image
+      uses: ./.github/actions/setup/build
+    - name: Login to DockerHub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ DOCKER_USERNAME }}
+        password: ${{ DOCKER_TOKEN }}
+    - uses: ./.github/actions/docker/publish
+      name: Publish ${{ inputs.project_name }}
+    - name: Push docker image to DockerHub
+      shell: bash
+      run: |
+        docker load < result
+        docker push --all-tags ${{ REGISTRY_NAME }}/${{ ORGANISATION_NAME }}/${{ PROJECT_NAME }}

@@ -15,9 +15,41 @@
 name: Build and publish on docker registry
 
 on:
+  workflow_dispatch:
+    inputs:
+      registry_name:
+        type: string
+        description: 'The docker registry URL'
+        required: false
+        default: "ghcr.io"
+      organisation_name:
+        type: string
+        description: 'The docker registry organisation'
+        required: false
+        default: ${{ GITHUB_REPOSITORY_OWNER }}
+      project_name:
+        type: string
+        description: 'The project name in the docker registry'
+        required: false
+        default: "edc-extension4aas"
+  workflow_call:
+    inputs:
+      registry_name:
+        type: string
+        description: 'The docker registry URL'
+        required: false
+        default: "ghcr.io"
+      organisation_name:
+        type: string
+        description: 'The docker registry organisation (if blank, uses GH org name)'
+        required: false
+      project_name:
+        type: string
+        description: 'The project name in the docker registry'
+        required: false
+        default: "edc-extension4aas"
   push:
     branches: [ "main" ]
-  workflow_dispatch:
 
 permissions:
   contents: read
@@ -33,4 +65,11 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
       - uses: ./.github/actions/checks/build_all
-      - uses: ./.github/workflows/trigger_docker_publish.yaml
+      - uses: ./.github/actions/docker/publish
+        name: Publish ${{ inputs.project_name }}
+        with:
+          REGISTRY_NAME: ${{ inputs.registry_name }}
+          ORGANISATION_NAME: ${{ inputs.organisation_name || github.repository_owner }}
+          PROJECT_NAME: ${{ inputs.project_name }}
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}

@@ -42,9 +42,8 @@ on:
         default: "ghcr.io"
       organisation_name:
         type: string
-        description: 'The docker registry organisation'
+        description: 'The docker registry organisation (if blank, uses GH org name)'
         required: false
-        default: ${{ GITHUB_REPOSITORY_OWNER }}
       project_name:
         type: string
         description: 'The project name in the docker registry'
@@ -60,7 +59,7 @@ jobs:
     steps:
       - name: Log inputs
         run: |
-          echo "registry_name: ${{ inputs.registry_name }}, organisation_name: ${{ inputs.organisation_name}}, project_name: ${{ inputs.project_name}}"
+          echo "registry_name: ${{ inputs.registry_name }}, organisation_name: ${{ inputs.organisation_name || github.repository_owner }}, project_name: ${{ inputs.project_name}}"
       - name: Set up JDK
         uses: actions/setup-java@v5
         with:
@@ -77,7 +76,7 @@ jobs:
         name: Publish ${{ inputs.project_name }}
         with:
           REGISTRY_NAME: ${{ inputs.registry_name }}
-          ORGANISATION_NAME: ${{ inputs.organisation_name }}
+          ORGANISATION_NAME: ${{ inputs.organisation_name || github.repository_owner }}
           PROJECT_NAME: ${{ inputs.project_name }}
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}

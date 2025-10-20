@@ -1,0 +1,32 @@
+meta {
+  name: query
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{provider-management}}/v3/assets/request
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "@context": {
+      "@vocab": "https://w3id.org/edc/v0.0.1/ns/",
+      "aas": "https://admin-shell.io/aas/3/0/"
+    },
+    "@type": "QuerySpec",
+    "filterExpression": [
+      {
+        "operandLeft": "https://w3id.org/edc/v0.0.1/ns/id",
+        "operator": "=",
+        "operandRight": "-348472110"
+      }
+    ]
+  }
+}
+
+settings {
+  encodeUrl: true
+}

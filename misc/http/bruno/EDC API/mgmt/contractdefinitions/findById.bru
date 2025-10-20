@@ -1,0 +1,19 @@
+meta {
+  name: findById
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{consumer-management}}/v3/contractdefinitions/:contractdefinition-id
+  body: none
+  auth: inherit
+}
+
+params:path {
+  contractdefinition-id: 52d9f756-ad6b-4c44-ac89-5091123e4cfe
+}
+
+settings {
+  encodeUrl: true
+}

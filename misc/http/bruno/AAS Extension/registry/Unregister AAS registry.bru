@@ -1,0 +1,19 @@
+meta {
+  name: Unregister AAS registry
+  type: http
+  seq: 2
+}
+
+delete {
+  url: {{provider}}/registry?url=https://localhost:8090/api/v3.0
+  body: none
+  auth: inherit
+}
+
+params:query {
+  url: https://localhost:8090/api/v3.0
+}
+
+settings {
+  encodeUrl: true
+}

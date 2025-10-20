@@ -1,0 +1,28 @@
+meta {
+  name: AllNegotiations
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{provider-management}}/v3/contractnegotiations/request
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "offset": 0,
+    "@type": "@type",
+    "sortOrder": "ASC",
+    "filterExpression": []
+  }
+}
+
+vars:post-response {
+  agreement-id: res.body[0].contractAgreementId
+}
+
+settings {
+  encodeUrl: true
+}

@@ -1,0 +1,20 @@
+meta {
+  name: Register by file
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{provider}}/environment?environment=/path/to/aas/model.aasx&port=12345
+  body: none
+  auth: inherit
+}
+
+params:query {
+  environment: /path/to/aas/model.aasx
+  port: 12345
+}
+
+settings {
+  encodeUrl: true
+}

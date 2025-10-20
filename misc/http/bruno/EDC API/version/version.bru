@@ -1,0 +1,15 @@
+meta {
+  name: version
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{provider-version}}
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+}

@@ -1,0 +1,29 @@
+meta {
+  name: EDC Extension
+}
+
+auth {
+  mode: apikey
+}
+
+auth:apikey {
+  key: x-api-key
+  value: coolPassword
+  placement: header
+}
+vars:pre-request {
+  asset-id: -1581571426
+  agreement-id: 3e0d789a-3f5a-4223-8cae-128f21baea2e
+  provider: http://localhost:8281/api
+  provider-dsp: http://localhost:8282/dsp
+  provider-management: http://localhost:8182/management
+  consumer: http://localhost:9291/api
+  consumer-dsp: http://localhost:9292/dsp
+  consumer-management: http://localhost:9192/management
+  faaast: http://localhost:12345/api/v3.0
+  provider-version: http://localhost:8183/version
+  consumer-control: http://localhost:9191
+  faaast-selfsigned: https://localhost:443/api/v3.0
+  standalone: http://localhost:18281/api
+  provider-control: http://localhost:8181/control
+}

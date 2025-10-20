@@ -1,0 +1,19 @@
+meta {
+  name: findById
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{consumer-management}}/v3/policydefinitions/:policydefinition-id
+  body: none
+  auth: inherit
+}
+
+params:path {
+  policydefinition-id: 01736770-c79e-4b75-8053-5f689c26669b
+}
+
+settings {
+  encodeUrl: true
+}

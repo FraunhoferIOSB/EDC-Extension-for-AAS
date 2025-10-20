@@ -1,0 +1,19 @@
+meta {
+  name: Unregister
+  type: http
+  seq: 4
+}
+
+delete {
+  url: {{standalone}}/service?url={{faaast-selfsigned}}
+  body: none
+  auth: inherit
+}
+
+params:query {
+  url: {{faaast-selfsigned}}
+}
+
+settings {
+  encodeUrl: true
+}

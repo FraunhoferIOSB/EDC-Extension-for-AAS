@@ -1,0 +1,25 @@
+meta {
+  name: create
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{provider-management}}/v3/assets
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "@id": "-1398493822",
+    "@type": "Asset",
+    "https://w3id.org/edc/v0.0.1/ns/properties": {
+      "description": "hello world"
+    }
+  }
+}
+
+settings {
+  encodeUrl: true
+}

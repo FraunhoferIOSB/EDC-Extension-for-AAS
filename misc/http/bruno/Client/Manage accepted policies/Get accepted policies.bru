@@ -1,0 +1,51 @@
+meta {
+  name: Get accepted policies
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{consumer}}/automated/acceptedPolicies
+  body: json
+  auth: inherit
+}
+
+body:json {
+  [
+      {
+          "id": "my-custom-policy-definition",
+          "policy": {
+              "permissions": [
+                  {
+                      "edctype": "dataspaceconnector:permission",
+                      "uid": null,
+                      "target": "-1379397334",
+                      "action": {
+                          "type": "USE",
+                          "includedIn": null,
+                          "constraint": null
+                      },
+                      "assignee": null,
+                      "assigner": null,
+                      "constraints": [],
+                      "duties": []
+                  }
+              ],
+              "prohibitions": [],
+              "obligations": [],
+              "extensibleProperties": {},
+              "inheritsFrom": null,
+              "assigner": null,
+              "assignee": null,
+              "target": "-1379397334",
+              "@type": {
+                  "@policytype": "set"
+              }
+          }
+      }
+  ]
+}
+
+settings {
+  encodeUrl: true
+}

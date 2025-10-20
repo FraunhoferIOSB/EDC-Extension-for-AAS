@@ -1,0 +1,19 @@
+meta {
+  name: delete
+  type: http
+  seq: 5
+}
+
+delete {
+  url: {{consumer-management}}/v3/assets/:asset-id
+  body: none
+  auth: inherit
+}
+
+params:path {
+  asset-id: 1586873662
+}
+
+settings {
+  encodeUrl: true
+}

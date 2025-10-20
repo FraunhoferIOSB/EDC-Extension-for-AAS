@@ -1,0 +1,32 @@
+meta {
+  name: OwnCatalog
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{provider-management}}/v3/catalog/request
+  body: json
+  auth: inherit
+}
+
+headers {
+  x-api-key: password
+}
+
+body:json {
+  {
+    "@context": {
+      "edc": "https://w3id.org/edc/v0.0.1/ns/"
+    },
+    "counterPartyAddress": "{{provider-dsp}}",
+    "protocol": "dataspace-protocol-http",
+    "querySpec": {
+      "limit": 31415926
+    }
+  }
+}
+
+settings {
+  encodeUrl: true
+}

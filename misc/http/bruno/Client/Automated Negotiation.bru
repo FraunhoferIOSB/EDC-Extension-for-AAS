@@ -1,0 +1,36 @@
+meta {
+  name: Automated Negotiation
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{consumer}}/automated/negotiate?providerId=provider&assetId={{asset-id}}&providerUrl={{provider-dsp}}
+  body: json
+  auth: inherit
+}
+
+params:query {
+  providerId: provider
+  assetId: {{asset-id}}
+  providerUrl: {{provider-dsp}}
+  ~dataDestinationUrl: http://example.com
+}
+
+body:json {
+  {
+    "type": "AasData",
+    "properties": {
+      "aasProvider": {
+        "aasAccessUrl": "{{ext-aas-service}}"
+      },
+      "path": "submodels/aHR0cHM6Ly9leGFtcGxlLmNvbS9pZHMvc20vNTIxM18xMTIwXzgwMjJfOTMwNQ==/submodel-elements/Skills.Skill.Name",
+      "method": "PATCH",
+      "header:x-api-key": "password"
+    }
+  }
+}
+
+settings {
+  encodeUrl: true
+}

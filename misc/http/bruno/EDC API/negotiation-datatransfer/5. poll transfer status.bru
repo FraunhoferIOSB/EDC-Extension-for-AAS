@@ -1,0 +1,15 @@
+meta {
+  name: 5. poll transfer status
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{consumer-management}}/v3/transferprocesses/{{transferprocess-id}}/state
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+}

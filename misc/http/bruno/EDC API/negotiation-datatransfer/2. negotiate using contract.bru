@@ -1,0 +1,44 @@
+meta {
+  name: 2. negotiate using contract
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{consumer-management}}/v3/contractnegotiations
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "@type": "ContractRequest",
+    "protocol": "dataspace-protocol-http",
+    "counterPartyAddress": "{{provider-dsp}}",
+    "policy": {
+      "@context": "http://www.w3.org/ns/odrl.jsonld",
+      "@type": "odrl:Offer",
+      "@id": "{{offer-id}}",
+      "permission": {{permissions}},
+      "prohibition": {{prohibitions}},
+      "obligation": {{obligations}},
+      "assigner": "{{assigner}}",
+      "target": "{{asset-id}}"
+    },
+    "callbackAddresses": [],
+    "@context": {
+      "aas": "https://admin-shell.io/aas/3/0/",
+      "@vocab": "https://w3id.org/edc/v0.0.1/ns/",
+      "edc": "https://w3id.org/edc/v0.0.1/ns/",
+      "odrl": "http://www.w3.org/ns/odrl/2/"
+    }
+  }
+}
+
+vars:post-response {
+  negotiation-status-id: res.body['@id']
+}
+
+settings {
+  encodeUrl: true
+}

@@ -33,4 +33,4 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
       - name: Build project and docker image
-        uses: ./.github/actions/checks/build_all.yaml
+        uses: ./.github/actions/checks/build_all

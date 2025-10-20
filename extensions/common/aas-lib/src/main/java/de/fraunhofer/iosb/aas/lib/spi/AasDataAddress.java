@@ -64,8 +64,8 @@ public class AasDataAddress extends DataAddress {
     private static final String REFERENCE_CHAIN = AAS_V30_NAMESPACE + "referenceChain";
     private static final String PATH = AAS_V30_NAMESPACE + "path";
 
-    private static final JsonSerializer jsonSerializer = new JsonSerializer();
-    private static final JsonDeserializer jsonDeserializer = new JsonDeserializer();
+    private static final JsonSerializer JSON_SERIALIZER = new JsonSerializer();
+    private static final JsonDeserializer JSON_DESERIALIZER = new JsonDeserializer();
 
     private AasDataAddress() {
         super();
@@ -115,10 +115,10 @@ public class AasDataAddress extends DataAddress {
                 case SUBMODEL -> new String[]{ SUBMODELS_PATH, b64(value) };
                 case CONCEPT_DESCRIPTION -> new String[]{ CONCEPT_DESCRIPTIONS_PATH, b64(value) };
                 case SUBMODEL_ELEMENT, SUBMODEL_ELEMENT_COLLECTION, SUBMODEL_ELEMENT_LIST, PROPERTY,
-                     ANNOTATED_RELATIONSHIP_ELEMENT, RELATIONSHIP_ELEMENT, DATA_ELEMENT, MULTI_LANGUAGE_PROPERTY, RANGE, FILE, BLOB,
-                     REFERENCE_ELEMENT, CAPABILITY, ENTITY, EVENT_ELEMENT, BASIC_EVENT_ELEMENT, OPERATION ->
+                        ANNOTATED_RELATIONSHIP_ELEMENT, RELATIONSHIP_ELEMENT, DATA_ELEMENT, MULTI_LANGUAGE_PROPERTY, RANGE, FILE, BLOB,
+                        REFERENCE_ELEMENT, CAPABILITY, ENTITY, EVENT_ELEMENT, BASIC_EVENT_ELEMENT, OPERATION ->
                         new String[]{ urlBuilder.indexOf("/submodel-elements/") == -1 ? "/submodel-elements/".concat(value)
-                                : ".".concat(value) };
+                                    : ".".concat(value) };
                 default -> throw new EdcException(new IllegalStateException("Element type not recognized: %s".formatted(key)));
             };
 
@@ -143,7 +143,7 @@ public class AasDataAddress extends DataAddress {
         }
 
         try {
-            referenceChain = jsonDeserializer.read(getStringProperty(REFERENCE_CHAIN), Reference.class);
+            referenceChain = JSON_DESERIALIZER.read(getStringProperty(REFERENCE_CHAIN), Reference.class);
         } catch (DeserializationException e) {
             throw new EdcException(new IllegalStateException(("Faulty reference chain: %s").formatted(referenceChain)));
         }
@@ -213,7 +213,7 @@ public class AasDataAddress extends DataAddress {
 
         public Builder referenceChain(Reference referenceChain) {
             try {
-                this.property(REFERENCE_CHAIN, jsonSerializer.write(referenceChain));
+                this.property(REFERENCE_CHAIN, JSON_SERIALIZER.write(referenceChain));
             } catch (SerializationException e) {
                 throw new EdcException(e);
             }

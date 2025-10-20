@@ -12,7 +12,6 @@
  *       SAP SE - add private properties to contract definition
  *
  */
-
 package de.fraunhofer.iosb.edc.remote.transform;
 
 import jakarta.json.JsonObject;

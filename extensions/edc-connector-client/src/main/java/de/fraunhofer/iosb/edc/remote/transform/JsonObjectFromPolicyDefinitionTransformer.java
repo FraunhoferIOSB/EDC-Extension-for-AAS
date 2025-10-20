@@ -11,7 +11,6 @@
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
  *
  */
-
 package de.fraunhofer.iosb.edc.remote.transform;
 
 

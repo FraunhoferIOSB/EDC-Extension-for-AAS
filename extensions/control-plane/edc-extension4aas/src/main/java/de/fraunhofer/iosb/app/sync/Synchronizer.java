@@ -100,19 +100,19 @@ public class Synchronizer extends PipelineStep<Collection<Pair<Asset, Asset>>, C
 
     private boolean assetsEquality(Asset a, Asset b) {
         // Don't check for submodelElements or collectionElements as they are handled on their own
-        Set<Map.Entry<String, Object>> aFilteredProperties =
+        Set<Map.Entry<String, Object>> filteredPropertiesA =
                 a.getProperties().entrySet().stream()
                         .filter(entry -> !SUBMODEL_ELEMENT_LOCATION.equals(entry.getKey()))
                         .filter(entry -> !SMC_CHILDREN_LOCATION.equals(entry.getKey()))
                         .collect(Collectors.toSet());
-        Set<Map.Entry<String, Object>> bFilteredProperties =
+        Set<Map.Entry<String, Object>> filteredPropertiesB =
                 b.getProperties().entrySet().stream()
                         .filter(entry -> !SUBMODEL_ELEMENT_LOCATION.equals(entry.getKey()))
                         .filter(entry -> !SMC_CHILDREN_LOCATION.equals(entry.getKey()))
                         .collect(Collectors.toSet());
 
         return Objects.equals(a.getId(), b.getId()) &&
-                Objects.equals(aFilteredProperties, bFilteredProperties) &&
+                Objects.equals(filteredPropertiesA, filteredPropertiesB) &&
                 Objects.equals(a.getDataAddress().getProperties(), b.getDataAddress().getProperties()) &&
                 Objects.equals(a.getDataAddress().getClass(), b.getDataAddress().getClass()) &&
                 Objects.equals(a.getPrivateProperties(), b.getPrivateProperties());

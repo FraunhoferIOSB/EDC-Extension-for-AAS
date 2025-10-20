@@ -206,7 +206,7 @@ public abstract class ControlPlaneConnectionHandler<T extends Entity> {
         monitor.severe(String.format("%s: %s", failure.getReason(), failure.getFailureDetail()));
     }
 
-    public static abstract class Builder<T extends ControlPlaneConnectionHandler, B extends Builder<T, B>> {
+    public abstract static class Builder<T extends ControlPlaneConnectionHandler, B extends Builder<T, B>> {
         protected EdcHttpClient httpClient;
         protected Monitor monitor;
         protected String managementUri;

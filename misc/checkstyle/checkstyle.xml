@@ -50,7 +50,7 @@
     <module name="Header">
         <property name="severity" value="warning"/>
         <property name="fileExtensions" value="java"/>
-        <property name="headerFile" value="config/checkstyle/license-header"/>
+        <property name="headerFile" value="misc/checkstyle/license-header"/>
     </module>
 
     <module name="TreeWalker">

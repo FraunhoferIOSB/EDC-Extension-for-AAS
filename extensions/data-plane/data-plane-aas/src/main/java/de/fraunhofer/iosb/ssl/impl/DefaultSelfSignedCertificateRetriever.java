@@ -61,7 +61,7 @@ public class DefaultSelfSignedCertificateRetriever implements SelfSignedCertific
         URL url;
         try {
             url = new URL(urlString);
-        } catch (MalformedURLException malformedURLException) {
+        } catch (MalformedURLException malformedUrlException) {
             return false;
         }
         try {
@@ -80,8 +80,8 @@ public class DefaultSelfSignedCertificateRetriever implements SelfSignedCertific
         URL url;
         try {
             url = new URL(urlString);
-        } catch (MalformedURLException malformedURLException) {
-            return Result.failure(List.of(malformedURLException.getMessage()));
+        } catch (MalformedURLException malformedUrlException) {
+            return Result.failure(List.of(malformedUrlException.getMessage()));
         }
 
         try {

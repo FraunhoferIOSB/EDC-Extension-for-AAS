@@ -84,7 +84,7 @@ public abstract class AasProvider {
         return url.url();
     }
 
-    public static abstract class Builder<B extends Builder<B>> {
+    public abstract static class Builder<B extends Builder<B>> {
         protected AasAccessUrl url;
         protected AuthenticationMethod authentication = new NoAuth();
         protected List<PolicyBinding> policyBindings = null;

@@ -73,7 +73,6 @@ subprojects {
             val dockerTask = tasks.register<DockerBuildImage>("dockerize") {
                 dockerFile.set(File("build/resources/docker/Dockerfile"))
 
-                buildArgs.put("PROJECT", project.projectDir.name)
 
                 val dockerContextDir = project.projectDir
                 images.add("${project.name}:${project.version}")
@@ -83,7 +82,7 @@ subprojects {
                     platform.set(System.getProperty("platform"))
                 }
 
-                buildArgs.put("JAR", "build/libs/${project.name}.jar")
+                buildArgs.put("PROJECT", project.projectDir.name)
                 buildArgs.put("ADDITIONAL_FILES", "build/legal/*")
                 inputDir.set(file(dockerContextDir))
             }

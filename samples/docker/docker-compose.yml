@@ -7,10 +7,10 @@ services:
       - "8182:8182"
       - "8282:8282"
     environment:
-      EDC_FS_CONFIG: /config/provider-https.properties
+      EDC_FS_CONFIG: /config/provider.properties
     volumes:
       - ../config/docker/edc:/config
-      - ../resources:/resources
+      - ../resources/docker:/resources
   consumer:
     image: fraunhoferiosb/edc-extension4aas:latest
     ports:

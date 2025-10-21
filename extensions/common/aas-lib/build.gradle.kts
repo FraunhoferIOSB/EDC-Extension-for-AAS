@@ -3,6 +3,7 @@ plugins {
 }
 
 dependencies {
+    implementation(project(":extensions:common:validator:validator-data-address-aas-data"))
     implementation(libs.edc.asset.spi)
     implementation(libs.edc.data.plane.http.spi)
     implementation(libs.aas4j.model)

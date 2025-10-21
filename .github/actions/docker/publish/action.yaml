@@ -41,12 +41,10 @@ runs:
     - name: Login to DockerHub
       uses: docker/login-action@v3
       with:
-        username: ${{ input.docker_username }}
-        password: ${{ input.docker_token }}
-    - uses: ./.github/actions/docker/publish
-      name: Publish ${{ inputs.project_name }}
+        username: ${{ inputs.docker_username }}
+        password: ${{ inputs.docker_token }}
     - name: Push docker image to DockerHub
       shell: bash
       run: |
         docker load < result
-        docker push --all-tags ${{ input.registry_name }}/${{ input.organisation_name }}/${{ input.project_name }}
+        docker push --all-tags ${{ inputs.registry_name }}/${{ inputs.organisation_name }}/${{ inputs.project_name }}

@@ -21,7 +21,7 @@ on:
         type: string
         description: 'The docker registry URL'
         required: false
-        default: "ghcr.io"
+        default: "docker.io"
       organisation_name:
         type: string
         description: 'The docker registry organisation'
@@ -37,7 +37,7 @@ on:
         type: string
         description: 'The docker registry URL'
         required: false
-        default: "ghcr.io"
+        default: "docker.io"
       organisation_name:
         type: string
         description: 'The docker registry organisation (if blank, uses GH org name)'
@@ -66,7 +66,7 @@ jobs:
       - uses: ./.github/actions/docker/publish
         name: Publish ${{ inputs.project_name }}
         with:
-          registry_name: ${{ inputs.registry_name || 'ghcr.io' }}
+          registry_name: ${{ inputs.registry_name || 'docker.io' }}
           organisation_name: ${{ inputs.organisation_name || github.repository_owner }}
           project_name: ${{ inputs.project_name || 'edc-extension4aas' }}
           docker_username: ${{ secrets.DOCKER_USERNAME }}

@@ -20,7 +20,7 @@ updates:
     labels:
     - "dependabot"
     schedule:
-    interval: "weekly"
+      interval: "daily"
 
   - package-ecosystem: "github-actions"
     target-branch: main
@@ -28,4 +28,4 @@ updates:
     labels:
     - "dependabot"
     schedule:
-    interval: "weekly"
+      interval: "weekly"

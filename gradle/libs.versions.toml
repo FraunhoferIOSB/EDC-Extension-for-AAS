@@ -4,7 +4,7 @@ format.version = "1.1"
 [versions]
 fa3st = "1.2.0"
 aas4j = "1.0.4"
-edc = "0.14.0"
+edc = "0.14.1"
 edc-build = "1.1.1"
 
 commons-io = "2.20.0"

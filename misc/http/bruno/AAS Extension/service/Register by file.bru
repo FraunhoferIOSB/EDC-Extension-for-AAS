@@ -5,7 +5,7 @@ meta {
 }
 
 post {
-  url: {{provider}}/environment?environment=/path/to/aas/model.aasx&port=12345
+  url: {{provider-api}}/environment?environment=/path/to/aas/model.aasx&port=12345
   body: none
   auth: inherit
 }
@@ -17,4 +17,5 @@ params:query {
 
 settings {
   encodeUrl: true
+  timeout: 0
 }

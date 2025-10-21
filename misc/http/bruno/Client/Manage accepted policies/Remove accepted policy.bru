@@ -5,7 +5,7 @@ meta {
 }
 
 delete {
-  url: {{consumer}}/automated/acceptedPolicies?policyDefinitionId=my-custom-policy-definition
+  url: {{provider-api}}/automated/acceptedPolicies?policyDefinitionId=my-custom-policy-definition
   body: json
   auth: inherit
 }
@@ -52,4 +52,5 @@ body:json {
 
 settings {
   encodeUrl: true
+  timeout: 0
 }

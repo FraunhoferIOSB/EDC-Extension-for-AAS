@@ -5,7 +5,7 @@ meta {
 }
 
 delete {
-  url: {{consumer}}/service?url={{faaast-selfsigned}}
+  url: {{provider-api}}/service?url={{faaast-selfsigned}}
   body: none
   auth: inherit
 }
@@ -16,4 +16,5 @@ params:query {
 
 settings {
   encodeUrl: true
+  timeout: 0
 }

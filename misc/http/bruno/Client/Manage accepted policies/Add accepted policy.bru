@@ -5,7 +5,7 @@ meta {
 }
 
 post {
-  url: {{consumer}}/automated/acceptedPolicies
+  url: {{provider-api}}/automated/acceptedPolicies
   body: json
   auth: inherit
 }
@@ -48,4 +48,5 @@ body:json {
 
 settings {
   encodeUrl: true
+  timeout: 0
 }

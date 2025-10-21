@@ -5,7 +5,7 @@ meta {
 }
 
 post {
-  url: {{consumer}}/automated/negotiate?providerId=provider&assetId={{asset-id}}&providerUrl={{provider-dsp}}
+  url: {{provider-api}}/automated/negotiate?providerId=provider&assetId={{asset-id}}&providerUrl={{provider-dsp}}
   body: json
   auth: inherit
 }
@@ -33,4 +33,5 @@ body:json {
 
 settings {
   encodeUrl: true
+  timeout: 0
 }

@@ -5,7 +5,7 @@ meta {
 }
 
 post {
-  url: {{provider}}/service?url={{ext-aas-service}}
+  url: {{provider-api}}/service?url={{ext-aas-service}}
   body: none
   auth: inherit
 }
@@ -16,4 +16,5 @@ params:query {
 
 settings {
   encodeUrl: true
+  timeout: 0
 }

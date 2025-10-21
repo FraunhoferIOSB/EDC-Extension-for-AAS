@@ -5,7 +5,7 @@ meta {
 }
 
 post {
-  url: {{consumer-management}}/v3/transferprocesses
+  url: {{provider-management}}/v3/transferprocesses
   body: json
   auth: inherit
 }
@@ -50,4 +50,5 @@ vars:post-response {
 
 settings {
   encodeUrl: true
+  timeout: 0
 }

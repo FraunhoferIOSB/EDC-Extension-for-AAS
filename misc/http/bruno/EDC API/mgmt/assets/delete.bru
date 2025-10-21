@@ -5,7 +5,7 @@ meta {
 }
 
 delete {
-  url: {{consumer-management}}/v3/assets/:asset-id
+  url: {{provider-management}}/v3/assets/:asset-id
   body: none
   auth: inherit
 }
@@ -16,4 +16,5 @@ params:path {
 
 settings {
   encodeUrl: true
+  timeout: 0
 }

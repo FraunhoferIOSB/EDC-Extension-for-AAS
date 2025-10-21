@@ -7,11 +7,11 @@ dependencies {
     implementation(project(":extensions:common:aas-lib"))
 
     implementation(libs.fa3st.starter)
-    implementation(libs.edc.http.lib)
-    implementation(libs.edc.data.plane.http.spi)
-    implementation(libs.edc.contract.spi)
-    implementation(libs.edc.json.ld.spi)
     implementation(libs.edc.asset.spi)
+    implementation(libs.edc.contract.spi)
+    implementation(libs.edc.data.plane.http.spi)
+    implementation(libs.edc.http.lib)
+    implementation(libs.edc.json.ld.spi)
 
     testImplementation(testFixtures(project(":extensions:common:aas-lib")))
 

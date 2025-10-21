@@ -5,7 +5,7 @@ meta {
 }
 
 patch {
-  url: {{consumer}}/config
+  url: {{provider-api}}/config
   body: json
   auth: inherit
 }
@@ -18,4 +18,5 @@ body:json {
 
 settings {
   encodeUrl: true
+  timeout: 0
 }

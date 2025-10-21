@@ -12,3 +12,6 @@ auth:apikey {
   value: root1337
   placement: header
 }
+vars:pre-request {
+  standalone: {{proto}}://{{p-hostname}}:{{standalone-api}}
+}

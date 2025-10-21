@@ -5,7 +5,7 @@ meta {
 }
 
 post {
-  url: {{provider}}/service?url=https://authenticated-aas.com/api/v3.0
+  url: {{provider-api}}/service?url=https://authenticated-aas.com/api/v3.0
   body: json
   auth: inherit
 }
@@ -24,4 +24,5 @@ body:json {
 
 settings {
   encodeUrl: true
+  timeout: 0
 }

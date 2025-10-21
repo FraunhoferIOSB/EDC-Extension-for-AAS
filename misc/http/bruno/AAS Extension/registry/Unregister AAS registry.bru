@@ -5,7 +5,7 @@ meta {
 }
 
 delete {
-  url: {{provider}}/registry?url=https://localhost:8090/api/v3.0
+  url: {{provider-api}}/registry?url=https://localhost:8090/api/v3.0
   body: none
   auth: inherit
 }
@@ -16,4 +16,5 @@ params:query {
 
 settings {
   encodeUrl: true
+  timeout: 0
 }

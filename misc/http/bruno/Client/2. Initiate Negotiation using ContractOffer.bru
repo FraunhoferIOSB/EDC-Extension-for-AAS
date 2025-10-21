@@ -5,7 +5,7 @@ meta {
 }
 
 post {
-  url: {{consumer}}/automated/negotiateContract
+  url: {{provider-api}}/automated/negotiateContract
   body: json
   auth: inherit
 }
@@ -43,4 +43,5 @@ vars:post-response {
 
 settings {
   encodeUrl: true
+  timeout: 0
 }

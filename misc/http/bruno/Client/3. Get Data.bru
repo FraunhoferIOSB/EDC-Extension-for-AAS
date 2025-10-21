@@ -5,7 +5,7 @@ meta {
 }
 
 post {
-  url: {{consumer}}/automated/transfer?providerUrl={{provider-dsp}}&agreementId={{step-2-agreement-id}}
+  url: {{provider-api}}/automated/transfer?providerUrl={{provider-dsp}}&agreementId={{step-2-agreement-id}}
   body: none
   auth: inherit
 }
@@ -18,4 +18,5 @@ params:query {
 
 settings {
   encodeUrl: true
+  timeout: 0
 }

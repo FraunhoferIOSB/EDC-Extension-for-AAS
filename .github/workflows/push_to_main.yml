@@ -66,8 +66,8 @@ jobs:
       - uses: ./.github/actions/docker/publish
         name: Publish ${{ inputs.project_name }}
         with:
-          registry_name: ${{ inputs.registry_name }}
+          registry_name: ${{ inputs.registry_name || 'ghcr.io' }}
           organisation_name: ${{ inputs.organisation_name || github.repository_owner }}
-          project_name: ${{ inputs.project_name }}
+          project_name: ${{ inputs.project_name || 'edc-extension4aas' }}
           docker_username: ${{ secrets.DOCKER_USERNAME }}
           docker_token: ${{ secrets.DOCKER_TOKEN }}

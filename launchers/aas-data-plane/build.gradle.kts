@@ -21,9 +21,5 @@ dependencies {
     runtimeOnly(libs.edc.api.core) // ApiAuthenticationRegistry
     runtimeOnly(libs.edc.auth.configuration)
 
-    runtimeOnly(project(":extensions:data-plane:data-plane-aas")) {
-        // This requires edc.dpf.selector.url which we don't need here as the dataplane is running in the same instance
-        // as the control-plane.
-        exclude("org.eclipse.edc", "data-plane-selector-client")
-    }
+    runtimeOnly(project(":extensions:data-plane:data-plane-aas"))
 }

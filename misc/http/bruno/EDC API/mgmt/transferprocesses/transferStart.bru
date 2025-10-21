@@ -1,0 +1,54 @@
+meta {
+  name: transferStart
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{provider-management}}/v3/transferprocesses
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "counterPartyAddress": "{{provider-dsp}}",
+    "protocol": "dataspace-protocol-http",
+    "@type": "TransferRequestMessage",
+    "contractId": "{{agreement-id}}",
+    "transferType": "HttpData-PUSH",
+    "dataDestination": {
+      "type": "HttpData",
+      "@type": "DataAddress",
+      "properties": {
+        "baseUrl": "http://127.0.0.1:54321/data",
+        "method": "POST",
+        "operation": {
+          "inputArguments": {
+            "in": 4,
+            "myIdShort": "myValue"
+          },
+          "inoutputArguments": {
+            "note": "original value"
+          },
+          "clientTimeoutDuration": "PT10S"
+        }
+      }
+    },
+    "@context": {
+      "aas": "https://admin-shell.io/aas/3/0/",
+      "@vocab": "https://w3id.org/edc/v0.0.1/ns/",
+      "edc": "https://w3id.org/edc/v0.0.1/ns/",
+      "odrl": "http://www.w3.org/ns/odrl/2/"
+    }
+  }
+}
+
+vars:post-response {
+  transferprocess-id: res.body['@id']
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -1,0 +1,55 @@
+meta {
+  name: QueryContracts
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{provider-management}}/v3/contractdefinitions/request
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "@context": {
+      "@vocab": "https://w3id.org/edc/v0.0.1/ns/",
+      "aas": "https://admin-shell.io/aas/3/0/"
+    },
+    "@type": "QuerySpec",
+    "filterExpression": [
+      {
+        "operandLeft": "assetsSelector.operandLeft",
+        "operator": "=",
+        "operandRight": "https://w3id.org/edc/v0.0.1/ns/id"
+      },
+      {
+        "@type": "https://w3id.org/edc/v0.0.1/ns/Criterion",
+        "https://w3id.org/edc/v0.0.1/ns/operandLeft": "accessPolicyId",
+        "https://w3id.org/edc/v0.0.1/ns/operator": "=",
+        "https://w3id.org/edc/v0.0.1/ns/operandRight": "AAS_DEFAULT_ACCESS_POLICY"
+      },
+      {
+        "@type": "https://w3id.org/edc/v0.0.1/ns/Criterion",
+        "https://w3id.org/edc/v0.0.1/ns/operandLeft": "contractPolicyId",
+        "https://w3id.org/edc/v0.0.1/ns/operator": "=",
+        "https://w3id.org/edc/v0.0.1/ns/operandRight": "AAS_DEFAULT_CONTRACT_POLICY"
+      },
+      {
+        "@type": "https://w3id.org/edc/v0.0.1/ns/Criterion",
+        "https://w3id.org/edc/v0.0.1/ns/operandLeft": "privateProperties.'https://w3id.org/edc/v0.0.1/ns/creator'",
+        "https://w3id.org/edc/v0.0.1/ns/operator": "=",
+        "https://w3id.org/edc/v0.0.1/ns/operandRight": "EDC4AAS Extension"
+      },
+      {
+        "operandLeft": "assetsSelector.operator",
+        "operator": "=",
+        "operandRight": "in"
+      }
+    ]
+  }
+}
+
+settings {
+  encodeUrl: true
+}

@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "EDC Extension for AAS",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}

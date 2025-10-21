@@ -1,0 +1,21 @@
+meta {
+  name: 1. Get Offer for Asset
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{provider-api}}/automated/offer?providerUrl={{provider-dsp}}&assetId={{asset-id}}
+  body: none
+  auth: inherit
+}
+
+params:query {
+  providerUrl: {{provider-dsp}}
+  assetId: {{asset-id}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

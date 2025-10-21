@@ -1,0 +1,41 @@
+services:
+  consumer:
+    image:
+      tractus-x
+    ports:
+      - "9191:9191"
+      - "9291:9291"
+      - "9192:9192"
+      - "9292:9292"
+    environment:
+      EDC_FS_CONFIG: /configurations/tx-consumer.properties
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:9291/api/selfDescription || exit 1" ]
+      interval: 10s
+      retries: 5
+      start_period: 5s
+      timeout: 10s
+    volumes:
+      - ./configurations:/configurations
+  provider:
+    image:
+      tractus-x
+    ports:
+      - "8123:8123"
+      - "8181:8181"
+      - "8281:8281"
+      - "8182:8182"
+      - "8282:8282"
+    environment:
+      EDC_FS_CONFIG: /configurations/tx-provider.properties
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:8281/api/selfDescription || exit 1" ]
+      interval: 10s
+      retries: 5
+      start_period: 5s
+      timeout: 10s
+    volumes:
+      - ./configurations:/configurations
+      - ../resources:/resources
+volumes:
+  postgres_data:

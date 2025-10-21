@@ -1,0 +1,34 @@
+meta {
+  name: Automated w/ Operation
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{provider-api}}/automated/negotiate?providerId=provider&assetId={{asset-id}}&providerUrl={{provider-dsp}}
+  body: json
+  auth: inherit
+}
+
+params:query {
+  providerId: provider
+  assetId: {{asset-id}}
+  providerUrl: {{provider-dsp}}
+  ~dataDestinationUrl: http://example.com
+}
+
+body:json {
+  {
+    "type": "HttpData",
+    "@type": "DataAddress",
+    "properties": {
+      "https://w3id.org/edc/v0.0.1/ns/baseUrl": "http://localhost:54321/data",
+      "method": "POST",
+      "proxyMethod": "DELETE"  }
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

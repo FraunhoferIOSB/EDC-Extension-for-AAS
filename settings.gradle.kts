@@ -1,16 +1,18 @@
-// include the extensions in the build process
-include("aas-lib")
-include("client")
-include("data-plane-aas")
-include("edc-extension4aas")
-include("public-api-management")
-include("edc-connector-client")
+include("extensions:common:aas-lib")
+include("extensions:control-plane:client")
+include("extensions:control-plane:edc-extension4aas")
+include("extensions:control-plane:public-api-management")
+include("extensions:data-plane:data-plane-aas")
+include("extensions:edc-connector-client")
 
-// include the launcher in the build process
-include("example")
-// tractus-x example
-include("example:tractus-x:control-plane")
-include("example:tractus-x:data-plane")
-include("example:standalone:extension")
-include("example:standalone:control-plane")
-include("example:standalone:data-plane")
+include("launchers:aas-data-plane")
+include("launchers:consumer")
+include("launchers:provider")
+include("launchers:standalone")
+include("launchers:tractus-x")
+
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+    }
+}

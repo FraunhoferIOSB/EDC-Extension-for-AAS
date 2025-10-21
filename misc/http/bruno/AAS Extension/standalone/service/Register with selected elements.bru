@@ -1,0 +1,33 @@
+meta {
+  name: Register with selected elements
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{standalone}}/service
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "url": "{{faaast-selfsigned}}",
+    "authenticationMethod": {
+      "type": "api-key",
+      "keyName": "x-api-key",
+      "keyValue": "password"
+    },
+    "policyBindings": [
+      {
+        "referredElement": "[ModelRef](Submodel)0cb33d20-8378-44e7-8402-84823c4b51dd",
+        "accessPolicyId": "c21899da-c423-4230-b3ed-867232daa772",
+        "usagePolicyId": "c21899da-c423-4230-b3ed-867232daa772"
+      }
+    ]
+  }
+}
+
+settings {
+  encodeUrl: true
+}

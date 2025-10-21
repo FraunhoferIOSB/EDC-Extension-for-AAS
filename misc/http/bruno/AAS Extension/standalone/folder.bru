@@ -1,0 +1,17 @@
+meta {
+  name: standalone
+  seq: 5
+}
+
+auth {
+  mode: apikey
+}
+
+auth:apikey {
+  key: x-api-key
+  value: root1337
+  placement: header
+}
+vars:pre-request {
+  standalone: {{proto}}://{{p-hostname}}:{{standalone-api}}
+}

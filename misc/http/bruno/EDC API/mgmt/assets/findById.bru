@@ -1,0 +1,15 @@
+meta {
+  name: findById
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{provider-management}}/v3/assets/{{asset-id}}
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+}

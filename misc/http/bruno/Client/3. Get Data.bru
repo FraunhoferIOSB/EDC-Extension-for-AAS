@@ -1,0 +1,22 @@
+meta {
+  name: 3. Get Data
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{provider-api}}/automated/transfer?providerUrl={{provider-dsp}}&agreementId={{step-2-agreement-id}}
+  body: none
+  auth: inherit
+}
+
+params:query {
+  providerUrl: {{provider-dsp}}
+  agreementId: {{step-2-agreement-id}}
+  ~dataDestinationUrl: http://example.com
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

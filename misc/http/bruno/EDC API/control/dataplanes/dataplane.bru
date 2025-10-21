@@ -1,0 +1,15 @@
+meta {
+  name: dataplane
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{provider-control}}/v1/dataplanes
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+}

@@ -1,0 +1,73 @@
+[metadata]
+format.version = "1.1"
+
+[versions]
+fa3st = "1.2.0"
+aas4j = "1.0.4"
+edc = "0.14.0"
+edc-build = "1.1.1"
+
+commons-io = "2.20.0"
+jersey = "3.1.10"
+junit-bom = "5.10.0"
+junit-platform-launcher = "1.13.3"
+jupiter = "5.13.2"
+mockito = "5.18.0"
+tractusx = "0.11.0"
+wiremock = "3.13.1"
+
+[libraries]
+fa3st-model = { module = "de.fraunhofer.iosb.ilt.faaast.service:model", version.ref = "fa3st" }
+fa3st-starter = { module = "de.fraunhofer.iosb.ilt.faaast.service:starter", version.ref = "fa3st" }
+aas4j-dataformat-json = { module = "org.eclipse.digitaltwin.aas4j:aas4j-dataformat-json", version.ref = "aas4j" }
+aas4j-model = { module = "org.eclipse.digitaltwin.aas4j:aas4j-model", version.ref = "aas4j" }
+edc-controlplane-base-bom = { module = "org.eclipse.edc:controlplane-base-bom", version.ref = "edc" }
+edc-dataplane-base-bom = { module = "org.eclipse.edc:dataplane-base-bom", version.ref = "edc" }
+tx-edc-runtime-memory = { module = "org.eclipse.tractusx.edc:edc-runtime-memory", version.ref = "tractusx" }
+
+edc-api-core = { module = "org.eclipse.edc:api-core", version.ref = "edc" }
+edc-asset-spi = { module = "org.eclipse.edc:asset-spi", version.ref = "edc" }
+edc-auth-configuration = { module = "org.eclipse.edc:auth-configuration", version.ref = "edc" }
+edc-auth-spi = { module = "org.eclipse.edc:auth-spi", version.ref = "edc" }
+edc-auth-tokenbased = { module = "org.eclipse.edc:auth-tokenbased", version.ref = "edc" }
+edc-boot = { module = "org.eclipse.edc:boot", version.ref = "edc" }
+edc-configuration-filesystem = { module = "org.eclipse.edc:configuration-filesystem", version.ref = "edc" }
+edc-connector-core = { module = "org.eclipse.edc:connector-core", version.ref = "edc" }
+edc-contract-spi = { module = "org.eclipse.edc:contract-spi", version.ref = "edc" }
+edc-control-plane-contract = { module = "org.eclipse.edc:control-plane-contract", version.ref = "edc" }
+edc-control-plane-core = { module = "org.eclipse.edc:control-plane-core", version.ref = "edc" }
+edc-control-plane-spi = { module = "org.eclipse.edc:control-plane-spi", version.ref = "edc" }
+edc-control-plane-transform = { module = "org.eclipse.edc:control-plane-transform", version.ref = "edc" }
+edc-data-plane-http-spi = { module = "org.eclipse.edc:data-plane-http-spi", version.ref = "edc" }
+edc-data-plane-selector-client = { module = "org.eclipse.edc:data-plane-selector-client", version.ref = "edc" }
+edc-data-plane-spi = { module = "org.eclipse.edc:data-plane-spi", version.ref = "edc" }
+edc-dsp-catalog-http-dispatcher = { module = "org.eclipse.edc:dsp-catalog-http-dispatcher", version.ref = "edc" }
+edc-federated-catalog-core = { module = "org.eclipse.edc:federated-catalog-core", version.ref = "edc" }
+edc-federated-catalog-core2025 = { module = "org.eclipse.edc:federated-catalog-core-2025", version.ref = "edc" }
+edc-http-lib = { module = "org.eclipse.edc:http-lib", version.ref = "edc" }
+edc-iam-mock = { module = "org.eclipse.edc:iam-mock", version.ref = "edc" }
+edc-jersey-core = { module = "org.eclipse.edc:jersey-core", version.ref = "edc" }
+edc-jetty-core = { module = "org.eclipse.edc:jetty-core", version.ref = "edc" }
+edc-json-ld = { module = "org.eclipse.edc:json-ld", version.ref = "edc" }
+edc-json-ld-lib = { module = "org.eclipse.edc:json-ld-lib", version.ref = "edc" }
+edc-json-ld-spi = { module = "org.eclipse.edc:json-ld-spi", version.ref = "edc" }
+edc-json-lib = { module = "org.eclipse.edc:json-lib", version.ref = "edc" }
+edc-junit = { module = "org.eclipse.edc:junit", version.ref = "edc" }
+edc-management-api-configuration = { module = "org.eclipse.edc:management-api-configuration", version.ref = "edc" }
+edc-query-lib = { module = "org.eclipse.edc:query-lib", version.ref = "edc" }
+edc-runtime-core = { module = "org.eclipse.edc:runtime-core", version.ref = "edc" }
+edc-transform-lib = { module = "org.eclipse.edc:transform-lib", version.ref = "edc" }
+edc-vault-hashicorp = { module = "org.eclipse.edc:vault-hashicorp", version.ref = "edc" }
+
+commons-io = { module = "commons-io:commons-io", version.ref = "commons-io"}
+jersey-common = { module = "org.glassfish.jersey.core:jersey-common", version.ref = "jersey" }
+junit-bom = { module = "org.junit:junit-bom", version.ref = "junit-bom" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junit-platform-launcher" }
+jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "jupiter" }
+mockito = { module = "org.mockito:mockito-core", version.ref = "mockito" }
+wiremock = { module = "org.wiremock:wiremock-jetty12", version.ref = "wiremock" }
+
+[plugins]
+shadow = { id = "com.gradleup.shadow", version = "8.3.8" }
+docker = { id = "com.bmuschko.docker-remote-api", version = "9.4.0" }
+edc-build = { id = "org.eclipse.edc.edc-build", version.ref = "edc-build" }

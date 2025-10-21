@@ -1,0 +1,22 @@
+meta {
+  name: Change synchronization rate
+  type: http
+  seq: 1
+}
+
+patch {
+  url: {{provider-api}}/config
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+      "edc.aas.syncPeriod": 1
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

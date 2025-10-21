@@ -1,0 +1,47 @@
+meta {
+  name: 2. Initiate Negotiation using ContractOffer
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{provider-api}}/automated/negotiateContract
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "protocol": "dataspace-protocol-http",
+    "counterPartyAddress": "{{provider-dsp}}",
+    "contractOffer": {
+      "id": "NzAwY2U2ODktMTJkZS00MWJjLTgwNDYtYTk3ODJlYjA2MWNl:LTEzMTQwMzY1NTQ=:MjkyNGFiOTUtMGJkNy00OGQzLWIxNTQtMTg3YmU2MDhkZjI1",
+      "policy": {
+        "permissions": [
+          {
+            "edctype": "dataspaceconnector:permission",
+            "action": {
+              "type": "USE"
+            }
+          }
+        ],
+        "assigner": "provider",
+        "target": "-1314036554",
+        "@type": {
+          "@policytype": "offer"
+        }
+      },
+      "assetId": "-1314036554"
+    },
+    "callbackAddresses": []
+  }
+}
+
+vars:post-response {
+  step-2-agreement-id: res.body.agreementId
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

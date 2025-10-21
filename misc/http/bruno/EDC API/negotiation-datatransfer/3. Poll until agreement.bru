@@ -1,0 +1,19 @@
+meta {
+  name: 3. Poll until agreement
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{consumer-management}}/v3/contractnegotiations/{{negotiation-status-id}}
+  body: none
+  auth: inherit
+}
+
+vars:post-response {
+  agreement-id: res.body.contractAgreementId
+}
+
+settings {
+  encodeUrl: true
+}

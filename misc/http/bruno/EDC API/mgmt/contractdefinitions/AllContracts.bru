@@ -1,0 +1,48 @@
+meta {
+  name: AllContracts
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{provider-management}}/v3/contractdefinitions/request
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "@type": "QuerySpec",
+    "sortOrder": "ASC",
+    "filterExpression": [
+      {
+        "@type": "Criterion",
+        "operandLeft": "accessPolicyId",
+        "operator": "=",
+        "operandRight": "AAS_DEFAULT_ACCESS_POLICY"
+      },
+      {
+        "@type": "Criterion",
+        "operandLeft": "contractPolicyId",
+        "operator": "=",
+        "operandRight": "AAS_DEFAULT_CONTRACT_POLICY"
+      },
+      {
+        "@type": "Criterion",
+        "operandLeft": "privateProperties.'https://w3id.org/edc/v0.0.1/ns/creator'",
+        "operator": "=",
+        "operandRight": "EDC4AAS Extension"
+      }
+    ],
+    "@context": {
+      "aas": "https://admin-shell.io/aas/3/0/",
+      "@vocab": "https://w3id.org/edc/v0.0.1/ns/",
+      "odrl": "http://www.w3.org/ns/odrl/2/",
+      "edc": "https://w3id.org/edc/v0.0.1/ns/"
+    }
+  }
+}
+
+settings {
+  encodeUrl: true
+}

@@ -45,6 +45,29 @@ runs:
         password: ${{ inputs.docker_token }}
     - name: Push docker image to DockerHub
       shell: bash
+      env:
+        REGISTRY: ${{ inputs.registry_name }}
+        ORG: ${{ inputs.organisation_name || github.repository_owner }}
+        PROJECT: ${{ inputs.project_name }}
       run: |
-        docker load < result
-        docker push --all-tags ${{ inputs.registry_name }}/${{ inputs.organisation_name }}/${{ inputs.project_name }}
+        set -euo pipefail
+    
+        ORG_LC="${ORG,,}"
+        PROJECT_LC="${PROJECT,,}"
+        REMOTE_REPO="${REGISTRY}/${ORG_LC}/${PROJECT_LC}"
+
+        echo "Publishing local 'provider' image tags to ${REMOTE_REPO} ..."
+
+        # Find all tags for local image 'provider'
+        mapfile -t TAGS < <(docker images provider --format "{{.Tag}}" | grep -v '<none>' || true)
+        if [ "${#TAGS[@]}" -eq 0 ]; then
+          echo "No local tags found for image 'provider'." >&2
+          exit 1
+        fi
+
+        # Push locally tagged images
+        for TAG in "${TAGS[@]}"; do
+          echo "Pushing tag: ${TAG}"
+          docker tag "provider:${TAG}" "${REMOTE_REPO}:${TAG}"
+          docker push "${REMOTE_REPO}:${TAG}"
+        done

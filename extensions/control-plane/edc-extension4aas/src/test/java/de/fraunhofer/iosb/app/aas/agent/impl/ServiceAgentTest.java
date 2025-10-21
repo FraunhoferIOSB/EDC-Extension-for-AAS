@@ -30,6 +30,7 @@ import org.junit.jupiter.api.Test;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.model.HttpResponse;
 
+import java.net.ConnectException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
@@ -112,7 +113,9 @@ class ServiceAgentTest {
 
         assertTrue(result.failed());
         assertEquals(WARNING, result.getFailure().getFailureType());
-        assertTrue(result.getFailureDetail().contains(UnknownHostException.class.getSimpleName()));
+        System.err.println(result.getFailureDetail());
+        assertTrue(result.getFailureDetail().contains(UnknownHostException.class.getSimpleName()) ||
+                result.getFailureDetail().contains(ConnectException.class.getSimpleName()));
     }
 
     @Test

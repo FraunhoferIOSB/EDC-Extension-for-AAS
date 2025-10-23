@@ -14,7 +14,9 @@ import java.util.Map;
 class EdcConnectorClientExtensionTest {
 
     private static final EmbeddedRuntime RUNTIME = new EmbeddedRuntime("edc-connector-client-initialize-test-runtime",
+            "validator:validator-data-address-aas-data",
             "asset-spi",
+            "data-plane-aas-spi",
             "http-spi",
             "policy-spi",
             "contract-spi",

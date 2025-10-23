@@ -19,7 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iosb.aas.lib.AasDataProcessor;
 import de.fraunhofer.iosb.aas.lib.AasDataProcessorFactory;
 import de.fraunhofer.iosb.aas.lib.model.impl.Service;
-import de.fraunhofer.iosb.aas.lib.spi.AasDataAddress;
+import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
 import okhttp3.Protocol;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -37,7 +37,7 @@ import org.junit.jupiter.api.Test;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
-import static de.fraunhofer.iosb.aas.lib.spi.AasDataAddress.PROXY_OPERATION;
+import static de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress.PROXY_OPERATION;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.mock;
@@ -76,7 +76,7 @@ class AasDataSourceFactoryTest {
 
         when(mockedDataFlowStartMessage.getSourceDataAddress())
                 .thenReturn(AasDataAddress.Builder.newInstance()
-                        .aasProvider(new Service.Builder().withUrl(accessUrl).build())
+                        .baseUrl(accessUrl.toString())
                         .build());
 
         // Destination of not type AasData

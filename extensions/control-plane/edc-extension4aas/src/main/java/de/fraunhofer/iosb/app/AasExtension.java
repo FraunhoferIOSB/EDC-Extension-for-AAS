@@ -62,12 +62,12 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 
-import static de.fraunhofer.iosb.aas.lib.type.AasConstants.AAS_PREFIX;
-import static de.fraunhofer.iosb.aas.lib.type.AasConstants.AAS_V30_NAMESPACE;
 import static de.fraunhofer.iosb.app.controller.SelfDescriptionController.SELF_DESCRIPTION_PATH;
 import static de.fraunhofer.iosb.app.pipeline.PipelineFailure.Type.FATAL;
 import static de.fraunhofer.iosb.app.util.InetTools.getSelfSignedCertificate;
 import static de.fraunhofer.iosb.app.util.InetTools.isConnectionTrusted;
+import static de.fraunhofer.iosb.constants.AasConstants.AAS_PREFIX;
+import static de.fraunhofer.iosb.constants.AasConstants.AAS_V30_NAMESPACE;
 
 /**
  * EDC Extension supporting usage of Asset Administration Shells.

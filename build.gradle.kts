@@ -85,7 +85,9 @@ subprojects {
                 buildArgs.put("ADDITIONAL_FILES", "build/legal/*")
                 inputDir.set(file(dockerContextDir))
             }
-            dockerTask.get().dependsOn(shadowJarTask)
+            dockerTask.get()
+                .dependsOn(shadowJarTask)
+                .dependsOn(tasks.test)
         }
     }
 }

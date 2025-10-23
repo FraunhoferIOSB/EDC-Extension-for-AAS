@@ -32,10 +32,10 @@ import org.eclipse.edc.spi.result.Result;
 
 import java.util.List;
 
-import static de.fraunhofer.iosb.aas.lib.model.impl.Service.CONCEPT_DESCRIPTIONS_PATH;
-import static de.fraunhofer.iosb.aas.lib.model.impl.Service.SHELLS_PATH;
-import static de.fraunhofer.iosb.aas.lib.model.impl.Service.SUBMODELS_PATH;
 import static de.fraunhofer.iosb.app.pipeline.PipelineResult.failure;
+import static de.fraunhofer.iosb.constants.AasConstants.CONCEPT_DESCRIPTIONS_API_PATH;
+import static de.fraunhofer.iosb.constants.AasConstants.SHELLS_API_PATH;
+import static de.fraunhofer.iosb.constants.AasConstants.SUBMODELS_API_PATH;
 
 /**
  * Communicating with AAS service
@@ -69,9 +69,9 @@ public class ServiceAgent extends AasAgent<Service, Environment> {
         Result<List<ConceptDescription>> conceptDescResult;
 
         try {
-            shellsResult = readElements(service, SHELLS_PATH, AssetAdministrationShell.class);
-            submodelsResult = readElements(service, SUBMODELS_PATH, Submodel.class);
-            conceptDescResult = readElements(service, CONCEPT_DESCRIPTIONS_PATH, ConceptDescription.class);
+            shellsResult = readElements(service, SHELLS_API_PATH, AssetAdministrationShell.class);
+            submodelsResult = readElements(service, SUBMODELS_API_PATH, Submodel.class);
+            conceptDescResult = readElements(service, CONCEPT_DESCRIPTIONS_API_PATH, ConceptDescription.class);
         } catch (EdcException e) {
             // If an exception was raised, produce a fatal result
             return failure(PipelineFailure.fatal(List.of(e.getClass().getSimpleName())));

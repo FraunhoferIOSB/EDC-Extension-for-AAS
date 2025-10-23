@@ -10,6 +10,7 @@ dependencies {
 
     testImplementation(libs.edc.junit)
     testImplementation(libs.aas4j.model)
+    implementation(project(":extensions:common:data-plane-aas-spi"))
 
     testImplementation(libs.wiremock)
     testImplementation(libs.jupiter)

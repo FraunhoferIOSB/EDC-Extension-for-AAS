@@ -19,7 +19,8 @@ import de.fraunhofer.iosb.app.aas.mapper.ElementMapper;
 import org.eclipse.digitaltwin.aas4j.v3.model.Descriptor;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 
-import static de.fraunhofer.iosb.aas.lib.type.AasConstants.AAS_V30_NAMESPACE;
+import static de.fraunhofer.iosb.constants.AasConstants.AAS_V30_NAMESPACE;
+
 
 /**
  * Abstract class for mapping any AAS registry descriptor to EDC Assets

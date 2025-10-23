@@ -23,8 +23,7 @@ import com.fasterxml.jackson.databind.PropertyName;
 import com.fasterxml.jackson.databind.introspect.Annotated;
 import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 import de.fraunhofer.iosb.aas.lib.model.AasProvider;
-import de.fraunhofer.iosb.aas.lib.model.impl.Service;
-import de.fraunhofer.iosb.aas.lib.spi.AasDataAddress;
+import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.digitaltwin.aas4j.v3.model.annotations.IRI;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
@@ -72,14 +71,15 @@ public class ElementMapper {
 
     protected DataAddress createDataAddress(AasProvider provider, Reference reference) {
         return AasDataAddress.Builder.newInstance()
-                .aasProvider(provider)
+                .baseUrl(provider.baseUrl().toString())
+                .additionalHeaders(provider.getHeaders())
                 .referenceChain(reference)
                 .build();
     }
 
     protected DataAddress createDataAddress(URL href) {
         return AasDataAddress.Builder.newInstance()
-                .aasProvider(new Service.Builder().withUrl(href).build())
+                .baseUrl(href.toString())
                 .build();
     }
 

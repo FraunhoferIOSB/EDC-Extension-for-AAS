@@ -3,6 +3,8 @@ plugins {
 }
 
 dependencies {
+    implementation(project(":extensions:common:constants"))
+    implementation(project(":extensions:common:data-plane-aas-spi"))
     implementation(project(":extensions:control-plane:public-api-management"))
     implementation(project(":extensions:common:aas-lib"))
 

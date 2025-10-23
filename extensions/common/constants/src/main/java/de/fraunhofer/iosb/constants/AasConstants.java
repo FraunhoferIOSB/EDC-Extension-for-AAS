@@ -13,9 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.aas.lib.type;
+package de.fraunhofer.iosb.constants;
 
 public interface AasConstants {
     String AAS_PREFIX = "aas";
     String AAS_V30_NAMESPACE = "https://admin-shell.io/aas/3/0/";
+
+    String SHELLS_API_PATH = "shells";
+    String SUBMODELS_API_PATH = "submodels";
+    String CONCEPT_DESCRIPTIONS_API_PATH = "concept-descriptions";
+
 }

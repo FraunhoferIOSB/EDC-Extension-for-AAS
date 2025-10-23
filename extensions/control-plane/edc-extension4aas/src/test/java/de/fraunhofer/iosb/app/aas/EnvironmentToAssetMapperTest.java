@@ -16,7 +16,7 @@
 package de.fraunhofer.iosb.app.aas;
 
 import de.fraunhofer.iosb.aas.lib.model.impl.Service;
-import de.fraunhofer.iosb.aas.lib.spi.AasDataAddress;
+import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
 import de.fraunhofer.iosb.app.aas.mapper.environment.EnvironmentToAssetMapper;
 import de.fraunhofer.iosb.app.controller.ConfigurationController;
 import de.fraunhofer.iosb.app.pipeline.PipelineFailure;

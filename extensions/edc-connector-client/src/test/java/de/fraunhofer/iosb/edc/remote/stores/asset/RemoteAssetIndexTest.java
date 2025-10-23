@@ -1,8 +1,7 @@
 package de.fraunhofer.iosb.edc.remote.stores.asset;
 
 import de.fraunhofer.iosb.aas.lib.auth.impl.ApiKey;
-import de.fraunhofer.iosb.aas.lib.model.impl.Service;
-import de.fraunhofer.iosb.aas.lib.spi.AasDataAddress;
+import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
 import de.fraunhofer.iosb.edc.remote.stores.AbstractControlPlaneConnectionHandlerTest;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -10,8 +9,8 @@ import org.eclipse.edc.spi.result.Result;
 import org.junit.jupiter.api.Test;
 
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -149,10 +148,8 @@ class RemoteAssetIndexTest extends AbstractControlPlaneConnectionHandlerTest {
                 .property("aas:id", UUID.randomUUID().toString())
                 .dataAddress(
                         AasDataAddress.Builder.newInstance()
-                                .aasProvider(new Service.Builder()
-                                        .withUrl(new URL("http://example.com"))
-                                        .withAuth(new ApiKey(UUID.randomUUID().toString(), UUID.randomUUID().toString()))
-                                        .build())
+                                .baseUrl("http://example.com")
+                                .additionalHeaders(Map.of(UUID.randomUUID().toString(), UUID.randomUUID().toString()))
                                 .method(UUID.randomUUID().toString())
                                 .proxyMethod(UUID.randomUUID().toString())
                                 .path(UUID.randomUUID().toString())

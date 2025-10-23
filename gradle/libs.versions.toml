@@ -38,6 +38,7 @@ edc-control-plane-contract = { module = "org.eclipse.edc:control-plane-contract"
 edc-control-plane-core = { module = "org.eclipse.edc:control-plane-core", version.ref = "edc" }
 edc-control-plane-spi = { module = "org.eclipse.edc:control-plane-spi", version.ref = "edc" }
 edc-control-plane-transform = { module = "org.eclipse.edc:control-plane-transform", version.ref = "edc" }
+edc-core-spi = { module = "org.eclipse.edc:core-spi", version.ref = "edc" }
 edc-data-plane-http-spi = { module = "org.eclipse.edc:data-plane-http-spi", version.ref = "edc" }
 edc-data-plane-selector-client = { module = "org.eclipse.edc:data-plane-selector-client", version.ref = "edc" }
 edc-data-plane-spi = { module = "org.eclipse.edc:data-plane-spi", version.ref = "edc" }
@@ -57,6 +58,7 @@ edc-management-api-configuration = { module = "org.eclipse.edc:management-api-co
 edc-query-lib = { module = "org.eclipse.edc:query-lib", version.ref = "edc" }
 edc-runtime-core = { module = "org.eclipse.edc:runtime-core", version.ref = "edc" }
 edc-transform-lib = { module = "org.eclipse.edc:transform-lib", version.ref = "edc" }
+edc-validator-spi = { module = "org.eclipse.edc:validator-spi", version.ref = "edc" }
 edc-vault-hashicorp = { module = "org.eclipse.edc:vault-hashicorp", version.ref = "edc" }
 
 commons-io = { module = "commons-io:commons-io", version.ref = "commons-io"}

@@ -11,6 +11,8 @@ dependencies {
     implementation(libs.edc.connector.core)
 
     testImplementation(testFixtures(project(":extensions:common:aas-lib")))
+    testImplementation(project(":extensions:common:data-plane-aas-spi"))
+    testImplementation(project(":extensions:common:validator:validator-data-address-aas-data"))
 
     testImplementation(libs.edc.http.lib) // EdcHttpClientImpl
     testImplementation(libs.edc.junit)

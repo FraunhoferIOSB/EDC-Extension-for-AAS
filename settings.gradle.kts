@@ -1,4 +1,7 @@
 include("extensions:common:aas-lib")
+include("extensions:common:constants")
+include("extensions:common:data-plane-aas-spi")
+include("extensions:common:validator:validator-data-address-aas-data")
 include("extensions:control-plane:client")
 include("extensions:control-plane:edc-extension4aas")
 include("extensions:control-plane:public-api-management")

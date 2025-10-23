@@ -31,10 +31,6 @@ import java.util.List;
 @JsonDeserialize(builder = Service.Builder.class)
 public final class Service extends AasProvider {
 
-    public static final String SHELLS_PATH = "shells";
-    public static final String SUBMODELS_PATH = "submodels";
-    public static final String CONCEPT_DESCRIPTIONS_PATH = "concept-descriptions";
-
     private final Asset environment;
     private final List<PolicyBinding> policyBindings;
 

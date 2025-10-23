@@ -17,7 +17,7 @@ package de.fraunhofer.iosb.dataplane.aas.pipeline;
 
 import de.fraunhofer.iosb.aas.lib.AasDataProcessor;
 import de.fraunhofer.iosb.aas.lib.AasDataProcessorFactory;
-import de.fraunhofer.iosb.aas.lib.spi.AasDataAddress;
+import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
 import okhttp3.MediaType;
 import okhttp3.Response;
 import okhttp3.ResponseBody;

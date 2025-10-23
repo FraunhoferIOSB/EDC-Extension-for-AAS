@@ -16,7 +16,7 @@
 package de.fraunhofer.iosb.dataplane.aas.pipeline;
 
 import de.fraunhofer.iosb.aas.lib.AasDataProcessorFactory;
-import de.fraunhofer.iosb.aas.lib.spi.AasDataAddress;
+import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
 import okhttp3.MediaType;
 import okhttp3.ResponseBody;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;

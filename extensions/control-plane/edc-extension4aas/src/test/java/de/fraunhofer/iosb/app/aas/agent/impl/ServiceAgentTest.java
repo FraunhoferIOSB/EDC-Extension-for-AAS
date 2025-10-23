@@ -35,14 +35,14 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
 
-import static de.fraunhofer.iosb.aas.lib.model.impl.Service.CONCEPT_DESCRIPTIONS_PATH;
-import static de.fraunhofer.iosb.aas.lib.model.impl.Service.SHELLS_PATH;
-import static de.fraunhofer.iosb.aas.lib.model.impl.Service.SUBMODELS_PATH;
 import static de.fraunhofer.iosb.aas.test.StringMethods.resultOfCollection;
 import static de.fraunhofer.iosb.api.model.HttpMethod.GET;
 import static de.fraunhofer.iosb.app.pipeline.PipelineFailure.Type.WARNING;
 import static de.fraunhofer.iosb.app.testutils.AasCreator.getEmptyEnvironment;
 import static de.fraunhofer.iosb.app.testutils.AasCreator.getEnvironment;
+import static de.fraunhofer.iosb.constants.AasConstants.CONCEPT_DESCRIPTIONS_API_PATH;
+import static de.fraunhofer.iosb.constants.AasConstants.SHELLS_API_PATH;
+import static de.fraunhofer.iosb.constants.AasConstants.SUBMODELS_API_PATH;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -140,19 +140,19 @@ class ServiceAgentTest {
         try {
             mockServer.when(request()
                             .withMethod(GET.toString())
-                            .withPath("/%s".formatted(SHELLS_PATH)))
+                            .withPath("/%s".formatted(SHELLS_API_PATH)))
                     .respond(HttpResponse.response()
                             .withBody(resultOfCollection(environment.getAssetAdministrationShells())));
 
             mockServer.when(request()
                             .withMethod(GET.toString())
-                            .withPath("/%s".formatted(SUBMODELS_PATH)))
+                            .withPath("/%s".formatted(SUBMODELS_API_PATH)))
                     .respond(HttpResponse.response()
                             .withBody(resultOfCollection(environment.getSubmodels())));
 
             mockServer.when(request()
                             .withMethod(GET.toString())
-                            .withPath("/%s".formatted(CONCEPT_DESCRIPTIONS_PATH)))
+                            .withPath("/%s".formatted(CONCEPT_DESCRIPTIONS_API_PATH)))
                     .respond(HttpResponse.response()
                             .withBody(resultOfCollection(environment.getConceptDescriptions())));
 

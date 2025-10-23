@@ -15,7 +15,7 @@
  */
 package de.fraunhofer.iosb.validator.dataaddress.aasdata;
 
-import de.fraunhofer.iosb.aas.lib.spi.AasDataAddress;
+import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.validator.spi.ValidationResult;
 import org.eclipse.edc.validator.spi.Validator;
@@ -27,7 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import static de.fraunhofer.iosb.aas.lib.spi.AasDataAddress.AAS_DATA_TYPE;
+import static de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress.AAS_DATA_TYPE;
 import static org.eclipse.edc.dataaddress.httpdata.spi.HttpDataAddressSchema.BASE_URL;
 import static org.eclipse.edc.validator.spi.Violation.violation;
 
@@ -39,7 +39,7 @@ public class AasDataDataAddressValidator implements Validator<DataAddress> {
     @Override
     public ValidationResult validate(DataAddress dataAddress) {
         List<Violation> violations = new ArrayList<>();
-        if (!(dataAddress instanceof AasDataAddress aasDataAddress) || !Objects.equals(AAS_DATA_TYPE, dataAddress.getType())) {
+        if (!(dataAddress instanceof AasDataAddress) || !Objects.equals(AAS_DATA_TYPE, dataAddress.getType())) {
             violations.add(violation("DataAddress of type %s malformed.".formatted(AAS_DATA_TYPE), BASE_URL));
         }
         var baseUrl = dataAddress.getStringProperty(BASE_URL);

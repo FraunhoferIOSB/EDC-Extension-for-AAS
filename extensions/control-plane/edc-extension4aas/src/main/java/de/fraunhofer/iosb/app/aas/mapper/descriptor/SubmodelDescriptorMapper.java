@@ -27,7 +27,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 
-import static de.fraunhofer.iosb.aas.lib.type.AasConstants.AAS_V30_NAMESPACE;
+import static de.fraunhofer.iosb.constants.AasConstants.AAS_V30_NAMESPACE;
+
 
 public class SubmodelDescriptorMapper extends DescriptorMapper {
     private static final String SUBMODEL_DESCRIPTOR_NAMESPACE = AAS_V30_NAMESPACE.concat("/SubmodelDescriptor/");

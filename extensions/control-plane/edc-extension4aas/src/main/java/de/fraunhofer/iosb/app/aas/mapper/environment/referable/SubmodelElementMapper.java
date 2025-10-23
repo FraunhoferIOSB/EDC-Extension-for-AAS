@@ -16,7 +16,7 @@
 package de.fraunhofer.iosb.app.aas.mapper.environment.referable;
 
 import de.fraunhofer.iosb.aas.lib.model.AasProvider;
-import de.fraunhofer.iosb.aas.lib.type.AasConstants;
+import de.fraunhofer.iosb.constants.AasConstants;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.util.AasUtils;
 import org.eclipse.digitaltwin.aas4j.v3.model.Blob;
 import org.eclipse.digitaltwin.aas4j.v3.model.File;
@@ -30,12 +30,13 @@ import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import java.util.Collection;
 import java.util.Collections;
 
-import static de.fraunhofer.iosb.aas.lib.type.AasConstants.AAS_V30_NAMESPACE;
+import static de.fraunhofer.iosb.constants.AasConstants.AAS_V30_NAMESPACE;
+
 
 public class SubmodelElementMapper extends ReferableMapper {
 
     public static final String SMC_CHILDREN_LOCATION = "value";
-    public static final String OPERATION = AasConstants.AAS_V30_NAMESPACE + "Operation";
+    public static final String OPERATION = AAS_V30_NAMESPACE + "Operation";
 
     /* May contain traces of recursion */
     public <E extends SubmodelElement> Asset map(Reference parent, E submodelElement, AasProvider provider) {

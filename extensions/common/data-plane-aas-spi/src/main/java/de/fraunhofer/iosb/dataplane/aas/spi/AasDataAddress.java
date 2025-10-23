@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.aas.lib.spi;
+package de.fraunhofer.iosb.dataplane.aas.spi;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import de.fraunhofer.iosb.aas.lib.model.AasProvider;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.DeserializationException;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.SerializationException;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.json.JsonDeserializer;
@@ -36,10 +35,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-import static de.fraunhofer.iosb.aas.lib.model.impl.Service.CONCEPT_DESCRIPTIONS_PATH;
-import static de.fraunhofer.iosb.aas.lib.model.impl.Service.SHELLS_PATH;
-import static de.fraunhofer.iosb.aas.lib.model.impl.Service.SUBMODELS_PATH;
-import static de.fraunhofer.iosb.aas.lib.type.AasConstants.AAS_V30_NAMESPACE;
+import static de.fraunhofer.iosb.constants.AasConstants.AAS_V30_NAMESPACE;
+import static de.fraunhofer.iosb.constants.AasConstants.CONCEPT_DESCRIPTIONS_API_PATH;
+import static de.fraunhofer.iosb.constants.AasConstants.SHELLS_API_PATH;
+import static de.fraunhofer.iosb.constants.AasConstants.SUBMODELS_API_PATH;
 import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toMap;
 import static org.eclipse.edc.dataaddress.httpdata.spi.HttpDataAddressSchema.BASE_URL;
@@ -58,7 +57,6 @@ public class AasDataAddress extends DataAddress {
     public static final String PROXY_METHOD = AAS_V30_NAMESPACE + "proxyMethod";
     public static final String PROXY_PATH = AAS_V30_NAMESPACE + "proxyPath";
     public static final String PROXY_BODY = AAS_V30_NAMESPACE + "proxyBody";
-    // See aas4j operation
     private static final String ADDITIONAL_HEADER = "aas:header:";
     private static final String METHOD = EDC_NAMESPACE + "method";
     private static final String REFERENCE_CHAIN = AAS_V30_NAMESPACE + "referenceChain";
@@ -111,9 +109,9 @@ public class AasDataAddress extends DataAddress {
         for (var key : getReferenceChain().getKeys()) {
             var value = key.getValue();
             String[] toAppend = switch (key.getType()) {
-                case ASSET_ADMINISTRATION_SHELL -> new String[]{ SHELLS_PATH, b64(value) };
-                case SUBMODEL -> new String[]{ SUBMODELS_PATH, b64(value) };
-                case CONCEPT_DESCRIPTION -> new String[]{ CONCEPT_DESCRIPTIONS_PATH, b64(value) };
+                case ASSET_ADMINISTRATION_SHELL -> new String[]{ SHELLS_API_PATH, b64(value) };
+                case SUBMODEL -> new String[]{ SUBMODELS_API_PATH, b64(value) };
+                case CONCEPT_DESCRIPTION -> new String[]{ CONCEPT_DESCRIPTIONS_API_PATH, b64(value) };
                 case SUBMODEL_ELEMENT, SUBMODEL_ELEMENT_COLLECTION, SUBMODEL_ELEMENT_LIST, PROPERTY,
                         ANNOTATED_RELATIONSHIP_ELEMENT, RELATIONSHIP_ELEMENT, DATA_ELEMENT, MULTI_LANGUAGE_PROPERTY, RANGE, FILE, BLOB,
                         REFERENCE_ELEMENT, CAPABILITY, ENTITY, EVENT_ELEMENT, BASIC_EVENT_ELEMENT, OPERATION ->
@@ -175,9 +173,13 @@ public class AasDataAddress extends DataAddress {
             return new Builder();
         }
 
-        public Builder aasProvider(AasProvider provider) {
-            this.property(BASE_URL, provider.baseUrl().toString());
-            provider.getHeaders().forEach((k, v) -> this.property(ADDITIONAL_HEADER + k, v));
+        public Builder baseUrl(String baseUrl) {
+            this.property(BASE_URL, baseUrl);
+            return this;
+        }
+
+        public Builder additionalHeaders(Map<String, String> headers) {
+            headers.forEach((k, v) -> this.property(ADDITIONAL_HEADER + k, v));
             return this;
         }
 

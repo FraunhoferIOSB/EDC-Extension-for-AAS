@@ -38,6 +38,7 @@ edc-control-plane-contract = { module = "org.eclipse.edc:control-plane-contract"
 edc-control-plane-core = { module = "org.eclipse.edc:control-plane-core", version.ref = "edc" }
 edc-control-plane-spi = { module = "org.eclipse.edc:control-plane-spi", version.ref = "edc" }
 edc-control-plane-transform = { module = "org.eclipse.edc:control-plane-transform", version.ref = "edc" }
+edc-core-spi = { module = "org.eclipse.edc:core-spi", version.ref = "edc" }
 edc-data-plane-http-spi = { module = "org.eclipse.edc:data-plane-http-spi", version.ref = "edc" }
 edc-data-plane-selector-client = { module = "org.eclipse.edc:data-plane-selector-client", version.ref = "edc" }
 edc-data-plane-spi = { module = "org.eclipse.edc:data-plane-spi", version.ref = "edc" }

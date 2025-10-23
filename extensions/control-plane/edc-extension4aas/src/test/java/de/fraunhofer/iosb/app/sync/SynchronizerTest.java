@@ -29,12 +29,12 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import static de.fraunhofer.iosb.aas.lib.type.AasConstants.AAS_V30_NAMESPACE;
 import static de.fraunhofer.iosb.app.testutils.AasCreator.getEmptyEnvironment;
 import static de.fraunhofer.iosb.app.testutils.AasCreator.getEmptySubmodel;
 import static de.fraunhofer.iosb.app.testutils.AasCreator.getEnvironment;
 import static de.fraunhofer.iosb.app.util.AssetUtil.flatMapAssets;
 import static de.fraunhofer.iosb.app.util.AssetUtil.getChildren;
+import static de.fraunhofer.iosb.constants.AasConstants.AAS_V30_NAMESPACE;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;

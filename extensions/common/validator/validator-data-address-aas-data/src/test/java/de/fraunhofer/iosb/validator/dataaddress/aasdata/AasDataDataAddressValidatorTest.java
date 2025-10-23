@@ -15,7 +15,7 @@
  */
 package de.fraunhofer.iosb.validator.dataaddress.aasdata;
 
-import de.fraunhofer.iosb.aas.lib.spi.AasDataAddress;
+import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
 import org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultKey;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultReference;
@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
 
-import static de.fraunhofer.iosb.aas.lib.spi.AasDataAddress.AAS_DATA_TYPE;
+import static de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress.AAS_DATA_TYPE;
 import static org.eclipse.edc.dataaddress.httpdata.spi.HttpDataAddressSchema.BASE_URL;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 

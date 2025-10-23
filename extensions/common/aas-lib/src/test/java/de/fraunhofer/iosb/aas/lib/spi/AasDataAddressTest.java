@@ -16,6 +16,7 @@
 package de.fraunhofer.iosb.aas.lib.spi;
 
 import de.fraunhofer.iosb.aas.lib.model.impl.Service;
+import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
 import org.eclipse.digitaltwin.aas4j.v3.model.Key;
 import org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultKey;
@@ -34,10 +35,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class AasDataAddressTest {
 
     @Test
-    void test_build_accessUrlBuiltCorrectly() throws MalformedURLException {
+    void test_build_accessUrlBuiltCorrectly() {
         var addressBuilder = AasDataAddress.Builder.newInstance();
 
-        addressBuilder.aasProvider(new Service.Builder().withUrl(new URL("http://localhost:8080")).build());
+        addressBuilder.baseUrl("http://localhost:8080");
         addressBuilder.path("/path/to/resource");
 
         var address = addressBuilder.build();
@@ -48,10 +49,10 @@ class AasDataAddressTest {
     }
 
     @Test
-    void test_build_accessUrlBuiltCorrectlyWithProvider() throws MalformedURLException {
+    void test_build_accessUrlBuiltCorrectlyWithProvider() {
         var addressBuilder = AasDataAddress.Builder.newInstance();
 
-        addressBuilder.aasProvider(new Service.Builder().withUrl(new URL("http://aas-provider:8081")).build());
+        addressBuilder.baseUrl("http://aas-provider:8081");
 
         addressBuilder.path("/path/to/resource");
 

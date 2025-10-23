@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":extensions:common:aas-lib"))
+    implementation(project(":extensions:common:data-plane-aas-spi"))
     implementation(libs.edc.validator.spi)
     implementation(libs.edc.data.plane.http.spi) // HTTP data address "baseURL"
 
@@ -13,7 +13,6 @@ dependencies {
     testImplementation(platform(libs.junit.bom))
     testImplementation(libs.edc.junit)
     testImplementation(libs.aas4j.model)
-
 }
 
 tasks.test {

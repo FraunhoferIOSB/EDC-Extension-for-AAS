@@ -26,11 +26,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import static de.fraunhofer.iosb.aas.lib.type.AasConstants.AAS_V30_NAMESPACE;
+import static de.fraunhofer.iosb.constants.AasConstants.AAS_V30_NAMESPACE;
 
 public abstract class AasProvider {
 
-    public static final String AAS_PROVIDER_TYPE = AAS_V30_NAMESPACE + "AasProvider";
     public static final String AAS_PROVIDER_AUTH = AAS_V30_NAMESPACE + "auth";
     public static final String AAS_PROVIDER_URL = AAS_V30_NAMESPACE + "url";
     protected final AasAccessUrl url;

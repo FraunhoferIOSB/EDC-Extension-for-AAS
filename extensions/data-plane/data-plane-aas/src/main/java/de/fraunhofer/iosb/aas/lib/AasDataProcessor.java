@@ -15,8 +15,8 @@
  */
 package de.fraunhofer.iosb.aas.lib;
 
-import de.fraunhofer.iosb.aas.lib.spi.AasDataAddress;
 import de.fraunhofer.iosb.dataplane.aas.pipeline.AasTransferRequestBody;
+import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
 import okhttp3.Headers;
 import okhttp3.HttpUrl;
 import okhttp3.Request;
@@ -29,10 +29,10 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-import static de.fraunhofer.iosb.aas.lib.spi.AasDataAddress.PROXY_BODY;
-import static de.fraunhofer.iosb.aas.lib.spi.AasDataAddress.PROXY_METHOD;
-import static de.fraunhofer.iosb.aas.lib.spi.AasDataAddress.PROXY_OPERATION;
-import static de.fraunhofer.iosb.aas.lib.spi.AasDataAddress.PROXY_PATH;
+import static de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress.PROXY_BODY;
+import static de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress.PROXY_METHOD;
+import static de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress.PROXY_OPERATION;
+import static de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress.PROXY_PATH;
 
 /**
  * Communication to an AAS service via an OkHttpClient.

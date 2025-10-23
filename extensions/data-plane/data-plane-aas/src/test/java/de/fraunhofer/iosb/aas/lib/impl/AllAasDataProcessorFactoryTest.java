@@ -16,8 +16,7 @@
 package de.fraunhofer.iosb.aas.lib.impl;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
-import de.fraunhofer.iosb.aas.lib.model.impl.Service;
-import de.fraunhofer.iosb.aas.lib.spi.AasDataAddress;
+import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
 import de.fraunhofer.iosb.ssl.impl.DefaultSelfSignedCertificateRetriever;
 import dev.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
@@ -67,7 +66,7 @@ class AllAasDataProcessorFactoryTest {
 
     private AasDataAddress getDataAddress(URL baseUrl) {
         return AasDataAddress.Builder.newInstance()
-                .aasProvider(new Service.Builder().withUrl(baseUrl).build())
+                .baseUrl(baseUrl.toString())
                 .method("GET")
                 .referenceChain(new DefaultReference())
                 .build();

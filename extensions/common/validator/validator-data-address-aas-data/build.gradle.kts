@@ -1,7 +1,3 @@
-plugins {
-    `java-test-fixtures`
-}
-
 dependencies {
     implementation(project(":extensions:common:data-plane-aas-spi"))
     implementation(libs.edc.validator.spi)

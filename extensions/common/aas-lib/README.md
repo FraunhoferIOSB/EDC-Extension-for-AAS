@@ -1,6 +1,6 @@
 # AAS Library Extension
 
-This extension provides common AAS-specific elements such as AasDataAddress.
+This module provides common AAS-specific elements such as AasDataAddress.
 
 ## Configuration
 
@@ -12,10 +12,9 @@ No outward-facing API.
 
 ### Dependencies
 
-| Name                                                | Description                  |
-|:----------------------------------------------------|:-----------------------------|
-| org.eclipse.edc:asset-spi                           | Asset, DataAddress           |
-| org.eclipse.edc:data-plane-http-spi                 | Conversion of AAS to HTTP DA |
-| org.eclipse.digitaltwin.aas4j:aas4j-model           | AAS Model                    |
-| org.eclipse.digitaltwin.aas4j:aas4j-dataformat-json | Json(De)Serializer           |
-| de.fraunhofer.iosb.ilt.faaast.service:model         | AAS Reference Utilities      |
+| Name                                        | Description                  |
+|:--------------------------------------------|:-----------------------------|
+| validator-data-address-aas-data (local)     | Supply AAS DA validator      |
+| org.eclipse.edc:core-spi                    | Asset                        |
+| org.eclipse.edc:data-plane-http-spi         | Conversion of AAS to HTTP DA |
+| de.fraunhofer.iosb.ilt.faaast.service:model | AAS Reference Utilities      |

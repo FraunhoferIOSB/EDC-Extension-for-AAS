@@ -5,7 +5,7 @@ start_runtime() {
   local timeout_secs="${START_RUNTIME_TIMEOUT:-60}"
 
   # Resolve config and validate
-  local config_dir="${PWD}/samples/config"
+  local config_dir="${PWD}/system-tests/config"
   local config_path="${config_dir}/${project_name}.properties"
 
   if [[ ! -f "$config_path" ]]; then
@@ -29,6 +29,7 @@ start_runtime() {
     echo "$gradle_pid"
   else
     echo "Timed out waiting for runtime readiness (${timeout_secs}s). Killing PID $gradle_pid..." >&2
+    echo $(cat $log_file)
     kill "$gradle_pid" 2>/dev/null || true
     sleep 2
     pkill -P "$gradle_pid" 2>/dev/null || true    # kill child processes
@@ -39,7 +40,6 @@ start_runtime() {
   # Return the PID
   echo "$gradle_pid"
 }
-
 
 # Extract a clean numeric PID (first number found), stripping CR/LF/whitespace
 get_pid() {

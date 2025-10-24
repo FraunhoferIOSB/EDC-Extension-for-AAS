@@ -187,7 +187,11 @@ public class Endpoint {
 
         URL serviceAccessUrl;
         try {
-            serviceAccessUrl = aasController.startService(environmentPath, port, aasConfigPath);
+            if (port == 0 && pathToConfig == null) {
+                serviceAccessUrl = aasController.startService(environmentPath);
+            } else {
+                serviceAccessUrl = aasController.startService(environmentPath, port, aasConfigPath);
+            }
         } catch (IllegalArgumentException illegalArgumentException) {
             return Response.status(Status.BAD_REQUEST).entity(illegalArgumentException.getMessage()).build();
         } catch (IOException | EdcException aasServiceException) {

@@ -16,6 +16,7 @@ plugins {
 dependencies {
     // ---- CONTROL PLANE ----
     runtimeOnly(libs.edc.controlplane.base.bom)
+    runtimeOnly(project(":extensions:control-plane:client"))
     runtimeOnly(libs.edc.management.api.configuration) // auth for mgmt api
     runtimeOnly(libs.edc.configuration.filesystem)
     runtimeOnly(libs.edc.auth.tokenbased)

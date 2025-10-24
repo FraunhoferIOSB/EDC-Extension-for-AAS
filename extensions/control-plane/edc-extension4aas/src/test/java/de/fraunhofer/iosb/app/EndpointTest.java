@@ -165,7 +165,7 @@ public class EndpointTest {
     @Test
     void testPostAasEnvironmentNullConfig() throws IOException {
         // This is allowed
-        when(aasControllerMock.startService(any(), any(Integer.class), any())).thenReturn(url);
+        when(aasControllerMock.startService(any())).thenReturn(url);
         when(serviceRepositoryMock.create(any())).thenReturn(true);
 
         try (var response = testSubject.postAasEnvironment(".", null, 0)) {

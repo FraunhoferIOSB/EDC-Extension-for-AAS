@@ -58,6 +58,7 @@ edc-management-api-configuration = { module = "org.eclipse.edc:management-api-co
 edc-query-lib = { module = "org.eclipse.edc:query-lib", version.ref = "edc" }
 edc-runtime-core = { module = "org.eclipse.edc:runtime-core", version.ref = "edc" }
 edc-transform-lib = { module = "org.eclipse.edc:transform-lib", version.ref = "edc" }
+edc-util-lib = { module = "org.eclipse.edc:util-lib", version.ref = "edc" }
 edc-validator-spi = { module = "org.eclipse.edc:validator-spi", version.ref = "edc" }
 edc-vault-hashicorp = { module = "org.eclipse.edc:vault-hashicorp", version.ref = "edc" }
 

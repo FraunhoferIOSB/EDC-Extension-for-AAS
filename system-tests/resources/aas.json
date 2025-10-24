@@ -1,0 +1,192 @@
+{
+  "assetAdministrationShells": [
+    {
+      "modelType": "AssetAdministrationShell",
+      "description": [
+        {
+          "language": "en-us",
+          "text": "This is my system test AAS description"
+        },
+        {
+          "language": "de",
+          "text": "Das ist meine system test AAS beschreibung"
+        }
+      ],
+      "assetInformation": {
+        "assetKind": "Instance",
+        "globalAssetId": "https://acplt.org/System_Test_Asset"
+      },
+      "derivedFrom": {
+        "keys": [
+          {
+            "type": "AssetAdministrationShell",
+            "value": "https://acplt.org/SystemTestAssetAdministrationShell"
+          }
+        ],
+        "type": "ExternalReference"
+      },
+      "submodels": [
+        {
+          "keys": [
+            {
+              "type": "Submodel",
+              "value": "https://acplt.org/System_Test_Submodel"
+            }
+          ],
+          "type": "ExternalReference"
+        }
+      ],
+      "administration": {
+        "revision": "37",
+        "version": "13"
+      },
+      "id": "https://acplt.org/System_Test_AssetAdministrationShell",
+      "idShort": "SystemTestAssetAdministrationShell"
+    }
+  ],
+  "submodels": [
+    {
+      "modelType": "Submodel",
+      "kind": "Instance",
+      "semanticId": {
+        "keys": [
+          {
+            "type": "Submodel",
+            "value": "http://acplt.org/SubmodelTemplates/SystemTest"
+          }
+        ],
+        "type": "ExternalReference"
+      },
+      "administration": {
+        "revision": "9",
+        "version": "0"
+      },
+      "id": "http://acplt.org/Submodels/Assets/TestAsset/System_Test_Submodel",
+      "idShort": "SystemTestSubmodel",
+      "submodelElements": [
+        {
+          "modelType": "SubmodelElementCollection",
+          "semanticId": {
+            "keys": [
+              {
+                "type": "GlobalReference",
+                "value": "http://acplt.org/SubmodelElementCollections/System_Test_SubmodelElementCollection"
+              }
+            ],
+            "type": "ExternalReference"
+          },
+          "category": "PARAMETER",
+          "idShort": "SystemTestSubmodelElementCollection",
+          "description": [
+            {
+              "language": "en-us",
+              "text": "This is my system test SMC description"
+            },
+            {
+              "language": "de",
+              "text": "Das ist meine system test SMC beschreibung"
+            }
+          ],
+          "value": [
+            {
+              "modelType": "Property",
+              "semanticId": {
+                "keys": [
+                  {
+                    "type": "GlobalReference",
+                    "value": "0173-1#02-AAO677#002"
+                  }
+                ],
+                "type": "ExternalReference"
+              },
+              "value": "http://acplt.org/ValueId/ACPLT",
+              "valueId": {
+                "keys": [
+                  {
+                    "type": "GlobalReference",
+                    "value": "http://acplt.org/ValueId/ACPLT"
+                  }
+                ],
+                "type": "ExternalReference"
+              },
+              "valueType": "xs:string",
+              "qualifiers": [
+                {
+                  "type": "http://acplt.org/Qualifier/ExampleQualifier",
+                  "value": "100",
+                  "valueType": "xs:int",
+                  "kind": "ConceptQualifier"
+                },
+                {
+                  "type": "http://acplt.org/Qualifier/ExampleQualifier2",
+                  "value": "50",
+                  "valueType": "xs:int",
+                  "kind": "ConceptQualifier"
+                }
+              ],
+              "idShort": "ManufacturerName",
+              "displayName": [
+                {
+                  "language": "en-us",
+                  "text": "Manufacturer Name"
+                }
+              ],
+              "description": [
+                {
+                  "language": "en-us",
+                  "text": "Legally valid designation of the natural or judicial person which is directly responsible for the design, production, packaging and labeling of a product in respect to its being brought into circulation."
+                },
+                {
+                  "language": "de",
+                  "text": "Bezeichnung für eine natürliche oder juristische Person, die für die Auslegung, Herstellung und Verpackung sowie die Etikettierung eines Produkts im Hinblick auf das 'Inverkehrbringen' im eigenen Namen verantwortlich ist"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "description": [
+        {
+          "language": "en-us",
+          "text": "An example asset identification submodel for the test application"
+        },
+        {
+          "language": "de",
+          "text": "Ein Beispiel-Identifikations-Submodel für eine Test-Anwendung"
+        }
+      ]
+    }
+  ],
+  "conceptDescriptions": [
+    {
+      "modelType": "ConceptDescription",
+      "administration": {
+        "revision": "2",
+        "version": "4"
+      },
+      "id": "https://acplt.org/System_Test_ConceptDescription",
+      "idShort": "SystemTestConceptDescription",
+      "isCaseOf": [
+        {
+          "keys": [
+            {
+              "type": "GlobalReference",
+              "value": "http://acplt.org/DataSpecifications/Conceptdescription/SystemTestConceptDescription"
+            }
+          ],
+          "type": "ExternalReference"
+        }
+      ],
+      "description": [
+        {
+          "language": "en-us",
+          "text": "This is my system test ConceptDescription description"
+        },
+        {
+          "language": "de",
+          "text": "Das ist meine system test ConceptDescription beschreibung"
+        }
+      ]
+    }
+  ]
+}

@@ -5,40 +5,31 @@ SCRIPT_DIR="$(cd -- "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/../util.sh"
 
 echo "" > consumer.log
-
 control_plane_pid="$(start_runtime consumer)"
 
 echo "" > aas-data-plane.log
-
 data_plane_pid="$(start_runtime aas-data-plane)"
 
-API="http://localhost:9191/control/v1/dataplanes"
+API="http://localhost:23339/control/v1/dataplanes"
+# For more tests, this url can be useful
 DP_URL="http://localhost:18235/control/v1/dataflows"
 
-# These are the expected fields
-EXPECTED_FILE="${SCRIPT_DIR}/dataplane_requiredfields.json"
+EXPECTED_FILE="system-tests/resources/dataplanes.json"
 
-export EXPECTED_FILE API DP_URL
+curl -fsS "$API" > dataplanes_is.log
 
-# Check if data plane has self-registered and provides AAS (and HTTP) functionality
-# CURL control-plane, parse response with jq, remove variable fields (e.g., @id), match rest
-if curl -fsS "$API" | jq -e --slurpfile exp "$EXPECTED_FILE" '
-  def n:
-    del(.["@id"], .lastActive, .stateTimestamp)
-    | {
-        "@type": .["@type"],
-        "url": .url,
-        "allowedSourceTypes": ((.allowedSourceTypes // []) | sort),
-        "allowedTransferTypes": ((.allowedTransferTypes // []) | sort)
-      };
-  ($exp[0] | n) as $e
-  | [ .[] | n | select(. == $e) ]
-  | length == 1
-' >> /dev/null; then
- echo "Dataplane instance matches. Test succeeded..."
-else
- echo "Dataplane instance missing or mismatched. Failing." >&2
- exit 1
+python3 "system-tests/json_subset.py" "$EXPECTED_FILE" "dataplanes_is.log"
+
+dataplanes_equality=$?
+
+if [ "$dataplanes_equality" != 0 ];
+then
+    echo "Dataplanes do not match resources/dataplanes.json. Failing test"
+    < dataplanes_is.log jq -r
+    # Clean up
+    safe_kill "$control_plane_pid"
+    safe_kill "$data_plane_pid"
+    exit 1
 fi
 
 # Clean up

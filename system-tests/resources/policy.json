@@ -1,0 +1,44 @@
+[
+  {
+    "@id": "AAS_DEFAULT_ACCESS_POLICY",
+    "@type": "PolicyDefinition",
+    "policy": {
+      "@type": "odrl:Set",
+      "odrl:permission": {
+        "odrl:action": {
+          "@id": "odrl:use"
+        }
+      },
+      "odrl:prohibition": [],
+      "odrl:obligation": [],
+      "odrl:assigner": "provider"
+    },
+    "@context": {
+      "aas": "https://admin-shell.io/aas/3/0/",
+      "@vocab": "https://w3id.org/edc/v0.0.1/ns/",
+      "edc": "https://w3id.org/edc/v0.0.1/ns/",
+      "odrl": "http://www.w3.org/ns/odrl/2/"
+    }
+  },
+  {
+    "@id": "AAS_DEFAULT_CONTRACT_POLICY",
+    "@type": "PolicyDefinition",
+    "policy": {
+      "@type": "odrl:Set",
+      "odrl:permission": {
+        "odrl:action": {
+          "@id": "odrl:use"
+        }
+      },
+      "odrl:prohibition": [],
+      "odrl:obligation": [],
+      "odrl:assigner": "provider"
+    },
+    "@context": {
+      "aas": "https://admin-shell.io/aas/3/0/",
+      "@vocab": "https://w3id.org/edc/v0.0.1/ns/",
+      "edc": "https://w3id.org/edc/v0.0.1/ns/",
+      "odrl": "http://www.w3.org/ns/odrl/2/"
+    }
+  }
+]

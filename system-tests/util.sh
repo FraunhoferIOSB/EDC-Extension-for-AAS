@@ -29,6 +29,7 @@ start_runtime() {
     echo "$gradle_pid"
   else
     echo "Timed out waiting for runtime readiness (${timeout_secs}s). Killing PID $gradle_pid..." >&2
+    cat $log_file
     kill "$gradle_pid" 2>/dev/null || true
     sleep 2
     pkill -P "$gradle_pid" 2>/dev/null || true    # kill child processes

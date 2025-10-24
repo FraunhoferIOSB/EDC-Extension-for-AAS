@@ -5,7 +5,7 @@ start_runtime() {
   local timeout_secs="${START_RUNTIME_TIMEOUT:-60}"
 
   # Resolve config and validate
-  local config_dir="${PWD}/samples/config"
+  local config_dir="${PWD}/system-tests/config"
   local config_path="${config_dir}/${project_name}.properties"
 
   if [[ ! -f "$config_path" ]]; then
@@ -39,7 +39,6 @@ start_runtime() {
   # Return the PID
   echo "$gradle_pid"
 }
-
 
 # Extract a clean numeric PID (first number found), stripping CR/LF/whitespace
 get_pid() {

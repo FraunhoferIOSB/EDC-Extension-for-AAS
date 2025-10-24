@@ -25,6 +25,15 @@ import java.nio.file.Path;
 public interface AssetAdministrationShellServiceManager {
 
     /**
+     * Boot up an AAS service by environment, an open port will be used.
+     *
+     * @param aasModelPath AAS Environment for the AAS service
+     * @return The URL of the new service
+     * @throws IOException If the URL creation fails
+     */
+    URL startService(Path aasModelPath) throws IOException;
+
+    /**
      * Boot up an AAS service by environment and port
      *
      * @param aasModelPath AAS Environment for the AAS service

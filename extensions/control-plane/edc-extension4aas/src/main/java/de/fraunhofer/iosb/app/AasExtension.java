@@ -205,10 +205,14 @@ public class AasExtension implements ServiceExtension {
 
         URL serviceUrl;
         try {
-            serviceUrl = aasController.startService(
-                    Path.of(configInstance.getLocalAasModelPath()),
-                    configInstance.getLocalAasServicePort(),
-                    aasConfigPath);
+            if (configInstance.getLocalAasServicePort() == 0 && aasConfigPath == null) {
+                serviceUrl = aasController.startService(Path.of(configInstance.getLocalAasModelPath()));
+            } else {
+                serviceUrl = aasController.startService(
+                        Path.of(configInstance.getLocalAasModelPath()),
+                        configInstance.getLocalAasServicePort(),
+                        aasConfigPath);
+            }
         } catch (Exception startAssetAdministrationShellException) {
             monitor.severe("Could not start / register AAS service provided by configuration.\nReason: %s %s"
                     .formatted(startAssetAdministrationShellException.getMessage(), startAssetAdministrationShellException.getCause()));

@@ -1,6 +1,0 @@
-{
-  "@type": "DataPlaneInstance",
-  "url": "http://localhost:18235/control/v1/dataflows",
-  "allowedSourceTypes": ["HttpData", "AasData"],
-  "allowedTransferTypes": ["AasData-PUSH", "HttpData-PUSH"]
-}

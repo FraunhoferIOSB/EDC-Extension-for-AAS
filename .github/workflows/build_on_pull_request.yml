@@ -34,3 +34,5 @@ jobs:
           distribution: 'temurin'
       - name: Build project and docker image
         uses: ./.github/actions/checks/build_all
+      - name: Run system tests
+        uses: ./.github/actions/checks/system-tests

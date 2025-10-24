@@ -1,0 +1,28 @@
+[
+  {
+    "@type": "ContractDefinition",
+    "accessPolicyId": "AAS_DEFAULT_ACCESS_POLICY",
+    "contractPolicyId": "AAS_DEFAULT_CONTRACT_POLICY",
+    "assetsSelector": {
+      "@type": "Criterion",
+      "operandLeft": "https://w3id.org/edc/v0.0.1/ns/id",
+      "operator": "in",
+      "operandRight": [
+        "-394872376",
+        "646480506",
+        "-948474369",
+        "392350092",
+        "-1275794882"
+      ]
+    },
+    "privateProperties": {
+      "creator": "EDC4AAS Extension"
+    },
+    "@context": {
+      "aas": "https://admin-shell.io/aas/3/0/",
+      "@vocab": "https://w3id.org/edc/v0.0.1/ns/",
+      "edc": "https://w3id.org/edc/v0.0.1/ns/",
+      "odrl": "http://www.w3.org/ns/odrl/2/"
+    }
+  }
+]

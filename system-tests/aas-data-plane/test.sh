@@ -1,18 +1,36 @@
 #!/usr/bin/env bash
 
+set -euo pipefail
+
 # Load utility
 SCRIPT_DIR="$(cd -- "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/../util.sh"
 
+# Preserve original exit code after cleanup
+trap 'rc=$?; cleanup; exit $rc' EXIT
+# Also run cleanup on Ctrl+C/kill
+trap 'cleanup; exit 130' INT
+trap 'cleanup; exit 143' TERM
+
 echo "" > consumer.log
-control_plane_pid="$(start_runtime consumer)"
+export control_plane_pid
+if ! control_plane_pid="$(start_runtime consumer)"; then
+  rc=$?
+  echo "start_runtime failed ($rc)"
+  exit $rc
+fi
 
 echo "" > aas-data-plane.log
-data_plane_pid="$(start_runtime aas-data-plane)"
+export data_plane_pid
+if ! data_plane_pid="$(start_runtime aas-data-plane)"; then
+  rc=$?
+  echo "start_runtime failed ($rc)"
+  exit $rc
+fi
 
 API="http://localhost:23339/control/v1/dataplanes"
 # For more tests, this url can be useful
-DP_URL="http://localhost:18235/control/v1/dataflows"
+# DP_URL="http://localhost:18235/control/v1/dataflows"
 
 EXPECTED_FILE="system-tests/resources/dataplanes.json"
 
@@ -25,13 +43,7 @@ dataplanes_equality=$?
 if [ "$dataplanes_equality" != 0 ];
 then
     echo "Dataplanes do not match resources/dataplanes.json. Failing test"
-    < dataplanes_is.log jq -r
-    # Clean up
-    safe_kill "$control_plane_pid"
-    safe_kill "$data_plane_pid"
     exit 1
 fi
 
-# Clean up
-safe_kill "$control_plane_pid"
-safe_kill "$data_plane_pid"
+echo "AAS data plane tests passed."

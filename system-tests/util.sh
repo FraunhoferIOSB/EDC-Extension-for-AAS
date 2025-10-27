@@ -5,12 +5,11 @@ start_runtime() {
   local timeout_secs="${START_RUNTIME_TIMEOUT:-60}"
 
   # Resolve config and validate
-  local config_dir="${PWD}/system-tests/config"
-  local config_path="${config_dir}/${project_name}.properties"
+  local config_path="${PWD}/system-tests/config/${project_name}.properties"
 
   if [[ ! -f "$config_path" ]]; then
     echo "Config file not found: $config_path" >&2
-    return 1
+    exit 1
   fi
 
   local log_file="${project_name}.log"
@@ -29,12 +28,12 @@ start_runtime() {
     echo "$gradle_pid"
   else
     echo "Timed out waiting for runtime readiness (${timeout_secs}s). Killing PID $gradle_pid..." >&2
-    echo $(cat $log_file)
+    cat "$log_file"
     kill "$gradle_pid" 2>/dev/null || true
     sleep 2
     pkill -P "$gradle_pid" 2>/dev/null || true    # kill child processes
     kill -9 "$gradle_pid" 2>/dev/null || true     # force kill if still alive
-    return 124
+    exit 124
   fi
 
   # Return the PID
@@ -58,4 +57,10 @@ safe_kill() {
   sleep 2
   kill -KILL -- "-$pid" 2>/dev/null || true
   kill -KILL "$pid" 2>/dev/null || true
+}
+
+cleanup() {
+  echo "Cleaning up..."
+  [[ -n "${provider_pid:-}" ]] && safe_kill "$provider_pid"
+  [[ -n "${consumer_pid:-}" ]] && safe_kill "$consumer_pid"
 }

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 start_runtime() {
   local project_name="$1"
@@ -16,7 +16,7 @@ start_runtime() {
   local log_file="${project_name}.log"
 
   # Start Gradle with env and capture PID
-  EDC_FS_CONFIG="$config_path" ./gradlew --no-daemon --console=plain "launchers:${project_name}:run" \
+  EDC_FS_CONFIG="$config_path" "${PWD}/gradlew" --no-daemon --console=plain "launchers:${project_name}:run" \
     > "$log_file" 2>&1 &
   local gradle_pid=$!
   export GRADLE_PID="$gradle_pid"

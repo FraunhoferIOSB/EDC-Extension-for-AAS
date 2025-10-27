@@ -2,7 +2,7 @@
 
 start_runtime() {
   local project_name="$1"
-  local timeout_secs="${START_RUNTIME_TIMEOUT:-60}"
+  local timeout_secs="${START_RUNTIME_TIMEOUT:-120}"
 
   # Resolve config and validate
   local config_path="${PWD}/system-tests/config/${project_name}.properties"

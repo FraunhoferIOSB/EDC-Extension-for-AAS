@@ -28,7 +28,7 @@ start_runtime() {
     echo "$gradle_pid"
   else
     echo "Timed out waiting for runtime readiness (${timeout_secs}s). Killing PID $gradle_pid..." >&2
-    cat "$log_file"
+    cat "$log_file" >&2
     kill "$gradle_pid" 2>/dev/null || true
     sleep 2
     pkill -P "$gradle_pid" 2>/dev/null || true    # kill child processes
@@ -61,6 +61,8 @@ safe_kill() {
 
 cleanup() {
   echo "Cleaning up..."
+  [[ -n "${control_plane_pid:-}" ]] && safe_kill "$control_plane_pid"
+  [[ -n "${data_plane_pid:-}" ]] && safe_kill "$data_plane_pid"
   [[ -n "${provider_pid:-}" ]] && safe_kill "$provider_pid"
   [[ -n "${consumer_pid:-}" ]] && safe_kill "$consumer_pid"
 }

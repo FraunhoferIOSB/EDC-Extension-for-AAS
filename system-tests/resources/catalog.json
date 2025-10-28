@@ -2,7 +2,123 @@
   "@type": "dcat:Catalog",
   "dcat:dataset": [
     {
-      "@id": "392350092",
+      "@id": "1351791412",
+      "@type": "dcat:Dataset",
+      "odrl:hasPolicy": {
+        "@type": "odrl:Offer",
+        "odrl:permission": {
+          "odrl:action": {
+            "@id": "odrl:use"
+          }
+        },
+        "odrl:prohibition": [],
+        "odrl:obligation": [],
+        "odrl:assigner": "provider"
+      },
+      "dcat:distribution": [
+        {
+          "@type": "dcat:Distribution",
+          "dct:format": {
+            "@id": "AasData-PUSH"
+          },
+          "dcat:accessService": {
+            "@type": "dcat:DataService",
+            "dcat:endpointDescription": "dspace:connector",
+            "dcat:endpointURL": "http://localhost:13340/dsp"
+          }
+        },
+        {
+          "@type": "dcat:Distribution",
+          "dct:format": {
+            "@id": "HttpData-PUSH"
+          },
+          "dcat:accessService": {
+            "@type": "dcat:DataService",
+            "dcat:endpointDescription": "dspace:connector",
+            "dcat:endpointURL": "http://localhost:13340/dsp"
+          }
+        }
+      ],
+      "aas:Referable/description": [
+        {
+          "aas:AbstractLangString/language": "en-us",
+          "aas:AbstractLangString/text": "This is my system test ConceptDescription description"
+        },
+        {
+          "aas:AbstractLangString/language": "de",
+          "aas:AbstractLangString/text": "Das ist meine system test ConceptDescription beschreibung"
+        }
+      ],
+      "aas:Referable/idShort": "SystemTestConceptDescription",
+      "aas:Identifiable/id": "https://acplt.org/System_Test_ConceptDescription",
+      "aas:Identifiable/administration": {
+        "aas:AdministrativeInformation/revision": "2",
+        "aas:AdministrativeInformation/version": "4",
+        "aas:HasDataSpecification/embeddedDataSpecifications": []
+      },
+      "id": "1351791412",
+      "contenttype": "application/json"
+    },
+    {
+      "@id": "792362498",
+      "@type": "dcat:Dataset",
+      "odrl:hasPolicy": {
+        "@type": "odrl:Offer",
+        "odrl:permission": {
+          "odrl:action": {
+            "@id": "odrl:use"
+          }
+        },
+        "odrl:prohibition": [],
+        "odrl:obligation": [],
+        "odrl:assigner": "provider"
+      },
+      "dcat:distribution": [
+        {
+          "@type": "dcat:Distribution",
+          "dct:format": {
+            "@id": "AasData-PUSH"
+          },
+          "dcat:accessService": {
+            "@type": "dcat:DataService",
+            "dcat:endpointDescription": "dspace:connector",
+            "dcat:endpointURL": "http://localhost:13340/dsp"
+          }
+        },
+        {
+          "@type": "dcat:Distribution",
+          "dct:format": {
+            "@id": "HttpData-PUSH"
+          },
+          "dcat:accessService": {
+            "@type": "dcat:DataService",
+            "dcat:endpointDescription": "dspace:connector",
+            "dcat:endpointURL": "http://localhost:13340/dsp"
+          }
+        }
+      ],
+      "aas:Referable/description": [
+        {
+          "aas:AbstractLangString/language": "en-us",
+          "aas:AbstractLangString/text": "This is my system test AAS description"
+        },
+        {
+          "aas:AbstractLangString/language": "de",
+          "aas:AbstractLangString/text": "Das ist meine system test AAS beschreibung"
+        }
+      ],
+      "aas:Referable/idShort": "SystemTestAssetAdministrationShell",
+      "aas:Identifiable/id": "https://acplt.org/System_Test_AssetAdministrationShell",
+      "aas:Identifiable/administration": {
+        "aas:AdministrativeInformation/revision": "37",
+        "aas:AdministrativeInformation/version": "13",
+        "aas:HasDataSpecification/embeddedDataSpecifications": []
+      },
+      "id": "792362498",
+      "contenttype": "application/json"
+    },
+    {
+      "@id": "-799803758",
       "@type": "dcat:Dataset",
       "odrl:hasPolicy": {
         "@type": "odrl:Offer",
@@ -58,69 +174,11 @@
         },
         "aas:Reference/type": "EXTERNAL_REFERENCE"
       },
-      "id": "392350092",
+      "id": "-799803758",
       "contenttype": "application/json"
     },
     {
-      "@id": "646480506",
-      "@type": "dcat:Dataset",
-      "odrl:hasPolicy": {
-        "@type": "odrl:Offer",
-        "odrl:permission": {
-          "odrl:action": {
-            "@id": "odrl:use"
-          }
-        },
-        "odrl:prohibition": [],
-        "odrl:obligation": [],
-        "odrl:assigner": "provider"
-      },
-      "dcat:distribution": [
-        {
-          "@type": "dcat:Distribution",
-          "dct:format": {
-            "@id": "AasData-PUSH"
-          },
-          "dcat:accessService": {
-            "@type": "dcat:DataService",
-            "dcat:endpointDescription": "dspace:connector",
-            "dcat:endpointURL": "http://localhost:13340/dsp"
-          }
-        },
-        {
-          "@type": "dcat:Distribution",
-          "dct:format": {
-            "@id": "HttpData-PUSH"
-          },
-          "dcat:accessService": {
-            "@type": "dcat:DataService",
-            "dcat:endpointDescription": "dspace:connector",
-            "dcat:endpointURL": "http://localhost:13340/dsp"
-          }
-        }
-      ],
-      "aas:Referable/description": [
-        {
-          "aas:AbstractLangString/language": "en-us",
-          "aas:AbstractLangString/text": "This is my system test ConceptDescription description"
-        },
-        {
-          "aas:AbstractLangString/language": "de",
-          "aas:AbstractLangString/text": "Das ist meine system test ConceptDescription beschreibung"
-        }
-      ],
-      "aas:Referable/idShort": "SystemTestConceptDescription",
-      "aas:Identifiable/id": "https://acplt.org/System_Test_ConceptDescription",
-      "aas:Identifiable/administration": {
-        "aas:AdministrativeInformation/revision": "2",
-        "aas:AdministrativeInformation/version": "4",
-        "aas:HasDataSpecification/embeddedDataSpecifications": []
-      },
-      "id": "646480506",
-      "contenttype": "application/json"
-    },
-    {
-      "@id": "-1275794882",
+      "@id": "458140152",
       "@type": "dcat:Dataset",
       "odrl:hasPolicy": {
         "@type": "odrl:Offer",
@@ -180,11 +238,11 @@
         "aas:AbstractLangString/language": "en-us",
         "aas:AbstractLangString/text": "Manufacturer Name"
       },
-      "id": "-1275794882",
+      "id": "458140152",
       "contenttype": "application/json"
     },
     {
-      "@id": "-948474369",
+      "@id": "1855961989",
       "@type": "dcat:Dataset",
       "odrl:hasPolicy": {
         "@type": "odrl:Offer",
@@ -245,65 +303,7 @@
         "aas:AdministrativeInformation/version": "0",
         "aas:HasDataSpecification/embeddedDataSpecifications": []
       },
-      "id": "-948474369",
-      "contenttype": "application/json"
-    },
-    {
-      "@id": "-394872376",
-      "@type": "dcat:Dataset",
-      "odrl:hasPolicy": {
-        "@type": "odrl:Offer",
-        "odrl:permission": {
-          "odrl:action": {
-            "@id": "odrl:use"
-          }
-        },
-        "odrl:prohibition": [],
-        "odrl:obligation": [],
-        "odrl:assigner": "provider"
-      },
-      "dcat:distribution": [
-        {
-          "@type": "dcat:Distribution",
-          "dct:format": {
-            "@id": "AasData-PUSH"
-          },
-          "dcat:accessService": {
-            "@type": "dcat:DataService",
-            "dcat:endpointDescription": "dspace:connector",
-            "dcat:endpointURL": "http://localhost:13340/dsp"
-          }
-        },
-        {
-          "@type": "dcat:Distribution",
-          "dct:format": {
-            "@id": "HttpData-PUSH"
-          },
-          "dcat:accessService": {
-            "@type": "dcat:DataService",
-            "dcat:endpointDescription": "dspace:connector",
-            "dcat:endpointURL": "http://localhost:13340/dsp"
-          }
-        }
-      ],
-      "aas:Referable/description": [
-        {
-          "aas:AbstractLangString/language": "en-us",
-          "aas:AbstractLangString/text": "This is my system test AAS description"
-        },
-        {
-          "aas:AbstractLangString/language": "de",
-          "aas:AbstractLangString/text": "Das ist meine system test AAS beschreibung"
-        }
-      ],
-      "aas:Referable/idShort": "SystemTestAssetAdministrationShell",
-      "aas:Identifiable/id": "https://acplt.org/System_Test_AssetAdministrationShell",
-      "aas:Identifiable/administration": {
-        "aas:AdministrativeInformation/revision": "37",
-        "aas:AdministrativeInformation/version": "13",
-        "aas:HasDataSpecification/embeddedDataSpecifications": []
-      },
-      "id": "-394872376",
+      "id": "1855961989",
       "contenttype": "application/json"
     }
   ],

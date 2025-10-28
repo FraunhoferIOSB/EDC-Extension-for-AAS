@@ -1,0 +1,7 @@
+{
+  "@context": {
+    "edc": "https://w3id.org/edc/v0.0.1/ns/"
+  },
+  "counterPartyAddress": "http://localhost:13340/dsp",
+  "protocol": "dataspace-protocol-http"
+}

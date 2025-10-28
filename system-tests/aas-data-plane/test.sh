@@ -2,31 +2,12 @@
 
 set -euo pipefail
 
-# Load utility
-SCRIPT_DIR="$(cd -- "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "${SCRIPT_DIR}/../util.sh"
+# Load utility functions
+source "system-tests/util.sh"
 
-# Preserve original exit code after cleanup
-trap 'rc=$?; cleanup; exit $rc' EXIT
-# Also run cleanup on Ctrl+C/kill
-trap 'cleanup; exit 130' INT
-trap 'cleanup; exit 143' TERM
-
-echo "" > consumer.log
-export control_plane_pid
-if ! control_plane_pid="$(start_runtime consumer)"; then
-  rc=$?
-  echo "start_runtime failed ($rc)"
-  exit $rc
-fi
-
-echo "" > aas-data-plane.log
-export data_plane_pid
-if ! data_plane_pid="$(start_runtime aas-data-plane)"; then
-  rc=$?
-  echo "start_runtime failed ($rc)"
-  exit $rc
-fi
+# Start both connectors
+start_runtime consumer
+start_runtime aas-data-plane
 
 API="http://localhost:23339/control/v1/dataplanes"
 # For more tests, this url can be useful

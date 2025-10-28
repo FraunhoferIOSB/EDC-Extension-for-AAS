@@ -1,21 +1,21 @@
 # Changelog
 
-## Current development version
+## Current development version (V2.3.0-SNAPSHOT)
 
-Compatibility: **Eclipse Dataspace Connector v0.13.0, v0.13.2, v0.14.0**
+Compatibility: **Eclipse Dataspace Connector v0.14.1**
 
-**New Features**
+### New Features
 
-* Added system tests
-* Restructured project
+* **Added system tests**
+* **Restructured project**
   * use extensions/, launchers/, samples/ structure from upstream/other related projects
   * use libs.versions.toml to manage dependencies
   * use base build.gradle.kts to manage common elements such as maven repository
-* Standalone feature
+* **Standalone Feature**
   * The extension can now be deployed **alongside** a running control-plane (and data-plane)
   * Previously, deployment was only possible by adding the extension dependency to the control-plane's build file
   * Now, the extension can be supplied with the edc-connector-client to communicate with the control-plane over its mgmt API
-* Selective AAS registration
+* **Selective AAS registration**
   * Now, individual elements of an AAS can be selected to be registered
   * Also, customized policies per element can be assigned (if not, default policy is used)
     * Only the selected elements are synchronized
@@ -52,15 +52,15 @@ Compatibility: **Eclipse Dataspace Connector v0.13.0, v0.13.2, v0.14.0**
         * If there is no need for proxy functionality like ProxyMethod or ProxyBody to trigger AAS operations
 * Add namespaces to registered AAS elements' properties using admin-shell.io namespacing
 
-**Bugfixes**
+### Bugfixes
 
 * NPE on transfer terminated signal when transferring data to the extension
 * Set docker-compose extension versions to "latest"
 
-**Miscellaneous**
+### Miscellaneous
 
 * Separated control-plane parts from data-plane parts to allow for distributed deployment scenarios
-* Updated FA³ST to version v1.2.0
+* Updated internal FA³ST Service to version v1.3.0
 * Updated and tested compatibility to EDC version v0.13.0, v0.13.2, v0.14.0
 
 ## V2.2.0

@@ -21,6 +21,8 @@ import de.fraunhofer.iosb.ilt.faaast.service.assetconnection.AssetConnectionExce
 import de.fraunhofer.iosb.ilt.faaast.service.config.ServiceConfig;
 import de.fraunhofer.iosb.ilt.faaast.service.endpoint.http.HttpEndpointConfig;
 import de.fraunhofer.iosb.ilt.faaast.service.exception.ConfigurationException;
+import de.fraunhofer.iosb.ilt.faaast.service.exception.MessageBusException;
+import de.fraunhofer.iosb.ilt.faaast.service.model.exception.PersistenceException;
 import de.fraunhofer.iosb.ilt.faaast.service.persistence.memory.PersistenceInMemoryConfig;
 import de.fraunhofer.iosb.ilt.faaast.service.starter.util.ServiceConfigHelper;
 import org.eclipse.edc.spi.EdcException;
@@ -138,7 +140,7 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
         Service service;
         try {
             service = new Service(serviceConfig);
-        } catch (AssetConnectionException | ConfigurationException faaastServiceException) {
+        } catch (AssetConnectionException | ConfigurationException | PersistenceException | MessageBusException faaastServiceException) {
             throw new EdcException(GENERIC_EXCEPTION_MESSAGE, faaastServiceException);
         }
 

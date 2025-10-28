@@ -84,7 +84,7 @@ public class AasDataAddress extends DataAddress {
     public Map<String, String> getAdditionalHeaders() {
         return getProperties().entrySet().stream()
                 .filter(entry -> entry.getKey().startsWith(ADDITIONAL_HEADER))
-                .collect(toMap(entry -> entry.getKey().replace(ADDITIONAL_HEADER, ""), it -> (String) it.getValue()));
+                .collect(toMap(entry -> entry.getKey().replace(ADDITIONAL_HEADER, ""), it -> String.valueOf(it.getValue())));
     }
 
     /**
@@ -113,10 +113,10 @@ public class AasDataAddress extends DataAddress {
                 case SUBMODEL -> new String[]{ SUBMODELS_API_PATH, b64(value) };
                 case CONCEPT_DESCRIPTION -> new String[]{ CONCEPT_DESCRIPTIONS_API_PATH, b64(value) };
                 case SUBMODEL_ELEMENT, SUBMODEL_ELEMENT_COLLECTION, SUBMODEL_ELEMENT_LIST, PROPERTY,
-                        ANNOTATED_RELATIONSHIP_ELEMENT, RELATIONSHIP_ELEMENT, DATA_ELEMENT, MULTI_LANGUAGE_PROPERTY, RANGE, FILE, BLOB,
-                        REFERENCE_ELEMENT, CAPABILITY, ENTITY, EVENT_ELEMENT, BASIC_EVENT_ELEMENT, OPERATION ->
+                     ANNOTATED_RELATIONSHIP_ELEMENT, RELATIONSHIP_ELEMENT, DATA_ELEMENT, MULTI_LANGUAGE_PROPERTY, RANGE, FILE, BLOB,
+                     REFERENCE_ELEMENT, CAPABILITY, ENTITY, EVENT_ELEMENT, BASIC_EVENT_ELEMENT, OPERATION ->
                         new String[]{ urlBuilder.indexOf("/submodel-elements/") == -1 ? "/submodel-elements/".concat(value)
-                                    : ".".concat(value) };
+                                : ".".concat(value) };
                 default -> throw new EdcException(new IllegalStateException("Element type not recognized: %s".formatted(key)));
             };
 
@@ -169,6 +169,7 @@ public class AasDataAddress extends DataAddress {
         }
 
         @JsonCreator
+        @SuppressWarnings("unchecked")
         public static Builder newInstance() {
             return new Builder();
         }
@@ -223,7 +224,10 @@ public class AasDataAddress extends DataAddress {
         }
 
         public Builder copyFrom(DataAddress other) {
-            Optional.ofNullable(other).map(DataAddress::getProperties).orElse(emptyMap()).forEach(this::property);
+            Optional.ofNullable(other)
+                    .map(DataAddress::getProperties)
+                    .orElse(emptyMap())
+                    .forEach((k, v) -> this.property(k, String.valueOf(v)));
             return this;
         }
 

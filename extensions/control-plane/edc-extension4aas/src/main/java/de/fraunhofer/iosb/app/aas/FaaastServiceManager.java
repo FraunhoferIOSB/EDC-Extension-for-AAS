@@ -40,6 +40,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static de.fraunhofer.iosb.app.util.OperatingSystemUtil.getLocalhostAddress;
+import static org.eclipse.edc.util.io.Ports.getFreePort;
 
 /**
  * Manages internally created FA³ST instances.
@@ -57,6 +58,11 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
     public FaaastServiceManager(Monitor monitor) {
         this.monitor = monitor;
         faaastServiceRepository = new ConcurrentHashMap<>();
+    }
+
+    @Override
+    public URL startService(Path aasModelPath) throws IOException {
+        return startService(aasModelPath, getFreePort());
     }
 
     @Override
@@ -83,7 +89,7 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
                 .map(endpoint -> (HttpEndpointConfig) endpoint)
                 .toList();
 
-        if (httpEndpoints.stream().map(HttpEndpointConfig::getPort).noneMatch(p -> port == p || isValidPort(p) && available(p))) {
+        if (httpEndpoints.stream().map(HttpEndpointConfig::getPort).noneMatch(p -> port == p || available(p))) {
             throw new IllegalArgumentException(NO_ENDPOINT_DEFINED_EXCEPTION_MESSAGE);
         }
 
@@ -149,7 +155,7 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
                 new ServiceConfig() :
                 ServiceConfigHelper.load(configPath.toFile());
 
-        if (isValidPort(port) && available(port)) {
+        if (available(port)) {
             var endpoints = Optional.ofNullable(serviceConfig.getEndpoints()).orElse(new ArrayList<>());
 
             endpoints.add(HttpEndpointConfig.builder().port(port).build());
@@ -183,13 +189,8 @@ public class FaaastServiceManager implements AssetAdministrationShellServiceMana
         try (var datagramSocket = new DatagramSocket(port)) {
             datagramSocket.setReuseAddress(true);
             return true;
-        } catch (IOException ignored) {
+        } catch (IOException notAvailableException) {
             return false;
         }
     }
-
-    private boolean isValidPort(int port) {
-        return port < 65536 && port > 0;
-    }
-
 }

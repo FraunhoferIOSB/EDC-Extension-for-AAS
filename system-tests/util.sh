@@ -1,61 +1,104 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
+# Install exit traps -> kill processes to free network ports for the next test
+if [[ -z "${__UTIL_TRAPS_INSTALLED:-}" ]]; then
+  __UTIL_TRAPS_INSTALLED=1
+  declare -a __UTIL_LAUNCHED_PIDS=()
+
+  # Preserve original exit code; cleanup never makes the step fail
+  trap '__rc=$?; cleanup_all || true; exit $__rc' EXIT
+  trap 'cleanup_all || true; exit 130' INT
+  trap 'cleanup_all || true; exit 143' TERM
+fi
+
+track_launch() {
+  local pid="$1"
+  [[ "$pid" =~ ^[0-9]+$ ]] || return 0
+  __UTIL_LAUNCHED_PIDS+=("$pid")
+}
 
 start_runtime() {
   local project_name="$1"
-  local timeout_secs="${START_RUNTIME_TIMEOUT:-60}"
+  local timeout_secs="${START_RUNTIME_TIMEOUT:-120}"
 
-  # Resolve config and validate
-  local config_dir="${PWD}/samples/config"
-  local config_path="${config_dir}/${project_name}.properties"
+  local config_path="${PWD}/system-tests/config/${project_name}.properties"
 
   if [[ ! -f "$config_path" ]]; then
     echo "Config file not found: $config_path" >&2
-    return 1
+    exit 1
   fi
 
   local log_file="${project_name}.log"
 
-  # Start Gradle with env and capture PID
-  EDC_FS_CONFIG="$config_path" ./gradlew --no-daemon --console=plain "launchers:${project_name}:run" \
+  echo "Starting ${project_name}..." >&2
+  EDC_FS_CONFIG="$config_path" "${PWD}/gradlew" --no-daemon --console=plain "launchers:${project_name}:run" \
     > "$log_file" 2>&1 &
-  local gradle_pid=$!
-  export GRADLE_PID="$gradle_pid"
-  echo "$project_name PID: $GRADLE_PID" >&2
+  local pid=$!
 
-  # Wait for readiness; on timeout, kill the Gradle process (and its children)
   if timeout "${timeout_secs}s" bash -c \
-      'tail -n +1 -f "$1" | grep -m1 -qE "Runtime .* ready"' \
-      bash "$log_file"; then
-    echo "$gradle_pid"
+      'tail -n +1 -f "$1" | grep -m1 -qE "Runtime .* ready"' bash "$log_file"; then
+    track_launch "$pid"
+    return 0
   else
-    echo "Timed out waiting for runtime readiness (${timeout_secs}s). Killing PID $gradle_pid..." >&2
-    kill "$gradle_pid" 2>/dev/null || true
-    sleep 2
-    pkill -P "$gradle_pid" 2>/dev/null || true    # kill child processes
-    kill -9 "$gradle_pid" 2>/dev/null || true     # force kill if still alive
-    return 124
+    echo "Timed out waiting for runtime readiness (${timeout_secs}s). Killing PID $pid..." >&2
+    cat "$log_file" >&2
+    track_launch "$pid"
+    cleanup_pid "$pid" || true
+    exit 124
+  fi
+}
+
+cleanup_pid() {
+  local raw="$1"
+  [[ "$raw" =~ ^[0-9]+$ ]] || return 0
+  kill -TERM "$raw" 2>/dev/null || true
+  sleep 2
+  kill -KILL "$raw" 2>/dev/null || true
+}
+
+cleanup_all() {
+  echo "Cleaning up..."
+  for p in "${__UTIL_LAUNCHED_PIDS[@]}"; do
+    cleanup_pid "$p" || true
+  done
+}
+
+verify_request() {
+  local url="$1"
+  local resource_name="$2"
+  local method="${3:-POST}"
+  local body="${4:-}"
+
+  local log_file="${resource_name}_is.log"
+
+  local curl_args=(
+    --silent
+    --show-error
+    --output "$log_file"
+    --write-out '%{http_code}'
+    --request "$method"
+    --url "$url"
+    --header "x-api-key: password"
+  )
+
+  if [[ -n "$body" ]]; then
+    curl_args+=(--data "$body" --header "Content-Type: application/json")
   fi
 
-  # Return the PID
-  echo "$gradle_pid"
-}
+  http_code=$(curl "${curl_args[@]}")
 
+  if [[ "$http_code" != 2?? ]]; then
+    echo "$resource_name: $method request returned HTTP $http_code. Failing test and dumping actual response."
+    cat "$log_file" >&2
+    exit 1
+  fi
 
-# Extract a clean numeric PID (first number found), stripping CR/LF/whitespace
-get_pid() {
-  printf '%s' "$1" | tr -d '\r' | grep -oE '[0-9]+' | head -n1
-}
-
-safe_kill() {
-  local raw="$1"
-  local pid
-  pid="$(get_pid "$raw")"
-  [[ "$pid" =~ ^[0-9]+$ ]] || { echo "Skip invalid PID: '$raw'"; return 0; }
-
-  # Try killing process group (if you used setsid), then the PID itself
-  kill -TERM -- "-$pid" 2>/dev/null || true
-  kill -TERM "$pid" 2>/dev/null || true
-  sleep 2
-  kill -KILL -- "-$pid" 2>/dev/null || true
-  kill -KILL "$pid" 2>/dev/null || true
+if ! python3 'system-tests/json_subset.py' "system-tests/resources/${resource_name}.json" "${log_file}";
+  then
+      echo "$resource_name: Response JSON does not match expected. Failing test and dumping actual response."
+      jq < "$log_file" >&2
+      printf "\n"
+      exit 1
+  fi
+  echo "$resource_name matches expected."
 }

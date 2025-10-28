@@ -1,0 +1,8 @@
+{
+  "@context": {
+    "@vocab": "https://w3id.org/edc/v0.0.1/ns/",
+    "aas": "https://admin-shell.io/aas/3/0/"
+  },
+  "@type": "QuerySpec",
+  "limit": 31415926
+}

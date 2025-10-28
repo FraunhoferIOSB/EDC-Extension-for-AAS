@@ -75,6 +75,18 @@ public class AasController implements SelfDescriptionChangeListener {
     }
 
     /**
+     * Starts an AAS service internally
+     *
+     * @param model AAS Environment for the AAS service
+     * @return The URL of the new service or null on error
+     * @throws IOException If the URL creation fails
+     */
+    public URL startService(Path model) throws IOException {
+        Objects.requireNonNull(model);
+        return aasServiceManager.startService(model);
+    }
+
+    /**
      * Stops an AAS service given its URL if internally started
      *
      * @param aasServiceUrl URL of service to be stopped

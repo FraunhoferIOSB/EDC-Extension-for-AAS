@@ -59,8 +59,8 @@ public class SelfDescriptionSerializer {
 
     private static ObjectWriter createObjectWriter() {
         var objectMapper = new ObjectMapper();
-        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
+        objectMapper.setDefaultPropertyInclusion(JsonInclude.Include.NON_EMPTY);
+        objectMapper.setDefaultPropertyInclusion(JsonInclude.Include.NON_NULL);
 
         // Custom serialization rules
         //  var simpleModule = new SimpleModule();

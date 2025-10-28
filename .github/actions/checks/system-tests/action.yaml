@@ -25,12 +25,15 @@ runs:
       uses: actions/setup-python@v6
       with:
         python-version: '3.13'
-    - name: Clean possible debris
+    - name: Install system-test dependency
       shell: bash
-      run: ./gradlew clean
+      run: sudo apt-get update && sudo apt-get install -y gettext-base
     - name: Run data plane test
       shell: bash
       run: system-tests/aas-data-plane/test.sh
+    - name: Clean possible debris
+      shell: bash
+      run: ./gradlew clean
     - name: Run provider test
       shell: bash
       run: system-tests/provider/test.sh

@@ -40,38 +40,15 @@ offer_id=$(curl -sS\
 
 ################################ Step 6.2: Send offer (from consumer to provider) ################################
 
+export offer_id
+contract_request="$(envsubst < system-tests/resources/request_data/contract_request.json)"
 
 negotiation_id=$(curl -sS \
   --request POST \
   --url "$CONTRACT_NEGOTIATION_API" \
   --header "Content-Type: application/json" \
   --header "x-api-key: password" \
-  -d "{
-        \"@type\": \"ContractRequest\",
-        \"protocol\": \"dataspace-protocol-http\",
-        \"counterPartyAddress\": \"http://localhost:13340/dsp\",
-        \"policy\": {
-          \"@context\": \"http://www.w3.org/ns/odrl.jsonld\",
-          \"@type\": \"odrl:Offer\",
-          \"@id\": \"$offer_id\",
-          \"permission\": {
-            \"odrl:action\": {
-              \"@id\": \"odrl:use\"
-            }
-          },
-          \"prohibition\": [],
-          \"obligation\": [],
-          \"assigner\": \"provider\",
-          \"target\": \"-824113802\"
-        },
-        \"callbackAddresses\": [],
-        \"@context\": {
-          \"aas\": \"https://admin-shell.io/aas/3/0/\",
-          \"@vocab\": \"https://w3id.org/edc/v0.0.1/ns/\",
-          \"edc\": \"https://w3id.org/edc/v0.0.1/ns/\",
-          \"odrl\": \"http://www.w3.org/ns/odrl/2/\"
-        }
-      }"\
+  --data "$contract_request" \
   | jq -r '."@id"')
 
 ################################ Step 6.3: Wait for agreement (30 seconds, else FAIL - this should be enough in a local scenario) ################################

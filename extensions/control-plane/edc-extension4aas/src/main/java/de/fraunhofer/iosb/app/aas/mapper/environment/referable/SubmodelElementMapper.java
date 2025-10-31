@@ -16,7 +16,6 @@
 package de.fraunhofer.iosb.app.aas.mapper.environment.referable;
 
 import de.fraunhofer.iosb.aas.lib.model.AasProvider;
-import de.fraunhofer.iosb.constants.AasConstants;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.util.AasUtils;
 import org.eclipse.digitaltwin.aas4j.v3.model.Blob;
 import org.eclipse.digitaltwin.aas4j.v3.model.File;
@@ -27,8 +26,8 @@ import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElementList;
 import org.eclipse.digitaltwin.aas4j.v3.model.annotations.IRI;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 
-import java.util.Collection;
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.List;
 
 import static de.fraunhofer.iosb.constants.AasConstants.AAS_V30_NAMESPACE;
 
@@ -38,9 +37,20 @@ public class SubmodelElementMapper extends ReferableMapper {
     public static final String SMC_CHILDREN_LOCATION = "value";
     public static final String OPERATION = AAS_V30_NAMESPACE + "Operation";
 
-    /* May contain traces of recursion */
+
     public <E extends SubmodelElement> Asset map(Reference parent, E submodelElement, AasProvider provider) {
+        return map(parent, submodelElement, provider, false);
+    }
+
+    /* May contain traces of recursion */
+    private <E extends SubmodelElement> Asset map(Reference parent, E submodelElement, AasProvider provider, boolean indexed) {
         Reference reference = AasUtils.toReference(parent, submodelElement);
+
+        if (indexed) {
+            // This is an element of an SML, so it had no idShort
+            submodelElement.setIdShort(null);
+        }
+
         var dataAddress = createDataAddress(provider, reference);
 
         Asset.Builder assetBuilder = super.map(submodelElement)
@@ -53,12 +63,24 @@ public class SubmodelElementMapper extends ReferableMapper {
             assetBuilder.property(AAS_V30_NAMESPACE.concat("modelingType"), modelingType[0]);
         }
 
-        var children = getChildElements(submodelElement).stream()
-                .map(elem -> map(reference, elem, provider))
-                .toList();
+        List<SubmodelElement> children = getChildElements(submodelElement);
 
-        if (!children.isEmpty()) {
-            assetBuilder.property(SMC_CHILDREN_LOCATION, children);
+        if (children != null && !children.isEmpty()) {
+            List<Asset> mappedChildren = new ArrayList<>(children.size());
+
+            for (int i = 0; i < children.size(); i++) {
+                SubmodelElement child = children.get(i);
+
+                // AASd-120
+                if (child.getIdShort() == null && submodelElement instanceof SubmodelElementList) {
+                    child.setIdShort(String.valueOf(i));
+                    mappedChildren.add(map(reference, child, provider, true));
+                } else {
+                    mappedChildren.add(map(reference, child, provider, false));
+                }
+            }
+
+            assetBuilder.property(SMC_CHILDREN_LOCATION, mappedChildren);
         }
 
         // TODO decide if these are advertised in catalog/self-description
@@ -80,13 +102,14 @@ public class SubmodelElementMapper extends ReferableMapper {
                 .build();
     }
 
-    private <T extends SubmodelElement> Collection<SubmodelElement> getChildElements(T submodelElement) {
+
+    private <T extends SubmodelElement> List<SubmodelElement> getChildElements(T submodelElement) {
         if (submodelElement instanceof SubmodelElementCollection collection) {
             return collection.getValue();
         } else if (submodelElement instanceof SubmodelElementList list) {
             return list.getValue();
-        } else { // Can not have any child elements...
-            return Collections.emptyList();
+        } else { // Can't have any child elements...
+            return null;
         }
     }
 }

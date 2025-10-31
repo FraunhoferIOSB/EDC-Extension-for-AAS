@@ -20,27 +20,32 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import de.fraunhofer.iosb.ilt.faaast.service.util.ReferenceHelper;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.DeserializationException;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.SerializationException;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.json.JsonDeserializer;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.json.JsonSerializer;
+import org.eclipse.digitaltwin.aas4j.v3.model.Key;
+import org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
+import org.eclipse.digitaltwin.aas4j.v3.model.ReferenceTypes;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultReference;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 
 import static de.fraunhofer.iosb.constants.AasConstants.AAS_V30_NAMESPACE;
-import static de.fraunhofer.iosb.constants.AasConstants.CONCEPT_DESCRIPTIONS_API_PATH;
-import static de.fraunhofer.iosb.constants.AasConstants.SHELLS_API_PATH;
-import static de.fraunhofer.iosb.constants.AasConstants.SUBMODELS_API_PATH;
 import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toMap;
+import static org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes.ASSET_ADMINISTRATION_SHELL;
+import static org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes.CONCEPT_DESCRIPTION;
+import static org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes.SUBMODEL;
 import static org.eclipse.edc.dataaddress.httpdata.spi.HttpDataAddressSchema.BASE_URL;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
@@ -64,10 +69,40 @@ public class AasDataAddress extends DataAddress {
 
     private static final JsonSerializer JSON_SERIALIZER = new JsonSerializer();
     private static final JsonDeserializer JSON_DESERIALIZER = new JsonDeserializer();
+    private static final List<KeyTypes> IDENTIFIABLE_KEY_TYPES = List.of(ASSET_ADMINISTRATION_SHELL, SUBMODEL, CONCEPT_DESCRIPTION);
 
     private AasDataAddress() {
         super();
         this.setType(AAS_DATA_TYPE);
+    }
+
+    private static boolean validate(Reference reference) {
+        if (reference == null || reference.getKeys() == null ||
+                ReferenceTypes.EXTERNAL_REFERENCE == reference.getType() || reference.getKeys().isEmpty()) {
+            return false;
+        }
+
+        Key root = ReferenceHelper.getRoot(reference);
+        if (!IDENTIFIABLE_KEY_TYPES.contains(root.getType())) {
+            return false;
+        }
+
+
+        if (reference.getKeys().size() == 1) {
+            return reference.getKeys().get(0).getValue() != null;
+        }
+
+        for (Key key : reference.getKeys().subList(1, reference.getKeys().size())) {
+            if (IDENTIFIABLE_KEY_TYPES.contains(key.getType())) {
+                return false;
+            }
+
+            if (key.getType() == null || key.getValue() == null) {
+                return false;
+            }
+        }
+        return true;
+
     }
 
     @JsonIgnore
@@ -101,35 +136,36 @@ public class AasDataAddress extends DataAddress {
      *         in this DataAddress (no leading '/').
      */
     public String getPath() {
-        return getStringProperty(PATH, referenceChainAsPath());
-    }
-
-    private String referenceChainAsPath() {
-        StringBuilder urlBuilder = new StringBuilder();
-        for (var key : getReferenceChain().getKeys()) {
-            var value = key.getValue();
-            String[] toAppend = switch (key.getType()) {
-                case ASSET_ADMINISTRATION_SHELL -> new String[]{ SHELLS_API_PATH, b64(value) };
-                case SUBMODEL -> new String[]{ SUBMODELS_API_PATH, b64(value) };
-                case CONCEPT_DESCRIPTION -> new String[]{ CONCEPT_DESCRIPTIONS_API_PATH, b64(value) };
-                case SUBMODEL_ELEMENT, SUBMODEL_ELEMENT_COLLECTION, SUBMODEL_ELEMENT_LIST, PROPERTY,
-                     ANNOTATED_RELATIONSHIP_ELEMENT, RELATIONSHIP_ELEMENT, DATA_ELEMENT, MULTI_LANGUAGE_PROPERTY, RANGE, FILE, BLOB,
-                     REFERENCE_ELEMENT, CAPABILITY, ENTITY, EVENT_ELEMENT, BASIC_EVENT_ELEMENT, OPERATION ->
-                        new String[]{ urlBuilder.indexOf("/submodel-elements/") == -1 ? "/submodel-elements/".concat(value)
-                                : ".".concat(value) };
-                default -> throw new EdcException(new IllegalStateException("Element type not recognized: %s".formatted(key)));
-            };
-
-            urlBuilder.append(String.join("/", toAppend));
+        // Explicitly stored path takes precedence
+        String explicitlyStoredPath = getStringProperty(PATH);
+        if (explicitlyStoredPath != null) {
+            return explicitlyStoredPath;
         }
 
-        return urlBuilder.toString();
-    }
 
-    /* Return base64 encoded String version of input */
-    private String b64(String toBeEncoded) {
-        Objects.requireNonNull(toBeEncoded, "toBeEncoded must not be null");
-        return Base64.getEncoder().encodeToString(toBeEncoded.getBytes());
+        Reference reference = this.getReferenceChain();
+
+        if (!validate(reference)) {
+            throw new IllegalStateException(String.format("Malformed reference in AasDataAddress: %s", reference));
+        }
+
+        Key root = ReferenceHelper.getRoot(reference);
+
+        String path = switch (root.getType()) {
+            case SUBMODEL -> "submodels/";
+            case ASSET_ADMINISTRATION_SHELL -> "shells/";
+            case CONCEPT_DESCRIPTION -> "concept-descriptions/";
+            default -> throw new IllegalStateException(String.format("Malformed reference in AasDataAddress: %s", reference));
+        };
+
+        path = path.concat(Base64.getEncoder().encodeToString(root.getValue().getBytes(StandardCharsets.UTF_8)));
+
+        if (reference.getKeys().size() > 1) {
+            path = path.concat("/submodel-elements/")
+                    .concat(ReferenceHelper.toPath(reference));
+        }
+
+        return path;
     }
 
     public Reference getReferenceChain() {
@@ -214,7 +250,17 @@ public class AasDataAddress extends DataAddress {
             return this;
         }
 
+        /**
+         * As we only store the reference for this element and do not know the information of the parent element, the "value" of each key cannot be
+         * null. In case no idShort exists, the value must be the list indexer.
+         *
+         * @param referenceChain The reference pointing to the specific AAS element.
+         * @return the builder
+         */
         public Builder referenceChain(Reference referenceChain) {
+            if (!validate(referenceChain)) {
+                throw new IllegalArgumentException("AasDataAddress.Builder received malformed reference");
+            }
             try {
                 this.property(REFERENCE_CHAIN, JSON_SERIALIZER.write(referenceChain));
             } catch (SerializationException e) {

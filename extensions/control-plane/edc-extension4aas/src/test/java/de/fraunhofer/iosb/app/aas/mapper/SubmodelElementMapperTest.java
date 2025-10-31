@@ -18,23 +18,43 @@ package de.fraunhofer.iosb.app.aas.mapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import de.fraunhofer.iosb.aas.lib.model.impl.Service;
 import de.fraunhofer.iosb.app.aas.mapper.environment.referable.SubmodelElementMapper;
+import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
 import org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes;
 import org.eclipse.digitaltwin.aas4j.v3.model.OperationVariable;
+import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
+import org.eclipse.digitaltwin.aas4j.v3.model.ReferenceTypes;
+import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElement;
+import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElementList;
+import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultBlob;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultKey;
+import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultLangStringTextType;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultOperation;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultOperationVariable;
+import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultProperty;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultReference;
+import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultSubmodelElementCollection;
+import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultSubmodelElementList;
+import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.List;
+import java.util.UUID;
 
+import static de.fraunhofer.iosb.app.aas.mapper.environment.referable.SubmodelElementMapper.SMC_CHILDREN_LOCATION;
 import static de.fraunhofer.iosb.app.testutils.AasCreator.getProperty;
+import static de.fraunhofer.iosb.constants.AasConstants.AAS_PREFIX;
 import static de.fraunhofer.iosb.constants.AasConstants.AAS_V30_NAMESPACE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SubmodelElementMapperTest {
 
@@ -87,6 +107,91 @@ class SubmodelElementMapperTest {
         assertEquals(mockInoutputVariables, resultAsset.getProperty(AAS_V30_NAMESPACE + "Operation/" + "inoutputVariables"));
         assertEquals(mockOutputVariables, resultAsset.getProperty(AAS_V30_NAMESPACE + "Operation/" + "outputVariables"));
     }
+
+    @Test
+    void map_submodelElementList_elementsWithoutIdShort() {
+        Service mockService = mockService();
+
+        String parentSubmodelId = UUID.randomUUID().toString();
+
+        Reference parentReference =
+                new DefaultReference.Builder()
+                        .type(ReferenceTypes.MODEL_REFERENCE)
+                        .keys(new DefaultKey.Builder()
+                                .type(KeyTypes.SUBMODEL)
+                                .value(parentSubmodelId)
+                                .build())
+                        .build();
+
+        List<SubmodelElement> listElements = List.of(
+                new DefaultProperty.Builder().value("17")
+                        .semanticId(new DefaultReference.Builder()
+                                .type(ReferenceTypes.EXTERNAL_REFERENCE)
+                                .keys(new DefaultKey.Builder()
+                                        .type(KeyTypes.GLOBAL_REFERENCE)
+                                        .value("http://my-external-ref.com/ref.xml")
+                                        .build())
+                                .build())
+                        .build(),
+                new DefaultSubmodelElementList.Builder().description(new DefaultLangStringTextType.Builder().text("Test Description").build()).build(),
+                new DefaultSubmodelElementCollection.Builder().description(new DefaultLangStringTextType.Builder().text("Test Description").build()).build(),
+                new DefaultBlob.Builder().contentType("application/xml").build()
+        );
+
+        String listIdShort = "test-id-short";
+        SubmodelElementList submodelElementList = new DefaultSubmodelElementList.Builder().idShort(listIdShort).value(listElements).build();
+
+        Asset mapped = testSubject.map(parentReference, submodelElementList, mockService);
+
+        assertNotNull(mapped);
+        assertNotNull(mapped.getProperties());
+        assertNotNull(mapped.getProperty(SMC_CHILDREN_LOCATION));
+        assertInstanceOf(List.class, mapped.getProperty(SMC_CHILDREN_LOCATION));
+        assertFalse(((List<?>) mapped.getProperty(SMC_CHILDREN_LOCATION)).isEmpty());
+        assertInstanceOf(Asset.class, ((List<?>) mapped.getProperty(SMC_CHILDREN_LOCATION)).get(0));
+
+        List<Asset> mappedChildren = (List<Asset>) mapped.getProperty(SMC_CHILDREN_LOCATION);
+
+        assertEquals(listElements.size(), mappedChildren.size());
+
+        // Elements that have no idShort should not get one after mapping
+        assertTrue(mappedChildren.stream().allMatch(elem -> elem.getProperty("idShort") == null));
+
+        String listAccessorPathTemplate = "submodels/"
+                .concat(Base64.getEncoder().encodeToString(parentSubmodelId.getBytes(StandardCharsets.UTF_8)))
+                .concat("/submodel-elements/")
+                .concat(listIdShort)
+                .concat("[%s]");
+
+        Asset mappedProperty = mappedChildren.get(0);
+        assertEquals(AAS_PREFIX.concat(":").concat("Property"), mappedProperty.getProperty(AAS_V30_NAMESPACE.concat("modelingType")));
+        assertInstanceOf(AasDataAddress.class, mappedProperty.getDataAddress());
+        assertEquals(mockService.baseUrl().toString(), ((AasDataAddress) mappedProperty.getDataAddress()).getBaseUrl());
+        assertEquals(String.format(listAccessorPathTemplate, "0"), ((AasDataAddress) mappedProperty.getDataAddress()).getPath());
+
+
+        Asset mappedList = mappedChildren.get(1);
+        assertEquals(AAS_PREFIX.concat(":").concat("SubmodelElementList"), mappedList.getProperty(AAS_V30_NAMESPACE.concat("modelingType")));
+        assertInstanceOf(AasDataAddress.class, mappedList.getDataAddress());
+        assertEquals(mockService.baseUrl().toString(), ((AasDataAddress) mappedList.getDataAddress()).getBaseUrl());
+        assertEquals(String.format(listAccessorPathTemplate, "1"), ((AasDataAddress) mappedList.getDataAddress()).getPath());
+
+
+        Asset mappedCollection = mappedChildren.get(2);
+        assertEquals(AAS_PREFIX.concat(":").concat("SubmodelElementCollection"),
+                mappedCollection.getProperty(AAS_V30_NAMESPACE.concat("modelingType")));
+        assertInstanceOf(AasDataAddress.class, mappedCollection.getDataAddress());
+        assertEquals(mockService.baseUrl().toString(), ((AasDataAddress) mappedCollection.getDataAddress()).getBaseUrl());
+        assertEquals(String.format(listAccessorPathTemplate, "2"), ((AasDataAddress) mappedCollection.getDataAddress()).getPath());
+
+
+        Asset mappedBlob = mappedChildren.get(3);
+        assertEquals(AAS_PREFIX.concat(":").concat("Blob"), mappedBlob.getProperty(AAS_V30_NAMESPACE.concat("modelingType")));
+        assertInstanceOf(AasDataAddress.class, mappedBlob.getDataAddress());
+        assertEquals(mockService.baseUrl().toString(), ((AasDataAddress) mappedBlob.getDataAddress()).getBaseUrl());
+        assertEquals(String.format(listAccessorPathTemplate, "3"), ((AasDataAddress) mappedBlob.getDataAddress()).getPath());
+    }
+
 
     private Service mockService() {
         try {

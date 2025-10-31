@@ -68,7 +68,7 @@ class SubmodelElementMapperTest {
 
     @Disabled("TODO decide if operation variables are advertised (see SubmodelElementMapper.java")
     @Test
-    void test_map_operation() throws JsonProcessingException {
+    void test_map_operation() {
         var mockParent = new DefaultReference.Builder()
                 .keys(new DefaultKey.Builder()
                         .type(KeyTypes.SUBMODEL)

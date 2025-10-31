@@ -3,6 +3,7 @@ package de.fraunhofer.iosb.dataplane.aas.spi;
 
 import org.eclipse.digitaltwin.aas4j.v3.model.Key;
 import org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes;
+import org.eclipse.digitaltwin.aas4j.v3.model.ReferenceTypes;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultKey;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultReference;
 import org.junit.jupiter.api.Test;
@@ -11,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -49,7 +51,15 @@ class AasDataAddressTest {
         String smIdShort = "sm";
 
         var keys = new ArrayList<Key>();
-        String path = "/submodel-elements/";
+        String path = "submodels/";
+
+        String smId = UUID.randomUUID().toString();
+        keys.add(getKey(KeyTypes.SUBMODEL, smId));
+
+        path = path.concat(Base64.getEncoder().encodeToString(smId.getBytes(StandardCharsets.UTF_8)));
+
+
+        path = path.concat("/submodel-elements/");
         for (int i = 0; i < 100; i++) {
             keys.add(getKey(KeyTypes.SUBMODEL_ELEMENT_COLLECTION, "smc%s".formatted(i)));
             path = path.concat("smc%s.".formatted(i));
@@ -59,6 +69,7 @@ class AasDataAddressTest {
         path = path.concat("sme");
 
         var referenceChain = new DefaultReference.Builder()
+                .type(ReferenceTypes.MODEL_REFERENCE)
                 .keys(keys)
                 .build();
 

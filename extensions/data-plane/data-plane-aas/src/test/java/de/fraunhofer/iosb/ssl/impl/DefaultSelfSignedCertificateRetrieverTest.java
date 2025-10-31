@@ -30,7 +30,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.fail;
 
 class DefaultSelfSignedCertificateRetrieverTest {
+    private static final String VALID = "https://google.com";
+    private static final String EXPIRED = "https://expired.badssl.com";
+    private static final String WRONG_HOST = "https://wrong.host.badssl.com";
     static int httpsPort = getFreePort();
+    private static final String LOCALHOST_URL = String.format("https://localhost:%d", httpsPort);
     @RegisterExtension
     static WireMockExtension wireMockExtension =
             WireMockExtension.extensionOptions()
@@ -41,12 +45,6 @@ class DefaultSelfSignedCertificateRetrieverTest {
                             .keystorePassword("changeit")
                             .keyManagerPassword("changeit"))
                     .build();
-
-    private static final String LOCALHOST_URL = String.format("https://localhost:%d", httpsPort);
-
-    private static final String VALID = "https://google.com";
-    private static final String EXPIRED = "https://expired.badssl.com";
-    private static final String WRONG_HOST = "https://wrong.host.badssl.com";
 
     @Test
     void getSelfSignedCertificate() {

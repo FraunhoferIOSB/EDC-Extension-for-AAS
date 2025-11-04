@@ -24,8 +24,8 @@ import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,11 +42,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class SynchronizerTest {
 
-    private final URL accessUrl = new URL("https://localhost:%s".formatted(getFreePort()));
+    private final URI accessUri = new URI("https://localhost:%s".formatted(getFreePort()));
 
     private Synchronizer testSubject;
 
-    public SynchronizerTest() throws MalformedURLException {
+    public SynchronizerTest() throws URISyntaxException {
     }
 
     @BeforeEach
@@ -72,9 +72,9 @@ public class SynchronizerTest {
         var oldEnvironment = getEmptyEnvironment();
         var newEnvironment = getEnvironment();
 
-        var oldEnvironmentAsset = new EnvironmentToAssetMapper().executeSingle(new Service.Builder().withUrl(accessUrl).build(),
+        var oldEnvironmentAsset = new EnvironmentToAssetMapper().executeSingle(new Service.Builder().withUri(accessUri).build(),
                 oldEnvironment);
-        var newEnvironmentAsset = new EnvironmentToAssetMapper().executeSingle(new Service.Builder().withUrl(accessUrl).build(),
+        var newEnvironmentAsset = new EnvironmentToAssetMapper().executeSingle(new Service.Builder().withUri(accessUri).build(),
                 newEnvironment);
 
         var pair = new Pair<>(oldEnvironmentAsset.getContent().getEnvironment(),
@@ -108,9 +108,9 @@ public class SynchronizerTest {
                 .conceptDescriptions(oldEnvironment.getConceptDescriptions())
                 .build();
 
-        var oldEnvironmentAsset = new EnvironmentToAssetMapper().executeSingle(new Service.Builder().withUrl(accessUrl).build(),
+        var oldEnvironmentAsset = new EnvironmentToAssetMapper().executeSingle(new Service.Builder().withUri(accessUri).build(),
                 oldEnvironment);
-        var newEnvironmentAsset = new EnvironmentToAssetMapper().executeSingle(new Service.Builder().withUrl(accessUrl).build(),
+        var newEnvironmentAsset = new EnvironmentToAssetMapper().executeSingle(new Service.Builder().withUri(accessUri).build(),
                 newEnvironment);
 
         var pair = new Pair<>(oldEnvironmentAsset.getContent().getEnvironment(),

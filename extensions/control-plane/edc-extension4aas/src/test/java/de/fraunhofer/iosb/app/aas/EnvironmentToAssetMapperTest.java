@@ -30,8 +30,8 @@ import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Base64;
 import java.util.Collection;
 import java.util.HashMap;
@@ -56,12 +56,12 @@ class EnvironmentToAssetMapperTest {
     public static final String CONCEPT_DESCRIPTIONS = "conceptDescriptions";
     public static final String SHELLS = "shells";
     public static final String SUBMODELS = "submodels";
-    private final URL accessUrl = new URL("http://localhost:%s".formatted(getFreePort()));
+    private final URI accessUri = new URI("http://localhost:%s".formatted(getFreePort()));
     private final List<Object> emptyList = List.of();
     private EnvironmentToAssetMapper testSubject;
     // Change for test case if needed
 
-    EnvironmentToAssetMapperTest() throws MalformedURLException {
+    EnvironmentToAssetMapperTest() throws URISyntaxException {
     }
 
     private static void useAasDataPlane(boolean useAasDataPlane) {
@@ -82,13 +82,13 @@ class EnvironmentToAssetMapperTest {
     }
 
     @Test
-    void testApplyNullEnvironment() throws MalformedURLException {
+    void testApplyNullEnvironment() throws URISyntaxException {
         var environment = getEnvironment();
-        var realEnvironmentAccessUrl = new URL("https://example.com");
+        var realEnvironmentAccessUri = new URI("https://example.com");
 
         var input = new HashMap<Service, Environment>();
-        input.put(new Service.Builder().withUrl(realEnvironmentAccessUrl).build(), environment);
-        input.put(new Service.Builder().withUrl(accessUrl).build(), null);
+        input.put(new Service.Builder().withUri(realEnvironmentAccessUri).build(), environment);
+        input.put(new Service.Builder().withUri(accessUri).build(), null);
 
         var result = testSubject.apply(input);
 
@@ -96,23 +96,23 @@ class EnvironmentToAssetMapperTest {
         assertTrue(result.failed());
         assertEquals(PipelineFailure.Type.WARNING, result.getFailure().getFailureType());
         assertNotNull(result.getContent().stream()
-                .filter(service -> service.baseUrl().toString()
-                        .equals(realEnvironmentAccessUrl.toString())).findFirst().orElseThrow().getEnvironment());
+                .filter(service -> service.baseUri().toString()
+                        .equals(realEnvironmentAccessUri.toString())).findFirst().orElseThrow().getEnvironment());
 
         assertNull(result.getContent().stream()
-                .filter(service -> service.baseUrl().toString().equals(accessUrl.toString()))
-                .findFirst().orElse(new Service.Builder().withUrl(new URL("http://localhost")).build())
+                .filter(service -> service.baseUri().toString().equals(accessUri.toString()))
+                .findFirst().orElse(new Service.Builder().withUri(new URI("http://localhost")).build())
                 .getEnvironment());
     }
 
     @Test
-    void testApplyFaultyInput() throws MalformedURLException {
+    void testApplyFaultyInput() throws URISyntaxException {
         var environment = getEnvironment();
         var emptyEnvironment = getEmptyEnvironment();
 
-        var input = new HashMap<>(Map.of(new Service.Builder().withUrl(accessUrl).build(), environment,
-                new Service.Builder().withUrl(new URL("http://localhost:8080")).build(), emptyEnvironment));
-        input.put(new Service.Builder().withUrl(accessUrl).build(), null);
+        var input = new HashMap<>(Map.of(new Service.Builder().withUri(accessUri).build(), environment,
+                new Service.Builder().withUri(new URI("http://localhost:8080")).build(), emptyEnvironment));
+        input.put(new Service.Builder().withUri(accessUri).build(), null);
         input.put(null, environment);
 
         var result = testSubject.apply(input);
@@ -126,13 +126,13 @@ class EnvironmentToAssetMapperTest {
     @Test
     void testApply() {
         var env = getEnvironment();
-        var result = testSubject.apply(Map.of(new Service.Builder().withUrl(accessUrl).build(), env));
+        var result = testSubject.apply(Map.of(new Service.Builder().withUri(accessUri).build(), env));
         assertTrue(result.succeeded());
         assertNotNull(result.getContent());
         var envAsset = result.getContent().stream()
                 .filter(service -> service
-                        .baseUrl().toString()
-                        .equals(accessUrl.toString()))
+                        .baseUri().toString()
+                        .equals(accessUri.toString()))
                 .map(Service::getEnvironment)
                 .findFirst()
                 .orElseThrow();
@@ -148,7 +148,7 @@ class EnvironmentToAssetMapperTest {
     }
 
     @Test
-    void testNullAccessUrl() {
+    void testNullaccessUri() {
         // This can happen since map implementations can have null keys
         var res = testSubject.executeSingle(null, new DefaultEnvironment());
         assertTrue(res.failed());
@@ -156,7 +156,7 @@ class EnvironmentToAssetMapperTest {
 
     @Test
     void testNullEnvironment() {
-        var res = testSubject.executeSingle(new Service.Builder().withUrl(accessUrl).build(), null);
+        var res = testSubject.executeSingle(new Service.Builder().withUri(accessUri).build(), null);
         assertTrue(res.failed());
     }
 
@@ -168,7 +168,7 @@ class EnvironmentToAssetMapperTest {
 
     @Test
     void testEmptyEnvironment() {
-        var result = testSubject.executeSingle(new Service.Builder().withUrl(accessUrl).build(), new DefaultEnvironment()).getContent();
+        var result = testSubject.executeSingle(new Service.Builder().withUri(accessUri).build(), new DefaultEnvironment()).getContent();
 
         assertEquals(emptyList, result.getEnvironment().getProperty(SUBMODELS));
         assertEquals(emptyList, result.getEnvironment().getProperty(SHELLS));
@@ -181,7 +181,7 @@ class EnvironmentToAssetMapperTest {
 
         var env = getEnvironment();
 
-        var result = testSubject.executeSingle(new Service.Builder().withUrl(accessUrl).build(), env).getContent();
+        var result = testSubject.executeSingle(new Service.Builder().withUri(accessUri).build(), env).getContent();
 
         assertEquals(env.getSubmodels().size(), getChildren(result.getEnvironment(), SUBMODELS).size());
         assertEquals(emptyList, result.getEnvironment().getProperty(SHELLS));
@@ -192,7 +192,7 @@ class EnvironmentToAssetMapperTest {
     void testWholeEnvironmentIdEquality() {
         var env = getEnvironment();
 
-        var result = testSubject.executeSingle(new Service.Builder().withUrl(accessUrl).build(), env);
+        var result = testSubject.executeSingle(new Service.Builder().withUri(accessUri).build(), env);
 
         assertTrue(result.succeeded());
 
@@ -206,11 +206,11 @@ class EnvironmentToAssetMapperTest {
     }
 
     @Test
-    void testCorrectAccessUrlsHttpDataAddress() {
+    void testCorrectaccessUrisHttpDataAddress() {
         useAasDataPlane(false);
 
         var env = getEnvironment();
-        var result = testSubject.executeSingle(new Service.Builder().withUrl(accessUrl).build(), env).getContent();
+        var result = testSubject.executeSingle(new Service.Builder().withUri(accessUri).build(), env).getContent();
         var shellDataAddress =
                 (HttpDataAddress) getChildren(result.getEnvironment(), SHELLS).stream().map(Asset::getDataAddress).toList().get(0);
         var submodelDataAddress =
@@ -226,28 +226,28 @@ class EnvironmentToAssetMapperTest {
                         .filter(HttpDataAddress.class::isInstance)
                         .findAny().orElseThrow();
 
-        assertTrue(shellDataAddress.getBaseUrl().startsWith(accessUrl.toString()));
+        assertTrue(shellDataAddress.getBaseUrl().startsWith(accessUri.toString()));
         assertEquals("%s/%s".formatted(SHELLS,
                         Base64.getEncoder().encodeToString(env.getAssetAdministrationShells().get(0).getId().getBytes())),
                 shellDataAddress.getPath());
 
-        assertTrue(submodelDataAddress.getBaseUrl().startsWith(accessUrl.toString()));
+        assertTrue(submodelDataAddress.getBaseUrl().startsWith(accessUri.toString()));
         assertEquals("%s/%s".formatted(SUBMODELS,
                         Base64.getEncoder().encodeToString(env.getSubmodels().get(0).getId().getBytes())),
                 submodelDataAddress.getPath());
 
-        assertTrue(submodelElementDataAddress.getBaseUrl().startsWith(accessUrl.toString()));
+        assertTrue(submodelElementDataAddress.getBaseUrl().startsWith(accessUri.toString()));
 
-        assertTrue(conceptDescriptionDataAddress.getBaseUrl().startsWith(accessUrl.toString()));
+        assertTrue(conceptDescriptionDataAddress.getBaseUrl().startsWith(accessUri.toString()));
         assertEquals("concept-descriptions/%s".formatted(Base64.getEncoder().encodeToString(env.getConceptDescriptions().get(0).getId().getBytes())), conceptDescriptionDataAddress.getPath());
     }
 
     @Test
-    void testCorrectAccessUrlsAasDataAddress() {
+    void testCorrectaccessUrisAasDataAddress() {
         useAasDataPlane(true);
 
         var env = getEnvironment();
-        var result = testSubject.executeSingle(new Service.Builder().withUrl(accessUrl).build(), env).getContent();
+        var result = testSubject.executeSingle(new Service.Builder().withUri(accessUri).build(), env).getContent();
         var shellDataAddress =
                 (AasDataAddress) getChildren(result.getEnvironment(), SHELLS).stream().map(Asset::getDataAddress).toList().get(0);
         var submodelDataAddress =
@@ -255,15 +255,15 @@ class EnvironmentToAssetMapperTest {
         var conceptDescriptionDataAddress =
                 (AasDataAddress) getChildren(result.getEnvironment(), CONCEPT_DESCRIPTIONS).stream().map(Asset::getDataAddress).toList().get(0);
 
-        assertTrue(shellDataAddress.getBaseUrl().startsWith(accessUrl.toString()));
+        assertTrue(shellDataAddress.getBaseUrl().startsWith(accessUri.toString()));
         assertEquals("%s/%s".formatted(SHELLS,
                         Base64.getEncoder().encodeToString(env.getAssetAdministrationShells().get(0).getId().getBytes())),
                 shellDataAddress.getPath());
-        assertTrue(submodelDataAddress.getBaseUrl().startsWith(accessUrl.toString()));
+        assertTrue(submodelDataAddress.getBaseUrl().startsWith(accessUri.toString()));
         assertEquals("%s/%s".formatted(SUBMODELS,
                         Base64.getEncoder().encodeToString(env.getSubmodels().get(0).getId().getBytes())),
                 submodelDataAddress.getPath());
-        assertTrue(conceptDescriptionDataAddress.getBaseUrl().startsWith(accessUrl.toString()));
+        assertTrue(conceptDescriptionDataAddress.getBaseUrl().startsWith(accessUri.toString()));
         assertEquals("concept-descriptions/%s".formatted(Base64.getEncoder().encodeToString(env.getConceptDescriptions().get(0).getId().getBytes())), conceptDescriptionDataAddress.getPath());
     }
 

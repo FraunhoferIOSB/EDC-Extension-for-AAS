@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.app.util;
+package de.fraunhofer.iosb.aas.lib.util;
 
 import de.fraunhofer.iosb.aas.lib.model.AasProvider;
 import org.eclipse.edc.spi.result.Result;
@@ -21,7 +21,7 @@ import org.eclipse.edc.spi.result.Result;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.Socket;
-import java.net.URL;
+import java.net.URI;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -58,12 +58,11 @@ public class InetTools {
     /**
      * <a href="https://stackoverflow.com/questions/3584210/preferred-java-way-to-ping-an-http-url-for-availability">...</a>
      *
-     * @param host    Host
-     * @param port    Port
-     * @param timeout Timeout
+     * @param host Host
+     * @param port Port
      * @return True if host is reachable under given port within timeout seconds.
      */
-    public static boolean pingHost(String host, int port, int timeout) {
+    public static boolean pingHost(String host, int port) {
         try (Socket socket = new Socket(host, port)) {
             return true;
         } catch (IOException e) {
@@ -71,10 +70,10 @@ public class InetTools {
         }
     }
 
-    private static boolean checkUrlAvailability(URL toCheck) {
+    private static boolean checkUrlAvailability(URI toCheck) {
         try {
             // Open basic http connection with "GET" method and check if IOException occurs
-            HttpURLConnection connection = (HttpURLConnection) toCheck.openConnection();
+            HttpURLConnection connection = (HttpURLConnection) toCheck.toURL().openConnection();
             connection.setRequestMethod("GET");
             connection.setConnectTimeout(7000);
             connection.setReadTimeout(7000);
@@ -87,25 +86,25 @@ public class InetTools {
 
 
     public static boolean pingHost(AasProvider provider) {
-        var host = provider.baseUrl().getHost();
-        var port = provider.baseUrl().getPort();
+        var host = provider.baseUri().getHost();
+        var port = provider.baseUri().getPort();
         // If no port available, port should be 443 or 80
         if (port == -1) {
             // Iff http:// go with port 80
             port = host.startsWith("http:") ? 80 : 443;
         }
 
-        return pingHost(host, port, 10) || checkUrlAvailability(provider.baseUrl());
+        return pingHost(host, port, 10) || checkUrlAvailability(provider.baseUri());
     }
 
 
-    public static boolean isConnectionTrusted(URL url) {
+    public static boolean isConnectionTrusted(URI uri) {
         HttpsURLConnection.setDefaultSSLSocketFactory((SSLSocketFactory) SSLSocketFactory.getDefault());
 
         try {
-            var conn = url.openConnection();
+            var conn = uri.toURL().openConnection();
             if (conn instanceof HttpsURLConnection) {
-                conn = url.openConnection();
+                conn = uri.toURL().openConnection();
                 conn.connect();
                 // Connection with standard java library succeeded
                 // -> according to this system, the server has a trusted certificate
@@ -121,7 +120,7 @@ public class InetTools {
     }
 
 
-    public static Result<Certificate[]> getSelfSignedCertificate(URL url) {
+    public static Result<Certificate[]> getSelfSignedCertificate(URI uri) {
         SSLContext sslContext;
 
         try {
@@ -135,7 +134,7 @@ public class InetTools {
         HttpsURLConnection conn;
 
         try {
-            conn = (HttpsURLConnection) url.openConnection();
+            conn = (HttpsURLConnection) uri.toURL().openConnection();
             conn.connect();
         } catch (IOException e) {
             return Result.failure(List.of(e.getMessage()));

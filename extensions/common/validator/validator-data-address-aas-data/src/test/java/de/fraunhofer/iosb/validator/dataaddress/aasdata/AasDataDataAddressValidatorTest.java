@@ -51,7 +51,7 @@ class AasDataDataAddressValidatorTest {
     }
 
     @Test
-    void shouldFail_whenAasDataBaseUrlNotValid() {
+    void shouldFail_whenAasDataBaseUriNotValid() {
         var dataAddress = DataAddress.Builder.newInstance()
                 .property("type", AAS_DATA_TYPE)
                 .property(BASE_URL, "not-a-valid-url")

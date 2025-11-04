@@ -30,7 +30,6 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.Objects;
 
 import static de.fraunhofer.iosb.client.datatransfer.DataTransferController.DATA_TRANSFER_API_KEY;
@@ -59,11 +58,11 @@ class TransferInitiator {
         this.ownUri = createOwnUriFromConfigurationValues(config, hostname);
     }
 
-    StatusResult<TransferProcess> initiateTransferProcess(URL providerUrl, String agreementId, String apiKey) {
+    StatusResult<TransferProcess> initiateTransferProcess(URI providerUri, String agreementId, String apiKey) {
         if (Objects.isNull(ownUri)) {
             return StatusResult.failure(ResponseStatus.FATAL_ERROR, COULD_NOT_BUILD_URI_MESSAGE);
         }
-        monitor.debug("Starting transfer process for provider: " + providerUrl.toString());
+        monitor.debug("Starting transfer process for provider: " + providerUri.toString());
         monitor.debug("agreementId: " + agreementId);
         var dataDestination = HttpDataAddress.Builder.newInstance()
                 .baseUrl(ownUri.toString())
@@ -71,14 +70,14 @@ class TransferInitiator {
                 .addAdditionalHeader(DATA_TRANSFER_API_KEY, apiKey) // API key for validation on consumer side
                 .build();
 
-        return initiateTransferProcess(providerUrl, agreementId, dataDestination);
+        return initiateTransferProcess(providerUri, agreementId, dataDestination);
     }
 
-    StatusResult<TransferProcess> initiateTransferProcess(URL providerUrl, String agreementId,
+    StatusResult<TransferProcess> initiateTransferProcess(URI providerUri, String agreementId,
                                                           DataAddress dataSinkAddress) {
         var transferRequest = TransferRequest.Builder.newInstance()
                 .protocol(DATASPACE_PROTOCOL_HTTP)
-                .counterPartyAddress(providerUrl.toString())
+                .counterPartyAddress(providerUri.toString())
                 .contractId(agreementId)
                 .transferType(join("-", dataSinkAddress.getType(), PUSH.name()))
                 .dataDestination(dataSinkAddress)

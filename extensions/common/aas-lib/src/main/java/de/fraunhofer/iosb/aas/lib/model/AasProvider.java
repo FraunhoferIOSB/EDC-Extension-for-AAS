@@ -15,12 +15,13 @@
  */
 package de.fraunhofer.iosb.aas.lib.model;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import de.fraunhofer.iosb.aas.lib.auth.AuthenticationMethod;
 import de.fraunhofer.iosb.aas.lib.auth.impl.NoAuth;
-import de.fraunhofer.iosb.aas.lib.net.AasAccessUrl;
+import de.fraunhofer.iosb.aas.lib.net.AasAccessUri;
 
-import java.net.URL;
+import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,23 +32,23 @@ import static de.fraunhofer.iosb.constants.AasConstants.AAS_V30_NAMESPACE;
 public abstract class AasProvider {
 
     public static final String AAS_PROVIDER_AUTH = AAS_V30_NAMESPACE + "auth";
-    public static final String AAS_PROVIDER_URL = AAS_V30_NAMESPACE + "url";
-    protected final AasAccessUrl url;
+    public static final String AAS_PROVIDER_URL = AAS_V30_NAMESPACE + "uri";
+    protected final AasAccessUri uri;
 
     @JsonProperty(AAS_PROVIDER_AUTH)
     protected final AuthenticationMethod auth;
 
-    public AasProvider(AasAccessUrl url, AuthenticationMethod auth) {
-        this.url = Objects.requireNonNull(url);
+    public AasProvider(AasAccessUri uri, AuthenticationMethod auth) {
+        this.uri = Objects.requireNonNull(uri);
         this.auth = Objects.requireNonNull(auth);
     }
 
-    public AasProvider(AasAccessUrl url) {
-        this(url, new NoAuth());
+    public AasProvider(AasAccessUri uri) {
+        this(uri, new NoAuth());
     }
 
     protected AasProvider(AasProvider from) {
-        this(from.url, from.auth);
+        this(from.uri, from.auth);
     }
 
     public Map<String, String> getHeaders() {
@@ -70,21 +71,21 @@ public abstract class AasProvider {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         AasProvider that = (AasProvider) o;
-        return Objects.equals(url, that.url);
+        return Objects.equals(uri, that.uri);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(url);
+        return Objects.hashCode(uri);
     }
 
     @JsonProperty(AAS_PROVIDER_URL)
-    public URL baseUrl() {
-        return url.url();
+    public URI baseUri() {
+        return uri.uri();
     }
 
     public abstract static class Builder<B extends Builder<B>> {
-        protected AasAccessUrl url;
+        protected AasAccessUri uri;
         protected AuthenticationMethod authentication = new NoAuth();
         protected List<PolicyBinding> policyBindings = null;
 
@@ -93,13 +94,14 @@ public abstract class AasProvider {
             return self();
         }
 
-        public B withUrl(URL url) {
-            this.url = new AasAccessUrl(url);
+        @JsonAlias("url")
+        public B withUri(URI uri) {
+            this.uri = new AasAccessUri(uri);
             return self();
         }
 
-        public B aasAccessUrl(AasAccessUrl url) {
-            this.url = url;
+        public B aasAccessUri(AasAccessUri url) {
+            this.uri = url;
             return self();
         }
 
@@ -109,7 +111,7 @@ public abstract class AasProvider {
         }
 
         public B from(AasProvider from) {
-            this.url = from.url;
+            this.uri = from.uri;
             this.authentication = from.auth;
             return self();
         }

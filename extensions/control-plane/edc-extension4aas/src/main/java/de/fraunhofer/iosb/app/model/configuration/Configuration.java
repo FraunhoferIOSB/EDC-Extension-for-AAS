@@ -17,7 +17,7 @@ package de.fraunhofer.iosb.app.model.configuration;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.net.URL;
+import java.net.URI;
 
 /**
  * The configuration of the application.
@@ -35,7 +35,7 @@ public class Configuration {
     @JsonProperty(SETTINGS_PREFIX + "allowSelfSignedCertificates")
     private boolean allowSelfSignedCertificates;
     @JsonProperty(SETTINGS_PREFIX + "remoteAASLocation")
-    private URL remoteAasLocation;
+    private URI remoteAasLocation;
     @JsonProperty(SETTINGS_PREFIX + "localAASModelPath")
     private String localAasModelPath;
     @JsonProperty(SETTINGS_PREFIX + "localAASServicePort")
@@ -59,7 +59,7 @@ public class Configuration {
         return instance;
     }
 
-    public URL getRemoteAasLocation() {
+    public URI getRemoteAasLocation() {
         return remoteAasLocation;
     }
 

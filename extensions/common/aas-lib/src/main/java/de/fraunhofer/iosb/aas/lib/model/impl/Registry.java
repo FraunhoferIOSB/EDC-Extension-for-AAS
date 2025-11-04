@@ -17,9 +17,9 @@ package de.fraunhofer.iosb.aas.lib.model.impl;
 
 import de.fraunhofer.iosb.aas.lib.auth.AuthenticationMethod;
 import de.fraunhofer.iosb.aas.lib.model.AasProvider;
-import de.fraunhofer.iosb.aas.lib.net.AasAccessUrl;
+import de.fraunhofer.iosb.aas.lib.net.AasAccessUri;
 
-import java.net.URL;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -35,25 +35,25 @@ public final class Registry extends AasProvider {
     private Collection<Service> services;
 
     /**
-     * Create a new AAS registry representation with given access url and empty (nonnull) environment and no required
+     * Create a new AAS registry representation with given access uri and empty (nonnull) environment and no required
      * authentication method.
      *
-     * @param accessUrl URL for accessing the registry.
+     * @param accessUri URI for accessing the registry.
      */
-    public Registry(URL accessUrl) {
-        super(new AasAccessUrl(accessUrl));
+    public Registry(URI accessUri) {
+        super(new AasAccessUri(accessUri));
         this.services = new ArrayList<>();
     }
 
     /**
-     * Create a new AAS registry representation with given access url and environment and no required
+     * Create a new AAS registry representation with given access uri and environment and no required
      * authentication method.
      *
-     * @param accessUrl            URL for accessing the registry.
+     * @param accessUri            URI for accessing the registry.
      * @param authenticationMethod The authentication needed by this registry.
      */
-    public Registry(URL accessUrl, AuthenticationMethod authenticationMethod) {
-        super(new AasAccessUrl(accessUrl), authenticationMethod);
+    public Registry(URI accessUri, AuthenticationMethod authenticationMethod) {
+        super(new AasAccessUri(accessUri), authenticationMethod);
     }
 
     /**
@@ -78,7 +78,7 @@ public final class Registry extends AasProvider {
 
     @Override
     public String toString() {
-        return "Registry[" + "accessUrl=" + super.baseUrl() + ", " + "services=" + services + ']';
+        return "Registry[" + "accessUri=" + super.baseUri() + ", " + "services=" + services + ']';
     }
 
 }

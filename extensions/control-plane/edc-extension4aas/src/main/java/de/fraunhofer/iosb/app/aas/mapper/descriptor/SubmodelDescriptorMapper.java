@@ -23,8 +23,8 @@ import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelDescriptor;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 
 import static de.fraunhofer.iosb.constants.AasConstants.AAS_V30_NAMESPACE;
@@ -34,8 +34,8 @@ public class SubmodelDescriptorMapper extends DescriptorMapper {
     private static final String SUBMODEL_DESCRIPTOR_NAMESPACE = AAS_V30_NAMESPACE.concat("/SubmodelDescriptor/");
     private final List<String> supportedProtocols = List.of("HTTP", "HTTPS", "http", "https");
 
-    public Asset map(SubmodelDescriptor descriptor) throws MalformedURLException {
-        DataAddress dataAddress = createDataAddress(new URL(getHref(descriptor.getEndpoints())));
+    public Asset map(SubmodelDescriptor descriptor) throws URISyntaxException {
+        DataAddress dataAddress = createDataAddress(new URI(getHref(descriptor.getEndpoints())));
         return super.map(descriptor)
                 .property(SUBMODEL_DESCRIPTOR_NAMESPACE.concat("administration"), descriptor.getAdministration())
                 .property(SUBMODEL_DESCRIPTOR_NAMESPACE.concat("idShort"), descriptor.getIdShort())

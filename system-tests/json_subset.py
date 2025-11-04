@@ -7,6 +7,7 @@ def panic(key):
     print("Panicking:", key)
     return False
 
+
 def contains(container: dict, contained: dict, do_panic: bool = True):
     # Check whether container contains contained
     if isinstance(contained, str):

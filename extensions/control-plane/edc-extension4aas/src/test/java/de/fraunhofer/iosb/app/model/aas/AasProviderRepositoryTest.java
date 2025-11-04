@@ -21,29 +21,29 @@ import de.fraunhofer.iosb.app.model.aas.registry.RegistryRepository;
 import de.fraunhofer.iosb.app.model.aas.service.ServiceRepository;
 import org.junit.jupiter.api.Test;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AasProviderRepositoryTest {
-    private final URL accessUrl = new URL("https://123.45.67.8:1234/api/v4.2");
+    private final URI accessUri = new URI("https://123.45.67.8:1234/api/v4.2");
 
-    AasProviderRepositoryTest() throws MalformedURLException {
+    AasProviderRepositoryTest() throws URISyntaxException {
     }
 
     @Test
     void test_create_multipleEqualServices() {
         AasProviderRepository<Service> testSubject = new ServiceRepository();
-        assertTrue(testSubject.create(new Service.Builder().withUrl(accessUrl).build()));
-        assertFalse(testSubject.create(new Service.Builder().withUrl(accessUrl).build()));
+        assertTrue(testSubject.create(new Service.Builder().withUri(accessUri).build()));
+        assertFalse(testSubject.create(new Service.Builder().withUri(accessUri).build()));
     }
 
     @Test
     void test_create_multipleEqualRegistries() {
         AasProviderRepository<Registry> testSubject = new RegistryRepository();
-        assertTrue(testSubject.create(new Registry(accessUrl)));
-        assertFalse(testSubject.create(new Registry(accessUrl)));
+        assertTrue(testSubject.create(new Registry(accessUri)));
+        assertFalse(testSubject.create(new Registry(accessUri)));
     }
 }

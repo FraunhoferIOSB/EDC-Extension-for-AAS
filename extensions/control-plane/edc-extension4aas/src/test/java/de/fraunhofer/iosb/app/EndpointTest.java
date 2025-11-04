@@ -28,8 +28,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
 import static jakarta.ws.rs.core.Response.Status.CREATED;
@@ -52,7 +52,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(DependencyInjectionExtension.class)
 public class EndpointTest {
 
-    private final URL url = new URL("https://localhost:%s".formatted(getFreePort()));
+    private final URI uri = new URI("https://localhost:%s".formatted(getFreePort()));
 
     private Endpoint testSubject;
 
@@ -60,7 +60,7 @@ public class EndpointTest {
     private RegistryRepository registryRepositoryMock;
     private AasController aasControllerMock;
 
-    public EndpointTest() throws MalformedURLException {
+    public EndpointTest() throws URISyntaxException {
     }
 
     @BeforeEach
@@ -79,7 +79,7 @@ public class EndpointTest {
     void testCreateRegistry() {
         when(registryRepositoryMock.create(any())).thenReturn(true);
 
-        try (var response = testSubject.createRegistry(url.toString())) {
+        try (var response = testSubject.createRegistry(uri.toString())) {
             // Unauthorized because of self-signed certificate
             assertEquals(CREATED.getStatusCode(), response.getStatusInfo().getStatusCode());
         }
@@ -90,7 +90,7 @@ public class EndpointTest {
     void testCreateService() {
         when(serviceRepositoryMock.create(any())).thenReturn(true);
 
-        try (var response = testSubject.createService(url.toString(), null)) {
+        try (var response = testSubject.createService(uri.toString(), null)) {
             assertEquals(CREATED.getStatusCode(), response.getStatusInfo().getStatusCode());
         }
 
@@ -99,7 +99,7 @@ public class EndpointTest {
 
     @Test
     void testRemoveService() {
-        try (var response = testSubject.removeService(url.toString())) {
+        try (var response = testSubject.removeService(uri.toString())) {
             assertEquals(Response.Status.NOT_FOUND.getStatusCode(), response.getStatusInfo().getStatusCode());
         }
 
@@ -109,7 +109,7 @@ public class EndpointTest {
     @Test
     void testRemoveRegistry() {
         doThrow(IllegalAccessError.class).when(aasControllerMock).stopService(any());
-        try (var response = testSubject.removeRegistry(url.toString())) {
+        try (var response = testSubject.removeRegistry(uri.toString())) {
             assertEquals(Response.Status.NOT_FOUND.getStatusCode(), response.getStatusInfo().getStatusCode());
         }
         verify(registryRepositoryMock, times(1)).delete(any());
@@ -154,7 +154,7 @@ public class EndpointTest {
     }
 
     @Test
-    void testPostAasEnvironmentNullEnvironment() throws IOException {
+    void testPostAasEnvironmentNullEnvironment() throws URISyntaxException {
         when(aasControllerMock.startService(any(), any(Integer.class), any())).thenThrow(IllegalAccessError.class);
 
         try (var response = testSubject.postAasEnvironment(null, "", 0)) {
@@ -163,9 +163,9 @@ public class EndpointTest {
     }
 
     @Test
-    void testPostAasEnvironmentNullConfig() throws IOException {
+    void testPostAasEnvironmentNullConfig() throws URISyntaxException {
         // This is allowed
-        when(aasControllerMock.startService(any())).thenReturn(url);
+        when(aasControllerMock.startService(any())).thenReturn(uri);
         when(serviceRepositoryMock.create(any())).thenReturn(true);
 
         try (var response = testSubject.postAasEnvironment(".", null, 0)) {
@@ -174,7 +174,7 @@ public class EndpointTest {
     }
 
     @Test
-    void testPostAasEnvironmentInvalidPort() throws IOException {
+    void testPostAasEnvironmentInvalidPort() throws URISyntaxException {
         // This is allowed (in endpoint, aasServiceManager should throw IllegalArgumentException)
         when(aasControllerMock.startService(any(), any(Integer.class), any())).thenThrow(IOException.class);
         when(serviceRepositoryMock.create(any())).thenReturn(true);

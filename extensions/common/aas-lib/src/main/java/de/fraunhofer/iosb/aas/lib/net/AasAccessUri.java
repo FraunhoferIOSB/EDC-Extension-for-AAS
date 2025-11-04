@@ -17,8 +17,7 @@ package de.fraunhofer.iosb.aas.lib.net;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.net.URISyntaxException;
-import java.net.URL;
+import java.net.URI;
 import java.util.Objects;
 
 /**
@@ -27,28 +26,23 @@ import java.util.Objects;
  * <p>An example could be "https://localhost:8080/api/v3.0"
  * <p>URL wrapper with equals method appropriate for AAS service access URLs
  */
-public record AasAccessUrl(@NotNull URL url) {
+public record AasAccessUri(@NotNull URI uri) {
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        AasAccessUrl that = (AasAccessUrl) o;
-
-        try {
-            return Objects.equals(url.toURI(), that.url.toURI());
-        } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
-        }
+        AasAccessUri that = (AasAccessUri) o;
+        return Objects.equals(uri, that.uri);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(url);
+        return Objects.hashCode(uri);
     }
 
     @Override
     public @NotNull String toString() {
-        return url.toString();
+        return uri.toString();
     }
 }

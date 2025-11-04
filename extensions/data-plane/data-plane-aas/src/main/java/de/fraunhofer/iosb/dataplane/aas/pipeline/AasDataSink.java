@@ -64,7 +64,7 @@ public class AasDataSink implements DataSink {
         if (accessUrl == null) {
             return StreamResult.failure(
                     new StreamFailure(
-                            List.of("No base url found"),
+                            List.of("No base uri found"),
                             StreamFailure.Reason.GENERAL_ERROR));
         }
 

@@ -57,7 +57,7 @@ public class AasDataProcessor {
         String accessUrl = sourceDataAddress.getBaseUrl();
 
         if (accessUrl == null) {
-            throw new IllegalArgumentException("No access url found");
+            throw new IllegalArgumentException("No access uri found");
         }
 
         var requestUrlBuilder = HttpUrl.get(accessUrl).newBuilder();
@@ -96,7 +96,7 @@ public class AasDataProcessor {
         }
 
         var request = requestBuilder
-                .url(requestUrlBuilder.build()) // .url(HttpUrl) is marked as "internal"
+                .url(requestUrlBuilder.build()) // .uri(HttpUrl) is marked as "internal"
                 // getAdditionalHeaders() includes authentication needed to access the service
 
                 .build();
@@ -119,7 +119,7 @@ public class AasDataProcessor {
         String accessUrl = destinationDataAddress.getBaseUrl();
 
         if (accessUrl == null) {
-            throw new IllegalArgumentException("No access url found");
+            throw new IllegalArgumentException("No access uri found");
         }
 
         if (!HttpMethod.permitsRequestBody(destinationDataAddress.getMethod())) {
@@ -141,7 +141,7 @@ public class AasDataProcessor {
                 .method(
                         destinationDataAddress.getMethod(),
                         new AasTransferRequestBody(bytes, mediaType))
-                .url(requestUrlBuilder.build().url()) // .url(HttpUrl) is marked as "internal"
+                .url(requestUrlBuilder.build().url()) // .uri(HttpUrl) is marked as "internal"
                 // getAdditionalHeaders() includes authentication needed to access the service
                 .headers(Headers.of(destinationDataAddress.getAdditionalHeaders()))
                 .build();

@@ -27,3 +27,8 @@ dependencies {
         exclude("org.eclipse.edc", "data-plane-selector-client")
     }
 }
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}

@@ -19,3 +19,7 @@ dependencies {
     runtimeOnly(project(":extensions:control-plane:client"))
     runtimeOnly(project(":extensions:data-plane:data-plane-aas"))
 }
+repositories {
+    mavenLocal()
+    mavenCentral()
+}

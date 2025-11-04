@@ -47,7 +47,7 @@ public class ControlPlaneConnection {
     }
 
     /**
-     * Builds a request with control-plane url and auth.
+     * Builds a request with control-plane uri and auth.
      *
      * @param method HTTP method for this request
      * @param body   Request body to be sent
@@ -58,7 +58,7 @@ public class ControlPlaneConnection {
     }
 
     /**
-     * Builds a request with control-plane url and auth.
+     * Builds a request with control-plane uri and auth.
      *
      * @param method         HTTP method for this request
      * @param additionalPath Additional path to specify request, e.g., /request

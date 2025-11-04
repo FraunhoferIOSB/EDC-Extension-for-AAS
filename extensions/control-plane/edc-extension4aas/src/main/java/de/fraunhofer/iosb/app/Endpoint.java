@@ -37,13 +37,12 @@ import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Objects;
 import javax.annotation.Nullable;
 
-import static de.fraunhofer.iosb.app.util.InetTools.isConnectionTrusted;
+import static de.fraunhofer.iosb.aas.lib.util.InetTools.isConnectionTrusted;
 
 /**
  * Delegates requests to controllers.
@@ -88,7 +87,7 @@ public class Endpoint {
     @Path(REGISTRY_PATH)
     public Response createRegistry(@QueryParam("url") String registryUrlString) {
         monitor.info("POST /%s".formatted(REGISTRY_PATH));
-        var registryUrl = parseUrl(registryUrlString);
+        var registryUrl = parseUri(registryUrlString);
         if (registryUrl.failed()) {
             return Response.status(Status.BAD_REQUEST).entity(registryUrl.getFailureDetail()).build();
         }
@@ -112,17 +111,17 @@ public class Endpoint {
             return createEntity(serviceRepository, service);
         }
 
-        var urlParseResult = parseUrl(serviceUrlString);
+        var urlParseResult = parseUri(serviceUrlString);
 
         if (urlParseResult.failed()) {
             return Response.status(Status.BAD_REQUEST).entity(urlParseResult.getFailureDetail()).build();
         }
 
         if (Objects.isNull(service)) {
-            service = new Service.Builder().withUrl(urlParseResult.getContent()).build();
+            service = new Service.Builder().withUri(urlParseResult.getContent()).build();
         } else {
             service = service.toBuilder()
-                    .withUrl(urlParseResult.getContent())
+                    .withUri(urlParseResult.getContent())
                     .build();
         }
 
@@ -139,7 +138,7 @@ public class Endpoint {
     @Path(REGISTRY_PATH)
     public Response removeRegistry(@QueryParam("url") String registryUrlString) {
         monitor.info("DELETE /%s".formatted(REGISTRY_PATH));
-        var registryUrl = parseUrl(registryUrlString);
+        var registryUrl = parseUri(registryUrlString);
         if (registryUrl.failed()) {
             return Response.status(Status.BAD_REQUEST).entity(registryUrl.getFailureDetail()).build();
         }
@@ -156,7 +155,7 @@ public class Endpoint {
     @Path(SERVICE_PATH)
     public Response removeService(@QueryParam("url") String serviceUrlString) {
         monitor.info("DELETE /%s".formatted(SERVICE_PATH));
-        var serviceUrl = parseUrl(serviceUrlString);
+        var serviceUrl = parseUri(serviceUrlString);
         if (serviceUrl.failed()) {
             return Response.status(Status.BAD_REQUEST).entity(serviceUrl.getFailureDetail()).build();
         }
@@ -185,7 +184,7 @@ public class Endpoint {
         var environmentPath = fromString(pathToEnvironment);
         var aasConfigPath = fromString(pathToConfig);
 
-        URL serviceAccessUrl;
+        URI serviceAccessUrl;
         try {
             if (port == 0 && pathToConfig == null) {
                 serviceAccessUrl = aasController.startService(environmentPath);
@@ -194,14 +193,14 @@ public class Endpoint {
             }
         } catch (IllegalArgumentException illegalArgumentException) {
             return Response.status(Status.BAD_REQUEST).entity(illegalArgumentException.getMessage()).build();
-        } catch (IOException | EdcException aasServiceException) {
+        } catch (URISyntaxException | EdcException aasServiceException) {
             monitor.severe("Could not start AAS service.", aasServiceException);
             return Response.serverError().entity("Could not start AAS service. Check logs for details").build();
         }
 
         // From here, do the same as if it were a remote service.
         Service service = new Service.Builder()
-                .withUrl(serviceAccessUrl)
+                .withUri(serviceAccessUrl)
                 .build();
         try (var creationResponse = createEntity(serviceRepository, service)) {
             if (creationResponse.getStatusInfo().getFamily().equals(Status.Family.SUCCESSFUL)) {
@@ -213,10 +212,10 @@ public class Endpoint {
         }
     }
 
-    private Result<URL> parseUrl(String urlString) {
+    private Result<URI> parseUri(String urlString) {
         try {
-            return Result.success(new URL(urlString));
-        } catch (MalformedURLException e) {
+            return Result.success(new URI(urlString));
+        } catch (URISyntaxException e) {
             return Result.failure(e.getMessage());
         }
     }
@@ -229,11 +228,11 @@ public class Endpoint {
     }
 
     private <T extends AasProvider> Response createEntity(AasProviderRepository<T> repository, T entity) {
-        if (entity == null || entity.baseUrl() == null) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Missing query parameter 'url'").build();
+        if (entity == null || entity.baseUri() == null) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("Missing query parameter 'uri'").build();
         }
 
-        if (!CONFIGURATION.isAllowSelfSignedCertificates() && !isConnectionTrusted(entity.baseUrl())) {
+        if (!CONFIGURATION.isAllowSelfSignedCertificates() && !isConnectionTrusted(entity.baseUri())) {
             return Response.status(Status.BAD_REQUEST)
                     .entity("Service to register has untrusted certificate.")
                     .build();
@@ -251,12 +250,12 @@ public class Endpoint {
                 .build();
     }
 
-    private Response removeEntity(AasProviderRepository<?> repository, URL accessUrl) {
-        if (accessUrl == null) {
-            return Response.status(Status.BAD_REQUEST).entity("Missing query parameter 'url'").build();
+    private Response removeEntity(AasProviderRepository<?> repository, URI accessUri) {
+        if (accessUri == null) {
+            return Response.status(Status.BAD_REQUEST).entity("Missing query parameter 'uri'").build();
         }
 
-        if (repository.delete(accessUrl)) {
+        if (repository.delete(accessUri)) {
             // Return 204 (https://www.rfc-editor.org/rfc/rfc9110.html#section-9.3.5)
             return Response.noContent().build();
         } else {

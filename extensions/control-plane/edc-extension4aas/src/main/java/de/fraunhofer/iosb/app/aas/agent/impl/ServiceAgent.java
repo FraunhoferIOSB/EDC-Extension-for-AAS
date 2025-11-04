@@ -17,25 +17,26 @@ package de.fraunhofer.iosb.app.aas.agent.impl;
 
 import de.fraunhofer.iosb.aas.lib.model.impl.Service;
 import de.fraunhofer.iosb.app.aas.agent.AasAgent;
+import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import de.fraunhofer.iosb.app.pipeline.PipelineFailure;
 import de.fraunhofer.iosb.app.pipeline.PipelineResult;
-import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShell;
-import org.eclipse.digitaltwin.aas4j.v3.model.ConceptDescription;
+import de.fraunhofer.iosb.client.AasRepositoryClient;
+import de.fraunhofer.iosb.client.exception.UnauthorizedException;
+import de.fraunhofer.iosb.client.remote.impl.RemoteAasRepositoryClient;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
-import org.eclipse.digitaltwin.aas4j.v3.model.Submodel;
-import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultEnvironment;
 import org.eclipse.edc.http.spi.EdcHttpClient;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.result.AbstractResult;
-import org.eclipse.edc.spi.result.Result;
 
+import java.net.ConnectException;
+import java.net.http.HttpClient;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
 import java.util.List;
-
-import static de.fraunhofer.iosb.app.pipeline.PipelineResult.failure;
-import static de.fraunhofer.iosb.constants.AasConstants.CONCEPT_DESCRIPTIONS_API_PATH;
-import static de.fraunhofer.iosb.constants.AasConstants.SHELLS_API_PATH;
-import static de.fraunhofer.iosb.constants.AasConstants.SUBMODELS_API_PATH;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 /**
  * Communicating with AAS service
@@ -64,43 +65,46 @@ public class ServiceAgent extends AasAgent<Service, Environment> {
     }
 
     private PipelineResult<Environment> readEnvironment(Service service) {
-        Result<List<AssetAdministrationShell>> shellsResult;
-        Result<List<Submodel>> submodelsResult;
-        Result<List<ConceptDescription>> conceptDescResult;
+        HttpClient.Builder httpClientBuilder = service.getAuth().httpClientBuilderFor();
+
+        if (Configuration.getInstance().isAllowSelfSignedCertificates()) {
+            try {
+                httpClientBuilder.sslContext(getSelfSignedAcceptingContext());
+            } catch (NoSuchAlgorithmException | KeyManagementException e) {
+                return PipelineResult.failure(PipelineFailure.fatal(List.of("Cannot build HttpClient for this AAS repository.")));
+            }
+        }
+
+        AasRepositoryClient client = new RemoteAasRepositoryClient(service.baseUri(), httpClientBuilder.build());
+
+        if (!client.isAvailable()) {
+            return PipelineResult.failure(PipelineFailure.warning(List.of("AAS Repository not available")));
+        }
 
         try {
-            shellsResult = readElements(service, SHELLS_API_PATH, AssetAdministrationShell.class);
-            submodelsResult = readElements(service, SUBMODELS_API_PATH, Submodel.class);
-            conceptDescResult = readElements(service, CONCEPT_DESCRIPTIONS_API_PATH, ConceptDescription.class);
-        } catch (EdcException e) {
-            // If an exception was raised, produce a fatal result
-            return failure(PipelineFailure.fatal(List.of(e.getClass().getSimpleName())));
+            return PipelineResult.success(client.getEnvironment());
+        } catch (ConnectException e) {
+            return PipelineResult.failure(PipelineFailure.warning(List.of(e.getMessage())));
+        } catch (UnauthorizedException e) {
+            return PipelineResult.failure(PipelineFailure.fatal(List.of(e.getMessage())));
         }
+    }
 
-        var environment = new DefaultEnvironment.Builder()
-                .assetAdministrationShells(shellsResult.succeeded() ? shellsResult.getContent() : List.of())
-                .submodels(submodelsResult.succeeded() ? submodelsResult.getContent() : List.of())
-                .conceptDescriptions(conceptDescResult.succeeded() ? conceptDescResult.getContent() : List.of())
-                .build();
 
-        var results = List.of(shellsResult, submodelsResult, conceptDescResult);
-        if (results.stream().allMatch(AbstractResult::failed)) {
-            // If all requests failed, something w/ service is wrong
-            return PipelineResult.failure(PipelineFailure.warning(results.stream()
-                    .map(AbstractResult::getFailureMessages)
-                    .flatMap(List::stream)
-                    .toList()));
-        }
+    public SSLContext getSelfSignedAcceptingContext() throws NoSuchAlgorithmException, KeyManagementException {
+        SSLContext sslContext = SSLContext.getInstance("TLS");
+        sslContext.init(null, new TrustManager[]{ new X509TrustManager() {
+            public void checkClientTrusted(X509Certificate[] certs, String authType) {
+            }
 
-        if (results.stream().anyMatch(AbstractResult::failed)) {
-            // If any request failed, produce a warning
-            return PipelineResult.recoverableFailure(environment,
-                    PipelineFailure.warning(results.stream()
-                            .map(AbstractResult::getFailureMessages)
-                            .flatMap(List::stream)
-                            .toList()));
-        }
+            public void checkServerTrusted(X509Certificate[] certs, String authType) {
+            }
 
-        return PipelineResult.success(environment);
+            public X509Certificate[] getAcceptedIssuers() {
+                return new X509Certificate[0];
+            }
+        } }, new SecureRandom());
+
+        return sslContext;
     }
 }

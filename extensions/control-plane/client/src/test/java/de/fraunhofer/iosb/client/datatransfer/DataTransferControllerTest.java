@@ -35,8 +35,8 @@ import org.eclipse.edc.web.spi.WebService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -50,7 +50,7 @@ import static org.mockito.Mockito.verify;
 
 class DataTransferControllerTest {
     private static final String AGREEMENT_ID = UUID.randomUUID().toString();
-    private static URL url;
+    private static URI uri;
     private final TransferProcessManager mockTransferProcessManager = mock(TransferProcessManager.class);
     private DataTransferController testSubject;
 
@@ -105,9 +105,9 @@ class DataTransferControllerTest {
     }
 
     @BeforeEach
-    public void setup() throws IOException {
+    public void setup() throws URISyntaxException {
         int port = 8080;
-        url = new URL(format("http://localhost:%s", port));
+        uri = new URI(format("http://localhost:%s", port));
         testSubject = new DataTransferController(
                 new ConsoleMonitor().withPrefix("DataTransferControllerTest"),
                 mockConfig(),
@@ -135,7 +135,7 @@ class DataTransferControllerTest {
         var operationString = nnneObjectMapper.writeValueAsString(operation);
         DataAddress dataSinkAddress = getDataAddress(operation);
 
-        testSubject.getData(url, AGREEMENT_ID, dataSinkAddress);
+        testSubject.getData(uri, AGREEMENT_ID, dataSinkAddress);
         // Verify that operation is serialized before sending it to provider
         verify(mockTransferProcessManager).initiateConsumerRequest(argThat(request ->
                 operationString.equals(request.getDataDestination().getStringProperty(OPERATION_FIELD))));
@@ -147,7 +147,7 @@ class DataTransferControllerTest {
 
         DataAddress dataSinkAddress = getDataAddress(operation);
 
-        testSubject.getData(url, AGREEMENT_ID, dataSinkAddress);
+        testSubject.getData(uri, AGREEMENT_ID, dataSinkAddress);
         // Verify that operation is serialized before sending it to provider
         verify(mockTransferProcessManager).initiateConsumerRequest(argThat(request ->
                 null == request.getDataDestination().getProperties().get(OPERATION_FIELD)));
@@ -158,7 +158,7 @@ class DataTransferControllerTest {
         var aasDataAddress = DataAddress.Builder.newInstance()
                 .type("AasData")
                 .build();
-        try (var response = testSubject.getData(url, AGREEMENT_ID, aasDataAddress)) {
+        try (var response = testSubject.getData(uri, AGREEMENT_ID, aasDataAddress)) {
             assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
         }
     }

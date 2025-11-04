@@ -19,7 +19,7 @@ import de.fraunhofer.iosb.aas.lib.model.impl.Registry;
 import de.fraunhofer.iosb.aas.lib.model.impl.Service;
 import de.fraunhofer.iosb.app.model.aas.AasProviderRepository;
 
-import java.net.URL;
+import java.net.URI;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.function.Predicate;
@@ -40,11 +40,11 @@ public class RegistryRepository extends AasProviderRepository<Registry> {
     /**
      * Returns the environment of a specific registry by its URL.
      *
-     * @param registryUrl The URL of the registry
+     * @param registryUri The URL of the registry
      * @return The environments of this registry or null
      */
-    public @Nullable Collection<Service> getEnvironments(@Nonnull URL registryUrl) {
-        return getEnvironments(registry -> registry.baseUrl().toString().equals(registryUrl.toString()));
+    public @Nullable Collection<Service> getEnvironments(@Nonnull URI registryUri) {
+        return getEnvironments(registry -> registry.baseUri().toString().equals(registryUri.toString()));
     }
 
     @Override

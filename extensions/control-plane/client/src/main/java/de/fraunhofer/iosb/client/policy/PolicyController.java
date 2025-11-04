@@ -38,7 +38,7 @@ import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
-import java.net.URL;
+import java.net.URI;
 import java.util.List;
 import java.util.Objects;
 
@@ -84,27 +84,27 @@ public class PolicyController {
      * policyDefinitions. If more than one policyDefinitions are provided by the
      * provider connector, an AmbiguousOrNullException will be thrown.
      *
-     * @param providerUrl    Provider of the asset.
+     * @param providerUri    Provider of the asset.
      * @param assetId        Asset ID of the asset whose contract should be fetched.
      * @param counterPartyId ID of the provider
      * @return A dataset offered by the provider for the given assetId.
      */
     @GET
     @Path(OFFER_PATH)
-    public Response getDataset(@QueryParam("providerUrl") URL providerUrl, @QueryParam("assetId") String assetId,
+    public Response getDataset(@QueryParam("providerUrl") URI providerUri, @QueryParam("assetId") String assetId,
                                @QueryParam("providerId") String counterPartyId) {
         monitor.info("GET /%s".formatted(OFFER_PATH));
-        if (Objects.isNull(assetId) || Objects.isNull(providerUrl)) {
+        if (Objects.isNull(assetId) || Objects.isNull(providerUri)) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(MISSING_QUERY_PARAMETER_MESSAGE.formatted("assetId, providerId")).build();
         }
 
-        ServiceResult<Dataset> datasetResult = policyService.getDatasetForAssetId(counterPartyId, providerUrl, assetId);
+        ServiceResult<Dataset> datasetResult = policyService.getDatasetForAssetId(counterPartyId, providerUri, assetId);
 
         if (datasetResult.failed()) {
             var failureReason = datasetResult.reason();
             monitor.severe("Getting Dataset of provider %s and asset %s failed. Reason: %s"
-                    .formatted(providerUrl, assetId, failureReason));
+                    .formatted(providerUri, assetId, failureReason));
             monitor.severe(datasetResult.getFailureDetail());
 
             return Response.serverError()
@@ -118,7 +118,7 @@ public class PolicyController {
             return Response.ok(objectMapper.writeValueAsString(buildResponseFrom(dataset))).build();
         } catch (JsonProcessingException objectMapperException) {
             monitor.severe("Exception thrown while serializing Dataset of provider %s and asset %s."
-                            .formatted(providerUrl, assetId),
+                            .formatted(providerUri, assetId),
                     objectMapperException);
             return Response.serverError()
                     .entity(GET_OFFER_FAILED_MESSAGE)
@@ -144,13 +144,13 @@ public class PolicyController {
      * the provider connector, an AmbiguousOrNullException will be thrown.
      *
      * @param counterPartyId  Provider of the asset. (id)
-     * @param counterPartyUrl Provider of the asset. (url)
+     * @param counterPartyUri Provider of the asset. (url)
      * @param assetId         Asset ID of the asset whose contract should be fetched.
      * @return One policyDefinition offered by the provider for the given assetId.
      */
-    public Result<ContractOffer> getAcceptableContractOfferForAssetId(String counterPartyId, URL counterPartyUrl,
+    public Result<ContractOffer> getAcceptableContractOfferForAssetId(String counterPartyId, URI counterPartyUri,
                                                                       String assetId) {
-        return policyService.getAcceptableContractOfferForAssetId(counterPartyId, counterPartyUrl, assetId);
+        return policyService.getAcceptableContractOfferForAssetId(counterPartyId, counterPartyUri, assetId);
     }
 
     /**

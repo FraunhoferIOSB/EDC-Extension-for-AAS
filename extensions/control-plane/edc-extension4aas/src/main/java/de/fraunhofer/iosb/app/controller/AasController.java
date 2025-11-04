@@ -21,8 +21,8 @@ import de.fraunhofer.iosb.app.aas.FaaastServiceManager;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionChangeListener;
 import org.eclipse.edc.spi.monitor.Monitor;
 
-import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.Objects;
 
@@ -91,7 +91,7 @@ public class AasController implements SelfDescriptionChangeListener {
      *
      * @param aasServiceUrl URL of service to be stopped
      */
-    public void stopService(URL aasServiceUrl) {
+    public void stopService(URI aasServiceUrl) {
         monitor.info("Stopping AAS service with URL %s".formatted(aasServiceUrl.toString()));
         aasServiceManager.stopService(aasServiceUrl);
     }
@@ -106,7 +106,7 @@ public class AasController implements SelfDescriptionChangeListener {
 
     @Override
     public void removed(Service service) {
-        stopService(service.baseUrl());
+        stopService(service.baseUri());
     }
 
 }

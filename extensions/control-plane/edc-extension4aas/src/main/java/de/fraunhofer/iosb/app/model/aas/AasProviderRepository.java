@@ -19,7 +19,7 @@ import de.fraunhofer.iosb.aas.lib.model.AasProvider;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionChangeListener;
 import org.eclipse.edc.spi.observe.ObservableImpl;
 
-import java.net.URL;
+import java.net.URI;
 import java.util.Collection;
 import java.util.HashSet;
 
@@ -54,9 +54,9 @@ public abstract class AasProviderRepository<T extends AasProvider> extends Obser
      *
      * @param accessUrl URL of entity to be removed
      */
-    public boolean delete(URL accessUrl) {
+    public boolean delete(URI accessUrl) {
         T entity = content.stream()
-                .filter(s -> s.baseUrl().toString().equals(accessUrl.toString()))
+                .filter(s -> s.baseUri().toString().equals(accessUrl.toString()))
                 .findFirst()
                 .orElse(null);
 

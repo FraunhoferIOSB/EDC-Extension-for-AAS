@@ -91,12 +91,12 @@ public class EnvironmentToAssetMapper extends PipelineStep<Map<Service, Environm
     }
 
     public PipelineResult<Service> executeSingle(Service service, Environment environment) {
-        if (service == null || service.baseUrl() == null) {
+        if (service == null || service.baseUri() == null) {
             return PipelineResult.failure(PipelineFailure.fatal(List.of("Mapping failure: accessUrl is null")));
         } else if (environment == null) {
             return PipelineResult.recoverableFailure(service,
                     PipelineFailure.warning(List.of("Mapping failure for accessUrl %s: environment is null"
-                            .formatted(service.baseUrl()))));
+                            .formatted(service.baseUri()))));
         }
 
         var submodels = mapIdentifiableList(environment.getSubmodels(), service);

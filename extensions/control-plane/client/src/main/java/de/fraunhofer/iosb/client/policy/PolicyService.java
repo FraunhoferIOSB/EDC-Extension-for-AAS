@@ -34,7 +34,7 @@ import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.ByteArrayInputStream;
-import java.net.URL;
+import java.net.URI;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -79,7 +79,7 @@ class PolicyService {
         this.jsonLdExpander = new TitaniumJsonLd(monitor);
     }
 
-    ServiceResult<Dataset> getDatasetForAssetId(@NotNull String counterPartyId, @NotNull URL counterPartyUrl,
+    ServiceResult<Dataset> getDatasetForAssetId(@NotNull String counterPartyId, @NotNull URI counterPartyUri,
                                                 @NotNull String assetId) {
         var assetQuerySpec = QuerySpec.Builder.newInstance()
                 .filter(criterion(Asset.PROPERTY_ID, "=", assetId))
@@ -87,7 +87,7 @@ class PolicyService {
 
         var catalogFuture = catalogService.requestCatalog(
                 counterPartyId,
-                counterPartyUrl.toString(),
+                counterPartyUri.toString(),
                 DATASPACE_PROTOCOL_HTTP,
                 assetQuerySpec);
 
@@ -132,8 +132,8 @@ class PolicyService {
         return ServiceResult.success(datasets.get(0));
     }
 
-    Result<ContractOffer> getAcceptableContractOfferForAssetId(String counterPartyId, URL providerUrl, String assetId) {
-        var datasetResult = getDatasetForAssetId(counterPartyId, providerUrl, assetId);
+    Result<ContractOffer> getAcceptableContractOfferForAssetId(String counterPartyId, URI counterPartyUri, String assetId) {
+        var datasetResult = getDatasetForAssetId(counterPartyId, counterPartyUri, assetId);
 
         if (datasetResult.failed()) {
             return Result.failure(List.of(datasetResult.reason().toString(), datasetResult.getFailureDetail()));

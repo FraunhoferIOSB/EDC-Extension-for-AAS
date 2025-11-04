@@ -30,8 +30,8 @@ import org.eclipse.edc.spi.response.StatusResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
@@ -69,14 +69,14 @@ public class NegotiatorTest {
     }
 
     @Test
-    void testNegotiate() throws MalformedURLException, ExecutionException, InterruptedException {
+    void testNegotiate() throws ExecutionException, InterruptedException, URISyntaxException {
         // Mocked EDC negotiation manager returns a future which completes to a
         // successful negotiation (agreement)
         // Input is providerUrl (unimportant), contractOffer. The resulting
         // contractAgreement should have the same
         // policy as our contractOffer (not the same object reference) and the same
         // asset ID
-        var fakeUrl = new URL("https://example.com/fakeurl");
+        var fakeUri = new URI("https://example.com/fakeurl");
         var contractOffer = ContractOffer.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .assetId(assetId)
@@ -85,7 +85,7 @@ public class NegotiatorTest {
 
         var contractRequest = ContractRequest.Builder.newInstance()
                 .contractOffer(contractOffer)
-                .counterPartyAddress(fakeUrl.toString())
+                .counterPartyAddress(fakeUri.toString())
                 .protocol("dataspace-protocol-http")
                 .build();
 

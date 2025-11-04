@@ -7,6 +7,7 @@ include("extensions:control-plane:edc-extension4aas")
 include("extensions:control-plane:public-api-management")
 include("extensions:data-plane:data-plane-aas")
 include("extensions:edc-connector-client")
+include("extensions:repository-aas")
 
 include("launchers:aas-data-plane")
 include("launchers:consumer")

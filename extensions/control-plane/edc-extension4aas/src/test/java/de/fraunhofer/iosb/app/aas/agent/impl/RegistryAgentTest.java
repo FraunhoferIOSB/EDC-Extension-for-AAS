@@ -29,8 +29,8 @@ import org.junit.jupiter.api.Test;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.model.HttpResponse;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Optional;
 
 import static de.fraunhofer.iosb.aas.lib.model.impl.Registry.SHELL_DESCRIPTORS_PATH;
@@ -52,9 +52,9 @@ class RegistryAgentTest {
     private static final int PORT = getFreePort();
     private static ClientAndServer mockServer;
     private static RegistryAgent testSubject;
-    private final URL mockServerUrl = new URL("http://localhost:%s".formatted(PORT));
+    private final URI mockServerUri = new URI("http://localhost:%s".formatted(PORT));
 
-    RegistryAgentTest() throws MalformedURLException {
+    RegistryAgentTest() throws URISyntaxException {
     }
 
     @BeforeAll
@@ -77,7 +77,7 @@ class RegistryAgentTest {
     }
 
     @Test
-    void test_apply_emptyButNonNullShellDescriptor() throws SerializationException, MalformedURLException {
+    void test_apply_emptyButNonNullShellDescriptor() throws SerializationException, URISyntaxException {
         var shellDescriptor = getEmptyShellDescriptor();
 
         mockServer.when(request()
@@ -88,7 +88,7 @@ class RegistryAgentTest {
 
         mockEmptySubmodelRequest();
 
-        var result = testSubject.apply(new Registry(mockServerUrl));
+        var result = testSubject.apply(new Registry(mockServerUri));
 
         assertTrue(result.succeeded());
 
@@ -96,8 +96,8 @@ class RegistryAgentTest {
 
         assertEquals(1, bodyAsEnvironment.size());
 
-        // We know the endpoint url from getEmptyShellDescriptor()...
-        var env = bodyAsEnvironment.get(new Service.Builder().withUrl(new URL("https://localhost:12345")).build());
+        // We know the endpoint uri from getEmptyShellDescriptor()...
+        var env = bodyAsEnvironment.get(new Service.Builder().withUri(new URI("https://localhost:12345")).build());
 
         var shell = Optional.ofNullable(env.getAssetAdministrationShells().get(0)).orElseThrow();
 
@@ -109,7 +109,7 @@ class RegistryAgentTest {
     }
 
     @Test
-    void testApplyShellDescriptor() throws SerializationException, MalformedURLException {
+    void testApplyShellDescriptor() throws SerializationException, URISyntaxException {
         var shellDescriptor = getShellDescriptor();
 
         var mockedResponseBody = resultOf(shellDescriptor);
@@ -122,7 +122,7 @@ class RegistryAgentTest {
 
         mockEmptySubmodelRequest();
 
-        var result = testSubject.apply(new Registry(mockServerUrl));
+        var result = testSubject.apply(new Registry(mockServerUri));
 
         assertTrue(result.succeeded());
 
@@ -130,7 +130,7 @@ class RegistryAgentTest {
 
         assertEquals(1, bodyAsEnvironment.size());
 
-        var env = bodyAsEnvironment.get(new Service.Builder().withUrl(new URL("https://localhost:12345")).build());
+        var env = bodyAsEnvironment.get(new Service.Builder().withUri(new URI("https://localhost:12345")).build());
 
         var shell = Optional.ofNullable(env.getAssetAdministrationShells().get(0)).orElseThrow();
 
@@ -142,7 +142,7 @@ class RegistryAgentTest {
     }
 
     @Test
-    void testApplyEmptySubmodelDescriptor() throws SerializationException, MalformedURLException {
+    void testApplyEmptySubmodelDescriptor() throws SerializationException, URISyntaxException {
         var submodelDescriptor = getEmptySubmodelDescriptor();
 
         mockEmptyShellRequest();
@@ -153,7 +153,7 @@ class RegistryAgentTest {
                 .respond(HttpResponse.response()
                         .withBody(resultOf(submodelDescriptor)));
 
-        var result = testSubject.apply(new Registry(mockServerUrl));
+        var result = testSubject.apply(new Registry(mockServerUri));
 
         assertTrue(result.succeeded());
 
@@ -162,7 +162,7 @@ class RegistryAgentTest {
         assertEquals(1, bodyAsEnvironment.size());
 
         var submodel = Optional.ofNullable(Optional
-                        .ofNullable(bodyAsEnvironment.get(new Service.Builder().withUrl(new URL("https://localhost:12345")).build()))
+                        .ofNullable(bodyAsEnvironment.get(new Service.Builder().withUri(new URI("https://localhost:12345")).build()))
                         .orElseThrow()
                         .getSubmodels()
                         .get(0))
@@ -176,7 +176,7 @@ class RegistryAgentTest {
     }
 
     @Test
-    void testApplySubmodelDescriptor() throws SerializationException, MalformedURLException {
+    void testApplySubmodelDescriptor() throws SerializationException, URISyntaxException {
         var submodelDescriptor = getSubmodelDescriptor();
 
         mockEmptyShellRequest();
@@ -187,7 +187,7 @@ class RegistryAgentTest {
                 .respond(HttpResponse.response()
                         .withBody(resultOf(submodelDescriptor)));
 
-        var result = testSubject.apply(new Registry(mockServerUrl));
+        var result = testSubject.apply(new Registry(mockServerUri));
 
         assertTrue(result.succeeded());
 
@@ -196,7 +196,7 @@ class RegistryAgentTest {
         assertEquals(1, bodyAsEnvironment.size());
 
         var submodel = Optional.ofNullable(Optional
-                        .ofNullable(bodyAsEnvironment.get(new Service.Builder().withUrl(new URL("https://localhost:12345")).build()))
+                        .ofNullable(bodyAsEnvironment.get(new Service.Builder().withUri(new URI("https://localhost:12345")).build()))
                         .orElseThrow()
                         .getSubmodels()
                         .get(0))
@@ -210,16 +210,16 @@ class RegistryAgentTest {
     }
 
     @Test
-    void testApplyNotActuallyRegistry() throws MalformedURLException {
-        var result = testSubject.apply(new Registry(new URL("https://example.com")));
+    void testApplyNotActuallyRegistry() throws URISyntaxException {
+        var result = testSubject.apply(new Registry(new URI("https://example.com")));
 
         assertTrue(result.failed());
         assertEquals(WARNING, result.getFailure().getFailureType());
     }
 
     @Test
-    void testApplyUnreachableRegistry() throws MalformedURLException {
-        var result = testSubject.apply(new Registry(new URL("http://anonymous.invalid")));
+    void testApplyUnreachableRegistry() throws URISyntaxException {
+        var result = testSubject.apply(new Registry(new URI("http://anonymous.invalid")));
 
         assertTrue(result.failed());
         assertEquals(WARNING, result.getFailure().getFailureType());

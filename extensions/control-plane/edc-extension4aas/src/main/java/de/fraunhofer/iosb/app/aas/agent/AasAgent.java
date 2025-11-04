@@ -36,15 +36,15 @@ import org.eclipse.edc.spi.result.Result;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import javax.annotation.Nonnull;
 
+import static de.fraunhofer.iosb.aas.lib.util.InetTools.getSelfSignedCertificate;
+import static de.fraunhofer.iosb.aas.lib.util.InetTools.isConnectionTrusted;
 import static de.fraunhofer.iosb.app.util.HttpClientProvider.clientFor;
-import static de.fraunhofer.iosb.app.util.InetTools.getSelfSignedCertificate;
-import static de.fraunhofer.iosb.app.util.InetTools.isConnectionTrusted;
 import static jakarta.ws.rs.HttpMethod.GET;
 
 /**
@@ -72,7 +72,7 @@ public abstract class AasAgent<T extends AasProvider, U> extends PipelineStep<T,
 
         var response = responseResult.getContent();
 
-        if (response.isSuccessful() && response.body() != null) {
+        if (response.isSuccessful()) {
             return readList(response.body(), clazz);
         }
 
@@ -80,11 +80,11 @@ public abstract class AasAgent<T extends AasProvider, U> extends PipelineStep<T,
     }
 
     private Result<Response> executeRequest(AasProvider provider, String path) {
-        var accessUrl = provider.baseUrl();
+        var accessUri = provider.baseUri();
 
-        var httpClient = getHttpClient(accessUrl);
+        var httpClient = getHttpClient(accessUri);
 
-        var requestUrlBuilder = HttpUrl.get(accessUrl.toString()).newBuilder();
+        var requestUrlBuilder = HttpUrl.get(accessUri.toString()).newBuilder();
 
         var requestPath = path;
 
@@ -109,11 +109,11 @@ public abstract class AasAgent<T extends AasProvider, U> extends PipelineStep<T,
         }
     }
 
-    private EdcHttpClient getHttpClient(URL url) {
-        if (isConnectionTrusted(url) || !CONFIGURATION.isAllowSelfSignedCertificates()) {
+    private EdcHttpClient getHttpClient(URI uri) {
+        if (isConnectionTrusted(uri) || !CONFIGURATION.isAllowSelfSignedCertificates()) {
             return edcHttpClient;
         }
-        var certificate = getSelfSignedCertificate(url);
+        var certificate = getSelfSignedCertificate(uri);
 
         if (certificate.failed()) {
             // Still try to get data with default EDC HTTP client

@@ -31,8 +31,8 @@ import org.mockserver.integration.ClientAndServer;
 import org.mockserver.model.HttpResponse;
 
 import java.net.ConnectException;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 
 import static de.fraunhofer.iosb.aas.test.StringMethods.resultOfCollection;
@@ -56,9 +56,9 @@ class ServiceAgentTest {
     private static final int PORT = getFreePort();
     private static ClientAndServer mockServer;
     private static ServiceAgent testSubject;
-    private final URL mockServerUrl = new URL("http://localhost:%s".formatted(PORT));
+    private final URI mockServerUri = new URI("http://localhost:%s".formatted(PORT));
 
-    ServiceAgentTest() throws MalformedURLException {
+    ServiceAgentTest() throws URISyntaxException {
     }
 
     @BeforeAll
@@ -84,7 +84,7 @@ class ServiceAgentTest {
         var emptyEnvironment = getEmptyEnvironment();
         answerWith(emptyEnvironment);
 
-        PipelineResult<Environment> result = testSubject.apply(new Service.Builder().withUrl(mockServerUrl).build());
+        PipelineResult<Environment> result = testSubject.apply(new Service.Builder().withUri(mockServerUri).build());
 
         assertTrue(result.succeeded());
         assertNotNull(result.getContent());
@@ -99,7 +99,7 @@ class ServiceAgentTest {
         var environment = getEnvironment();
         answerWith(environment);
 
-        PipelineResult<Environment> result = testSubject.apply(new Service.Builder().withUrl(mockServerUrl).build());
+        PipelineResult<Environment> result = testSubject.apply(new Service.Builder().withUri(mockServerUri).build());
 
         assertTrue(result.succeeded());
         assertNotNull(result.getContent());
@@ -108,8 +108,8 @@ class ServiceAgentTest {
     }
 
     @Test
-    void testApplyUnknownHost() throws MalformedURLException {
-        var result = testSubject.apply(new Service.Builder().withUrl(new URL("http://anonymous.invalid")).build());
+    void testApplyUnknownHost() throws URISyntaxException {
+        var result = testSubject.apply(new Service.Builder().withUri(new URI("http://anonymous.invalid")).build());
 
         assertTrue(result.failed());
         assertEquals(WARNING, result.getFailure().getFailureType());
@@ -119,8 +119,8 @@ class ServiceAgentTest {
     }
 
     @Test
-    void testApplyUnreachable() throws MalformedURLException {
-        var result = testSubject.apply(new Service.Builder().withUrl(new URL("http://localhost:" + getFreePort())).build());
+    void testApplyUnreachable() throws URISyntaxException {
+        var result = testSubject.apply(new Service.Builder().withUri(new URI("http://localhost:" + getFreePort())).build());
 
         assertTrue(result.failed());
         assertEquals(WARNING, result.getFailure().getFailureType());
@@ -130,7 +130,7 @@ class ServiceAgentTest {
     @Test
     void test_apply_notActuallyService() {
         // Here, mock server returns no valid response (it is not an AAS service)
-        var result = testSubject.apply(new Service.Builder().withUrl(mockServerUrl).build());
+        var result = testSubject.apply(new Service.Builder().withUri(mockServerUri).build());
 
         assertTrue(result.failed());
         assertEquals(WARNING, result.getFailure().getFailureType());

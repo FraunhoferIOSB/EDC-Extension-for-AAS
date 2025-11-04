@@ -49,7 +49,8 @@ import org.junit.jupiter.api.Test;
 import org.mockserver.integration.ClientAndServer;
 
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
@@ -69,17 +70,17 @@ public class ClientEndpointTest {
 
     private static Monitor monitor;
 
-    private static URL url;
+    private static URI uri;
     private static ClientAndServer mockServer;
     private static PolicyDefinition mockPolicyDefinition;
     private static Catalog mockCatalog;
     private ClientEndpoint clientEndpoint;
 
     @BeforeAll
-    public static void initialize() throws IOException {
+    public static void initialize() throws URISyntaxException {
         monitor = mock(Monitor.class);
         int port = getFreePort();
-        url = new URL(format("http://localhost:%s", port));
+        uri = new URI(format("http://localhost:%s", port));
         mockServer = startClientAndServer(port);
         var mockAsset = Asset.Builder.newInstance().id("test-asset").build();
         var mockPolicy = Policy.Builder.newInstance().target(mockAsset.getId()).build();
@@ -175,7 +176,7 @@ public class ClientEndpointTest {
     public void negotiateContractTest() {
         try (var resultResponse = clientEndpoint.negotiateContract(
                 ContractRequest.Builder.newInstance()
-                        .counterPartyAddress(url.toString())
+                        .counterPartyAddress(uri.toString())
                         .contractOffer(
                                 ContractOffer.Builder.newInstance()
                                         .id(UUID.randomUUID().toString())
@@ -192,7 +193,7 @@ public class ClientEndpointTest {
 
     @Test
     public void negotiateContractAndTransferTest() {
-        try (var response = clientEndpoint.negotiateContract(url, "test-id", "test-asset-id", null)) {
+        try (var response = clientEndpoint.negotiateContract(uri, "test-id", "test-asset-id", null)) {
             assertEquals(INTERNAL_SERVER_ERROR, response.getStatusInfo());
         }
     }

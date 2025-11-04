@@ -42,7 +42,7 @@ class ServiceTest {
 
         var service = new ObjectMapper().readValue(serviceJsonString, Service.class);
 
-        assertEquals("https://localhost:443/api/v3.0", service.baseUrl().toString());
+        assertEquals("https://localhost:443/api/v3.0", service.baseUri().toString());
         assertEquals(Map.of("x-api-key", "password"), service.getHeaders());
 
         assertEquals(referenceToMatch, service.getPolicyBindings().get(0).referredElement());
@@ -59,7 +59,7 @@ class ServiceTest {
 
         var service = new ObjectMapper().readValue(serviceJsonString, Service.class);
 
-        assertEquals("https://localhost:443/api/v3.0", service.baseUrl().toString());
+        assertEquals("https://localhost:443/api/v3.0", service.baseUri().toString());
         assertEquals(Map.of("x-api-key", "password"), service.getHeaders());
 
         assertTrue(service.getPolicyBindings().isEmpty());
@@ -72,7 +72,7 @@ class ServiceTest {
 
         var service = new ObjectMapper().readValue(serviceJsonString, Service.class);
 
-        assertEquals("https://localhost:443/api/v3.0", service.baseUrl().toString());
+        assertEquals("https://localhost:443/api/v3.0", service.baseUri().toString());
 
         assertEquals(Map.of(), service.getHeaders());
 

@@ -32,8 +32,8 @@ import org.junit.jupiter.api.Test;
 import org.mockserver.integration.ClientAndServer;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.UUID;
 
@@ -48,19 +48,19 @@ class AasDataProcessorTest {
 
     static AasDataProcessor testSubject;
     static ClientAndServer mockServer;
-    static URL aasUrl;
+    static URI aasUri;
 
     @BeforeAll
-    static void beforeAll() throws MalformedURLException {
+    static void beforeAll() throws URISyntaxException {
         var port = getFreePort();
         mockServer = startClientAndServer(port);
-        aasUrl = new URL("https://localhost:%s/api/v3.0".formatted(mockServer.getPort()));
+        aasUri = new URI("https://localhost:%s/api/v3.0".formatted(mockServer.getPort()));
 
         testSubject = new AllAasDataProcessorFactory(new DefaultSelfSignedCertificateRetriever(),
                 mock(OkHttpClient.class),
                 RetryPolicy.ofDefaults(),
                 new ConsoleMonitor())
-                .processorFor(aasUrl.toString()).getContent();
+                .processorFor(aasUri.toString()).getContent();
 
     }
 
@@ -84,7 +84,7 @@ class AasDataProcessorTest {
 
     private AasDataAddress getAddress() {
         return AasDataAddress.Builder.newInstance()
-                .baseUrl(aasUrl.toString())
+                .baseUrl(aasUri.toString())
                 .method(HttpMethod.GET)
                 .referenceChain(new DefaultReference.Builder()
                         .keys(List.of(new DefaultKey.Builder().type(KeyTypes.ASSET_ADMINISTRATION_SHELL)

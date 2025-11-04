@@ -19,8 +19,8 @@ import de.fraunhofer.iosb.aas.lib.model.impl.Service;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.junit.jupiter.api.Test;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
@@ -28,8 +28,8 @@ import static org.junit.jupiter.api.Assertions.assertNotSame;
 class ServiceTest {
 
     @Test
-    void testWithReturnsDifferentObjectReference() throws MalformedURLException {
-        Service myService = new Service.Builder().withUrl(new URL("http://aas-access-url")).build();
+    void testWithReturnsDifferentObjectReference() throws URISyntaxException {
+        Service myService = new Service.Builder().withUri(new URI("http://aas-access-url")).build();
 
         var environment = Asset.Builder.newInstance().build();
         Service withedService = myService.with(environment);

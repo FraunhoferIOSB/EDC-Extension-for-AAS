@@ -40,8 +40,8 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.Result;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -74,10 +74,10 @@ public class RegistryAgent extends AasAgent<Registry, Map<Service, Environment>>
         super(edcHttpClient, monitor);
     }
 
-    private static URL convertToUrl(String spec) {
+    private static URI convertToUri(String spec) {
         try {
-            return new URL(spec);
-        } catch (MalformedURLException e) {
+            return new URI(spec);
+        } catch (URISyntaxException e) {
             return null;
         }
     }
@@ -92,7 +92,7 @@ public class RegistryAgent extends AasAgent<Registry, Map<Service, Environment>>
         }
     }
 
-    private PipelineResult<Map<Service, Environment>> readEnvironment(Registry registry) throws MalformedURLException {
+    private PipelineResult<Map<Service, Environment>> readEnvironment(Registry registry) {
         Map<Service, DefaultEnvironment.Builder> environmentsByUrl = new HashMap<>();
 
         Result<List<AssetAdministrationShellDescriptor>> shellDescriptors = readElements(registry,
@@ -123,7 +123,7 @@ public class RegistryAgent extends AasAgent<Registry, Map<Service, Environment>>
     }
 
     private void addSubmodelDescriptors(Map<Service, DefaultEnvironment.Builder> environmentsByUrl,
-                                        List<SubmodelDescriptor> submodelDescriptors) throws MalformedURLException {
+                                        List<SubmodelDescriptor> submodelDescriptors) {
         var submodelEndpointUrlsSorted = sortByHostAndPort(getEndpointUrls(
                 submodelDescriptors.stream()
                         .map(SubmodelDescriptor::getEndpoints)
@@ -131,10 +131,10 @@ public class RegistryAgent extends AasAgent<Registry, Map<Service, Environment>>
                         .toList(),
                 SUBMODEL_DIRECT_ENDPOINT));
 
-        for (URL submodelUrl : submodelEndpointUrlsSorted) {
+        for (URI submodelUrl : submodelEndpointUrlsSorted) {
             for (SubmodelDescriptor descriptor : submodelDescriptors) {
                 Service service = new Service.Builder()
-                        .withUrl(getBaseUrl(submodelUrl))
+                        .withUri(getBaseUri(submodelUrl))
                         .build();
 
                 var descriptorAsSubmodel = asSubmodel(descriptor);
@@ -148,18 +148,18 @@ public class RegistryAgent extends AasAgent<Registry, Map<Service, Environment>>
     }
 
     private void addShellDescriptors(Map<Service, DefaultEnvironment.Builder> environmentsByUrl,
-                                     List<AssetAdministrationShellDescriptor> shellDescriptors) throws MalformedURLException {
-        var shellEndpointUrlsSorted = sortByHostAndPort(getEndpointUrls(
+                                     List<AssetAdministrationShellDescriptor> shellDescriptors) {
+        var shellEndpointUrisSorted = sortByHostAndPort(getEndpointUrls(
                 shellDescriptors.stream()
                         .map(AssetAdministrationShellDescriptor::getEndpoints)
                         .flatMap(Collection::stream)
                         .toList(),
                 SHELL_DIRECT_ENDPOINT));
 
-        for (URL shellUrl : shellEndpointUrlsSorted) {
+        for (URI shellUri : shellEndpointUrisSorted) {
             for (AssetAdministrationShellDescriptor descriptor : shellDescriptors) {
                 Service service = new Service.Builder()
-                        .withUrl(getBaseUrl(shellUrl))
+                        .withUri(getBaseUri(shellUri))
                         .build();
                 var descriptorAsEnvironment = asEnvironment(descriptor);
 
@@ -229,10 +229,10 @@ public class RegistryAgent extends AasAgent<Registry, Map<Service, Environment>>
         return envBuilder.build();
     }
 
-    private List<URL> sortByHostAndPort(List<String> urls) {
-        return urls.stream().map(RegistryAgent::convertToUrl)
+    private List<URI> sortByHostAndPort(List<String> urls) {
+        return urls.stream().map(RegistryAgent::convertToUri)
                 .collect(Collectors.toCollection(ArrayList::new)).stream()
-                .sorted(Comparator.comparing(URL::getHost).thenComparingInt(URL::getPort))
+                .sorted(Comparator.comparing(URI::getHost).thenComparingInt(URI::getPort))
                 .toList();
     }
 
@@ -248,7 +248,7 @@ public class RegistryAgent extends AasAgent<Registry, Map<Service, Environment>>
                 .toList();
     }
 
-    private URL getBaseUrl(URL url) throws MalformedURLException {
-        return new URL(url.getProtocol() + "://" + url.getHost() + (url.getPort() != -1 ? ":" + url.getPort() : ""));
+    private URI getBaseUri(URI uri) {
+        return uri.resolve("/");
     }
 }

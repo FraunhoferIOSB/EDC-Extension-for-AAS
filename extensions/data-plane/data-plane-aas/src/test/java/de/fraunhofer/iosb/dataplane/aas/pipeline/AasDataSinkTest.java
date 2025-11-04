@@ -29,8 +29,8 @@ import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.stream.Stream;
 
@@ -44,12 +44,12 @@ import static org.mockito.Mockito.when;
 
 class AasDataSinkTest {
 
-    static URL destinationUrl;
+    static URI destinationUri;
 
     static {
         try {
-            destinationUrl = new URL("https://localhost:%s/api/v3.0".formatted(getFreePort()));
-        } catch (MalformedURLException e) {
+            destinationUri = new URI("https://localhost:%s/api/v3.0".formatted(getFreePort()));
+        } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
     }
@@ -78,7 +78,7 @@ class AasDataSinkTest {
         when(mockDataSource.openPartStream()).thenReturn(StreamResult.success(Stream.of(mockAasPart)));
 
         // Destination address mock
-        when(mockAasDataAddress.getBaseUrl()).thenReturn(destinationUrl.toString());
+        when(mockAasDataAddress.getBaseUrl()).thenReturn(destinationUri.toString());
 
         AasDataProcessor mockAasDataProcessor = mock(AasDataProcessor.class);
         when(mockAasDataprocessorFactory.processorFor(any())).thenReturn(Result.success(mockAasDataProcessor));

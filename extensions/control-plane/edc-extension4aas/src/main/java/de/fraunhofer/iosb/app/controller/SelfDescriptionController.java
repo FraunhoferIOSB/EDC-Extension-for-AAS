@@ -29,7 +29,7 @@ import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.spi.monitor.Monitor;
 
-import java.net.URL;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
@@ -67,18 +67,18 @@ public class SelfDescriptionController {
      * Print self-descriptions of AAS environments registered at this EDC. If no
      * query parameter is given, print all self-descriptions available.
      *
-     * @param aasServiceUrl Specify an AAS environment by its service
+     * @param aasServiceUri Specify an AAS environment by its service
      * @return Self description(s)
      */
     @GET
-    public Response getSelfDescription(@QueryParam("url") URL aasServiceUrl) throws JsonProcessingException {
-        if (aasServiceUrl == null) {
+    public Response getSelfDescription(@QueryParam("url") URI aasServiceUri) throws JsonProcessingException {
+        if (aasServiceUri == null) {
             monitor.debug(String.format("GET /%s", SELF_DESCRIPTION_PATH));
             return Response.ok(getAllSelfDescriptions()).build();
         }
 
-        monitor.debug(String.format("GET /%s/%s", SELF_DESCRIPTION_PATH, aasServiceUrl));
-        var registry = registryRepository.getEnvironments(aasServiceUrl);
+        monitor.debug(String.format("GET /%s/%s", SELF_DESCRIPTION_PATH, aasServiceUri));
+        var registry = registryRepository.getEnvironments(aasServiceUri);
 
         if (registry != null) {
             var environments = registry.stream()
@@ -88,13 +88,13 @@ public class SelfDescriptionController {
             return Response.ok(environmentsAsSelfDescriptionString(environments)).build();
         }
 
-        var service = serviceRepository.getEnvironment(aasServiceUrl);
+        var service = serviceRepository.getEnvironment(aasServiceUri);
 
         if (service != null) {
             return Response.ok(environmentsAsSelfDescriptionString(List.of(service))).build();
         }
 
-        monitor.warning("URL %s not found.".formatted(aasServiceUrl));
+        monitor.warning("URL %s not found.".formatted(aasServiceUri));
         return Response.status(Response.Status.NOT_FOUND).build();
     }
 

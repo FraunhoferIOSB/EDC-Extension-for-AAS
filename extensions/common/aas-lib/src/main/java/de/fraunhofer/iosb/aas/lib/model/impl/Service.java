@@ -19,7 +19,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import de.fraunhofer.iosb.aas.lib.auth.AuthenticationMethod;
 import de.fraunhofer.iosb.aas.lib.model.AasProvider;
 import de.fraunhofer.iosb.aas.lib.model.PolicyBinding;
-import de.fraunhofer.iosb.aas.lib.net.AasAccessUrl;
+import de.fraunhofer.iosb.aas.lib.net.AasAccessUri;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,12 +35,12 @@ public final class Service extends AasProvider {
     private final List<PolicyBinding> policyBindings;
 
     /**
-     * Create a new service representation with given access url and empty environment and given authentication method.
+     * Create a new service representation with given access uri and empty environment and given authentication method.
      *
      * @param accessUrl            URL for accessing the service.
      * @param authenticationMethod The authentication method required to access this AAS service
      */
-    private Service(AasAccessUrl accessUrl, AuthenticationMethod authenticationMethod, Asset environment, List<PolicyBinding> policyBindings) {
+    private Service(AasAccessUri accessUrl, AuthenticationMethod authenticationMethod, Asset environment, List<PolicyBinding> policyBindings) {
         super(accessUrl, authenticationMethod);
         this.environment = environment;
         this.policyBindings = policyBindings;
@@ -78,13 +78,13 @@ public final class Service extends AasProvider {
     @Override
     public String toString() {
         return "Service[" +
-                "accessUrl=" + baseUrl() + ", " +
+                "accessUrl=" + baseUri() + ", " +
                 "environment=" + environment + ']';
     }
 
     public Builder toBuilder() {
         return new Builder()
-                .aasAccessUrl(this.url)
+                .aasAccessUri(this.uri)
                 .withAuth(this.auth)
                 .withPolicyBindings(this.policyBindings)
                 .environment(this.environment);
@@ -100,7 +100,7 @@ public final class Service extends AasProvider {
         }
 
         public Service build() {
-            return new Service(url, authentication, environment, policyBindings);
+            return new Service(uri, authentication, environment, policyBindings);
         }
     }
 }

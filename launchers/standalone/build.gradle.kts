@@ -26,3 +26,8 @@ dependencies {
     runtimeOnly(libs.edc.auth.configuration)
     implementation(libs.edc.vault.hashicorp)
 }
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}

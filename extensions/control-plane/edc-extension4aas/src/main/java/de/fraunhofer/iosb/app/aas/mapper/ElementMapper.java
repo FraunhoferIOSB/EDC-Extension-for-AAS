@@ -30,7 +30,7 @@ import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.jetbrains.annotations.NotNull;
 
-import java.net.URL;
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -71,13 +71,13 @@ public class ElementMapper {
 
     protected DataAddress createDataAddress(AasProvider provider, Reference reference) {
         return AasDataAddress.Builder.newInstance()
-                .baseUrl(provider.baseUrl().toString())
+                .baseUrl(provider.baseUri().toString())
                 .additionalHeaders(provider.getHeaders())
                 .referenceChain(reference)
                 .build();
     }
 
-    protected DataAddress createDataAddress(URL href) {
+    protected DataAddress createDataAddress(URI href) {
         return AasDataAddress.Builder.newInstance()
                 .baseUrl(href.toString())
                 .build();

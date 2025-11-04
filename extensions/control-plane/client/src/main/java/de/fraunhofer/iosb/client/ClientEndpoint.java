@@ -32,7 +32,7 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 
-import java.net.URL;
+import java.net.URI;
 import java.util.Map;
 import java.util.Objects;
 
@@ -74,7 +74,7 @@ public class ClientEndpoint {
      * Negotiate a contract agreement using the given contract offer if no agreement
      * exists for this constellation.
      *
-     * @param counterPartyUrl Provider EDCs URL (DSP endpoint)
+     * @param counterPartyUri Provider EDCs URI (DSP endpoint)
      * @param counterPartyId  Provider EDCs ID
      * @param assetId         ID of the asset to be retrieved
      * @param dataAddress     DataAddress of destination data sink.
@@ -82,23 +82,23 @@ public class ClientEndpoint {
      */
     @POST
     @Path(NEGOTIATE_PATH)
-    public Response negotiateContract(@QueryParam("providerUrl") URL counterPartyUrl,
+    public Response negotiateContract(@QueryParam("providerUrl") URI counterPartyUri,
                                       @QueryParam("providerId") String counterPartyId,
                                       @QueryParam("assetId") String assetId,
                                       DataAddress dataAddress) {
         monitor.info("POST /%s".formatted(NEGOTIATE_PATH));
-        if (counterPartyUrl == null || counterPartyId == null || assetId == null ||
+        if (counterPartyUri == null || counterPartyId == null || assetId == null ||
                 assetId.isEmpty()) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(MISSING_QUERY_PARAMETER_MESSAGE.formatted("providerUrl, providerId, assetId")).build();
         }
 
         Result<ContractOffer> contractOfferResult =
-                policyController.getAcceptableContractOfferForAssetId(counterPartyId, counterPartyUrl, assetId);
+                policyController.getAcceptableContractOfferForAssetId(counterPartyId, counterPartyUri, assetId);
 
         if (contractOfferResult.failed()) {
             monitor.severe("Getting policies failed for provider %s and asset %s: %s".formatted(
-                    counterPartyUrl, assetId, contractOfferResult.getFailureDetail()));
+                    counterPartyUri, assetId, contractOfferResult.getFailureDetail()));
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity(contractOfferResult.getFailureDetail())
                     .build();
@@ -106,7 +106,7 @@ public class ClientEndpoint {
 
         var contractRequest = ContractRequest.Builder.newInstance()
                 .protocol(DATASPACE_PROTOCOL_HTTP)
-                .counterPartyAddress(counterPartyUrl.toString())
+                .counterPartyAddress(counterPartyUri.toString())
                 .contractOffer(contractOfferResult.getContent())
                 .build();
 
@@ -114,12 +114,12 @@ public class ClientEndpoint {
 
         if (agreementResult.failed()) {
             monitor.severe("Negotiation failed for provider %s and contractOffer %s: %s".formatted(
-                    counterPartyUrl, contractOfferResult.getContent().getId(), agreementResult.getFailureDetail()));
+                    counterPartyUri, contractOfferResult.getContent().getId(), agreementResult.getFailureDetail()));
 
             return Response.serverError().entity(agreementResult.getFailureDetail()).build();
         }
 
-        return transferController.getData(counterPartyUrl, agreementResult.getContent().getId(), dataAddress);
+        return transferController.getData(counterPartyUri, agreementResult.getContent().getId(), dataAddress);
     }
 
     /**

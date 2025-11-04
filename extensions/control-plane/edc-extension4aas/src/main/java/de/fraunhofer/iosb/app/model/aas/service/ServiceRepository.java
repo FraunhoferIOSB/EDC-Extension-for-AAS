@@ -21,7 +21,7 @@ import de.fraunhofer.iosb.app.model.aas.AasProviderRepository;
 import de.fraunhofer.iosb.app.util.AssetUtil;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 
-import java.net.URL;
+import java.net.URI;
 import java.util.Collection;
 import java.util.Objects;
 import javax.annotation.Nullable;
@@ -44,17 +44,17 @@ public class ServiceRepository extends AasProviderRepository<Service> implements
      * If the stored AAS service has no environment, null is returned.
      * If no AAS service is stored for the given serviceUrl, an IllegalArgumentException is thrown.
      *
-     * @param serviceUrl The service URL for which the environment is to be returned.
+     * @param serviceUri The service URL for which the environment is to be returned.
      * @return The AAS environment in form of an EDC Asset.
      */
-    public @Nullable Asset getEnvironment(URL serviceUrl) {
+    public @Nullable Asset getEnvironment(URI serviceUri) {
         return getAll().stream()
                 .filter(service ->
-                        service.baseUrl().toString()
-                                .equals(serviceUrl.toString()))
+                        service.baseUri().toString()
+                                .equals(serviceUri.toString()))
                 .findAny()
                 .orElseThrow(() ->
-                        new IllegalArgumentException("AAS service with URL %s not found".formatted(serviceUrl)))
+                        new IllegalArgumentException("AAS service with URL %s not found".formatted(serviceUri)))
                 .getEnvironment();
     }
 

@@ -17,6 +17,7 @@ package de.fraunhofer.iosb.app;
 
 import de.fraunhofer.iosb.aas.lib.model.impl.Registry;
 import de.fraunhofer.iosb.aas.lib.model.impl.Service;
+import de.fraunhofer.iosb.aas.lib.util.InetTools;
 import de.fraunhofer.iosb.api.PublicApiManagementService;
 import de.fraunhofer.iosb.api.model.HttpMethod;
 import de.fraunhofer.iosb.app.aas.agent.impl.RegistryAgent;
@@ -40,7 +41,6 @@ import de.fraunhofer.iosb.app.pipeline.helper.Filter;
 import de.fraunhofer.iosb.app.pipeline.helper.InputOutputZipper;
 import de.fraunhofer.iosb.app.pipeline.helper.MapValueProcessor;
 import de.fraunhofer.iosb.app.sync.Synchronizer;
-import de.fraunhofer.iosb.app.util.InetTools;
 import de.fraunhofer.iosb.app.util.VariableRateScheduler;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
@@ -49,12 +49,13 @@ import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.web.spi.WebService;
 
-import java.net.URL;
+import java.net.URI;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
@@ -64,8 +65,6 @@ import java.util.function.Function;
 
 import static de.fraunhofer.iosb.app.controller.SelfDescriptionController.SELF_DESCRIPTION_PATH;
 import static de.fraunhofer.iosb.app.pipeline.PipelineFailure.Type.FATAL;
-import static de.fraunhofer.iosb.app.util.InetTools.getSelfSignedCertificate;
-import static de.fraunhofer.iosb.app.util.InetTools.isConnectionTrusted;
 import static de.fraunhofer.iosb.constants.AasConstants.AAS_PREFIX;
 import static de.fraunhofer.iosb.constants.AasConstants.AAS_V30_NAMESPACE;
 
@@ -189,7 +188,7 @@ public class AasExtension implements ServiceExtension {
 
         if (Objects.nonNull(configInstance.getRemoteAasLocation())) {
             serviceRepository.create(new Service.Builder()
-                    .withUrl(configInstance.getRemoteAasLocation())
+                    .withUri(configInstance.getRemoteAasLocation())
                     .build());
         }
 
@@ -203,12 +202,12 @@ public class AasExtension implements ServiceExtension {
             aasConfigPath = Path.of(configInstance.getAasServiceConfigPath());
         }
 
-        URL serviceUrl;
+        URI serviceUri;
         try {
             if (configInstance.getLocalAasServicePort() == 0 && aasConfigPath == null) {
-                serviceUrl = aasController.startService(Path.of(configInstance.getLocalAasModelPath()));
+                serviceUri = aasController.startService(Path.of(configInstance.getLocalAasModelPath()));
             } else {
-                serviceUrl = aasController.startService(
+                serviceUri = aasController.startService(
                         Path.of(configInstance.getLocalAasModelPath()),
                         configInstance.getLocalAasServicePort(),
                         aasConfigPath);
@@ -222,12 +221,12 @@ public class AasExtension implements ServiceExtension {
         // Now, check if the created service
         // - has a valid certificate OR
         // - has a self-signed one AND we accept self-signed
-        if (isConnectionTrusted(serviceUrl) || (configInstance.isAllowSelfSignedCertificates() && getSelfSignedCertificate(serviceUrl).succeeded())) {
+        if (isConnectionTrusted(serviceUri) || (configInstance.isAllowSelfSignedCertificates() && getSelfSignedCertificate(serviceUri).succeeded())) {
             serviceRepository.create(new Service.Builder()
-                    .withUrl(serviceUrl)
+                    .withUri(serviceUri)
                     .build());
         } else {
-            aasController.stopService(serviceUrl);
+            aasController.stopService(serviceUri);
             monitor.severe("AAS service uses self-signed (not allowed) or otherwise invalid certificate.");
         }
     }

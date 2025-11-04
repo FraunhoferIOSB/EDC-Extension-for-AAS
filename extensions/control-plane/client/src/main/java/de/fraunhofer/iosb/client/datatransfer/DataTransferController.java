@@ -37,7 +37,7 @@ import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.web.spi.WebService;
 
-import java.net.URL;
+import java.net.URI;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -111,7 +111,7 @@ public class DataTransferController {
      */
     @POST
     @Path(TRANSFER_PATH)
-    public Response getData(@QueryParam("providerUrl") URL providerUrl,
+    public Response getData(@QueryParam("providerUrl") URI providerUrl,
                             @QueryParam("agreementId") String agreementId,
                             DataAddress dataAddress) {
         monitor.info("GET /%s".formatted(TRANSFER_PATH));
@@ -176,7 +176,7 @@ public class DataTransferController {
      * Initiates the transfer process defined by the arguments. The data of the
      * transfer will be sent to {@link DataTransferEndpoint#RECEIVE_DATA_PATH}.
      *
-     * @param providerUrl     The provider from whom the data is to be fetched.
+     * @param providerUri     The provider from whom the data is to be fetched.
      * @param agreementId     Non-null ContractAgreement of the negotiation process.
      * @param dataSinkAddress DataAddress the result of the transfer should be
      *                        sent to. (If null, send to extension and print in log)
@@ -184,20 +184,20 @@ public class DataTransferController {
      * @throws InterruptedException If the data transfer was interrupted
      * @throws ExecutionException   If the data transfer process failed
      */
-    private StatusResult<String> initiateTransferProcess(URL providerUrl, String agreementId,
+    private StatusResult<String> initiateTransferProcess(URI providerUri, String agreementId,
                                                          DataAddress dataSinkAddress)
             throws InterruptedException, ExecutionException {
         if (dataSinkAddress == null) {
-            return initiateTransferProcess(providerUrl, agreementId);
+            return initiateTransferProcess(providerUri, agreementId);
         }
 
-        transferInitiator.initiateTransferProcess(providerUrl, agreementId, dataSinkAddress);
+        transferInitiator.initiateTransferProcess(providerUri, agreementId, dataSinkAddress);
         // Don't have to wait for data
         return StatusResult.success(null);
     }
 
     /* Send result of transferProcess to extension endpoint */
-    private StatusResult<String> initiateTransferProcess(URL providerUrl, String agreementId)
+    private StatusResult<String> initiateTransferProcess(URI providerUri, String agreementId)
             throws ExecutionException, InterruptedException {
         // Prepare for incoming data
         var providerDataFuture = dataTransferObservable.register(agreementId);
@@ -205,7 +205,7 @@ public class DataTransferController {
         var apiKey = UUID.randomUUID().toString();
         dataTransferEndpointManager.addTemporaryEndpoint(agreementId, DATA_TRANSFER_API_KEY, apiKey);
 
-        var initiateResult = transferInitiator.initiateTransferProcess(providerUrl, agreementId, apiKey);
+        var initiateResult = transferInitiator.initiateTransferProcess(providerUri, agreementId, apiKey);
 
         return initiateResult.succeeded() ? waitForProviderData(providerDataFuture, agreementId) :
                 StatusResult.failure(initiateResult.getFailure().status(), initiateResult.getFailureDetail());

@@ -20,8 +20,9 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import de.fraunhofer.iosb.aas.lib.auth.impl.ApiKey;
 import de.fraunhofer.iosb.aas.lib.auth.impl.BasicAuth;
 import de.fraunhofer.iosb.aas.lib.auth.impl.NoAuth;
-import org.eclipse.edc.spi.security.Vault;
+import de.fraunhofer.iosb.aas.lib.auth.impl.VaultAuth;
 
+import java.net.http.HttpClient;
 import java.util.AbstractMap;
 import java.util.Map;
 
@@ -33,7 +34,7 @@ import java.util.Map;
 @JsonSubTypes({
         @JsonSubTypes.Type(value = BasicAuth.class, name = "basic"),
         @JsonSubTypes.Type(value = ApiKey.class, name = "api-key"),
-        @JsonSubTypes.Type(value = Vault.class, name = "vault"),
+        @JsonSubTypes.Type(value = VaultAuth.class, name = "vault"),
         @JsonSubTypes.Type(value = NoAuth.class)
 })
 public abstract class AuthenticationMethod {
@@ -49,4 +50,7 @@ public abstract class AuthenticationMethod {
     }
 
     protected abstract String getValue();
+
+    public abstract HttpClient.Builder httpClientBuilderFor();
+
 }

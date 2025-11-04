@@ -19,6 +19,9 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import de.fraunhofer.iosb.aas.lib.auth.AuthenticationMethod;
 
+import java.net.Authenticator;
+import java.net.PasswordAuthentication;
+import java.net.http.HttpClient;
 import java.util.AbstractMap;
 import java.util.Map;
 
@@ -46,5 +49,15 @@ public class ApiKey extends AuthenticationMethod {
     @Override
     protected String getValue() {
         return keyValue;
+    }
+
+    @Override
+    public HttpClient.Builder httpClientBuilderFor() {
+        // TODO
+        return HttpClient.newBuilder().authenticator(new Authenticator() {
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(keyName, keyValue.toCharArray());
+            }
+        });
     }
 }

@@ -18,6 +18,9 @@ package de.fraunhofer.iosb.aas.lib.auth.impl;
 import de.fraunhofer.iosb.aas.lib.auth.AuthenticationMethod;
 import org.eclipse.edc.spi.security.Vault;
 
+import java.net.Authenticator;
+import java.net.PasswordAuthentication;
+import java.net.http.HttpClient;
 import java.util.AbstractMap;
 import java.util.Map;
 
@@ -25,6 +28,8 @@ import java.util.Map;
  * Get vault secret for authentication with x-api-key
  */
 public class VaultAuth extends AuthenticationMethod {
+
+    private static final String KEY = "x-api-key";
 
     private final Vault vault;
     private final String alias;
@@ -36,11 +41,21 @@ public class VaultAuth extends AuthenticationMethod {
 
     @Override
     public Map.Entry<String, String> getHeader() {
-        return new AbstractMap.SimpleEntry<>("x-api-key", getValue());
+        return new AbstractMap.SimpleEntry<>(KEY, getValue());
     }
 
     @Override
     protected String getValue() {
         return vault.resolveSecret(alias);
+    }
+
+    @Override
+    public HttpClient.Builder httpClientBuilderFor() {
+        // TODO
+        return HttpClient.newBuilder().authenticator(new Authenticator() {
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(KEY, getValue().toCharArray());
+            }
+        });
     }
 }

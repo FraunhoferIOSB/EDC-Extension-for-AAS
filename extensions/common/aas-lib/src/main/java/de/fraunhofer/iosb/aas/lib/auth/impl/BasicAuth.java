@@ -18,6 +18,9 @@ package de.fraunhofer.iosb.aas.lib.auth.impl;
 
 import de.fraunhofer.iosb.aas.lib.auth.AuthenticationMethod;
 
+import java.net.Authenticator;
+import java.net.PasswordAuthentication;
+import java.net.http.HttpClient;
 import java.util.Base64;
 import java.util.Objects;
 
@@ -41,4 +44,13 @@ public class BasicAuth extends AuthenticationMethod {
         return "Basic %s".formatted(BASE64_ENCODER.encodeToString("%s:%s".formatted(username, password).getBytes()));
     }
 
+
+    @Override
+    public HttpClient.Builder httpClientBuilderFor() {
+        return HttpClient.newBuilder().authenticator(new Authenticator() {
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(username, password.toCharArray());
+            }
+        });
+    }
 }

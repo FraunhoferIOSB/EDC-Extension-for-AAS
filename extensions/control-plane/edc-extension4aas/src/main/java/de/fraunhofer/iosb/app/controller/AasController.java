@@ -16,15 +16,14 @@
 package de.fraunhofer.iosb.app.controller;
 
 import de.fraunhofer.iosb.aas.lib.model.impl.Service;
-import de.fraunhofer.iosb.app.aas.AssetAdministrationShellServiceManager;
-import de.fraunhofer.iosb.app.aas.FaaastServiceManager;
 import de.fraunhofer.iosb.app.model.ids.SelfDescriptionChangeListener;
+import de.fraunhofer.iosb.repository.AasRepositoryManager;
+import de.fraunhofer.iosb.repository.impl.faaast.FaaastRepositoryConfig;
 import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
-import java.util.Objects;
 
 /**
  * Handles requests regarding the Asset Administration Shells registered to this
@@ -32,46 +31,38 @@ import java.util.Objects;
  */
 public class AasController implements SelfDescriptionChangeListener {
 
-    private final AssetAdministrationShellServiceManager aasServiceManager;
+    private final AasRepositoryManager<FaaastRepositoryConfig> aasRepositoryManager;
     private final Monitor monitor;
 
     /**
      * Class constructor
      *
-     * @param monitor Logging
+     * @param monitor              Logging
+     * @param aasRepositoryManager AAS Repository manager implementation to start AAS repositories
      */
-    public AasController(Monitor monitor) {
+    public AasController(Monitor monitor, AasRepositoryManager<FaaastRepositoryConfig> aasRepositoryManager) {
         this.monitor = monitor;
-        aasServiceManager = new FaaastServiceManager(monitor);
+        this.aasRepositoryManager = aasRepositoryManager;
     }
 
     /**
      * Starts an AAS service internally
      *
-     * @param model  AAS Environment for the AAS service
-     * @param port   AAS service's exposed HTTP port for communication
-     *               with this extension
-     * @param config AAS config (optional)
+     * @param model      AAS Environment for the AAS service
+     * @param port       AAS service's exposed HTTP port for communication
+     *                   with this extension
+     * @param configPath AAS configPath (optional)
      * @return The URL of the new service or null on error
-     * @throws IOException If the URL creation fails
+     * @throws URISyntaxException If the URI creation fails
      */
-    public URL startService(Path model, int port, Path config) throws IOException {
-        Objects.requireNonNull(model);
+    public URI startService(Path model, int port, Path configPath) throws URISyntaxException {
+        FaaastRepositoryConfig config = FaaastRepositoryConfig.Builder.newInstance()
+                .model(model)
+                .port(port)
+                .configPath(configPath)
+                .build();
 
-        URL serviceUrl;
-        if (config == null && port != 0) {
-            monitor.info("Starting AAS service with AAS model (%s) and service port (%s)."
-                    .formatted(model, port));
-            serviceUrl = aasServiceManager.startService(model, port);
-        } else if (config != null) {
-            monitor.info("Starting AAS service with AAS model (%s) and service config (%s)."
-                    .formatted(model, config));
-            serviceUrl = aasServiceManager.startService(model, config);
-        } else {
-            throw new IllegalArgumentException("Config or port must be specified.");
-        }
-
-        return serviceUrl;
+        return aasRepositoryManager.startRepository(config).getUri();
     }
 
     /**
@@ -79,11 +70,14 @@ public class AasController implements SelfDescriptionChangeListener {
      *
      * @param model AAS Environment for the AAS service
      * @return The URL of the new service or null on error
-     * @throws IOException If the URL creation fails
+     * @throws URISyntaxException If the URI creation fails
      */
-    public URL startService(Path model) throws IOException {
-        Objects.requireNonNull(model);
-        return aasServiceManager.startService(model);
+    public URI startService(Path model) throws URISyntaxException {
+        FaaastRepositoryConfig config = FaaastRepositoryConfig.Builder.newInstance()
+                .model(model)
+                .build();
+
+        return aasRepositoryManager.startRepository(config).getUri();
     }
 
     /**
@@ -93,7 +87,7 @@ public class AasController implements SelfDescriptionChangeListener {
      */
     public void stopService(URI aasServiceUrl) {
         monitor.info("Stopping AAS service with URL %s".formatted(aasServiceUrl.toString()));
-        aasServiceManager.stopService(aasServiceUrl);
+        aasRepositoryManager.stopRepository(aasServiceUrl);
     }
 
     /**
@@ -101,7 +95,7 @@ public class AasController implements SelfDescriptionChangeListener {
      */
     public void stopServices() {
         monitor.info("Stopping all internally started AAS services...");
-        aasServiceManager.stopServices();
+        aasRepositoryManager.stopAll();
     }
 
     @Override

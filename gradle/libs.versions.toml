@@ -6,6 +6,7 @@ fa3st = "1.2.0"
 aas4j = "1.0.5"
 edc = "0.14.1"
 edc-build = "1.1.1"
+fa3st-client = "1.1.0-SNAPSHOT"
 
 commons-io = "2.20.0"
 jersey = "3.1.11"
@@ -19,6 +20,7 @@ wiremock = "3.13.1"
 [libraries]
 fa3st-model = { module = "de.fraunhofer.iosb.ilt.faaast.service:model", version.ref = "fa3st" }
 fa3st-starter = { module = "de.fraunhofer.iosb.ilt.faaast.service:starter", version.ref = "fa3st" }
+fa3st-client = { module = "de.fraunhofer.iosb.ilt.faaast.client:core", version.ref = "fa3st-client" }
 aas4j-dataformat-json = { module = "org.eclipse.digitaltwin.aas4j:aas4j-dataformat-json", version.ref = "aas4j" }
 aas4j-model = { module = "org.eclipse.digitaltwin.aas4j:aas4j-model", version.ref = "aas4j" }
 edc-controlplane-base-bom = { module = "org.eclipse.edc:controlplane-base-bom", version.ref = "edc" }
@@ -31,6 +33,7 @@ edc-auth-configuration = { module = "org.eclipse.edc:auth-configuration", versio
 edc-auth-spi = { module = "org.eclipse.edc:auth-spi", version.ref = "edc" }
 edc-auth-tokenbased = { module = "org.eclipse.edc:auth-tokenbased", version.ref = "edc" }
 edc-boot = { module = "org.eclipse.edc:boot", version.ref = "edc" }
+edc-boot-spi = { module = "org.eclipse.edc:boot-spi", version.ref = "edc" }
 edc-configuration-filesystem = { module = "org.eclipse.edc:configuration-filesystem", version.ref = "edc" }
 edc-connector-core = { module = "org.eclipse.edc:connector-core", version.ref = "edc" }
 edc-contract-spi = { module = "org.eclipse.edc:contract-spi", version.ref = "edc" }
@@ -62,7 +65,7 @@ edc-util-lib = { module = "org.eclipse.edc:util-lib", version.ref = "edc" }
 edc-validator-spi = { module = "org.eclipse.edc:validator-spi", version.ref = "edc" }
 edc-vault-hashicorp = { module = "org.eclipse.edc:vault-hashicorp", version.ref = "edc" }
 
-commons-io = { module = "commons-io:commons-io", version.ref = "commons-io"}
+commons-io = { module = "commons-io:commons-io", version.ref = "commons-io" }
 jersey-common = { module = "org.glassfish.jersey.core:jersey-common", version.ref = "jersey" }
 junit-bom = { module = "org.junit:junit-bom", version.ref = "junit-bom" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junit-platform-launcher" }

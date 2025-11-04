@@ -15,6 +15,7 @@
  */
 package de.fraunhofer.iosb.app;
 
+import de.fraunhofer.iosb.AasRepositoryRegistry;
 import de.fraunhofer.iosb.aas.lib.model.impl.Registry;
 import de.fraunhofer.iosb.aas.lib.model.impl.Service;
 import de.fraunhofer.iosb.aas.lib.util.InetTools;
@@ -42,6 +43,9 @@ import de.fraunhofer.iosb.app.pipeline.helper.InputOutputZipper;
 import de.fraunhofer.iosb.app.pipeline.helper.MapValueProcessor;
 import de.fraunhofer.iosb.app.sync.Synchronizer;
 import de.fraunhofer.iosb.app.util.VariableRateScheduler;
+import de.fraunhofer.iosb.repository.AasRepositoryManager;
+import de.fraunhofer.iosb.repository.impl.faaast.FaaastRepositoryConfig;
+import de.fraunhofer.iosb.repository.impl.faaast.FaaastRepositoryManager;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
@@ -63,6 +67,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 
+import static de.fraunhofer.iosb.aas.lib.util.InetTools.getSelfSignedCertificate;
+import static de.fraunhofer.iosb.aas.lib.util.InetTools.isConnectionTrusted;
 import static de.fraunhofer.iosb.app.controller.SelfDescriptionController.SELF_DESCRIPTION_PATH;
 import static de.fraunhofer.iosb.app.pipeline.PipelineFailure.Type.FATAL;
 import static de.fraunhofer.iosb.constants.AasConstants.AAS_PREFIX;
@@ -77,6 +83,8 @@ public class AasExtension implements ServiceExtension {
     public static final String NAME = "EDC4AAS Extension";
 
     private static final String SETTINGS_PREFIX = "edc.aas";
+    @Inject // Register public endpoints
+    private AasRepositoryRegistry aasRepositoryRegistry;
     @Inject // Register public endpoints
     private PublicApiManagementService publicApiManagementService;
     @Inject
@@ -105,7 +113,10 @@ public class AasExtension implements ServiceExtension {
 
         this.monitor = context.getMonitor().withPrefix(NAME);
         webService.registerResource(new ConfigurationController(context.getConfig(SETTINGS_PREFIX), monitor));
-        aasController = new AasController(monitor);
+        AasRepositoryManager<FaaastRepositoryConfig> faaastRepositoryManager = aasRepositoryRegistry.getFor(FaaastRepositoryManager.class)
+                .orElseThrow((t) -> new EdcException(String.format("Failed instantiating AAS extension: %s", t.getFailureDetail())));
+
+        aasController = new AasController(monitor, faaastRepositoryManager);
 
         serviceRepository = new ServiceRepository();
         registryRepository = new RegistryRepository();

@@ -32,7 +32,7 @@ import java.util.function.Supplier;
  */
 public class Pipeline<I, O> implements Runnable {
 
-    private final List<PipelineStep<?, ?>> pipelineSteps;
+    protected final List<PipelineStep<?, ?>> pipelineSteps;
     private final Monitor monitor;
 
     protected Pipeline(List<PipelineStep<?, ?>> pipelineSteps, Monitor monitor) {

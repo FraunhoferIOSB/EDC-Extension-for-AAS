@@ -73,7 +73,7 @@ class AllAasDataProcessorFactoryTest {
         return AasDataAddress.Builder.newInstance()
                 .baseUrl(baseUri.toString())
                 .method("GET")
-                .referenceChain(new DefaultReference.Builder()
+                .reference(new DefaultReference.Builder()
                         .type(ReferenceTypes.MODEL_REFERENCE)
                         .keys(new DefaultKey.Builder()
                                 .type(KeyTypes.ASSET_ADMINISTRATION_SHELL)

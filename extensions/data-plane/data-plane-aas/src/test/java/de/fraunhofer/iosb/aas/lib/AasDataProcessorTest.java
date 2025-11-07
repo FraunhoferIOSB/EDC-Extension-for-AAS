@@ -86,7 +86,7 @@ class AasDataProcessorTest {
         return AasDataAddress.Builder.newInstance()
                 .baseUrl(aasUri.toString())
                 .method(HttpMethod.GET)
-                .referenceChain(new DefaultReference.Builder()
+                .reference(new DefaultReference.Builder()
                         .keys(List.of(new DefaultKey.Builder().type(KeyTypes.ASSET_ADMINISTRATION_SHELL)
                                 .value(UUID.randomUUID().toString()).build()))
                         .build())

@@ -13,24 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.model.context;
+package de.fraunhofer.iosb.model.context.repository;
 
 import de.fraunhofer.iosb.aas.lib.model.PolicyBinding;
 import de.fraunhofer.iosb.aas.lib.util.InetTools;
+import de.fraunhofer.iosb.model.context.AasServerContext;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public abstract class AasRepositoryContext {
+public abstract class AasRepositoryContext extends AasServerContext {
 
-    private final URI uri;
-    private List<PolicyBinding> policyBindings;
+    private final List<PolicyBinding> policyBindings;
 
 
-    protected AasRepositoryContext(URI uri) {
-        this.uri = uri;
+    protected AasRepositoryContext(URI uri, List<PolicyBinding> policyBindings) {
+        super(uri);
+        this.policyBindings = policyBindings;
     }
 
     /**
@@ -42,29 +44,23 @@ public abstract class AasRepositoryContext {
         return InetTools.pingHost(getUri().getHost(), getUri().getPort());
     }
 
-    /**
-     * Get the full URI to access this AAS repository, including
-     *
-     * @return The full accessor URI for this repository, e.g., <a href="">https://my-aas:1337/api/v3.0</a>.
-     */
-    public URI getUri() {
-        return uri;
-    }
-
     public List<PolicyBinding> getPolicyBindings() {
         return policyBindings;
     }
 
-    public void setPolicyBindings(List<PolicyBinding> policyBindings) {
-        this.policyBindings = policyBindings;
-    }
-
+    /**
+     * Returns references that shall be registered by this extension. If all elements shall be registered, the optional will be empty.
+     *
+     * @return References to register to EDC.
+     */
     public List<Reference> getReferences() {
-        return policyBindings.stream().map(PolicyBinding::referredElement).toList();
+        return policyBindings.stream()
+                .map(PolicyBinding::referredElement).toList();
     }
 
     public abstract static class AbstractBuilder<T extends AasRepositoryContext, B extends AbstractBuilder<T, B>> {
         protected URI uri;
+        protected List<PolicyBinding> policyBindings;
 
         protected AbstractBuilder() {
         }
@@ -74,6 +70,11 @@ public abstract class AasRepositoryContext {
             return (B) this;
         }
 
+        public B policyBindings(List<PolicyBinding> policyBindings) {
+            this.policyBindings = policyBindings;
+            return self();
+        }
+
         public B uri(URI uri) {
             this.uri = uri;
             return self();
@@ -81,6 +82,7 @@ public abstract class AasRepositoryContext {
 
         protected void validate() {
             Objects.requireNonNull(uri, "Access URI must be non-null!");
+            policyBindings = Objects.requireNonNullElse(policyBindings, new ArrayList<>());
         }
     }
 

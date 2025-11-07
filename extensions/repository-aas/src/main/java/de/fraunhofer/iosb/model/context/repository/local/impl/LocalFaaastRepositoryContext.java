@@ -13,105 +13,88 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.model.context.impl;
+package de.fraunhofer.iosb.model.context.repository.local.impl;
 
-import de.fraunhofer.iosb.client.exception.NotFoundException;
+import de.fraunhofer.iosb.aas.lib.model.PolicyBinding;
 import de.fraunhofer.iosb.ilt.faaast.service.exception.MessageBusException;
 import de.fraunhofer.iosb.ilt.faaast.service.messagebus.MessageBus;
 import de.fraunhofer.iosb.ilt.faaast.service.model.api.modifier.QueryModifier;
 import de.fraunhofer.iosb.ilt.faaast.service.model.api.paging.PagingInfo;
 import de.fraunhofer.iosb.ilt.faaast.service.model.exception.PersistenceException;
 import de.fraunhofer.iosb.ilt.faaast.service.model.exception.ResourceNotFoundException;
-import de.fraunhofer.iosb.ilt.faaast.service.model.messagebus.EventMessage;
 import de.fraunhofer.iosb.ilt.faaast.service.model.messagebus.SubscriptionId;
 import de.fraunhofer.iosb.ilt.faaast.service.model.messagebus.SubscriptionInfo;
 import de.fraunhofer.iosb.ilt.faaast.service.persistence.Persistence;
-import de.fraunhofer.iosb.ilt.faaast.service.util.ReferenceHelper;
-import de.fraunhofer.iosb.model.context.AasRepositoryContext;
-import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.util.AasUtils;
+import de.fraunhofer.iosb.model.context.repository.AasRepositoryContext;
 import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShell;
 import org.eclipse.digitaltwin.aas4j.v3.model.ConceptDescription;
 import org.eclipse.digitaltwin.aas4j.v3.model.Identifiable;
-import org.eclipse.digitaltwin.aas4j.v3.model.Key;
 import org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes;
-import org.eclipse.digitaltwin.aas4j.v3.model.Referable;
-import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.digitaltwin.aas4j.v3.model.Submodel;
-import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultEnvironment;
 import org.eclipse.edc.spi.EdcException;
 
 import java.net.URI;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Consumer;
 
-import static org.eclipse.digitaltwin.aas4j.v3.model.ReferenceTypes.EXTERNAL_REFERENCE;
+import static de.fraunhofer.iosb.model.context.repository.remote.RemoteAasRepositoryContext.ERR_MSG_TEMPLATE;
 
-public class FaaastRepositoryContext extends AasRepositoryContext {
-    private static final String ERR_MSG_TEMPLATE = "%s from %s failed.";
+public class LocalFaaastRepositoryContext extends AasRepositoryContext {
 
     private final MessageBus<?> messageBus;
     private final Persistence<?> persistence;
 
 
-    private FaaastRepositoryContext(URI uri, MessageBus<?> messageBus, Persistence<?> persistence) {
-        super(uri);
+    private LocalFaaastRepositoryContext(URI uri, MessageBus<?> messageBus, Persistence<?> persistence, List<PolicyBinding> policyBindings) {
+        super(uri, policyBindings);
         this.messageBus = messageBus;
         this.persistence = persistence;
     }
 
-    public <T extends EventMessage> SubscriptionId subscribeTo(Class<T> messageClass, Consumer<T> consumer) {
-        try {
-            return messageBus.subscribe(SubscriptionInfo.create(messageClass, consumer));
-        } catch (MessageBusException messageBusException) {
-            throw new EdcException(String.format(ERR_MSG_TEMPLATE, "Subscribing to event", getUri()), messageBusException);
-        }
+    public SubscriptionId subscribe(SubscriptionInfo subscriptionInfo) throws MessageBusException {
+        return messageBus.subscribe(subscriptionInfo);
     }
 
-    public void unsubscribeFrom(SubscriptionId id) {
-        try {
-            messageBus.unsubscribe(id);
-        } catch (MessageBusException messageBusException) {
-            throw new EdcException(String.format(ERR_MSG_TEMPLATE, "Unsubscribing from event", getUri()), messageBusException);
-        }
+    public void unsubscribe(SubscriptionId id) throws MessageBusException {
+        messageBus.unsubscribe(id);
     }
 
-    /**
-     * For a given reference, get the referable from this FA³ST repository. Can be an identifiable as well.
-     *
-     * @param reference The reference for the referable to get.
-     * @param clazz     The actual class of the reference.
-     * @param <R>       Type of the referable.
-     * @return The referable referenced by the reference.
-     */
-    @SuppressWarnings("unchecked")
-    public <R extends Referable> R getReferable(Reference reference, Class<R> clazz) throws NotFoundException {
-        if (EXTERNAL_REFERENCE == ReferenceHelper.determineReferenceType(reference)) {
-            throw new IllegalArgumentException("Cannot get referable by external reference.");
-        }
-
-        if (reference.getKeys().isEmpty()) {
-            throw new NotFoundException("Reference has no keys.");
-        }
-
-        Key root = ReferenceHelper.getRoot(reference);
-        KeyTypes rootType = root.getType();
-        String rootId = root.getValue();
-
-        var superElement = getById(rootType, rootId);
-
-        if (reference.getKeys().size() == 1) {
-            // unchecked: Identifiable is a direct implementor of Referable
-            return (R) superElement;
-        }
-
-        if (superElement instanceof Submodel submodel) {
-            // We know that nested references can only be submodel elements.
-            return AasUtils.resolve(reference, new DefaultEnvironment.Builder().submodels(submodel).build(), clazz);
-        }
-
-        throw new IllegalArgumentException(String.format("Reference malformed: %s", ReferenceHelper.toString(reference)));
-    }
+//    /**
+//     * For a given reference, get the referable from this FA³ST repository. Can be an identifiable as well.
+//     *
+//     * @param reference The reference for the referable to get.
+//     * @param clazz     The actual class of the reference.
+//     * @param <R>       Type of the referable.
+//     * @return The referable referenced by the reference.
+//     */
+//    @SuppressWarnings("unchecked")
+//    public <R extends Referable> R getReferable(Reference reference, Class<R> clazz) throws NotFoundException {
+//        if (EXTERNAL_REFERENCE == ReferenceHelper.determineReferenceType(reference)) {
+//            throw new IllegalArgumentException("Cannot get referable by external reference.");
+//        }
+//
+//        if (reference.getKeys().isEmpty()) {
+//            throw new NotFoundException("Reference has no keys.");
+//        }
+//
+//        Key root = ReferenceHelper.getRoot(reference);
+//        KeyTypes rootType = root.getType();
+//        String rootId = root.getValue();
+//
+//        var superElement = getById(rootType, rootId);
+//
+//        if (reference.getKeys().size() == 1) {
+//            // unchecked: Identifiable is a direct implementor of Referable
+//            return (R) superElement;
+//        }
+//
+//        if (superElement instanceof Submodel submodel) {
+//            // We know that nested references can only be submodel elements.
+//            return AasUtils.resolve(reference, new DefaultEnvironment.Builder().submodels(submodel).build(), clazz);
+//        }
+//
+//        throw new IllegalArgumentException(String.format("Reference malformed: %s", ReferenceHelper.toString(reference)));
+//    }
 
     private <I extends Identifiable> I getById(KeyTypes type, String id) {
         try {
@@ -151,7 +134,7 @@ public class FaaastRepositoryContext extends AasRepositoryContext {
         }
     }
 
-    public static class Builder extends AbstractBuilder<FaaastRepositoryContext, Builder> {
+    public static class Builder extends AbstractBuilder<LocalFaaastRepositoryContext, Builder> {
         private MessageBus<?> messageBus;
         private Persistence<?> persistence;
 
@@ -168,12 +151,12 @@ public class FaaastRepositoryContext extends AasRepositoryContext {
             return this;
         }
 
-        public FaaastRepositoryContext build() {
+        public LocalFaaastRepositoryContext build() {
             super.validate();
             Objects.requireNonNull(messageBus, "FA³ST MessageBus cannot be null");
             Objects.requireNonNull(persistence, "FA³ST Persistence cannot be null");
 
-            return new FaaastRepositoryContext(uri, messageBus, persistence);
+            return new LocalFaaastRepositoryContext(uri, messageBus, persistence, policyBindings);
         }
     }
 }

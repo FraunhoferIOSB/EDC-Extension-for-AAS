@@ -15,7 +15,7 @@
  */
 package de.fraunhofer.iosb.repository.impl.faaast;
 
-import de.fraunhofer.iosb.model.context.AasRepositoryContext;
+import de.fraunhofer.iosb.model.context.repository.AasRepositoryContext;
 import dev.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;

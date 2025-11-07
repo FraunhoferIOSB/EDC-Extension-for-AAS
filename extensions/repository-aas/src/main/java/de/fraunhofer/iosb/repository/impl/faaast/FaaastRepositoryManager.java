@@ -23,8 +23,8 @@ import de.fraunhofer.iosb.ilt.faaast.service.exception.ConfigurationException;
 import de.fraunhofer.iosb.ilt.faaast.service.exception.EndpointException;
 import de.fraunhofer.iosb.ilt.faaast.service.exception.MessageBusException;
 import de.fraunhofer.iosb.ilt.faaast.service.model.exception.PersistenceException;
-import de.fraunhofer.iosb.model.context.AasRepositoryContext;
-import de.fraunhofer.iosb.model.context.impl.FaaastRepositoryContext;
+import de.fraunhofer.iosb.model.context.repository.AasRepositoryContext;
+import de.fraunhofer.iosb.model.context.repository.local.impl.LocalFaaastRepositoryContext;
 import de.fraunhofer.iosb.repository.AasRepositoryManager;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -35,6 +35,7 @@ import java.net.URI;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -74,7 +75,7 @@ public class FaaastRepositoryManager implements AasRepositoryManager<FaaastRepos
         repository.put(accessUri, service);
         monitor.debug("Started %s service with access URL: %s.".formatted(FAAAST, accessUri));
 
-        return new FaaastRepositoryContext.Builder()
+        return new LocalFaaastRepositoryContext.Builder()
                 .uri(accessUri)
                 .messageBus(service.getMessageBus())
                 .persistence(service.getPersistence())
@@ -84,21 +85,31 @@ public class FaaastRepositoryManager implements AasRepositoryManager<FaaastRepos
     @Override
     public void stopAll() {
         repository.values().forEach(Service::stop);
-        monitor.info("Stopped all internally started %s services...".formatted(FAAAST));
+        monitor.info("Stopped all internally started %s services.".formatted(FAAAST));
     }
 
     @Override
     public void stopRepository(URI repositoryUri) {
         Objects.requireNonNull(repositoryUri);
-        monitor.debug("Shutting down %s service with URI %s...".formatted(FAAAST, repositoryUri));
+        monitor.info("Stopping internal %s service with URI %s.".formatted(FAAAST, repositoryUri));
 
-        var serviceToStop = repository.get(repositoryUri);
-        if (Objects.nonNull(serviceToStop)) {
-            serviceToStop.stop();
-            repository.remove(repositoryUri);
-        } else {
-            monitor.debug("This URI was not registered as an internal %s service.".formatted(FAAAST));
+        var serviceToStop = repository.remove(repositoryUri);
+        if (Objects.isNull(serviceToStop)) {
+            monitor.info("%s was not registered as an internal %s service.".formatted(repositoryUri, FAAAST));
+            return;
         }
+
+        asyncStopService(repositoryUri, serviceToStop);
+    }
+
+    private void asyncStopService(URI repositoryUri, Service serviceToStop) {
+        CompletableFuture.runAsync(() -> {
+            try {
+                serviceToStop.stop();
+            } catch (Exception e) {
+                monitor.warning(String.format("Could not stop internal %s service with URI %s", FAAAST, repositoryUri), e);
+            }
+        });
     }
 
     private @NotNull Service createAndStartService(ServiceConfig serviceConfig) {

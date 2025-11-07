@@ -15,19 +15,11 @@
  */
 package de.fraunhofer.iosb.client;
 
-import de.fraunhofer.iosb.client.exception.NotFoundException;
-import de.fraunhofer.iosb.client.exception.UnauthorizedException;
-import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
-import org.eclipse.digitaltwin.aas4j.v3.model.Referable;
-import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
+import java.net.URI;
 
-import java.net.ConnectException;
-
-public interface AasRepositoryClient {
+public interface AasServerClient {
 
     boolean isAvailable();
 
-    Environment getEnvironment() throws ConnectException, UnauthorizedException;
-
-    <R extends Referable> R getReferable(Reference reference, Class<R> clazz) throws ConnectException, UnauthorizedException, NotFoundException;
+    URI getUri();
 }

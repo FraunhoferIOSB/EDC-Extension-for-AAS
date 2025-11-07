@@ -26,12 +26,12 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 
-public class FaaastRepositoryConfig implements AasRepositoryConfig<ServiceConfig> {
+public class FaaastRepositoryConfig extends AasRepositoryConfig<ServiceConfig> {
 
     private final Integer customPort;
     private final ServiceConfig serviceConfig;
 
-    private FaaastRepositoryConfig(int customPort, ServiceConfig serviceConfig) {
+    private FaaastRepositoryConfig(Integer customPort, ServiceConfig serviceConfig) {
         this.customPort = customPort;
         this.serviceConfig = serviceConfig;
     }
@@ -59,8 +59,7 @@ public class FaaastRepositoryConfig implements AasRepositoryConfig<ServiceConfig
         return this.serviceConfig;
     }
 
-    public static class Builder {
-        private Path model;
+    public static class Builder extends AasRepositoryConfig.Builder<Builder, FaaastRepositoryConfig> {
         private Integer port = null;
         private Path configPath;
         private boolean ssl = true;
@@ -73,12 +72,12 @@ public class FaaastRepositoryConfig implements AasRepositoryConfig<ServiceConfig
             return new Builder();
         }
 
-        public Builder model(Path model) {
-            this.model = model;
+        @Override
+        public Builder self() {
             return this;
         }
 
-        public Builder port(int port) {
+        public Builder port(Integer port) {
             this.port = port;
             return this;
         }
@@ -87,7 +86,6 @@ public class FaaastRepositoryConfig implements AasRepositoryConfig<ServiceConfig
             this.ssl = ssl;
             return this;
         }
-
 
         public Builder sni(boolean sni) {
             this.sni = sni;
@@ -98,6 +96,15 @@ public class FaaastRepositoryConfig implements AasRepositoryConfig<ServiceConfig
             this.configPath = configPath;
             return this;
         }
+
+        public Builder configPath(String configPath) {
+            this.configPath = Optional.ofNullable(configPath)
+                    .map(Path::of)
+                    .orElse(null);
+
+            return this;
+        }
+
 
         public FaaastRepositoryConfig build() {
             ServiceConfig serviceConfig =

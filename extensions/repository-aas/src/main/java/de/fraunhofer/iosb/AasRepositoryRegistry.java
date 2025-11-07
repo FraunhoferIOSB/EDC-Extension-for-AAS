@@ -21,24 +21,28 @@ import org.eclipse.edc.spi.result.Result;
 
 import java.util.HashMap;
 import java.util.Optional;
+import javax.annotation.Nonnull;
 
 public class AasRepositoryRegistry {
 
     private static final String NULL_VALUE_MESSAGE = "Registry: AAS Repository Manager for %s cannot be null";
     private static final String NOT_EXISTS_MESSAGE = "AAS Repository Manager for %s does not exist";
 
-    private HashMap<Class<? extends AasRepositoryManager<?>>, AasRepositoryManager<?>> managers;
+    private final HashMap<Class<? extends AasRepositoryManager<?>>, AasRepositoryManager<?>> managers = new HashMap<>();
 
     /**
      * Get an AAS repository manager for an implementation.
      *
      * @param type The manager class. Example: FAAAST.
      * @return Successful result including the AAS repository manager if it exists for this implementation, else failure.
+     * @throws IllegalArgumentException if a manager with the given class is not registered
      */
-    public <T extends AasRepositoryManager<?>> Result<T> getFor(Class<T> type) {
+    public @Nonnull <T extends AasRepositoryManager<?>> T getFor(Class<T> type) {
         var m = managers.get(type);
-        return (m != null) ? Result.success(type.cast(m))
-                : Result.failure(String.format(NOT_EXISTS_MESSAGE, type.getName()));
+        if (m != null) {
+            return type.cast(m);
+        }
+        throw new IllegalArgumentException(String.format(NOT_EXISTS_MESSAGE, type.getName()));
     }
 
     /**

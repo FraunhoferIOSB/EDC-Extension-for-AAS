@@ -13,10 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.client.local;
+package de.fraunhofer.iosb.client.repository.local;
 
-import de.fraunhofer.iosb.client.AasRepositoryClient;
-import de.fraunhofer.iosb.model.context.AasRepositoryContext;
+import de.fraunhofer.iosb.client.repository.AasRepositoryClient;
+import de.fraunhofer.iosb.model.context.repository.AasRepositoryContext;
+import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
+
+import java.net.URI;
 
 public abstract class LocalAasRepositoryClient<CTX extends AasRepositoryContext> implements AasRepositoryClient {
     protected final CTX context;
@@ -25,8 +28,14 @@ public abstract class LocalAasRepositoryClient<CTX extends AasRepositoryContext>
         this.context = context;
     }
 
+    public URI getUri() {
+        return context.getUri();
+    }
+
     @Override
     public boolean isAvailable() {
         return context.isAvailable();
     }
+
+    public abstract Environment getEnvironment();
 }

@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.client.remote.impl;
+package de.fraunhofer.iosb.client.repository.remote.impl;
 
 import de.fraunhofer.iosb.aas.lib.util.InetTools;
-import de.fraunhofer.iosb.client.AasRepositoryClient;
-import de.fraunhofer.iosb.client.exception.NotFoundException;
 import de.fraunhofer.iosb.client.exception.UnauthorizedException;
+import de.fraunhofer.iosb.client.repository.AasRepositoryClient;
 import de.fraunhofer.iosb.ilt.faaast.client.exception.ConnectivityException;
 import de.fraunhofer.iosb.ilt.faaast.client.exception.ForbiddenException;
 import de.fraunhofer.iosb.ilt.faaast.client.exception.MethodNotAllowedException;
@@ -26,14 +25,9 @@ import de.fraunhofer.iosb.ilt.faaast.client.exception.StatusCodeException;
 import de.fraunhofer.iosb.ilt.faaast.client.interfaces.AASRepositoryInterface;
 import de.fraunhofer.iosb.ilt.faaast.client.interfaces.ConceptDescriptionRepositoryInterface;
 import de.fraunhofer.iosb.ilt.faaast.client.interfaces.SubmodelRepositoryInterface;
-import de.fraunhofer.iosb.ilt.faaast.service.model.IdShortPath;
-import de.fraunhofer.iosb.ilt.faaast.service.util.ReferenceHelper;
+import de.fraunhofer.iosb.model.context.repository.remote.RemoteAasRepositoryContext;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
-import org.eclipse.digitaltwin.aas4j.v3.model.Key;
-import org.eclipse.digitaltwin.aas4j.v3.model.Referable;
-import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultEnvironment;
-import org.eclipse.edc.spi.EdcException;
 
 import java.net.ConnectException;
 import java.net.URI;
@@ -52,8 +46,9 @@ public class RemoteAasRepositoryClient implements AasRepositoryClient {
     private final URI uri;
 
 
-    public RemoteAasRepositoryClient(URI uri, HttpClient httpClient) {
-        this.uri = uri;
+    public RemoteAasRepositoryClient(RemoteAasRepositoryContext context) {
+        this.uri = context.getUri();
+        HttpClient httpClient = context.getAuthenticationMethod().httpClientBuilderFor().build();
         this.aasRepositoryInterface = new AASRepositoryInterface(uri, httpClient);
         this.submodelRepositoryInterface = new SubmodelRepositoryInterface(uri, httpClient);
         this.conceptDescriptionRepositoryInterface = new ConceptDescriptionRepositoryInterface(uri, httpClient);
@@ -77,41 +72,47 @@ public class RemoteAasRepositoryClient implements AasRepositoryClient {
         }
     }
 
+//    @Override
+//    public <R extends Referable> R getReferable(Reference reference, Class<R> clazz) throws UnauthorizedException, ConnectException,
+//            NotFoundException {
+//        if (ReferenceHelper.isNullOrEmpty(reference)) {
+//            throw new IllegalArgumentException("Reference malformed");
+//        }
+//
+//        Key effectiveKey = ReferenceHelper.getEffectiveKey(reference);
+//
+//        Referable referable;
+//        try {
+//            referable = switch (effectiveKey.getType()) {
+//                case ASSET_ADMINISTRATION_SHELL -> aasRepositoryInterface.getAASInterface(effectiveKey.getValue()).get();
+//                case SUBMODEL -> submodelRepositoryInterface.getSubmodelInterface(effectiveKey.getValue()).get();
+//                case CONCEPT_DESCRIPTION -> conceptDescriptionRepositoryInterface.get(effectiveKey.getValue());
+//                default ->
+//                        submodelRepositoryInterface.getSubmodelInterface(ReferenceHelper.getRoot(reference).getValue()).getElement(IdShortPath
+//                        .fromReference(reference));
+//            };
+//        } catch (de.fraunhofer.iosb.ilt.faaast.client.exception.NotFoundException notFoundException) {
+//            throw new NotFoundException(notFoundException);
+//        } catch (ForbiddenException | de.fraunhofer.iosb.ilt.faaast.client.exception.UnauthorizedException |
+//                 MethodNotAllowedException unauthorizedException) {
+//            throw new UnauthorizedException(unauthorizedException);
+//        } catch (ConnectivityException e) {
+//            throw new ConnectException(e.getMessage());
+//        } catch (StatusCodeException e) {
+//            throw new EdcException(e);
+//        }
+//
+//        if (clazz.isInstance(referable)) {
+//            throw new ClassCastException(String.format("%s (%s:%s) cannot be cast to %s",
+//                    referable.getClass().getSimpleName(), effectiveKey.getType(), effectiveKey.getValue(), clazz.getSimpleName()));
+//        }
+//
+//        return clazz.cast(referable);
+//    }
+
     @Override
-    public <R extends Referable> R getReferable(Reference reference, Class<R> clazz) throws UnauthorizedException, ConnectException,
-            NotFoundException {
-        if (ReferenceHelper.isNullOrEmpty(reference)) {
-            throw new IllegalArgumentException("Reference malformed");
-        }
-
-        Key effectiveKey = ReferenceHelper.getEffectiveKey(reference);
-
-        Referable referable;
-        try {
-            referable = switch (effectiveKey.getType()) {
-                case ASSET_ADMINISTRATION_SHELL -> aasRepositoryInterface.getAASInterface(effectiveKey.getValue()).get();
-                case SUBMODEL -> submodelRepositoryInterface.getSubmodelInterface(effectiveKey.getValue()).get();
-                case CONCEPT_DESCRIPTION -> conceptDescriptionRepositoryInterface.get(effectiveKey.getValue());
-                default ->
-                        submodelRepositoryInterface.getSubmodelInterface(ReferenceHelper.getRoot(reference).getValue()).getElement(IdShortPath.fromReference(reference));
-            };
-        } catch (de.fraunhofer.iosb.ilt.faaast.client.exception.NotFoundException notFoundException) {
-            throw new NotFoundException(notFoundException);
-        } catch (ForbiddenException | de.fraunhofer.iosb.ilt.faaast.client.exception.UnauthorizedException |
-                 MethodNotAllowedException unauthorizedException) {
-            throw new UnauthorizedException(unauthorizedException);
-        } catch (ConnectivityException e) {
-            throw new ConnectException(e.getMessage());
-        } catch (StatusCodeException e) {
-            throw new EdcException(e);
-        }
-
-        if (clazz.isInstance(referable)) {
-            throw new ClassCastException(String.format("%s (%s:%s) cannot be cast to %s",
-                    referable.getClass().getSimpleName(), effectiveKey.getType(), effectiveKey.getValue(), clazz.getSimpleName()));
-        }
-
-        return clazz.cast(referable);
+    public URI getUri() {
+        return this.uri;
     }
 
 

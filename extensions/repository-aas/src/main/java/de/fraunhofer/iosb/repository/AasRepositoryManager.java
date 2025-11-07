@@ -15,14 +15,14 @@
  */
 package de.fraunhofer.iosb.repository;
 
-import de.fraunhofer.iosb.model.context.AasRepositoryContext;
+import de.fraunhofer.iosb.model.context.repository.AasRepositoryContext;
 
 import java.net.URI;
 
 /**
  * Manages a specific type of AAS repositories like FA³ST or BaSyx
  */
-public interface AasRepositoryManager<C extends AasRepositoryConfig<?>> {
+public interface AasRepositoryManager<CFG extends AasRepositoryConfig<?>> {
 
     /**
      * Boot up an AAS repository by environment, an open port will be used.
@@ -30,7 +30,7 @@ public interface AasRepositoryManager<C extends AasRepositoryConfig<?>> {
      * @param config AAS repository configuration
      * @return A repository context containing meta-information and possibly accessor logic to the AAS repository.
      */
-    AasRepositoryContext startRepository(C config);
+    <CTX extends AasRepositoryContext> CTX startRepository(CFG config);
 
     /**
      * Stop all running AAS repositories that were started by this manager

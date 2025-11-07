@@ -29,7 +29,7 @@ import static de.fraunhofer.iosb.repository.impl.faaast.FaaastRepositoryManager.
 /**
  * Instantiate and manage AAS repository implementations.
  */
-@Provides({ AasRepositoryRegistry.class })
+@Provides(AasRepositoryRegistry.class)
 @Extension(value = AasRepositoryExtension.NAME)
 public class AasRepositoryExtension implements ServiceExtension {
 
@@ -38,18 +38,12 @@ public class AasRepositoryExtension implements ServiceExtension {
     @Inject
     private Hostname hostname;
 
-    private AasRepositoryRegistry registry;
-
-    @Override
-    public void initialize(ServiceExtensionContext context) {
-        ServiceExtension.super.initialize(context);
-        registry = new AasRepositoryRegistry();
+    @Provider
+    public AasRepositoryRegistry provideAasRepositoryRegistry(ServiceExtensionContext context) {
+        AasRepositoryRegistry registry = new AasRepositoryRegistry();
 
         registry.register(FaaastRepositoryManager.class, new FaaastRepositoryManager(context.getMonitor().withPrefix(FAAAST), hostname));
-    }
 
-    @Provider
-    public AasRepositoryRegistry aasRepositoryRegistry() {
         return registry;
     }
 }

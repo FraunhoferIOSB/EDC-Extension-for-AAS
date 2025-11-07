@@ -5,13 +5,15 @@ meta {
 }
 
 post {
-  url: {{provider-api}}/service?url={{ext-aas-service}}
-  body: none
+  url: {{provider-api}}/service
+  body: json
   auth: inherit
 }
 
-params:query {
-  url: {{ext-aas-service}}
+body:json {
+  {
+    "url": "http://localhost:80/api/v3.0"
+  }
 }
 
 settings {

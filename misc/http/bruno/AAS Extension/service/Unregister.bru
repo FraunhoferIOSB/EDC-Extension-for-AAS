@@ -5,13 +5,13 @@ meta {
 }
 
 delete {
-  url: {{provider-api}}/service?url={{faaast-selfsigned}}
+  url: {{provider-api}}/service?url=https://localhost:8080/api/v3.0
   body: none
   auth: inherit
 }
 
 params:query {
-  url: {{faaast-selfsigned}}
+  url: https://localhost:8080/api/v3.0
 }
 
 settings {

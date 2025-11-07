@@ -1,18 +1,18 @@
 meta {
-  name: Register AAS registry by URL
+  name: shellsw
   type: http
-  seq: 1
+  seq: 2
 }
 
 post {
-  url: {{provider-api}}/registry
+  url: http://localhost:80/api/v3.0/submodels
   body: json
   auth: inherit
 }
 
 body:json {
   {
-    "url": "https://localhost:8090/api/v3.0"
+    "id": "21w"
   }
 }
 

@@ -20,6 +20,6 @@ dependencies {
     runtimeOnly(project(":extensions:data-plane:data-plane-aas"))
 }
 repositories {
-    mavenLocal()
     mavenCentral()
+    mavenLocal()
 }

@@ -1,0 +1,16 @@
+meta {
+  name: shells
+  type: http
+  seq: 1
+}
+
+get {
+  url: https://localhost:443/api/v3.0/shells
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

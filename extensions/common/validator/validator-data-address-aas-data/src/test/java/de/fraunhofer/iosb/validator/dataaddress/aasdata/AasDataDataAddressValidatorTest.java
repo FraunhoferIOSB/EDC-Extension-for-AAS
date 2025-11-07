@@ -37,7 +37,7 @@ class AasDataDataAddressValidatorTest {
         var dataAddress = AasDataAddress.Builder.newInstance()
                 .property("type", AAS_DATA_TYPE)
                 .property(BASE_URL, "http://this.is/valid/url")
-                .referenceChain(new DefaultReference.Builder()
+                .reference(new DefaultReference.Builder()
                         .keys(new DefaultKey.Builder()
                                 .type(KeyTypes.SUBMODEL)
                                 .value(UUID.randomUUID().toString())

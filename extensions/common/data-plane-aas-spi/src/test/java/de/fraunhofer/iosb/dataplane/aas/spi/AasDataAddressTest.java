@@ -74,7 +74,7 @@ class AasDataAddressTest {
                 .build();
 
         assertEquals(path.formatted(Encoder.encodeBase64(smIdShort)),
-                AasDataAddress.Builder.newInstance().referenceChain(referenceChain).build().getPath());
+                AasDataAddress.Builder.newInstance().reference(referenceChain).build().getPath());
     }
 
     @Test
@@ -87,7 +87,7 @@ class AasDataAddressTest {
                 .build();
 
         assertEquals("submodels/%s".formatted(Encoder.encodeBase64(smIdShort)),
-                AasDataAddress.Builder.newInstance().referenceChain(referenceChain).build().getPath());
+                AasDataAddress.Builder.newInstance().reference(referenceChain).build().getPath());
     }
 
     @Test
@@ -98,7 +98,7 @@ class AasDataAddressTest {
                 .build();
 
         assertEquals("shells/%s".formatted(Encoder.encodeBase64(shellIdShort)),
-                AasDataAddress.Builder.newInstance().referenceChain(referenceChain).build().getPath());
+                AasDataAddress.Builder.newInstance().reference(referenceChain).build().getPath());
     }
 
     @Test
@@ -109,7 +109,7 @@ class AasDataAddressTest {
                 .build();
 
         assertEquals("concept-descriptions/%s".formatted(Encoder.encodeBase64(cdIdShort)),
-                AasDataAddress.Builder.newInstance().referenceChain(referenceChain).build().getPath());
+                AasDataAddress.Builder.newInstance().reference(referenceChain).build().getPath());
     }
 
     private Key getKey(KeyTypes keyType, String idShort) {

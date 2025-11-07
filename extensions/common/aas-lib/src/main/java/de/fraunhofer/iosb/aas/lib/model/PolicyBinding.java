@@ -17,12 +17,14 @@ package de.fraunhofer.iosb.aas.lib.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import de.fraunhofer.iosb.ilt.faaast.service.util.ReferenceHelper;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
+
+import static de.fraunhofer.iosb.constants.AasConstants.DEFAULT_ACCESS_POLICY_DEFINITION_ID;
+import static de.fraunhofer.iosb.constants.AasConstants.DEFAULT_CONTRACT_POLICY_DEFINITION_ID;
 
 /**
  * Binds an AAS element to access and usage policy.
@@ -34,6 +36,14 @@ public record PolicyBinding(Reference referredElement, String accessPolicyDefini
         this.referredElement = Objects.requireNonNull(referredElement);
         this.accessPolicyDefinitionId = accessPolicyDefinitionId;
         this.contractPolicyDefinitionId = contractPolicyDefinitionId;
+    }
+
+    public static PolicyBinding ofDefaults(Reference reference) {
+        return new Builder()
+                .withReferredElement(reference)
+                .withAccessPolicyDefinitionId(DEFAULT_ACCESS_POLICY_DEFINITION_ID)
+                .withContractPolicyDefinitionId(DEFAULT_CONTRACT_POLICY_DEFINITION_ID)
+                .build();
     }
 
     @Override
@@ -56,8 +66,8 @@ public record PolicyBinding(Reference referredElement, String accessPolicyDefini
         private String accessPolicyDefinitionId;
         private String contractPolicyDefinitionId;
 
-        public Builder withReferredElement(String referredElement) {
-            this.referredElement = Objects.requireNonNull(ReferenceHelper.parse(referredElement));
+        public Builder withReferredElement(Reference reference) {
+            this.referredElement = Objects.requireNonNull(reference);
             return this;
         }
 

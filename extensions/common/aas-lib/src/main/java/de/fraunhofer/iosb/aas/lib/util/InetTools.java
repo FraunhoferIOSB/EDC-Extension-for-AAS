@@ -30,6 +30,7 @@ import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.X509Certificate;
 import java.util.List;
+import java.util.Locale;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLPeerUnverifiedException;
@@ -63,7 +64,17 @@ public class InetTools {
      * @return True if host is reachable under given port within timeout seconds.
      */
     public static boolean pingHost(String host, int port) {
-        try (Socket socket = new Socket(host, port)) {
+        int actualPort;
+
+        if (port != -1) {
+            actualPort = port;
+        } else if (host.toLowerCase(Locale.ROOT).startsWith("https")) {
+            actualPort = 443;
+        } else {
+            actualPort = 80;
+        }
+
+        try (Socket ignored = new Socket(host, actualPort)) {
             return true;
         } catch (IOException e) {
             return false; // Either timeout or unreachable or failed DNS lookup.
@@ -94,7 +105,7 @@ public class InetTools {
             port = host.startsWith("http:") ? 80 : 443;
         }
 
-        return pingHost(host, port, 10) || checkUrlAvailability(provider.baseUri());
+        return pingHost(host, port) || checkUrlAvailability(provider.baseUri());
     }
 
 

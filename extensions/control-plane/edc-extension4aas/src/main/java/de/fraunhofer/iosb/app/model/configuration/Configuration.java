@@ -27,11 +27,11 @@ public class Configuration {
     private static final String SETTINGS_PREFIX = "edc.aas.";
     private static Configuration instance;
     @JsonProperty(SETTINGS_PREFIX + "syncPeriod")
-    private int syncPeriod = 50; // Seconds
+    private final int syncPeriod = 50; // Seconds
     @JsonProperty(SETTINGS_PREFIX + "onlySubmodels")
-    private boolean onlySubmodels = true;
+    private final boolean onlySubmodels = true;
     @JsonProperty(SETTINGS_PREFIX + "exposeSelfDescription")
-    private boolean exposeSelfDescription = true;
+    private final boolean exposeSelfDescription = true;
     @JsonProperty(SETTINGS_PREFIX + "allowSelfSignedCertificates")
     private boolean allowSelfSignedCertificates;
     @JsonProperty(SETTINGS_PREFIX + "remoteAASLocation")
@@ -39,7 +39,7 @@ public class Configuration {
     @JsonProperty(SETTINGS_PREFIX + "localAASModelPath")
     private String localAasModelPath;
     @JsonProperty(SETTINGS_PREFIX + "localAASServicePort")
-    private int localAasServicePort;
+    private Integer localAasServicePort;
     @JsonProperty(SETTINGS_PREFIX + "localAASServiceConfigPath")
     private String aasServiceConfigPath;
     @JsonProperty(SETTINGS_PREFIX + "defaultAccessPolicyPath")
@@ -67,7 +67,7 @@ public class Configuration {
         return localAasModelPath;
     }
 
-    public int getLocalAasServicePort() {
+    public Integer getLocalAasServicePort() {
         return localAasServicePort;
     }
 

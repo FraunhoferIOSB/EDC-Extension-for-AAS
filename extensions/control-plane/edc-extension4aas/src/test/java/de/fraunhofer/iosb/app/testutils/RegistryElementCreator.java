@@ -18,18 +18,21 @@ package de.fraunhofer.iosb.app.testutils;
 import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShellDescriptor;
 import org.eclipse.digitaltwin.aas4j.v3.model.AssetKind;
 import org.eclipse.digitaltwin.aas4j.v3.model.Endpoint;
+import org.eclipse.digitaltwin.aas4j.v3.model.Submodel;
 import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelDescriptor;
+import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultAssetAdministrationShell;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultAssetAdministrationShellDescriptor;
+import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultAssetInformation;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultEndpoint;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultProtocolInformation;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultSpecificAssetId;
+import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultSubmodel;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultSubmodelDescriptor;
 
 import java.util.List;
 import java.util.function.Function;
 
 import static de.fraunhofer.iosb.app.testutils.AasCreator.getAdministrativeInformation;
-import static de.fraunhofer.iosb.app.testutils.AasCreator.getExtensions;
 import static de.fraunhofer.iosb.app.testutils.AasCreator.getLangStringNameType;
 import static de.fraunhofer.iosb.app.testutils.AasCreator.getLangStringTextType;
 import static de.fraunhofer.iosb.app.testutils.AasCreator.getReference;
@@ -43,9 +46,34 @@ public class RegistryElementCreator {
     }
 
 
-    public static SubmodelDescriptor getEmptySubmodelDescriptor() {
-        return new DefaultSubmodelDescriptor.Builder()
-                .endpoints(getEndpoints(uuid(), "SUBMODEL"))
+    public static Submodel asSubmodel(SubmodelDescriptor descriptor) {
+        return new DefaultSubmodel.Builder()
+                .administration(descriptor.getAdministration())
+                .description(descriptor.getDescription())
+                .displayName(descriptor.getDisplayName())
+                .extensions(descriptor.getExtensions())
+                .id(descriptor.getId())
+                .idShort(descriptor.getIdShort())
+                .semanticId(descriptor.getSemanticId())
+                .supplementalSemanticIds(descriptor.getSupplementalSemanticId())
+                .build();
+    }
+
+    public static DefaultAssetAdministrationShell asShell(AssetAdministrationShellDescriptor descriptor) {
+        return new DefaultAssetAdministrationShell.Builder()
+                .administration(descriptor.getAdministration())
+                .assetInformation(new DefaultAssetInformation.Builder()
+                        .assetKind(descriptor.getAssetKind())
+                        .assetType(descriptor.getAssetType())
+                        .globalAssetId(descriptor.getGlobalAssetId())
+                        .specificAssetIds(descriptor.getSpecificAssetIds())
+                        .build())
+                .description(descriptor.getDescription())
+                .displayName(descriptor.getDisplayName())
+                .extensions(descriptor.getExtensions())
+                .id(descriptor.getId())
+                .idShort(descriptor.getIdShort())
+                .embeddedDataSpecifications(List.of())
                 .build();
     }
 
@@ -61,14 +89,7 @@ public class RegistryElementCreator {
                 .idShort(id)
                 .description(getLangStringTextType(id))
                 .displayName(getLangStringNameType())
-                .extensions(getExtensions(id))
                 .semanticId(getReference(id))
-                .build();
-    }
-
-    public static AssetAdministrationShellDescriptor getEmptyShellDescriptor() {
-        return new DefaultAssetAdministrationShellDescriptor.Builder()
-                .endpoints(getEndpoints(uuid(), "AAS"))
                 .build();
     }
 
@@ -87,10 +108,9 @@ public class RegistryElementCreator {
                 .id(id)
                 .idShort(id)
                 .specificAssetIds(new DefaultSpecificAssetId.Builder().build())
-                .submodelDescriptors(new DefaultSubmodelDescriptor.Builder().build())
+                .submodelDescriptors(getSubmodelDescriptor())
                 .description(getLangStringTextType(id))
                 .displayName(getLangStringNameType())
-                .extensions(getExtensions(id))
                 .build();
     }
 

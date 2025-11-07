@@ -15,35 +15,53 @@
  */
 package de.fraunhofer.iosb.app.aas.agent.impl;
 
-import de.fraunhofer.iosb.aas.lib.model.impl.Registry;
-import de.fraunhofer.iosb.aas.lib.model.impl.Service;
-import dev.failsafe.RetryPolicy;
-import okhttp3.OkHttpClient;
-import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.SerializationException;
-import org.eclipse.edc.http.client.EdcHttpClientImpl;
+import de.fraunhofer.iosb.aas.lib.auth.impl.NoAuth;
+import de.fraunhofer.iosb.app.controller.AasRepositoryController;
+import de.fraunhofer.iosb.app.controller.dto.AasRegistryContextDTO;
+import de.fraunhofer.iosb.app.handler.aas.registry.RemoteAasRegistryHandler;
+import de.fraunhofer.iosb.app.handler.edc.EdcStoreHandler;
+import de.fraunhofer.iosb.app.stores.repository.AasServerStore;
+import de.fraunhofer.iosb.client.exception.UnauthorizedException;
+import de.fraunhofer.iosb.ilt.faaast.service.dataformat.SerializationException;
+import de.fraunhofer.iosb.ilt.faaast.service.dataformat.json.JsonApiSerializer;
+import de.fraunhofer.iosb.ilt.faaast.service.model.api.paging.Page;
+import de.fraunhofer.iosb.ilt.faaast.service.model.api.paging.PagingMetadata;
+import de.fraunhofer.iosb.ilt.faaast.service.model.exception.UnsupportedModifierException;
+import de.fraunhofer.iosb.repository.impl.faaast.FaaastRepositoryManager;
+import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShellDescriptor;
+import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
+import org.eclipse.digitaltwin.aas4j.v3.model.Extension;
+import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
+import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
+import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
+import org.eclipse.edc.connector.controlplane.defaults.storage.assetindex.InMemoryAssetIndex;
+import org.eclipse.edc.connector.controlplane.defaults.storage.contractdefinition.InMemoryContractDefinitionStore;
+import org.eclipse.edc.query.CriterionOperatorRegistryImpl;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
+import org.eclipse.edc.spi.query.QuerySpec;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.model.HttpResponse;
 
+import java.net.ConnectException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Optional;
+import java.util.List;
 
 import static de.fraunhofer.iosb.aas.lib.model.impl.Registry.SHELL_DESCRIPTORS_PATH;
 import static de.fraunhofer.iosb.aas.lib.model.impl.Registry.SUBMODEL_DESCRIPTORS_PATH;
-import static de.fraunhofer.iosb.aas.test.StringMethods.resultOf;
 import static de.fraunhofer.iosb.api.model.HttpMethod.GET;
-import static de.fraunhofer.iosb.app.pipeline.PipelineFailure.Type.WARNING;
-import static de.fraunhofer.iosb.app.testutils.RegistryElementCreator.getEmptyShellDescriptor;
-import static de.fraunhofer.iosb.app.testutils.RegistryElementCreator.getEmptySubmodelDescriptor;
+import static de.fraunhofer.iosb.app.testutils.RegistryElementCreator.asShell;
+import static de.fraunhofer.iosb.app.testutils.RegistryElementCreator.asSubmodel;
 import static de.fraunhofer.iosb.app.testutils.RegistryElementCreator.getShellDescriptor;
-import static de.fraunhofer.iosb.app.testutils.RegistryElementCreator.getSubmodelDescriptor;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.model.HttpRequest.request;
@@ -51,19 +69,32 @@ import static org.mockserver.model.HttpRequest.request;
 class RegistryAgentTest {
     private static final int PORT = getFreePort();
     private static ClientAndServer mockServer;
-    private static RegistryAgent testSubject;
+    private AasRepositoryController testSubject;
+    private AasServerStore repository;
+    private AssetIndex assetIndex;
+    private ContractDefinitionStore contractDefinitionStore;
+    private final JsonApiSerializer jsonApiSerializer = new JsonApiSerializer();
     private final URI mockServerUri = new URI("http://localhost:%s".formatted(PORT));
 
     RegistryAgentTest() throws URISyntaxException {
     }
 
     @BeforeAll
-    static void setUp() {
-        testSubject = new RegistryAgent(
-                new EdcHttpClientImpl(new OkHttpClient(), RetryPolicy.ofDefaults(), new ConsoleMonitor()),
-                new ConsoleMonitor());
-
+    static void initialize() {
         mockServer = startClientAndServer(PORT);
+    }
+
+    @BeforeEach
+    void setUp() {
+        repository = new AasServerStore();
+        var criterionRegistry = CriterionOperatorRegistryImpl.ofDefaults();
+        assetIndex = new InMemoryAssetIndex(criterionRegistry);
+        contractDefinitionStore = new InMemoryContractDefinitionStore(criterionRegistry);
+
+        var monitor = new ConsoleMonitor().withPrefix(RegistryAgentTest.class.getSimpleName());
+
+        testSubject = new AasRepositoryController(monitor, repository, new FaaastRepositoryManager(monitor, () -> "localhost"),
+                new EdcStoreHandler(assetIndex, contractDefinitionStore));
     }
 
     @AfterAll
@@ -77,42 +108,17 @@ class RegistryAgentTest {
     }
 
     @Test
-    void test_apply_emptyButNonNullShellDescriptor() throws SerializationException, URISyntaxException {
-        var shellDescriptor = getEmptyShellDescriptor();
+    void test_register_singleShellDescriptorIncludingASubmodelDescriptor() throws UnauthorizedException, ConnectException
+            , UnsupportedModifierException, de.fraunhofer.iosb.ilt.faaast.service.dataformat.SerializationException {
+        AssetAdministrationShellDescriptor shellDescriptor = getShellDescriptor();
 
-        mockServer.when(request()
-                        .withMethod(GET.toString())
-                        .withPath("/%s".formatted(SHELL_DESCRIPTORS_PATH)))
-                .respond(HttpResponse.response()
-                        .withBody(resultOf(shellDescriptor)));
+        Page<AssetAdministrationShellDescriptor> descriptorPage =
+                Page.<AssetAdministrationShellDescriptor>builder()
+                        .result(shellDescriptor)
+                        .metadata(PagingMetadata.builder().build())
+                        .build();
 
-        mockEmptySubmodelRequest();
-
-        var result = testSubject.apply(new Registry(mockServerUri));
-
-        assertTrue(result.succeeded());
-
-        var bodyAsEnvironment = result.getContent();
-
-        assertEquals(1, bodyAsEnvironment.size());
-
-        // We know the endpoint uri from getEmptyShellDescriptor()...
-        var env = bodyAsEnvironment.get(new Service.Builder().withUri(new URI("https://localhost:12345")).build());
-
-        var shell = Optional.ofNullable(env.getAssetAdministrationShells().get(0)).orElseThrow();
-
-        assertEquals(shellDescriptor.getIdShort(), shell.getIdShort());
-        assertEquals(shellDescriptor.getId(), shell.getId());
-        assertEquals(shellDescriptor.getAdministration(), shell.getAdministration());
-        assertEquals(shellDescriptor.getAssetType(), shell.getAssetInformation().getAssetType());
-        assertEquals(shellDescriptor.getAssetKind(), shell.getAssetInformation().getAssetKind());
-    }
-
-    @Test
-    void testApplyShellDescriptor() throws SerializationException, URISyntaxException {
-        var shellDescriptor = getShellDescriptor();
-
-        var mockedResponseBody = resultOf(shellDescriptor);
+        var mockedResponseBody = jsonApiSerializer.write(descriptorPage);
 
         mockServer.when(request()
                         .withMethod(GET.toString())
@@ -122,122 +128,104 @@ class RegistryAgentTest {
 
         mockEmptySubmodelRequest();
 
-        var result = testSubject.apply(new Registry(mockServerUri));
+        var result = testSubject.register(new AasRegistryContextDTO(mockServerUri, new NoAuth()));
 
-        assertTrue(result.succeeded());
+        assertEquals(result, mockServerUri);
 
-        var bodyAsEnvironment = result.getContent();
+        var handler = (RemoteAasRegistryHandler) repository.get(result).orElseThrow();
 
-        assertEquals(1, bodyAsEnvironment.size());
+        var selfDescription = handler.buildSelfDescription();
 
-        var env = bodyAsEnvironment.get(new Service.Builder().withUri(new URI("https://localhost:12345")).build());
+        assertSelfDescription(selfDescription);
+        assertFalse(selfDescription.getAssetAdministrationShells().isEmpty());
+        assertFalse(selfDescription.getSubmodels().isEmpty());
+        assertTrue(selfDescription.getConceptDescriptions().isEmpty());
 
-        var shell = Optional.ofNullable(env.getAssetAdministrationShells().get(0)).orElseThrow();
+        var shell = selfDescription.getAssetAdministrationShells().get(0);
+        var submodel = selfDescription.getSubmodels().get(0);
 
-        assertEquals(shellDescriptor.getIdShort(), shell.getIdShort());
-        assertEquals(shellDescriptor.getId(), shell.getId());
-        assertEquals(shellDescriptor.getAdministration(), shell.getAdministration());
-        assertEquals(shellDescriptor.getAssetType(), shell.getAssetInformation().getAssetType());
-        assertEquals(shellDescriptor.getAssetKind(), shell.getAssetInformation().getAssetKind());
+        // Remove assetId
+        Extension shellAssetIdExtension = shell.getExtensions().remove(0);
+        Extension submodelAssetIdExtension = submodel.getExtensions().remove(0);
+
+        var expectedAsSubmodel = asSubmodel(shellDescriptor.getSubmodelDescriptors().get(0));
+        var expectedAsShell = asShell(shellDescriptor);
+
+        assertEquals(expectedAsShell, shell);
+        assertEquals(expectedAsSubmodel, submodel);
+
+        var assets = assetIndex.queryAssets(QuerySpec.max()).toList();
+
+        assertEquals(2, assets.size());
+        assertTrue(assets.stream().map(Asset::getId).toList().contains(submodelAssetIdExtension.getValue()));
+        assertTrue(assets.stream().map(Asset::getId).toList().contains(shellAssetIdExtension.getValue()));
+
+        var contractDefinitions = contractDefinitionStore.findAll(QuerySpec.max()).toList();
+
+        assertEquals(1, contractDefinitions.size());
+        var contractDefinitionAssetIds = (List<String>) contractDefinitions.get(0).getAssetsSelector().get(0).getOperandRight();
+        assertTrue(contractDefinitionAssetIds.contains(submodelAssetIdExtension.getValue()));
+        assertTrue(contractDefinitionAssetIds.contains(shellAssetIdExtension.getValue()));
     }
 
     @Test
-    void testApplyEmptySubmodelDescriptor() throws SerializationException, URISyntaxException {
-        var submodelDescriptor = getEmptySubmodelDescriptor();
-
+    void test_register_emptyDescriptorResponseNoFault() throws SerializationException, UnsupportedModifierException, UnauthorizedException,
+            ConnectException {
         mockEmptyShellRequest();
+        mockEmptySubmodelRequest();
 
-        mockServer.when(request()
-                        .withMethod(GET.toString())
-                        .withPath("/%s".formatted(SUBMODEL_DESCRIPTORS_PATH)))
-                .respond(HttpResponse.response()
-                        .withBody(resultOf(submodelDescriptor)));
+        var result = testSubject.register(new AasRegistryContextDTO(mockServerUri, new NoAuth()));
 
-        var result = testSubject.apply(new Registry(mockServerUri));
+        assertEquals(result, mockServerUri);
 
-        assertTrue(result.succeeded());
+        var handler = (RemoteAasRegistryHandler) repository.get(result).orElseThrow();
 
-        var bodyAsEnvironment = result.getContent();
+        var selfDescription = handler.buildSelfDescription();
 
-        assertEquals(1, bodyAsEnvironment.size());
-
-        var submodel = Optional.ofNullable(Optional
-                        .ofNullable(bodyAsEnvironment.get(new Service.Builder().withUri(new URI("https://localhost:12345")).build()))
-                        .orElseThrow()
-                        .getSubmodels()
-                        .get(0))
-                .orElseThrow();
-
-        assertEquals(submodelDescriptor.getIdShort(), submodel.getIdShort());
-        assertEquals(submodelDescriptor.getId(), submodel.getId());
-        assertEquals(submodelDescriptor.getAdministration(), submodel.getAdministration());
-        assertEquals(submodelDescriptor.getDescription(), submodel.getDescription());
-        assertEquals(submodelDescriptor.getSemanticId(), submodel.getSemanticId());
+        assertSelfDescription(selfDescription);
+        assertTrue(selfDescription.getAssetAdministrationShells().isEmpty());
+        assertTrue(selfDescription.getSubmodels().isEmpty());
+        assertTrue(selfDescription.getConceptDescriptions().isEmpty());
     }
 
     @Test
-    void testApplySubmodelDescriptor() throws SerializationException, URISyntaxException {
-        var submodelDescriptor = getSubmodelDescriptor();
+    void test_register_notARegistryNoFailure() {
+        URI uri;
+        try {
+            uri = new URI("https://example.com");
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+        var result = testSubject.register(new AasRegistryContextDTO(uri, new NoAuth()));
 
-        mockEmptyShellRequest();
-
-        mockServer.when(request()
-                        .withMethod(GET.toString())
-                        .withPath("/%s".formatted(SUBMODEL_DESCRIPTORS_PATH)))
-                .respond(HttpResponse.response()
-                        .withBody(resultOf(submodelDescriptor)));
-
-        var result = testSubject.apply(new Registry(mockServerUri));
-
-        assertTrue(result.succeeded());
-
-        var bodyAsEnvironment = result.getContent();
-
-        assertEquals(1, bodyAsEnvironment.size());
-
-        var submodel = Optional.ofNullable(Optional
-                        .ofNullable(bodyAsEnvironment.get(new Service.Builder().withUri(new URI("https://localhost:12345")).build()))
-                        .orElseThrow()
-                        .getSubmodels()
-                        .get(0))
-                .orElseThrow();
-
-        assertEquals(submodelDescriptor.getIdShort(), submodel.getIdShort());
-        assertEquals(submodelDescriptor.getId(), submodel.getId());
-        assertEquals(submodelDescriptor.getAdministration(), submodel.getAdministration());
-        assertEquals(submodelDescriptor.getDescription(), submodel.getDescription());
-        assertEquals(submodelDescriptor.getSemanticId(), submodel.getSemanticId());
+        assertEquals(uri, result);
     }
 
-    @Test
-    void testApplyNotActuallyRegistry() throws URISyntaxException {
-        var result = testSubject.apply(new Registry(new URI("https://example.com")));
-
-        assertTrue(result.failed());
-        assertEquals(WARNING, result.getFailure().getFailureType());
+    private static void assertSelfDescription(Environment selfDescription) {
+        assertNotNull(selfDescription);
+        assertNotNull(selfDescription.getAssetAdministrationShells());
+        assertNotNull(selfDescription.getSubmodels());
+        assertNotNull(selfDescription.getConceptDescriptions());
     }
 
-    @Test
-    void testApplyUnreachableRegistry() throws URISyntaxException {
-        var result = testSubject.apply(new Registry(new URI("http://anonymous.invalid")));
-
-        assertTrue(result.failed());
-        assertEquals(WARNING, result.getFailure().getFailureType());
-    }
-
-    private void mockEmptyShellRequest() throws SerializationException {
+    private void mockEmptyShellRequest() throws SerializationException, UnsupportedModifierException {
         mockServer.when(request()
                         .withMethod(GET.toString())
                         .withPath("/%s".formatted(SHELL_DESCRIPTORS_PATH)))
                 .respond(HttpResponse.response()
-                        .withBody(resultOf(null)));
+                        .withBody(jsonApiSerializer.write(Page.builder()
+                                .metadata(PagingMetadata.builder().build())
+                                .build())));
     }
 
-    private void mockEmptySubmodelRequest() throws SerializationException {
+    private void mockEmptySubmodelRequest() throws de.fraunhofer.iosb.ilt.faaast.service.dataformat.SerializationException,
+            UnsupportedModifierException {
         mockServer.when(request()
                         .withMethod(GET.toString())
                         .withPath("/%s".formatted(SUBMODEL_DESCRIPTORS_PATH)))
                 .respond(HttpResponse.response()
-                        .withBody(resultOf(null)));
+                        .withBody(jsonApiSerializer.write(Page.builder()
+                                .metadata(PagingMetadata.builder().build())
+                                .build())));
     }
 }

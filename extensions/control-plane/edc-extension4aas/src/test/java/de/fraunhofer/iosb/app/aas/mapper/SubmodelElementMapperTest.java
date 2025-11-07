@@ -16,8 +16,9 @@
 package de.fraunhofer.iosb.app.aas.mapper;
 
 import de.fraunhofer.iosb.aas.lib.model.impl.Service;
-import de.fraunhofer.iosb.app.aas.mapper.environment.referable.SubmodelElementMapper;
+import de.fraunhofer.iosb.app.aas.mapper.referable.SubmodelElementMapper;
 import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
+import de.fraunhofer.iosb.model.context.repository.local.impl.LocalFaaastRepositoryContext;
 import org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes;
 import org.eclipse.digitaltwin.aas4j.v3.model.OperationVariable;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
@@ -45,7 +46,7 @@ import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
 
-import static de.fraunhofer.iosb.app.aas.mapper.environment.referable.SubmodelElementMapper.SMC_CHILDREN_LOCATION;
+import static de.fraunhofer.iosb.app.aas.mapper.referable.SubmodelElementMapper.SMC_CHILDREN_LOCATION;
 import static de.fraunhofer.iosb.app.testutils.AasCreator.getProperty;
 import static de.fraunhofer.iosb.constants.AasConstants.AAS_PREFIX;
 import static de.fraunhofer.iosb.constants.AasConstants.AAS_V30_NAMESPACE;
@@ -61,7 +62,7 @@ class SubmodelElementMapperTest {
 
     @BeforeEach
     void setUp() {
-        testSubject = new SubmodelElementMapper();
+        testSubject = new SubmodelElementMapper(new LocalFaaastRepositoryContext.Builder().build());
     }
 
 
@@ -100,7 +101,7 @@ class SubmodelElementMapperTest {
                 .outputVariables(mockOutputVariables)
                 .build();
 
-        var resultAsset = testSubject.map(mockParent, mockOperation, mockService());
+        var resultAsset = testSubject.map(mockParent, mockOperation);
 
         assertEquals(mockInputVariables, resultAsset.getProperty(AAS_V30_NAMESPACE + "Operation/" + "inputVariables"));
         assertEquals(mockInoutputVariables, resultAsset.getProperty(AAS_V30_NAMESPACE + "Operation/" + "inoutputVariables"));
@@ -140,7 +141,7 @@ class SubmodelElementMapperTest {
         String listIdShort = "test-id-short";
         SubmodelElementList submodelElementList = new DefaultSubmodelElementList.Builder().idShort(listIdShort).value(listElements).build();
 
-        Asset mapped = testSubject.map(parentReference, submodelElementList, mockService);
+        Asset mapped = testSubject.map(parentReference, submodelElementList);
 
         assertNotNull(mapped);
         assertNotNull(mapped.getProperties());

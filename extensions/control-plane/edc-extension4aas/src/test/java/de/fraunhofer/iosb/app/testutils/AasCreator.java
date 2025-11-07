@@ -18,7 +18,6 @@ package de.fraunhofer.iosb.app.testutils;
 import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShell;
 import org.eclipse.digitaltwin.aas4j.v3.model.AssetKind;
 import org.eclipse.digitaltwin.aas4j.v3.model.ConceptDescription;
-import org.eclipse.digitaltwin.aas4j.v3.model.DataTypeDefXsd;
 import org.eclipse.digitaltwin.aas4j.v3.model.DataTypeIec61360;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
 import org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes;
@@ -34,7 +33,6 @@ import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultConceptDescription;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultDataSpecificationIec61360;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultEmbeddedDataSpecification;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultEnvironment;
-import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultExtension;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultKey;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultLangStringNameType;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultLangStringTextType;
@@ -77,7 +75,6 @@ public class AasCreator {
     public static ConceptDescription getConceptDescription(String id) {
         return new DefaultConceptDescription.Builder()
                 .embeddedDataSpecifications(getEmbeddedDataSpecifications(id))
-                .extensions(getExtensions(id))
                 .administration(getAdministrativeInformation(id))
                 .id(id)
                 .idShort(id)
@@ -87,13 +84,6 @@ public class AasCreator {
                 .build();
     }
 
-    static DefaultExtension getExtensions(String id) {
-        return new DefaultExtension.Builder()
-                .name(id)
-                .value(id)
-                .valueType(DataTypeDefXsd.ANY_URI)
-                .build();
-    }
 
     public static AssetAdministrationShell getAssetAdministrationShell() {
         return getAssetAdministrationShell(uuid());
@@ -107,7 +97,6 @@ public class AasCreator {
                         getSubmodel().getSemanticId(),
                         getSubmodel().getSemanticId()))
                 .embeddedDataSpecifications(getEmbeddedDataSpecifications(id))
-                .extensions(getExtensions(id))
                 .administration(getAdministrativeInformation(id))
                 .id(id)
                 .category(id)

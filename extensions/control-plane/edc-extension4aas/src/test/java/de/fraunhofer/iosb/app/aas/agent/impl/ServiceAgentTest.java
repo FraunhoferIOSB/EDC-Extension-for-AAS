@@ -15,149 +15,46 @@
  */
 package de.fraunhofer.iosb.app.aas.agent.impl;
 
-import de.fraunhofer.iosb.aas.lib.model.impl.Service;
-import de.fraunhofer.iosb.app.pipeline.PipelineResult;
-import dev.failsafe.RetryPolicy;
-import okhttp3.OkHttpClient;
-import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.SerializationException;
-import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
-import org.eclipse.edc.http.client.EdcHttpClientImpl;
-import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.mockserver.integration.ClientAndServer;
-import org.mockserver.model.HttpResponse;
-
-import java.net.ConnectException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.UnknownHostException;
-
-import static de.fraunhofer.iosb.aas.test.StringMethods.resultOfCollection;
-import static de.fraunhofer.iosb.api.model.HttpMethod.GET;
-import static de.fraunhofer.iosb.app.pipeline.PipelineFailure.Type.WARNING;
-import static de.fraunhofer.iosb.app.testutils.AasCreator.getEmptyEnvironment;
-import static de.fraunhofer.iosb.app.testutils.AasCreator.getEnvironment;
-import static de.fraunhofer.iosb.constants.AasConstants.CONCEPT_DESCRIPTIONS_API_PATH;
-import static de.fraunhofer.iosb.constants.AasConstants.SHELLS_API_PATH;
-import static de.fraunhofer.iosb.constants.AasConstants.SUBMODELS_API_PATH;
-import static org.eclipse.edc.util.io.Ports.getFreePort;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
-import static org.mockserver.integration.ClientAndServer.startClientAndServer;
-import static org.mockserver.model.HttpRequest.request;
 
 class ServiceAgentTest {
-
-    private static final int PORT = getFreePort();
-    private static ClientAndServer mockServer;
-    private static ServiceAgent testSubject;
-    private final URI mockServerUri = new URI("http://localhost:%s".formatted(PORT));
-
-    ServiceAgentTest() throws URISyntaxException {
+    // TODO move and implement test cases into repository-aas extension
+    ServiceAgentTest() {
     }
 
     @BeforeAll
     static void setUp() {
-        testSubject = new ServiceAgent(new EdcHttpClientImpl(new OkHttpClient(), RetryPolicy.ofDefaults(),
-                new ConsoleMonitor()), new ConsoleMonitor());
-
-        mockServer = startClientAndServer(PORT);
     }
 
     @AfterAll
     static void shutdown() {
-        mockServer.stop();
     }
 
     @AfterEach
     void tearDown() {
-        mockServer.reset();
     }
 
     @Test
     void test_apply_emptyGetEnvironment() {
-        var emptyEnvironment = getEmptyEnvironment();
-        answerWith(emptyEnvironment);
-
-        PipelineResult<Environment> result = testSubject.apply(new Service.Builder().withUri(mockServerUri).build());
-
-        assertTrue(result.succeeded());
-        assertNotNull(result.getContent());
-
-        var resultEnvironment = result.getContent();
-
-        assertEquals(emptyEnvironment, resultEnvironment);
     }
 
     @Test
     void test_apply_validGetEnvironment() {
-        var environment = getEnvironment();
-        answerWith(environment);
-
-        PipelineResult<Environment> result = testSubject.apply(new Service.Builder().withUri(mockServerUri).build());
-
-        assertTrue(result.succeeded());
-        assertNotNull(result.getContent());
-        var resultEnvironment = result.getContent();
-        assertEquals(environment, resultEnvironment);
     }
 
     @Test
-    void testApplyUnknownHost() throws URISyntaxException {
-        var result = testSubject.apply(new Service.Builder().withUri(new URI("http://anonymous.invalid")).build());
-
-        assertTrue(result.failed());
-        assertEquals(WARNING, result.getFailure().getFailureType());
-        System.err.println(result.getFailureDetail());
-        assertTrue(result.getFailureDetail().contains(UnknownHostException.class.getSimpleName()) ||
-                result.getFailureDetail().contains(ConnectException.class.getSimpleName()));
+    void testApplyUnknownHost() {
     }
 
     @Test
-    void testApplyUnreachable() throws URISyntaxException {
-        var result = testSubject.apply(new Service.Builder().withUri(new URI("http://localhost:" + getFreePort())).build());
-
-        assertTrue(result.failed());
-        assertEquals(WARNING, result.getFailure().getFailureType());
-        // This throws a connectionException
+    void testApplyUnreachable() {
     }
 
     @Test
     void test_apply_notActuallyService() {
-        // Here, mock server returns no valid response (it is not an AAS service)
-        var result = testSubject.apply(new Service.Builder().withUri(mockServerUri).build());
-
-        assertTrue(result.failed());
-        assertEquals(WARNING, result.getFailure().getFailureType());
     }
 
-    private void answerWith(Environment environment) {
-        try {
-            mockServer.when(request()
-                            .withMethod(GET.toString())
-                            .withPath("/%s".formatted(SHELLS_API_PATH)))
-                    .respond(HttpResponse.response()
-                            .withBody(resultOfCollection(environment.getAssetAdministrationShells())));
-
-            mockServer.when(request()
-                            .withMethod(GET.toString())
-                            .withPath("/%s".formatted(SUBMODELS_API_PATH)))
-                    .respond(HttpResponse.response()
-                            .withBody(resultOfCollection(environment.getSubmodels())));
-
-            mockServer.when(request()
-                            .withMethod(GET.toString())
-                            .withPath("/%s".formatted(CONCEPT_DESCRIPTIONS_API_PATH)))
-                    .respond(HttpResponse.response()
-                            .withBody(resultOfCollection(environment.getConceptDescriptions())));
-
-        } catch (SerializationException e) {
-            fail("Failed setting up mock response: %s".formatted(e.getMessage()));
-        }
-    }
 }

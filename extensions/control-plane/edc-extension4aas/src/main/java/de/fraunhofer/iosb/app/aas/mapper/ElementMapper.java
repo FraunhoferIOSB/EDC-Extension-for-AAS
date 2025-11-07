@@ -22,8 +22,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyName;
 import com.fasterxml.jackson.databind.introspect.Annotated;
 import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
-import de.fraunhofer.iosb.aas.lib.model.AasProvider;
 import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
+import de.fraunhofer.iosb.model.context.AasServerContext;
+import de.fraunhofer.iosb.model.context.registry.AasRegistryContext;
+import de.fraunhofer.iosb.model.context.repository.remote.RemoteAasRepositoryContext;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.digitaltwin.aas4j.v3.model.annotations.IRI;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
@@ -45,8 +47,10 @@ public class ElementMapper {
     };
     private final TypeReference<List<Object>> jsonListTypeRef = new TypeReference<>() {
     };
+    private final AasServerContext context;
 
-    protected ElementMapper() {
+    protected ElementMapper(AasServerContext context) {
+        this.context = context;
         objectMapper = new ObjectMapper()
                 .setAnnotationIntrospector(new NamespacingIntrospector())
                 // Disable auto-detection from method names
@@ -55,9 +59,11 @@ public class ElementMapper {
                 .setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
     }
 
-    protected @NotNull String generateId(DataAddress dataAddress) {
+    @NotNull
+    public String generateId(Reference reference) {
+        var dataAddress = createDataAddress(reference);
         if (dataAddress instanceof AasDataAddress aasDataAddress) {
-            return String.valueOf("%s:%s".formatted((aasDataAddress.getBaseUrl()), aasDataAddress.getPath()).hashCode());
+            return String.valueOf("%s:%s".formatted(aasDataAddress.getBaseUrl(), aasDataAddress.getPath()).hashCode());
         } else if (dataAddress instanceof HttpDataAddress httpDataAddress) {
             return String.valueOf("%s:%s".formatted(httpDataAddress.getBaseUrl(), httpDataAddress.getPath()).hashCode());
         } else {
@@ -69,12 +75,18 @@ public class ElementMapper {
         }
     }
 
-    protected DataAddress createDataAddress(AasProvider provider, Reference reference) {
-        return AasDataAddress.Builder.newInstance()
-                .baseUrl(provider.baseUri().toString())
-                .additionalHeaders(provider.getHeaders())
-                .referenceChain(reference)
-                .build();
+    protected DataAddress createDataAddress(Reference reference) {
+        AasDataAddress.Builder builder = AasDataAddress.Builder.newInstance()
+                .baseUrl(context.getUri().toString())
+                .reference(reference);
+
+        if (context instanceof RemoteAasRepositoryContext remoteContext && Objects.nonNull(remoteContext.getAuthenticationMethod().getHeader())) {
+            builder.additionalHeaders(Map.ofEntries(remoteContext.getAuthenticationMethod().getHeader()));
+        } else if (context instanceof AasRegistryContext remoteContext && Objects.nonNull(remoteContext.getAuthenticationMethod().getHeader())) {
+            builder.additionalHeaders(Map.ofEntries(remoteContext.getAuthenticationMethod().getHeader()));
+        }
+
+        return builder.build();
     }
 
     protected DataAddress createDataAddress(URI href) {

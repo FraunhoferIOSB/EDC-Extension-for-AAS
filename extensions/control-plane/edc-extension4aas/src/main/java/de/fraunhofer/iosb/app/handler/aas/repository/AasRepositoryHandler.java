@@ -19,8 +19,8 @@ import de.fraunhofer.iosb.aas.lib.model.PolicyBinding;
 import de.fraunhofer.iosb.app.handler.aas.AasHandler;
 import de.fraunhofer.iosb.app.handler.edc.EdcStoreHandler;
 import de.fraunhofer.iosb.client.exception.UnauthorizedException;
+import de.fraunhofer.iosb.client.repository.AasRepositoryClient;
 import de.fraunhofer.iosb.ilt.faaast.service.util.ReferenceHelper;
-import de.fraunhofer.iosb.model.context.repository.AasRepositoryContext;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.util.AasUtils;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
 import org.eclipse.digitaltwin.aas4j.v3.model.Identifiable;
@@ -36,47 +36,25 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.ConnectException;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Predicate;
 
-public abstract class AasRepositoryHandler extends AasHandler {
+public abstract class AasRepositoryHandler<C extends AasRepositoryClient> extends AasHandler<C> {
 
-    private final AasRepositoryContext context;
-
-    protected AasRepositoryHandler(Monitor monitor, AasRepositoryContext context, EdcStoreHandler edcStoreHandler) {
-        super(monitor, context, edcStoreHandler);
-        this.context = context;
+    protected AasRepositoryHandler(Monitor monitor, C client, EdcStoreHandler edcStoreHandler) {
+        super(monitor, client, edcStoreHandler);
     }
 
-    protected abstract Environment getEnvironment() throws UnauthorizedException, ConnectException;
-
-    protected @NotNull Predicate<Identifiable> identifiableFilter() {
-        List<Reference> references = context.getReferences();
-
-        return (identifiable) -> references.isEmpty() || references.contains(AasUtils.toReference(identifiable));
+    protected Environment getEnvironment() throws UnauthorizedException, ConnectException {
+        return client.getEnvironment();
     }
-
-    protected @NotNull Predicate<Reference> referenceFilter() {
-        List<Reference> references = context.getReferences();
-
-        return (ref) -> references.isEmpty() || references.contains(ref);
-    }
-
-    protected abstract boolean isAvailable();
 
     @Override
-    protected URI getUri() {
-        return context.getUri();
-    }
-
-
-    @Override
-    protected PolicyBinding policyBindingOrDefault(Reference reference) {
-        return Optional.ofNullable(context.getPolicyBindings())
+    protected PolicyBinding policyBindingFor(Reference reference) {
+        return Optional.ofNullable(client.getPolicyBindings())
                 .orElse(List.of())
                 .stream()
                 .filter(binding -> reference.equals(binding.referredElement()))
@@ -126,11 +104,9 @@ public abstract class AasRepositoryHandler extends AasHandler {
                     .toList());
         }
 
-        if (referenceFilter().test(AasUtils.toReference(parent, submodelElement))) {
-            return submodelElement;
-        } else if (submodelElement instanceof SubmodelElementList list && !list.getValue().isEmpty()) {
-            return submodelElement;
-        } else if (submodelElement instanceof SubmodelElementCollection collection && !collection.getValue().isEmpty()) {
+        if (referenceFilter().test(AasUtils.toReference(parent, submodelElement)) ||
+                submodelElement instanceof SubmodelElementList list && !list.getValue().isEmpty() ||
+                submodelElement instanceof SubmodelElementCollection collection && !collection.getValue().isEmpty()) {
             return submodelElement;
         }
         return null;
@@ -155,7 +131,7 @@ public abstract class AasRepositoryHandler extends AasHandler {
         if (referenceFilter().test(submodelElementReference)) {
             submodelElement.getExtensions().add(new DefaultExtension.Builder()
                     .name("EDC Asset ID")
-                    .value(identifiableMapper.generateId(submodelElementReference))
+                    .value(submodelElementMapper.generateId(submodelElementReference))
                     .build());
         }
         return submodelElement;

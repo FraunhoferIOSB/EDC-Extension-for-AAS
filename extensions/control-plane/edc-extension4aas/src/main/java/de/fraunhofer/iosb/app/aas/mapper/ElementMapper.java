@@ -22,8 +22,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyName;
 import com.fasterxml.jackson.databind.introspect.Annotated;
 import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
+import de.fraunhofer.iosb.client.AasServerClient;
 import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
-import de.fraunhofer.iosb.model.context.AasServerContext;
 import de.fraunhofer.iosb.model.context.registry.AasRegistryContext;
 import de.fraunhofer.iosb.model.context.repository.remote.RemoteAasRepositoryContext;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
@@ -47,10 +47,10 @@ public class ElementMapper {
     };
     private final TypeReference<List<Object>> jsonListTypeRef = new TypeReference<>() {
     };
-    private final AasServerContext context;
+    private final AasServerClient client;
 
-    protected ElementMapper(AasServerContext context) {
-        this.context = context;
+    protected ElementMapper(AasServerClient client) {
+        this.client = client;
         objectMapper = new ObjectMapper()
                 .setAnnotationIntrospector(new NamespacingIntrospector())
                 // Disable auto-detection from method names
@@ -77,13 +77,11 @@ public class ElementMapper {
 
     protected DataAddress createDataAddress(Reference reference) {
         AasDataAddress.Builder builder = AasDataAddress.Builder.newInstance()
-                .baseUrl(context.getUri().toString())
+                .baseUrl(client.getUri().toString())
                 .reference(reference);
 
-        if (context instanceof RemoteAasRepositoryContext remoteContext && Objects.nonNull(remoteContext.getAuthenticationMethod().getHeader())) {
-            builder.additionalHeaders(Map.ofEntries(remoteContext.getAuthenticationMethod().getHeader()));
-        } else if (context instanceof AasRegistryContext remoteContext && Objects.nonNull(remoteContext.getAuthenticationMethod().getHeader())) {
-            builder.additionalHeaders(Map.ofEntries(remoteContext.getAuthenticationMethod().getHeader()));
+        if (client.requiresAuthentication()) {
+            builder.additionalHeaders(client.getHeaders());
         }
 
         return builder.build();

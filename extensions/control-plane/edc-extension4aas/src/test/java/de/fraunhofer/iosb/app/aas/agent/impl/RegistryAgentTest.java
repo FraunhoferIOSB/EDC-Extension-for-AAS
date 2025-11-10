@@ -63,6 +63,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.model.HttpRequest.request;
 
@@ -189,16 +190,19 @@ class RegistryAgentTest {
     }
 
     @Test
-    void test_register_notARegistryNoFailure() {
+    void test_register_notARegistryFailsRegistration() throws UnauthorizedException {
         URI uri;
         try {
             uri = new URI("https://example.com");
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
-        var result = testSubject.register(new AasRegistryContextDTO(uri, new NoAuth()));
 
-        assertEquals(uri, result);
+        try {
+            testSubject.register(new AasRegistryContextDTO(uri, new NoAuth()));
+            fail();
+        } catch (ConnectException ignored) {
+        }
     }
 
     private static void assertSelfDescription(Environment selfDescription) {

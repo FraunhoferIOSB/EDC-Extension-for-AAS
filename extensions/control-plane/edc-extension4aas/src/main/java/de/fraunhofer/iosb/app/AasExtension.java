@@ -25,10 +25,12 @@ import de.fraunhofer.iosb.app.controller.ConfigurationController;
 import de.fraunhofer.iosb.app.controller.SelfDescriptionController;
 import de.fraunhofer.iosb.app.controller.dto.LocalRepositoryDTO;
 import de.fraunhofer.iosb.app.controller.dto.RemoteAasRepositoryContextDTO;
+
 import de.fraunhofer.iosb.app.edc.contract.PolicyHelper;
 import de.fraunhofer.iosb.app.handler.edc.EdcStoreHandler;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import de.fraunhofer.iosb.app.stores.repository.AasServerStore;
+import de.fraunhofer.iosb.client.exception.UnauthorizedException;
 import de.fraunhofer.iosb.repository.impl.faaast.FaaastRepositoryManager;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
@@ -36,11 +38,13 @@ import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionS
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.web.spi.WebService;
 
+import java.net.ConnectException;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
@@ -73,7 +77,7 @@ public class AasExtension implements ServiceExtension {
     private WebService webService;
     @Inject // Add AAS namespace to JSON LD context
     private JsonLd jsonLd;
-    private AasRepositoryController aasRepositoryController;
+    private AasRepositoryController aasServerController;
     private Monitor monitor;
 
     @Override
@@ -86,9 +90,9 @@ public class AasExtension implements ServiceExtension {
         // Use FA³ST to start repositories internally.
         var faaastRepositoryManager = aasRepositoryRegistry.getFor(FaaastRepositoryManager.class);
 
-        AasServerStore aasRepositoryStore = new AasServerStore();
+        AasServerStore aasServerStore = new AasServerStore();
 
-        aasRepositoryController = new AasRepositoryController(monitor, aasRepositoryStore, faaastRepositoryManager,
+        aasServerController = new AasRepositoryController(monitor, aasServerStore, faaastRepositoryManager,
                 new EdcStoreHandler(assetIndex, contractDefinitionStore));
 
         // Add public endpoint if wanted by config
@@ -97,8 +101,8 @@ public class AasExtension implements ServiceExtension {
                     Map.of())));
         }
 
-        webService.registerResource(new SelfDescriptionController(monitor, aasRepositoryStore));
-        webService.registerResource(aasRepositoryController);
+        webService.registerResource(new SelfDescriptionController(monitor, aasServerStore));
+        webService.registerResource(aasServerController);
 
         String participantId = context.getParticipantId();
 
@@ -108,11 +112,17 @@ public class AasExtension implements ServiceExtension {
 
     @Override
     public void start() {
-        registerAasServicesByConfig();
+        try {
+            registerAasServicesByConfig();
+        } catch (UnauthorizedException e) {
+            throw new EdcException("Unauthorized exception on registration of configured AAS servers", e);
+        } catch (ConnectException e) {
+            throw new EdcException("Connect exception on registration of configured AAS servers", e);
+        }
         monitor.debug(String.format("%s started.", NAME));
     }
 
-    private void registerAasServicesByConfig() {
+    private void registerAasServicesByConfig() throws UnauthorizedException, ConnectException {
         var configInstance = Configuration.getInstance();
 
         if (Objects.nonNull(configInstance.getRemoteAasLocation())) {
@@ -120,7 +130,7 @@ public class AasExtension implements ServiceExtension {
                     configInstance.getRemoteAasLocation(),
                     new NoAuth(),
                     null);
-            URI serviceUri = aasRepositoryController.register(remoteRepositoryDto);
+            URI serviceUri = aasServerController.register(remoteRepositoryDto);
             monitor.debug(String.format("Registered AAS repository with uri %s", serviceUri));
         }
 
@@ -134,13 +144,13 @@ public class AasExtension implements ServiceExtension {
                 configInstance.getAasServiceConfigPath(),
                 null);
 
-        URI serviceUri = aasRepositoryController.start(localRepositoryDto);
+        URI serviceUri = aasServerController.start(localRepositoryDto);
         monitor.debug(String.format("Started FA³ST service with uri %s", serviceUri));
     }
 
     @Override
     public void shutdown() {
-        aasRepositoryController.stopAll();
+        aasServerController.unregisterAll();
     }
 }
 

@@ -1,11 +1,24 @@
+/*
+ * Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
+ * Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
+ * Forschung e.V.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package de.fraunhofer.iosb.app.handler.aas.registry;
 
 import de.fraunhofer.iosb.aas.lib.model.PolicyBinding;
 import de.fraunhofer.iosb.app.aas.mapper.referable.identifiable.IdentifiableMapper;
-import de.fraunhofer.iosb.app.handler.RemoteHandler;
-import de.fraunhofer.iosb.app.handler.aas.AasHandler;
+import de.fraunhofer.iosb.app.handler.aas.RemoteAasHandler;
 import de.fraunhofer.iosb.app.handler.edc.EdcStoreHandler;
-import de.fraunhofer.iosb.app.handler.util.DiffHelper;
 import de.fraunhofer.iosb.client.exception.UnauthorizedException;
 import de.fraunhofer.iosb.client.registry.AasRegistryClient;
 import de.fraunhofer.iosb.model.context.registry.AasRegistryContext;
@@ -17,10 +30,12 @@ import org.eclipse.digitaltwin.aas4j.v3.model.Endpoint;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
 import org.eclipse.digitaltwin.aas4j.v3.model.Identifiable;
 import org.eclipse.digitaltwin.aas4j.v3.model.ProtocolInformation;
+import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.digitaltwin.aas4j.v3.model.SecurityAttributeObject;
 import org.eclipse.digitaltwin.aas4j.v3.model.SecurityTypeEnum;
 import org.eclipse.digitaltwin.aas4j.v3.model.Submodel;
 import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelDescriptor;
+import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElement;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultAssetAdministrationShell;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultAssetAdministrationShellDescriptor;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultAssetInformation;
@@ -29,7 +44,6 @@ import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultExtension;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultSubmodel;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultSubmodelDescriptor;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.jetbrains.annotations.NotNull;
 
@@ -42,27 +56,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static de.fraunhofer.iosb.constants.AasConstants.SUPPORTED_AAS_VERSION;
 import static org.eclipse.edc.dataaddress.httpdata.spi.HttpDataAddressSchema.BASE_URL;
 
-public class RemoteAasRegistryHandler extends AasHandler implements RemoteHandler {
+public class RemoteAasRegistryHandler extends RemoteAasHandler<AasRegistryClient> {
     private static final List<String> SUPPORTED_PROTOCOLS = List.of("HTTP", "HTTPS", "http", "https");
 
-    private final AasRegistryClient client;
-
-    // This map keeps tabs on the current state of registered assets/contracts.
-    // If an asset or its contract could not be registered, they will not appear in this map.
-    // We keep this "cache" to not flood the Asset/ContractStores with requests.
-    private final Map<PolicyBinding, Asset> referenceAssetMapping = new HashMap<>();
-
-    public RemoteAasRegistryHandler(Monitor monitor, AasRegistryContext context, EdcStoreHandler edcStoreHandler) {
-        super(monitor, context, edcStoreHandler);
-        this.client = new AasRegistryClient(context);
-        // initialize
-        run();
+    public RemoteAasRegistryHandler(Monitor monitor, AasRegistryClient client, EdcStoreHandler edcStoreHandler) throws UnauthorizedException,
+            ConnectException {
+        super(monitor, client, edcStoreHandler);
     }
 
     @Override
@@ -72,12 +75,12 @@ public class RemoteAasRegistryHandler extends AasHandler implements RemoteHandle
         try {
             shells = getAllAsShells().values().stream().toList();
         } catch (NoEndpointException e) {
-            monitor.severe(String.format("No endpoints for one shell descriptor at registry %s", getUri()), e);
+            monitor.severe(String.format("No descriptor endpoints for one shell descriptor at registry %s", client.getUri()), e);
         }
         try {
             submodels = getAllAsSubmodels().values().stream().toList();
         } catch (NoEndpointException e) {
-            monitor.severe(String.format("No endpoints for one submodel descriptor at registry %s", getUri()), e);
+            monitor.severe(String.format("No descriptor endpoints for one submodel descriptor at registry %s", client.getUri()), e);
         }
 
         return new DefaultEnvironment.Builder()
@@ -87,13 +90,24 @@ public class RemoteAasRegistryHandler extends AasHandler implements RemoteHandle
     }
 
     @Override
-    public Environment buildSelfDescription() throws UnauthorizedException, ConnectException {
-        return super.buildSelfDescription(this::registryIdentifiableMapper);
+    protected Function<Identifiable, Identifiable> getSelfDescriptionIdentifiableMapper() {
+        return this::registryIdentifiableMapper;
+    }
+
+    @Override
+    protected SubmodelElement mapSubmodelElement(Reference reference, SubmodelElement submodelElement) {
+        return submodelElement;
+    }
+
+
+    @Override
+    protected SubmodelElement filterSubmodelElementStructure(Reference reference, SubmodelElement submodelElement) {
+        return submodelElement;
     }
 
     private @NotNull Identifiable registryIdentifiableMapper(Identifiable identifiable) {
         var ctx = new AasRegistryContext.Builder()
-                .uri(referenceAssetMapping.entrySet().stream()
+                .uri(this.referenceAssetMapping.entrySet().stream()
                         .filter(entry -> entry.getKey().referredElement().equals(AasUtils.toReference(identifiable)))
                         .map(Map.Entry::getValue)
                         .map(Asset::getDataAddress)
@@ -104,99 +118,13 @@ public class RemoteAasRegistryHandler extends AasHandler implements RemoteHandle
                         .orElseThrow())
                 .build();
 
+        var client = new AasRegistryClient(ctx);
+
         identifiable.getExtensions().add(new DefaultExtension.Builder()
                 .name(Asset.PROPERTY_ID)
-                .value(new IdentifiableMapper(ctx).generateId(AasUtils.toReference(identifiable)))
+                .value(new IdentifiableMapper(client).generateId(AasUtils.toReference(identifiable)))
                 .build());
         return identifiable;
-    }
-
-    @Override
-    public void run() {
-        if (!isAvailable()) {
-            monitor.warning(String.format("%s unavailable", client.getUri()));
-            return;
-        }
-
-        Map<PolicyBinding, Asset> filtered;
-        try {
-            filtered = filterMap();
-        } catch (UnauthorizedException e) {
-            throw new EdcException(String.format("Unauthorized exception when connecting to %s", getUri()), e);
-        } catch (ConnectException e) {
-            monitor.warning(String.format("Could not connect to %s", getUri()), e);
-            return;
-        }
-
-        // All elements that are not currently registered (as far as we know)
-        Map<PolicyBinding, Asset> toAdd = DiffHelper.getToAdd(referenceAssetMapping, filtered);
-        // All elements that are currently registered (as far as we know) but should not
-        Map<PolicyBinding, Asset> toRemove = DiffHelper.getToRemove(referenceAssetMapping, filtered);
-        // All elements to update (policy bindings are not modifiable, thus not need to be checked)
-        Map<PolicyBinding, Asset> toUpdate = DiffHelper.getToUpdate(referenceAssetMapping, filtered);
-
-        toAdd.entrySet().stream()
-                .filter(entry -> registerSingle(entry.getKey(), entry.getValue()).succeeded())
-                .forEach(entry -> referenceAssetMapping.put(entry.getKey(), entry.getValue()));
-
-        toRemove.entrySet().stream()
-                .filter(entry -> unregisterSingle(entry.getKey(), entry.getValue()).succeeded())
-                .forEach(entry -> referenceAssetMapping.remove(entry.getKey(), entry.getValue()));
-
-        toUpdate.entrySet().stream()
-                .filter(entry -> updateSingle(entry.getKey(), entry.getValue()).succeeded())
-                .forEach(entry -> referenceAssetMapping.remove(entry.getKey(), entry.getValue()));
-    }
-
-    protected Map<PolicyBinding, Asset> filterMap() throws UnauthorizedException, ConnectException {
-
-        Map<URI, AssetAdministrationShell> shells;
-        Map<URI, Submodel> submodels;
-        try {
-            shells = getAllAsShells();
-        } catch (NoEndpointException clientException) {
-            monitor.warning(String.format("Could not get shell descriptors from registry %s", client.getUri()), clientException);
-            shells = Map.of();
-        }
-        try {
-            submodels = getAllAsSubmodels();
-        } catch (NoEndpointException clientException) {
-            monitor.warning(String.format("Could not get submodel descriptors from registry %s", client.getUri()), clientException);
-            submodels = Map.of();
-        }
-
-        Map<PolicyBinding, Asset> shellAssets = shells.entrySet().stream()
-                .map(this::mapEntry)
-                .flatMap(policyBindingAssetMap -> policyBindingAssetMap.entrySet().stream())
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-        Map<PolicyBinding, Asset> submodelAssets = submodels.entrySet().stream()
-                .map(this::mapEntry)
-                .flatMap(policyBindingAssetMap -> policyBindingAssetMap.entrySet().stream())
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-        return Stream.of(shellAssets, submodelAssets)
-                .flatMap(policyBindingAssetMap -> policyBindingAssetMap.entrySet().stream())
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-    }
-
-    private <T extends Identifiable> Map<PolicyBinding, Asset> mapEntry(Map.Entry<URI, T> entry) {
-        URI uri = entry.getKey();
-        T entity = entry.getValue();
-
-        Function<Identifiable, Asset> identifiableMappingFunction =
-                new IdentifiableMapper(new AasRegistryContext.Builder().uri(uri).build())::map;
-        return filterMapIdentifiable(entity, identifiableMappingFunction, submodelElementMapper::map);
-    }
-
-    @Override
-    protected boolean isAvailable() {
-        return client.isAvailable();
-    }
-
-    @Override
-    protected URI getUri() {
-        return client.getUri();
     }
 
     private Map<URI, Submodel> getAllAsSubmodels() throws UnauthorizedException, ConnectException, NoEndpointException {

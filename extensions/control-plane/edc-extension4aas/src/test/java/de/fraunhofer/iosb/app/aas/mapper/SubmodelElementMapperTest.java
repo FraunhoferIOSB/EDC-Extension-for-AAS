@@ -17,6 +17,7 @@ package de.fraunhofer.iosb.app.aas.mapper;
 
 import de.fraunhofer.iosb.aas.lib.model.impl.Service;
 import de.fraunhofer.iosb.app.aas.mapper.referable.SubmodelElementMapper;
+import de.fraunhofer.iosb.client.repository.local.impl.LocalFaaastRepositoryClient;
 import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
 import de.fraunhofer.iosb.model.context.repository.local.impl.LocalFaaastRepositoryContext;
 import org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes;
@@ -62,7 +63,7 @@ class SubmodelElementMapperTest {
 
     @BeforeEach
     void setUp() {
-        testSubject = new SubmodelElementMapper(new LocalFaaastRepositoryContext.Builder().build());
+        testSubject = new SubmodelElementMapper(new LocalFaaastRepositoryClient(new LocalFaaastRepositoryContext.Builder().build()));
     }
 
 

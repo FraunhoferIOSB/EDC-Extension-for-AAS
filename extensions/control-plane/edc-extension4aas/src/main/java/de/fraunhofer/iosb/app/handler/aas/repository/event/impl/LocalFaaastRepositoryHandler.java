@@ -18,6 +18,7 @@ package de.fraunhofer.iosb.app.handler.aas.repository.event.impl;
 import de.fraunhofer.iosb.aas.lib.model.PolicyBinding;
 import de.fraunhofer.iosb.app.handler.aas.repository.event.EventDrivenRepositoryHandler;
 import de.fraunhofer.iosb.app.handler.edc.EdcStoreHandler;
+import de.fraunhofer.iosb.client.exception.UnauthorizedException;
 import de.fraunhofer.iosb.client.repository.local.impl.LocalFaaastRepositoryClient;
 import de.fraunhofer.iosb.ilt.faaast.service.model.messagebus.EventMessage;
 import de.fraunhofer.iosb.ilt.faaast.service.model.messagebus.SubscriptionId;
@@ -25,44 +26,40 @@ import de.fraunhofer.iosb.ilt.faaast.service.model.messagebus.event.change.Eleme
 import de.fraunhofer.iosb.ilt.faaast.service.model.messagebus.event.change.ElementCreateEventMessage;
 import de.fraunhofer.iosb.ilt.faaast.service.model.messagebus.event.change.ElementDeleteEventMessage;
 import de.fraunhofer.iosb.ilt.faaast.service.model.messagebus.event.change.ElementUpdateEventMessage;
-import de.fraunhofer.iosb.model.context.repository.local.impl.LocalFaaastRepositoryContext;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.StoreResult;
 
+import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
 
-public class LocalFaaastRepositoryHandler extends EventDrivenRepositoryHandler {
+/**
+ * Handles locally started FA³ST service instances. Since we have direct access to the message bus, we can subscribe to events and obtain changes
+ * instantly as opposed to remote AAS, where updates have to be polled.
+ */
+public class LocalFaaastRepositoryHandler extends EventDrivenRepositoryHandler<LocalFaaastRepositoryClient> {
 
     private final List<SubscriptionId> subscriptions = new ArrayList<>();
 
-    public LocalFaaastRepositoryHandler(Monitor monitor, LocalFaaastRepositoryContext faaastContext, EdcStoreHandler edcStoreHandler) {
-        super(monitor, faaastContext, edcStoreHandler,
-                new LocalFaaastRepositoryClient(faaastContext));
+    public LocalFaaastRepositoryHandler(Monitor monitor, LocalFaaastRepositoryClient client, EdcStoreHandler edcStoreHandler) throws UnauthorizedException,
+            ConnectException {
+        super(monitor, client, edcStoreHandler);
         initialize();
     }
 
     @Override
     protected void subscribe() {
-        if (client instanceof LocalFaaastRepositoryClient faaastClient) {
-            subscriptions.add(faaastClient.subscribeTo(ElementCreateEventMessage.class, this::created));
-            subscriptions.add(faaastClient.subscribeTo(ElementDeleteEventMessage.class, this::deleted));
-            subscriptions.add(faaastClient.subscribeTo(ElementUpdateEventMessage.class, this::updated));
-        } else {
-            throw new IllegalStateException("FA³ST repository handler does not own a FA³ST client.");
-        }
+        subscriptions.add(client.subscribeTo(ElementCreateEventMessage.class, this::created));
+        subscriptions.add(client.subscribeTo(ElementDeleteEventMessage.class, this::deleted));
+        subscriptions.add(client.subscribeTo(ElementUpdateEventMessage.class, this::updated));
     }
 
     @Override
     protected void unsubscribe() {
-        if (client instanceof LocalFaaastRepositoryClient faaastClient) {
-            subscriptions.forEach(faaastClient::unsubscribeFrom);
-        } else {
-            throw new IllegalStateException("FA³ST repository handler does not own a FA³ST client.");
-        }
+        subscriptions.forEach(client::unsubscribeFrom);
     }
 
     private void updated(ElementUpdateEventMessage message) {

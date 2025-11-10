@@ -15,74 +15,36 @@
  */
 package de.fraunhofer.iosb.app.handler.aas.repository.period.impl;
 
-import de.fraunhofer.iosb.aas.lib.model.PolicyBinding;
-import de.fraunhofer.iosb.app.handler.RemoteHandler;
-import de.fraunhofer.iosb.app.handler.aas.repository.AasRepositoryHandler;
+import de.fraunhofer.iosb.app.handler.aas.RemoteAasHandler;
 import de.fraunhofer.iosb.app.handler.edc.EdcStoreHandler;
-import de.fraunhofer.iosb.app.handler.util.DiffHelper;
 import de.fraunhofer.iosb.client.exception.UnauthorizedException;
 import de.fraunhofer.iosb.client.repository.remote.impl.RemoteAasRepositoryClient;
-import de.fraunhofer.iosb.model.context.repository.remote.RemoteAasRepositoryContext;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
-import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
+import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
+import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElement;
 import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.net.ConnectException;
-import java.net.URI;
-import java.util.Map;
 
-public class RemoteAasRepositoryHandler extends AasRepositoryHandler implements RemoteHandler {
+/**
+ * Handler for all AAS repositories that are registered via their URI / HTTP endpoints.
+ * The difference to the local handlers is that here, we have to poll the AAS repository periodically instead of listening to events.
+ */
+public class RemoteAasRepositoryHandler extends RemoteAasHandler<RemoteAasRepositoryClient> {
 
-    private final RemoteAasRepositoryClient client;
-
-    // This map keeps tabs on the current state of registered assets/contracts.
-    // If an asset or its contract could not be registered, they will not appear in this map.
-    // We keep this "cache" to not flood the Asset/ContractStores with requests.
-    private final Map<PolicyBinding, Asset> referenceAssetMapping;
-
-
-    public RemoteAasRepositoryHandler(Monitor monitor, RemoteAasRepositoryContext context, EdcStoreHandler edcStoreHandler) {
-        super(monitor, context, edcStoreHandler);
-        this.client = new RemoteAasRepositoryClient(context);
-        referenceAssetMapping = initialize();
+    /**
+     * Create a new remote AAS repository handler and populate EDC stores.
+     *
+     * @param monitor         Log messages.
+     * @param client          Client to communicate with remote AAS repository.
+     * @param edcStoreHandler Keep EDC stores up-to-date
+     * @throws UnauthorizedException Initial connection to the repository failed due to unauthorized error.
+     * @throws ConnectException      Initial connection to the repository failed due to connection error.
+     */
+    public RemoteAasRepositoryHandler(Monitor monitor, RemoteAasRepositoryClient client, EdcStoreHandler edcStoreHandler) throws UnauthorizedException,
+            ConnectException {
+        super(monitor, client, edcStoreHandler);
     }
-
-    @Override
-    public void run() {
-        boolean repositoryAvailable = isAvailable();
-        if (!repositoryAvailable) {
-            monitor.warning(String.format("%s unavailable", client.getUri()));
-            return;
-        }
-
-        Map<PolicyBinding, Asset> mappedEnvironment;
-        try {
-            mappedEnvironment = filterMap();
-        } catch (ConnectException | UnauthorizedException clientException) {
-            monitor.warning(String.format("Could not get environment from %s", client.getUri()), clientException);
-            return;
-        }
-
-        // All elements that are not currently registered (as far as we know)
-        Map<PolicyBinding, Asset> toAdd = DiffHelper.getToAdd(referenceAssetMapping, mappedEnvironment);
-        // All elements that are currently registered (as far as we know) but should not
-        Map<PolicyBinding, Asset> toRemove = DiffHelper.getToRemove(referenceAssetMapping, mappedEnvironment);
-        // All elements to update (policy bindings are not modifiable, thus not need to be checked)
-        Map<PolicyBinding, Asset> toUpdate = DiffHelper.getToUpdate(referenceAssetMapping, mappedEnvironment);
-
-        toAdd.entrySet().stream()
-                .filter(entry -> registerSingle(entry.getKey(), entry.getValue()).succeeded())
-                .forEach(entry -> referenceAssetMapping.put(entry.getKey(), entry.getValue()));
-
-        toRemove.entrySet().stream()
-                .filter(entry -> unregisterSingle(entry.getKey(), entry.getValue()).succeeded())
-                .forEach(entry -> referenceAssetMapping.remove(entry.getKey(), entry.getValue()));
-
-        toUpdate.entrySet().stream()
-                .filter(entry -> updateSingle(entry.getKey(), entry.getValue()).succeeded())
-                .forEach(entry -> referenceAssetMapping.remove(entry.getKey(), entry.getValue()));
-    }
-
 
     @Override
     protected Environment getEnvironment() throws UnauthorizedException, ConnectException {
@@ -90,13 +52,13 @@ public class RemoteAasRepositoryHandler extends AasRepositoryHandler implements 
     }
 
     @Override
-    protected boolean isAvailable() {
-        return client.isAvailable();
+    protected SubmodelElement mapSubmodelElement(Reference reference, SubmodelElement submodelElement) {
+        return null;
     }
 
     @Override
-    protected URI getUri() {
-        return client.getUri();
+    protected SubmodelElement filterSubmodelElementStructure(Reference reference, SubmodelElement submodelElement) {
+        return null;
     }
 
 }

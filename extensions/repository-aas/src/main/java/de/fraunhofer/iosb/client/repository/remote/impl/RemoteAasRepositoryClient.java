@@ -15,6 +15,7 @@
  */
 package de.fraunhofer.iosb.client.repository.remote.impl;
 
+import de.fraunhofer.iosb.aas.lib.model.PolicyBinding;
 import de.fraunhofer.iosb.aas.lib.util.InetTools;
 import de.fraunhofer.iosb.client.exception.UnauthorizedException;
 import de.fraunhofer.iosb.client.repository.AasRepositoryClient;
@@ -27,11 +28,14 @@ import de.fraunhofer.iosb.ilt.faaast.client.interfaces.ConceptDescriptionReposit
 import de.fraunhofer.iosb.ilt.faaast.client.interfaces.SubmodelRepositoryInterface;
 import de.fraunhofer.iosb.model.context.repository.remote.RemoteAasRepositoryContext;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
+import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultEnvironment;
 
 import java.net.ConnectException;
 import java.net.URI;
 import java.net.http.HttpClient;
+import java.util.List;
+import java.util.Map;
 
 /**
  * This client uses the FA³ST client as backend. The FA³ST client communicates over standardized AAS API calls, so it should be compatible to all
@@ -43,15 +47,15 @@ public class RemoteAasRepositoryClient implements AasRepositoryClient {
     private final AASRepositoryInterface aasRepositoryInterface;
     private final SubmodelRepositoryInterface submodelRepositoryInterface;
     private final ConceptDescriptionRepositoryInterface conceptDescriptionRepositoryInterface;
-    private final URI uri;
-
+    private final RemoteAasRepositoryContext context;
 
     public RemoteAasRepositoryClient(RemoteAasRepositoryContext context) {
-        this.uri = context.getUri();
+        this.context = context;
         HttpClient httpClient = context.getAuthenticationMethod().httpClientBuilderFor().build();
-        this.aasRepositoryInterface = new AASRepositoryInterface(uri, httpClient);
-        this.submodelRepositoryInterface = new SubmodelRepositoryInterface(uri, httpClient);
-        this.conceptDescriptionRepositoryInterface = new ConceptDescriptionRepositoryInterface(uri, httpClient);
+
+        this.aasRepositoryInterface = new AASRepositoryInterface(context.getUri(), httpClient);
+        this.submodelRepositoryInterface = new SubmodelRepositoryInterface(context.getUri(), httpClient);
+        this.conceptDescriptionRepositoryInterface = new ConceptDescriptionRepositoryInterface(context.getUri(), httpClient);
     }
 
     @Override
@@ -72,52 +76,33 @@ public class RemoteAasRepositoryClient implements AasRepositoryClient {
         }
     }
 
-//    @Override
-//    public <R extends Referable> R getReferable(Reference reference, Class<R> clazz) throws UnauthorizedException, ConnectException,
-//            NotFoundException {
-//        if (ReferenceHelper.isNullOrEmpty(reference)) {
-//            throw new IllegalArgumentException("Reference malformed");
-//        }
-//
-//        Key effectiveKey = ReferenceHelper.getEffectiveKey(reference);
-//
-//        Referable referable;
-//        try {
-//            referable = switch (effectiveKey.getType()) {
-//                case ASSET_ADMINISTRATION_SHELL -> aasRepositoryInterface.getAASInterface(effectiveKey.getValue()).get();
-//                case SUBMODEL -> submodelRepositoryInterface.getSubmodelInterface(effectiveKey.getValue()).get();
-//                case CONCEPT_DESCRIPTION -> conceptDescriptionRepositoryInterface.get(effectiveKey.getValue());
-//                default ->
-//                        submodelRepositoryInterface.getSubmodelInterface(ReferenceHelper.getRoot(reference).getValue()).getElement(IdShortPath
-//                        .fromReference(reference));
-//            };
-//        } catch (de.fraunhofer.iosb.ilt.faaast.client.exception.NotFoundException notFoundException) {
-//            throw new NotFoundException(notFoundException);
-//        } catch (ForbiddenException | de.fraunhofer.iosb.ilt.faaast.client.exception.UnauthorizedException |
-//                 MethodNotAllowedException unauthorizedException) {
-//            throw new UnauthorizedException(unauthorizedException);
-//        } catch (ConnectivityException e) {
-//            throw new ConnectException(e.getMessage());
-//        } catch (StatusCodeException e) {
-//            throw new EdcException(e);
-//        }
-//
-//        if (clazz.isInstance(referable)) {
-//            throw new ClassCastException(String.format("%s (%s:%s) cannot be cast to %s",
-//                    referable.getClass().getSimpleName(), effectiveKey.getType(), effectiveKey.getValue(), clazz.getSimpleName()));
-//        }
-//
-//        return clazz.cast(referable);
-//    }
-
     @Override
     public URI getUri() {
-        return this.uri;
+        return context.getUri();
     }
 
+    @Override
+    public List<Reference> getReferences() {
+        return context.getReferences();
+    }
+
+    @Override
+    public List<PolicyBinding> getPolicyBindings() {
+        return context.getPolicyBindings();
+    }
+
+    @Override
+    public boolean requiresAuthentication() {
+        return context.getAuthenticationMethod().getHeader() != null;
+    }
+
+    @Override
+    public Map<String, String> getHeaders() {
+        return Map.ofEntries(context.getAuthenticationMethod().getHeader());
+    }
 
     @Override
     public boolean isAvailable() {
-        return InetTools.pingHost(uri.getHost(), uri.getPort());
+        return InetTools.pingHost(getUri().getHost(), getUri().getPort());
     }
 }

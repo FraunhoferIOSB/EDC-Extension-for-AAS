@@ -15,6 +15,7 @@
  */
 package de.fraunhofer.iosb.client.repository.local.impl;
 
+import de.fraunhofer.iosb.aas.lib.model.PolicyBinding;
 import de.fraunhofer.iosb.client.repository.local.LocalAasRepositoryClient;
 import de.fraunhofer.iosb.ilt.faaast.service.exception.MessageBusException;
 import de.fraunhofer.iosb.ilt.faaast.service.model.messagebus.EventMessage;
@@ -27,6 +28,7 @@ import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultEnvironment;
 import org.eclipse.edc.spi.EdcException;
 
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import static de.fraunhofer.iosb.model.context.repository.remote.RemoteAasRepositoryContext.ERR_MSG_TEMPLATE;
@@ -46,12 +48,6 @@ public class LocalFaaastRepositoryClient extends LocalAasRepositoryClient<LocalF
                 .conceptDescriptions(context.getAllConceptDescriptions())
                 .build();
     }
-
-
-//    @Override
-//    public <R extends Referable> R getReferable(Reference reference, Class<R> clazz) throws NotFoundException {
-//        return context.getReferable(reference, clazz);
-//    }
 
     public <T extends EventMessage> SubscriptionId subscribeTo(Class<T> messageClass, Consumer<T> consumer) {
         try {
@@ -75,4 +71,13 @@ public class LocalFaaastRepositoryClient extends LocalAasRepositoryClient<LocalF
         }
     }
 
+    @Override
+    public List<Reference> getReferences() {
+        return context.getReferences();
+    }
+
+    @Override
+    public List<PolicyBinding> getPolicyBindings() {
+        return context.getPolicyBindings();
+    }
 }

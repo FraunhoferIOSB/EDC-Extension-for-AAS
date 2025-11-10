@@ -15,7 +15,7 @@
  */
 package de.fraunhofer.iosb.app.aas.mapper.referable;
 
-import de.fraunhofer.iosb.model.context.AasServerContext;
+import de.fraunhofer.iosb.client.AasServerClient;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.util.AasUtils;
 import org.eclipse.digitaltwin.aas4j.v3.model.Blob;
 import org.eclipse.digitaltwin.aas4j.v3.model.File;
@@ -37,8 +37,8 @@ public class SubmodelElementMapper extends ReferableMapper {
     public static final String SMC_CHILDREN_LOCATION = "value";
     public static final String OPERATION = AAS_V30_NAMESPACE + "Operation";
 
-    public SubmodelElementMapper(AasServerContext context) {
-        super(context);
+    public SubmodelElementMapper(AasServerClient client) {
+        super(client);
     }
 
 

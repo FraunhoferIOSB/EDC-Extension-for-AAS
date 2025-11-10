@@ -15,11 +15,32 @@
  */
 package de.fraunhofer.iosb.client;
 
+import de.fraunhofer.iosb.aas.lib.model.PolicyBinding;
+import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
+
 import java.net.URI;
+import java.util.List;
+import java.util.Map;
 
 public interface AasServerClient {
 
     boolean isAvailable();
 
     URI getUri();
+
+    default List<Reference> getReferences() {
+        return List.of();
+    }
+
+    default List<PolicyBinding> getPolicyBindings() {
+        return List.of();
+    }
+
+    default boolean requiresAuthentication() {
+        return false;
+    }
+
+    default Map<String, String> getHeaders() {
+        return Map.of();
+    }
 }

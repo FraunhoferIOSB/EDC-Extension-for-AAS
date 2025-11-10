@@ -24,6 +24,8 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
+import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.SerializationException;
+import org.eclipse.digitaltwin.aas4j.v3.dataformat.json.JsonSerializer;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
 import org.eclipse.edc.spi.monitor.Monitor;
 
@@ -66,7 +68,7 @@ public class SelfDescriptionController {
      * @return Self description(s)
      */
     @GET
-    public List<Environment> getSelfDescription(@QueryParam("url") URI uri) {
+    public String getSelfDescription(@QueryParam("url") URI uri) throws SerializationException {
         monitor.debug(String.format("GET %s", SELF_DESCRIPTION_PATH));
 
         List<AasHandler> handlers = new ArrayList<>();
@@ -88,7 +90,6 @@ public class SelfDescriptionController {
                 monitor.warning("Could not produce a self description", e);
             }
         }
-
-        return selfDescriptions;
+        return new JsonSerializer().writeList(selfDescriptions);
     }
 }

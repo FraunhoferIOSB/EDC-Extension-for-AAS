@@ -16,6 +16,7 @@
 package de.fraunhofer.iosb.app.aas.mapper.referable.identifiable;
 
 import de.fraunhofer.iosb.app.aas.mapper.referable.ReferableMapper;
+import de.fraunhofer.iosb.client.AasServerClient;
 import de.fraunhofer.iosb.model.context.AasServerContext;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.util.AasUtils;
 import org.eclipse.digitaltwin.aas4j.v3.model.Identifiable;
@@ -30,8 +31,8 @@ public class IdentifiableMapper extends ReferableMapper {
     public static final String SUBMODEL_ELEMENT_LOCATION = AAS_V30_NAMESPACE + "Submodel/" + "submodelElements";
     private static final String IDENTIFIABLE_NAMESPACE = AAS_V30_NAMESPACE.concat("Identifiable/");
 
-    public IdentifiableMapper(AasServerContext context) {
-        super(context);
+    public IdentifiableMapper(AasServerClient client) {
+        super(client);
     }
 
     public Asset map(Identifiable identifiable) {

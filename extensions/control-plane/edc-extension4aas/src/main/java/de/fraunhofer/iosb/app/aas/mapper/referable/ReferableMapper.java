@@ -16,6 +16,7 @@
 package de.fraunhofer.iosb.app.aas.mapper.referable;
 
 import de.fraunhofer.iosb.app.aas.mapper.ElementMapper;
+import de.fraunhofer.iosb.client.AasServerClient;
 import de.fraunhofer.iosb.model.context.AasServerContext;
 import org.eclipse.digitaltwin.aas4j.v3.model.HasSemantics;
 import org.eclipse.digitaltwin.aas4j.v3.model.Referable;
@@ -28,8 +29,8 @@ public abstract class ReferableMapper extends ElementMapper {
     public static final String CONTENT_TYPE = "application/json";
     private static final String REFERABLE_NAMESPACE = AAS_V30_NAMESPACE.concat("Referable/");
 
-    protected ReferableMapper(AasServerContext context) {
-        super(context);
+    protected ReferableMapper(AasServerClient client) {
+        super(client);
     }
 
     public Asset.Builder map(Referable referable) {

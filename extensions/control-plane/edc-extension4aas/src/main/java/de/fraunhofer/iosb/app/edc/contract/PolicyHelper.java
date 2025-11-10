@@ -26,7 +26,6 @@ import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Objects;
 import java.util.Optional;
 
 import static de.fraunhofer.iosb.constants.AasConstants.DEFAULT_ACCESS_POLICY_DEFINITION_ID;
@@ -48,19 +47,9 @@ public abstract class PolicyHelper {
      */
     public static void registerDefaultPolicies(Monitor monitor, PolicyDefinitionStore policyDefinitionStore, String participantId) {
         Configuration configuration = Configuration.getInstance();
-        String accessPolicyPath = configuration.getDefaultAccessPolicyPath();
-        String contractPolicyPath = configuration.getDefaultContractPolicyPath();
 
-        Policy accessPolicy = getPolicyDefinitionFromFile(accessPolicyPath)
-                .orElseGet(() -> {
-                    monitor.severe(String.format("Could not find a valid policy at path %s. Using internal policy as default.", accessPolicyPath));
-                    return defaultPolicy(participantId);
-                });
-        Policy contractPolicy = getPolicyDefinitionFromFile(contractPolicyPath)
-                .orElseGet(() -> {
-                    monitor.severe(String.format("Could not find a valid policy at path %s. Using internal policy as default.", contractPolicyPath));
-                    return defaultPolicy(participantId);
-                });
+        Policy accessPolicy = getPolicy(monitor, participantId, configuration.getDefaultAccessPolicyPath());
+        Policy contractPolicy = getPolicy(monitor, participantId, configuration.getDefaultContractPolicyPath());
 
         var defaultAccessPolicyDefinition = PolicyDefinition.Builder.newInstance()
                 .id(DEFAULT_ACCESS_POLICY_DEFINITION_ID)
@@ -82,16 +71,22 @@ public abstract class PolicyHelper {
         }
     }
 
-    private static Optional<Policy> getPolicyDefinitionFromFile(String filePath) {
-        if (Objects.isNull(filePath)) {
-            return Optional.empty();
+    private static Policy getPolicy(Monitor monitor, String participantId, String path) {
+        Policy policy;
+        if (path != null) {
+            policy = getPolicyDefinitionFromFile(monitor, path).orElse(defaultPolicy(participantId));
+        } else {
+            policy = defaultPolicy(participantId);
         }
+        return policy;
+    }
 
+    private static Optional<Policy> getPolicyDefinitionFromFile(Monitor monitor, String filePath) {
         try {
             Policy filePolicy = new ObjectMapper().readerFor(Policy.class).readValue(Path.of(filePath).toFile());
             return Optional.of(filePolicy);
         } catch (IOException ioException) {
-
+            monitor.severe(String.format("Could not find a valid policy at path %s. Using internal policy as default.", filePath));
             return Optional.empty();
         }
     }

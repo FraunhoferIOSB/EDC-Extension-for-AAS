@@ -6,11 +6,13 @@ Compatibility: **Eclipse Dataspace Connector v0.14.1**
 
 ### New Features
 
-* **Added system tests**
+* **Synchronization over FA³ST Events**
+  * When starting a FA³ST service internally, the extension subscribes to its MessageBus instead of polling for updates
+  * This results in lower CPU load, lower network load and quicker reaction to AAS structure/metadata changes
 * **Restructured project**
-  * use extensions/, launchers/, samples/ structure from upstream/other related projects
-  * use libs.versions.toml to manage dependencies
-  * use base build.gradle.kts to manage common elements such as maven repository
+  * Use extensions/, launchers/, samples/ structure from upstream/other related projects
+  * Use libs.versions.toml to manage dependencies
+  * Use base build.gradle.kts to manage common elements such as maven repository
 * **Standalone Feature**
   * The extension can now be deployed **alongside** a running control-plane (and data-plane)
   * Previously, deployment was only possible by adding the extension dependency to the control-plane's build file
@@ -59,6 +61,7 @@ Compatibility: **Eclipse Dataspace Connector v0.14.1**
 
 ### Miscellaneous
 
+* **Added system tests**
 * Separated control-plane parts from data-plane parts to allow for distributed deployment scenarios
 * Updated internal FA³ST Service to version v1.3.0
 * Updated and tested compatibility to EDC version v0.13.0, v0.13.2, v0.14.0

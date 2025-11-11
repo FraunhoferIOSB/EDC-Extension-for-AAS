@@ -248,7 +248,7 @@ class AasServerRepositoryIT extends MockServerTestExtension {
         var contractDefinitions = contractDefinitionStore.findAll(QuerySpec.max()).toList();
 
         assertEquals(1, contractDefinitions.size());
-        var contractDefinitionAssetIds = (List<String>) contractDefinitions.get(0).getAssetsSelector().get(0).getOperandRight();
+        var contractDefinitionAssetIds = (List<?>) contractDefinitions.get(0).getAssetsSelector().get(0).getOperandRight();
         assertTrue(contractDefinitionAssetIds.contains(assetId));
     }
 

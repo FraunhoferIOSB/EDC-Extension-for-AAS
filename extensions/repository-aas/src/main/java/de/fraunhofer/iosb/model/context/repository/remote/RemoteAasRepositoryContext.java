@@ -16,16 +16,17 @@
 package de.fraunhofer.iosb.model.context.repository.remote;
 
 import de.fraunhofer.iosb.aas.lib.auth.AuthenticationMethod;
+import de.fraunhofer.iosb.aas.lib.auth.impl.NoAuth;
 import de.fraunhofer.iosb.aas.lib.model.PolicyBinding;
 import de.fraunhofer.iosb.model.context.repository.AasRepositoryContext;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Objects;
 
 public class RemoteAasRepositoryContext extends AasRepositoryContext {
     public static final String ERR_MSG_TEMPLATE = "%s from %s failed.";
-    @NotNull
     private final AuthenticationMethod authenticationMethod;
 
     private RemoteAasRepositoryContext(URI uri, List<PolicyBinding> policyBindings, AuthenticationMethod authenticationMethod) {
@@ -71,6 +72,7 @@ public class RemoteAasRepositoryContext extends AasRepositoryContext {
 
         public RemoteAasRepositoryContext build() {
             super.validate();
+            this.authenticationMethod = Objects.requireNonNullElse(authenticationMethod, new NoAuth());
 
             return new RemoteAasRepositoryContext(uri, policyBindings, authenticationMethod);
         }

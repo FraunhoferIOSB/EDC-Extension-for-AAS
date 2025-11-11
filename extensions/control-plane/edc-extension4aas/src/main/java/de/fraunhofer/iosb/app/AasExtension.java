@@ -26,7 +26,7 @@ import de.fraunhofer.iosb.app.controller.SelfDescriptionController;
 import de.fraunhofer.iosb.app.controller.dto.LocalRepositoryDTO;
 import de.fraunhofer.iosb.app.controller.dto.RemoteAasRepositoryContextDTO;
 
-import de.fraunhofer.iosb.app.edc.contract.PolicyHelper;
+import de.fraunhofer.iosb.app.edc.policy.PolicyHelper;
 import de.fraunhofer.iosb.app.handler.edc.EdcStoreHandler;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import de.fraunhofer.iosb.app.stores.repository.AasServerStore;

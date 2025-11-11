@@ -109,6 +109,7 @@ class SubmodelElementMapperTest {
         assertEquals(mockOutputVariables, resultAsset.getProperty(AAS_V30_NAMESPACE + "Operation/" + "outputVariables"));
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     void map_submodelElementList_elementsWithoutIdShort() {
         Service mockService = mockService();

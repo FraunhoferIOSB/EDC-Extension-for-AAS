@@ -26,6 +26,7 @@ dependencies {
     testImplementation(libs.edc.query.lib)
     testImplementation(libs.jersey.common)
     testImplementation(libs.mockito)
+    testImplementation(libs.wiremock)
     testImplementation("org.mock-server:mockserver-junit-jupiter:5.15.0") // TODO replace w wiremock
     testImplementation("org.mock-server:mockserver-netty:5.15.0") // TODO replace w wiremock
 

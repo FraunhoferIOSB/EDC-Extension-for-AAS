@@ -117,9 +117,9 @@ public class RepositoryController extends AbstractAasServerController {
     @POST
     @Path(REMOTE_REPOSITORY_PATH)
     public URI register(RemoteAasRepositoryContextDTO remoteAasRepositoryContextDTO) {
-        monitor.debug(String.format("Registering AAS repository with URL %s.", remoteAasRepositoryContextDTO.uri()));
-        if (aasServerStore.isStored(remoteAasRepositoryContextDTO.uri())) {
-            throw new WebApplicationException(String.format(EXISTS_TEMPLATE, remoteAasRepositoryContextDTO.uri()), Response.Status.CONFLICT);
+        monitor.debug(String.format("Registering AAS repository with URL %s.", remoteAasRepositoryContextDTO.url()));
+        if (aasServerStore.isStored(remoteAasRepositoryContextDTO.url())) {
+            throw new WebApplicationException(String.format(EXISTS_TEMPLATE, remoteAasRepositoryContextDTO.url()), Response.Status.CONFLICT);
         }
 
         RemoteAasRepositoryContext context = remoteAasRepositoryContextDTO.asContext();

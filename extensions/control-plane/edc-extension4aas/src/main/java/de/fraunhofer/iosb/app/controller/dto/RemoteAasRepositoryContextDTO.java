@@ -14,14 +14,14 @@ import java.util.Objects;
 /**
  * DTO containing information to register a remote AAS repository.
  *
- * @param uri URI to use to connect to the AAS repository, including any path prefixes (e.g., /api/v3.0)
+ * @param url URI to use to connect to the AAS repository, including any path prefixes (e.g., /api/v3.0)
  * @param auth The authentication method used to communicate with the registry.
  * @param policyBindings List of {@link PolicyBinding}. If defined, only elements referred by the policyBindings are registered (optional, default: no custom
  *         PolicyBindings, register all elements).
  */
-public record RemoteAasRepositoryContextDTO(URI uri, AuthenticationMethod auth, List<PolicyBinding> policyBindings) {
+public record RemoteAasRepositoryContextDTO(URI url, AuthenticationMethod auth, List<PolicyBinding> policyBindings) {
     public RemoteAasRepositoryContextDTO {
-        Objects.requireNonNull(uri, "'url' cannot be null!");
+        Objects.requireNonNull(url, "'url' cannot be null!");
         auth = Objects.requireNonNullElse(auth, new NoAuth());
         policyBindings = Objects.requireNonNullElse(policyBindings, List.of());
     }
@@ -29,7 +29,7 @@ public record RemoteAasRepositoryContextDTO(URI uri, AuthenticationMethod auth, 
 
     public RemoteAasRepositoryContext asContext() {
         return new RemoteAasRepositoryContext.Builder()
-                .uri(this.uri())
+                .uri(this.url())
                 .policyBindings(this.policyBindings())
                 .authenticationMethod(this.auth())
                 .onlySubmodels(Configuration.getInstance().onlySubmodels())

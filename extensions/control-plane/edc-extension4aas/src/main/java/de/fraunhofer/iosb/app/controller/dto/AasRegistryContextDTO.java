@@ -12,19 +12,19 @@ import java.util.Objects;
 /**
  * DTO containing information to register a remote AAS registry.
  *
- * @param uri URI to use to connect to the AAS registry, including any path prefixes (e.g., /api/v3.0)
+ * @param url URI to use to connect to the AAS registry, including any path prefixes (e.g., /api/v3.0)
  * @param auth The authentication method used to communicate with the registry.
  */
-public record AasRegistryContextDTO(URI uri, AuthenticationMethod auth) {
+public record AasRegistryContextDTO(URI url, AuthenticationMethod auth) {
     public AasRegistryContextDTO {
-        Objects.requireNonNull(uri, "'url' cannot be null!");
+        Objects.requireNonNull(url, "'url' cannot be null!");
         auth = Objects.requireNonNullElse(auth, new NoAuth());
     }
 
 
     public AasRegistryContext asContext() {
         return new AasRegistryContext.Builder()
-                .uri(this.uri())
+                .uri(this.url())
                 .authenticationMethod(this.auth())
                 .allowSelfSigned(Configuration.getInstance().isAllowSelfSignedCertificates())
                 .build();

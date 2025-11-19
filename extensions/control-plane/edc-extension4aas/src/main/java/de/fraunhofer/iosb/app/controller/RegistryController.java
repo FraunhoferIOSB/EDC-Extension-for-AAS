@@ -44,7 +44,7 @@ import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 
 
 /**
- * Handles requests regarding the Asset Administration Shells registered to this extension
+ * Handles requests regarding the AAS registries registered to this extension
  */
 @Consumes(APPLICATION_JSON)
 @Path(REGISTRY_PATH)
@@ -64,9 +64,9 @@ public class RegistryController extends AbstractAasServerController {
      */
     @POST
     public URI register(AasRegistryContextDTO aasRegistryContextDTO) {
-        monitor.debug(String.format("Registering AAS registry with URL %s.", aasRegistryContextDTO.uri()));
-        if (aasServerStore.isStored(aasRegistryContextDTO.uri())) {
-            throw new WebApplicationException(String.format(EXISTS_TEMPLATE, aasRegistryContextDTO.uri()), Response.Status.CONFLICT);
+        monitor.debug(String.format("Registering AAS registry with URL %s.", aasRegistryContextDTO.url()));
+        if (aasServerStore.isStored(aasRegistryContextDTO.url())) {
+            throw new WebApplicationException(String.format(EXISTS_TEMPLATE, aasRegistryContextDTO.url()), Response.Status.CONFLICT);
         }
 
         AasRegistryContext context = aasRegistryContextDTO.asContext();

@@ -24,7 +24,7 @@ start_runtime() {
   local config_path="${PWD}/system-tests/config/${project_name}.properties"
 
   if [[ ! -f "$config_path" ]]; then
-    echo "Config file not found: $config_path" >&2
+    echo "ERR: Config file not found: $config_path" >&2
     exit 1
   fi
 
@@ -40,7 +40,7 @@ start_runtime() {
     track_launch "$pid"
     return 0
   else
-    echo "Timed out waiting for runtime readiness (${timeout_secs}s). Killing PID $pid..." >&2
+    echo "ERR: Timed out waiting for runtime readiness (${timeout_secs}s). Killing PID $pid..." >&2
     cat "$log_file" >&2
     track_launch "$pid"
     cleanup_pid "$pid" || true
@@ -88,14 +88,14 @@ verify_request() {
   http_code=$(curl "${curl_args[@]}")
 
   if [[ "$http_code" != 2?? ]]; then
-    echo "$resource_name: $method request returned HTTP $http_code. Failing test and dumping actual response."
+    echo "ERR: $resource_name: $method request returned HTTP $http_code. Failing test and dumping actual response."
     cat "$log_file" >&2
     exit 1
   fi
 
 if ! python3 'system-tests/json_subset.py' "system-tests/resources/${resource_name}.json" "${log_file}";
   then
-      echo "$resource_name: Response JSON does not match expected. Failing test and dumping actual response."
+      echo "ERR: $resource_name: Response JSON does not match expected. Failing test and dumping actual response."
       jq < "$log_file" >&2
       printf "\n"
       exit 1

@@ -5,7 +5,7 @@ meta {
 }
 
 post {
-  url: {{provider-api}}/automated/negotiateContract
+  url: {{consumer-api}}/automated/negotiateContract
   body: json
   auth: inherit
 }
@@ -14,31 +14,13 @@ body:json {
   {
     "protocol": "dataspace-protocol-http",
     "counterPartyAddress": "{{provider-dsp}}",
-    "contractOffer": {
-      "id": "NzAwY2U2ODktMTJkZS00MWJjLTgwNDYtYTk3ODJlYjA2MWNl:LTEzMTQwMzY1NTQ=:MjkyNGFiOTUtMGJkNy00OGQzLWIxNTQtMTg3YmU2MDhkZjI1",
-      "policy": {
-        "permissions": [
-          {
-            "edctype": "dataspaceconnector:permission",
-            "action": {
-              "type": "USE"
-            }
-          }
-        ],
-        "assigner": "provider",
-        "target": "-1314036554",
-        "@type": {
-          "@policytype": "offer"
-        }
-      },
-      "assetId": "-1314036554"
-    },
+    "contractOffer": {{offer}},
     "callbackAddresses": []
   }
 }
 
 vars:post-response {
-  step-2-agreement-id: res.body.agreementId
+  agreement-id: res.body.agreementId
 }
 
 settings {

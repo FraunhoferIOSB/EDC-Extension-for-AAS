@@ -44,7 +44,6 @@ import static org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes.CONCEPT_DESCRIPTIO
 import static org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes.SUBMODEL;
 import static org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes.SUBMODEL_ELEMENT_LIST;
 import static org.eclipse.edc.dataaddress.httpdata.spi.HttpDataAddressSchema.BASE_URL;
-import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 
 /**
@@ -55,12 +54,12 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 public class AasDataAddress extends DataAddress {
 
     public static final String AAS_DATA_TYPE = "AasData";
-    public static final String PROXY_OPERATION = AAS_V30_NAMESPACE + "proxyOperation";
-    public static final String PROXY_METHOD = AAS_V30_NAMESPACE + "proxyMethod";
-    public static final String PROXY_PATH = AAS_V30_NAMESPACE + "proxyPath";
-    public static final String PROXY_BODY = AAS_V30_NAMESPACE + "proxyBody";
+    public static final String PROXY_OPERATION = "proxyOperation";
+    public static final String PROXY_METHOD = "proxyMethod";
+    public static final String PROXY_PATH = "proxyPath";
+    public static final String PROXY_BODY = "proxyBody";
     private static final String ADDITIONAL_HEADER = "aas:header:";
-    private static final String METHOD = EDC_NAMESPACE + "method";
+    private static final String METHOD = "method";
     private static final String REFERENCE = AAS_V30_NAMESPACE + "reference";
     private static final String PATH = AAS_V30_NAMESPACE + "path";
 

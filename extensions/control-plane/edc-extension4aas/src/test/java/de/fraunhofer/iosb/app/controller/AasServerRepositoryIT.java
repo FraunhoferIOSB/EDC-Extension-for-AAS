@@ -39,10 +39,10 @@ import org.eclipse.edc.connector.controlplane.defaults.storage.assetindex.InMemo
 import org.eclipse.edc.connector.controlplane.defaults.storage.contractdefinition.InMemoryContractDefinitionStore;
 import org.eclipse.edc.query.CriterionOperatorRegistryImpl;
 import org.eclipse.edc.spi.query.QuerySpec;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
 import java.net.ConnectException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -62,11 +62,13 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
+
 class AasServerRepositoryIT extends MockServerTestExtension {
     private AasRepositoryController testSubject;
     private AasServerStore repository;
     private AssetIndex assetIndex;
     private ContractDefinitionStore contractDefinitionStore;
+
 
     @BeforeEach
     void setUp() {
@@ -78,6 +80,7 @@ class AasServerRepositoryIT extends MockServerTestExtension {
         testSubject = new AasRepositoryController(monitor, repository, new FaaastRepositoryManager(monitor, () -> "localhost"),
                 new EdcStoreHandler(assetIndex, contractDefinitionStore));
     }
+
 
     @Test
     void test_register_singleShellDescriptorIncludingASubmodelDescriptor() throws UnauthorizedException, ConnectException
@@ -104,9 +107,6 @@ class AasServerRepositoryIT extends MockServerTestExtension {
         assertIdentifiables(List.of(asSubmodel(shellDescriptor.getSubmodelDescriptors().get(0))), selfDescription.getSubmodels());
     }
 
-    private static @NotNull URI getUri() {
-        return URI.create(server.baseUrl());
-    }
 
     @Test
     void test_register_emptyDescriptorResponseNoFault() throws SerializationException, UnsupportedModifierException, UnauthorizedException,
@@ -128,21 +128,25 @@ class AasServerRepositoryIT extends MockServerTestExtension {
         assertTrue(selfDescription.getConceptDescriptions().isEmpty());
     }
 
+
     @Test
     void test_register_notARegistryFailsRegistration() {
         URI uri;
         try {
             uri = new URI("https://example.com");
-        } catch (URISyntaxException e) {
+        }
+        catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
 
         try {
             testSubject.register(new AasRegistryContextDTO(uri, new NoAuth()));
             fail();
-        } catch (WebApplicationException expected) {
+        }
+        catch (WebApplicationException expected) {
         }
     }
+
 
     @Test
     void test_registerRepository_emptyEnvironmentNoFailure() throws SerializationException, UnsupportedModifierException, UnauthorizedException,
@@ -165,6 +169,7 @@ class AasServerRepositoryIT extends MockServerTestExtension {
         assertTrue(selfDescription.getConceptDescriptions().isEmpty());
     }
 
+
     @Test
     void test_registerRepository_filledEnvironmentAllRegistered() throws UnauthorizedException,
             ConnectException, SerializationException, UnsupportedModifierException {
@@ -174,9 +179,10 @@ class AasServerRepositoryIT extends MockServerTestExtension {
         mockResponse(METHOD.GET, "/submodels", asPage(environment.getSubmodels()), 200);
         mockResponse(METHOD.GET, "/concept-descriptions", asPage(environment.getConceptDescriptions()), 200);
 
-        var result = testSubject.register(new RemoteAasRepositoryContextDTO(URI.create(server.baseUrl()), new NoAuth(), List.of()));
+        var uri = getUri();
+        var result = testSubject.register(new RemoteAasRepositoryContextDTO(uri, new NoAuth(), List.of()));
 
-        assertEquals(result, getUri());
+        assertEquals(result, uri);
 
         var handler = repository.get(result).orElseThrow();
 
@@ -190,16 +196,20 @@ class AasServerRepositoryIT extends MockServerTestExtension {
         assertIdentifiables(environment.getConceptDescriptions(), selfDescription.getConceptDescriptions());
     }
 
+
     @Test
     void test_registerRepository_emtpyEnvironmentNoFault() throws UnauthorizedException,
-            ConnectException, SerializationException, UnsupportedModifierException {
+            IOException, SerializationException, UnsupportedModifierException {
         Environment environment = getEmptyEnvironment();
 
+        mockResponse(METHOD.GET, "/environment", getEmptyEnvironment(), 200);
         mockResponse(METHOD.GET, "/shells", emptyPage(), 200);
         mockResponse(METHOD.GET, "/submodels", emptyPage(), 200);
         mockResponse(METHOD.GET, "/concept-descriptions", emptyPage(), 200);
 
-        var result = testSubject.register(new RemoteAasRepositoryContextDTO(URI.create(server.baseUrl()), new NoAuth(), List.of()));
+        var base = getUri();
+
+        var result = testSubject.register(new RemoteAasRepositoryContextDTO(base, new NoAuth(), List.of()));
 
         assertEquals(result, getUri());
 
@@ -214,6 +224,7 @@ class AasServerRepositoryIT extends MockServerTestExtension {
                 selfDescription.getSubmodels());
         assertIdentifiables(environment.getConceptDescriptions(), selfDescription.getConceptDescriptions());
     }
+
 
     @Test
     void test_registerRepository_emtpyEnvironment_shouldThrow() {
@@ -221,15 +232,17 @@ class AasServerRepositoryIT extends MockServerTestExtension {
             testSubject.register(new RemoteAasRepositoryContextDTO(URI.create("https://locaIhost:65432/"), new NoAuth(),
                     List.of()));
             fail();
-        } catch (WebApplicationException expected) {
+        }
+        catch (WebApplicationException expected) {
         }
     }
+
 
     private <T extends Identifiable> void assertIdentifiables(List<T> identifiablesShould, List<T> identifiablesIs) {
         assertEquals(identifiablesIs.size(), identifiablesShould.size());
 
         List<Extension> extensionsIs = new ArrayList<>();
-        for (T aas : identifiablesIs) {
+        for (T aas: identifiablesIs) {
             // In this test, they don't have extensions beforehand.
             extensionsIs.add(aas.getExtensions().remove(0));
             assertTrue(identifiablesShould.contains(aas));
@@ -239,6 +252,7 @@ class AasServerRepositoryIT extends MockServerTestExtension {
         List<String> assetIds = extensionsIs.stream().map(Extension::getValue).toList();
         assetIds.forEach(this::assertStores);
     }
+
 
     private void assertStores(String assetId) {
         var assets = assetIndex.queryAssets(QuerySpec.max()).toList();
@@ -252,6 +266,7 @@ class AasServerRepositoryIT extends MockServerTestExtension {
         assertTrue(contractDefinitionAssetIds.contains(assetId));
     }
 
+
     private static void assertSelfDescription(Environment selfDescription) {
         assertNotNull(selfDescription);
         assertNotNull(selfDescription.getAssetAdministrationShells());
@@ -259,26 +274,32 @@ class AasServerRepositoryIT extends MockServerTestExtension {
         assertNotNull(selfDescription.getConceptDescriptions());
     }
 
+
     private void mockEmptyShellDescriptorRequest() throws SerializationException, UnsupportedModifierException {
         mockResponse(METHOD.GET, String.format("/%s", SHELL_DESCRIPTORS_PATH), emptyPage(), 200);
     }
+
 
     private void mockEmptyShellRequest() throws SerializationException, UnsupportedModifierException {
         mockResponse(METHOD.GET, "/shells", emptyPage(), 200);
     }
 
+
     private void mockEmptySubmodelRequest() throws SerializationException, UnsupportedModifierException {
         mockResponse(METHOD.GET, "/submodels", emptyPage(), 200);
     }
+
 
     private void mockEmptyConceptDescriptionRequest() throws SerializationException, UnsupportedModifierException {
         mockResponse(METHOD.GET, "/concept-descriptions", emptyPage(), 200);
     }
 
+
     private void mockEmptySubmodelDescriptorRequest() throws de.fraunhofer.iosb.ilt.faaast.service.dataformat.SerializationException,
             UnsupportedModifierException {
         mockResponse(METHOD.GET, String.format("/%s", SUBMODEL_DESCRIPTORS_PATH), emptyPage(), 200);
     }
+
 
     private Page<?> emptyPage() {
         return Page.builder()
@@ -287,8 +308,9 @@ class AasServerRepositoryIT extends MockServerTestExtension {
                 .build();
     }
 
+
     private <T> Page<T> asPage(List<T> ts) {
-        return Page.<T>builder()
+        return Page.<T> builder()
                 .result(ts)
                 .metadata(PagingMetadata.builder().build())
                 .build();

@@ -15,7 +15,6 @@ dependencies {
     testImplementation(libs.wiremock)
     testImplementation(libs.jupiter)
     testImplementation(libs.mockito)
-    testImplementation("org.mock-server:mockserver-junit-jupiter:5.15.0")
     testRuntimeOnly(libs.junit.platform.launcher)
 }
 

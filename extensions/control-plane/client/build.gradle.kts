@@ -17,8 +17,7 @@ dependencies {
 
     testImplementation(libs.edc.junit)
     testImplementation(libs.jersey.common)
-    testImplementation(libs.mockito)
-    testImplementation("org.mock-server:mockserver-junit-jupiter:5.15.0")
+
     testImplementation(libs.aas4j.model)
     testRuntimeOnly(libs.junit.platform.launcher)
 }

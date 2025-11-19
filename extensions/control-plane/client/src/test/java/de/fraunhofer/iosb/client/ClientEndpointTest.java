@@ -42,17 +42,14 @@ import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.spi.WebService;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockserver.integration.ClientAndServer;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -64,14 +61,12 @@ import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 
 public class ClientEndpointTest {
 
     private static Monitor monitor;
 
     private static URI uri;
-    private static ClientAndServer mockServer;
     private static PolicyDefinition mockPolicyDefinition;
     private static Catalog mockCatalog;
     private ClientEndpoint clientEndpoint;
@@ -81,7 +76,6 @@ public class ClientEndpointTest {
         monitor = mock(Monitor.class);
         int port = getFreePort();
         uri = new URI(format("http://localhost:%s", port));
-        mockServer = startClientAndServer(port);
         var mockAsset = Asset.Builder.newInstance().id("test-asset").build();
         var mockPolicy = Policy.Builder.newInstance().target(mockAsset.getId()).build();
         var dataset = Dataset.Builder.newInstance()
@@ -163,13 +157,6 @@ public class ClientEndpointTest {
         var manager = mock(ConsumerContractNegotiationManager.class);
         when(manager.initiate(any())).thenReturn(mockStatusResult);
         return manager;
-    }
-
-    @AfterEach
-    public void shutdownMockServer() {
-        if (Objects.nonNull(mockServer) && mockServer.isRunning()) {
-            mockServer.stop();
-        }
     }
 
     @Test

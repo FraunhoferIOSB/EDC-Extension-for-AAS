@@ -2,7 +2,7 @@
 format.version = "1.1"
 
 [versions]
-fa3st = "1.2.0"
+fa3st = "1.3.0"
 aas4j = "1.0.5"
 edc = "0.14.1"
 edc-build = "1.1.1"
@@ -19,6 +19,7 @@ wiremock = "3.13.1"
 
 [libraries]
 fa3st-model = { module = "de.fraunhofer.iosb.ilt.faaast.service:model", version.ref = "fa3st" }
+fa3st-dataformat-json = { module = "de.fraunhofer.iosb.ilt.faaast.service:dataformat-json", version.ref = "fa3st" }
 fa3st-starter = { module = "de.fraunhofer.iosb.ilt.faaast.service:starter", version.ref = "fa3st" }
 fa3st-client = { module = "de.fraunhofer.iosb.ilt.faaast.client:core", version.ref = "fa3st-client" }
 aas4j-dataformat-json = { module = "org.eclipse.digitaltwin.aas4j:aas4j-dataformat-json", version.ref = "aas4j" }

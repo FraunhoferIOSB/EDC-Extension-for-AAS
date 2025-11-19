@@ -7,6 +7,15 @@ import java.util.List;
 import java.util.Objects;
 
 
+/**
+ * DTO containing information to start a local AAS repository.
+ *
+ * @param modelPath Path to the AAS environment (optional, default: empty environment).
+ * @param port Port to use for communications with AAS repository (optional, default: random available port).
+ * @param configPath Path to configuration for the AAS server (optional, default: no configuration/defaults).
+ * @param policyBindings List of {@link PolicyBinding}. If defined, only elements referred by the policyBindings are registered (optional, default: no custom
+ *         PolicyBindings, register all elements).
+ */
 public record LocalRepositoryDTO(String modelPath, Integer port, String configPath, List<PolicyBinding> policyBindings) {
     public LocalRepositoryDTO {
         policyBindings = Objects.requireNonNullElse(policyBindings, List.of());

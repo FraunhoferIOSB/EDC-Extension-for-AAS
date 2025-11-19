@@ -94,7 +94,7 @@ public class LocalFaaastRepositoryContext extends AasRepositoryContext {
             return persistence.getAllSubmodels(QueryModifier.DEFAULT, PagingInfo.ALL).getContent();
         }
         catch (PersistenceException persistenceException) {
-            throw new EdcException(String.format(ERR_MSG_TEMPLATE, "Getting all Submdoels", getUri()), persistenceException);
+            throw new EdcException(String.format(ERR_MSG_TEMPLATE, "Getting all Submodels", getUri()), persistenceException);
         }
     }
 

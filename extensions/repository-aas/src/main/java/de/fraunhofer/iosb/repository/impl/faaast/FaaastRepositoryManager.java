@@ -83,6 +83,7 @@ public class FaaastRepositoryManager implements AasRepositoryManager<FaaastRepos
                 .uri(accessUri)
                 .messageBus(service.getMessageBus())
                 .persistence(service.getPersistence())
+                .policyBindings(config.getPolicyBindings())
                 .build();
     }
 

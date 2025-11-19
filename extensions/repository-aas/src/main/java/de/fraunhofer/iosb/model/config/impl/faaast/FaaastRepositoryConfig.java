@@ -15,6 +15,7 @@
  */
 package de.fraunhofer.iosb.model.config.impl.faaast;
 
+import de.fraunhofer.iosb.aas.lib.model.PolicyBinding;
 import de.fraunhofer.iosb.ilt.faaast.service.config.ServiceConfig;
 import de.fraunhofer.iosb.ilt.faaast.service.endpoint.http.HttpEndpointConfig;
 import de.fraunhofer.iosb.ilt.faaast.service.persistence.memory.PersistenceInMemoryConfig;
@@ -33,7 +34,8 @@ public class FaaastRepositoryConfig extends AasRepositoryConfig<ServiceConfig> {
     private final ServiceConfig serviceConfig;
 
 
-    private FaaastRepositoryConfig(Integer customPort, ServiceConfig serviceConfig) {
+    private FaaastRepositoryConfig(Integer customPort, ServiceConfig serviceConfig, List<PolicyBinding> policyBindings) {
+        super(policyBindings);
         this.customPort = customPort;
         this.serviceConfig = serviceConfig;
     }
@@ -154,7 +156,7 @@ public class FaaastRepositoryConfig extends AasRepositoryConfig<ServiceConfig> {
             ServiceConfigHelper.autoComplete(serviceConfig);
 
             // A FA³ST service can be built with no model and default configuration.
-            return new FaaastRepositoryConfig(port, serviceConfig);
+            return new FaaastRepositoryConfig(port, serviceConfig, policyBindings);
         }
     }
 }

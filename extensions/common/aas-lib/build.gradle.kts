@@ -14,14 +14,18 @@ dependencies {
     testImplementation(libs.jupiter)
     testRuntimeOnly(libs.junit.platform.launcher)
 
+    testFixturesApi(libs.jupiter)
+    testFixturesApi(project(":extensions:common:constants"))
+    testFixturesApi(project(":extensions:common:data-plane-aas-spi"))
+    testFixturesApi(platform(libs.junit.bom))
+    testFixturesApi(libs.edc.junit)
+    testFixturesApi(libs.commons.io)
+    testFixturesApi(libs.aas4j.dataformat.json)
+    testFixturesApi(libs.mockito)
+    testFixturesApi(libs.wiremock)
+    testFixturesApi(libs.jersey.common)
+
     testFixturesRuntimeOnly(libs.junit.platform.launcher)
-    testFixturesImplementation(libs.jupiter)
-    testFixturesImplementation(project(":extensions:common:constants"))
-    testFixturesImplementation(project(":extensions:common:data-plane-aas-spi"))
-    testFixturesImplementation(platform(libs.junit.bom))
-    testFixturesImplementation(libs.edc.junit)
-    testFixturesImplementation(libs.commons.io)
-    testFixturesImplementation(libs.aas4j.dataformat.json)
 }
 
 tasks.test {

@@ -8,8 +8,7 @@ dependencies {
     implementation(libs.edc.jetty.core) // WebService
     implementation(libs.edc.api.core) // ApiAuthenticationRegistry
 
-    testImplementation(libs.edc.junit)
-    testImplementation(libs.jersey.common)
+    testImplementation(testFixtures(project(":extensions:common:aas-lib")))
 }
 
 tasks.test {

@@ -21,19 +21,16 @@ dependencies {
 
     testImplementation(testFixtures(project(":extensions:common:aas-lib")))
 
-    testImplementation(libs.edc.junit)
     testImplementation(libs.edc.control.plane.core)
     testImplementation(libs.edc.query.lib)
 
 }
 
-    testRuntimeOnly(libs.junit.platform.launcher)
-}
+tasks.test { useJUnitPlatform() }
+tasks.jacocoTestReport { dependsOn(tasks.test) }
 
 repositories {
     mavenCentral()
-    mavenLocal()
+    // FA³ST client snapshot
+    maven { url = uri("https://central.sonatype.com/repository/maven-snapshots/") }
 }
-
-tasks.test { useJUnitPlatform() }
-tasks.jacocoTestReport { dependsOn(tasks.test) }

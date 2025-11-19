@@ -11,12 +11,6 @@ dependencies {
     implementation(libs.edc.util.lib)
 
     testImplementation(testFixtures(project(":extensions:common:aas-lib")))
-
-    testImplementation(libs.edc.junit)
-    testImplementation(libs.mockito)
-    testRuntimeOnly(libs.junit.platform.launcher)
-    testImplementation(libs.jupiter)
-    testImplementation(libs.mockito)
 }
 
 tasks.test { useJUnitPlatform() }
@@ -24,5 +18,5 @@ tasks.jacocoTestReport { dependsOn(tasks.test) }
 
 repositories {
     mavenCentral()
-    mavenLocal()
+    maven { url = uri("https://central.sonatype.com/repository/maven-snapshots/") }
 }

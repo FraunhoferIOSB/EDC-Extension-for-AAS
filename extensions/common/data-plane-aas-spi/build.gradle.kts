@@ -18,9 +18,7 @@ dependencies {
     implementation(libs.edc.core.spi)
     implementation(libs.aas4j.dataformat.json) // Json (De)Serializer
 
-    testImplementation(platform(libs.junit.bom))
-    testImplementation(libs.jupiter)
-    testRuntimeOnly(libs.junit.platform.launcher)
+    testImplementation(testFixtures(project(":extensions:common:aas-lib")))
 }
 
 tasks.test {

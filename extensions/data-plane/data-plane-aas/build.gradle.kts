@@ -4,18 +4,14 @@ plugins {
 
 dependencies {
     implementation(project(":extensions:common:aas-lib"))
+    implementation(project(":extensions:common:data-plane-aas-spi"))
 
     implementation(libs.edc.data.plane.spi)
     implementation(libs.edc.http.lib)
 
-    testImplementation(libs.edc.junit)
-    testImplementation(libs.aas4j.model)
-    implementation(project(":extensions:common:data-plane-aas-spi"))
+    testImplementation(testFixtures(project(":extensions:common:aas-lib")))
 
-    testImplementation(libs.wiremock)
-    testImplementation(libs.jupiter)
-    testImplementation(libs.mockito)
-    testRuntimeOnly(libs.junit.platform.launcher)
+    testImplementation(libs.aas4j.model)
 }
 
 tasks.test { useJUnitPlatform() }

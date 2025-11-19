@@ -17,6 +17,7 @@ package de.fraunhofer.iosb.validator.dataaddress.aasdata;
 
 import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
 import org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes;
+import org.eclipse.digitaltwin.aas4j.v3.model.ReferenceTypes;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultKey;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultReference;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -38,6 +39,7 @@ class AasDataDataAddressValidatorTest {
                 .property("type", AAS_DATA_TYPE)
                 .property(BASE_URL, "http://this.is/valid/url")
                 .reference(new DefaultReference.Builder()
+                        .type(ReferenceTypes.MODEL_REFERENCE)
                         .keys(new DefaultKey.Builder()
                                 .type(KeyTypes.SUBMODEL)
                                 .value(UUID.randomUUID().toString())

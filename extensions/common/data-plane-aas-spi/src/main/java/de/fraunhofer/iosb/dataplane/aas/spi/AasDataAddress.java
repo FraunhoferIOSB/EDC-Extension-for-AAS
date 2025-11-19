@@ -74,7 +74,7 @@ public class AasDataAddress extends DataAddress {
     private static List<String> validate(Reference reference) {
         List<String> problems = new ArrayList<>();
         if (reference == null || reference.getKeys() == null ||
-                ReferenceTypes.EXTERNAL_REFERENCE == reference.getType() || reference.getKeys().isEmpty()) {
+                ReferenceTypes.MODEL_REFERENCE != reference.getType() || reference.getKeys().isEmpty()) {
             problems.add("reference is null or has no keys or is not a model_reference");
             return problems;
         }

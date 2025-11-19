@@ -15,7 +15,6 @@
  */
 package de.fraunhofer.iosb.app.aas.mapper;
 
-import de.fraunhofer.iosb.aas.lib.model.impl.Service;
 import de.fraunhofer.iosb.app.aas.mapper.referable.SubmodelElementMapper;
 import de.fraunhofer.iosb.client.repository.remote.impl.RemoteAasRepositoryClient;
 import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
@@ -41,7 +40,6 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
@@ -60,14 +58,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SubmodelElementMapperTest {
 
-    private final Service mockService = mockService();
+    private final URI uri = URI.create("https://test-url:1234/api/v3.0");
     private SubmodelElementMapper testSubject;
 
 
     @BeforeEach
     void setUp() {
-        testSubject =
-                new SubmodelElementMapper(new RemoteAasRepositoryClient(new RemoteAasRepositoryContext.Builder().uri(mockService.baseUri()).build()));
+        testSubject = new SubmodelElementMapper(new RemoteAasRepositoryClient(new RemoteAasRepositoryContext.Builder().uri(uri).build()));
     }
 
 
@@ -172,36 +169,26 @@ class SubmodelElementMapperTest {
         Asset mappedProperty = mappedChildren.get(0);
         assertEquals(AAS_PREFIX.concat(":").concat("Property"), mappedProperty.getProperty(AAS_V30_NAMESPACE.concat("modelingType")));
         assertInstanceOf(AasDataAddress.class, mappedProperty.getDataAddress());
-        assertEquals(mockService.baseUri().toString(), ((AasDataAddress) mappedProperty.getDataAddress()).getBaseUrl());
+        assertEquals(uri.toString(), ((AasDataAddress) mappedProperty.getDataAddress()).getBaseUrl());
         assertEquals(String.format(listAccessorPathTemplate, "0"), ((AasDataAddress) mappedProperty.getDataAddress()).getPath());
 
         Asset mappedList = mappedChildren.get(1);
         assertEquals(AAS_PREFIX.concat(":").concat("SubmodelElementList"), mappedList.getProperty(AAS_V30_NAMESPACE.concat("modelingType")));
         assertInstanceOf(AasDataAddress.class, mappedList.getDataAddress());
-        assertEquals(mockService.baseUri().toString(), ((AasDataAddress) mappedList.getDataAddress()).getBaseUrl());
+        assertEquals(uri.toString(), ((AasDataAddress) mappedList.getDataAddress()).getBaseUrl());
         assertEquals(String.format(listAccessorPathTemplate, "1"), ((AasDataAddress) mappedList.getDataAddress()).getPath());
 
         Asset mappedCollection = mappedChildren.get(2);
         assertEquals(AAS_PREFIX.concat(":").concat("SubmodelElementCollection"),
                 mappedCollection.getProperty(AAS_V30_NAMESPACE.concat("modelingType")));
         assertInstanceOf(AasDataAddress.class, mappedCollection.getDataAddress());
-        assertEquals(mockService.baseUri().toString(), ((AasDataAddress) mappedCollection.getDataAddress()).getBaseUrl());
+        assertEquals(uri.toString(), ((AasDataAddress) mappedCollection.getDataAddress()).getBaseUrl());
         assertEquals(String.format(listAccessorPathTemplate, "2"), ((AasDataAddress) mappedCollection.getDataAddress()).getPath());
 
         Asset mappedBlob = mappedChildren.get(3);
         assertEquals(AAS_PREFIX.concat(":").concat("Blob"), mappedBlob.getProperty(AAS_V30_NAMESPACE.concat("modelingType")));
         assertInstanceOf(AasDataAddress.class, mappedBlob.getDataAddress());
-        assertEquals(mockService.baseUri().toString(), ((AasDataAddress) mappedBlob.getDataAddress()).getBaseUrl());
+        assertEquals(uri.toString(), ((AasDataAddress) mappedBlob.getDataAddress()).getBaseUrl());
         assertEquals(String.format(listAccessorPathTemplate, "3"), ((AasDataAddress) mappedBlob.getDataAddress()).getPath());
-    }
-
-
-    private Service mockService() {
-        try {
-            return new Service.Builder().withUri(new URI("https://test-url:1234/api/v3.0")).build();
-        }
-        catch (URISyntaxException e) {
-            throw new RuntimeException(e);
-        }
     }
 }

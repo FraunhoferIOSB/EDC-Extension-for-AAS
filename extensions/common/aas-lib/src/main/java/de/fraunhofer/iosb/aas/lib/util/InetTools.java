@@ -15,7 +15,6 @@
  */
 package de.fraunhofer.iosb.aas.lib.util;
 
-import de.fraunhofer.iosb.aas.lib.model.AasProvider;
 import org.eclipse.edc.spi.result.Result;
 
 import java.io.IOException;
@@ -105,19 +104,6 @@ public class InetTools {
         catch (IOException e) {
             return false;
         }
-    }
-
-
-    public static boolean pingHost(AasProvider provider) {
-        var host = provider.baseUri().getHost();
-        var port = provider.baseUri().getPort();
-        // If no port available, port should be 443 or 80
-        if (port == -1) {
-            // Iff http:// go with port 80
-            port = host.startsWith("http:") ? 80 : 443;
-        }
-
-        return pingHost(host, port) || checkUrlAvailability(provider.baseUri());
     }
 
 

@@ -38,7 +38,9 @@ import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractD
 import org.eclipse.edc.connector.controlplane.defaults.storage.assetindex.InMemoryAssetIndex;
 import org.eclipse.edc.connector.controlplane.defaults.storage.contractdefinition.InMemoryContractDefinitionStore;
 import org.eclipse.edc.query.CriterionOperatorRegistryImpl;
+import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -49,13 +51,12 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static de.fraunhofer.iosb.aas.lib.model.impl.Registry.SHELL_DESCRIPTORS_PATH;
-import static de.fraunhofer.iosb.aas.lib.model.impl.Registry.SUBMODEL_DESCRIPTORS_PATH;
 import static de.fraunhofer.iosb.app.testutils.AasCreator.getEmptyEnvironment;
 import static de.fraunhofer.iosb.app.testutils.AasCreator.getEnvironment;
 import static de.fraunhofer.iosb.app.testutils.RegistryElementCreator.asShell;
 import static de.fraunhofer.iosb.app.testutils.RegistryElementCreator.asSubmodel;
 import static de.fraunhofer.iosb.app.testutils.RegistryElementCreator.getShellDescriptor;
+import static de.fraunhofer.iosb.constants.AasConstants.EDC_SETTINGS_PREFIX;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -95,7 +96,7 @@ class AasServerRepositoryIT extends MockServerTestExtension {
             , UnsupportedModifierException, de.fraunhofer.iosb.ilt.faaast.service.dataformat.SerializationException {
         AssetAdministrationShellDescriptor shellDescriptor = getShellDescriptor();
 
-        mockResponse(METHOD.GET, String.format("/%s", SHELL_DESCRIPTORS_PATH), asPage(List.of(shellDescriptor)), 200);
+        mockResponse(METHOD.GET, String.format("/%s", "shell-descriptors"), asPage(List.of(shellDescriptor)), 200);
         mockEmptySubmodelDescriptorRequest();
 
         var result = testSubject.register(new AasRegistryContextDTO(getUri(), new NoAuth()));
@@ -188,6 +189,7 @@ class AasServerRepositoryIT extends MockServerTestExtension {
         mockResponse(METHOD.GET, "/concept-descriptions", asPage(environment.getConceptDescriptions()), 200);
 
         var uri = getUri();
+        new ConfigurationController(ConfigFactory.empty(), new ConsoleMonitor()).updateConfiguration("{\"" + EDC_SETTINGS_PREFIX + ".onlySubmodels\":false}");
         var result = testSubject.register(new RemoteAasRepositoryContextDTO(uri, new NoAuth(), List.of()));
 
         assertEquals(result, uri);
@@ -276,7 +278,7 @@ class AasServerRepositoryIT extends MockServerTestExtension {
 
 
     private void mockEmptyShellDescriptorRequest() throws SerializationException, UnsupportedModifierException {
-        mockResponse(METHOD.GET, String.format("/%s", SHELL_DESCRIPTORS_PATH), emptyPage(), 200);
+        mockResponse(METHOD.GET, String.format("/%s", "shell-descriptors"), emptyPage(), 200);
     }
 
 
@@ -297,7 +299,7 @@ class AasServerRepositoryIT extends MockServerTestExtension {
 
     private void mockEmptySubmodelDescriptorRequest() throws de.fraunhofer.iosb.ilt.faaast.service.dataformat.SerializationException,
             UnsupportedModifierException {
-        mockResponse(METHOD.GET, String.format("/%s", SUBMODEL_DESCRIPTORS_PATH), emptyPage(), 200);
+        mockResponse(METHOD.GET, String.format("/%s", "submodel-descriptors"), emptyPage(), 200);
     }
 
 

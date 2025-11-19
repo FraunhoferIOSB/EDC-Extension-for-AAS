@@ -1,153 +1,223 @@
 [
   {
-    "shells": [
+    "assetAdministrationShells": [
       {
-        "id": "792362498",
-        "properties": {
-          "https://admin-shell.io/aas/3/0/Referable/description": [
+        "modelType": "AssetAdministrationShell",
+        "assetInformation": {
+          "assetKind": "Instance",
+          "globalAssetId": "https://acplt.org/System_Test_Asset"
+        },
+        "derivedFrom": {
+          "keys": [
             {
-              "https://admin-shell.io/aas/3/0/AbstractLangString/language": "en-us",
-              "https://admin-shell.io/aas/3/0/AbstractLangString/text": "This is my system test AAS description"
-            },
-            {
-              "https://admin-shell.io/aas/3/0/AbstractLangString/language": "de",
-              "https://admin-shell.io/aas/3/0/AbstractLangString/text": "Das ist meine system test AAS beschreibung"
+              "type": "AssetAdministrationShell",
+              "value": "https://acplt.org/SystemTestAssetAdministrationShell"
             }
           ],
-          "https://admin-shell.io/aas/3/0/Referable/idShort": "SystemTestAssetAdministrationShell",
-          "https://admin-shell.io/aas/3/0/Identifiable/id": "https://acplt.org/System_Test_AssetAdministrationShell",
-          "https://admin-shell.io/aas/3/0/Identifiable/administration": {
-            "https://admin-shell.io/aas/3/0/AdministrativeInformation/revision": "37",
-            "https://admin-shell.io/aas/3/0/AdministrativeInformation/version": "13"
-          },
-          "https://w3id.org/edc/v0.0.1/ns/contenttype": "application/json",
-          "https://w3id.org/edc/v0.0.1/ns/id": "792362498"
-        }
-      }
-    ],
-    "submodels": [
-      {
-        "id": "1855961989",
-        "properties": {
-          "https://admin-shell.io/aas/3/0/Referable/description": [
-            {
-              "https://admin-shell.io/aas/3/0/AbstractLangString/language": "en-us",
-              "https://admin-shell.io/aas/3/0/AbstractLangString/text": "An example asset identification submodel for the test application"
-            },
-            {
-              "https://admin-shell.io/aas/3/0/AbstractLangString/language": "de",
-              "https://admin-shell.io/aas/3/0/AbstractLangString/text": "Ein Beispiel-Identifikations-Submodel für eine Test-Anwendung"
-            }
-          ],
-          "https://admin-shell.io/aas/3/0/Referable/idShort": "SystemTestSubmodel",
-          "https://admin-shell.io/aas/3/0/Identifiable/id": "http://acplt.org/Submodels/Assets/TestAsset/System_Test_Submodel",
-          "https://admin-shell.io/aas/3/0/HasSemantics/semanticId": {
-            "https://admin-shell.io/aas/3/0/Reference/keys": [
+          "type": "ExternalReference"
+        },
+        "submodels": [
+          {
+            "keys": [
               {
-                "https://admin-shell.io/aas/3/0/Key/type": "SUBMODEL",
-                "https://admin-shell.io/aas/3/0/Key/value": "http://acplt.org/SubmodelTemplates/SystemTest"
+                "type": "Submodel",
+                "value": "https://acplt.org/System_Test_Submodel"
               }
             ],
-            "https://admin-shell.io/aas/3/0/Reference/type": "EXTERNAL_REFERENCE"
+            "type": "ExternalReference"
+          }
+        ],
+        "extensions": [
+          {
+            "name": "https://w3id.org/edc/v0.0.1/ns/id",
+            "value": "792362498"
+          }
+        ],
+        "administration": {
+          "revision": "37",
+          "version": "13"
+        },
+        "id": "https://acplt.org/System_Test_AssetAdministrationShell",
+        "description": [
+          {
+            "language": "en-us",
+            "text": "This is my system test AAS description"
           },
-          "https://admin-shell.io/aas/3/0/Identifiable/administration": {
-            "https://admin-shell.io/aas/3/0/AdministrativeInformation/revision": "9",
-            "https://admin-shell.io/aas/3/0/AdministrativeInformation/version": "0"
-          },
-          "https://w3id.org/edc/v0.0.1/ns/contenttype": "application/json",
-          "https://w3id.org/edc/v0.0.1/ns/id": "1855961989",
-          "https://admin-shell.io/aas/3/0/Submodel/submodelElements": [
-            {
-              "id": "-799803758",
-              "properties": {
-                "https://admin-shell.io/aas/3/0/Referable/description": [
-                  {
-                    "https://admin-shell.io/aas/3/0/AbstractLangString/language": "en-us",
-                    "https://admin-shell.io/aas/3/0/AbstractLangString/text": "This is my system test SMC description"
-                  },
-                  {
-                    "https://admin-shell.io/aas/3/0/AbstractLangString/language": "de",
-                    "https://admin-shell.io/aas/3/0/AbstractLangString/text": "Das ist meine system test SMC beschreibung"
-                  }
-                ],
-                "https://admin-shell.io/aas/3/0/Referable/idShort": "SystemTestSubmodelElementCollection",
-                "https://admin-shell.io/aas/3/0/modelingType": "aas:SubmodelElementCollection",
-                "https://admin-shell.io/aas/3/0/HasSemantics/semanticId": {
-                  "https://admin-shell.io/aas/3/0/Reference/keys": [
-                    {
-                      "https://admin-shell.io/aas/3/0/Key/type": "GLOBAL_REFERENCE",
-                      "https://admin-shell.io/aas/3/0/Key/value": "http://acplt.org/SubmodelElementCollections/System_Test_SubmodelElementCollection"
-                    }
-                  ],
-                  "https://admin-shell.io/aas/3/0/Reference/type": "EXTERNAL_REFERENCE"
-                },
-                "https://w3id.org/edc/v0.0.1/ns/contenttype": "application/json",
-                "https://w3id.org/edc/v0.0.1/ns/id": "-799803758",
-                "value": [
-                  {
-                    "id": "458140152",
-                    "properties": {
-                      "https://admin-shell.io/aas/3/0/Referable/description": [
-                        {
-                          "https://admin-shell.io/aas/3/0/AbstractLangString/language": "en-us",
-                          "https://admin-shell.io/aas/3/0/AbstractLangString/text": "Legally valid designation of the natural or judicial person which is directly responsible for the design, production, packaging and labeling of a product in respect to its being brought into circulation."
-                        },
-                        {
-                          "https://admin-shell.io/aas/3/0/AbstractLangString/language": "de",
-                          "https://admin-shell.io/aas/3/0/AbstractLangString/text": "Bezeichnung für eine natürliche oder juristische Person, die für die Auslegung, Herstellung und Verpackung sowie die Etikettierung eines Produkts im Hinblick auf das 'Inverkehrbringen' im eigenen Namen verantwortlich ist"
-                        }
-                      ],
-                      "https://admin-shell.io/aas/3/0/Referable/idShort": "ManufacturerName",
-                      "https://admin-shell.io/aas/3/0/modelingType": "aas:Property",
-                      "https://admin-shell.io/aas/3/0/HasSemantics/semanticId": {
-                        "https://admin-shell.io/aas/3/0/Reference/keys": [
-                          {
-                            "https://admin-shell.io/aas/3/0/Key/type": "GLOBAL_REFERENCE",
-                            "https://admin-shell.io/aas/3/0/Key/value": "0173-1#02-AAO677#002"
-                          }
-                        ],
-                        "https://admin-shell.io/aas/3/0/Reference/type": "EXTERNAL_REFERENCE"
-                      },
-                      "https://admin-shell.io/aas/3/0/Referable/displayName": [
-                        {
-                          "https://admin-shell.io/aas/3/0/AbstractLangString/language": "en-us",
-                          "https://admin-shell.io/aas/3/0/AbstractLangString/text": "Manufacturer Name"
-                        }
-                      ],
-                      "https://w3id.org/edc/v0.0.1/ns/contenttype": "application/json",
-                      "https://w3id.org/edc/v0.0.1/ns/id": "458140152"
-                    }
-                  }
-                ]
-              }
-            }
-          ]
-        }
+          {
+            "language": "de",
+            "text": "Das ist meine system test AAS beschreibung"
+          }
+        ],
+        "idShort": "SystemTestAssetAdministrationShell"
       }
     ],
     "conceptDescriptions": [
       {
-        "id": "1351791412",
-        "properties": {
-          "https://admin-shell.io/aas/3/0/Referable/description": [
+        "modelType": "ConceptDescription",
+        "isCaseOf": [
+          {
+            "keys": [
+              {
+                "type": "GlobalReference",
+                "value": "http://acplt.org/DataSpecifications/Conceptdescription/SystemTestConceptDescription"
+              }
+            ],
+            "type": "ExternalReference"
+          }
+        ],
+        "extensions": [
+          {
+            "name": "https://w3id.org/edc/v0.0.1/ns/id",
+            "value": "1351791412"
+          }
+        ],
+        "administration": {
+          "revision": "2",
+          "version": "4"
+        },
+        "id": "https://acplt.org/System_Test_ConceptDescription",
+        "description": [
+          {
+            "language": "en-us",
+            "text": "This is my system test ConceptDescription description"
+          },
+          {
+            "language": "de",
+            "text": "Das ist meine system test ConceptDescription beschreibung"
+          }
+        ],
+        "idShort": "SystemTestConceptDescription"
+      }
+    ],
+    "submodels": [
+      {
+        "modelType": "Submodel",
+        "extensions": [
+          {
+            "name": "https://w3id.org/edc/v0.0.1/ns/id",
+            "value": "1855961989"
+          }
+        ],
+        "kind": "Instance",
+        "semanticId": {
+          "keys": [
             {
-              "https://admin-shell.io/aas/3/0/AbstractLangString/language": "en-us",
-              "https://admin-shell.io/aas/3/0/AbstractLangString/text": "This is my system test ConceptDescription description"
-            },
-            {
-              "https://admin-shell.io/aas/3/0/AbstractLangString/language": "de",
-              "https://admin-shell.io/aas/3/0/AbstractLangString/text": "Das ist meine system test ConceptDescription beschreibung"
+              "type": "Submodel",
+              "value": "http://acplt.org/SubmodelTemplates/SystemTest"
             }
           ],
-          "https://admin-shell.io/aas/3/0/Referable/idShort": "SystemTestConceptDescription",
-          "https://admin-shell.io/aas/3/0/Identifiable/id": "https://acplt.org/System_Test_ConceptDescription",
-          "https://admin-shell.io/aas/3/0/Identifiable/administration": {
-            "https://admin-shell.io/aas/3/0/AdministrativeInformation/revision": "2",
-            "https://admin-shell.io/aas/3/0/AdministrativeInformation/version": "4"
+          "type": "ExternalReference"
+        },
+        "administration": {
+          "revision": "9",
+          "version": "0"
+        },
+        "id": "http://acplt.org/Submodels/Assets/TestAsset/System_Test_Submodel",
+        "description": [
+          {
+            "language": "en-us",
+            "text": "An example asset identification submodel for the test application"
           },
-          "https://w3id.org/edc/v0.0.1/ns/contenttype": "application/json",
-          "https://w3id.org/edc/v0.0.1/ns/id": "1351791412"
-        }
+          {
+            "language": "de",
+            "text": "Ein Beispiel-Identifikations-Submodel für eine Test-Anwendung"
+          }
+        ],
+        "idShort": "SystemTestSubmodel",
+        "submodelElements": [
+          {
+            "modelType": "SubmodelElementCollection",
+            "extensions": [
+              {
+                "name": "https://w3id.org/edc/v0.0.1/ns/id",
+                "value": "-799803758"
+              }
+            ],
+            "semanticId": {
+              "keys": [
+                {
+                  "type": "GlobalReference",
+                  "value": "http://acplt.org/SubmodelElementCollections/System_Test_SubmodelElementCollection"
+                }
+              ],
+              "type": "ExternalReference"
+            },
+            "category": "PARAMETER",
+            "description": [
+              {
+                "language": "en-us",
+                "text": "This is my system test SMC description"
+              },
+              {
+                "language": "de",
+                "text": "Das ist meine system test SMC beschreibung"
+              }
+            ],
+            "idShort": "SystemTestSubmodelElementCollection",
+            "value": [
+              {
+                "modelType": "Property",
+                "extensions": [
+                  {
+                    "name": "https://w3id.org/edc/v0.0.1/ns/id",
+                    "value": "458140152"
+                  }
+                ],
+                "semanticId": {
+                  "keys": [
+                    {
+                      "type": "GlobalReference",
+                      "value": "0173-1#02-AAO677#002"
+                    }
+                  ],
+                  "type": "ExternalReference"
+                },
+                "value": "http://acplt.org/ValueId/ACPLT",
+                "valueId": {
+                  "keys": [
+                    {
+                      "type": "GlobalReference",
+                      "value": "http://acplt.org/ValueId/ACPLT"
+                    }
+                  ],
+                  "type": "ExternalReference"
+                },
+                "valueType": "xs:string",
+                "qualifiers": [
+                  {
+                    "kind": "ConceptQualifier",
+                    "type": "http://acplt.org/Qualifier/ExampleQualifier",
+                    "value": "100",
+                    "valueType": "xs:int"
+                  },
+                  {
+                    "kind": "ConceptQualifier",
+                    "type": "http://acplt.org/Qualifier/ExampleQualifier2",
+                    "value": "50",
+                    "valueType": "xs:int"
+                  }
+                ],
+                "description": [
+                  {
+                    "language": "en-us",
+                    "text": "Legally valid designation of the natural or judicial person which is directly responsible for the design, production, packaging and labeling of a product in respect to its being brought into circulation."
+                  },
+                  {
+                    "language": "de",
+                    "text": "Bezeichnung für eine natürliche oder juristische Person, die für die Auslegung, Herstellung und Verpackung sowie die Etikettierung eines Produkts im Hinblick auf das 'Inverkehrbringen' im eigenen Namen verantwortlich ist"
+                  }
+                ],
+                "displayName": [
+                  {
+                    "language": "en-us",
+                    "text": "Manufacturer Name"
+                  }
+                ],
+                "idShort": "ManufacturerName"
+              }
+            ]
+          }
+        ]
       }
     ]
   }

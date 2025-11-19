@@ -6,6 +6,8 @@ Compatibility: **Eclipse Dataspace Connector v0.14.1**
 
 ### New Features
 
+* **Redesign of Self-Description**
+    * Self-Description is now AAS-conformant: An AAS environment containing EDC Asset IDs as AAS extension elements
 * **Synchronization via FA³ST Events**
     * When starting a FA³ST service internally, the extension subscribes to its MessageBus instead of polling for
       updates

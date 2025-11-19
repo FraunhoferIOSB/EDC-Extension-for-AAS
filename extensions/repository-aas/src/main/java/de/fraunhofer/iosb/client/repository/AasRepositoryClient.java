@@ -6,6 +6,7 @@ import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
 
 import java.net.ConnectException;
 
+
 public interface AasRepositoryClient extends AasServerClient {
     Environment getEnvironment() throws ConnectException, UnauthorizedException;
 }

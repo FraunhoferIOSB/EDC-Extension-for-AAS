@@ -37,6 +37,7 @@ public class SubmodelElementMapper extends ReferableMapper {
     public static final String SMC_CHILDREN_LOCATION = "value";
     public static final String OPERATION = AAS_V30_NAMESPACE + "Operation";
 
+
     public SubmodelElementMapper(AasServerClient client) {
         super(client);
     }
@@ -45,6 +46,7 @@ public class SubmodelElementMapper extends ReferableMapper {
     public <E extends SubmodelElement> Asset map(Reference parent, E submodelElement) {
         return map(parent, submodelElement, false);
     }
+
 
     /* May contain traces of recursion */
     private <E extends SubmodelElement> Asset map(Reference parent, E submodelElement, boolean indexed) {
@@ -79,7 +81,8 @@ public class SubmodelElementMapper extends ReferableMapper {
                 if (child.getIdShort() == null && submodelElement instanceof SubmodelElementList) {
                     child.setIdShort(String.valueOf(i));
                     mappedChildren.add(map(reference, child, true));
-                } else {
+                }
+                else {
                     mappedChildren.add(map(reference, child, false));
                 }
             }
@@ -98,7 +101,8 @@ public class SubmodelElementMapper extends ReferableMapper {
 
         if (submodelElement instanceof File file) {
             assetBuilder.contentType(file.getContentType());
-        } else if (submodelElement instanceof Blob blob) {
+        }
+        else if (submodelElement instanceof Blob blob) {
             assetBuilder.contentType(blob.getContentType());
         }
 
@@ -110,9 +114,11 @@ public class SubmodelElementMapper extends ReferableMapper {
     private <T extends SubmodelElement> List<SubmodelElement> getChildElements(T submodelElement) {
         if (submodelElement instanceof SubmodelElementCollection collection) {
             return collection.getValue();
-        } else if (submodelElement instanceof SubmodelElementList list) {
+        }
+        else if (submodelElement instanceof SubmodelElementList list) {
             return list.getValue();
-        } else { // Can't have any child elements...
+        }
+        else { // Can't have any child elements...
             return null;
         }
     }

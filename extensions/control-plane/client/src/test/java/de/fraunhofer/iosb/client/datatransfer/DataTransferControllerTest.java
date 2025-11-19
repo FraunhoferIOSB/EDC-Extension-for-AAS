@@ -48,11 +48,13 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+
 class DataTransferControllerTest {
     private static final String AGREEMENT_ID = UUID.randomUUID().toString();
     private static URI uri;
     private final TransferProcessManager mockTransferProcessManager = mock(TransferProcessManager.class);
     private DataTransferController testSubject;
+
 
     private static DataAddress getDataAddress(Object operation) {
         return DataAddress.Builder.newInstance()
@@ -65,6 +67,7 @@ class DataTransferControllerTest {
                 .property(OPERATION_FIELD, operation)
                 .build();
     }
+
 
     private static Operation getOperation() {
         return new DefaultOperation.Builder()
@@ -104,6 +107,7 @@ class DataTransferControllerTest {
                 .build();
     }
 
+
     @BeforeEach
     public void setup() throws URISyntaxException {
         int port = 8080;
@@ -118,6 +122,7 @@ class DataTransferControllerTest {
                 () -> "localhost");
     }
 
+
     private Config mockConfig() {
         return ConfigFactory.fromMap(
                 Map.of(
@@ -125,6 +130,7 @@ class DataTransferControllerTest {
                         "web.http.port", "8080",
                         "web.http.path", "/api"));
     }
+
 
     @Test
     void test_getData_correctlySerializeOperation() throws JsonProcessingException {
@@ -141,6 +147,7 @@ class DataTransferControllerTest {
                 operationString.equals(request.getDataDestination().getStringProperty(OPERATION_FIELD))));
     }
 
+
     @Test
     void test_getData_correctlySerializeNullOperation() {
         Operation operation = null;
@@ -152,6 +159,7 @@ class DataTransferControllerTest {
         verify(mockTransferProcessManager).initiateConsumerRequest(argThat(request ->
                 null == request.getDataDestination().getProperties().get(OPERATION_FIELD)));
     }
+
 
     @Test
     void getDataTest() {

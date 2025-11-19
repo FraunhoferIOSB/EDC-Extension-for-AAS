@@ -44,16 +44,19 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+
 class AasDataSourceFactoryTest {
 
     private final AasDataProcessorFactory mockedDataProcessorFactory = mock(AasDataProcessorFactory.class);
     private AasDataSourceFactory testSubject;
+
 
     @BeforeEach
     void setUp() {
         testSubject = new AasDataSourceFactory(new ConsoleMonitor().withPrefix(this.getClass().getSimpleName()),
                 mockedDataProcessorFactory);
     }
+
 
     @Disabled("Changed functionality")
     @Test

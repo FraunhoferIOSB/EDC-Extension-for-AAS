@@ -24,19 +24,22 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.util.Collection;
 
+
 public class TestUtils {
 
     public static Certificate[] getSelfSignedCertificate() {
         CertificateFactory cf;
         try {
             cf = CertificateFactory.getInstance("X.509");
-        } catch (CertificateException e) {
+        }
+        catch (CertificateException e) {
             throw new RuntimeException(e);
         }
         try (InputStream in = Files.newInputStream(Paths.get("src/test/resources/cert.pem"))) {
             Collection<? extends Certificate> certs = cf.generateCertificates(in); // handles PEM with multiple certs
             return certs.toArray(new Certificate[0]);
-        } catch (IOException | CertificateException e) {
+        }
+        catch (IOException | CertificateException e) {
             throw new RuntimeException(e);
         }
     }

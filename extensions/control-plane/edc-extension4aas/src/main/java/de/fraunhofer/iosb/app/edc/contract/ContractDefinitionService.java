@@ -35,6 +35,7 @@ import static org.eclipse.edc.spi.query.CriterionOperatorRegistry.EQUAL;
 import static org.eclipse.edc.spi.query.CriterionOperatorRegistry.IN;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.NOT_FOUND;
 
+
 public class ContractDefinitionService {
 
     public static final String ACCESS_POLICY_FIELD = "accessPolicyId";
@@ -42,9 +43,32 @@ public class ContractDefinitionService {
 
     private final ContractDefinitionStore store;
 
+
     public ContractDefinitionService(ContractDefinitionStore store) {
         this.store = store;
     }
+
+
+    @SuppressWarnings("unchecked")
+    private static List<String> getSelectedAssets(String assetId, Criterion assetsSelector) {
+        List<String> selectedAssets;
+        if (assetsSelector.getOperandRight() instanceof List<?> assets &&
+                !assets.isEmpty() &&
+                assets.get(0) instanceof String) {
+
+            selectedAssets = new ArrayList<>((List<String>) assets);
+
+        }
+        else {
+            throw new IllegalStateException("ContractDefinition created by AAS Extension was malformed");
+        }
+
+        if (!selectedAssets.contains(assetId)) {
+            selectedAssets.add(assetId);
+        }
+        return selectedAssets;
+    }
+
 
     public StoreResult<Void> addToContractDefinition(String assetId, String accessPolicyId, String contractPolicyId) {
         Optional<ContractDefinition> maybeContract = findContracts(accessPolicyId, contractPolicyId).findFirst();
@@ -68,7 +92,7 @@ public class ContractDefinitionService {
 
         var correspondingContracts = findCorrespondingContracts(accessPolicyId, contractPolicyId, assetId);
 
-        for (ContractDefinition contractDefinition : correspondingContracts) {
+        for (ContractDefinition contractDefinition: correspondingContracts) {
             // Remove assetId from this contract definition
             Criterion assetsSelector = contractDefinition.getAssetsSelector().get(0);
 
@@ -85,7 +109,8 @@ public class ContractDefinitionService {
             StoreResult<?> modifyResult;
             if (updatedAssets.isEmpty()) {
                 modifyResult = store.deleteById(contractDefinition.getId());
-            } else {
+            }
+            else {
                 modifyResult = store.update(contractDefinition);
             }
 
@@ -103,6 +128,7 @@ public class ContractDefinitionService {
         return StoreResult.success();
     }
 
+
     private ContractDefinition addToExisting(String assetId, ContractDefinition from) {
         // Contracts by this extension have exactly one AssetsSelectorCriterion.
         Criterion assetsSelector = from.getAssetsSelector().get(0);
@@ -117,25 +143,6 @@ public class ContractDefinitionService {
         return from;
     }
 
-    @SuppressWarnings("unchecked")
-    private static List<String> getSelectedAssets(String assetId, Criterion assetsSelector) {
-        List<String> selectedAssets;
-        if (assetsSelector.getOperandRight() instanceof List<?> assets &&
-                !assets.isEmpty() &&
-                assets.get(0) instanceof String) {
-
-            selectedAssets = new ArrayList<>((List<String>) assets);
-
-        } else {
-            throw new IllegalStateException("ContractDefinition created by AAS Extension was malformed");
-        }
-
-        if (!selectedAssets.contains(assetId)) {
-            selectedAssets.add(assetId);
-        }
-        return selectedAssets;
-    }
-
 
     private List<ContractDefinition> findCorrespondingContracts(String accessPolicyId, String contractPolicyId, String assetId) {
         Stream<ContractDefinition> contractDefinitions = findContracts(accessPolicyId, contractPolicyId);
@@ -148,6 +155,7 @@ public class ContractDefinitionService {
                         .anyMatch(predicate -> ((List<?>) predicate.getOperandRight()).contains(assetId))
         ).toList();
     }
+
 
     private Stream<ContractDefinition> findContracts(String accessPolicyId, String contractPolicyId) {
         var searchQuery = QuerySpec.Builder.newInstance()
@@ -164,9 +172,11 @@ public class ContractDefinitionService {
         return Criterion.criterion(Asset.PROPERTY_ID, IN, List.of(assetId));
     }
 
+
     private Criterion getAssetIdCriterion(List<String> assetIds) {
         return Criterion.criterion(Asset.PROPERTY_ID, IN, assetIds);
     }
+
 
     private ContractDefinition.Builder baseContractDefinition() {
         return ContractDefinition.Builder.newInstance()

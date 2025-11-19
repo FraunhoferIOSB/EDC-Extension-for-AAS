@@ -13,23 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.repository.impl.faaast;
+package de.fraunhofer.iosb.model.config.impl.faaast;
 
 import de.fraunhofer.iosb.ilt.faaast.service.config.ServiceConfig;
 import de.fraunhofer.iosb.ilt.faaast.service.endpoint.http.HttpEndpointConfig;
 import de.fraunhofer.iosb.ilt.faaast.service.persistence.memory.PersistenceInMemoryConfig;
 import de.fraunhofer.iosb.ilt.faaast.service.starter.util.ServiceConfigHelper;
-import de.fraunhofer.iosb.repository.AasRepositoryConfig;
+import de.fraunhofer.iosb.model.config.AasRepositoryConfig;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 
+
 public class FaaastRepositoryConfig extends AasRepositoryConfig<ServiceConfig> {
 
     private final Integer customPort;
     private final ServiceConfig serviceConfig;
+
 
     private FaaastRepositoryConfig(Integer customPort, ServiceConfig serviceConfig) {
         this.customPort = customPort;
@@ -54,10 +56,12 @@ public class FaaastRepositoryConfig extends AasRepositoryConfig<ServiceConfig> {
                 .orElseGet(() -> httpEndpoints.get(0));
     }
 
+
     @Override
     public ServiceConfig get() {
         return this.serviceConfig;
     }
+
 
     public static class Builder extends AasRepositoryConfig.Builder<Builder, FaaastRepositoryConfig> {
         private Integer port = null;
@@ -65,37 +69,45 @@ public class FaaastRepositoryConfig extends AasRepositoryConfig<ServiceConfig> {
         private boolean ssl = true;
         private boolean sni = true;
 
+
         private Builder() {
         }
+
 
         public static Builder newInstance() {
             return new Builder();
         }
+
 
         @Override
         public Builder self() {
             return this;
         }
 
+
         public Builder port(Integer port) {
             this.port = port;
             return this;
         }
+
 
         public Builder ssl(boolean ssl) {
             this.ssl = ssl;
             return this;
         }
 
+
         public Builder sni(boolean sni) {
             this.sni = sni;
             return this;
         }
 
+
         public Builder configPath(Path configPath) {
             this.configPath = configPath;
             return this;
         }
+
 
         public Builder configPath(String configPath) {
             this.configPath = Optional.ofNullable(configPath)
@@ -113,7 +125,8 @@ public class FaaastRepositoryConfig extends AasRepositoryConfig<ServiceConfig> {
                             .map(file -> {
                                 try {
                                     return ServiceConfigHelper.load(file);
-                                } catch (IOException e) {
+                                }
+                                catch (IOException e) {
                                     throw new IllegalArgumentException(String.format("Could not load FA³ST service config from path %s",
                                             configPath), e);
                                 }

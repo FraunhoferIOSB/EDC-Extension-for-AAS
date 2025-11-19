@@ -24,12 +24,10 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.web.spi.WebService;
 
+
 /**
- * Manage public api endpoints in a unified extension.
- * This is due to multiple independent authentication request filters
- * not working properly, since they cannot "let a request through"
- * to their endpoints without other registered authentication request filters
- * accepting the request too.
+ * Manage public api endpoints in a unified extension. This is due to multiple independent authentication request filters not working properly, since they cannot "let a request
+ * through" to their endpoints without other registered authentication request filters accepting the request too.
  */
 @Provides(PublicApiManagementService.class)
 @Extension(value = PublicApiManagementExtension.NAME)
@@ -43,6 +41,7 @@ public class PublicApiManagementExtension implements ServiceExtension {
     // To register our authentication request filter, we need:
     @Inject
     private WebService webService;
+
 
     @Override
     public void initialize(ServiceExtensionContext context) {

@@ -23,12 +23,14 @@ import java.util.HashMap;
 import java.util.Optional;
 import javax.annotation.Nonnull;
 
+
 public class AasRepositoryRegistry {
 
     private static final String NULL_VALUE_MESSAGE = "Registry: AAS Repository Manager for %s cannot be null";
     private static final String NOT_EXISTS_MESSAGE = "AAS Repository Manager for %s does not exist";
 
     private final HashMap<Class<? extends AasRepositoryManager<?>>, AasRepositoryManager<?>> managers = new HashMap<>();
+
 
     /**
      * Get an AAS repository manager for an implementation.
@@ -45,6 +47,7 @@ public class AasRepositoryRegistry {
         throw new IllegalArgumentException(String.format(NOT_EXISTS_MESSAGE, type.getName()));
     }
 
+
     /**
      * Get the default AAS repository manager (FA³ST)
      *
@@ -58,10 +61,11 @@ public class AasRepositoryRegistry {
         return Result.failure(String.format(NOT_EXISTS_MESSAGE, FaaastRepositoryManager.class.getSimpleName()));
     }
 
+
     /**
      * Register an AAS repository manager to the extension.
      *
-     * @param type    The manager class. Example: FAAAST.
+     * @param type The manager class. Example: FAAAST.
      * @param manager The AAS repository manager.
      */
     public <T extends AasRepositoryManager<?>> void register(Class<T> type, AasRepositoryManager<?> manager) {

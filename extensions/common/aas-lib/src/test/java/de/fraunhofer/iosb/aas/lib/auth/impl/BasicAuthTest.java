@@ -24,21 +24,25 @@ import java.util.Base64;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+
 class BasicAuthTest {
 
     private final String username = "my-username-x7h9e5s9h";
     private final String password = "my-password-34kj67j4h2g6";
     private BasicAuth testSubject;
 
+
     @BeforeEach
     void setUp() {
         testSubject = new BasicAuth(username, password);
     }
 
+
     @AfterEach
     void tearDown() {
         testSubject = null;
     }
+
 
     @Test
     void getValue() {
@@ -48,6 +52,7 @@ class BasicAuthTest {
 
         assertEquals(authHeaderValue, testSubject.getValue());
     }
+
 
     @Test
     void getHeader() {

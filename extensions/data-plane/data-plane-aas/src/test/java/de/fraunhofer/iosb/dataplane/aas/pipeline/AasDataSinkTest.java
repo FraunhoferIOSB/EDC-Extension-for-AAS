@@ -42,6 +42,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+
 class AasDataSinkTest {
 
     static URI destinationUri;
@@ -49,7 +50,8 @@ class AasDataSinkTest {
     static {
         try {
             destinationUri = new URI("https://localhost:%s/api/v3.0".formatted(getFreePort()));
-        } catch (URISyntaxException e) {
+        }
+        catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
     }
@@ -59,6 +61,7 @@ class AasDataSinkTest {
     AasDataProcessorFactory mockAasDataprocessorFactory = mock(AasDataProcessorFactory.class);
     AasDataAddress mockAasDataAddress = mock(AasDataAddress.class);
 
+
     @BeforeEach
     void setUp() {
         testSubject = AasDataSink.Builder.newInstance()
@@ -67,6 +70,7 @@ class AasDataSinkTest {
                 .monitor(new ConsoleMonitor().withPrefix(this.getClass().getSimpleName()))
                 .build();
     }
+
 
     @Test
     void test_transfer_normalBehaviour() throws IOException {

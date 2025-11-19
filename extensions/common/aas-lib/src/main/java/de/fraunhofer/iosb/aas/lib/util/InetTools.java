@@ -38,23 +38,30 @@ import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
+
 public class InetTools {
 
-    private static final TrustManager[] TRUST_ALL_MANAGER = new TrustManager[]{ new X509TrustManager() {
-        public X509Certificate[] getAcceptedIssuers() {
-            return null;
-        }
+    private static final TrustManager[] TRUST_ALL_MANAGER = new TrustManager[] {
+            new X509TrustManager() {
+                public X509Certificate[] getAcceptedIssuers() {
+                    return null;
+                }
 
-        public void checkClientTrusted(X509Certificate[] certs, String authType) {
-        }
 
-        public void checkServerTrusted(X509Certificate[] certs, String authType) {
-        }
-    } };
+                public void checkClientTrusted(X509Certificate[] certs, String authType) {
+                }
+
+
+                public void checkServerTrusted(X509Certificate[] certs, String authType) {
+                }
+            }
+    };
+
 
     private InetTools() {
         throw new RuntimeException("Utility class");
     }
+
 
     /**
      * <a href="https://stackoverflow.com/questions/3584210/preferred-java-way-to-ping-an-http-url-for-availability">...</a>
@@ -68,18 +75,22 @@ public class InetTools {
 
         if (port != -1) {
             actualPort = port;
-        } else if (host.toLowerCase(Locale.ROOT).startsWith("https")) {
+        }
+        else if (host.toLowerCase(Locale.ROOT).startsWith("https")) {
             actualPort = 443;
-        } else {
+        }
+        else {
             actualPort = 80;
         }
 
         try (Socket ignored = new Socket(host, actualPort)) {
             return true;
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             return false; // Either timeout or unreachable or failed DNS lookup.
         }
     }
+
 
     private static boolean checkUrlAvailability(URI toCheck) {
         try {
@@ -90,7 +101,8 @@ public class InetTools {
             connection.setReadTimeout(7000);
             connection.getResponseCode();
             return true;
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             return false;
         }
     }
@@ -120,12 +132,14 @@ public class InetTools {
                 // Connection with standard java library succeeded
                 // -> according to this system, the server has a trusted certificate
                 return true;
-            } else {
+            }
+            else {
                 // TODO should we allow unencrypted traffic in production for our services?
                 return conn instanceof HttpURLConnection;
             }
 
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             return false;
         }
     }
@@ -137,7 +151,8 @@ public class InetTools {
         try {
             sslContext = SSLContext.getInstance("TLS");
             sslContext.init(null, TRUST_ALL_MANAGER, new SecureRandom());
-        } catch (NoSuchAlgorithmException | KeyManagementException generalSecurityException) {
+        }
+        catch (NoSuchAlgorithmException | KeyManagementException generalSecurityException) {
             return Result.failure(List.of(generalSecurityException.getMessage()));
         }
 
@@ -147,22 +162,25 @@ public class InetTools {
         try {
             conn = (HttpsURLConnection) uri.toURL().openConnection();
             conn.connect();
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             return Result.failure(List.of(e.getMessage()));
         }
 
         X509Certificate[] certs;
         try {
             certs = (X509Certificate[]) conn.getServerCertificates();
-        } catch (SSLPeerUnverifiedException e) {
+        }
+        catch (SSLPeerUnverifiedException e) {
             return Result.failure("peer unverified");
         }
 
         try {
-            for (X509Certificate cert : certs) {
+            for (X509Certificate cert: certs) {
                 cert.checkValidity();
             }
-        } catch (CertificateExpiredException | CertificateNotYetValidException e) {
+        }
+        catch (CertificateExpiredException | CertificateNotYetValidException e) {
             return Result.failure("expired");
         }
 

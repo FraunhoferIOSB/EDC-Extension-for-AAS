@@ -24,6 +24,7 @@ public class UnauthorizedException extends Exception {
         super(message, cause);
     }
 
+
     public UnauthorizedException(Throwable cause) {
         super(cause);
     }

@@ -20,11 +20,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+
 /**
  * Record of an endpoint.
  *
- * @param suffix        The relevant suffix of the endpoint (i.e. the path of the URL).
- * @param method        The method through which the endpoint can be accessed.
+ * @param suffix The relevant suffix of the endpoint (i.e. the path of the URL).
+ * @param method The method through which the endpoint can be accessed.
  * @param customHeaders Custom headers like special authentication keys can be passed here. This is a multivalued map
  */
 public record Endpoint(String suffix, HttpMethod method, Map<String, List<String>> customHeaders) {
@@ -35,14 +36,12 @@ public record Endpoint(String suffix, HttpMethod method, Map<String, List<String
         Objects.requireNonNull(customHeaders);
     }
 
+
     /**
-     * Check whether this endpoint instance is covered by the other endpoint.
-     * This means, suffix and  method have to match.
-     * Headers of this endpoint have to be within other's headers.
-     * This is to check if the other endpoint contains custom needed headers like additional api keys.
+     * Check whether this endpoint instance is covered by the other endpoint. This means, suffix and  method have to match. Headers of this endpoint have to be within other's
+     * headers. This is to check if the other endpoint contains custom needed headers like additional api keys.
      *
-     * @param other Other endpoint, whose headers must contain this endpoint's headers, as well as match suffix and
-     *              method.
+     * @param other Other endpoint, whose headers must contain this endpoint's headers, as well as match suffix and method.
      * @return True if the condition holds, else false.
      */
     public boolean isCoveredBy(Endpoint other) {
@@ -55,14 +54,18 @@ public record Endpoint(String suffix, HttpMethod method, Map<String, List<String
                         new HashSet<>(other.customHeaders().get(entry.getKey())).containsAll(entry.getValue()));
     }
 
+
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
         Endpoint endpoint = (Endpoint) o;
         return Objects.equals(suffix, endpoint.suffix) && method == endpoint.method && Objects.equals(customHeaders,
                 endpoint.customHeaders);
     }
+
 
     @Override
     public int hashCode() {

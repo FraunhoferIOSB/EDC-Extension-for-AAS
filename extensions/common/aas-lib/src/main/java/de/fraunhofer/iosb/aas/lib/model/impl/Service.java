@@ -25,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
+
 /**
  * An AAS service representation as seen in <a href="https://github.com/FraunhoferIOSB/FAAAST-Service">FA³ST Service</a>
  */
@@ -34,10 +35,11 @@ public final class Service extends AasProvider {
     private final Asset environment;
     private final List<PolicyBinding> policyBindings;
 
+
     /**
      * Create a new service representation with given access uri and empty environment and given authentication method.
      *
-     * @param accessUrl            URL for accessing the service.
+     * @param accessUrl URL for accessing the service.
      * @param authenticationMethod The authentication method required to access this AAS service
      */
     private Service(AasAccessUri accessUrl, AuthenticationMethod authenticationMethod, Asset environment, List<PolicyBinding> policyBindings) {
@@ -46,9 +48,9 @@ public final class Service extends AasProvider {
         this.policyBindings = policyBindings;
     }
 
+
     /**
-     * Attach an environment to a service.
-     * This creates a new object reference.
+     * Attach an environment to a service. This creates a new object reference.
      *
      * @param environment The environment
      * @return A new object containing this service's metadata and the environment.
@@ -56,6 +58,7 @@ public final class Service extends AasProvider {
     public @NotNull Service with(Asset environment) {
         return this.toBuilder().environment(environment).build();
     }
+
 
     public Asset getEnvironment() {
         return environment;
@@ -71,9 +74,11 @@ public final class Service extends AasProvider {
         return null != policyBindings && !policyBindings.isEmpty();
     }
 
+
     public List<PolicyBinding> getPolicyBindings() {
         return policyBindings;
     }
+
 
     @Override
     public String toString() {
@@ -81,6 +86,7 @@ public final class Service extends AasProvider {
                 "accessUrl=" + baseUri() + ", " +
                 "environment=" + environment + ']';
     }
+
 
     public Builder toBuilder() {
         return new Builder()
@@ -90,14 +96,17 @@ public final class Service extends AasProvider {
                 .environment(this.environment);
     }
 
+
     public static class Builder extends AasProvider.Builder<Service.Builder> {
 
         private Asset environment;
+
 
         public Builder environment(Asset environment) {
             this.environment = environment;
             return this;
         }
+
 
         public Service build() {
             return new Service(uri, authentication, environment, policyBindings);

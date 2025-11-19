@@ -25,7 +25,6 @@ import de.fraunhofer.iosb.app.controller.ConfigurationController;
 import de.fraunhofer.iosb.app.controller.SelfDescriptionController;
 import de.fraunhofer.iosb.app.controller.dto.LocalRepositoryDTO;
 import de.fraunhofer.iosb.app.controller.dto.RemoteAasRepositoryContextDTO;
-
 import de.fraunhofer.iosb.app.edc.policy.PolicyHelper;
 import de.fraunhofer.iosb.app.handler.edc.EdcStoreHandler;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
@@ -55,6 +54,7 @@ import static de.fraunhofer.iosb.constants.AasConstants.AAS_PREFIX;
 import static de.fraunhofer.iosb.constants.AasConstants.AAS_V30_NAMESPACE;
 import static de.fraunhofer.iosb.constants.AasConstants.EDC_SETTINGS_PREFIX;
 
+
 /**
  * EDC Extension supporting usage of Asset Administration Shells.
  */
@@ -79,6 +79,7 @@ public class AasExtension implements ServiceExtension {
     private JsonLd jsonLd;
     private AasRepositoryController aasServerController;
     private Monitor monitor;
+
 
     @Override
     public void initialize(ServiceExtensionContext context) {
@@ -110,17 +111,21 @@ public class AasExtension implements ServiceExtension {
         monitor.debug(String.format("%s initialized.", NAME));
     }
 
+
     @Override
     public void start() {
         try {
             registerAasServicesByConfig();
-        } catch (UnauthorizedException e) {
+        }
+        catch (UnauthorizedException e) {
             throw new EdcException("Unauthorized exception on registration of configured AAS servers", e);
-        } catch (ConnectException e) {
+        }
+        catch (ConnectException e) {
             throw new EdcException("Connect exception on registration of configured AAS servers", e);
         }
         monitor.debug(String.format("%s started.", NAME));
     }
+
 
     private void registerAasServicesByConfig() throws UnauthorizedException, ConnectException {
         var configInstance = Configuration.getInstance();
@@ -147,6 +152,7 @@ public class AasExtension implements ServiceExtension {
         URI serviceUri = aasServerController.start(localRepositoryDto);
         monitor.debug(String.format("Started FA³ST service with uri %s", serviceUri));
     }
+
 
     @Override
     public void shutdown() {

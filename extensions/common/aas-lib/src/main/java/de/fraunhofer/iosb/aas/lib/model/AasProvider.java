@@ -29,6 +29,7 @@ import java.util.Objects;
 
 import static de.fraunhofer.iosb.constants.AasConstants.AAS_V30_NAMESPACE;
 
+
 public abstract class AasProvider {
 
     public static final String AAS_PROVIDER_AUTH = AAS_V30_NAMESPACE + "auth";
@@ -38,18 +39,22 @@ public abstract class AasProvider {
     @JsonProperty(AAS_PROVIDER_AUTH)
     protected final AuthenticationMethod auth;
 
+
     public AasProvider(AasAccessUri uri, AuthenticationMethod auth) {
         this.uri = Objects.requireNonNull(uri);
         this.auth = Objects.requireNonNull(auth);
     }
 
+
     public AasProvider(AasAccessUri uri) {
         this(uri, new NoAuth());
     }
 
+
     protected AasProvider(AasProvider from) {
         this(from.uri, from.auth);
     }
+
 
     public Map<String, String> getHeaders() {
         var header = auth.getHeader();
@@ -61,38 +66,47 @@ public abstract class AasProvider {
         return responseMap;
     }
 
+
     @JsonProperty(AAS_PROVIDER_AUTH)
     public AuthenticationMethod getAuth() {
         return auth;
     }
 
+
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
         AasProvider that = (AasProvider) o;
         return Objects.equals(uri, that.uri);
     }
+
 
     @Override
     public int hashCode() {
         return Objects.hashCode(uri);
     }
 
+
     @JsonProperty(AAS_PROVIDER_URL)
     public URI baseUri() {
         return uri.uri();
     }
+
 
     public abstract static class Builder<B extends Builder<B>> {
         protected AasAccessUri uri;
         protected AuthenticationMethod authentication = new NoAuth();
         protected List<PolicyBinding> policyBindings = null;
 
+
         public B withPolicyBindings(List<PolicyBinding> policyBindings) {
             this.policyBindings = policyBindings;
             return self();
         }
+
 
         @JsonAlias("url")
         public B withUri(URI uri) {
@@ -100,15 +114,18 @@ public abstract class AasProvider {
             return self();
         }
 
+
         public B aasAccessUri(AasAccessUri url) {
             this.uri = url;
             return self();
         }
 
+
         public B withAuth(AuthenticationMethod authentication) {
             this.authentication = Objects.requireNonNull(authentication);
             return self();
         }
+
 
         public B from(AasProvider from) {
             this.uri = from.uri;
@@ -116,7 +133,9 @@ public abstract class AasProvider {
             return self();
         }
 
+
         public abstract AasProvider build();
+
 
         @SuppressWarnings("unchecked")
         private B self() {

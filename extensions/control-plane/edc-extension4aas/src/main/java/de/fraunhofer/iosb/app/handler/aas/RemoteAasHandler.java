@@ -31,6 +31,7 @@ import java.net.ConnectException;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+
 /**
  * Superclass for remote AAS server handlers that implement Runnable to periodically fetch updates from AAS servers.
  */
@@ -41,16 +42,19 @@ public abstract class RemoteAasHandler<C extends AasServerClient> extends AasHan
     // We keep this "cache" to not flood the Asset/ContractStores with requests.
     protected final Map<PolicyBinding, Asset> referenceAssetMapping;
 
+
     protected RemoteAasHandler(Monitor monitor, C client, EdcStoreHandler edcStoreHandler) throws UnauthorizedException,
             ConnectException {
         super(monitor, client, edcStoreHandler);
         referenceAssetMapping = initialize();
     }
 
+
     @Override
     protected Map<PolicyBinding, Asset> getCurrentlyRegistered() {
         return referenceAssetMapping;
     }
+
 
     @Override
     public void run() {
@@ -61,10 +65,12 @@ public abstract class RemoteAasHandler<C extends AasServerClient> extends AasHan
         Environment currentEnvironment;
         try {
             currentEnvironment = getEnvironment();
-        } catch (UnauthorizedException e) {
+        }
+        catch (UnauthorizedException e) {
             monitor.warning(String.format("Unauthorized exception when connecting to %s", client.getUri()), e);
             return;
-        } catch (ConnectException e) {
+        }
+        catch (ConnectException e) {
             monitor.warning(String.format("Could not connect to %s", client.getUri()), e);
             return;
         }

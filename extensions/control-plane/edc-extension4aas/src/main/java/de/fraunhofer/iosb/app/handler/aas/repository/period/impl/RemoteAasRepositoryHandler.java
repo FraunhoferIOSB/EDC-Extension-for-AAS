@@ -26,35 +26,39 @@ import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.net.ConnectException;
 
+
 /**
- * Handler for all AAS repositories that are registered via their URI / HTTP endpoints.
- * The difference to the local handlers is that here, we have to poll the AAS repository periodically instead of listening to events.
+ * Handler for all AAS repositories that are registered via their URI / HTTP endpoints. The difference to the local handlers is that here, we have to poll the AAS repository
+ * periodically instead of listening to events.
  */
 public class RemoteAasRepositoryHandler extends RemoteAasHandler<RemoteAasRepositoryClient> {
 
     /**
      * Create a new remote AAS repository handler and populate EDC stores.
      *
-     * @param monitor         Log messages.
-     * @param client          Client to communicate with remote AAS repository.
+     * @param monitor Log messages.
+     * @param client Client to communicate with remote AAS repository.
      * @param edcStoreHandler Keep EDC stores up-to-date
      * @throws UnauthorizedException Initial connection to the repository failed due to unauthorized error.
-     * @throws ConnectException      Initial connection to the repository failed due to connection error.
+     * @throws ConnectException Initial connection to the repository failed due to connection error.
      */
     public RemoteAasRepositoryHandler(Monitor monitor, RemoteAasRepositoryClient client, EdcStoreHandler edcStoreHandler) throws UnauthorizedException,
             ConnectException {
         super(monitor, client, edcStoreHandler);
     }
 
+
     @Override
     protected Environment getEnvironment() throws UnauthorizedException, ConnectException {
         return client.getEnvironment();
     }
 
+
     @Override
     protected SubmodelElement mapSubmodelElement(Reference reference, SubmodelElement submodelElement) {
         return null;
     }
+
 
     @Override
     protected SubmodelElement filterSubmodelElementStructure(Reference reference, SubmodelElement submodelElement) {

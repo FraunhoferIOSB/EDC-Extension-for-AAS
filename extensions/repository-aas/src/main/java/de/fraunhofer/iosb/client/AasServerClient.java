@@ -22,23 +22,29 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
+
 public interface AasServerClient {
 
     boolean isAvailable();
 
+
     URI getUri();
+
 
     default List<Reference> getReferences() {
         return List.of();
     }
 
+
     default List<PolicyBinding> getPolicyBindings() {
         return List.of();
     }
 
+
     default boolean requiresAuthentication() {
         return false;
     }
+
 
     default Map<String, String> getHeaders() {
         return Map.of();

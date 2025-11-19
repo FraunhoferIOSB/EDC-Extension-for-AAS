@@ -26,6 +26,7 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
 import static de.fraunhofer.iosb.repository.impl.faaast.FaaastRepositoryManager.FAAAST;
 
+
 /**
  * Instantiate and manage AAS repository implementations.
  */
@@ -37,6 +38,7 @@ public class AasRepositoryExtension implements ServiceExtension {
 
     @Inject
     private Hostname hostname;
+
 
     @Provider
     public AasRepositoryRegistry provideAasRepositoryRegistry(ServiceExtensionContext context) {

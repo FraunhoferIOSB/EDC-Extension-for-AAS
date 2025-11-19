@@ -49,10 +49,8 @@ import static org.eclipse.edc.spi.query.Criterion.criterion;
 
 
 /**
- * Communicates with a provider EDC to retrieve its Catalog.
- * Returns dataset / contract offer for a requested provider asset to the user of this EDC (consumer).
- * Datasets are returned as-is, contract offers are filtered by checking if they are acceptable given
- * the stored acceptable policies.
+ * Communicates with a provider EDC to retrieve its Catalog. Returns dataset / contract offer for a requested provider asset to the user of this EDC (consumer). Datasets are
+ * returned as-is, contract offers are filtered by checking if they are acceptable given the stored acceptable policies.
  */
 class PolicyService {
 
@@ -64,11 +62,12 @@ class PolicyService {
 
     private final JsonLd jsonLdExpander;
 
+
     /**
      * Class constructor
      *
      * @param catalogService Fetching the catalog of a provider.
-     * @param transformer    Transform json-ld byte-array catalog to catalog class
+     * @param transformer Transform json-ld byte-array catalog to catalog class
      */
     PolicyService(CatalogService catalogService, TypeTransformerRegistry transformer,
                   PolicyServiceConfig config, PolicyDefinitionStore policyDefinitionStore, Monitor monitor) {
@@ -78,6 +77,7 @@ class PolicyService {
         this.policyDefinitionStore = policyDefinitionStore;
         this.jsonLdExpander = new TitaniumJsonLd(monitor);
     }
+
 
     ServiceResult<Dataset> getDatasetForAssetId(@NotNull String counterPartyId, @NotNull URI counterPartyUri,
                                                 @NotNull String assetId) {
@@ -94,7 +94,8 @@ class PolicyService {
         StatusResult<byte[]> catalogResponse;
         try {
             catalogResponse = catalogFuture.get(config.getWaitForCatalogTimeout(), TimeUnit.SECONDS);
-        } catch (ExecutionException | InterruptedException | TimeoutException futureException) {
+        }
+        catch (ExecutionException | InterruptedException | TimeoutException futureException) {
             return formUnexpectedResult(futureException.getMessage());
         }
 
@@ -125,12 +126,14 @@ class PolicyService {
 
         if (datasets == null || datasets.isEmpty()) {
             return ServiceResult.notFound("No datasets were found.");
-        } else if (datasets.size() > 1) {
+        }
+        else if (datasets.size() > 1) {
             return ServiceResult.conflict("Multiple datasets were found.");
         }
 
         return ServiceResult.success(datasets.get(0));
     }
+
 
     Result<ContractOffer> getAcceptableContractOfferForAssetId(String counterPartyId, URI counterPartyUri, String assetId) {
         var datasetResult = getDatasetForAssetId(counterPartyId, counterPartyUri, assetId);
@@ -153,11 +156,13 @@ class PolicyService {
                 .orElse(Result.failure("Could not find acceptable policyDefinition"));
     }
 
+
     private ServiceResult<Dataset> formUnexpectedResult(String additionalInformation) {
         var exceptionMessage = Objects.requireNonNullElse(additionalInformation,
                 "No error message supplied");
         return ServiceResult.unexpected("Failed fetching catalog", exceptionMessage);
     }
+
 
     private boolean matchesOwnPolicyDefinitions(Policy policy) {
         return policyDefinitionStore.getPolicyDefinitions().stream()
@@ -166,6 +171,7 @@ class PolicyService {
                                 acceptedPolicyDefinition.getPolicy(),
                                 policy));
     }
+
 
     private boolean policyDefinitionRulesEquality(Policy first, Policy second) {
         List<Rule> firstRules = Stream.of(
@@ -186,6 +192,7 @@ class PolicyService {
                 firstRule -> secondRules.stream()
                         .anyMatch(secondRule -> ruleEquality(firstRule, secondRule)));
     }
+
 
     private <T extends Rule> boolean ruleEquality(T first, T second) {
         return Objects.equals(first.getAction(), second.getAction()) && Objects.equals(first.getConstraints(),

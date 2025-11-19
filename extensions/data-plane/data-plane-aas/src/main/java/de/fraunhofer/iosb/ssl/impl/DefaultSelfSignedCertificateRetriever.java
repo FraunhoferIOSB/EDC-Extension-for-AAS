@@ -36,32 +36,37 @@ import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
+
 /**
- * Retrieve certificates of an online service by its URL.
- * This should only be used for explicitly known services and URLs!
- * (Example: Create a FA³ST service which uses TLS with a self-signed certificate if no other is provided.
- * -> Need its cert to communicate with it)
+ * Retrieve certificates of an online service by its URL. This should only be used for explicitly known services and URLs! (Example: Create a FA³ST service which uses TLS with a
+ * self-signed certificate if no other is provided. -> Need its cert to communicate with it)
  */
 public class DefaultSelfSignedCertificateRetriever implements SelfSignedCertificateRetriever {
 
-    private static final TrustManager[] TRUST_ALL_MANAGER = new TrustManager[]{ new X509TrustManager() {
-        public X509Certificate[] getAcceptedIssuers() {
-            return null;
-        }
+    private static final TrustManager[] TRUST_ALL_MANAGER = new TrustManager[] {
+            new X509TrustManager() {
+                public X509Certificate[] getAcceptedIssuers() {
+                    return null;
+                }
 
-        public void checkClientTrusted(X509Certificate[] certs, String authType) {
-        }
 
-        public void checkServerTrusted(X509Certificate[] certs, String authType) {
-        }
-    } };
+                public void checkClientTrusted(X509Certificate[] certs, String authType) {
+                }
+
+
+                public void checkServerTrusted(X509Certificate[] certs, String authType) {
+                }
+            }
+    };
+
 
     public static boolean isTrusted(String uriString) {
         HttpsURLConnection.setDefaultSSLSocketFactory((SSLSocketFactory) SSLSocketFactory.getDefault());
         URI uri;
         try {
             uri = new URI(uriString);
-        } catch (URISyntaxException e) {
+        }
+        catch (URISyntaxException e) {
             return false;
         }
         try {
@@ -70,24 +75,28 @@ public class DefaultSelfSignedCertificateRetriever implements SelfSignedCertific
             // Connection with standard java library succeeded
             // -> according to this system, the server has a trusted certificate
             return true;
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             return false;
         }
     }
+
 
     public Result<Certificate[]> getSelfSignedCertificate(String urlString) {
         SSLContext sslContext;
         URI uri;
         try {
             uri = new URI(urlString);
-        } catch (URISyntaxException uriSyntaxException) {
+        }
+        catch (URISyntaxException uriSyntaxException) {
             return Result.failure(List.of(uriSyntaxException.getMessage()));
         }
 
         try {
             sslContext = SSLContext.getInstance("TLS");
             sslContext.init(null, TRUST_ALL_MANAGER, new SecureRandom());
-        } catch (NoSuchAlgorithmException | KeyManagementException generalSecurityException) {
+        }
+        catch (NoSuchAlgorithmException | KeyManagementException generalSecurityException) {
             return Result.failure(List.of(generalSecurityException.getMessage()));
         }
 
@@ -97,22 +106,25 @@ public class DefaultSelfSignedCertificateRetriever implements SelfSignedCertific
         try {
             conn = (HttpsURLConnection) uri.toURL().openConnection();
             conn.connect();
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             return Result.failure(List.of(e.getMessage()));
         }
 
         X509Certificate[] certs;
         try {
             certs = (X509Certificate[]) conn.getServerCertificates();
-        } catch (SSLPeerUnverifiedException e) {
+        }
+        catch (SSLPeerUnverifiedException e) {
             return Result.failure("peer unverified");
         }
 
         try {
-            for (X509Certificate cert : certs) {
+            for (X509Certificate cert: certs) {
                 cert.checkValidity();
             }
-        } catch (CertificateExpiredException | CertificateNotYetValidException e) {
+        }
+        catch (CertificateExpiredException | CertificateNotYetValidException e) {
             return Result.failure("expired");
         }
 

@@ -39,6 +39,7 @@ import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 
+
 class AllAasDataProcessorFactoryTest {
     static int httpsPort = getFreePort();
     @RegisterExtension
@@ -51,6 +52,7 @@ class AllAasDataProcessorFactoryTest {
                             .keystorePassword("changeit")
                             .keyManagerPassword("changeit"))
                     .build();
+
 
     @Test
     void testGetFromAasForeign() throws IOException, URISyntaxException {
@@ -68,6 +70,7 @@ class AllAasDataProcessorFactoryTest {
             assertEquals(NOT_FOUND.getStatusCode(), response.code());
         }
     }
+
 
     private AasDataAddress getDataAddress(URI baseUri) {
         return AasDataAddress.Builder.newInstance()

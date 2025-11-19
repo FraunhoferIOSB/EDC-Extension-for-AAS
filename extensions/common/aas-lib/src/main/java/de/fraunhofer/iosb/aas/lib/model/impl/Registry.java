@@ -23,6 +23,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 
+
 /**
  * An AAS registry representation as seen in
  * <a href="https://github.com/fraunhoferIOSB/FAAAST-registry">FA³ST Registry</a>
@@ -34,9 +35,9 @@ public final class Registry extends AasProvider {
 
     private Collection<Service> services;
 
+
     /**
-     * Create a new AAS registry representation with given access uri and empty (nonnull) environment and no required
-     * authentication method.
+     * Create a new AAS registry representation with given access uri and empty (nonnull) environment and no required authentication method.
      *
      * @param accessUri URI for accessing the registry.
      */
@@ -45,16 +46,17 @@ public final class Registry extends AasProvider {
         this.services = new ArrayList<>();
     }
 
+
     /**
-     * Create a new AAS registry representation with given access uri and environment and no required
-     * authentication method.
+     * Create a new AAS registry representation with given access uri and environment and no required authentication method.
      *
-     * @param accessUri            URI for accessing the registry.
+     * @param accessUri URI for accessing the registry.
      * @param authenticationMethod The authentication needed by this registry.
      */
     public Registry(URI accessUri, AuthenticationMethod authenticationMethod) {
         super(new AasAccessUri(accessUri), authenticationMethod);
     }
+
 
     /**
      * Get this registry with the given services
@@ -67,6 +69,7 @@ public final class Registry extends AasProvider {
         return this;
     }
 
+
     /**
      * Returns services this registry holds. This can be null before synchronization happened
      *
@@ -75,6 +78,7 @@ public final class Registry extends AasProvider {
     public Collection<Service> services() {
         return services;
     }
+
 
     @Override
     public String toString() {

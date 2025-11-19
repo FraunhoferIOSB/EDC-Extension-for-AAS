@@ -34,6 +34,7 @@ import static de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress.PROXY_METHOD;
 import static de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress.PROXY_OPERATION;
 import static de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress.PROXY_PATH;
 
+
 /**
  * Communication to an AAS service via an OkHttpClient.
  */
@@ -42,9 +43,11 @@ public class AasDataProcessor {
     private static final String APPLICATION_JSON = "application/json";
     private final EdcHttpClient httpClient;
 
+
     AasDataProcessor(EdcHttpClient httpClient) {
         this.httpClient = httpClient;
     }
+
 
     /**
      * Get data from an AAS service.
@@ -79,7 +82,8 @@ public class AasDataProcessor {
             byte[] bytes = sourceDataAddress.getStringProperty(PROXY_OPERATION).getBytes(StandardCharsets.UTF_8);
             var requestBody = new AasTransferRequestBody(bytes, APPLICATION_JSON);
             requestBuilder.method("POST", requestBody);
-        } else {
+        }
+        else {
             String method = sourceDataAddress.getStringProperty(PROXY_METHOD, sourceDataAddress.getMethod());
 
             String body = sourceDataAddress.getStringProperty(PROXY_BODY);
@@ -88,7 +92,8 @@ public class AasDataProcessor {
                         HttpMethod.permitsRequestBody(method) ?
                                 new AasTransferRequestBody(body.getBytes(StandardCharsets.UTF_8), "application/json") :
                                 null);
-            } else {
+            }
+            else {
                 requestBuilder.method(method, null);
             }
 
@@ -104,11 +109,12 @@ public class AasDataProcessor {
         return httpClient.execute(request);
     }
 
+
     /**
      * Send data to an AAS service.
      *
      * @param destinationDataAddress The address of the AAS service.
-     * @param part                   The data to be sent.
+     * @param part The data to be sent.
      * @return Response by the AAS service.
      * @throws IOException If communication with AAS service fails.
      */

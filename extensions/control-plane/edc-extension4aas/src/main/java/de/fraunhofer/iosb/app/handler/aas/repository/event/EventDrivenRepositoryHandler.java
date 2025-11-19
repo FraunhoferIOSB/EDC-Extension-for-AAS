@@ -29,11 +29,13 @@ import java.net.ConnectException;
 import java.util.Map;
 import java.util.function.BiFunction;
 
+
 public abstract class EventDrivenRepositoryHandler<C extends LocalAasRepositoryClient<?>> extends AasRepositoryHandler<C> {
 
     protected EventDrivenRepositoryHandler(Monitor monitor, C client, EdcStoreHandler edcStoreHandler) {
         super(monitor, client, edcStoreHandler);
     }
+
 
     @Override
     public Map<PolicyBinding, Asset> initialize() throws UnauthorizedException, ConnectException {
@@ -42,15 +44,19 @@ public abstract class EventDrivenRepositoryHandler<C extends LocalAasRepositoryC
         return map;
     }
 
+
     @Override
     public void cleanUp() {
         super.cleanUp();
         unsubscribe();
     }
 
+
     protected abstract void subscribe();
 
+
     protected abstract void unsubscribe();
+
 
     protected StoreResult<Void> doHandle(Reference reference, BiFunction<PolicyBinding, Asset, StoreResult<Void>> consumer) {
         PolicyBinding policyBinding = policyBindingFor(reference);

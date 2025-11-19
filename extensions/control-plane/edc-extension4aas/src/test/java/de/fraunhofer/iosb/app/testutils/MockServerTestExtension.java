@@ -33,13 +33,17 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 
 public class MockServerTestExtension {
 
-    protected final Monitor monitor = new ConsoleMonitor().withPrefix("test");
-    private final JsonApiSerializer jsonApiSerializer = new JsonApiSerializer();
-
     @RegisterExtension
     protected static WireMockExtension server = WireMockExtension.newInstance()
             .options(wireMockConfig().dynamicPort())
             .build();
+    protected final Monitor monitor = new ConsoleMonitor().withPrefix("test");
+    private final JsonApiSerializer jsonApiSerializer = new JsonApiSerializer();
+
+
+    protected static URI getUri() {
+        return URI.create(server.baseUrl());
+    }
 
 
     protected void mockResponse(METHOD method, String requestPath, Object responseBody, int responseStatus) throws SerializationException,
@@ -87,11 +91,6 @@ public class MockServerTestExtension {
                         .withHeader("Content-Type", "application/json")
                         .withBody(jsonApiSerializer.write(responseBody))
                         .withStatus(responseStatus)));
-    }
-
-
-    protected static URI getUri() {
-        return URI.create(server.baseUrl());
     }
 
 

@@ -15,22 +15,24 @@
  */
 package de.fraunhofer.iosb.aas.lib.auth.impl;
 
-
 import de.fraunhofer.iosb.aas.lib.auth.AuthenticationMethod;
 import org.jetbrains.annotations.Nullable;
 
 import java.net.http.HttpClient;
 import java.util.Map;
 
+
 public class NoAuth extends AuthenticationMethod {
 
     public NoAuth() {
     }
 
+
     @Override
     public @Nullable Map.Entry<String, String> getHeader() {
         return null;
     }
+
 
     @Override
     protected @Nullable String getValue() {

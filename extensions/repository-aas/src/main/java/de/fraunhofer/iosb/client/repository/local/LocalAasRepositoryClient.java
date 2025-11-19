@@ -21,21 +21,26 @@ import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
 
 import java.net.URI;
 
+
 public abstract class LocalAasRepositoryClient<CTX extends AasRepositoryContext> implements AasRepositoryClient {
     protected final CTX context;
+
 
     protected LocalAasRepositoryClient(CTX context) {
         this.context = context;
     }
 
+
     public URI getUri() {
         return context.getUri();
     }
+
 
     @Override
     public boolean isAvailable() {
         return context.isAvailable();
     }
+
 
     public abstract Environment getEnvironment();
 }

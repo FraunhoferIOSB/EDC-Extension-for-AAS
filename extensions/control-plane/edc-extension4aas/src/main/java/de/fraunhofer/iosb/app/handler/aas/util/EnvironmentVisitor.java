@@ -11,6 +11,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+
 public record EnvironmentVisitor(Environment environment) {
 
     public EnvironmentVisitor visitShells(Function<Identifiable, Identifiable> visitor) {
@@ -18,20 +19,24 @@ public record EnvironmentVisitor(Environment environment) {
         return this;
     }
 
+
     public EnvironmentVisitor visitShells(Predicate<Identifiable> eliminator) {
         environment.setAssetAdministrationShells(environment.getAssetAdministrationShells().stream().filter(eliminator).toList());
         return this;
     }
+
 
     public EnvironmentVisitor visitConceptDescriptions(Function<Identifiable, Identifiable> visitor) {
         environment.getConceptDescriptions().forEach(visitor::apply);
         return this;
     }
 
+
     public EnvironmentVisitor visitConceptDescriptions(Predicate<Identifiable> eliminator) {
         environment.setConceptDescriptions(environment.getConceptDescriptions().stream().filter(eliminator).toList());
         return this;
     }
+
 
     public EnvironmentVisitor visitSubmodels(Function<Identifiable, Identifiable> visitor,
                                              BiFunction<Reference, SubmodelElement, SubmodelElement> childVisitor) {
@@ -41,6 +46,7 @@ public record EnvironmentVisitor(Environment environment) {
         environment.getSubmodels().forEach(visitor::apply);
         return this;
     }
+
 
     public EnvironmentVisitor visitSubmodels(Predicate<Identifiable> eliminator,
                                              BiFunction<Reference, SubmodelElement, SubmodelElement> childEliminator) {

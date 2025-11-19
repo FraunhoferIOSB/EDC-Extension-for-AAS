@@ -16,6 +16,7 @@ import static de.fraunhofer.iosb.aas.test.FileManager.loadResource;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+
 class ServiceTest {
 
     private final Reference referenceToMatch = new DefaultReference.Builder()
@@ -53,6 +54,7 @@ class ServiceTest {
                 service.getPolicyBindings().get(0).contractPolicyDefinitionId());
     }
 
+
     @Test
     void createService_noSelectiveElements() throws JsonProcessingException {
         String serviceJsonString = loadResource("service_no_selection.json");
@@ -66,6 +68,7 @@ class ServiceTest {
 
     }
 
+
     @Test
     void createService_noAuth() throws JsonProcessingException {
         String serviceJsonString = loadResource("service_no_auth.json");
@@ -75,7 +78,6 @@ class ServiceTest {
         assertEquals("https://localhost:443/api/v3.0", service.baseUri().toString());
 
         assertEquals(Map.of(), service.getHeaders());
-
 
         assertEquals(referenceToMatch, service.getPolicyBindings().get(0).referredElement());
 

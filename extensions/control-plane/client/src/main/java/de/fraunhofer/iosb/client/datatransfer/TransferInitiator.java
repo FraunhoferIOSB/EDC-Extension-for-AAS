@@ -37,6 +37,7 @@ import static java.lang.String.join;
 import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 import static org.eclipse.edc.spi.types.domain.transfer.FlowType.PUSH;
 
+
 /**
  * Initiate transfer requests
  */
@@ -52,11 +53,13 @@ class TransferInitiator {
     private final TransferProcessManager transferProcessManager;
     private final URI ownUri;
 
+
     TransferInitiator(Monitor monitor, Config config, Hostname hostname, TransferProcessManager transferProcessManager) {
         this.monitor = monitor;
         this.transferProcessManager = transferProcessManager;
         this.ownUri = createOwnUriFromConfigurationValues(config, hostname);
     }
+
 
     StatusResult<TransferProcess> initiateTransferProcess(URI providerUri, String agreementId, String apiKey) {
         if (Objects.isNull(ownUri)) {
@@ -73,6 +76,7 @@ class TransferInitiator {
         return initiateTransferProcess(providerUri, agreementId, dataDestination);
     }
 
+
     StatusResult<TransferProcess> initiateTransferProcess(URI providerUri, String agreementId,
                                                           DataAddress dataSinkAddress) {
         var transferRequest = TransferRequest.Builder.newInstance()
@@ -85,6 +89,7 @@ class TransferInitiator {
 
         return transferProcessManager.initiateConsumerRequest(transferRequest);
     }
+
 
     private URI createOwnUriFromConfigurationValues(Config config, Hostname hostname) {
         try {
@@ -99,11 +104,16 @@ class TransferInitiator {
                     DataTransferEndpoint.RECEIVE_DATA_PATH);
 
             return new URI(uriString);
-        } catch (URISyntaxException | EdcException couldNotBuildException) {
+        }
+        catch (URISyntaxException | EdcException couldNotBuildException) {
             monitor.warning(COULD_NOT_BUILD_URI_MESSAGE, couldNotBuildException);
             return null;
         }
     }
 
-    private enum Protocol { HTTP, HTTPS }
+
+    private enum Protocol {
+        HTTP,
+        HTTPS
+    }
 }

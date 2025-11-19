@@ -28,10 +28,10 @@ import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultEnvironment;
 import org.eclipse.edc.spi.EdcException;
 
 import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
 
 import static de.fraunhofer.iosb.model.context.repository.remote.RemoteAasRepositoryContext.ERR_MSG_TEMPLATE;
+
 
 public class LocalFaaastRepositoryClient extends LocalAasRepositoryClient<LocalFaaastRepositoryContext> {
 
@@ -49,6 +49,7 @@ public class LocalFaaastRepositoryClient extends LocalAasRepositoryClient<LocalF
                 .build();
     }
 
+
     public <T extends EventMessage> SubscriptionId subscribeTo(Class<T> messageClass, Consumer<T> consumer) {
         try {
             List<Reference> references = context.getReferences();
@@ -58,23 +59,28 @@ public class LocalFaaastRepositoryClient extends LocalAasRepositoryClient<LocalF
             }
 
             return context.subscribe(SubscriptionInfo.create(messageClass, consumer, references::contains));
-        } catch (MessageBusException messageBusException) {
+        }
+        catch (MessageBusException messageBusException) {
             throw new EdcException(String.format(ERR_MSG_TEMPLATE, "Subscribing to event", getUri()), messageBusException);
         }
     }
 
+
     public void unsubscribeFrom(SubscriptionId id) {
         try {
             context.unsubscribe(id);
-        } catch (MessageBusException messageBusException) {
+        }
+        catch (MessageBusException messageBusException) {
             throw new EdcException(String.format(ERR_MSG_TEMPLATE, "Unsubscribing from event", getUri()), messageBusException);
         }
     }
+
 
     @Override
     public List<Reference> getReferences() {
         return context.getReferences();
     }
+
 
     @Override
     public List<PolicyBinding> getPolicyBindings() {

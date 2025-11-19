@@ -46,9 +46,9 @@ import static org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes.SUBMODEL_ELEMENT_L
 import static org.eclipse.edc.dataaddress.httpdata.spi.HttpDataAddressSchema.BASE_URL;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
+
 /**
- * Inspired by org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress
- * Enables more specific communication with AAS services
+ * Inspired by org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress Enables more specific communication with AAS services
  */
 @JsonTypeName
 @JsonDeserialize(builder = DataAddress.Builder.class)
@@ -66,10 +66,12 @@ public class AasDataAddress extends DataAddress {
 
     private static final List<KeyTypes> IDENTIFIABLE_KEY_TYPES = List.of(ASSET_ADMINISTRATION_SHELL, SUBMODEL, CONCEPT_DESCRIPTION);
 
+
     private AasDataAddress() {
         super();
         this.setType(AAS_DATA_TYPE);
     }
+
 
     private static List<String> validate(Reference reference) {
         List<String> problems = new ArrayList<>();
@@ -93,7 +95,7 @@ public class AasDataAddress extends DataAddress {
             return problems;
         }
         Key previous = root;
-        for (Key key : reference.getKeys().subList(1, reference.getKeys().size())) {
+        for (Key key: reference.getKeys().subList(1, reference.getKeys().size())) {
             if (IDENTIFIABLE_KEY_TYPES.contains(key.getType())) {
                 problems.add("identifiable key at position != 0");
             }
@@ -113,15 +115,18 @@ public class AasDataAddress extends DataAddress {
         return problems;
     }
 
+
     @JsonIgnore
     public String getBaseUrl() {
         return getStringProperty(BASE_URL);
     }
 
+
     @JsonIgnore
     public String getMethod() {
         return getStringProperty(METHOD, "GET");
     }
+
 
     @JsonIgnore
     public Map<String, String> getAdditionalHeaders() {
@@ -130,18 +135,14 @@ public class AasDataAddress extends DataAddress {
                 .collect(toMap(entry -> entry.getKey().replace(ADDITIONAL_HEADER, ""), it -> String.valueOf(it.getValue())));
     }
 
+
     /**
-     * If an explicit path is available, return this path. Else, return the
-     * following:
+     * If an explicit path is available, return this path. Else, return the following:
      * <p>
-     * build and returns the HTTP URL path required to access this AAS data at the
-     * AAS service.
-     * Example: Reference: [Submodel x, SubmodelElementCollection y,
-     * SubmodelElement z]
-     * --> path: submodels/base64(x)/submodel-elements/y.z
+     * build and returns the HTTP URL path required to access this AAS data at the AAS service. Example: Reference: [Submodel x, SubmodelElementCollection y, SubmodelElement z] -->
+     * path: submodels/base64(x)/submodel-elements/y.z
      *
-     * @return Explicitly defined path or path correlating to reference stored
-     *         in this DataAddress (no leading '/').
+     * @return Explicitly defined path or path correlating to reference stored in this DataAddress (no leading '/').
      */
     public String getPath() {
         // Explicitly stored path takes precedence
@@ -177,6 +178,7 @@ public class AasDataAddress extends DataAddress {
         return path;
     }
 
+
     public Reference getReference() {
         var referenceString = Optional.ofNullable(getStringProperty(REFERENCE));
         if (referenceString.isEmpty()) {
@@ -185,6 +187,7 @@ public class AasDataAddress extends DataAddress {
 
         return ReferenceHelper.parseReference(getStringProperty(REFERENCE), DefaultReference.class);
     }
+
 
     public HttpDataAddress asHttpDataAddress() {
         HttpDataAddress.Builder httpDataAddress = HttpDataAddress.Builder.newInstance();
@@ -197,6 +200,7 @@ public class AasDataAddress extends DataAddress {
                 .build();
     }
 
+
     @JsonPOJOBuilder(withPrefix = "")
     public static final class Builder extends DataAddress.Builder<AasDataAddress, Builder> {
 
@@ -205,55 +209,65 @@ public class AasDataAddress extends DataAddress {
             this.property(METHOD, "GET");
         }
 
+
         @JsonCreator
         @SuppressWarnings("unchecked")
         public static Builder newInstance() {
             return new Builder();
         }
 
+
         public Builder baseUrl(String baseUrl) {
             this.property(BASE_URL, baseUrl);
             return this;
         }
+
 
         public Builder additionalHeaders(Map<String, String> headers) {
             headers.forEach((k, v) -> this.property(ADDITIONAL_HEADER + k, v));
             return this;
         }
 
+
         public Builder path(String path) {
             this.property(PATH, path);
             return this;
         }
+
 
         public Builder method(String method) {
             this.property(METHOD, method);
             return this;
         }
 
+
         public Builder proxyOperation(String operation) {
             this.property(PROXY_OPERATION, operation);
             return this;
         }
+
 
         public Builder proxyBody(String proxyBody) {
             this.property(PROXY_BODY, proxyBody);
             return this;
         }
 
+
         public Builder proxyMethod(String proxyMethod) {
             this.property(PROXY_METHOD, proxyMethod);
             return this;
         }
+
 
         public Builder proxyPath(String proxyPath) {
             this.property(PROXY_PATH, proxyPath);
             return this;
         }
 
+
         /**
-         * As we only store the reference for this element and do not know the information of the parent element,
-         * the "value" of each key cannot be null. In case no idShort exists, the value must be the list indexer.
+         * As we only store the reference for this element and do not know the information of the parent element, the "value" of each key cannot be null. In case no idShort exists,
+         * the value must be the list indexer.
          *
          * @param reference The reference pointing to the specific AAS element.
          * @return the builder
@@ -270,6 +284,7 @@ public class AasDataAddress extends DataAddress {
             return this;
         }
 
+
         public Builder copyFrom(DataAddress other) {
             Optional.ofNullable(other)
                     .map(DataAddress::getProperties)
@@ -277,6 +292,7 @@ public class AasDataAddress extends DataAddress {
                     .forEach((k, v) -> this.property(k, String.valueOf(v)));
             return this;
         }
+
 
         @Override
         public AasDataAddress build() {

@@ -15,6 +15,7 @@
  */
 package de.fraunhofer.iosb.repository.impl.faaast;
 
+import de.fraunhofer.iosb.model.config.impl.faaast.FaaastRepositoryConfig;
 import de.fraunhofer.iosb.model.context.repository.AasRepositoryContext;
 import dev.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
@@ -33,14 +34,17 @@ import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
+
 class FaaastRepositoryManagerTest {
 
     private FaaastRepositoryManager testSubject;
+
 
     @BeforeEach
     public void initializeFaaastServiceManager() {
         testSubject = new FaaastRepositoryManager(new ConsoleMonitor(), () -> "faaast");
     }
+
 
     @Test
     public void startServiceTest() throws IOException {
@@ -58,6 +62,7 @@ class FaaastRepositoryManagerTest {
         }
     }
 
+
     @Test
     public void startServiceFalsePathTest() {
         try {
@@ -67,9 +72,11 @@ class FaaastRepositoryManagerTest {
                     .port(freePort)
                     .build());
             fail("Exception should have been thrown");
-        } catch (IllegalArgumentException expected) {
+        }
+        catch (IllegalArgumentException expected) {
         }
     }
+
 
     @Test
     public void startServiceOverwritePortTest() {
@@ -84,28 +91,34 @@ class FaaastRepositoryManagerTest {
         assertEquals(freePort, response.getUri().getPort());
     }
 
+
     @Test
     public void stopServicesEmptyRepositoryTest() {
         try {
             testSubject.stopAll();
-        } catch (Exception failed) {
+        }
+        catch (Exception failed) {
             fail("This operation must not fail");
         }
     }
+
 
     @Test
     public void stopServiceEmptyRepositoryTest() {
         try {
             testSubject.stopRepository(new URI("http://does-not-exist.com:1234/aas"));
-        } catch (Exception unexpectedException) {
+        }
+        catch (Exception unexpectedException) {
             fail();
         }
     }
+
 
     @Test
     public void stopServiceTest() {
         testSubject.stopRepository(startRepository());
     }
+
 
     private URI startRepository() {
         var config = FaaastRepositoryConfig.Builder.newInstance().model(
@@ -116,6 +129,7 @@ class FaaastRepositoryManagerTest {
 
         return testSubject.startRepository(config).getUri();
     }
+
 
     @AfterEach
     public void stopServices() {

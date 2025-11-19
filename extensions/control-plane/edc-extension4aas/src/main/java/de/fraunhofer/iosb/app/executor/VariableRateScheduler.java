@@ -27,10 +27,10 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
+
 /**
- * Schedules a list of tasks at a variable rate defined by the {@link Configuration}.
- * At each iteration (defined by the rate), all *finished* tasks are collected and called by their run() function.
- * When a task finishes, it will be called again in the next iteration.
+ * Schedules a list of tasks at a variable rate defined by the {@link Configuration}. At each iteration (defined by the rate), all *finished* tasks are collected and called by
+ * their run() function. When a task finishes, it will be called again in the next iteration.
  */
 public class VariableRateScheduler extends ScheduledThreadPoolExecutor {
 
@@ -41,16 +41,18 @@ public class VariableRateScheduler extends ScheduledThreadPoolExecutor {
 
     private volatile boolean terminateScheduler;
 
+
     /**
      * Initialize a VariableRateScheduler.
      *
      * @param corePoolSize Same as in the superclass.
-     * @param monitor      Logging
+     * @param monitor Logging
      */
     public VariableRateScheduler(int corePoolSize, Monitor monitor) {
         super(corePoolSize);
         this.monitor = monitor;
     }
+
 
     /**
      * Adds a runnable to this scheduler. It will be run in the next task iteration.
@@ -61,9 +63,10 @@ public class VariableRateScheduler extends ScheduledThreadPoolExecutor {
         readyForNextIteration.add(runnable);
     }
 
+
     /**
-     * Places this runnable in the removal queue. In the next task iteration, this task will get removed from this scheduler.
-     * If this task is currently running or was scheduled to run before the removeRunnable call, it will continue executing.
+     * Places this runnable in the removal queue. In the next task iteration, this task will get removed from this scheduler. If this task is currently running or was scheduled to
+     * run before the removeRunnable call, it will continue executing.
      *
      * @param runnable The runnable to remove from this scheduler
      */
@@ -71,9 +74,10 @@ public class VariableRateScheduler extends ScheduledThreadPoolExecutor {
         toRemove.add(runnable);
     }
 
+
     /**
-     * Execute the runnable task at a rate supplied by the second argument. The initial delay is also the supplied rate.
-     * Blocking of different AAS services is avoided by enqueuing each service only after it has finished its processing.
+     * Execute the runnable task at a rate supplied by the second argument. The initial delay is also the supplied rate. Blocking of different AAS services is avoided by enqueuing
+     * each service only after it has finished its processing.
      */
     public void run() {
         if (terminateScheduler) {
@@ -91,7 +95,8 @@ public class VariableRateScheduler extends ScheduledThreadPoolExecutor {
                 // When a task completes, put it back into readyForNextIteration
                 batch.forEach(task -> execute(wrapForRequeue(task)));
 
-            } catch (Exception e) {
+            }
+            catch (Exception e) {
                 throw new EdcException("Scheduler: stopping execution exceptionally.", e);
             }
 
@@ -99,6 +104,7 @@ public class VariableRateScheduler extends ScheduledThreadPoolExecutor {
             run();
         }, delay, TimeUnit.SECONDS);
     }
+
 
     private List<Runnable> getReadyList() {
         List<Runnable> batch = new ArrayList<>();
@@ -112,16 +118,19 @@ public class VariableRateScheduler extends ScheduledThreadPoolExecutor {
         return batch;
     }
 
+
     private Runnable wrapForRequeue(Runnable task) {
         return () -> {
             try {
                 task.run();
-            } finally {
+            }
+            finally {
                 // Eligible for the next iteration
                 readyForNextIteration.add(task);
             }
         };
     }
+
 
     /**
      * Stops this scheduler. If tasks are running, they will finish execution.

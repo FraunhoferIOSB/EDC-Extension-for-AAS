@@ -62,6 +62,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+
 public class ClientEndpointTest {
 
     private static Monitor monitor;
@@ -70,6 +71,7 @@ public class ClientEndpointTest {
     private static PolicyDefinition mockPolicyDefinition;
     private static Catalog mockCatalog;
     private ClientEndpoint clientEndpoint;
+
 
     @BeforeAll
     public static void initialize() throws URISyntaxException {
@@ -88,6 +90,7 @@ public class ClientEndpointTest {
 
         mockCatalog = Catalog.Builder.newInstance().id("test-catalog").dataset(dataset).build();
     }
+
 
     @BeforeEach
     public void setup() throws IOException {
@@ -115,6 +118,7 @@ public class ClientEndpointTest {
                 .build();
     }
 
+
     private Config mockConfig() {
         return ConfigFactory.fromMap(
                 Map.of(
@@ -123,11 +127,13 @@ public class ClientEndpointTest {
                         "web.http.path", "/api"));
     }
 
+
     private TypeTransformerRegistry mockTransformer() {
         var mockTransformer = mock(TypeTransformerRegistry.class);
         when(mockTransformer.transform(any(), any())).thenReturn(null);
         return mockTransformer;
     }
+
 
     private TransferProcessManager mockTransferProcessManager() {
         StatusResult<TransferProcess> mockStatusResult = StatusResult.failure(ResponseStatus.FATAL_ERROR);
@@ -137,6 +143,7 @@ public class ClientEndpointTest {
         return mockTransferProcessManager;
     }
 
+
     private CatalogService mockCatalogService() throws IOException {
         var catalogService = mock(CatalogService.class);
         var completableFuture = new CompletableFuture<StatusResult<byte[]>>();
@@ -145,6 +152,7 @@ public class ClientEndpointTest {
         when(catalogService.requestCatalog(any(), any(), any(), any())).thenReturn(completableFuture);
         return catalogService;
     }
+
 
     private ConsumerContractNegotiationManager mockConsumerNegotiationManager() {
         var mockStatusResult = StatusResult.success(
@@ -158,6 +166,7 @@ public class ClientEndpointTest {
         when(manager.initiate(any())).thenReturn(mockStatusResult);
         return manager;
     }
+
 
     @Test
     public void negotiateContractTest() {
@@ -177,6 +186,7 @@ public class ClientEndpointTest {
             }
         }
     }
+
 
     @Test
     public void negotiateContractAndTransferTest() {

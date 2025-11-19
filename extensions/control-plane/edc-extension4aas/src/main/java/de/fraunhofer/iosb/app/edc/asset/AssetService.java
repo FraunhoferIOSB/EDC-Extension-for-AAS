@@ -19,21 +19,26 @@ import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.spi.result.StoreResult;
 
+
 public class AssetService {
 
     private final AssetIndex assetIndex;
+
 
     public AssetService(AssetIndex assetIndex) {
         this.assetIndex = assetIndex;
     }
 
+
     public StoreResult<Void> create(Asset asset) {
         return assetIndex.create(asset);
     }
 
+
     public StoreResult<Asset> delete(String assetId) {
         return assetIndex.deleteById(assetId);
     }
+
 
     public StoreResult<Asset> update(Asset asset) {
         return assetIndex.updateAsset(asset);

@@ -39,6 +39,7 @@ import java.util.Objects;
 
 import static de.fraunhofer.iosb.model.context.repository.remote.RemoteAasRepositoryContext.ERR_MSG_TEMPLATE;
 
+
 public class LocalFaaastRepositoryContext extends AasRepositoryContext {
 
     private final MessageBus<?> messageBus;
@@ -51,50 +52,16 @@ public class LocalFaaastRepositoryContext extends AasRepositoryContext {
         this.persistence = persistence;
     }
 
+
     public SubscriptionId subscribe(SubscriptionInfo subscriptionInfo) throws MessageBusException {
         return messageBus.subscribe(subscriptionInfo);
     }
+
 
     public void unsubscribe(SubscriptionId id) throws MessageBusException {
         messageBus.unsubscribe(id);
     }
 
-//    /**
-//     * For a given reference, get the referable from this FA³ST repository. Can be an identifiable as well.
-//     *
-//     * @param reference The reference for the referable to get.
-//     * @param clazz     The actual class of the reference.
-//     * @param <R>       Type of the referable.
-//     * @return The referable referenced by the reference.
-//     */
-//    @SuppressWarnings("unchecked")
-//    public <R extends Referable> R getReferable(Reference reference, Class<R> clazz) throws NotFoundException {
-//        if (EXTERNAL_REFERENCE == ReferenceHelper.determineReferenceType(reference)) {
-//            throw new IllegalArgumentException("Cannot get referable by external reference.");
-//        }
-//
-//        if (reference.getKeys().isEmpty()) {
-//            throw new NotFoundException("Reference has no keys.");
-//        }
-//
-//        Key root = ReferenceHelper.getRoot(reference);
-//        KeyTypes rootType = root.getType();
-//        String rootId = root.getValue();
-//
-//        var superElement = getById(rootType, rootId);
-//
-//        if (reference.getKeys().size() == 1) {
-//            // unchecked: Identifiable is a direct implementor of Referable
-//            return (R) superElement;
-//        }
-//
-//        if (superElement instanceof Submodel submodel) {
-//            // We know that nested references can only be submodel elements.
-//            return AasUtils.resolve(reference, new DefaultEnvironment.Builder().submodels(submodel).build(), clazz);
-//        }
-//
-//        throw new IllegalArgumentException(String.format("Reference malformed: %s", ReferenceHelper.toString(reference)));
-//    }
 
     private <I extends Identifiable> I getById(KeyTypes type, String id) {
         try {
@@ -105,51 +72,63 @@ public class LocalFaaastRepositoryContext extends AasRepositoryContext {
                 default -> throw new IllegalArgumentException("Reference starts with non-identifiable.");
             };
 
-        } catch (PersistenceException | ResourceNotFoundException e) {
+        }
+        catch (PersistenceException | ResourceNotFoundException e) {
             throw new RuntimeException(e);
         }
     }
 
+
     public List<AssetAdministrationShell> getAllAas() {
         try {
             return persistence.getAllAssetAdministrationShells(QueryModifier.DEFAULT, PagingInfo.ALL).getContent();
-        } catch (PersistenceException persistenceException) {
+        }
+        catch (PersistenceException persistenceException) {
             throw new EdcException(String.format(ERR_MSG_TEMPLATE, "Getting all AAS", getUri()), persistenceException);
         }
     }
 
+
     public List<Submodel> getAllSubmodels() {
         try {
             return persistence.getAllSubmodels(QueryModifier.DEFAULT, PagingInfo.ALL).getContent();
-        } catch (PersistenceException persistenceException) {
+        }
+        catch (PersistenceException persistenceException) {
             throw new EdcException(String.format(ERR_MSG_TEMPLATE, "Getting all Submdoels", getUri()), persistenceException);
         }
     }
 
+
     public List<ConceptDescription> getAllConceptDescriptions() {
         try {
             return persistence.getAllConceptDescriptions(QueryModifier.DEFAULT, PagingInfo.ALL).getContent();
-        } catch (PersistenceException persistenceException) {
+        }
+        catch (PersistenceException persistenceException) {
             throw new EdcException(String.format(ERR_MSG_TEMPLATE, "Getting all ConceptDescriptions", getUri()), persistenceException);
         }
     }
+
 
     public static class Builder extends AbstractBuilder<LocalFaaastRepositoryContext, Builder> {
         private MessageBus<?> messageBus;
         private Persistence<?> persistence;
 
+
         public Builder() {
         }
+
 
         public Builder messageBus(MessageBus<?> messageBus) {
             this.messageBus = messageBus;
             return this;
         }
 
+
         public Builder persistence(Persistence<?> persistence) {
             this.persistence = persistence;
             return this;
         }
+
 
         public LocalFaaastRepositoryContext build() {
             super.validate();

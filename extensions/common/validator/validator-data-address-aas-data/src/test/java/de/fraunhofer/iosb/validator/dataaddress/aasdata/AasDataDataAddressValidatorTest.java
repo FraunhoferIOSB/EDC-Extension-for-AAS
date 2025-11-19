@@ -29,9 +29,11 @@ import static de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress.AAS_DATA_TYPE;
 import static org.eclipse.edc.dataaddress.httpdata.spi.HttpDataAddressSchema.BASE_URL;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+
 class AasDataDataAddressValidatorTest {
 
     private final AasDataDataAddressValidator validator = new AasDataDataAddressValidator();
+
 
     @Test
     void shouldPass_whenAasDataIsValid() {
@@ -52,6 +54,7 @@ class AasDataDataAddressValidatorTest {
         assertTrue(result.succeeded());
     }
 
+
     @Test
     void shouldFail_whenAasDataBaseUriNotValid() {
         var dataAddress = DataAddress.Builder.newInstance()
@@ -63,6 +66,7 @@ class AasDataDataAddressValidatorTest {
 
         assertTrue(result.failed());
     }
+
 
     @Test
     void shouldFail_whenAasDataPathNotValid() {

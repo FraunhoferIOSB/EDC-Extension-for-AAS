@@ -24,6 +24,7 @@ import java.net.http.HttpClient;
 import java.util.AbstractMap;
 import java.util.Map;
 
+
 /**
  * Get vault secret for authentication with x-api-key
  */
@@ -34,20 +35,24 @@ public class VaultAuth extends AuthenticationMethod {
     private final Vault vault;
     private final String alias;
 
+
     public VaultAuth(Vault vault, String alias) {
         this.vault = vault;
         this.alias = alias;
     }
+
 
     @Override
     public Map.Entry<String, String> getHeader() {
         return new AbstractMap.SimpleEntry<>(KEY, getValue());
     }
 
+
     @Override
     protected String getValue() {
         return vault.resolveSecret(alias);
     }
+
 
     @Override
     public HttpClient.Builder httpClientBuilderFor() {

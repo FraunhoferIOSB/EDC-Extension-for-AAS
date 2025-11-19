@@ -31,11 +31,11 @@ import de.fraunhofer.iosb.client.exception.UnauthorizedException;
 import de.fraunhofer.iosb.client.registry.AasRegistryClient;
 import de.fraunhofer.iosb.client.repository.local.impl.LocalFaaastRepositoryClient;
 import de.fraunhofer.iosb.client.repository.remote.impl.RemoteAasRepositoryClient;
+import de.fraunhofer.iosb.model.config.impl.faaast.FaaastRepositoryConfig;
 import de.fraunhofer.iosb.model.context.registry.AasRegistryContext;
 import de.fraunhofer.iosb.model.context.repository.local.impl.LocalFaaastRepositoryContext;
 import de.fraunhofer.iosb.model.context.repository.remote.RemoteAasRepositoryContext;
 import de.fraunhofer.iosb.repository.AasRepositoryManager;
-import de.fraunhofer.iosb.repository.impl.faaast.FaaastRepositoryConfig;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.NotFoundException;
@@ -52,9 +52,9 @@ import java.util.Optional;
 
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 
+
 /**
- * Handles requests regarding the Asset Administration Shells registered to this
- * extension
+ * Handles requests regarding the Asset Administration Shells registered to this extension
  */
 @Consumes(APPLICATION_JSON)
 @Path("/")
@@ -90,10 +90,12 @@ public class AasRepositoryController {
         this.edcStoreHandler = edcStoreHandler;
     }
 
+
     /**
      * Register an AAS service at the EDC.
      *
      * @param remoteAasRepositoryContextDTO remoteRepositoryDTO
+     * @throws WebApplicationException malformed request
      */
     @POST
     @Path(SERVICE_PATH)
@@ -109,13 +111,15 @@ public class AasRepositoryController {
         RemoteAasRepositoryHandler handler;
         try {
             handler = new RemoteAasRepositoryHandler(monitor, client, edcStoreHandler);
-        } catch (ConnectException connectException) {
+        }
+        catch (ConnectException connectException) {
             monitor.warning(String.format(CONNECT_EXCEPTION_TEMPLATE, client.getUri()), connectException);
             throw new WebApplicationException(
                     Response.status(Response.Status.BAD_REQUEST)
                             .entity(String.format(String.format(FAILURE_TEMPLATE, CONNECT_EXCEPTION_TEMPLATE), client.getUri()))
                             .build());
-        } catch (UnauthorizedException unauthorizedException) {
+        }
+        catch (UnauthorizedException unauthorizedException) {
             monitor.warning(String.format(CONNECT_EXCEPTION_TEMPLATE, client.getUri()), unauthorizedException);
             throw new WebApplicationException(
                     Response.status(Response.Status.BAD_REQUEST)
@@ -123,12 +127,12 @@ public class AasRepositoryController {
                             .build());
         }
 
-
         aasServerStore.put(context.getUri(), handler);
         scheduler.addRunnable(handler);
 
         return context.getUri();
     }
+
 
     /**
      * Register an AAS registry at the EDC.
@@ -149,20 +153,21 @@ public class AasRepositoryController {
         RemoteAasRegistryHandler handler;
         try {
             handler = new RemoteAasRegistryHandler(monitor, client, edcStoreHandler);
-        } catch (ConnectException connectException) {
+        }
+        catch (ConnectException connectException) {
             monitor.warning(String.format(CONNECT_EXCEPTION_TEMPLATE, client.getUri()), connectException);
             throw new WebApplicationException(
                     Response.status(Response.Status.BAD_REQUEST)
                             .entity(String.format(String.format(FAILURE_TEMPLATE, CONNECT_EXCEPTION_TEMPLATE), client.getUri()))
                             .build());
-        } catch (UnauthorizedException unauthorizedException) {
-            monitor.warning(String.format(CONNECT_EXCEPTION_TEMPLATE, client.getUri()), unauthorizedException);
+        }
+        catch (UnauthorizedException unauthorizedException) {
+            monitor.warning(String.format(UNAUTHORIZED_EXCEPTION_TEMPLATE, client.getUri()), unauthorizedException);
             throw new WebApplicationException(
                     Response.status(Response.Status.BAD_REQUEST)
                             .entity(String.format(String.format(FAILURE_TEMPLATE, UNAUTHORIZED_EXCEPTION_TEMPLATE), client.getUri()))
                             .build());
         }
-
 
         aasServerStore.put(context.getUri(), handler);
         scheduler.addRunnable(handler);
@@ -192,13 +197,15 @@ public class AasRepositoryController {
         LocalFaaastRepositoryHandler handler;
         try {
             handler = new LocalFaaastRepositoryHandler(monitor, client, edcStoreHandler);
-        } catch (ConnectException connectException) {
+        }
+        catch (ConnectException connectException) {
             monitor.warning(String.format(CONNECT_EXCEPTION_TEMPLATE, client.getUri()), connectException);
             throw new WebApplicationException(
                     Response.status(Response.Status.BAD_REQUEST)
                             .entity(String.format(String.format(FAILURE_TEMPLATE, CONNECT_EXCEPTION_TEMPLATE), client.getUri()))
                             .build());
-        } catch (UnauthorizedException unauthorizedException) {
+        }
+        catch (UnauthorizedException unauthorizedException) {
             monitor.warning(String.format(CONNECT_EXCEPTION_TEMPLATE, client.getUri()), unauthorizedException);
             throw new WebApplicationException(
                     Response.status(Response.Status.BAD_REQUEST)
@@ -211,6 +218,7 @@ public class AasRepositoryController {
         return context.getUri();
     }
 
+
     /**
      * Unregister an AAS service (e.g., FA³ST) from this extension
      *
@@ -221,6 +229,7 @@ public class AasRepositoryController {
     public void unregisterRepository(@QueryParam("url") URI repositoryUri) {
         unregister(repositoryUri);
     }
+
 
     /**
      * Register an AAS registry at the EDC.
@@ -233,6 +242,7 @@ public class AasRepositoryController {
         unregister(registryUri);
     }
 
+
     private void unregister(URI uri) {
         AasHandler<?> handlerMaybe = aasServerStore.remove(uri);
 
@@ -243,10 +253,12 @@ public class AasRepositoryController {
 
         if (handler instanceof EventDrivenRepositoryHandler) {
             aasRepositoryManager.stopRepository(uri);
-        } else if (handler instanceof RemoteHandler remoteHandler) {
+        }
+        else if (handler instanceof RemoteHandler remoteHandler) {
             scheduler.removeRunnable(remoteHandler);
         }
     }
+
 
     /**
      * Stops all internally started AAS services

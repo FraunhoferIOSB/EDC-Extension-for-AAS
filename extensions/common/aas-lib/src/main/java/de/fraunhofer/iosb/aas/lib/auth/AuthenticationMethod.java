@@ -40,8 +40,7 @@ import java.util.Map;
 public abstract class AuthenticationMethod {
 
     /**
-     * Get the header value to add to the request headers to communicate with the service.
-     * Headers: [... , (getHeader().key, getHeader().value), ...]
+     * Get the header value to add to the request headers to communicate with the service. Headers: [... , (getHeader().key, getHeader().value), ...]
      *
      * @return The header to place in the request in order to authenticate
      */
@@ -49,7 +48,9 @@ public abstract class AuthenticationMethod {
         return new AbstractMap.SimpleEntry<>("Authorization", getValue());
     }
 
+
     protected abstract String getValue();
+
 
     public abstract HttpClient.Builder httpClientBuilderFor();
 

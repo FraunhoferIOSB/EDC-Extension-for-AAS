@@ -32,10 +32,8 @@ import java.util.concurrent.TimeoutException;
 
 
 /**
- * Provides API for contract negotiation by
- * {@link de.fraunhofer.iosb.client.negotiation.Negotiator the Negotiator
- * class}.
- * For documentation see {@link de.fraunhofer.iosb.client.ClientEndpoint}
+ * Provides API for contract negotiation by {@link de.fraunhofer.iosb.client.negotiation.Negotiator the Negotiator class}. For documentation see
+ * {@link de.fraunhofer.iosb.client.ClientEndpoint}
  */
 public class NegotiationController {
 
@@ -47,6 +45,7 @@ public class NegotiationController {
     private final Negotiator negotiator;
     private final ClientContractNegotiationListener listener;
 
+
     public NegotiationController(ConsumerContractNegotiationManager consumerNegotiationManager,
                                  ContractNegotiationObservable observable,
                                  ContractNegotiationStore contractNegotiationStore,
@@ -57,6 +56,7 @@ public class NegotiationController {
         observable.registerListener(listener);
     }
 
+
     public Result<ContractAgreement> negotiateContract(ContractRequest contractRequest) {
         var negotiationStatusResult = negotiator.negotiate(contractRequest);
         if (!negotiationStatusResult.succeeded()) {
@@ -66,7 +66,8 @@ public class NegotiationController {
         var negotiation = negotiationStatusResult.getContent();
         if (Objects.nonNull(negotiation.getContractAgreement())) {
             return Result.success(negotiationStatusResult.getContent().getContractAgreement());
-        } else {
+        }
+        else {
             return waitForAgreement(negotiation.getId());
         }
     }
@@ -80,11 +81,14 @@ public class NegotiationController {
         ContractNegotiation negotiation;
         try {
             negotiation = agreementFuture.get(timeout, TimeUnit.SECONDS);
-        } catch (TimeoutException timeoutWhileWaitingException) {
+        }
+        catch (TimeoutException timeoutWhileWaitingException) {
             return Result.failure("Timed out while waiting for agreement: %s".formatted(timeoutWhileWaitingException.getMessage()));
-        } catch (InterruptedException interruptedWhileWaitingException) {
+        }
+        catch (InterruptedException interruptedWhileWaitingException) {
             return Result.failure("Interrupted while waiting for agreement: %s".formatted(interruptedWhileWaitingException.getMessage()));
-        } catch (ExecutionException executionException) {
+        }
+        catch (ExecutionException executionException) {
             return Result.failure("ExecutionException thrown while waiting for agreement: %s".formatted(executionException.getMessage()));
         }
 

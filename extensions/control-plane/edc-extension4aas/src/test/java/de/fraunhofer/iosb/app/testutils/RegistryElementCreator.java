@@ -38,8 +38,8 @@ import static de.fraunhofer.iosb.app.testutils.AasCreator.getLangStringTextType;
 import static de.fraunhofer.iosb.app.testutils.AasCreator.getReference;
 import static de.fraunhofer.iosb.app.testutils.AasCreator.uuid;
 
-public class RegistryElementCreator {
 
+public class RegistryElementCreator {
 
     private RegistryElementCreator() {
         throw new RuntimeException("Utility class");
@@ -59,6 +59,7 @@ public class RegistryElementCreator {
                 .build();
     }
 
+
     public static DefaultAssetAdministrationShell asShell(AssetAdministrationShellDescriptor descriptor) {
         return new DefaultAssetAdministrationShell.Builder()
                 .administration(descriptor.getAdministration())
@@ -77,9 +78,11 @@ public class RegistryElementCreator {
                 .build();
     }
 
+
     public static SubmodelDescriptor getSubmodelDescriptor() {
         return getSubmodelDescriptor(uuid());
     }
+
 
     public static SubmodelDescriptor getSubmodelDescriptor(String id) {
         return new DefaultSubmodelDescriptor.Builder()
@@ -93,9 +96,11 @@ public class RegistryElementCreator {
                 .build();
     }
 
+
     public static AssetAdministrationShellDescriptor getShellDescriptor() {
         return getShellDescriptor(uuid());
     }
+
 
     public static AssetAdministrationShellDescriptor getShellDescriptor(String id) {
         Function<String, String> nameSupplier = str -> str.concat(" shell descriptor");
@@ -113,6 +118,7 @@ public class RegistryElementCreator {
                 .displayName(getLangStringNameType())
                 .build();
     }
+
 
     private static List<Endpoint> getEndpoints(String id, String type) {
         return List.of(

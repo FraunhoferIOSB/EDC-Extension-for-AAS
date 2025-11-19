@@ -25,14 +25,15 @@ import java.net.http.HttpClient;
 import java.util.AbstractMap;
 import java.util.Map;
 
+
 /**
- * Api key authentication: (key, value).
- * Example: (x-api-key,password)
+ * Api key authentication: (key, value). Example: (x-api-key,password)
  */
 public class ApiKey extends AuthenticationMethod {
 
     private final String keyName;
     private final String keyValue;
+
 
     @JsonCreator
     public ApiKey(@JsonProperty("keyName") String keyName, @JsonProperty("keyValue") String keyValue) {
@@ -46,10 +47,12 @@ public class ApiKey extends AuthenticationMethod {
         return new AbstractMap.SimpleEntry<>(keyName, getValue());
     }
 
+
     @Override
     protected String getValue() {
         return keyValue;
     }
+
 
     @Override
     public HttpClient.Builder httpClientBuilderFor() {

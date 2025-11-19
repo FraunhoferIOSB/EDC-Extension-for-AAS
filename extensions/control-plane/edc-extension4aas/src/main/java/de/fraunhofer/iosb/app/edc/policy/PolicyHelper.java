@@ -33,17 +33,19 @@ import static de.fraunhofer.iosb.constants.AasConstants.DEFAULT_CONTRACT_POLICY_
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_USE_ACTION_ATTRIBUTE;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.ALREADY_EXISTS;
 
+
 public abstract class PolicyHelper {
 
     private PolicyHelper() {
     }
 
+
     /**
      * Register default access and contract policies either by configuration variables or using internal (minimal) policies.
      *
-     * @param monitor               monitor to log messages.
+     * @param monitor monitor to log messages.
      * @param policyDefinitionStore Store implementation to register policies.
-     * @param participantId         Used for the default policies.
+     * @param participantId Used for the default policies.
      */
     public static void registerDefaultPolicies(Monitor monitor, PolicyDefinitionStore policyDefinitionStore, String participantId) {
         Configuration configuration = Configuration.getInstance();
@@ -66,30 +68,36 @@ public abstract class PolicyHelper {
 
         if (accessPolicyResult.failed() && ALREADY_EXISTS != accessPolicyResult.reason()) {
             throw new IllegalArgumentException(accessPolicyResult.getFailureDetail());
-        } else if (contractPolicyResult.failed() && ALREADY_EXISTS != contractPolicyResult.reason()) {
+        }
+        else if (contractPolicyResult.failed() && ALREADY_EXISTS != contractPolicyResult.reason()) {
             throw new IllegalArgumentException(contractPolicyResult.getFailureDetail());
         }
     }
+
 
     private static Policy getPolicy(Monitor monitor, String participantId, String path) {
         Policy policy;
         if (path != null) {
             policy = getPolicyDefinitionFromFile(monitor, path).orElse(defaultPolicy(participantId));
-        } else {
+        }
+        else {
             policy = defaultPolicy(participantId);
         }
         return policy;
     }
 
+
     private static Optional<Policy> getPolicyDefinitionFromFile(Monitor monitor, String filePath) {
         try {
             Policy filePolicy = new ObjectMapper().readerFor(Policy.class).readValue(Path.of(filePath).toFile());
             return Optional.of(filePolicy);
-        } catch (IOException ioException) {
+        }
+        catch (IOException ioException) {
             monitor.severe(String.format("Could not find a valid policy at path %s. Using internal policy as default.", filePath));
             return Optional.empty();
         }
     }
+
 
     private static Policy defaultPolicy(String participantId) {
         return Policy.Builder.newInstance()

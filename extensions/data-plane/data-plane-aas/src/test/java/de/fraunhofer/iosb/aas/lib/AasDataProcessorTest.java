@@ -46,13 +46,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class AasDataProcessorTest {
 
-    static AasDataProcessor testSubject;
-    static URI aasUri;
-
     @RegisterExtension
     protected static WireMockExtension server = WireMockExtension.newInstance()
             .options(wireMockConfig().dynamicPort())
             .build();
+    static AasDataProcessor testSubject;
+    static URI aasUri;
 
 
     @BeforeAll

@@ -35,12 +35,14 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+
 public class TransferInitiatorTest {
 
     private final TransferProcessManager mockTransferProcessManager = mock(TransferProcessManager.class);
 
     private TransferInitiator transferInitiator;
     private StatusResult<TransferProcess> mockStatusResult;
+
 
     @BeforeEach
     @SuppressWarnings("unchecked")
@@ -55,6 +57,7 @@ public class TransferInitiatorTest {
         when(mockTransferProcessManager.initiateConsumerRequest(any())).thenReturn(mockStatusResult);
     }
 
+
     @Test
     void testInitiateTransferProcess() throws URISyntaxException {
         when(mockStatusResult.failed()).thenReturn(false);
@@ -63,6 +66,7 @@ public class TransferInitiatorTest {
                 UUID.randomUUID().toString());
         verify(mockTransferProcessManager, times(1)).initiateConsumerRequest(any());
     }
+
 
     @Test
     void testInitiateTransferProcessCustomDataAddress() throws URISyntaxException {

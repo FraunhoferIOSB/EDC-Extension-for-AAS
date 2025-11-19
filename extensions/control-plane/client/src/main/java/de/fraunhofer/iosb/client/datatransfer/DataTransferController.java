@@ -47,6 +47,7 @@ import java.util.concurrent.TimeoutException;
 
 import static de.fraunhofer.iosb.client.ClientEndpoint.MISSING_QUERY_PARAMETER_MESSAGE;
 
+
 @Consumes({ MediaType.APPLICATION_JSON })
 @Path(ClientEndpoint.AUTOMATED_PATH)
 public class DataTransferController {
@@ -65,17 +66,15 @@ public class DataTransferController {
 
     private final ObjectMapper nonNullNonEmptyObjectMapper;
 
+
     /**
      * Class constructor
      *
-     * @param monitor                    Logging.
-     * @param config                     Read config value transfer timeout and
-     *                                   own URI
-     * @param webService                 Register data transfer endpoint.
-     * @param publicApiManagementService Creating and passing through custom api
-     *                                   keys for each data transfer.
-     * @param transferProcessManager     Initiating a transfer process as a
-     *                                   consumer.
+     * @param monitor Logging.
+     * @param config Read config value transfer timeout and own URI
+     * @param webService Register data transfer endpoint.
+     * @param publicApiManagementService Creating and passing through custom api keys for each data transfer.
+     * @param transferProcessManager Initiating a transfer process as a consumer.
      */
     public DataTransferController(Monitor monitor, Config config, WebService webService,
                                   PublicApiManagementService publicApiManagementService,
@@ -100,8 +99,7 @@ public class DataTransferController {
 
 
     /**
-     * Submits a data transfer request to the providerUrl.
-     * In the future this could be replaced with the
+     * Submits a data transfer request to the providerUrl. In the future this could be replaced with the
      * <a href="https://www.ietf.org/archive/id/draft-ietf-httpbis-safe-method-w-body-02.html">HTTP QUERY method</a>
      *
      * @param providerUrl The data provider's url
@@ -136,7 +134,8 @@ public class DataTransferController {
             if (op != null) {
                 try {
                     dataAddress = serializeOperation(dataAddress);
-                } catch (JsonProcessingException e) {
+                }
+                catch (JsonProcessingException e) {
                     // Operation invocation is required by client -> return
                     return Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).build();
                 }
@@ -149,7 +148,8 @@ public class DataTransferController {
             }
             return Response.status(Response.Status.EXPECTATION_FAILED).entity(dataResult.getFailureDetail()).build();
 
-        } catch (InterruptedException | ExecutionException futureException) {
+        }
+        catch (InterruptedException | ExecutionException futureException) {
             monitor.severe("Data transfer failed for provider %s and agreementId %s".formatted(providerUrl,
                     agreementId), futureException);
             return Response.serverError()
@@ -157,6 +157,7 @@ public class DataTransferController {
                     .build();
         }
     }
+
 
     private DataAddress serializeOperation(DataAddress dataAddress) throws JsonProcessingException {
         String operation = nonNullNonEmptyObjectMapper
@@ -172,17 +173,16 @@ public class DataTransferController {
         return dataAddress;
     }
 
+
     /**
-     * Initiates the transfer process defined by the arguments. The data of the
-     * transfer will be sent to {@link DataTransferEndpoint#RECEIVE_DATA_PATH}.
+     * Initiates the transfer process defined by the arguments. The data of the transfer will be sent to {@link DataTransferEndpoint#RECEIVE_DATA_PATH}.
      *
-     * @param providerUri     The provider from whom the data is to be fetched.
-     * @param agreementId     Non-null ContractAgreement of the negotiation process.
-     * @param dataSinkAddress DataAddress the result of the transfer should be
-     *                        sent to. (If null, send to extension and print in log)
+     * @param providerUri The provider from whom the data is to be fetched.
+     * @param agreementId Non-null ContractAgreement of the negotiation process.
+     * @param dataSinkAddress DataAddress the result of the transfer should be sent to. (If null, send to extension and print in log)
      * @return StatusResult containing error message or data or null on remote destination address
      * @throws InterruptedException If the data transfer was interrupted
-     * @throws ExecutionException   If the data transfer process failed
+     * @throws ExecutionException If the data transfer process failed
      */
     private StatusResult<String> initiateTransferProcess(URI providerUri, String agreementId,
                                                          DataAddress dataSinkAddress)
@@ -195,6 +195,7 @@ public class DataTransferController {
         // Don't have to wait for data
         return StatusResult.success(null);
     }
+
 
     /* Send result of transferProcess to extension endpoint */
     private StatusResult<String> initiateTransferProcess(URI providerUri, String agreementId)
@@ -211,6 +212,7 @@ public class DataTransferController {
                 StatusResult.failure(initiateResult.getFailure().status(), initiateResult.getFailureDetail());
     }
 
+
     private StatusResult<String> waitForProviderData(CompletableFuture<String> dataFuture, String agreementId)
             throws InterruptedException, ExecutionException {
         var waitForTransferTimeout = config.getInteger("waitForTransferTimeout",
@@ -220,7 +222,8 @@ public class DataTransferController {
             var providerData = dataFuture.get(waitForTransferTimeout, TimeUnit.SECONDS);
             dataTransferObservable.unregister(agreementId);
             return StatusResult.success(providerData);
-        } catch (TimeoutException futureException) {
+        }
+        catch (TimeoutException futureException) {
             dataTransferObservable.unregister(agreementId);
 
             var errorMessage = Objects.requireNonNullElse(futureException.getMessage(), "No error message");

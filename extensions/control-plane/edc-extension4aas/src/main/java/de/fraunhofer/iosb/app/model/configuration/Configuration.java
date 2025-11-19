@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.net.URI;
 
+
 /**
  * The configuration of the application.
  */
@@ -27,11 +28,11 @@ public class Configuration {
     private static final String SETTINGS_PREFIX = "edc.aas.";
     private static Configuration instance;
     @JsonProperty(SETTINGS_PREFIX + "syncPeriod")
-    private final int syncPeriod = 50; // Seconds
+    private int syncPeriod = 50; // Seconds
     @JsonProperty(SETTINGS_PREFIX + "onlySubmodels")
-    private final boolean onlySubmodels = true;
+    private boolean onlySubmodels = true;
     @JsonProperty(SETTINGS_PREFIX + "exposeSelfDescription")
-    private final boolean exposeSelfDescription = true;
+    private boolean exposeSelfDescription = true;
     @JsonProperty(SETTINGS_PREFIX + "allowSelfSignedCertificates")
     private boolean allowSelfSignedCertificates;
     @JsonProperty(SETTINGS_PREFIX + "remoteAASLocation")
@@ -44,10 +45,8 @@ public class Configuration {
     private String aasServiceConfigPath;
     @JsonProperty(SETTINGS_PREFIX + "defaultAccessPolicyPath")
     private String defaultAccessPolicyPath;
-
     @JsonProperty(SETTINGS_PREFIX + "defaultContractPolicyPath")
     private String defaultContractPolicyPath;
-
     @JsonProperty(SETTINGS_PREFIX + "useAasDataPlane")
     private boolean useAasDataPlane;
 
@@ -59,45 +58,56 @@ public class Configuration {
         return instance;
     }
 
+
     public URI getRemoteAasLocation() {
         return remoteAasLocation;
     }
+
 
     public String getLocalAasModelPath() {
         return localAasModelPath;
     }
 
+
     public Integer getLocalAasServicePort() {
         return localAasServicePort;
     }
+
 
     public String getAasServiceConfigPath() {
         return aasServiceConfigPath;
     }
 
+
     public int getSyncPeriod() {
         return syncPeriod;
     }
+
 
     public boolean onlySubmodels() {
         return onlySubmodels;
     }
 
+
     public boolean isExposeSelfDescription() {
         return exposeSelfDescription;
     }
+
 
     public String getDefaultAccessPolicyPath() {
         return defaultAccessPolicyPath;
     }
 
+
     public String getDefaultContractPolicyPath() {
         return defaultContractPolicyPath;
     }
 
+
     public boolean isAllowSelfSignedCertificates() {
         return allowSelfSignedCertificates;
     }
+
 
     public boolean useAasDataPlane() {
         return useAasDataPlane;

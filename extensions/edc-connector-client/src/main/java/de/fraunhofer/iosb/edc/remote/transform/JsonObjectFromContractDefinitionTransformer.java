@@ -31,6 +31,7 @@ import static org.eclipse.edc.connector.controlplane.contract.spi.types.offer.Co
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 
+
 /**
  * Copied from upstream due to it not being independently injectable
  */
@@ -39,12 +40,14 @@ public class JsonObjectFromContractDefinitionTransformer extends AbstractJsonLdT
     private final String typeContext;
     private final JsonBuilderFactory jsonFactory;
 
+
     public JsonObjectFromContractDefinitionTransformer(JsonBuilderFactory jsonFactory, TypeManager typeManager, String typeContext) {
         super(ContractDefinition.class, JsonObject.class);
         this.jsonFactory = jsonFactory;
         this.typeManager = typeManager;
         this.typeContext = typeContext;
     }
+
 
     @Override
     public @Nullable JsonObject transform(@NotNull ContractDefinition contractDefinition, @NotNull TransformerContext context) {

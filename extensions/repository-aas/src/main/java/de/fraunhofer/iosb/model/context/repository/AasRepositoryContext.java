@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+
 public abstract class AasRepositoryContext extends AasServerContext {
 
     private final List<PolicyBinding> policyBindings;
@@ -35,6 +36,7 @@ public abstract class AasRepositoryContext extends AasServerContext {
         this.policyBindings = policyBindings;
     }
 
+
     /**
      * Availability check for this AAS repository.
      *
@@ -44,9 +46,11 @@ public abstract class AasRepositoryContext extends AasServerContext {
         return InetTools.pingHost(getUri().getHost(), getUri().getPort());
     }
 
+
     public List<PolicyBinding> getPolicyBindings() {
         return policyBindings;
     }
+
 
     /**
      * Returns references that shall be registered by this extension. If all elements shall be registered, the optional will be empty.
@@ -58,27 +62,33 @@ public abstract class AasRepositoryContext extends AasServerContext {
                 .map(PolicyBinding::referredElement).toList();
     }
 
+
     public abstract static class AbstractBuilder<T extends AasRepositoryContext, B extends AbstractBuilder<T, B>> {
         protected URI uri;
         protected List<PolicyBinding> policyBindings;
 
+
         protected AbstractBuilder() {
         }
+
 
         @SuppressWarnings("unchecked")
         private B self() {
             return (B) this;
         }
 
+
         public B policyBindings(List<PolicyBinding> policyBindings) {
             this.policyBindings = policyBindings;
             return self();
         }
 
+
         public B uri(URI uri) {
             this.uri = uri;
             return self();
         }
+
 
         protected void validate() {
             Objects.requireNonNull(uri, "Access URI must be non-null!");

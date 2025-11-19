@@ -13,7 +13,6 @@
  */
 package de.fraunhofer.iosb.edc.remote.transform;
 
-
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
@@ -28,6 +27,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.EDC_CREATED_AT;
 
+
 /**
  * Copied from upstream due to it not being independently injectable
  */
@@ -37,12 +37,14 @@ public class JsonObjectFromPolicyDefinitionTransformer extends AbstractJsonLdTra
     private final String typeContext;
     private final JsonBuilderFactory jsonFactory;
 
+
     public JsonObjectFromPolicyDefinitionTransformer(JsonBuilderFactory jsonFactory, TypeManager typeManager, String typeContext) {
         super(PolicyDefinition.class, JsonObject.class);
         this.jsonFactory = jsonFactory;
         this.typeManager = typeManager;
         this.typeContext = typeContext;
     }
+
 
     @Override
     public @Nullable JsonObject transform(@NotNull PolicyDefinition input, @NotNull TransformerContext context) {

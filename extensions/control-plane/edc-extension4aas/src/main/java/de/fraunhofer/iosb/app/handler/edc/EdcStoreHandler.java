@@ -23,15 +23,18 @@ import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.spi.result.StoreResult;
 
+
 public class EdcStoreHandler {
 
     private final AssetService assetService;
     private final ContractDefinitionService contractDefinitionService;
 
+
     public EdcStoreHandler(AssetIndex assetIndex, ContractDefinitionStore contractDefinitionStore) {
         this.assetService = new AssetService(assetIndex);
         this.contractDefinitionService = new ContractDefinitionService(contractDefinitionStore);
     }
+
 
     public StoreResult<Void> register(PolicyBinding policyBinding, Asset asset) {
         StoreResult<Void> assetCreationResult = assetService.create(asset);
@@ -44,6 +47,7 @@ public class EdcStoreHandler {
         return assetCreationResult;
     }
 
+
     public StoreResult<Void> unregister(PolicyBinding policyBinding, String assetId) {
         StoreResult<Asset> assetDeleteResult = assetService.delete(assetId);
 
@@ -54,6 +58,7 @@ public class EdcStoreHandler {
 
         return StoreResult.generalError(assetDeleteResult.getFailure().getFailureDetail());
     }
+
 
     public StoreResult<Asset> update(Asset asset) {
         return assetService.update(asset);

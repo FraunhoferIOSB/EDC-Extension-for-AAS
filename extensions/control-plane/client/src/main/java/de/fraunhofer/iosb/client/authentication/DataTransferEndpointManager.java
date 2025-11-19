@@ -23,25 +23,26 @@ import de.fraunhofer.iosb.client.ClientEndpoint;
 import java.util.List;
 import java.util.Map;
 
+
 /**
- * Custom AuthenticationRequestFilter filtering requests that go directly to an
- * AAS service (managed by this extension) or the extension's configuration.
+ * Custom AuthenticationRequestFilter filtering requests that go directly to an AAS service (managed by this extension) or the extension's configuration.
  */
 public class DataTransferEndpointManager {
 
     private final PublicApiManagementService publicApiManagementService;
 
+
     public DataTransferEndpointManager(PublicApiManagementService publicApiManagementService) {
         this.publicApiManagementService = publicApiManagementService;
     }
 
+
     /**
-     * Add key,value pair for a request. This key will only be available for one
-     * request.
+     * Add key,value pair for a request. This key will only be available for one request.
      *
      * @param agreementId Agreement to build the endpoint path suffix
-     * @param key         The key name
-     * @param value       The value
+     * @param key The key name
+     * @param value The value
      */
     public void addTemporaryEndpoint(String agreementId, String key, String value) {
         var endpointSuffix = ClientEndpoint.AUTOMATED_PATH + "/receiveData/" + agreementId;

@@ -24,14 +24,17 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
+
 public class EndpointTest {
 
     Endpoint endpoint;
+
 
     public static Endpoint createNormalEndpoint() {
         return new Endpoint("/api/suffix", HttpMethod.HEAD,
                 Map.of("api-key-super-secret", List.of("12345678")));
     }
+
 
     @Test
     void isCoveredByMoreValuesInList() {
@@ -41,6 +44,7 @@ public class EndpointTest {
                 Map.of("api-key-super-secret", List.of("12345678", "another-passkey-wow")));
         assertTrue(endpoint.isCoveredBy(coveringEndpoint));
     }
+
 
     @Test
     void isCoveredByMoreValuesInMap() {
@@ -53,6 +57,7 @@ public class EndpointTest {
         assertTrue(endpoint.isCoveredBy(coveringEndpoint));
     }
 
+
     @Test
     void isCoveredByEqualEndpoint() {
         endpoint = createNormalEndpoint();
@@ -61,6 +66,7 @@ public class EndpointTest {
 
         assertTrue(endpoint.isCoveredBy(coveringEndpoint));
     }
+
 
     @Test
     void isCoveredByFailOtherValue() {
@@ -72,6 +78,7 @@ public class EndpointTest {
         assertFalse(endpoint.isCoveredBy(coveringEndpoint));
     }
 
+
     @Test
     void isCoveredByFailOtherKey() {
         endpoint = createNormalEndpoint();
@@ -82,6 +89,7 @@ public class EndpointTest {
         assertFalse(endpoint.isCoveredBy(coveringEndpoint));
     }
 
+
     @Test
     void createWithNullValues() {
         endpoint = createNormalEndpoint();
@@ -89,7 +97,8 @@ public class EndpointTest {
         try {
             new Endpoint(null, HttpMethod.HEAD, Map.of("", List.of("")));
             fail();
-        } catch (NullPointerException expected) {
+        }
+        catch (NullPointerException expected) {
         }
 
     }

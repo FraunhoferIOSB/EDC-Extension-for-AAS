@@ -45,9 +45,9 @@ import java.util.Objects;
 import static de.fraunhofer.iosb.client.ClientEndpoint.MISSING_QUERY_PARAMETER_MESSAGE;
 import static de.fraunhofer.iosb.client.ClientEndpoint.MISSING_REQUEST_BODY_MESSAGE;
 
+
 /**
- * Provides API for accepted policy management and provider dataset retrieval.
- * For documentation see {@link de.fraunhofer.iosb.client.ClientEndpoint}
+ * Provides API for accepted policy management and provider dataset retrieval. For documentation see {@link de.fraunhofer.iosb.client.ClientEndpoint}
  */
 @Consumes({ MediaType.APPLICATION_JSON })
 @Path(ClientEndpoint.AUTOMATED_PATH)
@@ -64,6 +64,7 @@ public class PolicyController {
 
     private final ObjectMapper objectMapper;
 
+
     public PolicyController(Monitor monitor, CatalogService catalogService,
                             TypeTransformerRegistry typeTransformerRegistry, Config systemConfig) {
         var config = new PolicyServiceConfig(systemConfig);
@@ -78,14 +79,13 @@ public class PolicyController {
                 .setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
     }
 
+
     /**
-     * Return dataset for assetId that match any policyDefinition's policy
-     * of the services' policyDefinitionStore instance containing user added
-     * policyDefinitions. If more than one policyDefinitions are provided by the
-     * provider connector, an AmbiguousOrNullException will be thrown.
+     * Return dataset for assetId that match any policyDefinition's policy of the services' policyDefinitionStore instance containing user added policyDefinitions. If more than one
+     * policyDefinitions are provided by the provider connector, an AmbiguousOrNullException will be thrown.
      *
-     * @param providerUri    Provider of the asset.
-     * @param assetId        Asset ID of the asset whose contract should be fetched.
+     * @param providerUri Provider of the asset.
+     * @param assetId Asset ID of the asset whose contract should be fetched.
      * @param counterPartyId ID of the provider
      * @return A dataset offered by the provider for the given assetId.
      */
@@ -116,7 +116,8 @@ public class PolicyController {
 
         try {
             return Response.ok(objectMapper.writeValueAsString(buildResponseFrom(dataset))).build();
-        } catch (JsonProcessingException objectMapperException) {
+        }
+        catch (JsonProcessingException objectMapperException) {
             monitor.severe("Exception thrown while serializing Dataset of provider %s and asset %s."
                             .formatted(providerUri, assetId),
                     objectMapperException);
@@ -125,6 +126,7 @@ public class PolicyController {
                     .build();
         }
     }
+
 
     private List<ContractOffer> buildResponseFrom(Dataset dataset) {
         return dataset.getOffers().entrySet().stream()
@@ -137,15 +139,14 @@ public class PolicyController {
                 .toList();
     }
 
+
     /**
-     * Return policyDefinition for assetId that match any policyDefinitions' policy
-     * of the services' policyDefinitionStore instance containing user added
-     * policyDefinitions. If more than one policyDefinitions are provided by
-     * the provider connector, an AmbiguousOrNullException will be thrown.
+     * Return policyDefinition for assetId that match any policyDefinitions' policy of the services' policyDefinitionStore instance containing user added policyDefinitions. If more
+     * than one policyDefinitions are provided by the provider connector, an AmbiguousOrNullException will be thrown.
      *
-     * @param counterPartyId  Provider of the asset. (id)
+     * @param counterPartyId Provider of the asset. (id)
      * @param counterPartyUri Provider of the asset. (url)
-     * @param assetId         Asset ID of the asset whose contract should be fetched.
+     * @param assetId Asset ID of the asset whose contract should be fetched.
      * @return One policyDefinition offered by the provider for the given assetId.
      */
     public Result<ContractOffer> getAcceptableContractOfferForAssetId(String counterPartyId, URI counterPartyUri,
@@ -153,9 +154,9 @@ public class PolicyController {
         return policyService.getAcceptableContractOfferForAssetId(counterPartyId, counterPartyUri, assetId);
     }
 
+
     /**
-     * Adds an accepted contractOffer to match when checking a provider
-     * contractOffer. Only the policies' rules are relevant.
+     * Adds an accepted contractOffer to match when checking a provider contractOffer. Only the policies' rules are relevant.
      *
      * @param policyDefinitions accepted policyDefinitions
      * @return "OK"-response if requestBody is not empty
@@ -173,6 +174,7 @@ public class PolicyController {
         return Response.ok().build();
     }
 
+
     /**
      * Returns accepted policyDefinitions as a list
      *
@@ -184,6 +186,7 @@ public class PolicyController {
         monitor.info("GET /%s".formatted(ACCEPTED_POLICIES_PATH));
         return Response.ok(policyDefinitionStore.getPolicyDefinitions()).build();
     }
+
 
     /**
      * Removes an accepted policyDefinitions.
@@ -206,9 +209,9 @@ public class PolicyController {
         return Response.status(Response.Status.NOT_FOUND).entity("Unknown policyDefinitionId.").build();
     }
 
+
     /**
-     * Updates an accepted policyDefinition.
-     * The policyDefinitionId must match with a stored policyDefinition.
+     * Updates an accepted policyDefinition. The policyDefinitionId must match with a stored policyDefinition.
      *
      * @param policyDefinition Updated policyDefinition
      * @return PolicyDefinitionId of updated policyDefinition or 404

@@ -29,18 +29,18 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+
 class EdcStoreHandlerTest {
 
-    private EdcStoreHandler testSubject;
-    private InMemoryAssetIndex assetIndex;
-    private InMemoryContractDefinitionStore contractDefinitionStore;
-
     private final CriterionOperatorRegistry criterionOperatorRegistry = CriterionOperatorRegistryImpl.ofDefaults();
-
     private final IdentifiableMapper identifiableMapper =
             new IdentifiableMapper(new RemoteAasRepositoryClient(new RemoteAasRepositoryContext.Builder()
                     .uri(URI.create("http://example.com"))
                     .build()));
+    private EdcStoreHandler testSubject;
+    private InMemoryAssetIndex assetIndex;
+    private InMemoryContractDefinitionStore contractDefinitionStore;
+
 
     @BeforeEach
     void setUp() {
@@ -48,6 +48,7 @@ class EdcStoreHandlerTest {
         contractDefinitionStore = new InMemoryContractDefinitionStore(criterionOperatorRegistry);
         testSubject = new EdcStoreHandler(assetIndex, contractDefinitionStore);
     }
+
 
     @Test
     void register_withNormalValues_shouldSucceed() {
@@ -57,6 +58,7 @@ class EdcStoreHandlerTest {
         PolicyBinding policyBinding = PolicyBinding.ofDefaults(reference);
         assertRegister(policyBinding, asset);
     }
+
 
     @Test
     void unregister_previouslyRegistered_shouldSucceed() {
@@ -69,6 +71,7 @@ class EdcStoreHandlerTest {
 
         assertUnregisterToEmpty(policyBinding, asset.getId());
     }
+
 
     @Test
     void unregister_oneOfRegistered_shouldRetainContract() {
@@ -94,6 +97,7 @@ class EdcStoreHandlerTest {
         assertUnregisterToNotEmpty(policyBinding, anAsset.getId());
     }
 
+
     @Test
     void update_existingAsset_shouldSucceed() {
         Submodel submodel = getSubmodel();
@@ -118,6 +122,7 @@ class EdcStoreHandlerTest {
                 asset.getId());
     }
 
+
     @Test
     void update_inexistentAsset_shouldNotAddIt() {
         Submodel submodel = getSubmodel();
@@ -141,6 +146,7 @@ class EdcStoreHandlerTest {
         assertTrue(contractDefinitions.isEmpty());
     }
 
+
     private void assertRegister(PolicyBinding policyBinding, Asset asset) {
         StoreResult<Void> result = testSubject.register(policyBinding, asset);
 
@@ -155,6 +161,7 @@ class EdcStoreHandlerTest {
                 asset.getId());
     }
 
+
     private void assertUnregisterToNotEmpty(PolicyBinding policyBinding, String assetId) {
         StoreResult<Void> result = testSubject.unregister(policyBinding, assetId);
 
@@ -165,6 +172,7 @@ class EdcStoreHandlerTest {
         List<ContractDefinition> contractDefinitions = contractDefinitionStore.findAll(QuerySpec.max()).toList();
         assertEquals(1, contractDefinitions.size());
     }
+
 
     private void assertUnregisterToEmpty(PolicyBinding policyBinding, String assetId) {
         StoreResult<Void> result = testSubject.unregister(policyBinding, assetId);
@@ -177,6 +185,7 @@ class EdcStoreHandlerTest {
         assertEquals(0, contractDefinitions.size());
     }
 
+
     private void assertSingleContractDefinition(String accessPolicyId, String contractPolicyId, String assetId) {
         List<ContractDefinition> contractDefinitions = contractDefinitionStore.findAll(QuerySpec.max()).toList();
         assertEquals(1, contractDefinitions.size());
@@ -185,6 +194,7 @@ class EdcStoreHandlerTest {
         assertEquals(contractPolicyId, contractDefinition.getContractPolicyId());
         assertEquals(assetId, ((List<?>) contractDefinition.getAssetsSelector().get(0).getOperandRight()).get(0));
     }
+
 
     private void assertAdditionToContractDefinition(String accessPolicyId, String contractPolicyId, String assetId) {
         List<ContractDefinition> contractDefinitions = contractDefinitionStore.findAll(QuerySpec.max()).toList();

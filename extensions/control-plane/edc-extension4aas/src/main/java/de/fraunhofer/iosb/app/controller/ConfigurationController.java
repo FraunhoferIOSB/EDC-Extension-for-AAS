@@ -32,6 +32,7 @@ import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 
 import java.util.Objects;
 
+
 /**
  * Handles requests regarding the application's configuration.
  */
@@ -44,6 +45,7 @@ public class ConfigurationController {
     private final ObjectReader objectReader;
     private Configuration configuration;
 
+
     public ConfigurationController(Config config, Monitor monitor) {
         this.sysConfig = config;
         this.monitor = monitor;
@@ -54,15 +56,18 @@ public class ConfigurationController {
         initializeConfiguration();
     }
 
+
     private void initializeConfiguration() {
         try {
             configuration = objectReader.readValue(objectMapper.writeValueAsString(sysConfig.getEntries()));
-        } catch (JsonProcessingException jsonProcessingException) {
+        }
+        catch (JsonProcessingException jsonProcessingException) {
             monitor.severe("Initializing AAS extension configuration failed",
                     jsonProcessingException);
         }
 
     }
+
 
     /**
      * Return the current configuration values of this extension.
@@ -76,11 +81,13 @@ public class ConfigurationController {
         try {
             var serializedConfiguration = objectMapper.writeValueAsString(configuration);
             return Response.status(Response.Status.OK).entity(serializedConfiguration).build();
-        } catch (JsonProcessingException jsonProcessingException) {
+        }
+        catch (JsonProcessingException jsonProcessingException) {
             monitor.severe("Serialization of configuration object failed.\n", jsonProcessingException);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }
+
 
     /**
      * Update the current configuration.
@@ -104,7 +111,8 @@ public class ConfigurationController {
                     }));
             Config mergedConfig = sysConfig.merge(newConfig);
             configuration = objectReader.readValue(objectMapper.writeValueAsString(mergedConfig.getEntries()));
-        } catch (JsonProcessingException jsonProcessingException) {
+        }
+        catch (JsonProcessingException jsonProcessingException) {
             monitor.severe("Updating configuration to this configuration failed:\n" + newConfigValues,
                     jsonProcessingException);
             return Response.status(Response.Status.BAD_REQUEST).build();

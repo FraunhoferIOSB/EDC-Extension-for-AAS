@@ -26,6 +26,7 @@ import de.fraunhofer.iosb.ilt.faaast.client.exception.StatusCodeException;
 import de.fraunhofer.iosb.ilt.faaast.client.interfaces.AASRepositoryInterface;
 import de.fraunhofer.iosb.ilt.faaast.client.interfaces.ConceptDescriptionRepositoryInterface;
 import de.fraunhofer.iosb.ilt.faaast.client.interfaces.SubmodelRepositoryInterface;
+import de.fraunhofer.iosb.ilt.faaast.client.util.HttpHelper;
 import de.fraunhofer.iosb.model.context.repository.remote.RemoteAasRepositoryContext;
 import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShell;
 import org.eclipse.digitaltwin.aas4j.v3.model.ConceptDescription;
@@ -40,9 +41,10 @@ import java.net.http.HttpClient;
 import java.util.List;
 import java.util.Map;
 
+
 /**
- * This client uses the FA³ST client as backend. The FA³ST client communicates over standardized AAS API calls, so it should be compatible to all
- * standard-conformant AAS repositories.
+ * This client uses the FA³ST client as backend. The FA³ST client communicates over standardized AAS API calls, so it should be compatible to all standard-conformant AAS
+ * repositories.
  */
 public class RemoteAasRepositoryClient implements AasRepositoryClient {
 
@@ -55,48 +57,35 @@ public class RemoteAasRepositoryClient implements AasRepositoryClient {
     private boolean submodelInterfaceActivated = true;
     private boolean conceptDescriptionInterfaceActivated = true;
 
+
     public RemoteAasRepositoryClient(RemoteAasRepositoryContext context) {
         this.context = context;
-        HttpClient httpClient = context.getAuthenticationMethod().httpClientBuilderFor().build();
+        HttpClient httpClient = context.getAuthenticationMethod()
+                .httpClientBuilderFor()
+                // Allow self-signed certs TODO configurable
+                .sslContext(HttpHelper.newTrustAllCertificatesClient().sslContext())
+                // Version 1.1 fixes compatibility errors
+                .version(HttpClient.Version.HTTP_1_1)
+                .build();
 
         this.aasRepositoryInterface = new AASRepositoryInterface(context.getUri(), httpClient);
         this.submodelRepositoryInterface = new SubmodelRepositoryInterface(context.getUri(), httpClient);
         this.conceptDescriptionRepositoryInterface = new ConceptDescriptionRepositoryInterface(context.getUri(), httpClient);
     }
 
+
     @Override
     public Environment getEnvironment() throws ConnectException, UnauthorizedException {
-        List<AssetAdministrationShell> shells;
-        List<Submodel> submodels;
-        List<ConceptDescription> conceptDescriptions;
+        List<AssetAdministrationShell> shells = null;
+        List<Submodel> submodels = null;
+        List<ConceptDescription> conceptDescriptions = null;
         try {
             shells = getAas();
-        } catch (ForbiddenException | de.fraunhofer.iosb.ilt.faaast.client.exception.UnauthorizedException unauthorizedException) {
-            throw new UnauthorizedException(unauthorizedException);
-        } catch (ConnectivityException e) {
-            throw new ConnectException(e.getMessage());
-        } catch (StatusCodeException e) {
-            throw new RuntimeException(e);
-        }
-
-        try {
             submodels = getSubmodels();
-        } catch (ForbiddenException | de.fraunhofer.iosb.ilt.faaast.client.exception.UnauthorizedException unauthorizedException) {
-            throw new UnauthorizedException(unauthorizedException);
-        } catch (ConnectivityException e) {
-            throw new ConnectException(e.getMessage());
-        } catch (StatusCodeException e) {
-            throw new RuntimeException(e);
-        }
-
-        try {
             conceptDescriptions = getConceptDescriptions();
-        } catch (ForbiddenException | de.fraunhofer.iosb.ilt.faaast.client.exception.UnauthorizedException unauthorizedException) {
-            throw new UnauthorizedException(unauthorizedException);
-        } catch (ConnectivityException e) {
-            throw new ConnectException(e.getMessage());
-        } catch (StatusCodeException e) {
-            throw new RuntimeException(e);
+        }
+        catch (Exception e) {
+            handleException(e);
         }
 
         return new DefaultEnvironment.Builder()
@@ -106,17 +95,33 @@ public class RemoteAasRepositoryClient implements AasRepositoryClient {
                 .build();
     }
 
+
+    private void handleException(Exception e) throws ConnectException, UnauthorizedException {
+        if (e instanceof ForbiddenException | e instanceof de.fraunhofer.iosb.ilt.faaast.client.exception.UnauthorizedException) {
+            throw new UnauthorizedException(e);
+        }
+        else if (e instanceof ConnectivityException) {
+            throw new ConnectException(e.getMessage());
+        }
+        else if (e instanceof StatusCodeException) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
     private List<AssetAdministrationShell> getAas() throws StatusCodeException, ConnectivityException {
         if (!shellInterfaceActivated) {
             return List.of();
         }
         try {
             return aasRepositoryInterface.getAll();
-        } catch (MethodNotAllowedException methodNotAllowedException) {
+        }
+        catch (MethodNotAllowedException methodNotAllowedException) {
             shellInterfaceActivated = false;
             return getAas();
         }
     }
+
 
     private List<Submodel> getSubmodels() throws StatusCodeException, ConnectivityException {
         if (!submodelInterfaceActivated) {
@@ -124,11 +129,13 @@ public class RemoteAasRepositoryClient implements AasRepositoryClient {
         }
         try {
             return submodelRepositoryInterface.getAll();
-        } catch (MethodNotAllowedException methodNotAllowedException) {
+        }
+        catch (MethodNotAllowedException methodNotAllowedException) {
             submodelInterfaceActivated = false;
             return getSubmodels();
         }
     }
+
 
     private List<ConceptDescription> getConceptDescriptions() throws StatusCodeException, ConnectivityException {
         if (!conceptDescriptionInterfaceActivated) {
@@ -136,36 +143,43 @@ public class RemoteAasRepositoryClient implements AasRepositoryClient {
         }
         try {
             return conceptDescriptionRepositoryInterface.getAll();
-        } catch (MethodNotAllowedException methodNotAllowedException) {
-            submodelInterfaceActivated = false;
+        }
+        catch (MethodNotAllowedException methodNotAllowedException) {
+            conceptDescriptionInterfaceActivated = false;
             return getConceptDescriptions();
         }
     }
+
 
     @Override
     public URI getUri() {
         return context.getUri();
     }
 
+
     @Override
     public List<Reference> getReferences() {
         return context.getReferences();
     }
+
 
     @Override
     public List<PolicyBinding> getPolicyBindings() {
         return context.getPolicyBindings();
     }
 
+
     @Override
     public boolean requiresAuthentication() {
         return context.getAuthenticationMethod().getHeader() != null;
     }
 
+
     @Override
     public Map<String, String> getHeaders() {
         return Map.ofEntries(context.getAuthenticationMethod().getHeader());
     }
+
 
     @Override
     public boolean isAvailable() {

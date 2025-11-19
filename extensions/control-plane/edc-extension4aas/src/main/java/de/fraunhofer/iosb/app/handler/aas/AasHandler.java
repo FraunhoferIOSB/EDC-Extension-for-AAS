@@ -44,13 +44,15 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+
 public abstract class AasHandler<C extends AasServerClient> {
 
     protected final IdentifiableMapper identifiableMapper;
     protected final SubmodelElementMapper submodelElementMapper;
     protected final Monitor monitor;
-    private final EdcStoreHandler edcStoreHandler;
     protected final C client;
+    private final EdcStoreHandler edcStoreHandler;
+
 
     protected AasHandler(Monitor monitor, C client, EdcStoreHandler edcStoreHandler) {
         this.identifiableMapper = new IdentifiableMapper(client);
@@ -60,22 +62,25 @@ public abstract class AasHandler<C extends AasServerClient> {
         this.client = client;
     }
 
+
     /**
-     * Returns the environment of the AAS server. This could be the environment of an AAS repository or the shell/submodel descriptors of an AAS
-     * registry converted into an environment.
+     * Returns the environment of the AAS server. This could be the environment of an AAS repository or the shell/submodel descriptors of an AAS registry converted into an
+     * environment.
      *
      * @return The environment representing this AAS server
      * @throws UnauthorizedException A call to the AAS was returned with a Status code of 401 or 403.
-     * @throws ConnectException      A connection to the underlying AAS was unsuccessful.
+     * @throws ConnectException A connection to the underlying AAS was unsuccessful.
      */
     protected abstract Environment getEnvironment() throws UnauthorizedException, ConnectException;
+
 
     /* Override this if your implementation stores which assets are currently registered. */
     protected Map<PolicyBinding, Asset> getCurrentlyRegistered() {
         Environment currentEnvironment;
         try {
             currentEnvironment = getEnvironment();
-        } catch (UnauthorizedException | ConnectException e) {
+        }
+        catch (UnauthorizedException | ConnectException e) {
             throw new RuntimeException(e);
         }
 
@@ -87,11 +92,13 @@ public abstract class AasHandler<C extends AasServerClient> {
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
+
     protected @NotNull Predicate<Reference> referenceFilter() {
         List<Reference> references = client.getReferences();
 
         return (ref) -> references.isEmpty() || references.contains(ref);
     }
+
 
     /* Initial population of EDC stores. */
     protected Map<PolicyBinding, Asset> initialize() throws UnauthorizedException, ConnectException {
@@ -114,6 +121,7 @@ public abstract class AasHandler<C extends AasServerClient> {
         return filtered;
     }
 
+
     public void cleanUp() {
         monitor.info("Unregistering...");
         Map<PolicyBinding, Asset> filtered = getCurrentlyRegistered();
@@ -130,6 +138,7 @@ public abstract class AasHandler<C extends AasServerClient> {
                 client.getUri()));
     }
 
+
     protected StoreResult<Void> registerSingle(PolicyBinding policyBinding, Asset asset) {
         StoreResult<Void> storeResult = edcStoreHandler.register(policyBinding, asset);
         if (storeResult.succeeded()) {
@@ -139,11 +148,13 @@ public abstract class AasHandler<C extends AasServerClient> {
         // note: if register is called but the AssetIndex already contains it, update it.
         if (storeResult.reason() == StoreFailure.Reason.ALREADY_EXISTS) {
             return updateSingle(policyBinding, asset);
-        } else {
+        }
+        else {
             monitor.warning(storeResult.getFailureDetail());
             return StoreResult.generalError(storeResult.getFailureDetail());
         }
     }
+
 
     protected StoreResult<Void> updateSingle(PolicyBinding policyBinding, Asset asset) {
         StoreResult<Asset> storeResultWithAsset = edcStoreHandler.update(asset);
@@ -154,31 +165,33 @@ public abstract class AasHandler<C extends AasServerClient> {
         // note: if an update is called but the AssetIndex cannot find it, create the asset.
         if (storeResultWithAsset.reason() == StoreFailure.Reason.NOT_FOUND) {
             return registerSingle(policyBinding, asset);
-        } else {
+        }
+        else {
             monitor.warning(storeResultWithAsset.getFailureDetail());
             return StoreResult.generalError(storeResultWithAsset.getFailureDetail());
         }
     }
 
+
     protected StoreResult<Void> unregisterSingle(PolicyBinding policyBinding, Asset asset) {
         StoreResult<Void> storeResult = edcStoreHandler.unregister(policyBinding, asset.getId());
         if (storeResult.succeeded() || storeResult.reason() == StoreFailure.Reason.NOT_FOUND) {
             return StoreResult.success();
-        } else {
+        }
+        else {
             monitor.warning(storeResult.getFailureDetail());
             return StoreResult.generalError(storeResult.getFailureDetail());
         }
     }
 
+
     /**
-     * Returns the self-description entity for this AAS.
-     * The self-description is essentially a representation of this AAS preserving its structure, extended by EDC information for data space
-     * consumers to get the necessary information to negotiate the data represented by an AAS element.
+     * Returns the self-description entity for this AAS. The self-description is essentially a representation of this AAS preserving its structure, extended by EDC information for
+     * data space consumers to get the necessary information to negotiate the data represented by an AAS element.
      *
-     * @return The self-description (An AAS Environment with EDC information added as AAS.Extensions using the HasExtension property of an AAS
-     *         referable).
+     * @return The self-description (An AAS Environment with EDC information added as AAS.Extensions using the HasExtension property of an AAS referable).
      * @throws UnauthorizedException A call to the AAS was returned with a Status code of 401 or 403.
-     * @throws ConnectException      A connection to the underlying AAS was unsuccessful.
+     * @throws ConnectException A connection to the underlying AAS was unsuccessful.
      */
     public final Environment buildSelfDescription() throws UnauthorizedException, ConnectException {
         Function<Identifiable, Identifiable> identifiableMapper = getSelfDescriptionIdentifiableMapper();
@@ -199,6 +212,7 @@ public abstract class AasHandler<C extends AasServerClient> {
                 .environment();
     }
 
+
     protected Function<Identifiable, Identifiable> getSelfDescriptionIdentifiableMapper() {
         return identifiable -> {
             if (!(identifiable instanceof Submodel) || referenceFilter().test(AasUtils.toReference(identifiable))) {
@@ -211,13 +225,17 @@ public abstract class AasHandler<C extends AasServerClient> {
         };
     }
 
+
     protected PolicyBinding policyBindingFor(Reference identifiableReference) {
         return PolicyBinding.ofDefaults(identifiableReference);
     }
 
+
     protected abstract SubmodelElement mapSubmodelElement(Reference reference, SubmodelElement submodelElement);
 
+
     protected abstract SubmodelElement filterSubmodelElementStructure(Reference reference, SubmodelElement submodelElement);
+
 
     protected Predicate<Identifiable> identifiableFilter() {
         List<Reference> references = client.getReferences();

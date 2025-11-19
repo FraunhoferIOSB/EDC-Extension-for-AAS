@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
+
 /**
  *
  */
@@ -39,6 +40,7 @@ public abstract class MappingHelper {
         return result;
     }
 
+
     private static <T> Map<Reference, T> mapIdentifiable(Identifiable identifiable,
                                                          Function<Identifiable, T> mappingFunction,
                                                          BiFunction<Reference, SubmodelElement, T> elementMappingFunction) {
@@ -57,6 +59,7 @@ public abstract class MappingHelper {
         return filteredElements;
     }
 
+
     private static <T> Map<Reference, T> mapSubmodelElement(Reference parent, SubmodelElement submodelElement,
                                                             BiFunction<Reference, SubmodelElement, T> mappingFunction) {
         Map<Reference, T> result = new HashMap<>();
@@ -71,15 +74,14 @@ public abstract class MappingHelper {
                 child.setIdShort(String.valueOf(i));
                 result.putAll(mapSubmodelElement(submodelElementReference, child, mappingFunction));
             }
-        } else if (submodelElement instanceof SubmodelElementCollection collection) {
+        }
+        else if (submodelElement instanceof SubmodelElementCollection collection) {
             collection.getValue().stream()
                     .map(child -> mapSubmodelElement(submodelElementReference, child, mappingFunction))
                     .forEach(result::putAll);
         }
 
-
         result.put(submodelElementReference, mappingFunction.apply(parent, submodelElement));
-
 
         return result;
     }

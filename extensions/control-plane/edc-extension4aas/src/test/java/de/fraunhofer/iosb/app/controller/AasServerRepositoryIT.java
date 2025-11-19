@@ -70,6 +70,14 @@ class AasServerRepositoryIT extends MockServerTestExtension {
     private ContractDefinitionStore contractDefinitionStore;
 
 
+    private static void assertSelfDescription(Environment selfDescription) {
+        assertNotNull(selfDescription);
+        assertNotNull(selfDescription.getAssetAdministrationShells());
+        assertNotNull(selfDescription.getSubmodels());
+        assertNotNull(selfDescription.getConceptDescriptions());
+    }
+
+
     @BeforeEach
     void setUp() {
         repository = new AasServerStore();
@@ -264,14 +272,6 @@ class AasServerRepositoryIT extends MockServerTestExtension {
         assertEquals(1, contractDefinitions.size());
         var contractDefinitionAssetIds = (List<?>) contractDefinitions.get(0).getAssetsSelector().get(0).getOperandRight();
         assertTrue(contractDefinitionAssetIds.contains(assetId));
-    }
-
-
-    private static void assertSelfDescription(Environment selfDescription) {
-        assertNotNull(selfDescription);
-        assertNotNull(selfDescription.getAssetAdministrationShells());
-        assertNotNull(selfDescription.getSubmodels());
-        assertNotNull(selfDescription.getConceptDescriptions());
     }
 
 

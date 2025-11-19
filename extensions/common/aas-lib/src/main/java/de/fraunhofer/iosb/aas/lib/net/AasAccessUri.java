@@ -20,9 +20,9 @@ import org.jetbrains.annotations.NotNull;
 import java.net.URI;
 import java.util.Objects;
 
+
 /**
- * The part of the AAS access URL to directly access the /submodel /shell and /concept-description endpoints, i.e.
- * "http://aas-service:port/path/to".
+ * The part of the AAS access URL to directly access the /submodel /shell and /concept-description endpoints, i.e. "http://aas-service:port/path/to".
  * <p>An example could be "https://localhost:8080/api/v3.0"
  * <p>URL wrapper with equals method appropriate for AAS service access URLs
  */
@@ -30,16 +30,20 @@ public record AasAccessUri(@NotNull URI uri) {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
         AasAccessUri that = (AasAccessUri) o;
         return Objects.equals(uri, that.uri);
     }
+
 
     @Override
     public int hashCode() {
         return Objects.hashCode(uri);
     }
+
 
     @Override
     public @NotNull String toString() {

@@ -15,9 +15,11 @@
  */
 package de.fraunhofer.iosb.repository;
 
+import de.fraunhofer.iosb.model.config.AasRepositoryConfig;
 import de.fraunhofer.iosb.model.context.repository.AasRepositoryContext;
 
 import java.net.URI;
+
 
 /**
  * Manages a specific type of AAS repositories like FA³ST or BaSyx
@@ -32,10 +34,12 @@ public interface AasRepositoryManager<CFG extends AasRepositoryConfig<?>> {
      */
     <CTX extends AasRepositoryContext> CTX startRepository(CFG config);
 
+
     /**
      * Stop all running AAS repositories that were started by this manager
      */
     void stopAll();
+
 
     /**
      * Stop an AAS repository by its URI

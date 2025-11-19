@@ -24,15 +24,18 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+
 public class PolicyServiceConfigTest {
     private PolicyServiceConfig policyServiceConfig;
     private Config config;
+
 
     @BeforeEach
     public void initialize() {
         config = mock(Config.class);
         policyServiceConfig = new PolicyServiceConfig(config);
     }
+
 
     @Test
     public void getWaitForCatalogTimeoutTest() {
@@ -42,6 +45,7 @@ public class PolicyServiceConfigTest {
         assertEquals(expected, policyServiceConfig.getWaitForCatalogTimeout());
     }
 
+
     @Test
     public void getAcceptedPolicyDefinitionsPathTest() {
         var expected = "/tmp/test/policy-definitions/accepted/";
@@ -49,6 +53,7 @@ public class PolicyServiceConfigTest {
 
         assertEquals(expected, policyServiceConfig.getAcceptedPolicyDefinitionsPath());
     }
+
 
     @Test
     public void isAcceptAllProviderOffersTest() {

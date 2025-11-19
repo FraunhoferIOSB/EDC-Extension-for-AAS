@@ -41,10 +41,12 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+
 class CustomAuthenticationRequestFilterTest {
 
     CustomAuthenticationRequestFilter customAuthenticationRequestFilter;
     ApiAuthenticationRegistry mockApiAuthenticationRegistry;
+
 
     @BeforeEach
     void setUp() {
@@ -53,6 +55,7 @@ class CustomAuthenticationRequestFilterTest {
         customAuthenticationRequestFilter = new CustomAuthenticationRequestFilter(mockApiAuthenticationRegistry,
                 mock(Monitor.class));
     }
+
 
     @SuppressWarnings("unchecked")
     @Test
@@ -79,6 +82,7 @@ class CustomAuthenticationRequestFilterTest {
         customAuthenticationRequestFilter.filter(mockRequest);
     }
 
+
     @SuppressWarnings("unchecked")
     @Test
     void filterWrongHttpMethod() {
@@ -97,16 +101,17 @@ class CustomAuthenticationRequestFilterTest {
         when(mockMultiValueMap.entrySet()).thenReturn(headers.entrySet());
         when(mockRequest.getHeaders()).thenReturn(mockMultiValueMap);
 
-
         try {
             // This should delegate request to superclass
             customAuthenticationRequestFilter.filter(mockRequest);
             fail();
-        } catch (AuthenticationFailedException expected) {
+        }
+        catch (AuthenticationFailedException expected) {
         }
         // This should be called once
         verify(mockApiAuthenticationRegistry.resolve("default"), times(1)).isAuthenticated(any());
     }
+
 
     @Test
     void addEndpoints() {
@@ -116,6 +121,7 @@ class CustomAuthenticationRequestFilterTest {
                 createNormalEndpoint()));
         assertTrue(customAuthenticationRequestFilter.addEndpoints(endpoints));
     }
+
 
     @SuppressWarnings("unchecked")
     @Test
@@ -130,6 +136,7 @@ class CustomAuthenticationRequestFilterTest {
         ArrayList<Endpoint> sameEndpoints = (ArrayList<Endpoint>) endpoints.clone();
         assertFalse(customAuthenticationRequestFilter.addEndpoints(sameEndpoints));
     }
+
 
     @Test
     void removeEndpoints() {
@@ -146,6 +153,7 @@ class CustomAuthenticationRequestFilterTest {
         sameEndpoints = cloneEndpoints(endpoints);
         assertFalse(customAuthenticationRequestFilter.removeEndpoints(sameEndpoints));
     }
+
 
     private ArrayList<Endpoint> cloneEndpoints(ArrayList<Endpoint> endpointCollection) {
         var sameEndpoints = new ArrayList<>(endpointCollection);

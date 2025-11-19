@@ -37,6 +37,7 @@ import java.util.Optional;
 
 import static de.fraunhofer.iosb.app.controller.SelfDescriptionController.SELF_DESCRIPTION_PATH;
 
+
 /**
  * Handles requests to the selfDescription endpoint.
  */
@@ -49,10 +50,11 @@ public class SelfDescriptionController {
     private final Monitor monitor;
     private final AasServerStore aasRepositoryStore;
 
+
     /**
      * Class constructor
      *
-     * @param monitor            Logs
+     * @param monitor Logs
      * @param aasRepositoryStore AAS repository store
      */
     public SelfDescriptionController(Monitor monitor, AasServerStore aasRepositoryStore) {
@@ -60,9 +62,9 @@ public class SelfDescriptionController {
         this.aasRepositoryStore = aasRepositoryStore;
     }
 
+
     /**
-     * Print self-descriptions of AAS environments registered at this EDC. If no
-     * query parameter is given, print all self-descriptions available.
+     * Print self-descriptions of AAS environments registered at this EDC. If no query parameter is given, print all self-descriptions available.
      *
      * @param uri Specify an AAS environment by its service
      * @return Self description(s)
@@ -83,10 +85,11 @@ public class SelfDescriptionController {
                 );
 
         List<Environment> selfDescriptions = new ArrayList<>();
-        for (AasHandler handler : handlers) {
+        for (AasHandler handler: handlers) {
             try {
                 selfDescriptions.add(handler.buildSelfDescription());
-            } catch (UnauthorizedException | ConnectException e) {
+            }
+            catch (UnauthorizedException | ConnectException e) {
                 monitor.warning("Could not produce a self description", e);
             }
         }

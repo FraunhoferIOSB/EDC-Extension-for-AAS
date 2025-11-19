@@ -24,6 +24,7 @@ import de.fraunhofer.iosb.ilt.faaast.client.exception.MethodNotAllowedException;
 import de.fraunhofer.iosb.ilt.faaast.client.exception.StatusCodeException;
 import de.fraunhofer.iosb.ilt.faaast.client.interfaces.AASRegistryInterface;
 import de.fraunhofer.iosb.ilt.faaast.client.interfaces.SubmodelRegistryInterface;
+import de.fraunhofer.iosb.ilt.faaast.client.util.HttpHelper;
 import de.fraunhofer.iosb.model.context.registry.AasRegistryContext;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultAssetAdministrationShellDescriptor;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultSubmodelDescriptor;
@@ -34,6 +35,7 @@ import java.net.http.HttpClient;
 import java.util.List;
 import java.util.Map;
 
+
 public class AasRegistryClient implements AasServerClient {
 
     // FA³ST client
@@ -41,68 +43,88 @@ public class AasRegistryClient implements AasServerClient {
     private final SubmodelRegistryInterface submodelRegistryInterface;
     private final AasRegistryContext context;
 
+
     public AasRegistryClient(AasRegistryContext context) {
         this.context = context;
-        HttpClient httpClient = context.getAuthenticationMethod().httpClientBuilderFor().build();
+
+        HttpClient httpClient = context.getAuthenticationMethod()
+                .httpClientBuilderFor()
+                // Allow self-signed certs TODO configurable
+                .sslContext(HttpHelper.newTrustAllCertificatesClient().sslContext())
+                // Version 1.1 fixes compatibility errors
+                .version(HttpClient.Version.HTTP_1_1)
+                .build();
         // TODO when client gets builder, revise this
-        this.aasRegistryInterface = new AASRegistryInterface(context.getUri(), true);
-        this.submodelRegistryInterface = new SubmodelRegistryInterface(context.getUri(), true);
+        this.aasRegistryInterface = new AASRegistryInterface(context.getUri(), httpClient);
+        this.submodelRegistryInterface = new SubmodelRegistryInterface(context.getUri(), httpClient);
     }
+
 
     @Override
     public boolean isAvailable() {
         return InetTools.pingHost(context.getUri().getHost(), context.getUri().getPort());
     }
 
+
     @Override
     public boolean requiresAuthentication() {
         return context.getAuthenticationMethod().getHeader() != null;
     }
+
 
     @Override
     public Map<String, String> getHeaders() {
         return Map.ofEntries(context.getAuthenticationMethod().getHeader());
     }
 
+
     /**
      * Get all AAS descriptors published by the registry.
      *
      * @return List of AAS descriptors as published by the registry.
      * @throws UnauthorizedException A call to this registry was unauthorized.
-     * @throws ConnectException      A call to this registry was not possible due to a connection issue.
+     * @throws ConnectException A call to this registry was not possible due to a connection issue.
      */
     public List<DefaultAssetAdministrationShellDescriptor> getShellDescriptors() throws UnauthorizedException, ConnectException {
         try {
             return aasRegistryInterface.getAll();
-        } catch (ForbiddenException | de.fraunhofer.iosb.ilt.faaast.client.exception.UnauthorizedException |
-                 MethodNotAllowedException unauthorizedException) {
+        }
+        catch (ForbiddenException | de.fraunhofer.iosb.ilt.faaast.client.exception.UnauthorizedException |
+                MethodNotAllowedException unauthorizedException) {
             throw new UnauthorizedException(unauthorizedException);
-        } catch (ConnectivityException | de.fraunhofer.iosb.ilt.faaast.client.exception.NotFoundException e) {
+        }
+        catch (ConnectivityException | de.fraunhofer.iosb.ilt.faaast.client.exception.NotFoundException e) {
             throw new ConnectException(e.getMessage());
-        } catch (StatusCodeException e) {
+        }
+        catch (StatusCodeException e) {
             throw new RuntimeException(e);
         }
     }
+
 
     /**
      * Get all submodel descriptors published by the registry.
      *
      * @return List of submodel descriptors as published by the registry.
      * @throws UnauthorizedException A call to this registry was unauthorized.
-     * @throws ConnectException      A call to this registry was not possible due to a connection issue.
+     * @throws ConnectException A call to this registry was not possible due to a connection issue.
      */
     public List<DefaultSubmodelDescriptor> getSubmodelDescriptors() throws UnauthorizedException, ConnectException {
         try {
             return submodelRegistryInterface.getAll();
-        } catch (ForbiddenException | de.fraunhofer.iosb.ilt.faaast.client.exception.UnauthorizedException |
-                 MethodNotAllowedException unauthorizedException) {
+        }
+        catch (ForbiddenException | de.fraunhofer.iosb.ilt.faaast.client.exception.UnauthorizedException |
+                MethodNotAllowedException unauthorizedException) {
             throw new UnauthorizedException(unauthorizedException);
-        } catch (ConnectivityException e) {
+        }
+        catch (ConnectivityException e) {
             throw new ConnectException(e.getMessage());
-        } catch (StatusCodeException e) {
+        }
+        catch (StatusCodeException e) {
             throw new RuntimeException(e);
         }
     }
+
 
     @Override
     public URI getUri() {

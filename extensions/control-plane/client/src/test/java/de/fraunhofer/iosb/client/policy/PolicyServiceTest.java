@@ -59,10 +59,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
+
 /**
- * We assume here that catalogService does not return null objects as well as null catalogs inside their return value.
- * Also, we assume that catalogs are valid JSON and expandable by the connector's JSON LD expander TitaniumJsonLd.class.
- * Finally, we assume that catalogs can be transformed with the TypeTransformerRegistry.
+ * We assume here that catalogService does not return null objects as well as null catalogs inside their return value. Also, we assume that catalogs are valid JSON and expandable
+ * by the connector's JSON LD expander TitaniumJsonLd.class. Finally, we assume that catalogs can be transformed with the TypeTransformerRegistry.
  */
 public class PolicyServiceTest {
 
@@ -82,10 +82,12 @@ public class PolicyServiceTest {
     private PolicyService policyService;
     private PolicyDefinitionStore policyDefinitionStore;
 
+
     public PolicyServiceTest() throws URISyntaxException {
         int providerPort = 54321;
         testUri = new URI("http://localhost:" + providerPort);
     }
+
 
     @BeforeEach
     void initializePolicyService() {
@@ -100,6 +102,7 @@ public class PolicyServiceTest {
         future = new CompletableFuture<>();
     }
 
+
     @Test
     void getDatasetCatalogResponseFailureTest() {
         future.complete(StatusResult.failure(ResponseStatus.FATAL_ERROR, "This is a test"));
@@ -110,6 +113,7 @@ public class PolicyServiceTest {
         assertEquals("Failed fetching catalog, FATAL_ERROR: This is a test", response.getFailureDetail());
 
     }
+
 
     @Test
     @SuppressWarnings("unchecked")
@@ -129,6 +133,7 @@ public class PolicyServiceTest {
         //assertTrue(datasetResponse.getFailureMessages().contains(TIMEOUT_MESSAGE));
     }
 
+
     @Test
     void getDatasetNoDatasetsTest() {
         var catalogString = FileManager.loadResource("catalog.json");
@@ -144,6 +149,7 @@ public class PolicyServiceTest {
         assertTrue(datasetResponse.failed());
         assertEquals(ServiceFailure.Reason.NOT_FOUND, datasetResponse.reason());
     }
+
 
     @Test
     void getDatasetTooManyDatasetsTest() {
@@ -166,6 +172,7 @@ public class PolicyServiceTest {
         assertEquals(ServiceFailure.Reason.CONFLICT, datasetResponse.reason());
     }
 
+
     @Test
     void getDatasetTest() {
         var dataset = getDataset();
@@ -183,6 +190,7 @@ public class PolicyServiceTest {
 
         assertEquals(dataset.getId(), policyService.getDatasetForAssetId(TEST_COUNTER_PARTY_ID, testUri, TEST_ASSET_ID).getContent().getId());
     }
+
 
     @Test
     void getAcceptableContractOfferForAssetIdTest() {
@@ -205,6 +213,7 @@ public class PolicyServiceTest {
                 resultPolicy.getContent().getId());
     }
 
+
     @Test
     void getAcceptablePolicyForAssetIdEmptyContractOfferListTest() {
         // we mock getDatasetMethod for simplicity
@@ -217,6 +226,7 @@ public class PolicyServiceTest {
 
         assertTrue(result.failed());
     }
+
 
     @Test
     void test_getAcceptableContractOfferForAssetId_acceptAllOffers() {
@@ -241,6 +251,7 @@ public class PolicyServiceTest {
 
         assertEquals(dataset.getOffers().entrySet().stream().findFirst().orElseThrow().getKey(), result.getContent().getId());
     }
+
 
     @Test
     void test_getAcceptableContractOfferForAssetId_acceptFromAcceptedList() {
@@ -272,6 +283,7 @@ public class PolicyServiceTest {
         assertEquals(dataset.getOffers().entrySet().stream().findFirst().orElseThrow().getKey(), result.getContent().getId());
     }
 
+
     @Test
     void test_getAcceptableContractOfferForAssetId_noAcceptableContractOffer() {
         var dataset = getDataset();
@@ -297,6 +309,7 @@ public class PolicyServiceTest {
         assertTrue(result.failed());
     }
 
+
     @Test
     void test_getAcceptableContractOfferForAssetId_timeoutErrorHandling() {
         final String errorMessage = "Failed fetching catalog";
@@ -315,6 +328,7 @@ public class PolicyServiceTest {
         assertTrue(result.getFailureMessages().contains(errorMessage));
     }
 
+
     private Dataset getDataset() {
         return Dataset.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
@@ -330,6 +344,7 @@ public class PolicyServiceTest {
                         .build())
                 .build();
     }
+
 
     private void mockCatalogServiceResponseWith(CompletableFuture<StatusResult<byte[]>> value) {
         when(catalogService.requestCatalog(

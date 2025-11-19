@@ -38,10 +38,14 @@ import java.util.Objects;
 
 import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 
+
 /**
  * Automated contract negotiation
  */
-@Consumes({ MediaType.APPLICATION_JSON, MediaType.WILDCARD })
+@Consumes({
+        MediaType.APPLICATION_JSON,
+        MediaType.WILDCARD
+})
 @Produces({ MediaType.APPLICATION_JSON })
 @Path(ClientEndpoint.AUTOMATED_PATH)
 public class ClientEndpoint {
@@ -70,14 +74,14 @@ public class ClientEndpoint {
         this.transferController = transferController;
     }
 
+
     /**
-     * Negotiate a contract agreement using the given contract offer if no agreement
-     * exists for this constellation.
+     * Negotiate a contract agreement using the given contract offer if no agreement exists for this constellation.
      *
      * @param counterPartyUri Provider EDCs URI (DSP endpoint)
-     * @param counterPartyId  Provider EDCs ID
-     * @param assetId         ID of the asset to be retrieved
-     * @param dataAddress     DataAddress of destination data sink.
+     * @param counterPartyId Provider EDCs ID
+     * @param assetId ID of the asset to be retrieved
+     * @param dataAddress DataAddress of destination data sink.
      * @return Asset data
      */
     @POST
@@ -122,9 +126,9 @@ public class ClientEndpoint {
         return transferController.getData(counterPartyUri, agreementResult.getContent().getId(), dataAddress);
     }
 
+
     /**
-     * Negotiates a contract agreement using the given contract offer if no agreement
-     * exists for this constellation.
+     * Negotiates a contract agreement using the given contract offer if no agreement exists for this constellation.
      *
      * @param contractRequest The contract request to be sent.
      * @return contractAgreement of the completed negotiation.
@@ -151,38 +155,46 @@ public class ClientEndpoint {
         return Response.ok(Map.of("agreementId", agreementResult.getContent().getId())).build();
     }
 
+
     public static class Builder {
         private Monitor monitor;
         private NegotiationController negotiationController;
         private PolicyController policyController;
         private DataTransferController transferController;
 
+
         private Builder() {
         }
+
 
         public static Builder newInstance() {
             return new Builder();
         }
+
 
         public Builder monitor(Monitor monitor) {
             this.monitor = monitor;
             return this;
         }
 
+
         public Builder negotiationController(NegotiationController negotiationController) {
             this.negotiationController = negotiationController;
             return this;
         }
+
 
         public Builder policyController(PolicyController policyController) {
             this.policyController = policyController;
             return this;
         }
 
+
         public Builder transferController(DataTransferController transferController) {
             this.transferController = transferController;
             return this;
         }
+
 
         public ClientEndpoint build() {
             return new ClientEndpoint(monitor, negotiationController, policyController, transferController);

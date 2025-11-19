@@ -31,6 +31,7 @@ import static de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress.AAS_DATA_TYPE;
 import static org.eclipse.edc.dataaddress.httpdata.spi.HttpDataAddressSchema.BASE_URL;
 import static org.eclipse.edc.validator.spi.Violation.violation;
 
+
 /**
  * Validator for HttpData DataAddress type
  */
@@ -46,10 +47,12 @@ public class AasDataDataAddressValidator implements Validator<DataAddress> {
 
         if (null == baseUrl) {
             violations.add(violation("DataAddress of type %s must contain a baseUrl.".formatted(AAS_DATA_TYPE), BASE_URL, baseUrl));
-        } else {
+        }
+        else {
             try {
                 new URL(baseUrl);
-            } catch (MalformedURLException e) {
+            }
+            catch (MalformedURLException e) {
                 violations.add(violation("DataAddress of type %s must contain a valid baseUrl.".formatted(AAS_DATA_TYPE), BASE_URL, baseUrl));
             }
         }

@@ -30,6 +30,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static java.lang.String.format;
 
+
 /**
  * Contains user added PolicyDefinitions.
  */
@@ -38,11 +39,13 @@ class PolicyDefinitionStore {
     private final Monitor monitor;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+
     PolicyDefinitionStore(Monitor monitor, String acceptedPolicyDefinitionsPath) {
         this.monitor = monitor;
         this.policyDefinitions = new ConcurrentHashMap<>();
         loadPolicyDefinitions(acceptedPolicyDefinitionsPath);
     }
+
 
     /**
      * Get all stored PolicyDefinitions.
@@ -53,6 +56,7 @@ class PolicyDefinitionStore {
         return new ArrayList<>(policyDefinitions.values());
     }
 
+
     /**
      * Add PolicyDefinition to the store.
      *
@@ -60,12 +64,13 @@ class PolicyDefinitionStore {
      */
     void putPolicyDefinitions(PolicyDefinition... newPolicyDefinitions) {
         Objects.requireNonNull(newPolicyDefinitions, "newPolicyDefinitions is null");
-        for (PolicyDefinition newPolicyDefinition : newPolicyDefinitions) {
+        for (PolicyDefinition newPolicyDefinition: newPolicyDefinitions) {
             if (!policyDefinitions.containsKey(newPolicyDefinition.getId())) {
                 policyDefinitions.put(newPolicyDefinition.getId(), newPolicyDefinition);
             }
         }
     }
+
 
     /**
      * Remove a policy definition
@@ -77,6 +82,7 @@ class PolicyDefinitionStore {
         Objects.requireNonNull(policyDefinitionId, "policyDefinitionId is null");
         return Optional.ofNullable(policyDefinitions.remove(policyDefinitionId));
     }
+
 
     /**
      * Update a policyDefinition
@@ -94,6 +100,7 @@ class PolicyDefinitionStore {
         return Optional.empty();
     }
 
+
     private void loadPolicyDefinitions(String acceptedPolicyDefinitionsPath) {
         Path path;
         if (Objects.nonNull(acceptedPolicyDefinitionsPath)) {
@@ -102,7 +109,8 @@ class PolicyDefinitionStore {
                 var acceptedPolicyDefinitions = objectMapper.readValue(path.toFile(),
                         PolicyDefinition[].class);
                 putPolicyDefinitions(acceptedPolicyDefinitions);
-            } catch (IOException loadAcceptedPolicyException) {
+            }
+            catch (IOException loadAcceptedPolicyException) {
                 monitor.warning(
                         format("[Client] Could not load accepted PolicyDefinitions from %s",
                                 acceptedPolicyDefinitionsPath),

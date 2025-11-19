@@ -46,6 +46,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+
 /**
  * Create AAS elements with default values.
  */
@@ -55,9 +56,11 @@ public class AasCreator {
         throw new RuntimeException("Utility class");
     }
 
+
     public static Environment getEmptyEnvironment() {
         return new DefaultEnvironment.Builder().build();
     }
+
 
     public static Environment getEnvironment() {
         return new DefaultEnvironment.Builder()
@@ -68,9 +71,11 @@ public class AasCreator {
                 .build();
     }
 
+
     public static ConceptDescription getConceptDescription() {
         return getConceptDescription(uuid());
     }
+
 
     public static ConceptDescription getConceptDescription(String id) {
         return new DefaultConceptDescription.Builder()
@@ -89,6 +94,7 @@ public class AasCreator {
         return getAssetAdministrationShell(uuid());
     }
 
+
     public static AssetAdministrationShell getAssetAdministrationShell(String id) {
         return new DefaultAssetAdministrationShell.Builder()
                 .assetInformation(getAssetInformation(id))
@@ -106,6 +112,7 @@ public class AasCreator {
                 .build();
     }
 
+
     private static DefaultAssetInformation getAssetInformation(String id) {
         return new DefaultAssetInformation.Builder()
                 .assetKind(AssetKind.INSTANCE)
@@ -117,15 +124,18 @@ public class AasCreator {
                 .build();
     }
 
+
     public static Submodel getEmptySubmodel() {
         return new DefaultSubmodel.Builder()
                 .id(uuid())
                 .idShort(uuid()).build();
     }
 
+
     public static Submodel getSubmodel() {
         return getSubmodel(uuid());
     }
+
 
     public static Submodel getSubmodel(String id) {
         return new DefaultSubmodel.Builder()
@@ -141,9 +151,11 @@ public class AasCreator {
                 .build();
     }
 
+
     public static SubmodelElementCollection getSubmodelElementCollection(int level) {
         return getSubmodelElementCollection(level, uuid());
     }
+
 
     public static SubmodelElementCollection getSubmodelElementCollection(int level, String id) {
         var smcBuilder = new DefaultSubmodelElementCollection.Builder()
@@ -159,9 +171,11 @@ public class AasCreator {
         return smcBuilder.value(getSubmodelElementCollection(level - 1, id + "::" + id)).build();
     }
 
+
     public static Property getProperty() {
         return getProperty(uuid());
     }
+
 
     public static Property getProperty(String id) {
         return new DefaultProperty.Builder()
@@ -173,6 +187,7 @@ public class AasCreator {
                 .build();
     }
 
+
     static DefaultReference getReference(String id) {
         return new DefaultReference.Builder()
                 .type(ReferenceTypes.EXTERNAL_REFERENCE)
@@ -183,12 +198,14 @@ public class AasCreator {
                 .build();
     }
 
+
     static DefaultLangStringNameType getLangStringNameType() {
         return new DefaultLangStringNameType.Builder()
                 .language("en")
                 .text("Display Name AAS")
                 .build();
     }
+
 
     static DefaultLangStringTextType getLangStringTextType(String type) {
         return new DefaultLangStringTextType.Builder()
@@ -197,11 +214,13 @@ public class AasCreator {
                 .build();
     }
 
+
     static DefaultAdministrativeInformation getAdministrativeInformation(String id) {
         return new DefaultAdministrativeInformation.Builder()
                 .embeddedDataSpecifications(getEmbeddedDataSpecifications(id))
                 .build();
     }
+
 
     static DefaultEmbeddedDataSpecification getEmbeddedDataSpecifications(String id) {
         return new DefaultEmbeddedDataSpecification.Builder()
@@ -210,6 +229,7 @@ public class AasCreator {
                         .value(id)
                         .build()).build();
     }
+
 
     static String uuid() {
         return UUID.randomUUID().toString();

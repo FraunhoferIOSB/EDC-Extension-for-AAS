@@ -24,8 +24,6 @@ import com.fasterxml.jackson.databind.introspect.Annotated;
 import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 import de.fraunhofer.iosb.client.AasServerClient;
 import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
-import de.fraunhofer.iosb.model.context.registry.AasRegistryContext;
-import de.fraunhofer.iosb.model.context.repository.remote.RemoteAasRepositoryContext;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.digitaltwin.aas4j.v3.model.annotations.IRI;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
@@ -36,6 +34,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+
 
 /**
  * Contains base logic for mapping AAS elements to Assets
@@ -49,6 +48,7 @@ public class ElementMapper {
     };
     private final AasServerClient client;
 
+
     protected ElementMapper(AasServerClient client) {
         this.client = client;
         objectMapper = new ObjectMapper()
@@ -59,14 +59,17 @@ public class ElementMapper {
                 .setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
     }
 
+
     @NotNull
     public String generateId(Reference reference) {
         var dataAddress = createDataAddress(reference);
         if (dataAddress instanceof AasDataAddress aasDataAddress) {
             return String.valueOf("%s:%s".formatted(aasDataAddress.getBaseUrl(), aasDataAddress.getPath()).hashCode());
-        } else if (dataAddress instanceof HttpDataAddress httpDataAddress) {
+        }
+        else if (dataAddress instanceof HttpDataAddress httpDataAddress) {
             return String.valueOf("%s:%s".formatted(httpDataAddress.getBaseUrl(), httpDataAddress.getPath()).hashCode());
-        } else {
+        }
+        else {
             String idProperty = "id";
             if (dataAddress.hasProperty(idProperty)) {
                 return Objects.requireNonNull(dataAddress.getStringProperty(idProperty));
@@ -74,6 +77,7 @@ public class ElementMapper {
             throw new IllegalArgumentException(String.format("ID could not be inferred from DataAddress %s", dataAddress));
         }
     }
+
 
     protected DataAddress createDataAddress(Reference reference) {
         AasDataAddress.Builder builder = AasDataAddress.Builder.newInstance()
@@ -87,19 +91,23 @@ public class ElementMapper {
         return builder.build();
     }
 
+
     protected DataAddress createDataAddress(URI href) {
         return AasDataAddress.Builder.newInstance()
                 .baseUrl(href.toString())
                 .build();
     }
 
+
     protected Map<String, Object> getNamespaced(Object object) {
         return objectMapper.convertValue(object, jsonMapTypeRef);
     }
 
+
     protected List<Object> getNamespacedList(Object object) {
         return objectMapper.convertValue(object, jsonListTypeRef);
     }
+
 
     private static class NamespacingIntrospector extends JacksonAnnotationIntrospector {
 

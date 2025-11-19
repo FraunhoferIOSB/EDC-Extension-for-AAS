@@ -17,21 +17,23 @@ package de.fraunhofer.iosb.app.aas.mapper.referable;
 
 import de.fraunhofer.iosb.app.aas.mapper.ElementMapper;
 import de.fraunhofer.iosb.client.AasServerClient;
-import de.fraunhofer.iosb.model.context.AasServerContext;
 import org.eclipse.digitaltwin.aas4j.v3.model.HasSemantics;
 import org.eclipse.digitaltwin.aas4j.v3.model.Referable;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 
 import static de.fraunhofer.iosb.constants.AasConstants.AAS_V30_NAMESPACE;
 
+
 public abstract class ReferableMapper extends ElementMapper {
 
     public static final String CONTENT_TYPE = "application/json";
     private static final String REFERABLE_NAMESPACE = AAS_V30_NAMESPACE.concat("Referable/");
 
+
     protected ReferableMapper(AasServerClient client) {
         super(client);
     }
+
 
     public Asset.Builder map(Referable referable) {
         var assetBuilder = Asset.Builder.newInstance();

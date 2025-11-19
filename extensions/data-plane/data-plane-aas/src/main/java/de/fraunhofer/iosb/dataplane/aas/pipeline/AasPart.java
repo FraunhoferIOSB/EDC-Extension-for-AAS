@@ -19,6 +19,7 @@ import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;
 
 import java.io.InputStream;
 
+
 /**
  * Inspired by: HttpPart
  */
@@ -28,6 +29,7 @@ public record AasPart(String name, InputStream content, String mediaType) implem
     public InputStream openStream() {
         return content;
     }
+
 
     @Override
     public String mediaType() {

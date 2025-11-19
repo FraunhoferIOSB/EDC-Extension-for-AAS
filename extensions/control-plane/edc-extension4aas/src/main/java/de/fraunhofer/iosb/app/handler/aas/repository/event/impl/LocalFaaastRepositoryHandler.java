@@ -36,19 +36,22 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
 
+
 /**
- * Handles locally started FA³ST service instances. Since we have direct access to the message bus, we can subscribe to events and obtain changes
- * instantly as opposed to remote AAS, where updates have to be polled.
+ * Handles locally started FA³ST service instances. Since we have direct access to the message bus, we can subscribe to events and obtain changes instantly as opposed to remote
+ * AAS, where updates have to be polled.
  */
 public class LocalFaaastRepositoryHandler extends EventDrivenRepositoryHandler<LocalFaaastRepositoryClient> {
 
     private final List<SubscriptionId> subscriptions = new ArrayList<>();
+
 
     public LocalFaaastRepositoryHandler(Monitor monitor, LocalFaaastRepositoryClient client, EdcStoreHandler edcStoreHandler) throws UnauthorizedException,
             ConnectException {
         super(monitor, client, edcStoreHandler);
         initialize();
     }
+
 
     @Override
     protected void subscribe() {
@@ -57,31 +60,38 @@ public class LocalFaaastRepositoryHandler extends EventDrivenRepositoryHandler<L
         subscriptions.add(client.subscribeTo(ElementUpdateEventMessage.class, this::updated));
     }
 
+
     @Override
     protected void unsubscribe() {
         subscriptions.forEach(client::unsubscribeFrom);
     }
 
+
     private void updated(ElementUpdateEventMessage message) {
         doHandleWrap(message, this::updateSingle);
     }
+
 
     private void created(ElementCreateEventMessage message) {
         doHandleWrap(message, this::registerSingle);
     }
 
+
     private void deleted(ElementChangeEventMessage message) {
         doHandleWrap(message, this::unregisterSingle);
     }
+
 
     /* Don't throw exceptions to FA³ST to prevent message bus from crashing. */
     private void doHandleWrap(ElementChangeEventMessage message, BiFunction<PolicyBinding, Asset, StoreResult<Void>> consumer) {
         try {
             doHandle(message, consumer);
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             monitor.severe("Exception thrown while handling event", e);
         }
     }
+
 
     private void doHandle(ElementChangeEventMessage message, BiFunction<PolicyBinding, Asset, StoreResult<Void>> consumer) {
         if (messageInvalid(message)) {
@@ -93,10 +103,12 @@ public class LocalFaaastRepositoryHandler extends EventDrivenRepositoryHandler<L
         String eventMessageName = message.getClass().getSimpleName();
         if (result.failed()) {
             monitor.warning(String.format("Failed handling %s: %s", eventMessageName, result.getFailureDetail()));
-        } else {
+        }
+        else {
             monitor.info(String.format("Handled %s from repository %s.", eventMessageName, client.getUri()));
         }
     }
+
 
     private boolean messageInvalid(EventMessage message) {
         Reference reference = message.getElement();

@@ -44,6 +44,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+
 public class NegotiatorTest {
 
     private final ConsumerContractNegotiationManager ccnmMock = mock(ConsumerContractNegotiationManager.class);
@@ -56,17 +57,20 @@ public class NegotiatorTest {
 
     private Negotiator clientNegotiator;
 
+
     @BeforeEach
     void initializeClientNegotiator() {
         defineMockBehaviour();
         clientNegotiator = new Negotiator(ccnmMock, cnsMock);
     }
 
+
     void defineMockBehaviour() {
         when(cnsMock.queryAgreements(any())).thenReturn(Stream.of());
         when(ccnmMock.initiate(any()))
                 .thenReturn(StatusResult.success(negotiation));
     }
+
 
     @Test
     void testNegotiate() throws ExecutionException, InterruptedException, URISyntaxException {
@@ -97,7 +101,8 @@ public class NegotiatorTest {
         // will never see it
         try {
             Thread.sleep(3000);
-        } catch (InterruptedException e) {
+        }
+        catch (InterruptedException e) {
             fail();
         }
         contractNegotiationObservable.invokeForEach(listener -> listener.finalized(negotiation));
@@ -108,6 +113,7 @@ public class NegotiatorTest {
         assertEquals(mockPolicy, contractNegotiation.getContent().getContractAgreement().getPolicy());
         assertEquals(assetId, contractNegotiation.getContent().getContractAgreement().getAssetId());
     }
+
 
     /*
      * Policy containing MOCK as permitted action
@@ -121,6 +127,7 @@ public class NegotiatorTest {
                         .build())
                 .build();
     }
+
 
     private ContractNegotiation getContractNegotiation() {
         return ContractNegotiation.Builder.newInstance()

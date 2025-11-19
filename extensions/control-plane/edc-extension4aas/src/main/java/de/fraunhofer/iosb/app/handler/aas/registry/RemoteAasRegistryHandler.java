@@ -15,7 +15,6 @@
  */
 package de.fraunhofer.iosb.app.handler.aas.registry;
 
-import de.fraunhofer.iosb.aas.lib.model.PolicyBinding;
 import de.fraunhofer.iosb.app.aas.mapper.referable.identifiable.IdentifiableMapper;
 import de.fraunhofer.iosb.app.handler.aas.RemoteAasHandler;
 import de.fraunhofer.iosb.app.handler.edc.EdcStoreHandler;
@@ -60,13 +59,16 @@ import java.util.function.Function;
 import static de.fraunhofer.iosb.constants.AasConstants.SUPPORTED_AAS_VERSION;
 import static org.eclipse.edc.dataaddress.httpdata.spi.HttpDataAddressSchema.BASE_URL;
 
+
 public class RemoteAasRegistryHandler extends RemoteAasHandler<AasRegistryClient> {
     private static final List<String> SUPPORTED_PROTOCOLS = List.of("HTTP", "HTTPS", "http", "https");
+
 
     public RemoteAasRegistryHandler(Monitor monitor, AasRegistryClient client, EdcStoreHandler edcStoreHandler) throws UnauthorizedException,
             ConnectException {
         super(monitor, client, edcStoreHandler);
     }
+
 
     @Override
     protected Environment getEnvironment() throws UnauthorizedException, ConnectException {
@@ -74,12 +76,14 @@ public class RemoteAasRegistryHandler extends RemoteAasHandler<AasRegistryClient
         List<Submodel> submodels = List.of();
         try {
             shells = getAllAsShells().values().stream().toList();
-        } catch (NoEndpointException e) {
+        }
+        catch (NoEndpointException e) {
             monitor.severe(String.format("No descriptor endpoints for one shell descriptor at registry %s", client.getUri()), e);
         }
         try {
             submodels = getAllAsSubmodels().values().stream().toList();
-        } catch (NoEndpointException e) {
+        }
+        catch (NoEndpointException e) {
             monitor.severe(String.format("No descriptor endpoints for one submodel descriptor at registry %s", client.getUri()), e);
         }
 
@@ -89,10 +93,12 @@ public class RemoteAasRegistryHandler extends RemoteAasHandler<AasRegistryClient
                 .build();
     }
 
+
     @Override
     protected Function<Identifiable, Identifiable> getSelfDescriptionIdentifiableMapper() {
         return this::registryIdentifiableMapper;
     }
+
 
     @Override
     protected SubmodelElement mapSubmodelElement(Reference reference, SubmodelElement submodelElement) {
@@ -104,6 +110,7 @@ public class RemoteAasRegistryHandler extends RemoteAasHandler<AasRegistryClient
     protected SubmodelElement filterSubmodelElementStructure(Reference reference, SubmodelElement submodelElement) {
         return submodelElement;
     }
+
 
     private @NotNull Identifiable registryIdentifiableMapper(Identifiable identifiable) {
         var ctx = new AasRegistryContext.Builder()
@@ -127,6 +134,7 @@ public class RemoteAasRegistryHandler extends RemoteAasHandler<AasRegistryClient
         return identifiable;
     }
 
+
     private Map<URI, Submodel> getAllAsSubmodels() throws UnauthorizedException, ConnectException, NoEndpointException {
         List<DefaultSubmodelDescriptor> submodelDescriptors = new ArrayList<>(client.getSubmodelDescriptors());
 
@@ -137,12 +145,13 @@ public class RemoteAasRegistryHandler extends RemoteAasHandler<AasRegistryClient
                 .forEach(submodelDescriptors::add);
 
         Map<URI, Submodel> collect = new HashMap<>();
-        for (var descriptor : submodelDescriptors) {
+        for (var descriptor: submodelDescriptors) {
             collect.put(getAppropriateEndpoint(descriptor.getEndpoints(), SubmodelDescriptor.class),
                     asSubmodel(descriptor));
         }
         return collect;
     }
+
 
     private Submodel asSubmodel(SubmodelDescriptor descriptor) {
         return new DefaultSubmodel.Builder()
@@ -157,15 +166,17 @@ public class RemoteAasRegistryHandler extends RemoteAasHandler<AasRegistryClient
                 .build();
     }
 
+
     private Map<URI, AssetAdministrationShell> getAllAsShells() throws UnauthorizedException, ConnectException, NoEndpointException {
         List<DefaultAssetAdministrationShellDescriptor> shellDescriptors = client.getShellDescriptors();
         Map<URI, AssetAdministrationShell> collect = new HashMap<>();
-        for (var descriptor : shellDescriptors) {
+        for (var descriptor: shellDescriptors) {
             collect.put(getAppropriateEndpoint(descriptor.getEndpoints(), AssetAdministrationShellDescriptor.class),
                     asAssetAdministrationShell(descriptor));
         }
         return collect;
     }
+
 
     private AssetAdministrationShell asAssetAdministrationShell(AssetAdministrationShellDescriptor descriptor) {
         return new DefaultAssetAdministrationShell.Builder()
@@ -184,13 +195,16 @@ public class RemoteAasRegistryHandler extends RemoteAasHandler<AasRegistryClient
                 .build();
     }
 
+
     private <T extends Descriptor> URI getAppropriateEndpoint(List<Endpoint> endpoints, Class<T> clazz) throws NoEndpointException {
         List<String> interfaceShortNames;
         if (clazz.equals(AssetAdministrationShellDescriptor.class)) {
             interfaceShortNames = List.of("AAS-".concat(SUPPORTED_AAS_VERSION), "AAS-REPOSITORY-".concat(SUPPORTED_AAS_VERSION));
-        } else if (clazz.equals(SubmodelDescriptor.class)) {
+        }
+        else if (clazz.equals(SubmodelDescriptor.class)) {
             interfaceShortNames = List.of("SUBMODEL-".concat(SUPPORTED_AAS_VERSION), "SUBMODEL-REPOSITORY-".concat(SUPPORTED_AAS_VERSION));
-        } else {
+        }
+        else {
             throw new IllegalArgumentException(String.format("Descriptor type not recognized: %s", clazz.getSimpleName()));
         }
         return endpoints.stream()

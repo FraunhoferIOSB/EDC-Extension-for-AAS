@@ -33,14 +33,13 @@ import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultExtension;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.jetbrains.annotations.NotNull;
 
 import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Predicate;
+
 
 public abstract class AasRepositoryHandler<C extends AasRepositoryClient> extends AasHandler<C> {
 
@@ -48,9 +47,11 @@ public abstract class AasRepositoryHandler<C extends AasRepositoryClient> extend
         super(monitor, client, edcStoreHandler);
     }
 
+
     protected Environment getEnvironment() throws UnauthorizedException, ConnectException {
         return client.getEnvironment();
     }
+
 
     @Override
     protected PolicyBinding policyBindingFor(Reference reference) {
@@ -62,20 +63,24 @@ public abstract class AasRepositoryHandler<C extends AasRepositoryClient> extend
                 .orElse(PolicyBinding.ofDefaults(reference));
     }
 
+
     protected Asset referenceToAsset(Reference reference, Environment environment) {
         Referable referable = AasUtils.resolve(reference, environment);
 
         Asset mapped;
         if (referable instanceof Identifiable identifiable) {
             mapped = identifiableMapper.map(identifiable);
-        } else if (referable instanceof SubmodelElement submodelElement) {
+        }
+        else if (referable instanceof SubmodelElement submodelElement) {
             mapped = submodelElementMapper.map(ReferenceHelper.getParent(reference), submodelElement);
-        } else {
+        }
+        else {
             throw new EdcException("Could not resolve event message reference.");
         }
 
         return mapped;
     }
+
 
     protected SubmodelElement filterSubmodelElementStructure(Reference parent, SubmodelElement submodelElement) {
 
@@ -97,7 +102,8 @@ public abstract class AasRepositoryHandler<C extends AasRepositoryClient> extend
 
             }
             list.setValue(filteredChildren);
-        } else if (submodelElement instanceof SubmodelElementCollection collection) {
+        }
+        else if (submodelElement instanceof SubmodelElementCollection collection) {
             collection.setValue(collection.getValue().stream()
                     .map(child -> filterSubmodelElementStructure(submodelElementReference, child))
                     .filter(Objects::nonNull)
@@ -112,6 +118,7 @@ public abstract class AasRepositoryHandler<C extends AasRepositoryClient> extend
         return null;
     }
 
+
     protected SubmodelElement mapSubmodelElement(Reference parent, SubmodelElement submodelElement) {
         Reference submodelElementReference = AasUtils.toReference(parent, submodelElement);
         if (submodelElement instanceof SubmodelElementList list) {
@@ -123,19 +130,19 @@ public abstract class AasRepositoryHandler<C extends AasRepositoryClient> extend
                 // AASd-120
                 element.setIdShort(null);
             }
-        } else if (submodelElement instanceof SubmodelElementCollection collection) {
+        }
+        else if (submodelElement instanceof SubmodelElementCollection collection) {
             collection.getValue().forEach(element -> mapSubmodelElement(submodelElementReference, element));
         }
 
         // We don't want AAS elements that are not registered to be annotated with IDs
         if (referenceFilter().test(submodelElementReference)) {
             submodelElement.getExtensions().add(new DefaultExtension.Builder()
-                    .name("EDC Asset ID")
+                    .name(Asset.PROPERTY_ID)
                     .value(submodelElementMapper.generateId(submodelElementReference))
                     .build());
         }
         return submodelElement;
     }
-
 
 }

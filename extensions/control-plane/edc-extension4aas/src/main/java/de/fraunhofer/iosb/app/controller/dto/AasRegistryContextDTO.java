@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 import de.fraunhofer.iosb.aas.lib.auth.AuthenticationMethod;
 import de.fraunhofer.iosb.aas.lib.auth.impl.NoAuth;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
-import de.fraunhofer.iosb.ilt.faaast.service.util.Ensure;
 import de.fraunhofer.iosb.model.context.registry.AasRegistryContext;
 
 import java.net.URI;
@@ -23,7 +22,7 @@ public record AasRegistryContextDTO(
                 "auth"
         }) AuthenticationMethod authenticationMethod) {
     public AasRegistryContextDTO {
-        Ensure.requireNonNull(uri, "'url' cannot be null!");
+        Objects.requireNonNull(uri, "'url' cannot be null!");
         authenticationMethod = Objects.requireNonNullElse(authenticationMethod, new NoAuth());
     }
 

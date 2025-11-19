@@ -5,7 +5,6 @@ import de.fraunhofer.iosb.aas.lib.auth.AuthenticationMethod;
 import de.fraunhofer.iosb.aas.lib.auth.impl.NoAuth;
 import de.fraunhofer.iosb.aas.lib.model.PolicyBinding;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
-import de.fraunhofer.iosb.ilt.faaast.service.util.Ensure;
 import de.fraunhofer.iosb.model.context.repository.remote.RemoteAasRepositoryContext;
 
 import java.net.URI;
@@ -29,7 +28,7 @@ public record RemoteAasRepositoryContextDTO(
                 "policyBindings"
         }) List<PolicyBinding> policyBindings) {
     public RemoteAasRepositoryContextDTO {
-        Ensure.requireNonNull(uri, "'url' cannot be null!");
+        Objects.requireNonNull(uri, "'url' cannot be null!");
         authenticationMethod = Objects.requireNonNullElse(authenticationMethod, new NoAuth());
         policyBindings = Objects.requireNonNullElse(policyBindings, List.of());
     }

@@ -185,11 +185,7 @@ public class AasRepositoryController {
     @Path(ENVIRONMENT_PATH)
     public URI start(LocalRepositoryDTO request) {
         monitor.debug(String.format("Starting FA³ST repository with model file at %s.", request.modelPath()));
-        FaaastRepositoryConfig config = FaaastRepositoryConfig.Builder.newInstance()
-                .model(request.modelPath())
-                .port(request.port())
-                .configPath(request.configPath())
-                .build();
+        FaaastRepositoryConfig config = request.asConfig();
 
         LocalFaaastRepositoryContext context = aasRepositoryManager.startRepository(config);
         LocalFaaastRepositoryClient client = new LocalFaaastRepositoryClient(context);

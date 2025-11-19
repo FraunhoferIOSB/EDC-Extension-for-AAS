@@ -52,8 +52,9 @@ public class AasDataDataAddressValidator implements Validator<DataAddress> {
             return ValidationResult.failure(violation);
         }
 
-        if (method != null && allowedMethods.stream().filter(allowed -> allowed.equalsIgnoreCase(method)).findAny().isEmpty()) {
-            var violation = violation("DataAddress of type %s needs a valid HTTP method, if one is provided.".formatted(HTTP_DATA_TYPE), "method", baseUrl);
+        var path = dataAddress.getStringProperty("path");
+        if (path == null) {
+            var violation = violation("DataAddress of type %s must contain a valid path".formatted(HTTP_DATA_TYPE), "path", baseUrl);
             return ValidationResult.failure(violation);
         }
 

@@ -38,8 +38,8 @@ class AasDataDataAddressValidatorTest {
     @Test
     void shouldPass_whenAasDataIsValid() {
         var dataAddress = AasDataAddress.Builder.newInstance()
-                .property("type", AAS_DATA_TYPE)
-                .property(BASE_URL, "http://this.is/valid/url")
+                .type(AAS_DATA_TYPE)
+                .baseUrl("http://this.is/valid/url")
                 .reference(new DefaultReference.Builder()
                         .type(ReferenceTypes.MODEL_REFERENCE)
                         .keys(new DefaultKey.Builder()
@@ -47,6 +47,7 @@ class AasDataDataAddressValidatorTest {
                                 .value(UUID.randomUUID().toString())
                                 .build())
                         .build())
+                .property("path", "path")
                 .build();
 
         var result = validator.validate(dataAddress);
@@ -58,7 +59,7 @@ class AasDataDataAddressValidatorTest {
     @Test
     void shouldFail_whenAasDataBaseUriNotValid() {
         var dataAddress = DataAddress.Builder.newInstance()
-                .property("type", AAS_DATA_TYPE)
+                .type(AAS_DATA_TYPE)
                 .property(BASE_URL, "not-a-valid-url")
                 .build();
 

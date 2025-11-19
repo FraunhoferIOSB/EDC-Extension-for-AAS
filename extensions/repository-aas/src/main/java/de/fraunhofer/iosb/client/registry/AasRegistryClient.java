@@ -47,13 +47,18 @@ public class AasRegistryClient implements AasServerClient {
     public AasRegistryClient(AasRegistryContext context) {
         this.context = context;
 
-        HttpClient httpClient = context.getAuthenticationMethod()
-                .httpClientBuilderFor()
-                // Allow self-signed certs TODO configurable
-                .sslContext(HttpHelper.newTrustAllCertificatesClient().sslContext())
-                // Version 1.1 fixes compatibility errors
+        HttpClient.Builder httpClientBuilder = context.getAuthenticationMethod()
+                .httpClientBuilderFor();
+
+        if (context.allowSelfSigned()) {
+            httpClientBuilder.sslContext(HttpHelper.newTrustAllCertificatesClient().sslContext());
+        }
+
+        // Version 1.1 fixes compatibility errors
+        HttpClient httpClient = httpClientBuilder
                 .version(HttpClient.Version.HTTP_1_1)
                 .build();
+
         // TODO when client gets builder, revise this
         this.aasRegistryInterface = new AASRegistryInterface(context.getUri(), httpClient);
         this.submodelRegistryInterface = new SubmodelRegistryInterface(context.getUri(), httpClient);

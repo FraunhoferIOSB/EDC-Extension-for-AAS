@@ -29,11 +29,13 @@ import java.util.Objects;
 public abstract class AasRepositoryContext extends AasServerContext {
 
     private final List<PolicyBinding> policyBindings;
+    private final boolean onlySubmodels;
 
 
-    protected AasRepositoryContext(URI uri, List<PolicyBinding> policyBindings) {
+    protected AasRepositoryContext(URI uri, List<PolicyBinding> policyBindings, boolean onlySubmodels) {
         super(uri);
         this.policyBindings = policyBindings;
+        this.onlySubmodels = onlySubmodels;
     }
 
 
@@ -63,9 +65,15 @@ public abstract class AasRepositoryContext extends AasServerContext {
     }
 
 
+    public boolean isOnlySubmodels() {
+        return onlySubmodels;
+    }
+
+
     public abstract static class AbstractBuilder<T extends AasRepositoryContext, B extends AbstractBuilder<T, B>> {
         protected URI uri;
         protected List<PolicyBinding> policyBindings;
+        protected boolean onlySubmodels;
 
 
         protected AbstractBuilder() {
@@ -90,8 +98,14 @@ public abstract class AasRepositoryContext extends AasServerContext {
         }
 
 
+        public B onlySubmodels(boolean onlySubmodels) {
+            this.onlySubmodels = onlySubmodels;
+            return self();
+        }
+
+
         protected void validate() {
-            Objects.requireNonNull(uri, "Access URI must be non-null!");
+            Objects.requireNonNull(uri, "Access URI must be non-null");
             policyBindings = Objects.requireNonNullElse(policyBindings, new ArrayList<>());
         }
     }

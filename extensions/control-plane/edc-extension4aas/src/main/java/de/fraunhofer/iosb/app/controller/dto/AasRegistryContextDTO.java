@@ -3,6 +3,7 @@ package de.fraunhofer.iosb.app.controller.dto;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import de.fraunhofer.iosb.aas.lib.auth.AuthenticationMethod;
 import de.fraunhofer.iosb.aas.lib.auth.impl.NoAuth;
+import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import de.fraunhofer.iosb.ilt.faaast.service.util.Ensure;
 import de.fraunhofer.iosb.model.context.registry.AasRegistryContext;
 
@@ -31,6 +32,7 @@ public record AasRegistryContextDTO(
         return new AasRegistryContext.Builder()
                 .uri(this.uri())
                 .authenticationMethod(this.authenticationMethod())
+                .allowSelfSigned(Configuration.getInstance().isAllowSelfSignedCertificates())
                 .build();
     }
 }

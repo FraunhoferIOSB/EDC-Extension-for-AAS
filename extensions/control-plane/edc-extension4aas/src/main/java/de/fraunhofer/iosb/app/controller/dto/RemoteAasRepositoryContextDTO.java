@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 import de.fraunhofer.iosb.aas.lib.auth.AuthenticationMethod;
 import de.fraunhofer.iosb.aas.lib.auth.impl.NoAuth;
 import de.fraunhofer.iosb.aas.lib.model.PolicyBinding;
+import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import de.fraunhofer.iosb.ilt.faaast.service.util.Ensure;
 import de.fraunhofer.iosb.model.context.repository.remote.RemoteAasRepositoryContext;
 
@@ -39,6 +40,8 @@ public record RemoteAasRepositoryContextDTO(
                 .uri(this.uri())
                 .policyBindings(this.policyBindings())
                 .authenticationMethod(this.authenticationMethod())
+                .onlySubmodels(Configuration.getInstance().onlySubmodels())
+                .allowSelfSigned(Configuration.getInstance().isAllowSelfSignedCertificates())
                 .build();
     }
 }

@@ -9,12 +9,15 @@ import java.util.Objects;
 
 
 public class AasRegistryContext extends AasServerContext {
+
     private final AuthenticationMethod authenticationMethod;
+    private final boolean allowSelfSigned;
 
 
-    private AasRegistryContext(URI uri, AuthenticationMethod authenticationMethod) {
+    private AasRegistryContext(URI uri, AuthenticationMethod authenticationMethod, boolean allowSelfSigned) {
         super(uri);
         this.authenticationMethod = authenticationMethod;
+        this.allowSelfSigned = allowSelfSigned;
     }
 
 
@@ -23,9 +26,15 @@ public class AasRegistryContext extends AasServerContext {
     }
 
 
+    public boolean allowSelfSigned() {
+        return allowSelfSigned;
+    }
+
+
     public static class Builder {
         private URI uri;
         private AuthenticationMethod authenticationMethod;
+        private boolean allowSelfSigned;
 
 
         public Builder() {
@@ -44,11 +53,17 @@ public class AasRegistryContext extends AasServerContext {
         }
 
 
+        public Builder allowSelfSigned(boolean allowSelfSigned) {
+            this.allowSelfSigned = allowSelfSigned;
+            return this;
+        }
+
+
         public AasRegistryContext build() {
-            Objects.requireNonNull(uri, "FA³ST MessageBus cannot be null");
+            Objects.requireNonNull(uri, "Access URI must be non-null");
             authenticationMethod = Objects.requireNonNullElse(authenticationMethod, new NoAuth());
 
-            return new AasRegistryContext(uri, authenticationMethod);
+            return new AasRegistryContext(uri, authenticationMethod, allowSelfSigned);
         }
     }
 }

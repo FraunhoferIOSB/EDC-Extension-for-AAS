@@ -27,13 +27,22 @@ import java.util.Objects;
 
 
 public class RemoteAasRepositoryContext extends AasRepositoryContext {
+
     public static final String ERR_MSG_TEMPLATE = "%s from %s failed.";
+
     private final AuthenticationMethod authenticationMethod;
+    private final boolean allowSelfSigned;
 
 
-    private RemoteAasRepositoryContext(URI uri, List<PolicyBinding> policyBindings, AuthenticationMethod authenticationMethod) {
-        super(uri, policyBindings);
+    private RemoteAasRepositoryContext(URI uri, List<PolicyBinding> policyBindings, AuthenticationMethod authenticationMethod, boolean allowSelfSigned, boolean onlySubmodels) {
+        super(uri, policyBindings, onlySubmodels);
         this.authenticationMethod = authenticationMethod;
+        this.allowSelfSigned = allowSelfSigned;
+    }
+
+
+    public boolean allowSelfSigned() {
+        return allowSelfSigned;
     }
 
 
@@ -44,6 +53,7 @@ public class RemoteAasRepositoryContext extends AasRepositoryContext {
 
     public static class Builder extends AbstractBuilder<RemoteAasRepositoryContext, Builder> {
         private AuthenticationMethod authenticationMethod;
+        private boolean allowSelfSigned;
 
 
         public Builder() {
@@ -56,11 +66,17 @@ public class RemoteAasRepositoryContext extends AasRepositoryContext {
         }
 
 
+        public Builder allowSelfSigned(boolean allowSelfSigned) {
+            this.allowSelfSigned = allowSelfSigned;
+            return this;
+        }
+
+
         public RemoteAasRepositoryContext build() {
             super.validate();
             this.authenticationMethod = Objects.requireNonNullElse(authenticationMethod, new NoAuth());
 
-            return new RemoteAasRepositoryContext(uri, policyBindings, authenticationMethod);
+            return new RemoteAasRepositoryContext(uri, policyBindings, authenticationMethod, allowSelfSigned, onlySubmodels);
         }
     }
 }

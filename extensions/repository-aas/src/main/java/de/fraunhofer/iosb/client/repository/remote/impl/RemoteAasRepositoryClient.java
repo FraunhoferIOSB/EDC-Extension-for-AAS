@@ -60,13 +60,24 @@ public class RemoteAasRepositoryClient implements AasRepositoryClient {
 
     public RemoteAasRepositoryClient(RemoteAasRepositoryContext context) {
         this.context = context;
-        HttpClient httpClient = context.getAuthenticationMethod()
-                .httpClientBuilderFor()
-                // Allow self-signed certs TODO configurable
-                .sslContext(HttpHelper.newTrustAllCertificatesClient().sslContext())
-                // Version 1.1 fixes compatibility errors
+
+        HttpClient.Builder httpClientBuilder = context.getAuthenticationMethod()
+                .httpClientBuilderFor();
+
+        if (context.allowSelfSigned()) {
+            httpClientBuilder.sslContext(HttpHelper.newTrustAllCertificatesClient().sslContext());
+        }
+
+        // Version 1.1 fixes compatibility errors
+        HttpClient httpClient = httpClientBuilder
                 .version(HttpClient.Version.HTTP_1_1)
                 .build();
+
+        if (context.isOnlySubmodels()) {
+            // Disable shell and concept-description interfaces
+            shellInterfaceActivated = false;
+            conceptDescriptionInterfaceActivated = false;
+        }
 
         this.aasRepositoryInterface = new AASRepositoryInterface(context.getUri(), httpClient);
         this.submodelRepositoryInterface = new SubmodelRepositoryInterface(context.getUri(), httpClient);

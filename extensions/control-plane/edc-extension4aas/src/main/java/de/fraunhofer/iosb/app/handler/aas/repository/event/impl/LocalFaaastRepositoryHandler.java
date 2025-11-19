@@ -19,13 +19,8 @@ import de.fraunhofer.iosb.aas.lib.model.PolicyBinding;
 import de.fraunhofer.iosb.app.handler.aas.repository.event.EventDrivenRepositoryHandler;
 import de.fraunhofer.iosb.app.handler.edc.EdcStoreHandler;
 import de.fraunhofer.iosb.client.exception.UnauthorizedException;
+import de.fraunhofer.iosb.client.repository.local.event.EventTypes;
 import de.fraunhofer.iosb.client.repository.local.impl.LocalFaaastRepositoryClient;
-import de.fraunhofer.iosb.ilt.faaast.service.model.messagebus.EventMessage;
-import de.fraunhofer.iosb.ilt.faaast.service.model.messagebus.SubscriptionId;
-import de.fraunhofer.iosb.ilt.faaast.service.model.messagebus.event.change.ElementChangeEventMessage;
-import de.fraunhofer.iosb.ilt.faaast.service.model.messagebus.event.change.ElementCreateEventMessage;
-import de.fraunhofer.iosb.ilt.faaast.service.model.messagebus.event.change.ElementDeleteEventMessage;
-import de.fraunhofer.iosb.ilt.faaast.service.model.messagebus.event.change.ElementUpdateEventMessage;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -34,6 +29,7 @@ import org.eclipse.edc.spi.result.StoreResult;
 import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.function.BiFunction;
 
 
@@ -43,7 +39,7 @@ import java.util.function.BiFunction;
  */
 public class LocalFaaastRepositoryHandler extends EventDrivenRepositoryHandler<LocalFaaastRepositoryClient> {
 
-    private final List<SubscriptionId> subscriptions = new ArrayList<>();
+    private final List<UUID> subscriptions = new ArrayList<>();
 
 
     public LocalFaaastRepositoryHandler(Monitor monitor, LocalFaaastRepositoryClient client, EdcStoreHandler edcStoreHandler) throws UnauthorizedException,
@@ -55,9 +51,9 @@ public class LocalFaaastRepositoryHandler extends EventDrivenRepositoryHandler<L
 
     @Override
     protected void subscribe() {
-        subscriptions.add(client.subscribeTo(ElementCreateEventMessage.class, this::created));
-        subscriptions.add(client.subscribeTo(ElementDeleteEventMessage.class, this::deleted));
-        subscriptions.add(client.subscribeTo(ElementUpdateEventMessage.class, this::updated));
+        subscriptions.add(client.subscribeTo(EventTypes.CREATED, this::created));
+        subscriptions.add(client.subscribeTo(EventTypes.DELETED, this::deleted));
+        subscriptions.add(client.subscribeTo(EventTypes.UPDATED, this::updated));
     }
 
 
@@ -67,25 +63,25 @@ public class LocalFaaastRepositoryHandler extends EventDrivenRepositoryHandler<L
     }
 
 
-    private void updated(ElementUpdateEventMessage message) {
-        doHandleWrap(message, this::updateSingle);
+    private void updated(Reference element, Class<?> clazz) {
+        doHandleWrap(element, clazz, this::updateSingle);
     }
 
 
-    private void created(ElementCreateEventMessage message) {
-        doHandleWrap(message, this::registerSingle);
+    private void created(Reference element, Class<?> clazz) {
+        doHandleWrap(element, clazz, this::registerSingle);
     }
 
 
-    private void deleted(ElementChangeEventMessage message) {
-        doHandleWrap(message, this::unregisterSingle);
+    private void deleted(Reference element, Class<?> clazz) {
+        doHandleWrap(element, clazz, this::unregisterSingle);
     }
 
 
     /* Don't throw exceptions to FA³ST to prevent message bus from crashing. */
-    private void doHandleWrap(ElementChangeEventMessage message, BiFunction<PolicyBinding, Asset, StoreResult<Void>> consumer) {
+    private void doHandleWrap(Reference element, Class<?> clazz, BiFunction<PolicyBinding, Asset, StoreResult<Void>> consumer) {
         try {
-            doHandle(message, consumer);
+            doHandle(element, clazz, consumer);
         }
         catch (Exception e) {
             monitor.severe("Exception thrown while handling event", e);
@@ -93,14 +89,14 @@ public class LocalFaaastRepositoryHandler extends EventDrivenRepositoryHandler<L
     }
 
 
-    private void doHandle(ElementChangeEventMessage message, BiFunction<PolicyBinding, Asset, StoreResult<Void>> consumer) {
-        if (messageInvalid(message)) {
+    private void doHandle(Reference element, Class<?> clazz, BiFunction<PolicyBinding, Asset, StoreResult<Void>> consumer) {
+        if (eventInvalid(element)) {
             return;
         }
 
-        StoreResult<Void> result = super.doHandle(message.getElement(), consumer);
+        StoreResult<Void> result = super.doHandle(element, consumer);
 
-        String eventMessageName = message.getClass().getSimpleName();
+        String eventMessageName = clazz.getSimpleName();
         if (result.failed()) {
             monitor.warning(String.format("Failed handling %s: %s", eventMessageName, result.getFailureDetail()));
         }
@@ -110,9 +106,7 @@ public class LocalFaaastRepositoryHandler extends EventDrivenRepositoryHandler<L
     }
 
 
-    private boolean messageInvalid(EventMessage message) {
-        Reference reference = message.getElement();
-
-        return reference == null || !referenceFilter().test(reference);
+    private boolean eventInvalid(Reference element) {
+        return element == null || !referenceFilter().test(element);
     }
 }

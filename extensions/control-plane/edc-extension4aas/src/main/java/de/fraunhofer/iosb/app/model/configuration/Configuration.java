@@ -48,7 +48,7 @@ public class Configuration {
     @JsonProperty(SETTINGS_PREFIX + "defaultContractPolicyPath")
     private String defaultContractPolicyPath;
     @JsonProperty(SETTINGS_PREFIX + "useAasDataPlane")
-    private boolean useAasDataPlane;
+    private boolean useAasDataPlane = true;
 
 
     public static synchronized Configuration getInstance() {

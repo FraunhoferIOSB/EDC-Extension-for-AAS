@@ -73,7 +73,6 @@ subprojects {
 
                 val dockerContextDir = project.projectDir
                 images.add("${project.name}:${project.version}")
-                images.add("${project.name}:${project.version}-local")
                 images.add("${project.name}:latest")
 
                 if (System.getProperty("platform") != null) {

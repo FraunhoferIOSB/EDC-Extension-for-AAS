@@ -47,7 +47,7 @@ class AasDataDataAddressValidatorTest {
                                 .value(UUID.randomUUID().toString())
                                 .build())
                         .build())
-                .property("path", "path")
+                .path("path")
                 .build();
 
         var result = validator.validate(dataAddress);

@@ -23,6 +23,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 
+import static de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress.METHOD;
+import static de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress.PATH;
 import static org.eclipse.edc.dataaddress.httpdata.spi.HttpDataAddressSchema.BASE_URL;
 import static org.eclipse.edc.dataaddress.httpdata.spi.HttpDataAddressSchema.HTTP_DATA_TYPE;
 import static org.eclipse.edc.validator.spi.Violation.violation;
@@ -35,9 +37,10 @@ public class AasDataDataAddressValidator implements Validator<DataAddress> {
 
     private List<String> allowedMethods = List.of("GET", "POST", "PUT", "DELETE", "PATCH");
 
+
     @Override
     public ValidationResult validate(DataAddress dataAddress) {
-        var baseUrl = dataAddress.getStringProperty("baseUrl");
+        var baseUrl = dataAddress.getStringProperty(BASE_URL);
         try {
             new URL(baseUrl);
         }
@@ -46,13 +49,13 @@ public class AasDataDataAddressValidator implements Validator<DataAddress> {
             return ValidationResult.failure(violation);
         }
 
-        var method = dataAddress.getStringProperty("method");
+        var method = dataAddress.getStringProperty(METHOD);
         if (method != null && allowedMethods.stream().filter(allowed -> allowed.equalsIgnoreCase(method)).findAny().isEmpty()) {
             var violation = violation("DataAddress of type %s needs a valid HTTP method, if one is provided.".formatted(HTTP_DATA_TYPE), "method", baseUrl);
             return ValidationResult.failure(violation);
         }
 
-        var path = dataAddress.getStringProperty("path");
+        var path = dataAddress.getStringProperty(PATH);
         if (path == null) {
             var violation = violation("DataAddress of type %s must contain a valid path".formatted(HTTP_DATA_TYPE), "path", baseUrl);
             return ValidationResult.failure(violation);

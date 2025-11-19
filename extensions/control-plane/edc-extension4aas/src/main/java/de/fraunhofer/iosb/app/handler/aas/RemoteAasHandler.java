@@ -94,7 +94,7 @@ public abstract class RemoteAasHandler<C extends AasServerClient> extends AasHan
                 .forEach(entry -> referenceAssetMapping.put(entry.getKey(), entry.getValue()));
 
         toRemove.entrySet().stream()
-                .filter(entry -> unregisterSingle(entry.getKey(), entry.getValue()).succeeded())
+                .filter(entry -> unregisterSingle(entry.getKey(), entry.getValue().getId()).succeeded())
                 .forEach(entry -> referenceAssetMapping.remove(entry.getKey(), entry.getValue()));
 
         toUpdate.entrySet().stream()

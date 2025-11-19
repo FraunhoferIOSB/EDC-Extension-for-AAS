@@ -83,7 +83,7 @@ public class DataTransferController {
                                   Hostname hostname) {
         this.config = config.getConfig("edc.client");
 
-        this.monitor = monitor.withPrefix("Client PolicyController");
+        this.monitor = monitor.withPrefix("DataTransferController");
 
         transferInitiator = new TransferInitiator(monitor, config, hostname, transferProcessManager);
         dataTransferEndpointManager = new DataTransferEndpointManager(publicApiManagementService);
@@ -112,7 +112,7 @@ public class DataTransferController {
     public Response getData(@QueryParam("providerUrl") URI providerUrl,
                             @QueryParam("agreementId") String agreementId,
                             DataAddress dataAddress) {
-        monitor.info("GET /%s".formatted(TRANSFER_PATH));
+        monitor.info("POST /%s".formatted(TRANSFER_PATH));
         if (providerUrl == null || agreementId == null) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(MISSING_QUERY_PARAMETER_MESSAGE.formatted("providerUrl, agreementId"))

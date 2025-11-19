@@ -127,7 +127,7 @@ public abstract class AasHandler<C extends AasServerClient> {
         Map<PolicyBinding, Asset> filtered = getCurrentlyRegistered();
 
         List<String> unregisterFailedMessages = filtered.entrySet().stream()
-                .map(entry -> unregisterSingle(entry.getKey(), entry.getValue()))
+                .map(entry -> unregisterSingle(entry.getKey(), entry.getValue().getId()))
                 .filter(AbstractResult::failed)
                 .map(StoreResult::getFailureDetail)
                 .toList();
@@ -173,8 +173,8 @@ public abstract class AasHandler<C extends AasServerClient> {
     }
 
 
-    protected StoreResult<Void> unregisterSingle(PolicyBinding policyBinding, Asset asset) {
-        StoreResult<Void> storeResult = edcStoreHandler.unregister(policyBinding, asset.getId());
+    protected StoreResult<Void> unregisterSingle(PolicyBinding policyBinding, String assetId) {
+        StoreResult<Void> storeResult = edcStoreHandler.unregister(policyBinding, assetId);
         if (storeResult.succeeded() || storeResult.reason() == StoreFailure.Reason.NOT_FOUND) {
             return StoreResult.success();
         }

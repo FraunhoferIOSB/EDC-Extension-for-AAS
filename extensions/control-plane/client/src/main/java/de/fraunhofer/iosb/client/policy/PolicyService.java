@@ -125,10 +125,10 @@ class PolicyService {
         var datasets = catalog.getContent().getDatasets();
 
         if (datasets == null || datasets.isEmpty()) {
-            return ServiceResult.notFound("No datasets were found.");
+            return ServiceResult.notFound(String.format("No datasets were found for asset %s.", assetId));
         }
         else if (datasets.size() > 1) {
-            return ServiceResult.conflict("Multiple datasets were found.");
+            return ServiceResult.conflict(String.format("Multiple datasets were found for asset %s.", assetId));
         }
 
         return ServiceResult.success(datasets.get(0));

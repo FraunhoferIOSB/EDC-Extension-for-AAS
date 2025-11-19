@@ -135,7 +135,7 @@ public class AasExtension implements ServiceExtension {
                     new NoAuth(),
                     null);
             URI serviceUri = repositoryController.register(remoteRepositoryDto);
-            monitor.debug(String.format("Registered AAS repository with uri %s", serviceUri));
+            monitor.debug(String.format("Registered AAS repository with url %s", serviceUri));
         }
 
         if (Objects.isNull(configInstance.getLocalAasModelPath())) {
@@ -149,7 +149,7 @@ public class AasExtension implements ServiceExtension {
                 null);
 
         URI serviceUri = repositoryController.register(localRepositoryDto);
-        monitor.debug(String.format("Started FA³ST service with uri %s", serviceUri));
+        monitor.debug(String.format("Started FA³ST service with url %s", serviceUri));
     }
 
 

@@ -4,7 +4,6 @@ plugins {
 
 dependencies {
     implementation(project(":extensions:common:aas-lib"))
-    implementation(project(":extensions:common:data-plane-aas-spi"))
 
     implementation(libs.edc.data.plane.spi)
     implementation(libs.edc.http.lib)

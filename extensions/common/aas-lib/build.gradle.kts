@@ -3,8 +3,8 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":extensions:common:constants"))
-    implementation(project(":extensions:common:data-plane-aas-spi"))
+    api(project(":extensions:common:constants"))
+    api(project(":extensions:common:data-plane-aas-spi"))
     runtimeOnly(project(":extensions:common:validator:validator-data-address-aas-data"))
     implementation(libs.edc.asset.spi)
     implementation(libs.fa3st.model) // ReferenceHelper

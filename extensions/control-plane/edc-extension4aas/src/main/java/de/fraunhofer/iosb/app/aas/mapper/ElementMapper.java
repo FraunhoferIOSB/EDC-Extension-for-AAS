@@ -26,14 +26,10 @@ import de.fraunhofer.iosb.client.AasServerClient;
 import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.digitaltwin.aas4j.v3.model.annotations.IRI;
-import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.jetbrains.annotations.NotNull;
 
-import java.net.URI;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 
 /**
@@ -62,24 +58,12 @@ public class ElementMapper {
 
     @NotNull
     public String generateId(Reference reference) {
-        var dataAddress = createDataAddress(reference);
-        if (dataAddress instanceof AasDataAddress aasDataAddress) {
-            return String.valueOf("%s:%s".formatted(aasDataAddress.getBaseUrl(), aasDataAddress.getPath()).hashCode());
-        }
-        else if (dataAddress instanceof HttpDataAddress httpDataAddress) {
-            return String.valueOf("%s:%s".formatted(httpDataAddress.getBaseUrl(), httpDataAddress.getPath()).hashCode());
-        }
-        else {
-            String idProperty = "id";
-            if (dataAddress.hasProperty(idProperty)) {
-                return Objects.requireNonNull(dataAddress.getStringProperty(idProperty));
-            }
-            throw new IllegalArgumentException(String.format("ID could not be inferred from DataAddress %s", dataAddress));
-        }
+        var aasDataAddress = createDataAddress(reference);
+        return String.valueOf("%s:%s".formatted(aasDataAddress.getBaseUrl(), aasDataAddress.getPath()).hashCode());
     }
 
 
-    protected DataAddress createDataAddress(Reference reference) {
+    protected AasDataAddress createDataAddress(Reference reference) {
         AasDataAddress.Builder builder = AasDataAddress.Builder.newInstance()
                 .baseUrl(client.getUri().toString())
                 .reference(reference);
@@ -89,13 +73,6 @@ public class ElementMapper {
         }
 
         return builder.build();
-    }
-
-
-    protected DataAddress createDataAddress(URI href) {
-        return AasDataAddress.Builder.newInstance()
-                .baseUrl(href.toString())
-                .build();
     }
 
 

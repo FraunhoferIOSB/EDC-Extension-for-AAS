@@ -19,6 +19,7 @@ import de.fraunhofer.iosb.app.aas.mapper.ElementMapper;
 import de.fraunhofer.iosb.client.AasServerClient;
 import org.eclipse.digitaltwin.aas4j.v3.model.HasSemantics;
 import org.eclipse.digitaltwin.aas4j.v3.model.Referable;
+import org.eclipse.digitaltwin.aas4j.v3.model.annotations.IRI;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 
 import static de.fraunhofer.iosb.constants.AasConstants.AAS_V30_NAMESPACE;
@@ -37,6 +38,12 @@ public abstract class ReferableMapper extends ElementMapper {
 
     public Asset.Builder map(Referable referable) {
         var assetBuilder = Asset.Builder.newInstance();
+
+        String[] modelingType = referable.getClass().getAnnotation(IRI.class).value();
+
+        if (modelingType.length > 0) {
+            assetBuilder.property(AAS_V30_NAMESPACE.concat("modelingType"), modelingType[0]);
+        }
 
         if (referable.getIdShort() != null && !referable.getIdShort().isEmpty()) {
             assetBuilder.property(REFERABLE_NAMESPACE.concat("idShort"), referable.getIdShort());

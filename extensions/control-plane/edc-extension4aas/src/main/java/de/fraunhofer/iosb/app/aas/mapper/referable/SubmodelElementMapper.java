@@ -15,6 +15,7 @@
  */
 package de.fraunhofer.iosb.app.aas.mapper.referable;
 
+import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import de.fraunhofer.iosb.client.AasServerClient;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.util.AasUtils;
 import org.eclipse.digitaltwin.aas4j.v3.model.Blob;
@@ -23,7 +24,6 @@ import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElement;
 import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElementCollection;
 import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElementList;
-import org.eclipse.digitaltwin.aas4j.v3.model.annotations.IRI;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 
 import java.util.ArrayList;
@@ -60,13 +60,13 @@ public class SubmodelElementMapper extends ReferableMapper {
         var dataAddress = createDataAddress(reference);
 
         Asset.Builder assetBuilder = super.map(submodelElement)
-                .dataAddress(dataAddress)
                 .id(generateId(reference));
 
-        String[] modelingType = submodelElement.getClass().getAnnotation(IRI.class).value();
-
-        if (modelingType.length > 0) {
-            assetBuilder.property(AAS_V30_NAMESPACE.concat("modelingType"), modelingType[0]);
+        if (Configuration.getInstance().useAasDataPlane()) {
+            assetBuilder.dataAddress(dataAddress);
+        }
+        else {
+            assetBuilder.dataAddress(dataAddress.asHttpDataAddress());
         }
 
         List<SubmodelElement> children = getChildElements(submodelElement);

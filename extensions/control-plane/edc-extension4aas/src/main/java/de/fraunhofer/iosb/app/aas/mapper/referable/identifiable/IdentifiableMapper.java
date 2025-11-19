@@ -16,7 +16,9 @@
 package de.fraunhofer.iosb.app.aas.mapper.referable.identifiable;
 
 import de.fraunhofer.iosb.app.aas.mapper.referable.ReferableMapper;
+import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import de.fraunhofer.iosb.client.AasServerClient;
+import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.util.AasUtils;
 import org.eclipse.digitaltwin.aas4j.v3.model.Identifiable;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
@@ -27,7 +29,6 @@ import static de.fraunhofer.iosb.constants.AasConstants.AAS_V30_NAMESPACE;
 
 public class IdentifiableMapper extends ReferableMapper {
 
-    public static final String SUBMODEL_ELEMENT_LOCATION = AAS_V30_NAMESPACE + "Submodel/" + "submodelElements";
     private static final String IDENTIFIABLE_NAMESPACE = AAS_V30_NAMESPACE.concat("Identifiable/");
 
 
@@ -39,11 +40,17 @@ public class IdentifiableMapper extends ReferableMapper {
     public Asset map(Identifiable identifiable) {
         Reference reference = AasUtils.toReference(identifiable);
 
-        var dataAddress = createDataAddress(reference);
+        AasDataAddress dataAddress = createDataAddress(reference);
 
         Asset.Builder builder = super.map(identifiable)
-                .id(generateId(reference))
-                .dataAddress(dataAddress);
+                .id(generateId(reference));
+
+        if (Configuration.getInstance().useAasDataPlane()) {
+            builder.dataAddress(dataAddress);
+        }
+        else {
+            builder.dataAddress(dataAddress.asHttpDataAddress());
+        }
 
         builder.property(IDENTIFIABLE_NAMESPACE.concat("id"), identifiable.getId());
 

@@ -1,0 +1,29 @@
+meta {
+  name: From File
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{provider-api}}/service/local
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "modelPath": "{{model-path}}",
+    "port": 54321,
+    "configPath": "{{config-path}}",
+    "auth": {
+      "type": "api-key",
+      "keyName": "x-api-key",
+      "keyValue": "super-secret"
+    }
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

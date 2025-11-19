@@ -1,0 +1,38 @@
+meta {
+  name: repository
+  seq: 2
+}
+
+auth {
+  mode: inherit
+}
+
+docs {
+  # Possible fields in a repository request body:
+  
+  ## Remote repositories (Reachable via HTTP)
+  
+  - **url**: URI to use to connect to the AAS repository, including any path prefixes (e.g., /api/v3.0)
+  - **auth**: The authentication method used to communicate with the registry.
+  - **policyBindings**: List of PolicyBinding. If defined, only elements referred by the policyBindings are registered (optional, default: no custom PolicyBindings, register all elements).
+  
+  ## Local repositories (Extension will run FA³ST service internally)
+  
+  
+  - **modelPath**: Path to the AAS environment (optional, default: empty environment).
+  - **port**: Port to use for communications with AAS repository (optional, default: random available port).
+  - **configPath**: Path to configuration for the AAS server (optional, default: no configuration/defaults).
+  - **policyBindings**: List of PolicyBinding. If defined, only elements referred by the policyBindings are registered (optional, default: no custom PolicyBindings, register all elements).
+  
+  
+  
+  
+  ## PolicyBinding
+  
+  Binds an AAS element to access and usage policy. If any of the policies are null, a default policy is to be used. 
+  
+  Fields:
+  - **referredElement**: serialized AAS reference (e.g., \[ModelRef\](Submodel)64a97bd4-2508-4cc7-ae68-7d3baf6343cd )
+  - **accessPolicyDefinitionId**: string
+  - **contractPolicyDefinitionId**: string
+}

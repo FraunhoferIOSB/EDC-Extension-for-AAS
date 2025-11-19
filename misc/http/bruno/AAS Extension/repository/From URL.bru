@@ -1,0 +1,22 @@
+meta {
+  name: From URL
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{provider-api}}/service/remote
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "url": "{{service-url}}"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

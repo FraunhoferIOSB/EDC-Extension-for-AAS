@@ -29,8 +29,3 @@ dependencies {
 tasks.test { useJUnitPlatform() }
 tasks.jacocoTestReport { dependsOn(tasks.test) }
 
-repositories {
-    mavenCentral()
-    // FA³ST client snapshot
-    maven { url = uri("https://central.sonatype.com/repository/maven-snapshots/") }
-}

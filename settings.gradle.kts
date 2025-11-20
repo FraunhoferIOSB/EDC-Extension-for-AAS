@@ -18,5 +18,6 @@ include("launchers:tractus-x")
 dependencyResolutionManagement {
     repositories {
         mavenCentral()
+        maven("https://central.sonatype.com/repository/maven-snapshots/")
     }
 }

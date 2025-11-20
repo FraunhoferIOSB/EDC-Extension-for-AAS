@@ -5,10 +5,6 @@ plugins {
 group = "de.fraunhofer.iosb"
 version = "2.3.0"
 
-repositories {
-    mavenCentral()
-}
-
 dependencies {
     implementation(project(":extensions:common:constants"))
     implementation(libs.edc.data.plane.http.spi) // BASE_URL

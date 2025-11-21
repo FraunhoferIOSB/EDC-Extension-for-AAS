@@ -35,7 +35,7 @@ import static org.eclipse.edc.validator.spi.Violation.violation;
  */
 public class AasDataDataAddressValidator implements Validator<DataAddress> {
 
-    private List<String> allowedMethods = List.of("GET", "POST", "PUT", "DELETE", "PATCH");
+    private final List<String> allowedMethods = List.of("GET", "POST", "PUT", "DELETE", "PATCH");
 
 
     @Override

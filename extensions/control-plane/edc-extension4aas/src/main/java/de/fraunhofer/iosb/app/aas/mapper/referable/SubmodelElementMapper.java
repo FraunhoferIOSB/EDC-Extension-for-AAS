@@ -35,7 +35,6 @@ import static de.fraunhofer.iosb.constants.AasConstants.AAS_V30_NAMESPACE;
 public class SubmodelElementMapper extends ReferableMapper {
 
     public static final String SMC_CHILDREN_LOCATION = "value";
-    public static final String OPERATION = AAS_V30_NAMESPACE + "Operation";
 
 
     public SubmodelElementMapper(AasServerClient client) {

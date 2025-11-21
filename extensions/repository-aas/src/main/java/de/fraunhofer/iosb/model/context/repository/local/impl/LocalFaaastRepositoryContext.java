@@ -21,15 +21,12 @@ import de.fraunhofer.iosb.ilt.faaast.service.messagebus.MessageBus;
 import de.fraunhofer.iosb.ilt.faaast.service.model.api.modifier.QueryModifier;
 import de.fraunhofer.iosb.ilt.faaast.service.model.api.paging.PagingInfo;
 import de.fraunhofer.iosb.ilt.faaast.service.model.exception.PersistenceException;
-import de.fraunhofer.iosb.ilt.faaast.service.model.exception.ResourceNotFoundException;
 import de.fraunhofer.iosb.ilt.faaast.service.model.messagebus.SubscriptionId;
 import de.fraunhofer.iosb.ilt.faaast.service.model.messagebus.SubscriptionInfo;
 import de.fraunhofer.iosb.ilt.faaast.service.persistence.Persistence;
 import de.fraunhofer.iosb.model.context.repository.AasRepositoryContext;
 import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShell;
 import org.eclipse.digitaltwin.aas4j.v3.model.ConceptDescription;
-import org.eclipse.digitaltwin.aas4j.v3.model.Identifiable;
-import org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes;
 import org.eclipse.digitaltwin.aas4j.v3.model.Submodel;
 import org.eclipse.edc.spi.EdcException;
 
@@ -62,22 +59,6 @@ public class LocalFaaastRepositoryContext extends AasRepositoryContext {
 
     public void unsubscribe(SubscriptionId id) throws MessageBusException {
         messageBus.unsubscribe(id);
-    }
-
-
-    private <I extends Identifiable> I getById(KeyTypes type, String id) {
-        try {
-            return (I) switch (type) {
-                case ASSET_ADMINISTRATION_SHELL -> persistence.getAssetAdministrationShell(id, QueryModifier.DEFAULT);
-                case SUBMODEL -> persistence.getSubmodel(id, QueryModifier.DEFAULT);
-                case CONCEPT_DESCRIPTION -> persistence.getConceptDescription(id, QueryModifier.DEFAULT);
-                default -> throw new IllegalArgumentException("Reference starts with non-identifiable.");
-            };
-
-        }
-        catch (PersistenceException | ResourceNotFoundException e) {
-            throw new RuntimeException(e);
-        }
     }
 
 

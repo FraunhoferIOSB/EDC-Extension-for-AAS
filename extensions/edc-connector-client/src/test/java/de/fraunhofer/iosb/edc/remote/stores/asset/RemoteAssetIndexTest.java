@@ -147,7 +147,7 @@ class RemoteAssetIndexTest extends AbstractControlPlaneConnectionHandlerTest {
     }
 
 
-    private Asset getAsset() throws MalformedURLException {
+    private Asset getAsset() {
         return Asset.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .contentType(UUID.randomUUID().toString())

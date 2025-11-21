@@ -89,19 +89,4 @@ public abstract class AasDataProcessorFactory {
         return Result.success(new AasDataProcessor(new EdcHttpClientImpl(client, edcRetryPolicy, monitor)));
     }
 
-
-    protected Result<@Nullable Certificate[]> retrieveCertificates(String aasUrl) {
-        if (isTrusted(aasUrl) || "http".equalsIgnoreCase(aasUrl.substring(0, 4))) {
-            return Result.success(null);
-        }
-
-        var certsResult = retriever.getSelfSignedCertificate(aasUrl);
-
-        if (certsResult.failed()) {
-            return Result.failure("Certificates were neither trusted nor self-signed: %s"
-                    .formatted(certsResult.getFailureMessages()));
-        }
-
-        return certsResult;
-    }
 }

@@ -220,7 +220,7 @@ public abstract class ControlPlaneConnectionHandler<T extends Entity> {
     }
 
 
-    public abstract static class Builder<T extends ControlPlaneConnectionHandler, B extends Builder<T, B>> {
+    public abstract static class Builder<T extends ControlPlaneConnectionHandler<?>, B extends Builder<T, B>> {
         protected EdcHttpClient httpClient;
         protected Monitor monitor;
         protected String managementUri;

@@ -127,8 +127,6 @@ class EdcStoreHandlerTest {
     void update_inexistentAsset_shouldNotAddIt() {
         Submodel submodel = getSubmodel();
         Asset asset = identifiableMapper.map(submodel);
-        Reference reference = AasUtils.toReference(submodel);
-        PolicyBinding policyBinding = PolicyBinding.ofDefaults(reference);
 
         // Intentionally commented out. Do not register this asset.
         // assertRegister(policyBinding, asset);

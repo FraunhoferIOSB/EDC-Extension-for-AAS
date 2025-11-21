@@ -73,7 +73,7 @@ public class SelfDescriptionController {
     public String getSelfDescription(@QueryParam("url") URI uri) throws SerializationException {
         monitor.debug(String.format("GET %s", SELF_DESCRIPTION_PATH));
 
-        List<AasHandler> handlers = new ArrayList<>();
+        List<AasHandler<?>> handlers = new ArrayList<>();
 
         Optional.ofNullable(uri)
                 .ifPresentOrElse(u ->
@@ -85,7 +85,7 @@ public class SelfDescriptionController {
                 );
 
         List<Environment> selfDescriptions = new ArrayList<>();
-        for (AasHandler handler: handlers) {
+        for (AasHandler<?> handler: handlers) {
             try {
                 selfDescriptions.add(handler.buildSelfDescription());
             }

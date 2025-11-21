@@ -141,8 +141,7 @@ public class AasExtension implements ServiceExtension {
         var localRepositoryDto = new LocalRepositoryDTO(
                 configInstance.getLocalAasModelPath(),
                 configInstance.getLocalAasServicePort(),
-                configInstance.getAasServiceConfigPath(),
-                null);
+                configInstance.getAasServiceConfigPath());
 
         URI serviceUri = repositoryController.register(localRepositoryDto);
         monitor.debug(String.format("Started FA³ST service with url %s", serviceUri));

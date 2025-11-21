@@ -39,7 +39,7 @@ public abstract class AbstractControlPlaneConnectionHandlerTest {
     protected final EdcHttpClient httpClient = new EdcHttpClientImpl(new OkHttpClient(), RetryPolicy.ofDefaults(), new ConsoleMonitor());
     protected final String apiKey = UUID.randomUUID().toString();
     @Spy
-    protected Monitor monitor = spy(new ConsoleMonitor());
+    protected final Monitor monitor = spy(new ConsoleMonitor());
     protected Codec mockCodec = mock(Codec.class);
 
 

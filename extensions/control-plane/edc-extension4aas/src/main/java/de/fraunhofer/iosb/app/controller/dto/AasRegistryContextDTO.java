@@ -47,11 +47,6 @@ public record AasRegistryContextDTO(URI url, AuthenticationMethod auth, String d
     }
 
 
-    public AasRegistryContextDTO(URI url, String defaultAccessPolicyDefinitionId, String defaultContractPolicyDefinitionId) {
-        this(url, null, defaultAccessPolicyDefinitionId, defaultContractPolicyDefinitionId);
-    }
-
-
     public AasRegistryContext asContext() {
         return new AasRegistryContext.Builder()
                 .defaultAccessPolicyDefinitionId(defaultAccessPolicyDefinitionId())

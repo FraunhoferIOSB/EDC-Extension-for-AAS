@@ -99,12 +99,6 @@ public class FaaastRepositoryConfig extends AasRepositoryConfig<ServiceConfig> {
         }
 
 
-        public Builder sni(boolean sni) {
-            this.sni = sni;
-            return this;
-        }
-
-
         public Builder configPath(Path configPath) {
             this.configPath = configPath;
             return this;

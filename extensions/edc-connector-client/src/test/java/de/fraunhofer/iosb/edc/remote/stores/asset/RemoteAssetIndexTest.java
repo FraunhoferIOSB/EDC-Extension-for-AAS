@@ -25,7 +25,7 @@ import static org.mockito.Mockito.when;
 class RemoteAssetIndexTest extends AbstractControlPlaneConnectionHandlerTest {
 
     @Test
-    void queryAssets_foundAndReturned() throws MalformedURLException {
+    void queryAssets_foundAndReturned() {
         var querySpec = QuerySpec.none();
         var testSubject = getRemoteAssetIndex();
 
@@ -61,7 +61,7 @@ class RemoteAssetIndexTest extends AbstractControlPlaneConnectionHandlerTest {
 
 
     @Test
-    void findById_foundAndReturned() throws MalformedURLException {
+    void findById_foundAndReturned() {
         var id = UUID.randomUUID().toString();
         var testSubject = getRemoteAssetIndex();
 

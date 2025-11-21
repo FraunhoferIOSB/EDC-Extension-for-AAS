@@ -69,7 +69,6 @@ public class FaaastRepositoryConfig extends AasRepositoryConfig<ServiceConfig> {
         private Integer port = null;
         private Path configPath;
         private boolean ssl = true;
-        private boolean sni = true;
 
 
         private Builder() {
@@ -144,7 +143,6 @@ public class FaaastRepositoryConfig extends AasRepositoryConfig<ServiceConfig> {
                             .add(HttpEndpointConfig.builder()
                                     .port(p)
                                     .ssl(ssl)
-                                    .sni(sni)
                                     .build()));
 
             ServiceConfigHelper.autoComplete(serviceConfig);

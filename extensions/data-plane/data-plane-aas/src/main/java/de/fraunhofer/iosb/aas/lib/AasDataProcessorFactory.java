@@ -22,12 +22,8 @@ import okhttp3.Response;
 import org.eclipse.edc.http.client.EdcHttpClientImpl;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
-import org.jetbrains.annotations.Nullable;
-
-import java.security.cert.Certificate;
 
 import static de.fraunhofer.iosb.aas.lib.http.HttpClientProvider.clientFor;
-import static de.fraunhofer.iosb.ssl.impl.DefaultSelfSignedCertificateRetriever.isTrusted;
 
 
 public abstract class AasDataProcessorFactory {

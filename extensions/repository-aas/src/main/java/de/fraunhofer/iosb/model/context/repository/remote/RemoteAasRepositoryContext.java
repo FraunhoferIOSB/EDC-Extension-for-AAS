@@ -34,8 +34,9 @@ public class RemoteAasRepositoryContext extends AasRepositoryContext {
     private final boolean allowSelfSigned;
 
 
-    private RemoteAasRepositoryContext(URI uri, List<PolicyBinding> policyBindings, AuthenticationMethod authenticationMethod, boolean allowSelfSigned, boolean onlySubmodels) {
-        super(uri, policyBindings, onlySubmodels);
+    private RemoteAasRepositoryContext(URI uri, String defaultAccessPolicyDefinitionId, String defaultContractPolicyDefinitionId, List<PolicyBinding> policyBindings,
+                                       AuthenticationMethod authenticationMethod, boolean allowSelfSigned, boolean onlySubmodels) {
+        super(uri, defaultAccessPolicyDefinitionId, defaultContractPolicyDefinitionId, policyBindings, onlySubmodels);
         this.authenticationMethod = authenticationMethod;
         this.allowSelfSigned = allowSelfSigned;
     }
@@ -76,7 +77,8 @@ public class RemoteAasRepositoryContext extends AasRepositoryContext {
             super.validate();
             this.authenticationMethod = Objects.requireNonNullElse(authenticationMethod, new NoAuth());
 
-            return new RemoteAasRepositoryContext(uri, policyBindings, authenticationMethod, allowSelfSigned, onlySubmodels);
+            return new RemoteAasRepositoryContext(uri, defaultAccessPolicyDefinitionId, defaultContractPolicyDefinitionId, policyBindings, authenticationMethod, allowSelfSigned,
+                    onlySubmodels);
         }
     }
 }

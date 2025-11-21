@@ -15,9 +15,9 @@
  */
 package de.fraunhofer.iosb.aas.lib.model;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import de.fraunhofer.iosb.ilt.faaast.service.util.ReferenceHelper;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,7 +32,8 @@ import static de.fraunhofer.iosb.constants.AasConstants.DEFAULT_CONTRACT_POLICY_
  * Binds an AAS element to access and usage policy. If any of the policies are null, a default policy is to be used.
  */
 @JsonDeserialize(builder = PolicyBinding.Builder.class)
-public record PolicyBinding(Reference referredElement, String accessPolicyDefinitionId, String contractPolicyDefinitionId) {
+public record PolicyBinding(Reference referredElement, @JsonAlias("accessPolicyId") String accessPolicyDefinitionId,
+        @JsonAlias("usagePolicyId") String contractPolicyDefinitionId) {
     public PolicyBinding(Reference referredElement, String accessPolicyDefinitionId, String contractPolicyDefinitionId) {
         this.referredElement = Objects.requireNonNull(referredElement);
         this.accessPolicyDefinitionId = accessPolicyDefinitionId;
@@ -42,7 +43,7 @@ public record PolicyBinding(Reference referredElement, String accessPolicyDefini
 
     public static PolicyBinding ofDefaults(Reference reference) {
         return new Builder()
-                .withReferredElement(ReferenceHelper.asString(reference))
+                .withReferredElement(reference)
                 .withAccessPolicyDefinitionId(DEFAULT_ACCESS_POLICY_DEFINITION_ID)
                 .withContractPolicyDefinitionId(DEFAULT_CONTRACT_POLICY_DEFINITION_ID)
                 .build();
@@ -73,9 +74,8 @@ public record PolicyBinding(Reference referredElement, String accessPolicyDefini
         private String contractPolicyDefinitionId;
 
 
-        public Builder withReferredElement(String referenceString) {
-            Objects.requireNonNull(referenceString);
-            this.referredElement = ReferenceHelper.parseReference(referenceString);
+        public Builder withReferredElement(Reference reference) {
+            this.referredElement = Objects.requireNonNull(reference);
             return this;
         }
 

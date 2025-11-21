@@ -35,7 +35,6 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.StoreFailure;
 import org.eclipse.edc.spi.result.StoreResult;
-import org.jetbrains.annotations.NotNull;
 
 import java.net.ConnectException;
 import java.util.List;
@@ -43,6 +42,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 public abstract class AasHandler<C extends AasServerClient> {
@@ -87,16 +87,9 @@ public abstract class AasHandler<C extends AasServerClient> {
         Map<Reference, Asset> mapped = MappingHelper.map(currentEnvironment, identifiableMapper::map, submodelElementMapper::map);
 
         return mapped.entrySet().stream()
-                .filter(entry -> referenceFilter().test(entry.getKey()))
+                .filter(entry -> client.doRegister(entry.getKey()))
                 .map(entry -> Map.entry(policyBindingFor(entry.getKey()), entry.getValue()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-    }
-
-
-    protected @NotNull Predicate<Reference> referenceFilter() {
-        List<Reference> references = client.getReferences();
-
-        return (ref) -> references.isEmpty() || references.contains(ref);
     }
 
 
@@ -106,19 +99,17 @@ public abstract class AasHandler<C extends AasServerClient> {
 
         Map<Reference, Asset> mapped = MappingHelper.map(currentEnvironment, identifiableMapper::map, submodelElementMapper::map);
 
-        Map<PolicyBinding, Asset> filtered = mapped.entrySet().stream()
-                .filter(entry -> referenceFilter().test(entry.getKey()))
-                .map(entry -> Map.entry(policyBindingFor(entry.getKey()), entry.getValue()))
+        Stream<Map.Entry<PolicyBinding, Asset>> filtered = mapped.entrySet().stream()
+                .filter(entry -> client.doRegister(entry.getKey()))
+                .map(entry -> Map.entry(policyBindingFor(entry.getKey()), entry.getValue()));
+
+        var registered = filtered
+                .filter(entry -> registerSingle(entry.getKey(), entry.getValue()).succeeded())
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-        long registered = filtered.entrySet().stream()
-                .map(entry -> registerSingle(entry.getKey(), entry.getValue()))
-                .filter(AbstractResult::succeeded)
-                .count();
+        monitor.info(String.format("Registered %s AAS elements from repository %s.", registered.size(), client.getUri()));
 
-        monitor.info(String.format("Registered %s AAS elements from repository %s.", registered, client.getUri()));
-
-        return filtered;
+        return registered;
     }
 
 
@@ -196,7 +187,7 @@ public abstract class AasHandler<C extends AasServerClient> {
     public final Environment buildSelfDescription() throws UnauthorizedException, ConnectException {
         Function<Identifiable, Identifiable> identifiableMapper = getSelfDescriptionIdentifiableMapper();
         Predicate<Identifiable> identifiableFilter = identifiable -> {
-            if (identifiableFilter().test(identifiable)) {
+            if (client.doRegister(AasUtils.toReference(identifiable))) {
                 return true;
             }
             return (identifiable instanceof Submodel submodel) && !submodel.getSubmodelElements().isEmpty();
@@ -215,7 +206,7 @@ public abstract class AasHandler<C extends AasServerClient> {
 
     protected Function<Identifiable, Identifiable> getSelfDescriptionIdentifiableMapper() {
         return identifiable -> {
-            if (!(identifiable instanceof Submodel) || referenceFilter().test(AasUtils.toReference(identifiable))) {
+            if (!(identifiable instanceof Submodel) || client.doRegister(AasUtils.toReference(identifiable))) {
                 identifiable.getExtensions().add(new DefaultExtension.Builder()
                         .name(Asset.PROPERTY_ID)
                         .value(this.identifiableMapper.generateId(AasUtils.toReference(identifiable)))
@@ -235,11 +226,4 @@ public abstract class AasHandler<C extends AasServerClient> {
 
 
     protected abstract SubmodelElement filterSubmodelElementStructure(Reference reference, SubmodelElement submodelElement);
-
-
-    protected Predicate<Identifiable> identifiableFilter() {
-        List<Reference> references = client.getReferences();
-
-        return identifiable -> references.isEmpty() || references.contains(AasUtils.toReference(identifiable));
-    }
 }

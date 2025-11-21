@@ -46,8 +46,10 @@ public class LocalFaaastRepositoryContext extends AasRepositoryContext {
     private final Persistence<?> persistence;
 
 
-    private LocalFaaastRepositoryContext(URI uri, MessageBus<?> messageBus, Persistence<?> persistence, List<PolicyBinding> policyBindings, boolean onlySubmodels) {
-        super(uri, policyBindings, onlySubmodels);
+    private LocalFaaastRepositoryContext(URI uri, String defaultAccessPolicyDefinitionId, String defaultContractPolicyDefinitionId, MessageBus<?> messageBus,
+                                         Persistence<?> persistence, List<PolicyBinding> policyBindings,
+                                         boolean onlySubmodels) {
+        super(uri, defaultAccessPolicyDefinitionId, defaultContractPolicyDefinitionId, policyBindings, onlySubmodels);
         this.messageBus = messageBus;
         this.persistence = persistence;
     }
@@ -135,7 +137,8 @@ public class LocalFaaastRepositoryContext extends AasRepositoryContext {
             Objects.requireNonNull(messageBus, "FA³ST MessageBus cannot be null");
             Objects.requireNonNull(persistence, "FA³ST Persistence cannot be null");
 
-            return new LocalFaaastRepositoryContext(uri, messageBus, persistence, policyBindings, onlySubmodels);
+            return new LocalFaaastRepositoryContext(uri, defaultAccessPolicyDefinitionId, defaultContractPolicyDefinitionId, messageBus, persistence, policyBindings,
+                    onlySubmodels);
         }
     }
 }

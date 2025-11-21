@@ -78,7 +78,7 @@ public abstract class RemoteAasHandler<C extends AasServerClient> extends AasHan
         Map<Reference, Asset> mapped = MappingHelper.map(currentEnvironment, identifiableMapper::map, submodelElementMapper::map);
 
         Map<PolicyBinding, Asset> filtered = mapped.entrySet().stream()
-                .filter(entry -> referenceFilter().test(entry.getKey()))
+                .filter(entry -> client.doRegister(entry.getKey()))
                 .map(entry -> Map.entry(policyBindingFor(entry.getKey()), entry.getValue()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 

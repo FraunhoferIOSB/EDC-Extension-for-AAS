@@ -26,6 +26,7 @@ import de.fraunhofer.iosb.ilt.faaast.client.interfaces.AASRegistryInterface;
 import de.fraunhofer.iosb.ilt.faaast.client.interfaces.SubmodelRegistryInterface;
 import de.fraunhofer.iosb.ilt.faaast.client.util.HttpHelper;
 import de.fraunhofer.iosb.model.context.registry.AasRegistryContext;
+import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultAssetAdministrationShellDescriptor;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultSubmodelDescriptor;
 
@@ -62,6 +63,12 @@ public class AasRegistryClient implements AasServerClient {
         // TODO when client gets builder, revise this
         this.aasRegistryInterface = new AASRegistryInterface(context.getUri(), httpClient);
         this.submodelRegistryInterface = new SubmodelRegistryInterface(context.getUri(), httpClient);
+    }
+
+
+    @Override
+    public boolean doRegister(Reference reference) {
+        return context.doRegister(reference);
     }
 
 

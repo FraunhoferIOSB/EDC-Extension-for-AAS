@@ -163,20 +163,20 @@ public class RemoteAasRepositoryClient implements AasRepositoryClient {
 
 
     @Override
+    public boolean doRegister(Reference reference) {
+        return context.doRegister(reference);
+    }
+
+
+    @Override
     public URI getUri() {
         return context.getUri();
     }
 
 
     @Override
-    public List<Reference> getReferences() {
-        return context.getReferences();
-    }
-
-
-    @Override
-    public List<PolicyBinding> getPolicyBindings() {
-        return context.getPolicyBindings();
+    public PolicyBinding getPolicyBinding(Reference reference) {
+        return context.getPolicyBinding(reference);
     }
 
 

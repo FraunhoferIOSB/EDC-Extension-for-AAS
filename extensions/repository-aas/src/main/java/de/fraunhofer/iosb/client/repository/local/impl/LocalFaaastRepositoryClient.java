@@ -15,7 +15,6 @@
  */
 package de.fraunhofer.iosb.client.repository.local.impl;
 
-import de.fraunhofer.iosb.aas.lib.model.PolicyBinding;
 import de.fraunhofer.iosb.client.repository.local.LocalAasRepositoryClient;
 import de.fraunhofer.iosb.client.repository.local.event.EventTypes;
 import de.fraunhofer.iosb.ilt.faaast.service.exception.MessageBusException;
@@ -101,17 +100,5 @@ public class LocalFaaastRepositoryClient extends LocalAasRepositoryClient<LocalF
         catch (MessageBusException messageBusException) {
             throw new EdcException(String.format(ERR_MSG_TEMPLATE, "Unsubscribing from event", getUri()), messageBusException);
         }
-    }
-
-
-    @Override
-    public List<Reference> getReferences() {
-        return context.getReferences();
-    }
-
-
-    @Override
-    public List<PolicyBinding> getPolicyBindings() {
-        return context.getPolicyBindings();
     }
 }

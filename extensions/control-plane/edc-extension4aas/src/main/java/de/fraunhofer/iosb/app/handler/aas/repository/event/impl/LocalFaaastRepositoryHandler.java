@@ -113,6 +113,6 @@ public class LocalFaaastRepositoryHandler extends EventDrivenRepositoryHandler<L
 
 
     private boolean eventInvalid(Reference element) {
-        return element == null || !referenceFilter().test(element);
+        return element == null || !client.doRegister(element);
     }
 }

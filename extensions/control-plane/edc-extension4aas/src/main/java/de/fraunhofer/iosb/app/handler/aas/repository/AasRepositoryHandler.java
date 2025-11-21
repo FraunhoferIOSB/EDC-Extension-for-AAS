@@ -38,7 +38,6 @@ import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 
 public abstract class AasRepositoryHandler<C extends AasRepositoryClient> extends AasHandler<C> {
@@ -55,12 +54,7 @@ public abstract class AasRepositoryHandler<C extends AasRepositoryClient> extend
 
     @Override
     protected PolicyBinding policyBindingFor(Reference reference) {
-        return Optional.ofNullable(client.getPolicyBindings())
-                .orElse(List.of())
-                .stream()
-                .filter(binding -> reference.equals(binding.referredElement()))
-                .findAny()
-                .orElse(PolicyBinding.ofDefaults(reference));
+        return client.getPolicyBinding(reference);
     }
 
 
@@ -110,7 +104,7 @@ public abstract class AasRepositoryHandler<C extends AasRepositoryClient> extend
                     .toList());
         }
 
-        if (referenceFilter().test(AasUtils.toReference(parent, submodelElement)) ||
+        if (client.doRegister(AasUtils.toReference(parent, submodelElement)) ||
                 submodelElement instanceof SubmodelElementList list && !list.getValue().isEmpty() ||
                 submodelElement instanceof SubmodelElementCollection collection && !collection.getValue().isEmpty()) {
             return submodelElement;
@@ -136,7 +130,7 @@ public abstract class AasRepositoryHandler<C extends AasRepositoryClient> extend
         }
 
         // We don't want AAS elements that are not registered to be annotated with IDs
-        if (referenceFilter().test(submodelElementReference)) {
+        if (client.doRegister(submodelElementReference)) {
             submodelElement.getExtensions().add(new DefaultExtension.Builder()
                     .name(Asset.PROPERTY_ID)
                     .value(submodelElementMapper.generateId(submodelElementReference))

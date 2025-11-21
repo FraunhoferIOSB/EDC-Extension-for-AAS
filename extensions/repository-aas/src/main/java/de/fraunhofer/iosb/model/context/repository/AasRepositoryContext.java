@@ -24,6 +24,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 
 public abstract class AasRepositoryContext extends AasServerContext {
@@ -32,8 +33,9 @@ public abstract class AasRepositoryContext extends AasServerContext {
     private final boolean onlySubmodels;
 
 
-    protected AasRepositoryContext(URI uri, List<PolicyBinding> policyBindings, boolean onlySubmodels) {
-        super(uri);
+    protected AasRepositoryContext(URI uri, String defaultAccessPolicyDefinitionId, String defaultContractPolicyDefinitionId, List<PolicyBinding> policyBindings,
+                                   boolean onlySubmodels) {
+        super(uri, defaultAccessPolicyDefinitionId, defaultContractPolicyDefinitionId);
         this.policyBindings = policyBindings;
         this.onlySubmodels = onlySubmodels;
     }
@@ -49,8 +51,26 @@ public abstract class AasRepositoryContext extends AasServerContext {
     }
 
 
-    public List<PolicyBinding> getPolicyBindings() {
-        return policyBindings;
+    public PolicyBinding getPolicyBinding(Reference reference) {
+        return policyBindingIfPresent(reference)
+                .orElse(new PolicyBinding.Builder()
+                        .withReferredElement(reference)
+                        .withAccessPolicyDefinitionId(defaultAccessPolicyDefinitionId)
+                        .withContractPolicyDefinitionId(defaultContractPolicyDefinitionId)
+                        .build());
+    }
+
+
+    private Optional<PolicyBinding> policyBindingIfPresent(Reference reference) {
+        return policyBindings.stream()
+                .filter(policyBinding -> Objects.equals(reference, policyBinding.referredElement()))
+                .findFirst();
+    }
+
+
+    @Override
+    public boolean doRegister(Reference reference) {
+        return policyBindings.isEmpty() || policyBindingIfPresent(reference).isPresent();
     }
 
 
@@ -70,7 +90,7 @@ public abstract class AasRepositoryContext extends AasServerContext {
     }
 
 
-    public abstract static class AbstractBuilder<T extends AasRepositoryContext, B extends AbstractBuilder<T, B>> {
+    public abstract static class AbstractBuilder<T extends AasRepositoryContext, B extends AasServerContext.AbstractBuilder<T, B>> extends AasServerContext.AbstractBuilder<T, B> {
         protected URI uri;
         protected List<PolicyBinding> policyBindings;
         protected boolean onlySubmodels;
@@ -105,6 +125,7 @@ public abstract class AasRepositoryContext extends AasServerContext {
 
 
         protected void validate() {
+            super.validate();
             Objects.requireNonNull(uri, "Access URI must be non-null");
             policyBindings = Objects.requireNonNullElse(policyBindings, new ArrayList<>());
         }

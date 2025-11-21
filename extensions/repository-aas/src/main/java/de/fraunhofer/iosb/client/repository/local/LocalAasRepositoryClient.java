@@ -15,9 +15,11 @@
  */
 package de.fraunhofer.iosb.client.repository.local;
 
+import de.fraunhofer.iosb.aas.lib.model.PolicyBinding;
 import de.fraunhofer.iosb.client.repository.AasRepositoryClient;
 import de.fraunhofer.iosb.model.context.repository.AasRepositoryContext;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
+import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 
 import java.net.URI;
 
@@ -39,6 +41,18 @@ public abstract class LocalAasRepositoryClient<CTX extends AasRepositoryContext>
     @Override
     public boolean isAvailable() {
         return context.isAvailable();
+    }
+
+
+    @Override
+    public boolean doRegister(Reference reference) {
+        return context.doRegister(reference);
+    }
+
+
+    @Override
+    public PolicyBinding getPolicyBinding(Reference reference) {
+        return context.getPolicyBinding(reference);
     }
 
 

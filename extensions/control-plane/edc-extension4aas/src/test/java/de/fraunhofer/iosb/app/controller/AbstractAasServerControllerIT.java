@@ -46,6 +46,14 @@ public abstract class AbstractAasServerControllerIT<C extends AbstractAasServerC
     protected C testSubject;
 
 
+    protected static void assertSelfDescription(Environment selfDescription) {
+        assertNotNull(selfDescription);
+        assertNotNull(selfDescription.getAssetAdministrationShells());
+        assertNotNull(selfDescription.getSubmodels());
+        assertNotNull(selfDescription.getConceptDescriptions());
+    }
+
+
     @BeforeEach
     void setUp() {
         repository = new AasServerStore();
@@ -57,14 +65,6 @@ public abstract class AbstractAasServerControllerIT<C extends AbstractAasServerC
 
 
     protected abstract C getTestSubject();
-
-
-    protected static void assertSelfDescription(Environment selfDescription) {
-        assertNotNull(selfDescription);
-        assertNotNull(selfDescription.getAssetAdministrationShells());
-        assertNotNull(selfDescription.getSubmodels());
-        assertNotNull(selfDescription.getConceptDescriptions());
-    }
 
 
     protected <T extends Identifiable> void assertIdentifiables(List<T> identifiablesShould, List<T> identifiablesIs) {

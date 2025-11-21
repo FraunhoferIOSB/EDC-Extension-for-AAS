@@ -5,14 +5,26 @@ meta {
 }
 
 post {
-  url: {{provider-api}}/service/remote
+  url: {{provider-api}}/repository/remote
   body: json
   auth: inherit
 }
 
 body:json {
   {
-    "url": "{{service-url}}"
+    "url": "http://localhost:80/api/v3.0",
+    "auth": {
+      "type": "api-key",
+      "keyName": "x-api-key",
+      "keyValue": "password"
+    },
+    "policyBindings": [
+      {
+        "referredElement": "[ModelRef](Submodel)64a97bd4-2508-4cc7-ae68-7d3baf6343cd",
+        "accessPolicyId": "only-known-bpn-policy",
+        "usagePolicyId": "allow-read-policy"
+      }
+    ]
   }
 }
 

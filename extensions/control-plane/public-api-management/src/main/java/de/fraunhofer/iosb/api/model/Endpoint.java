@@ -57,10 +57,12 @@ public record Endpoint(String suffix, HttpMethod method, Map<String, List<String
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
+        if (this == o) {
             return true;
-        if (o == null || getClass() != o.getClass())
+        }
+        if (o == null || getClass() != o.getClass()) {
             return false;
+        }
         Endpoint endpoint = (Endpoint) o;
         return Objects.equals(suffix, endpoint.suffix) && method == endpoint.method && Objects.equals(customHeaders,
                 endpoint.customHeaders);

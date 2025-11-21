@@ -171,6 +171,8 @@ public class RepositoryController extends AbstractAasServerController {
 
 
     /**
+     * Register an AAS service (e.g., FA³ST) to this extension.
+     *
      * @deprecated Consolidated endpoints to /repository/{local/remote}. Use POST /repository/remote
      */
     @POST
@@ -182,6 +184,8 @@ public class RepositoryController extends AbstractAasServerController {
 
 
     /**
+     * Unregister an AAS service (e.g., FA³ST) from this extension.
+     *
      * @deprecated Consolidated endpoints to /repository/{local/remote}. Use POST /repository/local
      */
     @POST
@@ -194,6 +198,8 @@ public class RepositoryController extends AbstractAasServerController {
 
 
     /**
+     * Unregister an AAS service (e.g., FA³ST) from this extension.
+     *
      * @deprecated Renamed endpoint to /repository. Use DELETE /repository
      */
     @DELETE

@@ -3,19 +3,6 @@
         "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN"
         "https://checkstyle.org/dtds/configuration_1_3.dtd">
 
-<!--
-    Checkstyle configuration that checks the Google coding conventions from Google Java Style
-    that can be found at https://google.github.io/styleguide/javaguide.html
-
-    Checkstyle is very configurable. Be sure to read the documentation at
-    http://checkstyle.org (or in your downloaded distribution).
-
-    To completely disable a check, just comment it out or delete it from the file.
-    To suppress certain violations please review suppression filters.
-
-    Authors: Max Vetrenko, Ruslan Diachenko, Roman Ivanov.
- -->
-
 <module name="Checker">
     <property name="charset" value="UTF-8"/>
 
@@ -92,21 +79,16 @@
                     OBJBLOCK, STATIC_INIT, RECORD_DEF, COMPACT_CTOR_DEF"/>
         </module>
         <module name="RightCurly">
-            <property name="id" value="RightCurlySame"/>
-            <property name="tokens"
-                      value="LITERAL_TRY, LITERAL_CATCH, LITERAL_FINALLY, LITERAL_IF, LITERAL_ELSE,
-                    LITERAL_DO"/>
-        </module>
-        <module name="RightCurly">
             <property name="id" value="RightCurlyAlone"/>
             <property name="option" value="alone"/>
             <property name="tokens"
-                      value="CLASS_DEF, METHOD_DEF, CTOR_DEF, LITERAL_FOR, LITERAL_WHILE, STATIC_INIT,
+                      value="LITERAL_TRY, LITERAL_CATCH, LITERAL_FINALLY, LITERAL_IF, LITERAL_ELSE,
+                    LITERAL_DO, CLASS_DEF, METHOD_DEF, CTOR_DEF, LITERAL_FOR, LITERAL_WHILE, STATIC_INIT,
                     INSTANCE_INIT, ANNOTATION_DEF, ENUM_DEF, INTERFACE_DEF, RECORD_DEF,
                     COMPACT_CTOR_DEF"/>
         </module>
         <module name="SuppressionXpathSingleFilter">
-            <!-- suppresion is required till https://github.com/checkstyle/checkstyle/issues/7541 -->
+            <!-- suppression is required till https://github.com/checkstyle/checkstyle/issues/7541 -->
             <property name="id" value="RightCurlyAlone"/>
             <property name="query" value="//RCURLY[parent::SLIST[count(./*)=1]
                                      or preceding-sibling::*[last()][self::LCURLY]]"/>
@@ -122,7 +104,7 @@
             <property name="allowEmptyMethods" value="true"/>
             <property name="allowEmptyTypes" value="true"/>
             <property name="allowEmptyLoops" value="true"/>
-            <property name="ignoreEnhancedForColon" value="false"/>
+            <property name="ignoreEnhancedForColon" value="true"/>
             <property name="tokens"
                       value="ASSIGN, BAND, BAND_ASSIGN, BOR, BOR_ASSIGN, BSR, BSR_ASSIGN, BXOR,
                     BXOR_ASSIGN, COLON, DIV, DIV_ASSIGN, DO_WHILE, EQUAL, GE, GT, LAMBDA, LAND,
@@ -269,7 +251,7 @@
         </module>
         <module name="AbbreviationAsWordInName">
             <property name="ignoreFinal" value="false"/>
-            <property name="allowedAbbreviationLength" value="0"/>
+            <property name="allowedAbbreviationLength" value="3"/>
             <property name="tokens"
                       value="CLASS_DEF, INTERFACE_DEF, ENUM_DEF, ANNOTATION_DEF, ANNOTATION_FIELD_DEF,
                     PARAMETER_DEF, VARIABLE_DEF, METHOD_DEF, PATTERN_VARIABLE_DEF, RECORD_DEF,

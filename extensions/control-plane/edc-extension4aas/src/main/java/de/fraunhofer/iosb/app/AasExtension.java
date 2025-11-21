@@ -15,7 +15,6 @@
  */
 package de.fraunhofer.iosb.app;
 
-import de.fraunhofer.iosb.aas.lib.auth.impl.NoAuth;
 import de.fraunhofer.iosb.api.PublicApiManagementService;
 import de.fraunhofer.iosb.api.model.Endpoint;
 import de.fraunhofer.iosb.api.model.HttpMethod;
@@ -130,10 +129,7 @@ public class AasExtension implements ServiceExtension {
         var configInstance = Configuration.getInstance();
 
         if (Objects.nonNull(configInstance.getRemoteAasLocation())) {
-            var remoteRepositoryDto = new RemoteAasRepositoryContextDTO(
-                    configInstance.getRemoteAasLocation(),
-                    new NoAuth(),
-                    null);
+            var remoteRepositoryDto = new RemoteAasRepositoryContextDTO(configInstance.getRemoteAasLocation());
             URI serviceUri = repositoryController.register(remoteRepositoryDto);
             monitor.debug(String.format("Registered AAS repository with url %s", serviceUri));
         }

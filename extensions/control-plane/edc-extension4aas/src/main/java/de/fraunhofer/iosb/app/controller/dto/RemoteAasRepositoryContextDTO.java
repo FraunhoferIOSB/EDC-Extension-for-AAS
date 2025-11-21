@@ -34,7 +34,8 @@ import java.util.Objects;
  * @param policyBindings List of {@link PolicyBinding}. If defined, only elements referred by the policyBindings are registered (optional, default: no custom
  *         PolicyBindings, register all elements).
  */
-public record RemoteAasRepositoryContextDTO(URI url, AuthenticationMethod auth, List<PolicyBinding> policyBindings) {
+public record RemoteAasRepositoryContextDTO(URI url, AuthenticationMethod auth, List<PolicyBinding> policyBindings, String defaultAccessPolicyDefinitionId,
+        String defaultContractPolicyDefinitionId) {
     public RemoteAasRepositoryContextDTO {
         Objects.requireNonNull(url, "'url' cannot be null!");
         auth = Objects.requireNonNullElse(auth, new NoAuth());
@@ -42,9 +43,21 @@ public record RemoteAasRepositoryContextDTO(URI url, AuthenticationMethod auth, 
     }
 
 
+    public RemoteAasRepositoryContextDTO(URI url, AuthenticationMethod auth) {
+        this(url, auth, List.of(), null, null);
+    }
+
+
+    public RemoteAasRepositoryContextDTO(URI url) {
+        this(url, new NoAuth());
+    }
+
+
     public RemoteAasRepositoryContext asContext() {
         return new RemoteAasRepositoryContext.Builder()
                 .uri(this.url())
+                .defaultAccessPolicyDefinitionId(defaultAccessPolicyDefinitionId())
+                .defaultContractPolicyDefinitionId(defaultContractPolicyDefinitionId())
                 .policyBindings(this.policyBindings())
                 .authenticationMethod(this.auth())
                 .onlySubmodels(Configuration.getInstance().onlySubmodels())

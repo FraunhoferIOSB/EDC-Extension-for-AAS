@@ -73,7 +73,7 @@ public class AasDataAddress extends DataAddress {
     }
 
 
-    private static List<String> validate(Reference reference) {
+    public static List<String> validate(Reference reference) {
         List<String> problems = new ArrayList<>();
         if (reference == null || reference.getKeys() == null ||
                 ReferenceTypes.MODEL_REFERENCE != reference.getType() || reference.getKeys().isEmpty()) {

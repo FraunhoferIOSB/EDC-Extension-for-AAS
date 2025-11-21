@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyName;
 import com.fasterxml.jackson.databind.introspect.Annotated;
 import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
+import de.fraunhofer.iosb.app.aas.mapper.util.AssetIdUtil;
 import de.fraunhofer.iosb.client.AasServerClient;
 import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
@@ -58,8 +59,7 @@ public class ElementMapper {
 
     @NotNull
     public String generateId(Reference reference) {
-        var aasDataAddress = createDataAddress(reference);
-        return String.valueOf("%s:%s".formatted(aasDataAddress.getBaseUrl(), aasDataAddress.getPath()).hashCode());
+        return AssetIdUtil.id(client.getUri().toString(), reference);
     }
 
 

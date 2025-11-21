@@ -15,12 +15,11 @@
  */
 package de.fraunhofer.iosb.app.handler.aas.registry;
 
-import de.fraunhofer.iosb.app.aas.mapper.referable.identifiable.IdentifiableMapper;
+import de.fraunhofer.iosb.app.aas.mapper.util.AssetIdUtil;
 import de.fraunhofer.iosb.app.handler.aas.RemoteAasHandler;
 import de.fraunhofer.iosb.app.handler.edc.EdcStoreHandler;
 import de.fraunhofer.iosb.client.exception.UnauthorizedException;
 import de.fraunhofer.iosb.client.registry.AasRegistryClient;
-import de.fraunhofer.iosb.model.context.registry.AasRegistryContext;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.util.AasUtils;
 import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShell;
 import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShellDescriptor;
@@ -113,23 +112,19 @@ public class RemoteAasRegistryHandler extends RemoteAasHandler<AasRegistryClient
 
 
     private @NotNull Identifiable registryIdentifiableMapper(Identifiable identifiable) {
-        var ctx = new AasRegistryContext.Builder()
-                .uri(this.referenceAssetMapping.entrySet().stream()
-                        .filter(entry -> entry.getKey().referredElement().equals(AasUtils.toReference(identifiable)))
-                        .map(Map.Entry::getValue)
-                        .map(Asset::getDataAddress)
-                        .map(da -> (String) da.getProperty(BASE_URL))
-                        .filter(Objects::nonNull)
-                        .map(URI::create)
-                        .findAny()
-                        .orElseThrow())
-                .build();
-
-        var client = new AasRegistryClient(ctx);
+        // Find suitable URI
+        String uri = this.referenceAssetMapping.entrySet().stream()
+                .filter(entry -> entry.getKey().referredElement().equals(AasUtils.toReference(identifiable)))
+                .map(Map.Entry::getValue)
+                .map(Asset::getDataAddress)
+                .map(da -> (String) da.getProperty(BASE_URL))
+                .filter(Objects::nonNull)
+                .findAny()
+                .orElseThrow();
 
         identifiable.getExtensions().add(new DefaultExtension.Builder()
                 .name(Asset.PROPERTY_ID)
-                .value(new IdentifiableMapper(client).generateId(AasUtils.toReference(identifiable)))
+                .value(AssetIdUtil.id(uri, identifiable))
                 .build());
         return identifiable;
     }

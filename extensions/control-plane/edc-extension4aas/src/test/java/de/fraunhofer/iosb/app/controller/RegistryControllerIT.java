@@ -15,7 +15,6 @@
  */
 package de.fraunhofer.iosb.app.controller;
 
-import de.fraunhofer.iosb.aas.lib.auth.impl.NoAuth;
 import de.fraunhofer.iosb.app.controller.dto.AasRegistryContextDTO;
 import de.fraunhofer.iosb.app.handler.aas.registry.RemoteAasRegistryHandler;
 import de.fraunhofer.iosb.app.handler.edc.EdcStoreHandler;
@@ -57,7 +56,7 @@ public class RegistryControllerIT extends AbstractAasServerControllerIT<Registry
         mockResponse(MockServerTestExtension.METHOD.GET, String.format("/%s", "shell-descriptors"), asPage(List.of(shellDescriptor)), 200);
         mockEmptySubmodelDescriptorRequest();
 
-        var result = testSubject.register(new AasRegistryContextDTO(getUri(), new NoAuth()));
+        var result = testSubject.register(new AasRegistryContextDTO(getUri()));
 
         assertEquals(result, getUri());
 
@@ -80,7 +79,7 @@ public class RegistryControllerIT extends AbstractAasServerControllerIT<Registry
         mockEmptyShellDescriptorRequest();
         mockEmptySubmodelDescriptorRequest();
 
-        var result = testSubject.register(new AasRegistryContextDTO(getUri(), new NoAuth()));
+        var result = testSubject.register(new AasRegistryContextDTO(getUri()));
 
         assertEquals(result, getUri());
 
@@ -106,7 +105,7 @@ public class RegistryControllerIT extends AbstractAasServerControllerIT<Registry
         }
 
         try {
-            testSubject.register(new AasRegistryContextDTO(uri, new NoAuth()));
+            testSubject.register(new AasRegistryContextDTO(uri));
             fail();
         }
         catch (WebApplicationException expected) {

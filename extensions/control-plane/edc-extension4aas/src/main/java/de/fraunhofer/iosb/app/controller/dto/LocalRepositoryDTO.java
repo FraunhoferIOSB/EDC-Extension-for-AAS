@@ -37,6 +37,21 @@ public record LocalRepositoryDTO(String modelPath, Integer port, String configPa
     }
 
 
+    public LocalRepositoryDTO(String modelPath, Integer port, String configPath) {
+        this(modelPath, port, configPath, List.of());
+    }
+
+
+    public LocalRepositoryDTO(String modelPath, Integer port) {
+        this(modelPath, port, null);
+    }
+
+
+    public LocalRepositoryDTO(String modelPath) {
+        this(modelPath, null);
+    }
+
+
     public FaaastRepositoryConfig asConfig() {
         return FaaastRepositoryConfig.Builder.newInstance()
                 .model(modelPath())

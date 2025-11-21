@@ -30,15 +30,32 @@ import java.util.Objects;
  * @param url URI to use to connect to the AAS registry, including any path prefixes (e.g., /api/v3.0)
  * @param auth The authentication method used to communicate with the registry.
  */
-public record AasRegistryContextDTO(URI url, AuthenticationMethod auth) {
+public record AasRegistryContextDTO(URI url, AuthenticationMethod auth, String defaultAccessPolicyDefinitionId, String defaultContractPolicyDefinitionId) {
     public AasRegistryContextDTO {
         Objects.requireNonNull(url, "'url' cannot be null!");
         auth = Objects.requireNonNullElse(auth, new NoAuth());
     }
 
 
+    public AasRegistryContextDTO(URI url) {
+        this(url, new NoAuth());
+    }
+
+
+    public AasRegistryContextDTO(URI url, AuthenticationMethod auth) {
+        this(url, auth, null, null);
+    }
+
+
+    public AasRegistryContextDTO(URI url, String defaultAccessPolicyDefinitionId, String defaultContractPolicyDefinitionId) {
+        this(url, null, defaultAccessPolicyDefinitionId, defaultContractPolicyDefinitionId);
+    }
+
+
     public AasRegistryContext asContext() {
         return new AasRegistryContext.Builder()
+                .defaultAccessPolicyDefinitionId(defaultAccessPolicyDefinitionId())
+                .defaultContractPolicyDefinitionId(defaultContractPolicyDefinitionId())
                 .uri(this.url())
                 .authenticationMethod(this.auth())
                 .allowSelfSigned(Configuration.getInstance().isAllowSelfSignedCertificates())

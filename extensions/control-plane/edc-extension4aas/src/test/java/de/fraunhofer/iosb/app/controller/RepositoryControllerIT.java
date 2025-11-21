@@ -15,7 +15,6 @@
  */
 package de.fraunhofer.iosb.app.controller;
 
-import de.fraunhofer.iosb.aas.lib.auth.impl.NoAuth;
 import de.fraunhofer.iosb.app.controller.dto.RemoteAasRepositoryContextDTO;
 import de.fraunhofer.iosb.app.handler.edc.EdcStoreHandler;
 import de.fraunhofer.iosb.client.exception.UnauthorizedException;
@@ -55,7 +54,7 @@ public class RepositoryControllerIT extends AbstractAasServerControllerIT<Reposi
         mockEmptySubmodelRequest();
         mockEmptyConceptDescriptionRequest();
 
-        var result = testSubject.register(new RemoteAasRepositoryContextDTO(getUri(), new NoAuth(), List.of()));
+        var result = testSubject.register(new RemoteAasRepositoryContextDTO(getUri()));
 
         assertEquals(result, getUri());
 
@@ -81,7 +80,7 @@ public class RepositoryControllerIT extends AbstractAasServerControllerIT<Reposi
 
         var uri = getUri();
         new ConfigurationController(ConfigFactory.empty(), new ConsoleMonitor()).updateConfiguration("{\"" + EDC_SETTINGS_PREFIX + ".onlySubmodels\":false}");
-        var result = testSubject.register(new RemoteAasRepositoryContextDTO(uri, new NoAuth(), List.of()));
+        var result = testSubject.register(new RemoteAasRepositoryContextDTO(uri));
 
         assertEquals(result, uri);
 
@@ -110,7 +109,7 @@ public class RepositoryControllerIT extends AbstractAasServerControllerIT<Reposi
 
         var base = getUri();
 
-        var result = testSubject.register(new RemoteAasRepositoryContextDTO(base, new NoAuth(), List.of()));
+        var result = testSubject.register(new RemoteAasRepositoryContextDTO(base));
 
         assertEquals(result, getUri());
 
@@ -130,8 +129,7 @@ public class RepositoryControllerIT extends AbstractAasServerControllerIT<Reposi
     @Test
     void test_registerRepository_emtpyEnvironment_shouldThrow() {
         try {
-            testSubject.register(new RemoteAasRepositoryContextDTO(URI.create("https://locaIhost:65432/"), new NoAuth(),
-                    List.of()));
+            testSubject.register(new RemoteAasRepositoryContextDTO(URI.create("https://locaIhost:65432/")));
             fail();
         }
         catch (WebApplicationException expected) {

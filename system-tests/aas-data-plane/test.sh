@@ -15,9 +15,9 @@ API="http://localhost:23339/control/v1/dataplanes"
 
 EXPECTED_FILE="system-tests/resources/dataplanes.json"
 
-curl -fsS "$API" > dataplanes_is.log
+curl -fsS "$API" > logs/dataplanes_is.log
 
-python3 "system-tests/json_subset.py" "$EXPECTED_FILE" "dataplanes_is.log"
+python3 "system-tests/json_subset.py" "$EXPECTED_FILE" "logs/dataplanes_is.log"
 
 dataplanes_equality=$?
 

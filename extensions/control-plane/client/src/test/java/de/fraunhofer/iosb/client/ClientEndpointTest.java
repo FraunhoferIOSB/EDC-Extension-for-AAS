@@ -42,16 +42,14 @@ import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.spi.WebService;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockserver.integration.ClientAndServer;
 
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -63,24 +61,23 @@ import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.mockserver.integration.ClientAndServer.startClientAndServer;
+
 
 public class ClientEndpointTest {
 
     private static Monitor monitor;
 
-    private static URL url;
-    private static ClientAndServer mockServer;
+    private static URI uri;
     private static PolicyDefinition mockPolicyDefinition;
     private static Catalog mockCatalog;
     private ClientEndpoint clientEndpoint;
 
+
     @BeforeAll
-    public static void initialize() throws IOException {
+    public static void initialize() throws URISyntaxException {
         monitor = mock(Monitor.class);
         int port = getFreePort();
-        url = new URL(format("http://localhost:%s", port));
-        mockServer = startClientAndServer(port);
+        uri = new URI(format("http://localhost:%s", port));
         var mockAsset = Asset.Builder.newInstance().id("test-asset").build();
         var mockPolicy = Policy.Builder.newInstance().target(mockAsset.getId()).build();
         var dataset = Dataset.Builder.newInstance()
@@ -93,6 +90,7 @@ public class ClientEndpointTest {
 
         mockCatalog = Catalog.Builder.newInstance().id("test-catalog").dataset(dataset).build();
     }
+
 
     @BeforeEach
     public void setup() throws IOException {
@@ -120,6 +118,7 @@ public class ClientEndpointTest {
                 .build();
     }
 
+
     private Config mockConfig() {
         return ConfigFactory.fromMap(
                 Map.of(
@@ -128,11 +127,13 @@ public class ClientEndpointTest {
                         "web.http.path", "/api"));
     }
 
+
     private TypeTransformerRegistry mockTransformer() {
         var mockTransformer = mock(TypeTransformerRegistry.class);
         when(mockTransformer.transform(any(), any())).thenReturn(null);
         return mockTransformer;
     }
+
 
     private TransferProcessManager mockTransferProcessManager() {
         StatusResult<TransferProcess> mockStatusResult = StatusResult.failure(ResponseStatus.FATAL_ERROR);
@@ -142,6 +143,7 @@ public class ClientEndpointTest {
         return mockTransferProcessManager;
     }
 
+
     private CatalogService mockCatalogService() throws IOException {
         var catalogService = mock(CatalogService.class);
         var completableFuture = new CompletableFuture<StatusResult<byte[]>>();
@@ -150,6 +152,7 @@ public class ClientEndpointTest {
         when(catalogService.requestCatalog(any(), any(), any(), any())).thenReturn(completableFuture);
         return catalogService;
     }
+
 
     private ConsumerContractNegotiationManager mockConsumerNegotiationManager() {
         var mockStatusResult = StatusResult.success(
@@ -164,18 +167,12 @@ public class ClientEndpointTest {
         return manager;
     }
 
-    @AfterEach
-    public void shutdownMockServer() {
-        if (Objects.nonNull(mockServer) && mockServer.isRunning()) {
-            mockServer.stop();
-        }
-    }
 
     @Test
     public void negotiateContractTest() {
         try (var resultResponse = clientEndpoint.negotiateContract(
                 ContractRequest.Builder.newInstance()
-                        .counterPartyAddress(url.toString())
+                        .counterPartyAddress(uri.toString())
                         .contractOffer(
                                 ContractOffer.Builder.newInstance()
                                         .id(UUID.randomUUID().toString())
@@ -190,9 +187,10 @@ public class ClientEndpointTest {
         }
     }
 
+
     @Test
     public void negotiateContractAndTransferTest() {
-        try (var response = clientEndpoint.negotiateContract(url, "test-id", "test-asset-id", null)) {
+        try (var response = clientEndpoint.negotiateContract(uri, "test-id", "test-asset-id", null)) {
             assertEquals(INTERNAL_SERVER_ERROR, response.getStatusInfo());
         }
     }

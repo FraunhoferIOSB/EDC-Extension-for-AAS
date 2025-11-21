@@ -28,6 +28,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.StringReader;
 import java.util.List;
 
+
 public class Codec {
 
     private static final String COMPACTION_ERROR = "Failed compacting json-ld %s: %s";
@@ -37,10 +38,12 @@ public class Codec {
     private final TypeTransformerRegistry transformers;
     private final JsonLd jsonLd;
 
+
     public Codec(TypeTransformerRegistry transformers, JsonLd jsonLd) {
         this.transformers = transformers;
         this.jsonLd = jsonLd;
     }
+
 
     public <T extends Entity> Result<List<T>> deserializeList(String entitiesJson, Class<T> type) {
         var assetsJsonArray = Json.createReader(new StringReader(entitiesJson)).readArray();
@@ -62,6 +65,7 @@ public class Codec {
         return Result.success(deserializedAssets.stream().map(Result::getContent).toList());
     }
 
+
     public <T extends Entity> Result<T> deserialize(String entityJson, Class<T> type) {
         var assetJsonObject = Json.createReader(new StringReader(entityJson)).readObject();
 
@@ -75,6 +79,7 @@ public class Codec {
 
         return transformers.transform(expandedResult.getContent(), type);
     }
+
 
     /**
      * Try to serialize any POJO into jakarta JsonObjects using EDC JsonObjectFrom*Transformers.

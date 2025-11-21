@@ -29,10 +29,14 @@ import java.util.Objects;
 
 import static java.lang.String.format;
 
+
 /**
  * Endpoint for automated data transfer
  */
-@Consumes({ MediaType.APPLICATION_JSON, MediaType.WILDCARD })
+@Consumes({
+        MediaType.APPLICATION_JSON,
+        MediaType.WILDCARD
+})
 @Produces({ MediaType.APPLICATION_JSON })
 @Path(ClientEndpoint.AUTOMATED_PATH)
 public class DataTransferEndpoint {
@@ -45,16 +49,17 @@ public class DataTransferEndpoint {
     private final Monitor monitor;
     private final DataTransferObservable<String> observable;
 
+
     DataTransferEndpoint(Monitor monitor, DataTransferObservable<String> dataTransferObservable) {
         this.monitor = monitor;
         this.observable = dataTransferObservable;
     }
 
+
     /**
      * Receive data of an agreement.
      *
-     * @param agreementId The agreement ID corresponding to the data in the request
-     *                    body.
+     * @param agreementId The agreement ID corresponding to the data in the request body.
      * @param requestBody The asset data of a transfer request.
      * @return OK as response.
      */

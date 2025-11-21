@@ -10,6 +10,7 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.Map;
 
+
 @ExtendWith(DependencyInjectionExtension.class)
 class EdcConnectorClientExtensionTest {
 
@@ -33,6 +34,7 @@ class EdcConnectorClientExtensionTest {
 
     @RegisterExtension
     static RuntimePerClassExtension runtime = new RuntimePerClassExtension(RUNTIME);
+
 
     @Test
     void initialize() {

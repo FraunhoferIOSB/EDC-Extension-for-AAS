@@ -18,9 +18,10 @@ package de.fraunhofer.iosb.constants;
 public interface AasConstants {
     String AAS_PREFIX = "aas";
     String AAS_V30_NAMESPACE = "https://admin-shell.io/aas/3/0/";
+    String SUPPORTED_AAS_VERSION = "3.0";
 
-    String SHELLS_API_PATH = "shells";
-    String SUBMODELS_API_PATH = "submodels";
-    String CONCEPT_DESCRIPTIONS_API_PATH = "concept-descriptions";
+    String EDC_SETTINGS_PREFIX = "edc.aas";
 
+    String DEFAULT_ACCESS_POLICY_DEFINITION_ID = "AAS_DEFAULT_ACCESS_POLICY";
+    String DEFAULT_CONTRACT_POLICY_DEFINITION_ID = "AAS_DEFAULT_CONTRACT_POLICY";
 }

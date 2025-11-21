@@ -22,18 +22,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyName;
 import com.fasterxml.jackson.databind.introspect.Annotated;
 import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
-import de.fraunhofer.iosb.aas.lib.model.AasProvider;
+import de.fraunhofer.iosb.app.aas.mapper.util.AssetIdUtil;
+import de.fraunhofer.iosb.client.AasServerClient;
 import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.digitaltwin.aas4j.v3.model.annotations.IRI;
-import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.jetbrains.annotations.NotNull;
 
-import java.net.URL;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+
 
 /**
  * Contains base logic for mapping AAS elements to Assets
@@ -45,8 +43,11 @@ public class ElementMapper {
     };
     private final TypeReference<List<Object>> jsonListTypeRef = new TypeReference<>() {
     };
+    private final AasServerClient client;
 
-    protected ElementMapper() {
+
+    protected ElementMapper(AasServerClient client) {
+        this.client = client;
         objectMapper = new ObjectMapper()
                 .setAnnotationIntrospector(new NamespacingIntrospector())
                 // Disable auto-detection from method names
@@ -55,41 +56,35 @@ public class ElementMapper {
                 .setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
     }
 
-    protected @NotNull String generateId(DataAddress dataAddress) {
-        if (dataAddress instanceof AasDataAddress aasDataAddress) {
-            return String.valueOf("%s:%s".formatted((aasDataAddress.getBaseUrl()), aasDataAddress.getPath()).hashCode());
-        } else if (dataAddress instanceof HttpDataAddress httpDataAddress) {
-            return String.valueOf("%s:%s".formatted(httpDataAddress.getBaseUrl(), httpDataAddress.getPath()).hashCode());
-        } else {
-            String idProperty = "id";
-            if (dataAddress.hasProperty(idProperty)) {
-                return Objects.requireNonNull(dataAddress.getStringProperty(idProperty));
-            }
-            throw new IllegalArgumentException(String.format("ID could not be inferred from DataAddress %s", dataAddress));
+
+    @NotNull
+    public String generateId(Reference reference) {
+        return AssetIdUtil.id(client.getUri().toString(), reference);
+    }
+
+
+    protected AasDataAddress createDataAddress(Reference reference) {
+        AasDataAddress.Builder builder = AasDataAddress.Builder.newInstance()
+                .baseUrl(client.getUri().toString())
+                .reference(reference);
+
+        if (client.requiresAuthentication()) {
+            builder.additionalHeaders(client.getHeaders());
         }
+
+        return builder.build();
     }
 
-    protected DataAddress createDataAddress(AasProvider provider, Reference reference) {
-        return AasDataAddress.Builder.newInstance()
-                .baseUrl(provider.baseUrl().toString())
-                .additionalHeaders(provider.getHeaders())
-                .referenceChain(reference)
-                .build();
-    }
-
-    protected DataAddress createDataAddress(URL href) {
-        return AasDataAddress.Builder.newInstance()
-                .baseUrl(href.toString())
-                .build();
-    }
 
     protected Map<String, Object> getNamespaced(Object object) {
         return objectMapper.convertValue(object, jsonMapTypeRef);
     }
 
+
     protected List<Object> getNamespacedList(Object object) {
         return objectMapper.convertValue(object, jsonListTypeRef);
     }
+
 
     private static class NamespacingIntrospector extends JacksonAnnotationIntrospector {
 

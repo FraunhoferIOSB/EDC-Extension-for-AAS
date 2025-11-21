@@ -19,6 +19,7 @@ import org.eclipse.edc.spi.result.Result;
 
 import java.security.cert.Certificate;
 
+
 public interface SelfSignedCertificateRetriever {
 
     Result<Certificate[]> getSelfSignedCertificate(String urlString);

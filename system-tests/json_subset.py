@@ -3,9 +3,10 @@ import sys
 
 
 def panic(key):
-    problems.append(key)
+    problems.append(str(key))
     print("Panicking:", key)
     return False
+
 
 def contains(container: dict, contained: dict, do_panic: bool = True):
     # Check whether container contains contained
@@ -28,7 +29,7 @@ def contains(container: dict, contained: dict, do_panic: bool = True):
         # Now it can only be a dict
         for key in contained.keys():
             if key not in container:
-                print("dict item not found")
+                print(f"dict item not found: {str(key)}")
                 return panic(key) if do_panic else False
 
             if not contains(container[key], contained[key], do_panic=do_panic):

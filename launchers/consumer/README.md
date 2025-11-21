@@ -1,7 +1,5 @@
 # Client
 
-
-
 This is a control-plane featuring the client extension. It contains the following extensions:
 
 - `client`: Convenience for negotiation and data transfer.

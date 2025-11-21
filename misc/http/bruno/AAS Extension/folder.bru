@@ -6,3 +6,10 @@ meta {
 auth {
   mode: inherit
 }
+
+vars:pre-request {
+  service-url: http://localhost:8080/api/v3.0
+  registry-url: http://localhost:8090/api/v3.0
+  model-path: /path/to/aas/model.aasx
+  config-path: /path/to/server/config.json
+}

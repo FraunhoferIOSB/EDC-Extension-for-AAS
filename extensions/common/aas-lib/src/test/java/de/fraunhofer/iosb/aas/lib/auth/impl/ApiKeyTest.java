@@ -31,15 +31,18 @@ class ApiKeyTest {
     private final String keyValue = "my-api-key-value";
     private AuthenticationMethod testSubject;
 
+
     @BeforeEach
     void setUp() {
         testSubject = new ApiKey(keyName, keyValue);
     }
 
+
     @AfterEach
     void tearDown() {
         testSubject = null;
     }
+
 
     @Test
     void getHeader() {

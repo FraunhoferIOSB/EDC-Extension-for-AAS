@@ -9,9 +9,11 @@ Running this example requires an installation of JDK, a docker engine and docker
 
 The material for this example can be found here:
 
-- `samples/configurations`: contains configuration files for the provider and consumer connector (`provider.properties`, `consumer.properties`)
+- `samples/configurations`: contains configuration files for the provider and consumer connector (`provider.properties`,
+  `consumer.properties`)
 - `samples/resources`: contains two example AAS files ('aas_v3_example_full_aas4j.json' and 'aas_model_v3.aasx') and an
-  example config file ('exampleConfig.json') for the used AAS service (FA³ST). Additionally, there is a postman collection which
+  example config file ('exampleConfig.json') for the used AAS service (FA³ST). Additionally, there is a postman
+  collection which
   can be used for requesting the consumer connector. Lastly, there is a JSON with accepted contract offers for the
   client connector and a keystore for HTTPS use-cases
 - `samples/full/docker-compose.yml`: Running the example
@@ -43,7 +45,6 @@ container does not have access to your local files.
 
 The EDC and its extensions can be configured with a `.properties` file. `samples/configurations` contains an example
 configuration file for each launcher.
-
 
 ## Usage of the client's automated contract negotiation and data transfer interfaces
 

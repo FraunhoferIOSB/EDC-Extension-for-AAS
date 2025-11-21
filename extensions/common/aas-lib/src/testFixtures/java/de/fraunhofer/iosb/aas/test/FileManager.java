@@ -23,19 +23,24 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
+
 public class FileManager {
 
     private static final File RESOURCES_DIRECTORY = new File("src/test/resources");
 
+
     private FileManager() {
     }
+
 
     public static String loadResource(String fileName) {
         try (FileInputStream x = new FileInputStream(new File(RESOURCES_DIRECTORY, fileName))) {
             return IOUtils.toString(x, StandardCharsets.UTF_8);
-        } catch (FileNotFoundException e) {
+        }
+        catch (FileNotFoundException e) {
             throw new IllegalArgumentException("File not found exception on file " + fileName);
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             throw new IllegalStateException("IO exception on file " + fileName);
         }
     }

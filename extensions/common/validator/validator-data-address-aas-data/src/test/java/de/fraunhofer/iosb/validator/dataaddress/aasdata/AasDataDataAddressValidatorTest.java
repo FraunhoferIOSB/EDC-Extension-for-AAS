@@ -17,6 +17,7 @@ package de.fraunhofer.iosb.validator.dataaddress.aasdata;
 
 import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
 import org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes;
+import org.eclipse.digitaltwin.aas4j.v3.model.ReferenceTypes;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultKey;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultReference;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -28,21 +29,25 @@ import static de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress.AAS_DATA_TYPE;
 import static org.eclipse.edc.dataaddress.httpdata.spi.HttpDataAddressSchema.BASE_URL;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+
 class AasDataDataAddressValidatorTest {
 
     private final AasDataDataAddressValidator validator = new AasDataDataAddressValidator();
 
+
     @Test
     void shouldPass_whenAasDataIsValid() {
         var dataAddress = AasDataAddress.Builder.newInstance()
-                .property("type", AAS_DATA_TYPE)
-                .property(BASE_URL, "http://this.is/valid/url")
-                .referenceChain(new DefaultReference.Builder()
+                .type(AAS_DATA_TYPE)
+                .baseUrl("http://this.is/valid/url")
+                .reference(new DefaultReference.Builder()
+                        .type(ReferenceTypes.MODEL_REFERENCE)
                         .keys(new DefaultKey.Builder()
                                 .type(KeyTypes.SUBMODEL)
                                 .value(UUID.randomUUID().toString())
                                 .build())
                         .build())
+                .path("path")
                 .build();
 
         var result = validator.validate(dataAddress);
@@ -50,10 +55,11 @@ class AasDataDataAddressValidatorTest {
         assertTrue(result.succeeded());
     }
 
+
     @Test
-    void shouldFail_whenAasDataBaseUrlNotValid() {
+    void shouldFail_whenAasDataBaseUriNotValid() {
         var dataAddress = DataAddress.Builder.newInstance()
-                .property("type", AAS_DATA_TYPE)
+                .type(AAS_DATA_TYPE)
                 .property(BASE_URL, "not-a-valid-url")
                 .build();
 
@@ -61,6 +67,7 @@ class AasDataDataAddressValidatorTest {
 
         assertTrue(result.failed());
     }
+
 
     @Test
     void shouldFail_whenAasDataPathNotValid() {

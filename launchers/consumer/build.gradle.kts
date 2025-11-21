@@ -28,6 +28,6 @@ dependencies {
         // as the control-plane.
         exclude("org.eclipse.edc", "data-plane-selector-client")
         // An example of vault integration is given in other launchers.
-        exclude(    "org.eclipse.edc", "vault-hashicorp")
+        exclude("org.eclipse.edc", "vault-hashicorp")
     }
 }

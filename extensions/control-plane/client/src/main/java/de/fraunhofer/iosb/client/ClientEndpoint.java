@@ -32,16 +32,20 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 
-import java.net.URL;
+import java.net.URI;
 import java.util.Map;
 import java.util.Objects;
 
 import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 
+
 /**
  * Automated contract negotiation
  */
-@Consumes({ MediaType.APPLICATION_JSON, MediaType.WILDCARD })
+@Consumes({
+        MediaType.APPLICATION_JSON,
+        MediaType.WILDCARD
+})
 @Produces({ MediaType.APPLICATION_JSON })
 @Path(ClientEndpoint.AUTOMATED_PATH)
 public class ClientEndpoint {
@@ -70,35 +74,35 @@ public class ClientEndpoint {
         this.transferController = transferController;
     }
 
+
     /**
-     * Negotiate a contract agreement using the given contract offer if no agreement
-     * exists for this constellation.
+     * Negotiate a contract agreement using the given contract offer if no agreement exists for this constellation.
      *
-     * @param counterPartyUrl Provider EDCs URL (DSP endpoint)
-     * @param counterPartyId  Provider EDCs ID
-     * @param assetId         ID of the asset to be retrieved
-     * @param dataAddress     DataAddress of destination data sink.
+     * @param counterPartyUri Provider EDCs URI (DSP endpoint)
+     * @param counterPartyId Provider EDCs ID
+     * @param assetId ID of the asset to be retrieved
+     * @param dataAddress DataAddress of destination data sink.
      * @return Asset data
      */
     @POST
     @Path(NEGOTIATE_PATH)
-    public Response negotiateContract(@QueryParam("providerUrl") URL counterPartyUrl,
+    public Response negotiateContract(@QueryParam("providerUrl") URI counterPartyUri,
                                       @QueryParam("providerId") String counterPartyId,
                                       @QueryParam("assetId") String assetId,
                                       DataAddress dataAddress) {
         monitor.info("POST /%s".formatted(NEGOTIATE_PATH));
-        if (counterPartyUrl == null || counterPartyId == null || assetId == null ||
+        if (counterPartyUri == null || counterPartyId == null || assetId == null ||
                 assetId.isEmpty()) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(MISSING_QUERY_PARAMETER_MESSAGE.formatted("providerUrl, providerId, assetId")).build();
         }
 
         Result<ContractOffer> contractOfferResult =
-                policyController.getAcceptableContractOfferForAssetId(counterPartyId, counterPartyUrl, assetId);
+                policyController.getAcceptableContractOfferForAssetId(counterPartyId, counterPartyUri, assetId);
 
         if (contractOfferResult.failed()) {
             monitor.severe("Getting policies failed for provider %s and asset %s: %s".formatted(
-                    counterPartyUrl, assetId, contractOfferResult.getFailureDetail()));
+                    counterPartyUri, assetId, contractOfferResult.getFailureDetail()));
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity(contractOfferResult.getFailureDetail())
                     .build();
@@ -106,7 +110,7 @@ public class ClientEndpoint {
 
         var contractRequest = ContractRequest.Builder.newInstance()
                 .protocol(DATASPACE_PROTOCOL_HTTP)
-                .counterPartyAddress(counterPartyUrl.toString())
+                .counterPartyAddress(counterPartyUri.toString())
                 .contractOffer(contractOfferResult.getContent())
                 .build();
 
@@ -114,17 +118,17 @@ public class ClientEndpoint {
 
         if (agreementResult.failed()) {
             monitor.severe("Negotiation failed for provider %s and contractOffer %s: %s".formatted(
-                    counterPartyUrl, contractOfferResult.getContent().getId(), agreementResult.getFailureDetail()));
+                    counterPartyUri, contractOfferResult.getContent().getId(), agreementResult.getFailureDetail()));
 
             return Response.serverError().entity(agreementResult.getFailureDetail()).build();
         }
 
-        return transferController.getData(counterPartyUrl, agreementResult.getContent().getId(), dataAddress);
+        return transferController.getData(counterPartyUri, agreementResult.getContent().getId(), dataAddress);
     }
 
+
     /**
-     * Negotiates a contract agreement using the given contract offer if no agreement
-     * exists for this constellation.
+     * Negotiates a contract agreement using the given contract offer if no agreement exists for this constellation.
      *
      * @param contractRequest The contract request to be sent.
      * @return contractAgreement of the completed negotiation.
@@ -151,38 +155,46 @@ public class ClientEndpoint {
         return Response.ok(Map.of("agreementId", agreementResult.getContent().getId())).build();
     }
 
+
     public static class Builder {
         private Monitor monitor;
         private NegotiationController negotiationController;
         private PolicyController policyController;
         private DataTransferController transferController;
 
+
         private Builder() {
         }
+
 
         public static Builder newInstance() {
             return new Builder();
         }
+
 
         public Builder monitor(Monitor monitor) {
             this.monitor = monitor;
             return this;
         }
 
+
         public Builder negotiationController(NegotiationController negotiationController) {
             this.negotiationController = negotiationController;
             return this;
         }
+
 
         public Builder policyController(PolicyController policyController) {
             this.policyController = policyController;
             return this;
         }
 
+
         public Builder transferController(DataTransferController transferController) {
             this.transferController = transferController;
             return this;
         }
+
 
         public ClientEndpoint build() {
             return new ClientEndpoint(monitor, negotiationController, policyController, transferController);

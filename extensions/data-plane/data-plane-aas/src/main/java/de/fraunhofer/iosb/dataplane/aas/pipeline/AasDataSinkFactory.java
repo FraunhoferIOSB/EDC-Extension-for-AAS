@@ -35,15 +35,18 @@ public class AasDataSinkFactory implements DataSinkFactory {
     private final Monitor monitor;
     private final AasDataProcessorFactory aasDataProcessorFactory;
 
+
     public AasDataSinkFactory(Monitor monitor, AasDataProcessorFactory aasDataProcessorFactory) {
         this.monitor = monitor;
         this.aasDataProcessorFactory = aasDataProcessorFactory;
     }
 
+
     @Override
     public String supportedType() {
         return AAS_DATA_TYPE;
     }
+
 
     @Override
     public DataSink createSink(DataFlowStartMessage request) {
@@ -57,11 +60,13 @@ public class AasDataSinkFactory implements DataSinkFactory {
                 .build();
     }
 
+
     @Override
     public @NotNull Result<Void> validateRequest(DataFlowStartMessage request) {
         try {
             createSink(request);
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             return Result.failure("Failed to build AAS data sink: " + e.getMessage());
         }
         return Result.success();

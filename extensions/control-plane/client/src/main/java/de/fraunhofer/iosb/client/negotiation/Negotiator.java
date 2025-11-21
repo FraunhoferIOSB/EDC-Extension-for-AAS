@@ -22,6 +22,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.Con
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.response.StatusResult;
 
+
 /**
  * Send contract request, negotiation status watch
  */
@@ -30,18 +31,19 @@ public class Negotiator {
     private final ConsumerContractNegotiationManager consumerNegotiationManager;
     private final ContractNegotiationStore contractNegotiationStore;
 
+
     /**
      * Class constructor
      *
      * @param consumerNegotiationManager Initiating a negotiation as a consumer.
-     * @param contractNegotiationStore   Check for existing agreements before
-     *                                   negotiating
+     * @param contractNegotiationStore Check for existing agreements before negotiating
      */
     public Negotiator(ConsumerContractNegotiationManager consumerNegotiationManager,
                       ContractNegotiationStore contractNegotiationStore) {
         this.consumerNegotiationManager = consumerNegotiationManager;
         this.contractNegotiationStore = contractNegotiationStore;
     }
+
 
     /*
      * InterruptedException: Thread for agreementId was waiting, sleeping, or

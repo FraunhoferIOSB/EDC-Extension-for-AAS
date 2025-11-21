@@ -21,10 +21,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+
 class RemoteAssetIndexTest extends AbstractControlPlaneConnectionHandlerTest {
 
     @Test
-    void queryAssets_foundAndReturned() throws MalformedURLException {
+    void queryAssets_foundAndReturned() {
         var querySpec = QuerySpec.none();
         var testSubject = getRemoteAssetIndex();
 
@@ -39,6 +40,7 @@ class RemoteAssetIndexTest extends AbstractControlPlaneConnectionHandlerTest {
 
         assertEquals(assets, response.toList());
     }
+
 
     @Test
     void queryAssets_emptyResponse() {
@@ -57,8 +59,9 @@ class RemoteAssetIndexTest extends AbstractControlPlaneConnectionHandlerTest {
         assertEquals(assets, response.toList());
     }
 
+
     @Test
-    void findById_foundAndReturned() throws MalformedURLException {
+    void findById_foundAndReturned() {
         var id = UUID.randomUUID().toString();
         var testSubject = getRemoteAssetIndex();
 
@@ -72,6 +75,7 @@ class RemoteAssetIndexTest extends AbstractControlPlaneConnectionHandlerTest {
         assertEquals(asset, response);
     }
 
+
     @Test
     void findById_assetNotFound() {
         var id = UUID.randomUUID().toString();
@@ -84,6 +88,7 @@ class RemoteAssetIndexTest extends AbstractControlPlaneConnectionHandlerTest {
 
         assertNull(response);
     }
+
 
     @Test
     void connectionHandler_authorizes() {
@@ -103,6 +108,7 @@ class RemoteAssetIndexTest extends AbstractControlPlaneConnectionHandlerTest {
         var response = testSubject.queryAssets(QuerySpec.max());
         assertNotNull(response);
     }
+
 
     @Test
     void connectionHandler_wrongPasswordNoFailure_andLogs() {
@@ -129,6 +135,7 @@ class RemoteAssetIndexTest extends AbstractControlPlaneConnectionHandlerTest {
         assertTrue(response.findAny().isEmpty());
     }
 
+
     private RemoteAssetIndex getRemoteAssetIndex() {
         return new RemoteAssetIndex.Builder()
                 .authenticationMethod(new ApiKey("x-api-key", apiKey))
@@ -139,7 +146,8 @@ class RemoteAssetIndexTest extends AbstractControlPlaneConnectionHandlerTest {
                 .build();
     }
 
-    private Asset getAsset() throws MalformedURLException {
+
+    private Asset getAsset() {
         return Asset.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .contentType(UUID.randomUUID().toString())

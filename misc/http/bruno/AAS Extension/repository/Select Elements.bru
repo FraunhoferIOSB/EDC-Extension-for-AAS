@@ -1,0 +1,32 @@
+meta {
+  name: Select Elements
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{provider-api}}/service/remote
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "url": "{{service-url}}",
+    "policyBindings": [
+      {
+        "referredElement": "[ModelRef](Submodel)64a97bd4-2508-4cc7-ae68-7d3baf6343cd",
+        "accessPolicyId": "only-known-bpn-policy",
+        "usagePolicyId": "allow-read-policy"
+      },
+      {
+        "referredElement": "[ModelRef](AssetAdministrationShell)https://example.com/ids/AssetAdministrationShell/8713_3322_8055_2940"
+      }
+    ]
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

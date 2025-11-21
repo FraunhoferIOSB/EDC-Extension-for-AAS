@@ -1,0 +1,22 @@
+meta {
+  name: shellsw
+  type: http
+  seq: 2
+}
+
+post {
+  url: https://localhost:8080/api/v3.0/submodels
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "id": "21w"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

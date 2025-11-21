@@ -999,7 +999,6 @@
               },
               "valueType": "xs:string",
               "category": "CONSTANT",
-              "idShort": "ExampleProperty",
               "description": [
                 {
                   "language": "en-us",
@@ -1335,17 +1334,14 @@
           "value": [
             {
               "modelType": "Property",
-              "valueType": "xs:string",
-              "idShort": "ExampleProperty"
+              "valueType": "xs:string"
             },
             {
-              "modelType": "MultiLanguageProperty",
-              "idShort": "ExampleMultiLanguageProperty"
+              "modelType": "MultiLanguageProperty"
             },
             {
               "modelType": "Range",
-              "valueType": "xs:int",
-              "idShort": "ExampleRange"
+              "valueType": "xs:int"
             }
           ]
         },
@@ -1774,7 +1770,6 @@
                 }
               ],
               "category": "CONSTANT",
-              "idShort": "ExampleProperty",
               "description": [
                 {
                   "language": "en-us",
@@ -1798,7 +1793,6 @@
                 "type": "ExternalReference"
               },
               "category": "CONSTANT",
-              "idShort": "ExampleMultiLanguageProperty",
               "value": [
                 {
                   "language": "en-us",
@@ -1835,7 +1829,6 @@
               "min": "0",
               "valueType": "xs:int",
               "category": "PARAMETER",
-              "idShort": "ExampleRange",
               "description": [
                 {
                   "language": "en-us",
@@ -1861,7 +1854,7 @@
             "type": "ExternalReference"
           },
           "category": "PARAMETER",
-          "idShort": "ExampleSubmodelElementCollection",
+          "idShort": "SMC idShort",
           "description": [
             {
               "language": "en-us",

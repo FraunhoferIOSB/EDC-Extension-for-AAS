@@ -42,6 +42,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+
 class PublicApiManagementServiceTest {
 
     private final Monitor monitor = new ConsoleMonitor().withPrefix("PublicApiManagementServiceTest");
@@ -52,6 +53,7 @@ class PublicApiManagementServiceTest {
 
     private ApiAuthenticationRegistry apiAuthenticationRegistry;
 
+
     @BeforeEach
     void setUp() {
         apiAuthenticationRegistry = mock(ApiAuthenticationRegistry.class);
@@ -61,6 +63,7 @@ class PublicApiManagementServiceTest {
 
         testSubject = new PublicApiManagementService(customAuthenticationRequestFilterSpy, monitor);
     }
+
 
     @Test
     void test_addEndpoints_normalBehaviourOneEndpointAdded() {
@@ -82,11 +85,13 @@ class PublicApiManagementServiceTest {
         verifyNormalOperationOnPublicEndpoint(verificationEndpoint);
     }
 
+
     private void verifyNormalOperationOnPublicEndpoint(Endpoint endpoint) {
         try {
             // If this operation fails, the endpoint was not added (correctly)
             customAuthenticationRequestFilterSpy.filter(mockContainerRequestContext(endpoint));
-        } catch (AuthenticationFailedException endpointNotAddedCorrectlyException) {
+        }
+        catch (AuthenticationFailedException endpointNotAddedCorrectlyException) {
             fail("Endpoint was not added (correctly)");
         }
 
@@ -97,14 +102,17 @@ class PublicApiManagementServiceTest {
         verify(customAuthenticationRequestFilterSpy, times(1)).addEndpoints(any());
     }
 
+
     private Endpoint createEndpoint(String path, HttpMethod method, Map<String, List<String>> headers) {
         return new Endpoint(path, method, headers);
     }
+
 
     private Endpoint createEndpoint() {
         return createEndpoint("/method", HttpMethod.DELETE,
                 Map.of("api-key", List.of("testing", "beep", "boop")));
     }
+
 
     /* For sending verification requests to the customAuthFilter */
     private ContainerRequestContext mockContainerRequestContext(Endpoint fromEndpoint) {

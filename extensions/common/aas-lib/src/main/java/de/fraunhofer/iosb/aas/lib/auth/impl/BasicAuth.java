@@ -15,11 +15,14 @@
  */
 package de.fraunhofer.iosb.aas.lib.auth.impl;
 
-
 import de.fraunhofer.iosb.aas.lib.auth.AuthenticationMethod;
 
+import java.net.Authenticator;
+import java.net.PasswordAuthentication;
+import java.net.http.HttpClient;
 import java.util.Base64;
 import java.util.Objects;
+
 
 /**
  * <a href="https://datatracker.ietf.org/doc/html/rfc7617#section-2">rfc7617</a>
@@ -32,13 +35,24 @@ public class BasicAuth extends AuthenticationMethod {
     private final String username;
     private final String password;
 
+
     public BasicAuth(String username, String password) {
         this.username = Objects.requireNonNull(username);
         this.password = Objects.requireNonNull(password);
     }
 
+
     protected String getValue() {
         return "Basic %s".formatted(BASE64_ENCODER.encodeToString("%s:%s".formatted(username, password).getBytes()));
     }
 
+
+    @Override
+    public HttpClient.Builder httpClientBuilderFor() {
+        return HttpClient.newBuilder().authenticator(new Authenticator() {
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(username, password.toCharArray());
+            }
+        });
+    }
 }

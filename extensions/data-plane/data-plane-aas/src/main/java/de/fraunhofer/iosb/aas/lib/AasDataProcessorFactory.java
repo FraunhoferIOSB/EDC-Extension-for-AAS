@@ -22,12 +22,9 @@ import okhttp3.Response;
 import org.eclipse.edc.http.client.EdcHttpClientImpl;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
-import org.jetbrains.annotations.Nullable;
-
-import java.security.cert.Certificate;
 
 import static de.fraunhofer.iosb.aas.lib.http.HttpClientProvider.clientFor;
-import static de.fraunhofer.iosb.ssl.impl.DefaultSelfSignedCertificateRetriever.isTrusted;
+
 
 public abstract class AasDataProcessorFactory {
 
@@ -37,6 +34,7 @@ public abstract class AasDataProcessorFactory {
     private final OkHttpClient edcOkHttpClient;
     private final RetryPolicy<Response> edcRetryPolicy;
     private final Monitor monitor;
+
 
     public AasDataProcessorFactory(SelfSignedCertificateRetriever retriever,
                                    OkHttpClient edcOkHttpClient,
@@ -49,10 +47,10 @@ public abstract class AasDataProcessorFactory {
         this.edcRetryPolicy = edcRetryPolicy;
     }
 
+
     /**
-     * Return a processor accepting the certificates of the server behind the given URL.
-     * This is for AAS services with self-signed certificates.
-     * Allowing self-signed certificates can be configured (see readme).
+     * Return a processor accepting the certificates of the server behind the given URL. This is for AAS services with self-signed certificates. Allowing self-signed certificates
+     * can be configured (see readme).
      *
      * @param aasUrl URL of AAS service without element access suffix (e.g., /submodels)
      * @return AAS Processor allowing communication with AAS service using AAS data addresses
@@ -72,30 +70,19 @@ public abstract class AasDataProcessorFactory {
 
             if (customClientResult.succeeded()) {
                 client = customClientResult.getContent();
-            } else {
+            }
+            else {
                 return Result.failure(customClientResult.getFailureDetail());
             }
-        } else if (certResult.succeeded() && certResult.getContent() == null) {
+        }
+        else if (certResult.succeeded() && certResult.getContent() == null) {
             monitor.debug("%s is trusted".formatted(aasUrl));
-        } else {
+        }
+        else {
             monitor.info("Did not retrieve certificates for %s: %s".formatted(aasUrl, certResult.getFailureDetail()));
         }
 
         return Result.success(new AasDataProcessor(new EdcHttpClientImpl(client, edcRetryPolicy, monitor)));
     }
 
-    protected Result<@Nullable Certificate[]> retrieveCertificates(String aasUrl) {
-        if (isTrusted(aasUrl) || "http".equalsIgnoreCase(aasUrl.substring(0, 4))) {
-            return Result.success(null);
-        }
-
-        var certsResult = retriever.getSelfSignedCertificate(aasUrl);
-
-        if (certsResult.failed()) {
-            return Result.failure("Certificates were neither trusted nor self-signed: %s"
-                    .formatted(certsResult.getFailureMessages()));
-        }
-
-        return certsResult;
-    }
 }

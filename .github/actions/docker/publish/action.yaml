@@ -51,7 +51,7 @@ runs:
         PROJECT: ${{ inputs.project_name }}
       run: |
         set -euo pipefail
-    
+        
         ORG_LC="${ORG,,}"
         PROJECT_LC="${PROJECT,,}"
         REMOTE_REPO="${REGISTRY}/${ORG_LC}/${PROJECT_LC}"

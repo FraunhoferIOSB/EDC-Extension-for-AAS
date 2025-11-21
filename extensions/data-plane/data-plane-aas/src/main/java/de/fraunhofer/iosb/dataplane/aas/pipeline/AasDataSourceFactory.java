@@ -39,15 +39,18 @@ public class AasDataSourceFactory implements DataSourceFactory {
     private final Monitor monitor;
     private final AasDataProcessorFactory aasDataProcessorFactory;
 
+
     public AasDataSourceFactory(Monitor monitor, AasDataProcessorFactory aasDataProcessorFactory) {
         this.monitor = monitor;
         this.aasDataProcessorFactory = aasDataProcessorFactory;
     }
 
+
     @Override
     public String supportedType() {
         return AAS_DATA_TYPE;
     }
+
 
     @Override
     public DataSource createSource(DataFlowStartMessage request) {
@@ -71,11 +74,13 @@ public class AasDataSourceFactory implements DataSourceFactory {
                 .build();
     }
 
+
     @Override
     public @NotNull Result<Void> validateRequest(DataFlowStartMessage request) {
         try (var ignored = createSource(request)) {
             return Result.success();
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             return Result.failure("Failed to validate AAS data source: " + e.getMessage());
         }
     }

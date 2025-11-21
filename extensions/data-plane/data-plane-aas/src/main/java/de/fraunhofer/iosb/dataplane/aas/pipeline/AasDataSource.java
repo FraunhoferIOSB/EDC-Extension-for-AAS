@@ -35,9 +35,9 @@ import java.util.stream.Stream;
 
 import static java.lang.String.format;
 
+
 /**
- * Data source for new FA³ST with possibly self-signed certificate.
- * Inspired by HttpDataAddress
+ * Data source for new FA³ST with possibly self-signed certificate. Inspired by HttpDataAddress
  */
 public class AasDataSource implements DataSource {
 
@@ -51,8 +51,10 @@ public class AasDataSource implements DataSource {
     private AasDataProcessorFactory aasDataProcessorFactory;
     private AasDataAddress aasDataAddress;
 
+
     private AasDataSource() {
     }
+
 
     @Override
     public StreamResult<Stream<Part>> openPartStream() {
@@ -91,31 +93,38 @@ public class AasDataSource implements DataSource {
                         Optional.ofNullable(body.contentType()).map(MediaType::toString).orElse(APPLICATION_JSON);
                 return StreamResult.success(Stream.of(new AasPart("AAS Part", bodyStream, mediaType)));
 
-            } else {
+            }
+            else {
                 try {
                     if (NOT_AUTHORIZED == response.code() || FORBIDDEN == response.code()) {
                         monitor.severe("Failed to get data from source: %s".formatted(response.code()));
                         return StreamResult.notAuthorized();
-                    } else if (NOT_FOUND == response.code()) {
+                    }
+                    else if (NOT_FOUND == response.code()) {
                         monitor.severe("Failed to get data from source: %s".formatted(response.code()));
                         return StreamResult.notFound();
-                    } else {
+                    }
+                    else {
                         return StreamResult.error(format("Received code transferring AAS data: %s - %s. More Information: %s",
                                 response.code(), response.message(), response.body().string()));
                     }
-                } finally {
+                }
+                finally {
                     try {
                         response.close();
-                    } catch (Exception e) {
+                    }
+                    catch (Exception e) {
                         monitor.severe("Error closing failed response", e);
                     }
                 }
             }
 
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             throw new EdcException(e);
         }
     }
+
 
     @Override
     public void close() {
@@ -124,40 +133,49 @@ public class AasDataSource implements DataSource {
             bodyStream.responseBody().close();
             try {
                 bodyStream.stream().close();
-            } catch (IOException e) {
+            }
+            catch (IOException e) {
                 // do nothing --> closing the response body should close the inputStream as well...
             }
         }
     }
 
+
     private record ResponseBodyStream(ResponseBody responseBody, InputStream stream) {
     }
 
+
     public static class Builder {
         private final AasDataSource dataSource;
+
 
         private Builder() {
             dataSource = new AasDataSource();
         }
 
+
         public static Builder newInstance() {
             return new Builder();
         }
+
 
         public Builder requestId(String requestId) {
             dataSource.requestId = requestId;
             return this;
         }
 
+
         public Builder aasDataProcessorFactory(AasDataProcessorFactory aasDataProcessor) {
             dataSource.aasDataProcessorFactory = aasDataProcessor;
             return this;
         }
 
+
         public Builder monitor(Monitor monitor) {
             dataSource.monitor = monitor;
             return this;
         }
+
 
         public Builder aasDataAddress(AasDataAddress aasDataAddress) {
             dataSource.aasDataAddress = aasDataAddress;

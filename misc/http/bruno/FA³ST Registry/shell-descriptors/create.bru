@@ -1,0 +1,50 @@
+meta {
+  name: create
+  type: http
+  seq: 1
+}
+
+post {
+  url: https://localhost:8090/api/v3.0/shell-descriptors
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "id": "AssetAdministrationShell---258DF22A",
+    "idShort": "ControlComponentTemplateShell",
+    "globalAssetId": "Asset---39969D2A",
+    "endpoints": [
+      {
+        "interface": "AAS-3.0",
+        "protocolInformation": {
+          "href": "http://localhost/api/v3.0/shells/QXNzZXRBZG1pbmlzdHJhdGlvblNoZWxsLS0tMjU4REYyMkE=",
+          "endpointProtocol": "HTTP",
+          "endpointProtocolVersion": ["1.1"]
+        }
+      }
+    ],
+    "submodelDescriptors": [
+      {
+        "id": "https://example.com/ids/sm/5213_1120_8022_9305",
+        "idShort": "SM_5213_1120_8022_9305",
+        "endpoints": [
+          {
+            "interface": "SUBMODEL-3.0",
+            "protocolInformation": {
+              "href": "http://localhost/api/v3.0/submodels/aHR0cHM6Ly9leGFtcGxlLmNvbS9pZHMvc20vNTIxM18xMTIwXzgwMjJfOTMwNQ==",
+              "endpointProtocol": "HTTP",
+              "endpointProtocolVersion": ["1.1"]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

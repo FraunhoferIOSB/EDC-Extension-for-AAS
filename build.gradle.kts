@@ -17,14 +17,6 @@ allprojects {
     apply(plugin = "java-library")
 }
 subprojects {
-
-    tasks.withType<ShadowJar>().configureEach {
-        isZip64 = true
-        exclude("**/pom.properties", "**/pom.xm")
-        mergeServiceFiles()
-        archiveFileName.set("${project.projectDir.name}.jar")
-    }
-
     plugins.withId("application") {
         // Set main class for apps
         extensions.configure<JavaApplication>("application") {
@@ -39,6 +31,12 @@ subprojects {
 
         // If Shadow is applied, disable its app-related tasks
         plugins.withId("com.github.johnrengelman.shadow") {
+            tasks.named<ShadowJar>("shadowJar") {
+                isZip64 = true
+                exclude("**/pom.properties", "**/pom.xml")
+                mergeServiceFiles()
+                archiveFileName.set("${project.projectDir.name}.jar")
+            }
             tasks.named<CreateStartScripts>("startShadowScripts") { enabled = false }
             tasks.named<Zip>("shadowDistZip") { enabled = false }
             tasks.named<Tar>("shadowDistTar") { enabled = false }

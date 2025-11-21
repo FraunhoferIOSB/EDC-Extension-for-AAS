@@ -26,15 +26,18 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+
 class ConfigurationControllerTest {
     private static final String CONFIG_VALUE_PREFIX = "edc.aas.";
 
     private ConfigurationController testSubject;
 
+
     @BeforeEach
     void setUp() {
         testSubject = new ConfigurationController(ConfigFactory.empty(), new ConsoleMonitor());
     }
+
 
     @Test
     public void changeSingleConfigValueTest() {
@@ -46,6 +49,7 @@ class ConfigurationControllerTest {
         assertTrue(Configuration.getInstance().isExposeSelfDescription());
         assertEquals(123456, Configuration.getInstance().getSyncPeriod());
     }
+
 
     @Test
     public void putWrongConfigValueTest() {

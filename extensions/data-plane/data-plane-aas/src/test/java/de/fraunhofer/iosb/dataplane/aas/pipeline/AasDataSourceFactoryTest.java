@@ -33,7 +33,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-import java.net.URL;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 
 import static de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress.PROXY_OPERATION;
@@ -44,10 +44,12 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+
 class AasDataSourceFactoryTest {
 
     private final AasDataProcessorFactory mockedDataProcessorFactory = mock(AasDataProcessorFactory.class);
     private AasDataSourceFactory testSubject;
+
 
     @BeforeEach
     void setUp() {
@@ -55,27 +57,28 @@ class AasDataSourceFactoryTest {
                 mockedDataProcessorFactory);
     }
 
+
     @Disabled("Changed functionality")
     @Test
     void test_createSource_differentTargetDataAddressType() throws Exception {
         var mockedDataFlowStartMessage = mock(DataFlowStartMessage.class);
-        var accessUrl = new URL("https://localhost:1234");
+        var accessUri = new URI("https://localhost:1234");
         var mockedProcessor = mock(AasDataProcessor.class);
         when(mockedProcessor.getFromAas(any()))
                 .thenReturn(new Response.Builder()
                         .code(200)
                         .request(new Request.Builder()
-                                .url(accessUrl)
+                                .url(accessUri.toURL())
                                 .build())
                         .protocol(Protocol.HTTP_1_1)
                         .message("")
                         .body(ResponseBody.create("{\"test\": \"ok\"}".getBytes(StandardCharsets.UTF_8), okhttp3.MediaType.get("application/json")))
                         .build());
-        when(mockedDataProcessorFactory.processorFor(accessUrl.toString())).thenReturn(Result.success(mockedProcessor));
+        when(mockedDataProcessorFactory.processorFor(accessUri.toString())).thenReturn(Result.success(mockedProcessor));
 
         when(mockedDataFlowStartMessage.getSourceDataAddress())
                 .thenReturn(AasDataAddress.Builder.newInstance()
-                        .baseUrl(accessUrl.toString())
+                        .baseUrl(accessUri.toString())
                         .build());
 
         // Destination of not type AasData
@@ -94,7 +97,7 @@ class AasDataSourceFactoryTest {
             source.openPartStream();
         }
 
-        verify(mockedDataProcessorFactory, times(1)).processorFor(accessUrl.toString());
+        verify(mockedDataProcessorFactory, times(1)).processorFor(accessUri.toString());
 
         // Here is the actual tested feat
         verify(mockedProcessor).getFromAas(argThat(aasDataAddress -> aasDataAddress.hasProperty(PROXY_OPERATION)));

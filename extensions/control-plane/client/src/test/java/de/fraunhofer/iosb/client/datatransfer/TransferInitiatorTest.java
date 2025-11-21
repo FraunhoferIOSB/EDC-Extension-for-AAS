@@ -24,8 +24,8 @@ import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Map;
 import java.util.UUID;
 
@@ -35,12 +35,14 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+
 public class TransferInitiatorTest {
 
     private final TransferProcessManager mockTransferProcessManager = mock(TransferProcessManager.class);
 
     private TransferInitiator transferInitiator;
     private StatusResult<TransferProcess> mockStatusResult;
+
 
     @BeforeEach
     @SuppressWarnings("unchecked")
@@ -55,20 +57,22 @@ public class TransferInitiatorTest {
         when(mockTransferProcessManager.initiateConsumerRequest(any())).thenReturn(mockStatusResult);
     }
 
+
     @Test
-    void testInitiateTransferProcess() throws MalformedURLException {
+    void testInitiateTransferProcess() throws URISyntaxException {
         when(mockStatusResult.failed()).thenReturn(false);
 
-        transferInitiator.initiateTransferProcess(new URL("http://provider-url:1234"), "test-agreement-id",
+        transferInitiator.initiateTransferProcess(new URI("http://provider-url:1234"), "test-agreement-id",
                 UUID.randomUUID().toString());
         verify(mockTransferProcessManager, times(1)).initiateConsumerRequest(any());
     }
 
+
     @Test
-    void testInitiateTransferProcessCustomDataAddress() throws MalformedURLException {
+    void testInitiateTransferProcessCustomDataAddress() throws URISyntaxException {
         when(mockStatusResult.failed()).thenReturn(false);
         var dataSink = HttpDataAddress.Builder.newInstance().baseUrl("https://example.com").build();
-        transferInitiator.initiateTransferProcess(new URL("http://provider-url:1234"),
+        transferInitiator.initiateTransferProcess(new URI("http://provider-url:1234"),
                 "test-agreement-id", dataSink);
         verify(mockTransferProcessManager, times(1)).initiateConsumerRequest(any());
     }

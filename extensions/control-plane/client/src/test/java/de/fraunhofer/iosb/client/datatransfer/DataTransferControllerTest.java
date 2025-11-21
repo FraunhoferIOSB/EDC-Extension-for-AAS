@@ -35,8 +35,8 @@ import org.eclipse.edc.web.spi.WebService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -48,11 +48,13 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+
 class DataTransferControllerTest {
     private static final String AGREEMENT_ID = UUID.randomUUID().toString();
-    private static URL url;
+    private static URI uri;
     private final TransferProcessManager mockTransferProcessManager = mock(TransferProcessManager.class);
     private DataTransferController testSubject;
+
 
     private static DataAddress getDataAddress(Object operation) {
         return DataAddress.Builder.newInstance()
@@ -65,6 +67,7 @@ class DataTransferControllerTest {
                 .property(OPERATION_FIELD, operation)
                 .build();
     }
+
 
     private static Operation getOperation() {
         return new DefaultOperation.Builder()
@@ -104,10 +107,11 @@ class DataTransferControllerTest {
                 .build();
     }
 
+
     @BeforeEach
-    public void setup() throws IOException {
+    public void setup() throws URISyntaxException {
         int port = 8080;
-        url = new URL(format("http://localhost:%s", port));
+        uri = new URI(format("http://localhost:%s", port));
         testSubject = new DataTransferController(
                 new ConsoleMonitor().withPrefix("DataTransferControllerTest"),
                 mockConfig(),
@@ -118,6 +122,7 @@ class DataTransferControllerTest {
                 () -> "localhost");
     }
 
+
     private Config mockConfig() {
         return ConfigFactory.fromMap(
                 Map.of(
@@ -125,6 +130,7 @@ class DataTransferControllerTest {
                         "web.http.port", "8080",
                         "web.http.path", "/api"));
     }
+
 
     @Test
     void test_getData_correctlySerializeOperation() throws JsonProcessingException {
@@ -135,11 +141,12 @@ class DataTransferControllerTest {
         var operationString = nnneObjectMapper.writeValueAsString(operation);
         DataAddress dataSinkAddress = getDataAddress(operation);
 
-        testSubject.getData(url, AGREEMENT_ID, dataSinkAddress);
+        testSubject.getData(uri, AGREEMENT_ID, dataSinkAddress);
         // Verify that operation is serialized before sending it to provider
         verify(mockTransferProcessManager).initiateConsumerRequest(argThat(request ->
                 operationString.equals(request.getDataDestination().getStringProperty(OPERATION_FIELD))));
     }
+
 
     @Test
     void test_getData_correctlySerializeNullOperation() {
@@ -147,18 +154,19 @@ class DataTransferControllerTest {
 
         DataAddress dataSinkAddress = getDataAddress(operation);
 
-        testSubject.getData(url, AGREEMENT_ID, dataSinkAddress);
+        testSubject.getData(uri, AGREEMENT_ID, dataSinkAddress);
         // Verify that operation is serialized before sending it to provider
         verify(mockTransferProcessManager).initiateConsumerRequest(argThat(request ->
                 null == request.getDataDestination().getProperties().get(OPERATION_FIELD)));
     }
+
 
     @Test
     void getDataTest() {
         var aasDataAddress = DataAddress.Builder.newInstance()
                 .type("AasData")
                 .build();
-        try (var response = testSubject.getData(url, AGREEMENT_ID, aasDataAddress)) {
+        try (var response = testSubject.getData(uri, AGREEMENT_ID, aasDataAddress)) {
             assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
         }
     }

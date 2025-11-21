@@ -40,6 +40,7 @@ import java.util.stream.Stream;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.CONFLICT;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.NOT_FOUND;
 
+
 public abstract class ControlPlaneConnectionHandler<T extends Entity> {
 
     public static final String MESSAGE_CODE_TEMPLATE = "Message: %s; Status code: %d";
@@ -50,12 +51,14 @@ public abstract class ControlPlaneConnectionHandler<T extends Entity> {
     protected final Monitor monitor;
     protected final Codec codec;
 
+
     public ControlPlaneConnectionHandler(Monitor monitor, EdcHttpClient httpClient, Codec codec, ControlPlaneConnection connection) {
         this.monitor = monitor;
         this.httpClient = httpClient;
         this.codec = codec;
         this.controlPlane = connection;
     }
+
 
     protected Stream<T> queryEntities(QuerySpec spec, Class<T> clazz) {
         String querySpecString = codec.serialize(spec);
@@ -80,6 +83,7 @@ public abstract class ControlPlaneConnectionHandler<T extends Entity> {
 
         return deserialized.getContent().stream();
     }
+
 
     protected T findById(String entityId, Class<T> clazz) {
         var request = controlPlane.prepareRequest(HttpMethod.GET, entityId, null);
@@ -106,6 +110,7 @@ public abstract class ControlPlaneConnectionHandler<T extends Entity> {
         return deserialized.getContent();
     }
 
+
     protected StoreResult<Void> createEntity(T entity) {
         var serialized = codec.serialize(entity);
 
@@ -124,6 +129,7 @@ public abstract class ControlPlaneConnectionHandler<T extends Entity> {
         return StoreResult.success();
     }
 
+
     protected StoreResult<T> deleteById(String entityId, Class<T> clazz) {
         // NOTE: since deleteById requires the deleted asset as return value and the mgmt-api does not return it, we have to get it first.
         var entity = this.findById(entityId, clazz);
@@ -140,7 +146,8 @@ public abstract class ControlPlaneConnectionHandler<T extends Entity> {
         if (!response.succeeded()) {
             if (NOT_FOUND == response.reason()) {
                 return StoreResult.notFound(response.getFailureDetail());
-            } else if (CONFLICT == response.reason()) {
+            }
+            else if (CONFLICT == response.reason()) {
                 return StoreResult.alreadyLeased(response.getFailureDetail());
             }
             reportError(response.getFailure());
@@ -149,6 +156,7 @@ public abstract class ControlPlaneConnectionHandler<T extends Entity> {
 
         return StoreResult.success(entity);
     }
+
 
     protected StoreResult<T> updateEntity(T entity, Class<T> clazz) {
         var entityString = codec.serialize(entity);
@@ -169,9 +177,12 @@ public abstract class ControlPlaneConnectionHandler<T extends Entity> {
         return StoreResult.success(findById(entity.getId(), clazz));
     }
 
+
     protected abstract String getExistsTemplate();
 
+
     protected abstract String getNotFoundTemplate();
+
 
     protected ServiceResult<String> executeRequest(Request request) {
         try (Response response = this.httpClient.execute(request)) {
@@ -197,16 +208,19 @@ public abstract class ControlPlaneConnectionHandler<T extends Entity> {
             }
             return ServiceResult.success(body.string());
 
-        } catch (IOException controlPlaneConnectionException) {
+        }
+        catch (IOException controlPlaneConnectionException) {
             return ServiceResult.unexpected(controlPlaneConnectionException.getMessage());
         }
     }
+
 
     private void reportError(ServiceFailure failure) {
         monitor.severe(String.format("%s: %s", failure.getReason(), failure.getFailureDetail()));
     }
 
-    public abstract static class Builder<T extends ControlPlaneConnectionHandler, B extends Builder<T, B>> {
+
+    public abstract static class Builder<T extends ControlPlaneConnectionHandler<?>, B extends Builder<T, B>> {
         protected EdcHttpClient httpClient;
         protected Monitor monitor;
         protected String managementUri;
@@ -214,34 +228,42 @@ public abstract class ControlPlaneConnectionHandler<T extends Entity> {
         private AuthenticationMethod authenticationMethod;
         private Codec codec;
 
+
         protected abstract B self();
 
+
         protected abstract T create(Monitor monitor, EdcHttpClient httpClient, Codec codec, ControlPlaneConnection connection);
+
 
         public B monitor(Monitor v) {
             this.monitor = v;
             return self();
         }
 
+
         public B codec(Codec codec) {
             this.codec = codec;
             return self();
         }
+
 
         public B httpClient(EdcHttpClient v) {
             this.httpClient = v;
             return self();
         }
 
+
         public B managementUri(String managementUri) {
             this.managementUri = managementUri;
             return self();
         }
 
+
         public B authenticationMethod(AuthenticationMethod authenticationMethod) {
             this.authenticationMethod = authenticationMethod;
             return self();
         }
+
 
         public T build() {
             Objects.requireNonNull(httpClient);

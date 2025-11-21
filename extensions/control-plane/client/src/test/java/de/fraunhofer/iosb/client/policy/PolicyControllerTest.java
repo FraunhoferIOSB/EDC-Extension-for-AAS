@@ -32,10 +32,12 @@ import java.util.ArrayList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 
+
 class PolicyControllerTest {
 
     private static PolicyDefinition mockPolicyDefinition;
     private PolicyController testSubject;
+
 
     @BeforeAll
     public static void initialize() {
@@ -46,6 +48,7 @@ class PolicyControllerTest {
         mockPolicyDefinition = PolicyDefinition.Builder.newInstance()
                 .policy(mockPolicy).build();
     }
+
 
     @BeforeEach
     void setUp() {
@@ -60,16 +63,17 @@ class PolicyControllerTest {
     public void addAcceptedContractOffersTest() {
         var mockPolicyDefinitionsAsList = new ArrayList<PolicyDefinition>();
         mockPolicyDefinitionsAsList.add(mockPolicyDefinition); // ClientEndpoint creates ArrayList
-        var offers = new PolicyDefinition[]{ mockPolicyDefinition };
+        var offers = new PolicyDefinition[] { mockPolicyDefinition };
 
         testSubject.addAcceptedPolicyDefinitions(offers);
 
         assertEquals(mockPolicyDefinitionsAsList, testSubject.getAcceptedPolicyDefinitions().getEntity());
     }
 
+
     @Test
     public void updateAcceptedContractOfferTest() {
-        var offers = new PolicyDefinition[]{ mockPolicyDefinition };
+        var offers = new PolicyDefinition[] { mockPolicyDefinition };
 
         testSubject.addAcceptedPolicyDefinitions(offers);
 
@@ -86,6 +90,7 @@ class PolicyControllerTest {
         assertEquals(mockContractOfferAsList, testSubject.getAcceptedPolicyDefinitions().getEntity());
 
     }
+
 
     @Test
     public void getAcceptedContractOffersTest() {

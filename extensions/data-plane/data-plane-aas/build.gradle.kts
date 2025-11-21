@@ -8,15 +8,9 @@ dependencies {
     implementation(libs.edc.data.plane.spi)
     implementation(libs.edc.http.lib)
 
-    testImplementation(libs.edc.junit)
-    testImplementation(libs.aas4j.model)
-    implementation(project(":extensions:common:data-plane-aas-spi"))
+    testImplementation(testFixtures(project(":extensions:common:aas-lib")))
 
-    testImplementation(libs.wiremock)
-    testImplementation(libs.jupiter)
-    testImplementation(libs.mockito)
-    testImplementation("org.mock-server:mockserver-junit-jupiter:5.15.0")
-    testRuntimeOnly(libs.junit.platform.launcher)
+    testImplementation(libs.aas4j.model)
 }
 
 tasks.test { useJUnitPlatform() }

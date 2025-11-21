@@ -28,6 +28,7 @@ import static org.eclipse.edc.connector.controlplane.contract.spi.types.offer.Co
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition.CONTRACT_DEFINITION_CONTRACTPOLICY_ID;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition.CONTRACT_DEFINITION_PRIVATE_PROPERTIES;
 
+
 /**
  * Copied from upstream due to it not being independently injectable
  */
@@ -37,6 +38,7 @@ public class JsonObjectToContractDefinitionTransformer extends AbstractJsonLdTra
         super(JsonObject.class, ContractDefinition.class);
     }
 
+
     @Override
     public @Nullable ContractDefinition transform(@NotNull JsonObject object, @NotNull TransformerContext context) {
         var builder = ContractDefinition.Builder.newInstance();
@@ -44,6 +46,7 @@ public class JsonObjectToContractDefinitionTransformer extends AbstractJsonLdTra
         visitProperties(object, (s, jsonValue) -> transformProperties(s, jsonValue, builder, context));
         return builderResult(builder::build, context);
     }
+
 
     private void transformProperties(String key, JsonValue jsonValue, ContractDefinition.Builder builder, TransformerContext context) {
         switch (key) {

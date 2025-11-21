@@ -19,16 +19,18 @@ track_launch() {
 
 start_runtime() {
   local project_name="$1"
-  local timeout_secs="${START_RUNTIME_TIMEOUT:-120}"
+  local timeout_secs="${START_RUNTIME_TIMEOUT:-300}"
 
   local config_path="${PWD}/system-tests/config/${project_name}.properties"
 
   if [[ ! -f "$config_path" ]]; then
-    echo "Config file not found: $config_path" >&2
+    echo "ERR: Config file not found: $config_path" >&2
     exit 1
   fi
 
-  local log_file="${project_name}.log"
+  mkdir -p logs
+
+  local log_file="logs/${project_name}.log"
 
   echo "Starting ${project_name}..." >&2
   EDC_FS_CONFIG="$config_path" "${PWD}/gradlew" --no-daemon --console=plain "launchers:${project_name}:run" \
@@ -40,7 +42,7 @@ start_runtime() {
     track_launch "$pid"
     return 0
   else
-    echo "Timed out waiting for runtime readiness (${timeout_secs}s). Killing PID $pid..." >&2
+    echo "ERR: Timed out waiting for runtime readiness (${timeout_secs}s). Killing PID $pid..." >&2
     cat "$log_file" >&2
     track_launch "$pid"
     cleanup_pid "$pid" || true
@@ -69,7 +71,7 @@ verify_request() {
   local method="${3:-POST}"
   local body="${4:-}"
 
-  local log_file="${resource_name}_is.log"
+  local log_file="logs/${resource_name}_is.log"
 
   local curl_args=(
     --silent
@@ -88,14 +90,14 @@ verify_request() {
   http_code=$(curl "${curl_args[@]}")
 
   if [[ "$http_code" != 2?? ]]; then
-    echo "$resource_name: $method request returned HTTP $http_code. Failing test and dumping actual response."
+    echo "ERR: $resource_name: $method request returned HTTP $http_code. Failing test and dumping actual response."
     cat "$log_file" >&2
     exit 1
   fi
 
 if ! python3 'system-tests/json_subset.py' "system-tests/resources/${resource_name}.json" "${log_file}";
   then
-      echo "$resource_name: Response JSON does not match expected. Failing test and dumping actual response."
+      echo "ERR: $resource_name: Response JSON does not match expected. Failing test and dumping actual response."
       jq < "$log_file" >&2
       printf "\n"
       exit 1

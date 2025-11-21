@@ -9,7 +9,7 @@ There are two types of configuration variables:
 
 - Initialization variables are used for bootstrapping the extension. For example, one could supply a `remoteAasLocation`
   which the extension automatically registers on startup.
-- Runtime variables are used during the execution of the extension. This does not mean they necessarily are
+- Runtime variables are used during the execution of the extension. This does not necessarily mean they are
   runtime-modifiable.
 
 ### Initialization
@@ -25,13 +25,13 @@ There are two types of configuration variables:
 
 ### Runtime
 
-| Key (edc.aas.)              | Value Type        | Description                                                                                                                                                                      |
-|:----------------------------|:------------------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| allowSelfSignedCertificates | boolean           | Whether to allow self-signed certificates for own AAS services/registries.                                                                                                       |
-| exposeSelfDescription       | boolean           | Whether the Self Description should be exposed on {edc}/api/selfDescription. When set to False, the selfDescription is still available for authenticated requests. Default: True |
-| onlySubmodels               | boolean           | (Provider) Only register submodels of AAS services. Default: True                                                                                                                |
-| useAasDataPlane             | boolean           | Whether to use AAS data-plane or HTTP DataPlane to register AAS elements. (Default: False)                                                                                       |
-| syncPeriod                  | number in seconds | Time period in which AAS services should be polled for structural changes (added/deleted elements etc.). Default: 50 (seconds).                                                  |
+| Key (edc.aas.)              | Value Type        | Description                                                                                 |
+|:----------------------------|:------------------|:--------------------------------------------------------------------------------------------|
+| allowSelfSignedCertificates | boolean           | Whether to allow self-signed certificates for own AAS services/registries.                  |
+| exposeSelfDescription       | boolean           | Whether to expose the self-description on {edc}/api/selfDescription. Default: True          |
+| onlySubmodels               | boolean           | (Provider) Only register submodels of AAS services. Default: True                           |
+| useAasDataPlane             | boolean           | Whether to use AAS data-plane or HTTP DataPlane to register AAS elements. (Default: True)   |
+| syncPeriod                  | number in seconds | Time period in which AAS remote servers should be polled for changes Default: 50 (seconds). |
 
 ## Interfaces
 
@@ -40,16 +40,7 @@ The AAS extension publishes all of its API over the EDC api endpoint that can be
 endpoints are authenticated if the respective EDC endpoint requires authentication, except for the self-description
 endpoint, which can be configured to be exposed without any authentication.
 
-| HTTP Method | Interface (/api/...) | Query Parameters ((r) = required)                                                                                                                 | Description                                                                                                                                                                                                                                            |
-|:------------|:---------------------|:--------------------------------------------------------------------------------------------------------------------------------------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| GET         | config               | -                                                                                                                                                 | Get current extension configuration values.                                                                                                                                                                                                            |
-| PATCH       | config               | Body: Updated config values (JSON) (r)                                                                                                            | Update config values.                                                                                                                                                                                                                                  |
-| POST        | service              | "url"                                                                                                                                             | Register a standalone AAS service (e.g., FA³ST) to this extension. The service can now be supplied in JSON format with a selection of AAS elements to register and access and usage policies per AAS element. See changelog.md for an example of this. |
-| DELETE      | service              | "url" (r)                                                                                                                                         | Unregister an AAS service (e.g., FA³ST) from this extension, possibly shutting down the service if it has been started internally.                                                                                                                     |
-| POST        | registry             | "url" (r)                                                                                                                                         | Register an AAS registry (e.g., FA³ST) to this extension.                                                                                                                                                                                              |
-| DELETE      | registry             | "url" (r)                                                                                                                                         | Unregister an AAS registry (e.g., FA³ST) from this extension.                                                                                                                                                                                          |
-| POST        | environment          | "environment": Path to AAS environment (r), "port": HTTP communication port of service to be created , "config": Path to FA³ST configuration file | Start a new AAS service internally. Port takes precedence over config.                                                                                                                                                                                 |
-| GET         | selfDescription      | "url"                                                                                                                                             | Return the self-description of all registered services/registries of this extension. If url is defined, return only this self-description.                                                                                                             |
+For the specific API calls, please check out the Bruno collection located in misc/http
 
 ### Dependencies
 

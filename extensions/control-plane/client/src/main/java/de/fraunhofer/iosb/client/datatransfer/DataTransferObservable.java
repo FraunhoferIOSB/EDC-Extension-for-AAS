@@ -27,9 +27,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static java.lang.String.format;
 
+
 /**
- * Gets notified about incoming data by a provider connector.
- * Also notified by the transfer process observable regarding termination of transfer processes
+ * Gets notified about incoming data by a provider connector. Also notified by the transfer process observable regarding termination of transfer processes
  */
 class DataTransferObservable<T> implements TransferProcessListener {
 
@@ -37,10 +37,12 @@ class DataTransferObservable<T> implements TransferProcessListener {
 
     private final Map<String, CompletableFuture<T>> observers;
 
+
     DataTransferObservable(Monitor monitor) {
         this.monitor = monitor;
         observers = new ConcurrentHashMap<>();
     }
+
 
     /**
      * Register a future that should complete if a data transfer is finished.
@@ -54,6 +56,7 @@ class DataTransferObservable<T> implements TransferProcessListener {
         return observers.get(agreementId);
     }
 
+
     /**
      * Unregister an observer.
      *
@@ -63,12 +66,12 @@ class DataTransferObservable<T> implements TransferProcessListener {
         observers.remove(agreementId);
     }
 
+
     /**
-     * Notifies an observer if the agreementID matches any of the observer's
-     * agreementID.
+     * Notifies an observer if the agreementID matches any of the observer's agreementID.
      *
      * @param agreementId The agreementId coming with a provider's data transfer
-     * @param data        Any data by a provider connector
+     * @param data Any data by a provider connector
      */
     void update(String agreementId, T data) {
         if (!observers.containsKey(agreementId)) {
@@ -80,6 +83,7 @@ class DataTransferObservable<T> implements TransferProcessListener {
         }
         observers.get(agreementId).complete(data);
     }
+
 
     @Override
     public void terminated(TransferProcess transferProcess) {

@@ -32,12 +32,14 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
+
 /**
  * Provides OkHttpClient instance allowing communication to a remote service with the given certificate.
  */
 public class HttpClientProvider {
 
     public static final String SSL_PROTOCOL = "TLS";
+
 
     /**
      * Creates a new OkHttpClient which allows communication with a server holding the given certificateChain.
@@ -56,7 +58,8 @@ public class HttpClientProvider {
             var keyStore = createAndPopulateKeyStore(certificateChain);
             tmf.init(keyStore);
             trustManagers = tmf.getTrustManagers();
-        } catch (NoSuchAlgorithmException | KeyStoreException trustManagerException) {
+        }
+        catch (NoSuchAlgorithmException | KeyStoreException trustManagerException) {
             // Something wrong with the system as TLS or a default algorithm is not found
             return Result.failure("%s trying to build trust manager: %s"
                     .formatted(trustManagerException.getClass().getSimpleName(),
@@ -66,7 +69,8 @@ public class HttpClientProvider {
         // No KeyManager needed: we don't need to authenticate ourselves, only trust "others"
         try {
             sslContext.init(null, trustManagers, null);
-        } catch (KeyManagementException keyManagementException) {
+        }
+        catch (KeyManagementException keyManagementException) {
             return Result.failure("%s trying to initialize SSL context: %s"
                     .formatted(keyManagementException.getClass().getSimpleName(), keyManagementException.getMessage()));
         }
@@ -77,19 +81,21 @@ public class HttpClientProvider {
                 .build());
     }
 
+
     private static KeyStore createAndPopulateKeyStore(Certificate[] certs) throws KeyStoreException {
         // Create an empty KeyStore
         var keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
 
         try {
             keyStore.load(null, null);
-        } catch (CertificateException | IOException | NoSuchAlgorithmException keyStoreLoadException) {
+        }
+        catch (CertificateException | IOException | NoSuchAlgorithmException keyStoreLoadException) {
             // Can not be thrown since we input null
             throw new EdcException("Could not set self-signed certificate chain", keyStoreLoadException);
         }
 
         // Add each certificate for each service to the KeyStore
-        for (var cert : certs) {
+        for (var cert: certs) {
             keyStore.setCertificateEntry(String.valueOf(cert.hashCode()), cert);
         }
 

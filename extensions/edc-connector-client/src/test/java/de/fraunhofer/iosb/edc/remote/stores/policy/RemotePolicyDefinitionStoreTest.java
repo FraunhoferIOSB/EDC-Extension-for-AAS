@@ -22,6 +22,7 @@ import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+
 class RemotePolicyDefinitionStoreTest extends AbstractControlPlaneConnectionHandlerTest {
 
     @Test
@@ -41,6 +42,7 @@ class RemotePolicyDefinitionStoreTest extends AbstractControlPlaneConnectionHand
         assertEquals(policyDefinitions, response.toList());
     }
 
+
     @Test
     void remoteAssetIndex_queryContractDefinitionsEmptyResponse() {
         var querySpec = QuerySpec.none();
@@ -59,6 +61,7 @@ class RemotePolicyDefinitionStoreTest extends AbstractControlPlaneConnectionHand
         assertEquals(policyDefinitions, response.toList());
     }
 
+
     @Test
     void findAssetById_assetFoundAndReturned() {
         var id = UUID.randomUUID().toString();
@@ -75,6 +78,7 @@ class RemotePolicyDefinitionStoreTest extends AbstractControlPlaneConnectionHand
         assertEquals(policyDefinition, response);
     }
 
+
     @Test
     void findAssetById_notFound() {
         var id = UUID.randomUUID().toString();
@@ -87,6 +91,7 @@ class RemotePolicyDefinitionStoreTest extends AbstractControlPlaneConnectionHand
 
         assertNull(response);
     }
+
 
     @Test
     void findAssetById_unauthorized() {
@@ -103,6 +108,7 @@ class RemotePolicyDefinitionStoreTest extends AbstractControlPlaneConnectionHand
         verify(monitor).severe(contains(UNAUTHORIZED.name()));
     }
 
+
     @Test
     void connectionHandler_authorizes() {
         authorizedServer();
@@ -114,6 +120,7 @@ class RemotePolicyDefinitionStoreTest extends AbstractControlPlaneConnectionHand
         var response = testSubject.findAll(QuerySpec.max());
         assertNotNull(response);
     }
+
 
     @Test
     void connectionHandler_wrongPasswordNoFailure_andLogs() {
@@ -141,6 +148,7 @@ class RemotePolicyDefinitionStoreTest extends AbstractControlPlaneConnectionHand
 
     }
 
+
     private RemotePolicyDefinitionStore remotePolicyDefinitionStore() {
         return new RemotePolicyDefinitionStore.Builder()
                 .authenticationMethod(new ApiKey("x-api-key", apiKey))
@@ -151,6 +159,7 @@ class RemotePolicyDefinitionStoreTest extends AbstractControlPlaneConnectionHand
                 .build();
     }
 
+
     private RemotePolicyDefinitionStore remotePolicyDefinitionStoreWrongAuth() {
         return new RemotePolicyDefinitionStore.Builder()
                 .authenticationMethod(new ApiKey("x-api-key", apiKey.concat("wrong")))
@@ -160,6 +169,7 @@ class RemotePolicyDefinitionStoreTest extends AbstractControlPlaneConnectionHand
                 .monitor(monitor)
                 .build();
     }
+
 
     private PolicyDefinition getPolicyDefinition() {
         return PolicyDefinition.Builder.newInstance()

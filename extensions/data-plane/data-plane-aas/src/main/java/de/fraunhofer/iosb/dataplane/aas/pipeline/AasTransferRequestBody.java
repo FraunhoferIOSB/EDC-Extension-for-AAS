@@ -23,6 +23,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 
+
 /**
  * Inspired by EDCs NonChunkedTransferRequestBody.
  */
@@ -31,15 +32,18 @@ public class AasTransferRequestBody extends RequestBody {
     private final byte[] bytes;
     private final String contentType;
 
+
     public AasTransferRequestBody(byte[] bytes, String contentType) {
         this.contentType = contentType;
         this.bytes = bytes;
     }
 
+
     @Override
     public long contentLength() {
         return bytes == null ? 0 : bytes.length;
     }
+
 
     @Override
     public void writeTo(@NotNull BufferedSink sink) throws IOException {
@@ -51,6 +55,7 @@ public class AasTransferRequestBody extends RequestBody {
             os.write(bytes);
         }
     }
+
 
     @Nullable
     @Override

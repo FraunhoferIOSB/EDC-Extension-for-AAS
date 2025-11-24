@@ -18,6 +18,7 @@ package de.fraunhofer.iosb.aas.lib.model;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import de.fraunhofer.iosb.ilt.faaast.service.util.ReferenceHelper;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -43,7 +44,7 @@ public record PolicyBinding(Reference referredElement, @JsonAlias("accessPolicyI
 
     public static PolicyBinding ofDefaults(Reference reference) {
         return new Builder()
-                .withReferredElement(reference)
+                .withReferredElement(ReferenceHelper.asString(reference))
                 .withAccessPolicyDefinitionId(DEFAULT_ACCESS_POLICY_DEFINITION_ID)
                 .withContractPolicyDefinitionId(DEFAULT_CONTRACT_POLICY_DEFINITION_ID)
                 .build();
@@ -74,8 +75,9 @@ public record PolicyBinding(Reference referredElement, @JsonAlias("accessPolicyI
         private String contractPolicyDefinitionId;
 
 
-        public Builder withReferredElement(Reference reference) {
-            this.referredElement = Objects.requireNonNull(reference);
+        // Use String because of deserialization with jakarta fails for aas4j-references
+        public Builder withReferredElement(String referenceString) {
+            this.referredElement = ReferenceHelper.parse(Objects.requireNonNull(referenceString));
             return this;
         }
 

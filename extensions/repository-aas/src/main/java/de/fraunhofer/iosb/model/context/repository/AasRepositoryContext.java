@@ -17,6 +17,7 @@ package de.fraunhofer.iosb.model.context.repository;
 
 import de.fraunhofer.iosb.aas.lib.model.PolicyBinding;
 import de.fraunhofer.iosb.aas.lib.util.InetTools;
+import de.fraunhofer.iosb.ilt.faaast.service.util.ReferenceHelper;
 import de.fraunhofer.iosb.model.context.AasServerContext;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 
@@ -54,7 +55,7 @@ public abstract class AasRepositoryContext extends AasServerContext {
     public PolicyBinding getPolicyBinding(Reference reference) {
         return policyBindingIfPresent(reference)
                 .orElse(new PolicyBinding.Builder()
-                        .withReferredElement(reference)
+                        .withReferredElement(ReferenceHelper.asString(reference))
                         .withAccessPolicyDefinitionId(defaultAccessPolicyDefinitionId)
                         .withContractPolicyDefinitionId(defaultContractPolicyDefinitionId)
                         .build());

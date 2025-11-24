@@ -8,7 +8,6 @@ import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
 import org.junit.jupiter.api.Test;
 
-import java.net.MalformedURLException;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;

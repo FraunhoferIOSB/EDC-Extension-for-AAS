@@ -24,11 +24,18 @@ import de.fraunhofer.iosb.app.handler.util.MappingHelper;
 import de.fraunhofer.iosb.client.AasServerClient;
 import de.fraunhofer.iosb.client.exception.UnauthorizedException;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.util.AasUtils;
+import org.eclipse.digitaltwin.aas4j.v3.model.Blob;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
 import org.eclipse.digitaltwin.aas4j.v3.model.Identifiable;
+import org.eclipse.digitaltwin.aas4j.v3.model.MultiLanguageProperty;
+import org.eclipse.digitaltwin.aas4j.v3.model.Property;
+import org.eclipse.digitaltwin.aas4j.v3.model.Range;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
+import org.eclipse.digitaltwin.aas4j.v3.model.ReferenceElement;
 import org.eclipse.digitaltwin.aas4j.v3.model.Submodel;
 import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElement;
+import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElementCollection;
+import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElementList;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultExtension;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -37,8 +44,10 @@ import org.eclipse.edc.spi.result.StoreFailure;
 import org.eclipse.edc.spi.result.StoreResult;
 
 import java.net.ConnectException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -222,8 +231,85 @@ public abstract class AasHandler<C extends AasServerClient> {
     }
 
 
-    protected abstract SubmodelElement mapSubmodelElement(Reference reference, SubmodelElement submodelElement);
+    protected SubmodelElement mapSubmodelElement(Reference parent, SubmodelElement submodelElement) {
+        Reference submodelElementReference = AasUtils.toReference(parent, submodelElement);
+        if (submodelElement instanceof SubmodelElementList list) {
+            List<SubmodelElement> value = list.getValue();
+            for (int i = 0; i < value.size(); i++) {
+                SubmodelElement element = value.get(i);
+                element.setIdShort(String.valueOf(i));
+                mapSubmodelElement(submodelElementReference, element);
+                // AASd-120
+                element.setIdShort(null);
+            }
+        }
+        else if (submodelElement instanceof SubmodelElementCollection collection) {
+            collection.getValue().forEach(element -> mapSubmodelElement(submodelElementReference, element));
+        } // TODO make this configurable
+        else if (submodelElement instanceof Property property) {
+            property.setValue(null);
+        }
+        else if (submodelElement instanceof Blob blob) {
+            blob.setValue(null);
+            blob.setContentType(null);
+        }
+        else if (submodelElement instanceof MultiLanguageProperty multiLanguageProperty) {
+            multiLanguageProperty.setValue(null);
+            multiLanguageProperty.setValueId(null);
+        }
+        else if (submodelElement instanceof Range range) {
+            range.setMin(null);
+            range.setMax(null);
+            range.setValueType(null);
+        }
+        else if (submodelElement instanceof ReferenceElement referenceElement) {
+            referenceElement.setValue(null);
+        }
+
+        // We don't want AAS elements that are not registered to be annotated with IDs
+        if (client.doRegister(submodelElementReference)) {
+            submodelElement.getExtensions().add(new DefaultExtension.Builder()
+                    .name(Asset.PROPERTY_ID)
+                    .value(submodelElementMapper.generateId(submodelElementReference))
+                    .build());
+        }
+        return submodelElement;
+    }
 
 
-    protected abstract SubmodelElement filterSubmodelElementStructure(Reference reference, SubmodelElement submodelElement);
+    protected SubmodelElement filterSubmodelElementStructure(Reference parent, SubmodelElement submodelElement) {
+
+        Reference submodelElementReference = AasUtils.toReference(parent, submodelElement);
+
+        if (submodelElement instanceof SubmodelElementList list) {
+            List<SubmodelElement> listChildren = list.getValue();
+            List<SubmodelElement> filteredChildren = new ArrayList<>();
+            // AASd-120 - aware
+            for (int i = 0; i < listChildren.size(); i++) {
+                SubmodelElement child = listChildren.get(i);
+                child.setIdShort(String.valueOf(i));
+                var filteredChild = filterSubmodelElementStructure(submodelElementReference, child);
+
+                if (Objects.nonNull(filteredChild)) {
+                    filteredChild.setIdShort(null);
+                    filteredChildren.add(filteredChild);
+                }
+
+            }
+            list.setValue(filteredChildren);
+        }
+        else if (submodelElement instanceof SubmodelElementCollection collection) {
+            collection.setValue(collection.getValue().stream()
+                    .map(child -> filterSubmodelElementStructure(submodelElementReference, child))
+                    .filter(Objects::nonNull)
+                    .toList());
+        }
+
+        if (client.doRegister(AasUtils.toReference(parent, submodelElement)) ||
+                submodelElement instanceof SubmodelElementList list && !list.getValue().isEmpty() ||
+                submodelElement instanceof SubmodelElementCollection collection && !collection.getValue().isEmpty()) {
+            return submodelElement;
+        }
+        return null;
+    }
 }

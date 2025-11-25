@@ -29,7 +29,6 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.URI;
-import java.util.List;
 
 import static de.fraunhofer.iosb.app.testutils.AasCreator.getEmptyEnvironment;
 import static de.fraunhofer.iosb.app.testutils.AasCreator.getEnvironment;
@@ -91,8 +90,7 @@ public class RepositoryControllerIT extends AbstractAasServerControllerIT<Reposi
         assertSelfDescription(selfDescription);
 
         assertIdentifiables(environment.getAssetAdministrationShells(), selfDescription.getAssetAdministrationShells());
-        assertIdentifiables(environment.getSubmodels().stream().peek(sm -> sm.setSubmodelElements(List.of())).toList(),
-                selfDescription.getSubmodels());
+        assertIdentifiables(environment.getSubmodels(), selfDescription.getSubmodels());
         assertIdentifiables(environment.getConceptDescriptions(), selfDescription.getConceptDescriptions());
     }
 
@@ -120,8 +118,7 @@ public class RepositoryControllerIT extends AbstractAasServerControllerIT<Reposi
         assertSelfDescription(selfDescription);
 
         assertIdentifiables(environment.getAssetAdministrationShells(), selfDescription.getAssetAdministrationShells());
-        assertIdentifiables(environment.getSubmodels().stream().peek(sm -> sm.setSubmodelElements(List.of())).toList(),
-                selfDescription.getSubmodels());
+        assertIdentifiables(environment.getSubmodels(), selfDescription.getSubmodels());
         assertIdentifiables(environment.getConceptDescriptions(), selfDescription.getConceptDescriptions());
     }
 

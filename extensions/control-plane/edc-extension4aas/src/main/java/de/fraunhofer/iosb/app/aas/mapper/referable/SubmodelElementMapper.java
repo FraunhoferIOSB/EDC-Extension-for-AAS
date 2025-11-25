@@ -87,15 +87,6 @@ public class SubmodelElementMapper extends ReferableMapper {
             assetBuilder.property(SMC_CHILDREN_LOCATION, mappedChildren);
         }
 
-        // TODO decide if these are advertised in catalog/self-description
-        //if (submodelElement instanceof Operation operation) {
-        //  assetBuilder.property(OPERATION,
-        //    Map.of(OPERATION.concat("/inputVariables"), getNamespacedList(operation.getInputVariables()),
-        //      OPERATION.concat("/inoutputVariables"), getNamespacedList(operation.getInoutputVariables()),
-        //      OPERATION.concat("/outputVariables"), getNamespacedList(operation.getOutputVariables()))
-        //    );
-        //  }
-
         if (submodelElement instanceof File file) {
             assetBuilder.contentType(file.getContentType());
         }
@@ -103,8 +94,7 @@ public class SubmodelElementMapper extends ReferableMapper {
             assetBuilder.contentType(blob.getContentType());
         }
 
-        return assetBuilder
-                .build();
+        return assetBuilder.build();
     }
 
 

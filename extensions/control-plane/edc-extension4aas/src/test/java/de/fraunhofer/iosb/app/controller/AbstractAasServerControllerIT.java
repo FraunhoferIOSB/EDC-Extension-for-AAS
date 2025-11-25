@@ -22,6 +22,10 @@ import de.fraunhofer.iosb.ilt.faaast.service.model.api.paging.PagingMetadata;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
 import org.eclipse.digitaltwin.aas4j.v3.model.Extension;
 import org.eclipse.digitaltwin.aas4j.v3.model.Identifiable;
+import org.eclipse.digitaltwin.aas4j.v3.model.Submodel;
+import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElement;
+import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElementCollection;
+import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElementList;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.defaults.storage.assetindex.InMemoryAssetIndex;
@@ -71,15 +75,37 @@ public abstract class AbstractAasServerControllerIT<C extends AbstractAasServerC
         assertEquals(identifiablesIs.size(), identifiablesShould.size());
 
         List<Extension> extensionsIs = new ArrayList<>();
-        for (T aas: identifiablesIs) {
+        for (T identifiable: identifiablesIs) {
             // In this test, they don't have extensions beforehand.
-            extensionsIs.add(aas.getExtensions().remove(0));
-            assertTrue(identifiablesShould.contains(aas));
+            extensionsIs.add(identifiable.getExtensions().remove(0));
+            contains(identifiablesShould, identifiable);
         }
 
         assertEquals(identifiablesShould.size(), extensionsIs.size());
         List<String> assetIds = extensionsIs.stream().map(Extension::getValue).toList();
         assetIds.forEach(this::assertStores);
+    }
+
+
+    protected <T extends Identifiable> void contains(List<T> identifiablesShould, T identifiable) {
+        if (identifiable instanceof Submodel submodel) {
+            var submodelsShould = identifiablesShould.stream()
+                    .filter(Submodel.class::isInstance)
+                    .map(Submodel.class::cast)
+                    .toList();
+
+            var subElementsShould = submodelsShould.stream().map(Submodel::getSubmodelElements).toList();
+            submodel.getSubmodelElements().forEach(AbstractAasServerControllerIT::clearExtensionsRec);
+
+            assertTrue(subElementsShould.stream()
+                    .anyMatch(subElements ->
+                            subElements.containsAll(submodel.getSubmodelElements()) &&
+                                    submodel.getSubmodelElements()
+                                            .containsAll(subElements)));
+        }
+        else {
+            assertTrue(identifiablesShould.contains(identifiable));
+        }
     }
 
 
@@ -101,6 +127,17 @@ public abstract class AbstractAasServerControllerIT<C extends AbstractAasServerC
                 .result(List.of())
                 .metadata(PagingMetadata.builder().build())
                 .build();
+    }
+
+
+    private static void clearExtensionsRec(SubmodelElement element) {
+        if (element instanceof SubmodelElementCollection collection) {
+            collection.getValue().forEach(AbstractAasServerControllerIT::clearExtensionsRec);
+        }
+        if (element instanceof SubmodelElementList list) {
+            list.getValue().forEach(AbstractAasServerControllerIT::clearExtensionsRec);
+        }
+        element.getExtensions().clear();
     }
 
 

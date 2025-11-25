@@ -20,8 +20,6 @@ import de.fraunhofer.iosb.app.handler.edc.EdcStoreHandler;
 import de.fraunhofer.iosb.client.exception.UnauthorizedException;
 import de.fraunhofer.iosb.client.repository.remote.impl.RemoteAasRepositoryClient;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
-import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
-import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElement;
 import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.net.ConnectException;
@@ -52,17 +50,4 @@ public class RemoteAasRepositoryHandler extends RemoteAasHandler<RemoteAasReposi
     protected Environment getEnvironment() throws UnauthorizedException, ConnectException {
         return client.getEnvironment();
     }
-
-
-    @Override
-    protected SubmodelElement mapSubmodelElement(Reference reference, SubmodelElement submodelElement) {
-        return null;
-    }
-
-
-    @Override
-    protected SubmodelElement filterSubmodelElementStructure(Reference reference, SubmodelElement submodelElement) {
-        return null;
-    }
-
 }

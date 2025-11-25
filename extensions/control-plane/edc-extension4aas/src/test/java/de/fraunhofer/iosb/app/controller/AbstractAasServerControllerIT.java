@@ -58,6 +58,17 @@ public abstract class AbstractAasServerControllerIT<C extends AbstractAasServerC
     }
 
 
+    private static void clearExtensionsRec(SubmodelElement element) {
+        if (element instanceof SubmodelElementCollection collection) {
+            collection.getValue().forEach(AbstractAasServerControllerIT::clearExtensionsRec);
+        }
+        if (element instanceof SubmodelElementList list) {
+            list.getValue().forEach(AbstractAasServerControllerIT::clearExtensionsRec);
+        }
+        element.getExtensions().clear();
+    }
+
+
     @BeforeEach
     void setUp() {
         repository = new AasServerStore();
@@ -127,17 +138,6 @@ public abstract class AbstractAasServerControllerIT<C extends AbstractAasServerC
                 .result(List.of())
                 .metadata(PagingMetadata.builder().build())
                 .build();
-    }
-
-
-    private static void clearExtensionsRec(SubmodelElement element) {
-        if (element instanceof SubmodelElementCollection collection) {
-            collection.getValue().forEach(AbstractAasServerControllerIT::clearExtensionsRec);
-        }
-        if (element instanceof SubmodelElementList list) {
-            list.getValue().forEach(AbstractAasServerControllerIT::clearExtensionsRec);
-        }
-        element.getExtensions().clear();
     }
 
 

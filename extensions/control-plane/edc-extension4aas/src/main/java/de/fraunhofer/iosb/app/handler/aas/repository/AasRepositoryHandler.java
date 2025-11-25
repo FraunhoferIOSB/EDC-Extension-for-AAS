@@ -27,16 +27,11 @@ import org.eclipse.digitaltwin.aas4j.v3.model.Identifiable;
 import org.eclipse.digitaltwin.aas4j.v3.model.Referable;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElement;
-import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElementCollection;
-import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElementList;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.net.ConnectException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
 
 
 public abstract class AasRepositoryHandler<C extends AasRepositoryClient> extends AasHandler<C> {
@@ -73,6 +68,5 @@ public abstract class AasRepositoryHandler<C extends AasRepositoryClient> extend
 
         return mapped;
     }
-
 
 }

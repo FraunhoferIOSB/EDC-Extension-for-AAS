@@ -15,6 +15,7 @@
       ],
       "aas:Referable/idShort": "SystemTestConceptDescription",
       "aas:Identifiable/id": "https://acplt.org/System_Test_ConceptDescription",
+      "aas:modelingType": "ConceptDescription",
       "aas:Identifiable/administration": {
         "aas:AdministrativeInformation/revision": "2",
         "aas:AdministrativeInformation/version": "4",
@@ -53,6 +54,7 @@
       ],
       "aas:Referable/idShort": "SystemTestAssetAdministrationShell",
       "aas:Identifiable/id": "https://acplt.org/System_Test_AssetAdministrationShell",
+      "aas:modelingType": "AssetAdministrationShell",
       "aas:Identifiable/administration": {
         "aas:AdministrativeInformation/revision": "37",
         "aas:AdministrativeInformation/version": "13",
@@ -90,7 +92,7 @@
         }
       ],
       "aas:Referable/idShort": "SystemTestSubmodelElementCollection",
-      "aas:modelingType": "aas:SubmodelElementCollection",
+      "aas:modelingType": "SubmodelElementCollection",
       "aas:HasSemantics/semanticId": {
         "aas:Reference/keys": {
           "aas:Key/type": "GLOBAL_REFERENCE",
@@ -130,7 +132,7 @@
         }
       ],
       "aas:Referable/idShort": "ManufacturerName",
-      "aas:modelingType": "aas:Property",
+      "aas:modelingType": "Property",
       "aas:HasSemantics/semanticId": {
         "aas:Reference/keys": {
           "aas:Key/type": "GLOBAL_REFERENCE",
@@ -175,6 +177,7 @@
       ],
       "aas:Referable/idShort": "SystemTestSubmodel",
       "aas:Identifiable/id": "http://acplt.org/Submodels/Assets/TestAsset/System_Test_Submodel",
+      "aas:modelingType": "Submodel",
       "aas:HasSemantics/semanticId": {
         "aas:Reference/keys": {
           "aas:Key/type": "SUBMODEL",

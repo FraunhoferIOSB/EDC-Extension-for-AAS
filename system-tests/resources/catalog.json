@@ -30,6 +30,17 @@
         {
           "@type": "dcat:Distribution",
           "dct:format": {
+            "@id": "HttpData-PULL"
+          },
+          "dcat:accessService": {
+            "@type": "dcat:DataService",
+            "dcat:endpointDescription": "dspace:connector",
+            "dcat:endpointURL": "http://localhost:13340/dsp"
+          }
+        },
+        {
+          "@type": "dcat:Distribution",
+          "dct:format": {
             "@id": "HttpData-PUSH"
           },
           "dcat:accessService": {
@@ -51,13 +62,14 @@
       ],
       "aas:Referable/idShort": "SystemTestConceptDescription",
       "aas:Identifiable/id": "https://acplt.org/System_Test_ConceptDescription",
+      "aas:modelingType": "ConceptDescription",
       "aas:Identifiable/administration": {
         "aas:AdministrativeInformation/revision": "2",
         "aas:AdministrativeInformation/version": "4",
         "aas:HasDataSpecification/embeddedDataSpecifications": []
       },
-      "id": "1351791412",
-      "contenttype": "application/json"
+      "contenttype": "application/json",
+      "id": "1351791412"
     },
     {
       "@id": "792362498",
@@ -78,6 +90,17 @@
           "@type": "dcat:Distribution",
           "dct:format": {
             "@id": "AasData-PUSH"
+          },
+          "dcat:accessService": {
+            "@type": "dcat:DataService",
+            "dcat:endpointDescription": "dspace:connector",
+            "dcat:endpointURL": "http://localhost:13340/dsp"
+          }
+        },
+        {
+          "@type": "dcat:Distribution",
+          "dct:format": {
+            "@id": "HttpData-PULL"
           },
           "dcat:accessService": {
             "@type": "dcat:DataService",
@@ -109,13 +132,14 @@
       ],
       "aas:Referable/idShort": "SystemTestAssetAdministrationShell",
       "aas:Identifiable/id": "https://acplt.org/System_Test_AssetAdministrationShell",
+      "aas:modelingType": "AssetAdministrationShell",
       "aas:Identifiable/administration": {
         "aas:AdministrativeInformation/revision": "37",
         "aas:AdministrativeInformation/version": "13",
         "aas:HasDataSpecification/embeddedDataSpecifications": []
       },
-      "id": "792362498",
-      "contenttype": "application/json"
+      "contenttype": "application/json",
+      "id": "792362498"
     },
     {
       "@id": "-799803758",
@@ -146,6 +170,17 @@
         {
           "@type": "dcat:Distribution",
           "dct:format": {
+            "@id": "HttpData-PULL"
+          },
+          "dcat:accessService": {
+            "@type": "dcat:DataService",
+            "dcat:endpointDescription": "dspace:connector",
+            "dcat:endpointURL": "http://localhost:13340/dsp"
+          }
+        },
+        {
+          "@type": "dcat:Distribution",
+          "dct:format": {
             "@id": "HttpData-PUSH"
           },
           "dcat:accessService": {
@@ -166,7 +201,7 @@
         }
       ],
       "aas:Referable/idShort": "SystemTestSubmodelElementCollection",
-      "aas:modelingType": "aas:SubmodelElementCollection",
+      "aas:modelingType": "SubmodelElementCollection",
       "aas:HasSemantics/semanticId": {
         "aas:Reference/keys": {
           "aas:Key/type": "GLOBAL_REFERENCE",
@@ -174,8 +209,8 @@
         },
         "aas:Reference/type": "EXTERNAL_REFERENCE"
       },
-      "id": "-799803758",
-      "contenttype": "application/json"
+      "contenttype": "application/json",
+      "id": "-799803758"
     },
     {
       "@id": "458140152",
@@ -206,6 +241,17 @@
         {
           "@type": "dcat:Distribution",
           "dct:format": {
+            "@id": "HttpData-PULL"
+          },
+          "dcat:accessService": {
+            "@type": "dcat:DataService",
+            "dcat:endpointDescription": "dspace:connector",
+            "dcat:endpointURL": "http://localhost:13340/dsp"
+          }
+        },
+        {
+          "@type": "dcat:Distribution",
+          "dct:format": {
             "@id": "HttpData-PUSH"
           },
           "dcat:accessService": {
@@ -226,7 +272,7 @@
         }
       ],
       "aas:Referable/idShort": "ManufacturerName",
-      "aas:modelingType": "aas:Property",
+      "aas:modelingType": "Property",
       "aas:HasSemantics/semanticId": {
         "aas:Reference/keys": {
           "aas:Key/type": "GLOBAL_REFERENCE",
@@ -238,8 +284,8 @@
         "aas:AbstractLangString/language": "en-us",
         "aas:AbstractLangString/text": "Manufacturer Name"
       },
-      "id": "458140152",
-      "contenttype": "application/json"
+      "contenttype": "application/json",
+      "id": "458140152"
     },
     {
       "@id": "1855961989",
@@ -260,6 +306,17 @@
           "@type": "dcat:Distribution",
           "dct:format": {
             "@id": "AasData-PUSH"
+          },
+          "dcat:accessService": {
+            "@type": "dcat:DataService",
+            "dcat:endpointDescription": "dspace:connector",
+            "dcat:endpointURL": "http://localhost:13340/dsp"
+          }
+        },
+        {
+          "@type": "dcat:Distribution",
+          "dct:format": {
+            "@id": "HttpData-PULL"
           },
           "dcat:accessService": {
             "@type": "dcat:DataService",
@@ -291,6 +348,7 @@
       ],
       "aas:Referable/idShort": "SystemTestSubmodel",
       "aas:Identifiable/id": "http://acplt.org/Submodels/Assets/TestAsset/System_Test_Submodel",
+      "aas:modelingType": "Submodel",
       "aas:HasSemantics/semanticId": {
         "aas:Reference/keys": {
           "aas:Key/type": "SUBMODEL",
@@ -303,8 +361,8 @@
         "aas:AdministrativeInformation/version": "0",
         "aas:HasDataSpecification/embeddedDataSpecifications": []
       },
-      "id": "1855961989",
-      "contenttype": "application/json"
+      "contenttype": "application/json",
+      "id": "1855961989"
     }
   ],
   "dcat:catalog": [],

@@ -42,7 +42,7 @@ public abstract class ReferableMapper extends ElementMapper {
         String[] modelingType = referable.getClass().getAnnotation(IRI.class).value();
 
         if (modelingType.length > 0) {
-            assetBuilder.property(AAS_V30_NAMESPACE.concat("modelingType"), modelingType[0]);
+            assetBuilder.property(AAS_V30_NAMESPACE.concat("modelingType"), removeAasPrefix(modelingType[0]));
         }
 
         if (referable.getIdShort() != null && !referable.getIdShort().isEmpty()) {
@@ -64,6 +64,14 @@ public abstract class ReferableMapper extends ElementMapper {
         }
 
         return assetBuilder.contentType(CONTENT_TYPE);
+    }
+
+
+    private String removeAasPrefix(String s) {
+        if (s.startsWith("aas:")) {
+            return s.substring("aas:".length());
+        }
+        return s;
     }
 
 }

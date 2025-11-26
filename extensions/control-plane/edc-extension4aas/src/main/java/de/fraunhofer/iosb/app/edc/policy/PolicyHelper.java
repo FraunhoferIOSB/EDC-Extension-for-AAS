@@ -23,13 +23,13 @@ import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.result.StoreResult;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Optional;
 
-import static de.fraunhofer.iosb.constants.AasConstants.DEFAULT_ACCESS_POLICY_DEFINITION_ID;
-import static de.fraunhofer.iosb.constants.AasConstants.DEFAULT_CONTRACT_POLICY_DEFINITION_ID;
+import static de.fraunhofer.iosb.constants.AasConstants.DEFAULT_POLICY_DEFINITION_ID;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_USE_ACTION_ATTRIBUTE;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.ALREADY_EXISTS;
 
@@ -50,27 +50,17 @@ public abstract class PolicyHelper {
     public static void registerDefaultPolicies(Monitor monitor, PolicyDefinitionStore policyDefinitionStore, String participantId) {
         Configuration configuration = Configuration.getInstance();
 
-        Policy accessPolicy = getPolicy(monitor, participantId, configuration.getDefaultAccessPolicyPath());
-        Policy contractPolicy = getPolicy(monitor, participantId, configuration.getDefaultContractPolicyPath());
+        Policy defaultPolicy = getPolicy(monitor, participantId, configuration.getDefaultAccessPolicyPath());
 
-        var defaultAccessPolicyDefinition = PolicyDefinition.Builder.newInstance()
-                .id(DEFAULT_ACCESS_POLICY_DEFINITION_ID)
-                .policy(accessPolicy)
+        var defaultPolicyDefinition = PolicyDefinition.Builder.newInstance()
+                .id(DEFAULT_POLICY_DEFINITION_ID)
+                .policy(defaultPolicy)
                 .build();
 
-        var defaultContractPolicyDefinition = PolicyDefinition.Builder.newInstance()
-                .id(DEFAULT_CONTRACT_POLICY_DEFINITION_ID)
-                .policy(contractPolicy)
-                .build();
+        StoreResult<PolicyDefinition> storeResult = policyDefinitionStore.create(defaultPolicyDefinition);
 
-        var accessPolicyResult = policyDefinitionStore.create(defaultAccessPolicyDefinition);
-        var contractPolicyResult = policyDefinitionStore.create(defaultContractPolicyDefinition);
-
-        if (accessPolicyResult.failed() && ALREADY_EXISTS != accessPolicyResult.reason()) {
-            throw new IllegalArgumentException(accessPolicyResult.getFailureDetail());
-        }
-        else if (contractPolicyResult.failed() && ALREADY_EXISTS != contractPolicyResult.reason()) {
-            throw new IllegalArgumentException(contractPolicyResult.getFailureDetail());
+        if (storeResult.failed() && ALREADY_EXISTS != storeResult.reason()) {
+            throw new IllegalArgumentException(storeResult.getFailureDetail());
         }
     }
 

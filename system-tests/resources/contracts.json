@@ -1,8 +1,8 @@
 [
   {
     "@type": "ContractDefinition",
-    "accessPolicyId": "AAS_DEFAULT_ACCESS_POLICY",
-    "contractPolicyId": "AAS_DEFAULT_CONTRACT_POLICY",
+    "accessPolicyId": "allow_all",
+    "contractPolicyId": "allow_all",
     "assetsSelector": {
       "@type": "Criterion",
       "operandLeft": "https://w3id.org/edc/v0.0.1/ns/id",

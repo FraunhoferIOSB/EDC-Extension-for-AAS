@@ -8,7 +8,7 @@ edc = "0.14.1"
 edc-build = "1.1.4"
 fa3st-client = "1.1.0-SNAPSHOT"
 
-commons-io = "2.20.0"
+commons-io = "2.21.0"
 jersey = "3.1.11"
 junit-bom = "6.0.1"
 junit-platform-launcher = "6.0.1"

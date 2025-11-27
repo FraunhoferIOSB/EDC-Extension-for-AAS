@@ -29,7 +29,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.UUID;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
@@ -37,6 +38,7 @@ import static jakarta.ws.rs.core.Response.Status.NOT_FOUND;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
+
 
 class AllAasDataProcessorFactoryTest {
     static int httpsPort = getFreePort();
@@ -51,28 +53,30 @@ class AllAasDataProcessorFactoryTest {
                             .keyManagerPassword("changeit"))
                     .build();
 
+
     @Test
-    void testGetFromAasForeign() throws IOException {
+    void testGetFromAasForeign() throws IOException, URISyntaxException {
         //WireMock.configureFor("localhost", httpsPort);
         var testSubject = new AllAasDataProcessorFactory(new DefaultSelfSignedCertificateRetriever(),
                 mock(OkHttpClient.class), RetryPolicy.ofDefaults(), new ConsoleMonitor());
 
-        URL baseUrl = new URL(String.format("https://localhost:%d", httpsPort));
+        URI baseUri = new URI(String.format("https://localhost:%d", httpsPort));
 
         // If this fails, certificate could not be retrieved from foreignService
-        var processor = testSubject.processorFor(baseUrl.toString());
+        var processor = testSubject.processorFor(baseUri.toString());
 
-        try (var response = processor.getContent().getFromAas(getDataAddress(baseUrl))) {
+        try (var response = processor.getContent().getFromAas(getDataAddress(baseUri))) {
             // This means the HTTP request went through --> no certificate problems etc.
             assertEquals(NOT_FOUND.getStatusCode(), response.code());
         }
     }
 
-    private AasDataAddress getDataAddress(URL baseUrl) {
+
+    private AasDataAddress getDataAddress(URI baseUri) {
         return AasDataAddress.Builder.newInstance()
-                .baseUrl(baseUrl.toString())
+                .baseUrl(baseUri.toString())
                 .method("GET")
-                .referenceChain(new DefaultReference.Builder()
+                .reference(new DefaultReference.Builder()
                         .type(ReferenceTypes.MODEL_REFERENCE)
                         .keys(new DefaultKey.Builder()
                                 .type(KeyTypes.ASSET_ADMINISTRATION_SHELL)

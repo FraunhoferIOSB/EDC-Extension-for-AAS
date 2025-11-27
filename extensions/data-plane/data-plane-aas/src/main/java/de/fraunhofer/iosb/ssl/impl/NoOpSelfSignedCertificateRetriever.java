@@ -20,9 +20,9 @@ import org.eclipse.edc.spi.result.Result;
 
 import java.security.cert.Certificate;
 
+
 /**
- * Does not return self-signed certificates. This implementation is used when the extension configuration does not
- * allow any self-signed certificates.
+ * Does not return self-signed certificates. This implementation is used when the extension configuration does not allow any self-signed certificates.
  */
 public class NoOpSelfSignedCertificateRetriever implements SelfSignedCertificateRetriever {
     @Override

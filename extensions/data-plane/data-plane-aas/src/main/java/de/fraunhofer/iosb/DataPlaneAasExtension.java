@@ -33,9 +33,9 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
+
 /**
- * Provides support for communicating with AAS services.
- * Specifically this is:
+ * Provides support for communicating with AAS services. Specifically this is:
  * <ul>
  *     <li>
  *         A data address where instead of a URL path,
@@ -64,6 +64,7 @@ public class DataPlaneAasExtension implements ServiceExtension {
     @Inject
     private RetryPolicy<Response> retryPolicy;
 
+
     public void initialize(ServiceExtensionContext context) {
         var monitor = context.getMonitor();
 
@@ -76,11 +77,13 @@ public class DataPlaneAasExtension implements ServiceExtension {
         pipelineService.registerFactory(aasDataSinkFactory);
     }
 
+
     private AasDataSourceFactory getAasDataSourceFactory(boolean ownSelfSigned, Monitor monitor) {
         SelfSignedCertificateRetriever certRetriever;
         if (ownSelfSigned) {
             certRetriever = new DefaultSelfSignedCertificateRetriever();
-        } else {
+        }
+        else {
             certRetriever = new NoOpSelfSignedCertificateRetriever();
         }
 
@@ -88,11 +91,13 @@ public class DataPlaneAasExtension implements ServiceExtension {
         return new AasDataSourceFactory(monitor, aasDataProcessorFactory);
     }
 
+
     private AasDataSinkFactory getAasDataSinkFactory(boolean foreignSelfSigned, Monitor monitor) {
         SelfSignedCertificateRetriever certRetriever;
         if (foreignSelfSigned) {
             certRetriever = new DefaultSelfSignedCertificateRetriever();
-        } else {
+        }
+        else {
             certRetriever = new NoOpSelfSignedCertificateRetriever();
         }
 

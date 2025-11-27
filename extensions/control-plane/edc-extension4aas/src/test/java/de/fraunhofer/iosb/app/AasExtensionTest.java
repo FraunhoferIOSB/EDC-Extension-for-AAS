@@ -41,6 +41,7 @@ public class AasExtensionTest {
 
     private AasExtension extension;
 
+
     @BeforeEach
     void setup(ServiceExtensionContext context, ObjectFactory factory) {
         context.registerService(AssetIndex.class, mock(AssetIndex.class));
@@ -53,6 +54,7 @@ public class AasExtensionTest {
 
         extension = factory.constructInstance(AasExtension.class);
     }
+
 
     @Test
     public void testInitialize(ServiceExtensionContext context) {

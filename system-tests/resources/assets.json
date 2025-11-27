@@ -15,6 +15,7 @@
       ],
       "aas:Referable/idShort": "SystemTestConceptDescription",
       "aas:Identifiable/id": "https://acplt.org/System_Test_ConceptDescription",
+      "aas:modelingType": "ConceptDescription",
       "aas:Identifiable/administration": {
         "aas:AdministrativeInformation/revision": "2",
         "aas:AdministrativeInformation/version": "4",
@@ -23,10 +24,9 @@
       "id": "1351791412",
       "contenttype": "application/json"
     },
-    "privateProperties": {},
     "dataAddress": {
       "@type": "DataAddress",
-      "aas:referenceChain": "{\n  \"keys\" : [ {\n    \"type\" : \"ConceptDescription\",\n    \"value\" : \"https://acplt.org/System_Test_ConceptDescription\"\n  } ],\n  \"type\" : \"ModelReference\"\n}",
+      "aas:reference": "[ModelRef](ConceptDescription)https://acplt.org/System_Test_ConceptDescription",
       "method": "GET",
       "type": "AasData",
       "baseUrl": "https://localhost:60875/api/v3.0"
@@ -54,6 +54,7 @@
       ],
       "aas:Referable/idShort": "SystemTestAssetAdministrationShell",
       "aas:Identifiable/id": "https://acplt.org/System_Test_AssetAdministrationShell",
+      "aas:modelingType": "AssetAdministrationShell",
       "aas:Identifiable/administration": {
         "aas:AdministrativeInformation/revision": "37",
         "aas:AdministrativeInformation/version": "13",
@@ -62,10 +63,9 @@
       "id": "792362498",
       "contenttype": "application/json"
     },
-    "privateProperties": {},
     "dataAddress": {
       "@type": "DataAddress",
-      "aas:referenceChain": "{\n  \"keys\" : [ {\n    \"type\" : \"AssetAdministrationShell\",\n    \"value\" : \"https://acplt.org/System_Test_AssetAdministrationShell\"\n  } ],\n  \"type\" : \"ModelReference\"\n}",
+      "aas:reference": "[ModelRef](AssetAdministrationShell)https://acplt.org/System_Test_AssetAdministrationShell",
       "method": "GET",
       "type": "AasData",
       "baseUrl": "https://localhost:60875/api/v3.0"
@@ -92,7 +92,7 @@
         }
       ],
       "aas:Referable/idShort": "SystemTestSubmodelElementCollection",
-      "aas:modelingType": "aas:SubmodelElementCollection",
+      "aas:modelingType": "SubmodelElementCollection",
       "aas:HasSemantics/semanticId": {
         "aas:Reference/keys": {
           "aas:Key/type": "GLOBAL_REFERENCE",
@@ -103,10 +103,9 @@
       "id": "-799803758",
       "contenttype": "application/json"
     },
-    "privateProperties": {},
     "dataAddress": {
       "@type": "DataAddress",
-      "aas:referenceChain": "{\n  \"keys\" : [ {\n    \"type\" : \"Submodel\",\n    \"value\" : \"http://acplt.org/Submodels/Assets/TestAsset/System_Test_Submodel\"\n  }, {\n    \"type\" : \"SubmodelElementCollection\",\n    \"value\" : \"SystemTestSubmodelElementCollection\"\n  } ],\n  \"type\" : \"ModelReference\"\n}",
+      "aas:reference": "[ModelRef](Submodel)http://acplt.org/Submodels/Assets/TestAsset/System_Test_Submodel, (SubmodelElementCollection)SystemTestSubmodelElementCollection",
       "method": "GET",
       "type": "AasData",
       "baseUrl": "https://localhost:60875/api/v3.0"
@@ -133,7 +132,7 @@
         }
       ],
       "aas:Referable/idShort": "ManufacturerName",
-      "aas:modelingType": "aas:Property",
+      "aas:modelingType": "Property",
       "aas:HasSemantics/semanticId": {
         "aas:Reference/keys": {
           "aas:Key/type": "GLOBAL_REFERENCE",
@@ -148,10 +147,9 @@
       "id": "458140152",
       "contenttype": "application/json"
     },
-    "privateProperties": {},
     "dataAddress": {
       "@type": "DataAddress",
-      "aas:referenceChain": "{\n  \"keys\" : [ {\n    \"type\" : \"Submodel\",\n    \"value\" : \"http://acplt.org/Submodels/Assets/TestAsset/System_Test_Submodel\"\n  }, {\n    \"type\" : \"SubmodelElementCollection\",\n    \"value\" : \"SystemTestSubmodelElementCollection\"\n  }, {\n    \"type\" : \"Property\",\n    \"value\" : \"ManufacturerName\"\n  } ],\n  \"type\" : \"ModelReference\"\n}",
+      "aas:reference": "[ModelRef](Submodel)http://acplt.org/Submodels/Assets/TestAsset/System_Test_Submodel, (SubmodelElementCollection)SystemTestSubmodelElementCollection, (Property)ManufacturerName",
       "method": "GET",
       "type": "AasData",
       "baseUrl": "https://localhost:60875/api/v3.0"
@@ -179,6 +177,7 @@
       ],
       "aas:Referable/idShort": "SystemTestSubmodel",
       "aas:Identifiable/id": "http://acplt.org/Submodels/Assets/TestAsset/System_Test_Submodel",
+      "aas:modelingType": "Submodel",
       "aas:HasSemantics/semanticId": {
         "aas:Reference/keys": {
           "aas:Key/type": "SUBMODEL",
@@ -194,10 +193,9 @@
       "id": "1855961989",
       "contenttype": "application/json"
     },
-    "privateProperties": {},
     "dataAddress": {
       "@type": "DataAddress",
-      "aas:referenceChain": "{\n  \"keys\" : [ {\n    \"type\" : \"Submodel\",\n    \"value\" : \"http://acplt.org/Submodels/Assets/TestAsset/System_Test_Submodel\"\n  } ],\n  \"type\" : \"ModelReference\"\n}",
+      "aas:reference": "[ModelRef](Submodel)http://acplt.org/Submodels/Assets/TestAsset/System_Test_Submodel",
       "method": "GET",
       "type": "AasData",
       "baseUrl": "https://localhost:60875/api/v3.0"

@@ -15,26 +15,28 @@
  */
 package de.fraunhofer.iosb.app.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import de.fraunhofer.iosb.aas.lib.model.impl.Service;
-import de.fraunhofer.iosb.app.model.aas.registry.RegistryRepository;
-import de.fraunhofer.iosb.app.model.aas.service.ServiceRepository;
-import de.fraunhofer.iosb.app.model.ids.SelfDescriptionSerializer;
+import de.fraunhofer.iosb.app.handler.aas.AasHandler;
+import de.fraunhofer.iosb.app.stores.repository.AasServerStore;
+import de.fraunhofer.iosb.client.exception.UnauthorizedException;
+import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
-import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
+import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.SerializationException;
+import org.eclipse.digitaltwin.aas4j.v3.dataformat.json.JsonSerializer;
+import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
 import org.eclipse.edc.spi.monitor.Monitor;
 
-import java.net.URL;
+import java.net.ConnectException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Stream;
+import java.util.Optional;
 
 import static de.fraunhofer.iosb.app.controller.SelfDescriptionController.SELF_DESCRIPTION_PATH;
+
 
 /**
  * Handles requests to the selfDescription endpoint.
@@ -46,85 +48,51 @@ public class SelfDescriptionController {
     public static final String SELF_DESCRIPTION_PATH = "selfDescription";
 
     private final Monitor monitor;
-    private final ServiceRepository serviceRepository;
-    private final RegistryRepository registryRepository;
+    private final AasServerStore aasRepositoryStore;
+
 
     /**
      * Class constructor
      *
-     * @param monitor            Logs
-     * @param serviceRepository  Read services for self-description
-     * @param registryRepository Read registries for self-description
+     * @param monitor Logs
+     * @param aasRepositoryStore AAS repository store
      */
-    public SelfDescriptionController(Monitor monitor, ServiceRepository serviceRepository,
-                                     RegistryRepository registryRepository) {
+    public SelfDescriptionController(Monitor monitor, AasServerStore aasRepositoryStore) {
         this.monitor = monitor;
-        this.serviceRepository = serviceRepository;
-        this.registryRepository = registryRepository;
+        this.aasRepositoryStore = aasRepositoryStore;
     }
 
+
     /**
-     * Print self-descriptions of AAS environments registered at this EDC. If no
-     * query parameter is given, print all self-descriptions available.
+     * Print self-descriptions of AAS environments registered at this EDC. If no query parameter is given, print all self-descriptions available.
      *
-     * @param aasServiceUrl Specify an AAS environment by its service
+     * @param uri Specify an AAS environment by its service
      * @return Self description(s)
      */
     @GET
-    public Response getSelfDescription(@QueryParam("url") URL aasServiceUrl) throws JsonProcessingException {
-        if (aasServiceUrl == null) {
-            monitor.debug(String.format("GET /%s", SELF_DESCRIPTION_PATH));
-            return Response.ok(getAllSelfDescriptions()).build();
-        }
+    public String getSelfDescription(@QueryParam("url") URI uri) throws SerializationException {
+        monitor.debug(String.format("GET %s", SELF_DESCRIPTION_PATH));
 
-        monitor.debug(String.format("GET /%s/%s", SELF_DESCRIPTION_PATH, aasServiceUrl));
-        var registry = registryRepository.getEnvironments(aasServiceUrl);
+        List<AasHandler<?>> handlers = new ArrayList<>();
 
-        if (registry != null) {
-            var environments = registry.stream()
-                    .map(Service::getEnvironment)
-                    .toList();
+        Optional.ofNullable(uri)
+                .ifPresentOrElse(u ->
+                                handlers.addAll(aasRepositoryStore.get(u)
+                                        .map(List::of)
+                                        // If no uri is supplied, return all SelfDescriptions
+                                        .orElseThrow(() -> new BadRequestException("URI not registered."))),
+                        () -> handlers.addAll(aasRepositoryStore.getAll())
+                );
 
-            return Response.ok(environmentsAsSelfDescriptionString(environments)).build();
-        }
-
-        var service = serviceRepository.getEnvironment(aasServiceUrl);
-
-        if (service != null) {
-            return Response.ok(environmentsAsSelfDescriptionString(List.of(service))).build();
-        }
-
-        monitor.warning("URL %s not found.".formatted(aasServiceUrl));
-        return Response.status(Response.Status.NOT_FOUND).build();
-    }
-
-
-    private String getAllSelfDescriptions() throws JsonProcessingException {
-        // Service and Registry environments can be null if they have not been fetched yet
-        var environments = new ArrayList<>(serviceRepository.getAllEnvironments());
-
-        environments.addAll(registryRepository.getAllEnvironments().stream()
-                .map(Service::getEnvironment)
-                .toList());
-
-        return environmentsAsSelfDescriptionString(environments);
-    }
-
-    private String environmentsAsSelfDescriptionString(List<Asset> environments) throws JsonProcessingException {
-        var selfDescription = new ArrayList<String>();
-        for (Asset environment : environments) {
-            if (environment == null) {
-                continue;
+        List<Environment> selfDescriptions = new ArrayList<>();
+        for (AasHandler<?> handler: handlers) {
+            try {
+                selfDescriptions.add(handler.buildSelfDescription());
             }
-            String s = SelfDescriptionSerializer.assetToString(environment);
-            selfDescription.add(s);
+            catch (UnauthorizedException | ConnectException e) {
+                monitor.warning("Could not produce a self description", e);
+            }
         }
-
-        return intoJsonArray(selfDescription.stream());
-    }
-
-
-    private String intoJsonArray(Stream<String> contents) {
-        return "[%s]".formatted(contents.reduce("%s,%s"::formatted).orElse(null));
+        return new JsonSerializer().writeList(selfDescriptions);
     }
 }

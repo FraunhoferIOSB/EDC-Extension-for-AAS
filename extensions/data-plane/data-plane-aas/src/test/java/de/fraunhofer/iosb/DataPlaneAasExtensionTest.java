@@ -27,10 +27,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.mockito.Mockito.mock;
 
+
 @ExtendWith(DependencyInjectionExtension.class)
 class DataPlaneAasExtensionTest {
 
     private DataPlaneAasExtension extension;
+
 
     @BeforeEach
     void setUp(ServiceExtensionContext context, ObjectFactory factory) {
@@ -40,6 +42,7 @@ class DataPlaneAasExtensionTest {
 
         extension = factory.constructInstance(DataPlaneAasExtension.class);
     }
+
 
     @Test
     void testInitialize(ServiceExtensionContext context) {

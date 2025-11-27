@@ -39,8 +39,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.UUID;
@@ -59,10 +59,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
+
 /**
- * We assume here that catalogService does not return null objects as well as null catalogs inside their return value.
- * Also, we assume that catalogs are valid JSON and expandable by the connector's JSON LD expander TitaniumJsonLd.class.
- * Finally, we assume that catalogs can be transformed with the TypeTransformerRegistry.
+ * We assume here that catalogService does not return null objects as well as null catalogs inside their return value. Also, we assume that catalogs are valid JSON and expandable
+ * by the connector's JSON LD expander TitaniumJsonLd.class. Finally, we assume that catalogs can be transformed with the TypeTransformerRegistry.
  */
 public class PolicyServiceTest {
 
@@ -75,17 +75,19 @@ public class PolicyServiceTest {
 
     private static CompletableFuture<StatusResult<byte[]>> future;
 
-    private final URL testUrl;
+    private final URI testUri;
     private CatalogService catalogService;
     private TypeTransformerRegistry typeTransformerRegistry;
     private PolicyServiceConfig config;
     private PolicyService policyService;
     private PolicyDefinitionStore policyDefinitionStore;
 
-    public PolicyServiceTest() throws MalformedURLException {
+
+    public PolicyServiceTest() throws URISyntaxException {
         int providerPort = 54321;
-        testUrl = new URL("http://localhost:" + providerPort);
+        testUri = new URI("http://localhost:" + providerPort);
     }
+
 
     @BeforeEach
     void initializePolicyService() {
@@ -100,16 +102,18 @@ public class PolicyServiceTest {
         future = new CompletableFuture<>();
     }
 
+
     @Test
     void getDatasetCatalogResponseFailureTest() {
         future.complete(StatusResult.failure(ResponseStatus.FATAL_ERROR, "This is a test"));
 
-        when(catalogService.requestCatalog(TEST_COUNTER_PARTY_ID, testUrl.toString(), DATASPACE_PROTOCOL_HTTP, ASSET_ID_QUERY_SPEC)).thenReturn(future);
+        when(catalogService.requestCatalog(TEST_COUNTER_PARTY_ID, testUri.toString(), DATASPACE_PROTOCOL_HTTP, ASSET_ID_QUERY_SPEC)).thenReturn(future);
 
-        var response = policyService.getDatasetForAssetId(TEST_COUNTER_PARTY_ID, testUrl, TEST_ASSET_ID);
+        var response = policyService.getDatasetForAssetId(TEST_COUNTER_PARTY_ID, testUri, TEST_ASSET_ID);
         assertEquals("Failed fetching catalog, FATAL_ERROR: This is a test", response.getFailureDetail());
 
     }
+
 
     @Test
     @SuppressWarnings("unchecked")
@@ -122,12 +126,13 @@ public class PolicyServiceTest {
 
         mockCatalogServiceResponseWith(future);
 
-        var datasetResponse = policyService.getDatasetForAssetId(TEST_COUNTER_PARTY_ID, testUrl, TEST_ASSET_ID);
+        var datasetResponse = policyService.getDatasetForAssetId(TEST_COUNTER_PARTY_ID, testUri, TEST_ASSET_ID);
 
         assertTrue(datasetResponse.failed());
         assertEquals(UNEXPECTED, datasetResponse.reason());
         //assertTrue(datasetResponse.getFailureMessages().contains(TIMEOUT_MESSAGE));
     }
+
 
     @Test
     void getDatasetNoDatasetsTest() {
@@ -139,11 +144,12 @@ public class PolicyServiceTest {
 
         when(typeTransformerRegistry.transform(any(), any())).thenReturn(Result.success(Catalog.Builder.newInstance().build()));
 
-        var datasetResponse = policyService.getDatasetForAssetId(TEST_COUNTER_PARTY_ID, testUrl, TEST_ASSET_ID);
+        var datasetResponse = policyService.getDatasetForAssetId(TEST_COUNTER_PARTY_ID, testUri, TEST_ASSET_ID);
 
         assertTrue(datasetResponse.failed());
         assertEquals(ServiceFailure.Reason.NOT_FOUND, datasetResponse.reason());
     }
+
 
     @Test
     void getDatasetTooManyDatasetsTest() {
@@ -160,11 +166,12 @@ public class PolicyServiceTest {
                                         Dataset.Builder.newInstance().build()))
                                 .build()));
 
-        var datasetResponse = policyService.getDatasetForAssetId(TEST_COUNTER_PARTY_ID, testUrl, TEST_ASSET_ID);
+        var datasetResponse = policyService.getDatasetForAssetId(TEST_COUNTER_PARTY_ID, testUri, TEST_ASSET_ID);
 
         assertTrue(datasetResponse.failed());
         assertEquals(ServiceFailure.Reason.CONFLICT, datasetResponse.reason());
     }
+
 
     @Test
     void getDatasetTest() {
@@ -181,8 +188,9 @@ public class PolicyServiceTest {
                                 .dataset(dataset)
                                 .build()));
 
-        assertEquals(dataset.getId(), policyService.getDatasetForAssetId(TEST_COUNTER_PARTY_ID, testUrl, TEST_ASSET_ID).getContent().getId());
+        assertEquals(dataset.getId(), policyService.getDatasetForAssetId(TEST_COUNTER_PARTY_ID, testUri, TEST_ASSET_ID).getContent().getId());
     }
+
 
     @Test
     void getAcceptableContractOfferForAssetIdTest() {
@@ -194,10 +202,10 @@ public class PolicyServiceTest {
         var policyServiceSpy = spy(policyService);
         Mockito.doReturn(datasetResult)
                 .when(policyServiceSpy)
-                .getDatasetForAssetId(TEST_COUNTER_PARTY_ID, testUrl, TEST_ASSET_ID);
+                .getDatasetForAssetId(TEST_COUNTER_PARTY_ID, testUri, TEST_ASSET_ID);
         when(config.isAcceptAllProviderOffers()).thenReturn(true);
 
-        var resultPolicy = policyServiceSpy.getAcceptableContractOfferForAssetId(TEST_COUNTER_PARTY_ID, testUrl, TEST_ASSET_ID);
+        var resultPolicy = policyServiceSpy.getAcceptableContractOfferForAssetId(TEST_COUNTER_PARTY_ID, testUri, TEST_ASSET_ID);
 
         assertEquals(dataset.getOffers().values().stream().findFirst().orElseThrow(),
                 resultPolicy.getContent().getPolicy());
@@ -205,18 +213,20 @@ public class PolicyServiceTest {
                 resultPolicy.getContent().getId());
     }
 
+
     @Test
     void getAcceptablePolicyForAssetIdEmptyContractOfferListTest() {
         // we mock getDatasetMethod for simplicity
         var policyServiceSpy = spy(policyService);
         Mockito.doReturn(ServiceResult.success(Dataset.Builder.newInstance().build()))
                 .when(policyServiceSpy)
-                .getDatasetForAssetId(TEST_COUNTER_PARTY_ID, testUrl, TEST_ASSET_ID);
+                .getDatasetForAssetId(TEST_COUNTER_PARTY_ID, testUri, TEST_ASSET_ID);
 
-        var result = policyServiceSpy.getAcceptableContractOfferForAssetId(TEST_COUNTER_PARTY_ID, testUrl, TEST_ASSET_ID);
+        var result = policyServiceSpy.getAcceptableContractOfferForAssetId(TEST_COUNTER_PARTY_ID, testUri, TEST_ASSET_ID);
 
         assertTrue(result.failed());
     }
+
 
     @Test
     void test_getAcceptableContractOfferForAssetId_acceptAllOffers() {
@@ -228,9 +238,9 @@ public class PolicyServiceTest {
         var policyServiceSpy = spy(policyService);
         Mockito.doReturn(ServiceResult.success(dataset))
                 .when(policyServiceSpy)
-                .getDatasetForAssetId(TEST_COUNTER_PARTY_ID, testUrl, TEST_ASSET_ID);
+                .getDatasetForAssetId(TEST_COUNTER_PARTY_ID, testUri, TEST_ASSET_ID);
 
-        var result = policyServiceSpy.getAcceptableContractOfferForAssetId(TEST_COUNTER_PARTY_ID, testUrl, TEST_ASSET_ID);
+        var result = policyServiceSpy.getAcceptableContractOfferForAssetId(TEST_COUNTER_PARTY_ID, testUri, TEST_ASSET_ID);
 
         assertTrue(result.succeeded());
 
@@ -241,6 +251,7 @@ public class PolicyServiceTest {
 
         assertEquals(dataset.getOffers().entrySet().stream().findFirst().orElseThrow().getKey(), result.getContent().getId());
     }
+
 
     @Test
     void test_getAcceptableContractOfferForAssetId_acceptFromAcceptedList() {
@@ -258,9 +269,9 @@ public class PolicyServiceTest {
         var policyServiceSpy = spy(policyService);
         Mockito.doReturn(ServiceResult.success(dataset))
                 .when(policyServiceSpy)
-                .getDatasetForAssetId(TEST_COUNTER_PARTY_ID, testUrl, TEST_ASSET_ID);
+                .getDatasetForAssetId(TEST_COUNTER_PARTY_ID, testUri, TEST_ASSET_ID);
 
-        var result = policyServiceSpy.getAcceptableContractOfferForAssetId(TEST_COUNTER_PARTY_ID, testUrl, TEST_ASSET_ID);
+        var result = policyServiceSpy.getAcceptableContractOfferForAssetId(TEST_COUNTER_PARTY_ID, testUri, TEST_ASSET_ID);
 
         assertTrue(result.succeeded());
 
@@ -271,6 +282,7 @@ public class PolicyServiceTest {
 
         assertEquals(dataset.getOffers().entrySet().stream().findFirst().orElseThrow().getKey(), result.getContent().getId());
     }
+
 
     @Test
     void test_getAcceptableContractOfferForAssetId_noAcceptableContractOffer() {
@@ -290,12 +302,13 @@ public class PolicyServiceTest {
         var policyServiceSpy = spy(policyService);
         Mockito.doReturn(ServiceResult.success(dataset))
                 .when(policyServiceSpy)
-                .getDatasetForAssetId(TEST_COUNTER_PARTY_ID, testUrl, TEST_ASSET_ID);
+                .getDatasetForAssetId(TEST_COUNTER_PARTY_ID, testUri, TEST_ASSET_ID);
 
-        var result = policyServiceSpy.getAcceptableContractOfferForAssetId(TEST_COUNTER_PARTY_ID, testUrl, TEST_ASSET_ID);
+        var result = policyServiceSpy.getAcceptableContractOfferForAssetId(TEST_COUNTER_PARTY_ID, testUri, TEST_ASSET_ID);
 
         assertTrue(result.failed());
     }
+
 
     @Test
     void test_getAcceptableContractOfferForAssetId_timeoutErrorHandling() {
@@ -305,15 +318,16 @@ public class PolicyServiceTest {
 
         Mockito.doReturn(ServiceResult.unexpected(errorMessage))
                 .when(policyServiceSpy)
-                .getDatasetForAssetId(TEST_COUNTER_PARTY_ID, testUrl, TEST_ASSET_ID);
+                .getDatasetForAssetId(TEST_COUNTER_PARTY_ID, testUri, TEST_ASSET_ID);
 
-        var result = policyServiceSpy.getAcceptableContractOfferForAssetId(TEST_COUNTER_PARTY_ID, testUrl, TEST_ASSET_ID);
+        var result = policyServiceSpy.getAcceptableContractOfferForAssetId(TEST_COUNTER_PARTY_ID, testUri, TEST_ASSET_ID);
 
         assertTrue(result.failed());
 
         assertTrue(result.getFailureMessages().contains(UNEXPECTED.toString()));
         assertTrue(result.getFailureMessages().contains(errorMessage));
     }
+
 
     private Dataset getDataset() {
         return Dataset.Builder.newInstance()
@@ -331,10 +345,11 @@ public class PolicyServiceTest {
                 .build();
     }
 
+
     private void mockCatalogServiceResponseWith(CompletableFuture<StatusResult<byte[]>> value) {
         when(catalogService.requestCatalog(
                 TEST_COUNTER_PARTY_ID,
-                testUrl.toString(),
+                testUri.toString(),
                 DATASPACE_PROTOCOL_HTTP,
                 ASSET_ID_QUERY_SPEC))
                 .thenReturn(value);

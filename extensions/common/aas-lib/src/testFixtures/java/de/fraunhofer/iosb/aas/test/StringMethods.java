@@ -15,14 +15,10 @@
  */
 package de.fraunhofer.iosb.aas.test;
 
-import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.SerializationException;
-import org.eclipse.digitaltwin.aas4j.v3.dataformat.json.JsonSerializer;
-
-import java.util.Collection;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
 
 public class StringMethods {
 
@@ -32,13 +28,5 @@ public class StringMethods {
 
         assertEquals(expected.replaceAll(" +", "").replaceAll("\r", "").replaceAll("\n",
                 ""), actual.replaceAll(" +", "").replaceAll("\r", "").replaceAll("\n", ""));
-    }
-
-    public static String resultOf(Object content) throws SerializationException {
-        return "{\"result\":[%s]}".formatted(content == null ? "" : new JsonSerializer().write(content));
-    }
-
-    public static String resultOfCollection(Collection<?> content) throws SerializationException {
-        return "{\"result\":%s}".formatted(new JsonSerializer().write(content));
     }
 }

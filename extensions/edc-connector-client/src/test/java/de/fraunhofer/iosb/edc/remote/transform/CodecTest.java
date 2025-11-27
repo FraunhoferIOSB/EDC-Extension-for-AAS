@@ -29,6 +29,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+
 /**
  * Test if codec correctly (de)serializes and compacts/expands json-ld contexts
  */
@@ -57,6 +58,7 @@ class CodecTest {
     static RuntimePerClassExtension runtime = new RuntimePerClassExtension(RUNTIME);
     private static Codec testSubject;
 
+
     @BeforeAll
     static void setUp() {
         TypeTransformerRegistry typeTransformerRegistry = runtime.getService(TypeTransformerRegistry.class);
@@ -66,6 +68,7 @@ class CodecTest {
         jsonLd.registerNamespace(OdrlNamespace.ODRL_PREFIX, OdrlNamespace.ODRL_SCHEMA);
         testSubject = new Codec(typeTransformerRegistry, jsonLd);
     }
+
 
     private static PolicyDefinition getPolicyDefinition() {
         return PolicyDefinition.Builder.newInstance()
@@ -82,6 +85,7 @@ class CodecTest {
                 .build();
     }
 
+
     private static ContractDefinition getContractDefinition() {
         return ContractDefinition.Builder.newInstance()
                 .id("my-test-contract-definition-id")
@@ -97,6 +101,7 @@ class CodecTest {
                 .privateProperty("https://admin-shell.io/aas/3/0/test-private-property-2", "test-private-property-2-value")
                 .build();
     }
+
 
     @Test
     void serialize_thenDeserialize_asset() {
@@ -118,6 +123,7 @@ class CodecTest {
         // assertEquals(expected.getCreatedAt(), deserialized.getCreatedAt());
     }
 
+
     @Test
     void serialize_thenDeserialize_contractDefinition() {
         ContractDefinition expected = getContractDefinition();
@@ -128,6 +134,7 @@ class CodecTest {
 
         assertEquals(expected, deserialized);
     }
+
 
     @Test
     void serialize_thenDeserialize_policyDefinition() {
@@ -152,6 +159,7 @@ class CodecTest {
         assertEquals(expected.getPrivateProperties(), deserialized.getPrivateProperties());
     }
 
+
     @Test
     void serialize_thenDeserialize_querySpec() {
         QuerySpec querySpec = QuerySpec.Builder.newInstance()
@@ -166,6 +174,7 @@ class CodecTest {
 
         assertEqualsIgnoreWhiteSpace(toMatch, serialized);
     }
+
 
     private Asset getAsset() {
         return Asset.Builder.newInstance()

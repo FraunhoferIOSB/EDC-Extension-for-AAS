@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Test;
 import static de.fraunhofer.iosb.testutils.TestUtils.getSelfSignedCertificate;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+
 class HttpClientProviderTest {
 
     @Test

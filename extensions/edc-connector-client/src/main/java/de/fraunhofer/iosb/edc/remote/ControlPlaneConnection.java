@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.UnaryOperator;
 
+
 /**
  * Connection data object providing the URL from which the EDC control plane is available
  */
@@ -39,6 +40,7 @@ public class ControlPlaneConnection {
 
     private final UnaryOperator<Request.Builder> authSupplier;
 
+
     public ControlPlaneConnection(URI connectionUri, String resourceName, AuthenticationMethod authenticationMethod) {
         this.connectionUri = Objects.requireNonNull(HttpUrl.parse(connectionUri.toString()));
         this.resourceName = resourceName;
@@ -46,23 +48,25 @@ public class ControlPlaneConnection {
         this.authSupplier = request -> request.headers(Headers.of(Map.ofEntries(authenticationMethod.getHeader())));
     }
 
+
     /**
-     * Builds a request with control-plane url and auth.
+     * Builds a request with control-plane uri and auth.
      *
      * @param method HTTP method for this request
-     * @param body   Request body to be sent
+     * @param body Request body to be sent
      * @return OkHttp3 request ready to be sent
      */
     public Request prepareRequest(HttpMethod method, String body) {
         return prepareRequest(method, "", body);
     }
 
+
     /**
-     * Builds a request with control-plane url and auth.
+     * Builds a request with control-plane uri and auth.
      *
-     * @param method         HTTP method for this request
+     * @param method HTTP method for this request
      * @param additionalPath Additional path to specify request, e.g., /request
-     * @param body           Request body to be sent
+     * @param body Request body to be sent
      * @return OkHttp3 request ready to be sent
      */
     public Request prepareRequest(HttpMethod method, String additionalPath, String body) {

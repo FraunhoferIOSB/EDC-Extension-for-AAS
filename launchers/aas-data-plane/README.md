@@ -1,7 +1,7 @@
 # AAS Data Plane
 
-
-This is a data plane launcher featuring the AAS data plane and the HTTP data plane. It contains the following extensions:
+This is a data plane launcher featuring the AAS data plane and the HTTP data plane. It contains the following
+extensions:
 
 - `data-plane-aas`: AAS data plane enabling PUSH data transfers with AAS operation invocation and AAS state modification
 - `dataplane-base-bom`: Base data plane dependencies

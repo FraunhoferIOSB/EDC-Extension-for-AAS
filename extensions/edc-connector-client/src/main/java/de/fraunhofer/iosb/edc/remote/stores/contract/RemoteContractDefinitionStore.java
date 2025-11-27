@@ -28,23 +28,28 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.stream.Stream;
 
+
 public class RemoteContractDefinitionStore extends ControlPlaneConnectionHandler<ContractDefinition> implements ContractDefinitionStore {
 
     private static final String MGMT_API_RESOURCE_ACCESSOR = "contractdefinitions";
 
+
     public RemoteContractDefinitionStore(Monitor monitor, EdcHttpClient httpClient, Codec codec, ControlPlaneConnection connection) {
         super(monitor, httpClient, codec, connection);
     }
+
 
     @Override
     public @NotNull Stream<ContractDefinition> findAll(QuerySpec querySpec) {
         return queryEntities(querySpec, ContractDefinition.class);
     }
 
+
     @Override
     public ContractDefinition findById(String contractDefinitionId) {
         return findById(contractDefinitionId, ContractDefinition.class);
     }
+
 
     /**
      * Extends ContractDefinitionStore return values by generalError
@@ -63,6 +68,7 @@ public class RemoteContractDefinitionStore extends ControlPlaneConnectionHandler
         return StoreResult.alreadyExists(result.getFailureDetail());
     }
 
+
     @Override
     public StoreResult<Void> update(ContractDefinition contractDefinition) {
         var result = updateEntity(contractDefinition, ContractDefinition.class);
@@ -74,10 +80,12 @@ public class RemoteContractDefinitionStore extends ControlPlaneConnectionHandler
         return StoreResult.notFound(result.getFailureDetail());
     }
 
+
     @Override
     public StoreResult<ContractDefinition> deleteById(String contractDefinitionId) {
         return deleteById(contractDefinitionId, ContractDefinition.class);
     }
+
 
     @Override
     protected String getExistsTemplate() {
@@ -93,16 +101,17 @@ public class RemoteContractDefinitionStore extends ControlPlaneConnectionHandler
 
     public static class Builder extends ControlPlaneConnectionHandler.Builder<RemoteContractDefinitionStore, RemoteContractDefinitionStore.Builder> {
 
-
         @Override
         protected RemoteContractDefinitionStore.Builder self() {
             return this;
         }
 
+
         public RemoteContractDefinitionStore build() {
             this.resourceName = MGMT_API_RESOURCE_ACCESSOR;
             return super.build();
         }
+
 
         @Override
         protected RemoteContractDefinitionStore create(Monitor monitor, EdcHttpClient httpClient, Codec codec, ControlPlaneConnection connection) {

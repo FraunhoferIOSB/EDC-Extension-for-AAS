@@ -71,7 +71,7 @@ while (( $(date +%s) <= deadline )); do
 done
 
 if [[ "$state" != "FINALIZED" ]]; then
-  echo "Timed out waiting for contract negotiation" >&2
+  echo "ERR: Timed out waiting for contract negotiation" >&2
   exit 1
 fi
 

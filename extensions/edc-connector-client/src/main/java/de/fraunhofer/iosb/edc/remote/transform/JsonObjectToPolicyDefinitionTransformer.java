@@ -26,6 +26,7 @@ import java.util.Optional;
 import static org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition.EDC_POLICY_DEFINITION_POLICY;
 import static org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition.EDC_POLICY_DEFINITION_PRIVATE_PROPERTIES;
 
+
 /**
  * Copied from upstream due to it not being independently injectable
  */
@@ -34,6 +35,7 @@ public class JsonObjectToPolicyDefinitionTransformer extends AbstractJsonLdTrans
     public JsonObjectToPolicyDefinitionTransformer() {
         super(JsonObject.class, PolicyDefinition.class);
     }
+
 
     @Override
     public @Nullable PolicyDefinition transform(@NotNull JsonObject input, @NotNull TransformerContext context) {
@@ -47,7 +49,8 @@ public class JsonObjectToPolicyDefinitionTransformer extends AbstractJsonLdTrans
 
         if (policy == null) {
             return null;
-        } else {
+        }
+        else {
             builder.policy(policy);
         }
 

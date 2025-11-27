@@ -6,42 +6,48 @@ Compatibility: **Eclipse Dataspace Connector v0.14.1**
 
 ### New Features
 
-* **Added system tests**
+* **Redesign of Self-Description**
+    * Self-Description is now AAS-conformant: An AAS environment containing EDC Asset IDs as AAS extension elements
+* **Synchronization via FA³ST Events**
+    * When starting a FA³ST service internally, the extension subscribes to its MessageBus instead of polling for
+      updates
+    * This results in lower CPU load, lower network load and quicker reaction to AAS structure/metadata changes
 * **Restructured project**
-  * use extensions/, launchers/, samples/ structure from upstream/other related projects
-  * use libs.versions.toml to manage dependencies
-  * use base build.gradle.kts to manage common elements such as maven repository
+    * Use extensions/, launchers/, samples/ structure from upstream/other related projects
+    * Use libs.versions.toml to manage dependencies
+    * Use base build.gradle.kts to manage common elements such as maven repository
 * **Standalone Feature**
-  * The extension can now be deployed **alongside** a running control-plane (and data-plane)
-  * Previously, deployment was only possible by adding the extension dependency to the control-plane's build file
-  * Now, the extension can be supplied with the edc-connector-client to communicate with the control-plane over its mgmt API
+    * The extension can now be deployed **alongside** a running control-plane (and data-plane)
+    * Previously, deployment was only possible by adding the extension dependency to the control-plane's build file
+    * Now, the extension can be supplied with the edc-connector-client to communicate with the control-plane over its
+      mgmt API
 * **Selective AAS registration**
-  * Now, individual elements of an AAS can be selected to be registered
-  * Also, customized policies per element can be assigned (if not, default policy is used)
-    * Only the selected elements are synchronized
-      * Selection is provided via "service" json-object
-        * referredElement is a Reference Chain to the selected element within the service
-        * accessPolicyId (nullable) is the access policy definition ID (already existing in EDC)
-        * usagePolicyId (nullable) is the usage/contract policy definition ID (already existing in EDC)
-        * ```json
-          {
-            "url": "http://localhost:12345/api/v3.0",
-            "authenticationMethod": {
-                "type": "api-key",
-                "keyName": "x-api-key",
-                "keyValue": "password"
-            },
-            "policyBindings": [
-                {
-                    "referredElement": "[ModelRef](Submodel)https://example.com/ids/Submodel/1234_5678_9012_3456",
-                    "accessPolicyId": "dbc58fc7-9d1f-49ed-9299-8a513943408c",
-                    "usagePolicyId": "dbc58fc7-9d1f-49ed-9299-8a513943408c"
-                },
-                {
-                   "referredElement": "[ModelRef](AssetAdministrationShell)https://example.com/ids/AssetAdministrationShell/8713_3322_8055_2940"
-                }
-            ]
-          }
+    * Now, individual elements of an AAS can be selected to be registered
+    * Also, customized policies per element can be assigned (if not, default policy is used)
+        * Only the selected elements are synchronized
+            * Selection is provided via "service" json-object
+                * referredElement is a Reference Chain to the selected element within the service
+                * accessPolicyId (nullable) is the access policy definition ID (already existing in EDC)
+                * usagePolicyId (nullable) is the usage/contract policy definition ID (already existing in EDC)
+                * ```json
+                  {
+                    "url": "http://localhost:12345/api/v3.0",
+                    "authenticationMethod": {
+                        "type": "api-key",
+                        "keyName": "x-api-key",
+                        "keyValue": "password"
+                    },
+                    "policyBindings": [
+                        {
+                            "referredElement": "[ModelRef](Submodel)https://example.com/ids/Submodel/1234_5678_9012_3456",
+                            "accessPolicyId": "dbc58fc7-9d1f-49ed-9299-8a513943408c",
+                            "usagePolicyId": "dbc58fc7-9d1f-49ed-9299-8a513943408c"
+                        },
+                        {
+                           "referredElement": "[ModelRef](AssetAdministrationShell)https://example.com/ids/AssetAdministrationShell/8713_3322_8055_2940"
+                        }
+                    ]
+                  }
           ```
 * Added tractus-x example configurations to showcase compatibility
 * AAS DataPlane is now optional
@@ -59,6 +65,7 @@ Compatibility: **Eclipse Dataspace Connector v0.14.1**
 
 ### Miscellaneous
 
+* **Added system tests**
 * Separated control-plane parts from data-plane parts to allow for distributed deployment scenarios
 * Updated internal FA³ST Service to version v1.3.0
 * Updated and tested compatibility to EDC version v0.13.0, v0.13.2, v0.14.0

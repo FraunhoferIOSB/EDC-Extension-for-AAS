@@ -18,7 +18,6 @@ package de.fraunhofer.iosb.app.testutils;
 import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShell;
 import org.eclipse.digitaltwin.aas4j.v3.model.AssetKind;
 import org.eclipse.digitaltwin.aas4j.v3.model.ConceptDescription;
-import org.eclipse.digitaltwin.aas4j.v3.model.DataTypeDefXsd;
 import org.eclipse.digitaltwin.aas4j.v3.model.DataTypeIec61360;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
 import org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes;
@@ -34,7 +33,6 @@ import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultConceptDescription;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultDataSpecificationIec61360;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultEmbeddedDataSpecification;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultEnvironment;
-import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultExtension;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultKey;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultLangStringNameType;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultLangStringTextType;
@@ -48,6 +46,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+
 /**
  * Create AAS elements with default values.
  */
@@ -57,9 +56,11 @@ public class AasCreator {
         throw new RuntimeException("Utility class");
     }
 
+
     public static Environment getEmptyEnvironment() {
         return new DefaultEnvironment.Builder().build();
     }
+
 
     public static Environment getEnvironment() {
         return new DefaultEnvironment.Builder()
@@ -70,14 +71,15 @@ public class AasCreator {
                 .build();
     }
 
+
     public static ConceptDescription getConceptDescription() {
         return getConceptDescription(uuid());
     }
 
+
     public static ConceptDescription getConceptDescription(String id) {
         return new DefaultConceptDescription.Builder()
                 .embeddedDataSpecifications(getEmbeddedDataSpecifications(id))
-                .extensions(getExtensions(id))
                 .administration(getAdministrativeInformation(id))
                 .id(id)
                 .idShort(id)
@@ -87,17 +89,11 @@ public class AasCreator {
                 .build();
     }
 
-    static DefaultExtension getExtensions(String id) {
-        return new DefaultExtension.Builder()
-                .name(id)
-                .value(id)
-                .valueType(DataTypeDefXsd.ANY_URI)
-                .build();
-    }
 
     public static AssetAdministrationShell getAssetAdministrationShell() {
         return getAssetAdministrationShell(uuid());
     }
+
 
     public static AssetAdministrationShell getAssetAdministrationShell(String id) {
         return new DefaultAssetAdministrationShell.Builder()
@@ -107,7 +103,6 @@ public class AasCreator {
                         getSubmodel().getSemanticId(),
                         getSubmodel().getSemanticId()))
                 .embeddedDataSpecifications(getEmbeddedDataSpecifications(id))
-                .extensions(getExtensions(id))
                 .administration(getAdministrativeInformation(id))
                 .id(id)
                 .category(id)
@@ -116,6 +111,7 @@ public class AasCreator {
                 .idShort(id)
                 .build();
     }
+
 
     private static DefaultAssetInformation getAssetInformation(String id) {
         return new DefaultAssetInformation.Builder()
@@ -128,23 +124,24 @@ public class AasCreator {
                 .build();
     }
 
-    public static Submodel getEmptySubmodel() {
-        return new DefaultSubmodel.Builder()
-                .id(uuid())
-                .idShort(uuid()).build();
-    }
 
     public static Submodel getSubmodel() {
-        return getSubmodel(uuid());
+        return getSubmodel(false);
     }
 
-    public static Submodel getSubmodel(String id) {
+
+    public static Submodel getSubmodel(boolean withData) {
+        return getSubmodel(uuid(), withData);
+    }
+
+
+    public static Submodel getSubmodel(String id, boolean withData) {
         return new DefaultSubmodel.Builder()
                 .idShort(id)
                 .id(id)
                 .kind(ModellingKind.INSTANCE)
-                .submodelElements(List.of(getProperty(), getProperty(),
-                        getProperty(), getSubmodelElementCollection(4)))
+                .submodelElements(List.of(getProperty(withData), getProperty(withData),
+                        getProperty(withData), getSubmodelElementCollection(4, withData)))
                 .category("Submodel category")
                 .semanticId(getReference(id))
                 .embeddedDataSpecifications(getEmbeddedDataSpecifications(id))
@@ -152,14 +149,16 @@ public class AasCreator {
                 .build();
     }
 
-    public static SubmodelElementCollection getSubmodelElementCollection(int level) {
-        return getSubmodelElementCollection(level, uuid());
+
+    public static SubmodelElementCollection getSubmodelElementCollection(int level, boolean withData) {
+        return getSubmodelElementCollection(level, uuid(), withData);
     }
 
-    public static SubmodelElementCollection getSubmodelElementCollection(int level, String id) {
+
+    public static SubmodelElementCollection getSubmodelElementCollection(int level, String id, boolean withData) {
         var smcBuilder = new DefaultSubmodelElementCollection.Builder()
                 .idShort(id)
-                .value(new ArrayList<>(List.of(getProperty(), getProperty())))
+                .value(new ArrayList<>(List.of(getProperty(withData), getProperty(withData))))
                 .category("SubmodelElementCollection category")
                 .embeddedDataSpecifications(getEmbeddedDataSpecifications(id))
                 .description(new DefaultLangStringTextType.Builder().text("SubmodelElementCollection description").language("en").build());
@@ -167,22 +166,38 @@ public class AasCreator {
         if (level < 1) {
             return smcBuilder.build();
         }
-        return smcBuilder.value(getSubmodelElementCollection(level - 1, id + "::" + id)).build();
+        return smcBuilder.value(getSubmodelElementCollection(level - 1, id + "::" + id, withData)).build();
     }
+
 
     public static Property getProperty() {
-        return getProperty(uuid());
+        return getProperty(false);
     }
 
+
+    public static Property getProperty(boolean withData) {
+        return getProperty(uuid(), withData);
+    }
+
+
     public static Property getProperty(String id) {
-        return new DefaultProperty.Builder()
+        return getProperty(id, true);
+    }
+
+
+    public static Property getProperty(String id, boolean withData) {
+        var builder = new DefaultProperty.Builder()
                 .idShort(id)
                 .category("Property category")
                 .embeddedDataSpecifications(getEmbeddedDataSpecifications(id))
-                .value("Property value")
-                .description(new DefaultLangStringTextType.Builder().text("Property description").language("en").build())
-                .build();
+                .description(new DefaultLangStringTextType.Builder().text("Property description").language("en").build());
+
+        if (withData) {
+            builder.value("Property value");
+        }
+        return builder.build();
     }
+
 
     static DefaultReference getReference(String id) {
         return new DefaultReference.Builder()
@@ -194,12 +209,14 @@ public class AasCreator {
                 .build();
     }
 
+
     static DefaultLangStringNameType getLangStringNameType() {
         return new DefaultLangStringNameType.Builder()
                 .language("en")
                 .text("Display Name AAS")
                 .build();
     }
+
 
     static DefaultLangStringTextType getLangStringTextType(String type) {
         return new DefaultLangStringTextType.Builder()
@@ -208,11 +225,13 @@ public class AasCreator {
                 .build();
     }
 
+
     static DefaultAdministrativeInformation getAdministrativeInformation(String id) {
         return new DefaultAdministrativeInformation.Builder()
                 .embeddedDataSpecifications(getEmbeddedDataSpecifications(id))
                 .build();
     }
+
 
     static DefaultEmbeddedDataSpecification getEmbeddedDataSpecifications(String id) {
         return new DefaultEmbeddedDataSpecification.Builder()
@@ -221,6 +240,7 @@ public class AasCreator {
                         .value(id)
                         .build()).build();
     }
+
 
     static String uuid() {
         return UUID.randomUUID().toString();

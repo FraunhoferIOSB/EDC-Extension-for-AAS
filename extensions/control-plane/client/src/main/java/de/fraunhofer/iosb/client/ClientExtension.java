@@ -38,6 +38,7 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.spi.WebService;
 
+
 public class ClientExtension implements ServiceExtension {
 
     // Non-public unified authentication request filter management service
@@ -62,6 +63,7 @@ public class ClientExtension implements ServiceExtension {
     private TypeTransformerRegistry transformer;
     @Inject
     private WebService webService;
+
 
     @Override
     public void initialize(ServiceExtensionContext context) {
@@ -100,6 +102,7 @@ public class ClientExtension implements ServiceExtension {
                         .policyController(policyController)
                         .build());
     }
+
 
     /*
      * Re-activate transformers that were deleted in EDC after version 0.6.0

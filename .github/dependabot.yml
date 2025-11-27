@@ -18,7 +18,7 @@ updates:
     target-branch: main
     directory: /
     labels:
-    - "dependabot"
+      - "dependabot"
     schedule:
       interval: "daily"
 
@@ -26,6 +26,6 @@ updates:
     target-branch: main
     directory: /
     labels:
-    - "dependabot"
+      - "dependabot"
     schedule:
       interval: "weekly"

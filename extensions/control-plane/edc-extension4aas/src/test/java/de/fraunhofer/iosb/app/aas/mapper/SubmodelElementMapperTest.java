@@ -15,10 +15,10 @@
  */
 package de.fraunhofer.iosb.app.aas.mapper;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import de.fraunhofer.iosb.aas.lib.model.impl.Service;
-import de.fraunhofer.iosb.app.aas.mapper.environment.referable.SubmodelElementMapper;
+import de.fraunhofer.iosb.app.aas.mapper.referable.SubmodelElementMapper;
+import de.fraunhofer.iosb.client.repository.remote.impl.RemoteAasRepositoryClient;
 import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
+import de.fraunhofer.iosb.model.context.repository.remote.RemoteAasRepositoryContext;
 import org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes;
 import org.eclipse.digitaltwin.aas4j.v3.model.OperationVariable;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
@@ -39,14 +39,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
 
-import static de.fraunhofer.iosb.app.aas.mapper.environment.referable.SubmodelElementMapper.SMC_CHILDREN_LOCATION;
+import static de.fraunhofer.iosb.app.aas.mapper.referable.SubmodelElementMapper.SMC_CHILDREN_LOCATION;
 import static de.fraunhofer.iosb.app.testutils.AasCreator.getProperty;
 import static de.fraunhofer.iosb.constants.AasConstants.AAS_PREFIX;
 import static de.fraunhofer.iosb.constants.AasConstants.AAS_V30_NAMESPACE;
@@ -56,13 +55,16 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+
 class SubmodelElementMapperTest {
 
+    private final URI uri = URI.create("https://test-url:1234/api/v3.0");
     private SubmodelElementMapper testSubject;
+
 
     @BeforeEach
     void setUp() {
-        testSubject = new SubmodelElementMapper();
+        testSubject = new SubmodelElementMapper(new RemoteAasRepositoryClient(new RemoteAasRepositoryContext.Builder().uri(uri).build()));
     }
 
 
@@ -101,16 +103,17 @@ class SubmodelElementMapperTest {
                 .outputVariables(mockOutputVariables)
                 .build();
 
-        var resultAsset = testSubject.map(mockParent, mockOperation, mockService());
+        var resultAsset = testSubject.map(mockParent, mockOperation);
 
         assertEquals(mockInputVariables, resultAsset.getProperty(AAS_V30_NAMESPACE + "Operation/" + "inputVariables"));
         assertEquals(mockInoutputVariables, resultAsset.getProperty(AAS_V30_NAMESPACE + "Operation/" + "inoutputVariables"));
         assertEquals(mockOutputVariables, resultAsset.getProperty(AAS_V30_NAMESPACE + "Operation/" + "outputVariables"));
     }
 
+
+    @SuppressWarnings("unchecked")
     @Test
     void map_submodelElementList_elementsWithoutIdShort() {
-        Service mockService = mockService();
 
         String parentSubmodelId = UUID.randomUUID().toString();
 
@@ -141,7 +144,7 @@ class SubmodelElementMapperTest {
         String listIdShort = "test-id-short";
         SubmodelElementList submodelElementList = new DefaultSubmodelElementList.Builder().idShort(listIdShort).value(listElements).build();
 
-        Asset mapped = testSubject.map(parentReference, submodelElementList, mockService);
+        Asset mapped = testSubject.map(parentReference, submodelElementList);
 
         assertNotNull(mapped);
         assertNotNull(mapped.getProperties());
@@ -164,40 +167,28 @@ class SubmodelElementMapperTest {
                 .concat("[%s]");
 
         Asset mappedProperty = mappedChildren.get(0);
-        assertEquals(AAS_PREFIX.concat(":").concat("Property"), mappedProperty.getProperty(AAS_V30_NAMESPACE.concat("modelingType")));
+        assertEquals("Property", mappedProperty.getProperty(AAS_V30_NAMESPACE.concat("modelingType")));
         assertInstanceOf(AasDataAddress.class, mappedProperty.getDataAddress());
-        assertEquals(mockService.baseUrl().toString(), ((AasDataAddress) mappedProperty.getDataAddress()).getBaseUrl());
+        assertEquals(uri.toString(), ((AasDataAddress) mappedProperty.getDataAddress()).getBaseUrl());
         assertEquals(String.format(listAccessorPathTemplate, "0"), ((AasDataAddress) mappedProperty.getDataAddress()).getPath());
 
-
         Asset mappedList = mappedChildren.get(1);
-        assertEquals(AAS_PREFIX.concat(":").concat("SubmodelElementList"), mappedList.getProperty(AAS_V30_NAMESPACE.concat("modelingType")));
+        assertEquals("SubmodelElementList", mappedList.getProperty(AAS_V30_NAMESPACE.concat("modelingType")));
         assertInstanceOf(AasDataAddress.class, mappedList.getDataAddress());
-        assertEquals(mockService.baseUrl().toString(), ((AasDataAddress) mappedList.getDataAddress()).getBaseUrl());
+        assertEquals(uri.toString(), ((AasDataAddress) mappedList.getDataAddress()).getBaseUrl());
         assertEquals(String.format(listAccessorPathTemplate, "1"), ((AasDataAddress) mappedList.getDataAddress()).getPath());
 
-
         Asset mappedCollection = mappedChildren.get(2);
-        assertEquals(AAS_PREFIX.concat(":").concat("SubmodelElementCollection"),
+        assertEquals("SubmodelElementCollection",
                 mappedCollection.getProperty(AAS_V30_NAMESPACE.concat("modelingType")));
         assertInstanceOf(AasDataAddress.class, mappedCollection.getDataAddress());
-        assertEquals(mockService.baseUrl().toString(), ((AasDataAddress) mappedCollection.getDataAddress()).getBaseUrl());
+        assertEquals(uri.toString(), ((AasDataAddress) mappedCollection.getDataAddress()).getBaseUrl());
         assertEquals(String.format(listAccessorPathTemplate, "2"), ((AasDataAddress) mappedCollection.getDataAddress()).getPath());
 
-
         Asset mappedBlob = mappedChildren.get(3);
-        assertEquals(AAS_PREFIX.concat(":").concat("Blob"), mappedBlob.getProperty(AAS_V30_NAMESPACE.concat("modelingType")));
+        assertEquals("Blob", mappedBlob.getProperty(AAS_V30_NAMESPACE.concat("modelingType")));
         assertInstanceOf(AasDataAddress.class, mappedBlob.getDataAddress());
-        assertEquals(mockService.baseUrl().toString(), ((AasDataAddress) mappedBlob.getDataAddress()).getBaseUrl());
+        assertEquals(uri.toString(), ((AasDataAddress) mappedBlob.getDataAddress()).getBaseUrl());
         assertEquals(String.format(listAccessorPathTemplate, "3"), ((AasDataAddress) mappedBlob.getDataAddress()).getPath());
-    }
-
-
-    private Service mockService() {
-        try {
-            return new Service.Builder().withUrl(new URL("https://test-url:1234/api/v3.0")).build();
-        } catch (MalformedURLException e) {
-            throw new RuntimeException(e);
-        }
     }
 }

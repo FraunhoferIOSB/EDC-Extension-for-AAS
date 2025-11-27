@@ -62,14 +62,18 @@ import java.util.Map;
 
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
-@Provides({ AssetIndex.class, PolicyDefinitionStore.class, ContractDefinitionStore.class })
+
+@Provides({
+        AssetIndex.class,
+        PolicyDefinitionStore.class,
+        ContractDefinitionStore.class
+})
 @Extension(value = EdcConnectorClientExtension.NAME)
 public class EdcConnectorClientExtension implements ServiceExtension {
 
     public static final String NAME = "Remote Control-Plane Store Accessors";
     public static final String CONTROL_PLANE = "edc.controlplane.";
     public static final String MGMT_API = "edc.controlplane.management.";
-
 
     @Setting(description = "Remote control plane full management API URL", key = MGMT_API + "url")
     private String managementUri;
@@ -96,6 +100,7 @@ public class EdcConnectorClientExtension implements ServiceExtension {
     private Codec codec;
     private AuthenticationMethod authenticationMethod;
 
+
     @Override
     public void initialize(ServiceExtensionContext context) {
         registerTransformers();
@@ -103,12 +108,15 @@ public class EdcConnectorClientExtension implements ServiceExtension {
         codec = new Codec(typeTransformerRegistry, jsonLd);
         if (apiKeyAlias != null && vault != null) {
             authenticationMethod = new VaultAuth(vault, apiKeyAlias);
-        } else if (apiKey != null) {
+        }
+        else if (apiKey != null) {
             authenticationMethod = new ApiKey("x-api-key", apiKey);
-        } else {
+        }
+        else {
             authenticationMethod = new NoAuth();
         }
     }
+
 
     @Provider
     public AssetIndex provideAssetIndex(ServiceExtensionContext context) {
@@ -121,6 +129,7 @@ public class EdcConnectorClientExtension implements ServiceExtension {
                 .build();
     }
 
+
     @Provider
     public PolicyDefinitionStore providePolicyDefinitionStore(ServiceExtensionContext context) {
         return new RemotePolicyDefinitionStore.Builder()
@@ -132,6 +141,7 @@ public class EdcConnectorClientExtension implements ServiceExtension {
                 .build();
     }
 
+
     @Provider
     public ContractDefinitionStore provideContractDefinitionStore(ServiceExtensionContext context) {
         return new RemoteContractDefinitionStore.Builder()
@@ -142,6 +152,7 @@ public class EdcConnectorClientExtension implements ServiceExtension {
                 .codec(codec)
                 .build();
     }
+
 
     private void registerTransformers() {
         var jsonFactory = Json.createBuilderFactory(Map.of());

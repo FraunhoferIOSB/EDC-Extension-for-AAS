@@ -1,0 +1,27 @@
+meta {
+  name: Register
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{provider-api}}/registry
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "url": "{{registry-url}}",
+    "auth": {
+      "type": "basic",
+      "username": "user",
+      "password": "123456"
+    }
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

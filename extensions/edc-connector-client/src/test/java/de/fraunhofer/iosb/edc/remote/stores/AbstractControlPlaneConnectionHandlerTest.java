@@ -29,6 +29,7 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 
+
 public abstract class AbstractControlPlaneConnectionHandlerTest {
 
     @RegisterExtension
@@ -38,13 +39,15 @@ public abstract class AbstractControlPlaneConnectionHandlerTest {
     protected final EdcHttpClient httpClient = new EdcHttpClientImpl(new OkHttpClient(), RetryPolicy.ofDefaults(), new ConsoleMonitor());
     protected final String apiKey = UUID.randomUUID().toString();
     @Spy
-    protected Monitor monitor = spy(new ConsoleMonitor());
+    protected final Monitor monitor = spy(new ConsoleMonitor());
     protected Codec mockCodec = mock(Codec.class);
+
 
     @AfterAll
     static void tearDownAll() {
         server.shutdownServer();
     }
+
 
     @AfterEach
     void tearDown() {
@@ -53,12 +56,14 @@ public abstract class AbstractControlPlaneConnectionHandlerTest {
         server.resetAll();
     }
 
+
     protected void mockResponseForGet(String path) {
         server.stubFor(WireMock.get(urlPathEqualTo(path))
                 .willReturn(aResponse()
                         .withResponseBody(Body.ofBinaryOrText("test-return-body".getBytes(StandardCharsets.UTF_8), ContentTypeHeader.absent()))
                         .withStatus(200)));
     }
+
 
     protected void mockResponseForPost(String path) {
         var postMock = WireMock.post(urlPathEqualTo(path))
@@ -69,6 +74,7 @@ public abstract class AbstractControlPlaneConnectionHandlerTest {
 
         server.stubFor(postMock);
     }
+
 
     protected void authorizedServer() {
         server.stubFor(any(anyUrl()).withHeader("x-api-key", matching(apiKey)).willReturn(aResponse().withStatus(200)));

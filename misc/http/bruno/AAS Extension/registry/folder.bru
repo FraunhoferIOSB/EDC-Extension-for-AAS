@@ -6,3 +6,10 @@ meta {
 auth {
   mode: inherit
 }
+
+docs {
+  # Possible fields in a registry request body:
+  
+  - **url**: URI to use to connect to the AAS registry, including any path prefixes (e.g., /api/v3.0)
+  - **auth**: The authentication method used to communicate with the registry (optional, default: no authentication)
+}

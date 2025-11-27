@@ -18,6 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+
 class RemoteContractDefinitionStoreTest extends AbstractControlPlaneConnectionHandlerTest {
 
     @Test
@@ -38,6 +39,7 @@ class RemoteContractDefinitionStoreTest extends AbstractControlPlaneConnectionHa
         assertEquals(contractDefinitions, response.toList());
     }
 
+
     @Test
     void remoteAssetIndex_queryContractDefinitionsEmptyResponse() {
         var querySpec = QuerySpec.none();
@@ -56,6 +58,7 @@ class RemoteContractDefinitionStoreTest extends AbstractControlPlaneConnectionHa
         assertEquals(contractDefinitions, response.toList());
     }
 
+
     @Test
     void findAssetById_assetFoundAndReturned() {
         var id = UUID.randomUUID().toString();
@@ -72,6 +75,7 @@ class RemoteContractDefinitionStoreTest extends AbstractControlPlaneConnectionHa
         assertEquals(contractDefinition, response);
     }
 
+
     @Test
     void findAssetById_notFound() {
         var id = UUID.randomUUID().toString();
@@ -85,6 +89,7 @@ class RemoteContractDefinitionStoreTest extends AbstractControlPlaneConnectionHa
         assertNull(response);
     }
 
+
     @Test
     void connectionHandler_authorizes() {
         authorizedServer();
@@ -96,6 +101,7 @@ class RemoteContractDefinitionStoreTest extends AbstractControlPlaneConnectionHa
         var response = testSubject.findAll(QuerySpec.max());
         assertNotNull(response);
     }
+
 
     @Test
     void connectionHandler_wrongPasswordNoFailure_andLogs() {
@@ -122,6 +128,7 @@ class RemoteContractDefinitionStoreTest extends AbstractControlPlaneConnectionHa
         assertTrue(response.findAny().isEmpty());
     }
 
+
     private RemoteContractDefinitionStore testSubject() {
         return new RemoteContractDefinitionStore.Builder()
                 .authenticationMethod(new ApiKey("x-api-key", apiKey))
@@ -131,6 +138,7 @@ class RemoteContractDefinitionStoreTest extends AbstractControlPlaneConnectionHa
                 .monitor(monitor)
                 .build();
     }
+
 
     private ContractDefinition getContractDefinition() {
         return ContractDefinition.Builder.newInstance()

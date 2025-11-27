@@ -24,25 +24,24 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static java.lang.String.format;
 
+
 /**
- * Accepts a completableFuture which gets completed upon a result of a contract
- * negotiation with the given negotiationId.
- * Accepted final states of a negotiation are: "Confirmed", "Declined",
- * "Failed".
- * "Approved" is not accepted as a final state.
+ * Accepts a completableFuture which gets completed upon a result of a contract negotiation with the given negotiationId. Accepted final states of a negotiation are: "Confirmed",
+ * "Declined", "Failed". "Approved" is not accepted as a final state.
  */
 public class ClientContractNegotiationListener implements ContractNegotiationListener {
 
     private final Map<String, CompletableFuture<ContractNegotiation>> subscribers;
 
+
     /**
-     * Make this listener listen to contract negotiation events containing the given
-     * negotiationId in the Map, completing the given future on the predefined
-     * events "Confirmed", "Declined", "Failed".
+     * Make this listener listen to contract negotiation events containing the given negotiationId in the Map, completing the given future on the predefined events "Confirmed",
+     * "Declined", "Failed".
      */
     ClientContractNegotiationListener() {
         this.subscribers = new ConcurrentHashMap<>();
     }
+
 
     /**
      * Called after a {@link ContractNegotiation} was finalized.
@@ -55,6 +54,7 @@ public class ClientContractNegotiationListener implements ContractNegotiationLis
             subscribers.get(negotiationId).complete(negotiation);
         }
     }
+
 
     /**
      * Called after a {@link ContractNegotiation} was declined.
@@ -70,9 +70,11 @@ public class ClientContractNegotiationListener implements ContractNegotiationLis
         }
     }
 
+
     void addListener(String negotiationId, CompletableFuture<ContractNegotiation> negotiationFuture) {
         subscribers.put(negotiationId, negotiationFuture);
     }
+
 
     void removeListener(String negotiationId) {
         subscribers.remove(negotiationId);

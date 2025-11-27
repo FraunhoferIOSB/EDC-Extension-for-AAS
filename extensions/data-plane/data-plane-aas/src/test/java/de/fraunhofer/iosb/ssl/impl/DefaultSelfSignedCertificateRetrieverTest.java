@@ -29,6 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.fail;
 
+
 class DefaultSelfSignedCertificateRetrieverTest {
     private static final String VALID = "https://google.com";
     private static final String EXPIRED = "https://expired.badssl.com";
@@ -46,6 +47,7 @@ class DefaultSelfSignedCertificateRetrieverTest {
                             .keyManagerPassword("changeit"))
                     .build();
 
+
     @Test
     void getSelfSignedCertificate() {
 
@@ -53,10 +55,12 @@ class DefaultSelfSignedCertificateRetrieverTest {
 
         if (certResult.succeeded()) {
             assertNotNull(certResult.getContent());
-        } else {
+        }
+        else {
             fail();
         }
     }
+
 
     @Test
     void isTrusted() {
@@ -67,16 +71,19 @@ class DefaultSelfSignedCertificateRetrieverTest {
         }
     }
 
+
     @Test
     void getExpiredCertificate() {
         var certResult = new DefaultSelfSignedCertificateRetriever().getSelfSignedCertificate(EXPIRED);
 
         if (certResult.succeeded()) {
             fail();
-        } else {
+        }
+        else {
             assertEquals(List.of("expired"), certResult.getFailureMessages());
         }
     }
+
 
     @Test
     void getWrongHostCertificate() {

@@ -32,6 +32,7 @@ import java.util.concurrent.CompletableFuture;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult.failure;
 
+
 /**
  * Retrieves the parts from dataSource and send them given the aas data processor.
  */
@@ -41,8 +42,10 @@ public class AasDataSink implements DataSink {
     private AasDataAddress aasDataAddress;
     private Monitor monitor;
 
+
     private AasDataSink() {
     }
+
 
     @Override
     public CompletableFuture<StreamResult<Object>> transfer(DataSource dataSource) {
@@ -58,13 +61,14 @@ public class AasDataSink implements DataSink {
                 completedFuture(StreamResult.error("Some parts were not transferred correctly"));
     }
 
+
     private StreamResult<Object> transferPart(DataSource.Part part) {
         String accessUrl = aasDataAddress.getBaseUrl();
 
         if (accessUrl == null) {
             return StreamResult.failure(
                     new StreamFailure(
-                            List.of("No base url found"),
+                            List.of("No base uri found"),
                             StreamFailure.Reason.GENERAL_ERROR));
         }
 
@@ -81,7 +85,8 @@ public class AasDataSink implements DataSink {
 
         try (var response = aasDataProcessor.getContent().send(aasDataAddress, part)) {
             return StreamResult.success("DataTransfer completed. Response from consumer: " + response.body());
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             var errorMessage = "IOException while data transferring to AAS: " + e.getMessage();
             monitor.severe(() -> errorMessage, e);
             return StreamResult.error(errorMessage);
@@ -89,31 +94,38 @@ public class AasDataSink implements DataSink {
 
     }
 
+
     public static class Builder {
         private final AasDataSink dataSink;
+
 
         private Builder() {
             dataSink = new AasDataSink();
         }
 
+
         public static Builder newInstance() {
             return new Builder();
         }
+
 
         public Builder aasDataAddress(AasDataAddress aasDataAddress) {
             dataSink.aasDataAddress = aasDataAddress;
             return this;
         }
 
+
         public Builder aasManipulator(AasDataProcessorFactory aasDataProcessor) {
             dataSink.aasDataProcessorFactory = aasDataProcessor;
             return this;
         }
 
+
         public Builder monitor(Monitor monitor) {
             dataSink.monitor = monitor;
             return this;
         }
+
 
         public AasDataSink build() {
             Objects.requireNonNull(dataSink.aasDataProcessorFactory, "aasManipulator");

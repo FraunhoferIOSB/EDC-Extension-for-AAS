@@ -31,15 +31,18 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+
 class DataTransferObservableTest {
 
     private final Monitor mockMonitor = mock(Monitor.class);
     private DataTransferObservable<String> testSubject;
 
+
     @BeforeEach
     void setUp() {
         testSubject = createTestInstance();
     }
+
 
     @Test
     void test_register_normalBehavior() {
@@ -52,6 +55,7 @@ class DataTransferObservableTest {
         assertEquals("absent", future.getNow("absent"));
     }
 
+
     @Test
     void test_register_unregister() {
         // Verify non-exceptional behavior
@@ -61,11 +65,13 @@ class DataTransferObservableTest {
         testSubject.unregister(agreementId);
     }
 
+
     @Test
     void test_unregister_nonexistentObserver() {
         // Verify non-exceptional behavior
         testSubject.unregister(UUID.randomUUID().toString());
     }
+
 
     @Test
     void test_update_normalBehavior() throws ExecutionException, InterruptedException {
@@ -77,6 +83,7 @@ class DataTransferObservableTest {
         assertEquals(data, observer.get());
     }
 
+
     @Test
     void test_update_nullData() throws ExecutionException, InterruptedException {
         var agreementId = UUID.randomUUID().toString();
@@ -85,6 +92,7 @@ class DataTransferObservableTest {
 
         assertNull(observer.get());
     }
+
 
     @Test
     void test_terminated_nonexistentObserver() {
@@ -96,6 +104,7 @@ class DataTransferObservableTest {
 
         verify(mockMonitor).severe(argThat((String message) -> message.contains("Test error detail")));
     }
+
 
     private DataTransferObservable<String> createTestInstance() {
         return new DataTransferObservable<>(mockMonitor);

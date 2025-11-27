@@ -15,6 +15,8 @@
  */
 package de.fraunhofer.iosb.aas.lib;
 
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import de.fraunhofer.iosb.aas.lib.impl.AllAasDataProcessorFactory;
 import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
 import de.fraunhofer.iosb.ssl.impl.DefaultSelfSignedCertificateRetriever;
@@ -22,71 +24,70 @@ import dev.failsafe.RetryPolicy;
 import jakarta.ws.rs.HttpMethod;
 import okhttp3.OkHttpClient;
 import org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes;
+import org.eclipse.digitaltwin.aas4j.v3.model.ReferenceTypes;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultKey;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultReference;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockserver.integration.ClientAndServer;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.UUID;
 
-import static org.eclipse.edc.util.io.Ports.getFreePort;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockserver.integration.ClientAndServer.startClientAndServer;
-import static org.mockserver.model.HttpRequest.request;
-import static org.mockserver.model.HttpResponse.response;
+
 
 class AasDataProcessorTest {
 
+    @RegisterExtension
+    protected static WireMockExtension server = WireMockExtension.newInstance()
+            .options(wireMockConfig().dynamicPort())
+            .build();
     static AasDataProcessor testSubject;
-    static ClientAndServer mockServer;
-    static URL aasUrl;
+    static URI aasUri;
+
 
     @BeforeAll
-    static void beforeAll() throws MalformedURLException {
-        var port = getFreePort();
-        mockServer = startClientAndServer(port);
-        aasUrl = new URL("https://localhost:%s/api/v3.0".formatted(mockServer.getPort()));
+    static void beforeAll() throws URISyntaxException {
+        aasUri = new URI("http://localhost:%s/api/v3.0".formatted(server.getPort()));
 
         testSubject = new AllAasDataProcessorFactory(new DefaultSelfSignedCertificateRetriever(),
-                mock(OkHttpClient.class),
+                new OkHttpClient(),
                 RetryPolicy.ofDefaults(),
                 new ConsoleMonitor())
-                .processorFor(aasUrl.toString()).getContent();
+                .processorFor(aasUri.toString()).getContent();
 
     }
 
-    @AfterAll
-    static void tearDown() {
-        mockServer.stop();
-    }
-
-    @BeforeEach
-    void setUp() {
-        mockServer.reset();
-        mockServer.when(request().withMethod("GET")).respond(response().withStatusCode(234));
-    }
 
     @Test
     void testGetFromAasAddressOnly() throws IOException {
-        try (var response = testSubject.getFromAas(getAddress())) {
+        AasDataAddress address = getAddress();
+
+        String expectedRequestPath = aasUri.getPath() + "/" + address.getPath() + "/";
+        server.stubFor(WireMock.get(urlPathEqualTo(expectedRequestPath))
+                .willReturn(aResponse()
+                        .withStatus(234)));
+
+        try (var response = testSubject.getFromAas(address)) {
             assertEquals(234, response.code());
         }
     }
 
+
     private AasDataAddress getAddress() {
         return AasDataAddress.Builder.newInstance()
-                .baseUrl(aasUrl.toString())
+                .baseUrl(aasUri.toString())
                 .method(HttpMethod.GET)
-                .referenceChain(new DefaultReference.Builder()
+                .reference(new DefaultReference.Builder()
+                        .type(ReferenceTypes.MODEL_REFERENCE)
                         .keys(List.of(new DefaultKey.Builder().type(KeyTypes.ASSET_ADMINISTRATION_SHELL)
                                 .value(UUID.randomUUID().toString()).build()))
                         .build())

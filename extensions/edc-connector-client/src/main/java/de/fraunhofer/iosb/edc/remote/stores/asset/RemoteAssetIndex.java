@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+
 /**
  * AssetIndex implementation where the control plane is reached via http
  */
@@ -38,19 +39,23 @@ public class RemoteAssetIndex extends ControlPlaneConnectionHandler<Asset> imple
 
     private static final String MGMT_API_RESOURCE_ACCESSOR = "assets";
 
+
     private RemoteAssetIndex(Monitor monitor, EdcHttpClient httpClient, Codec codec, ControlPlaneConnection connection) {
         super(monitor, httpClient, codec, connection);
     }
+
 
     @Override
     public Stream<Asset> queryAssets(QuerySpec querySpec) {
         return queryEntities(querySpec, Asset.class);
     }
 
+
     @Override
     public Asset findById(String assetId) {
         return findById(assetId, Asset.class);
     }
+
 
     /**
      * Extends AssetIndex return values by generalError
@@ -69,6 +74,7 @@ public class RemoteAssetIndex extends ControlPlaneConnectionHandler<Asset> imple
         return deleteById(assetId, Asset.class);
     }
 
+
     @Override
     public long countAssets(List<Criterion> criteria) {
         QuerySpec querySpec = QuerySpec.Builder.newInstance()
@@ -78,10 +84,12 @@ public class RemoteAssetIndex extends ControlPlaneConnectionHandler<Asset> imple
         return queryAssets(querySpec).count();
     }
 
+
     @Override
     public StoreResult<Asset> updateAsset(Asset asset) {
         return updateEntity(asset, Asset.class);
     }
+
 
     @Override
     public DataAddress resolveForAsset(String assetId) {
@@ -90,6 +98,7 @@ public class RemoteAssetIndex extends ControlPlaneConnectionHandler<Asset> imple
                 .map(Asset::getDataAddress)
                 .orElse(null);
     }
+
 
     @Override
     protected String getExistsTemplate() {
@@ -102,6 +111,7 @@ public class RemoteAssetIndex extends ControlPlaneConnectionHandler<Asset> imple
         return ASSET_NOT_FOUND_TEMPLATE;
     }
 
+
     public static class Builder extends ControlPlaneConnectionHandler.Builder<RemoteAssetIndex, Builder> {
 
         @Override
@@ -109,10 +119,12 @@ public class RemoteAssetIndex extends ControlPlaneConnectionHandler<Asset> imple
             return this;
         }
 
+
         public RemoteAssetIndex build() {
             this.resourceName = MGMT_API_RESOURCE_ACCESSOR;
             return super.build();
         }
+
 
         @Override
         protected RemoteAssetIndex create(Monitor monitor, EdcHttpClient httpClient, Codec codec, ControlPlaneConnection connection) {

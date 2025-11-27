@@ -15,6 +15,7 @@
  */
 package de.fraunhofer.iosb.aas.lib.model;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import de.fraunhofer.iosb.ilt.faaast.service.util.ReferenceHelper;
@@ -24,42 +25,61 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
+import static de.fraunhofer.iosb.constants.AasConstants.DEFAULT_POLICY_DEFINITION_ID;
+
+
 /**
- * Binds an AAS element to access and usage policy.
- * If any of the policies are null, a default policy is to be used.
+ * Binds an AAS element to access and usage policy. If any of the policies are null, a default policy is to be used.
  */
 @JsonDeserialize(builder = PolicyBinding.Builder.class)
-public record PolicyBinding(Reference referredElement, String accessPolicyDefinitionId, String contractPolicyDefinitionId) {
+public record PolicyBinding(Reference referredElement, @JsonAlias("accessPolicyId") String accessPolicyDefinitionId,
+        @JsonAlias("usagePolicyId") String contractPolicyDefinitionId) {
     public PolicyBinding(Reference referredElement, String accessPolicyDefinitionId, String contractPolicyDefinitionId) {
         this.referredElement = Objects.requireNonNull(referredElement);
         this.accessPolicyDefinitionId = accessPolicyDefinitionId;
         this.contractPolicyDefinitionId = contractPolicyDefinitionId;
     }
 
+
+    public static PolicyBinding ofDefaults(Reference reference) {
+        return new Builder()
+                .withReferredElement(ReferenceHelper.asString(reference))
+                .withAccessPolicyDefinitionId(DEFAULT_POLICY_DEFINITION_ID)
+                .withContractPolicyDefinitionId(DEFAULT_POLICY_DEFINITION_ID)
+                .build();
+    }
+
+
     @Override
     public @NotNull Reference referredElement() {
         return referredElement;
     }
+
 
     @Override
     public @Nullable String accessPolicyDefinitionId() {
         return accessPolicyDefinitionId;
     }
 
+
     @Override
     public @Nullable String contractPolicyDefinitionId() {
         return contractPolicyDefinitionId;
     }
+
 
     public static class Builder {
         private Reference referredElement;
         private String accessPolicyDefinitionId;
         private String contractPolicyDefinitionId;
 
-        public Builder withReferredElement(String referredElement) {
-            this.referredElement = Objects.requireNonNull(ReferenceHelper.parse(referredElement));
+
+        // Use String because of deserialization with jakarta fails for aas4j-references
+        public Builder withReferredElement(String referenceString) {
+            this.referredElement = ReferenceHelper.parse(Objects.requireNonNull(referenceString));
             return this;
         }
+
 
         @JsonProperty("accessPolicyId")
         public Builder withAccessPolicyDefinitionId(String accessPolicyDefinitionId) {
@@ -67,11 +87,13 @@ public record PolicyBinding(Reference referredElement, String accessPolicyDefini
             return this;
         }
 
+
         @JsonProperty("usagePolicyId")
         public Builder withContractPolicyDefinitionId(String contractPolicyDefinitionId) {
             this.contractPolicyDefinitionId = contractPolicyDefinitionId;
             return this;
         }
+
 
         public PolicyBinding build() {
             return new PolicyBinding(referredElement, accessPolicyDefinitionId, contractPolicyDefinitionId);

@@ -22,20 +22,22 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import java.util.Collection;
 import java.util.Objects;
 
+
 /**
- * Extensions can register their public endpoints here. Requests to those endpoints will not need authentication.
- * If multiple extensions handle their own public endpoints with separate AuthenticationRequestFilters, they will
- * interfere with each other.
+ * Extensions can register their public endpoints here. Requests to those endpoints will not need authentication. If multiple extensions handle their own public endpoints with
+ * separate AuthenticationRequestFilters, they will interfere with each other.
  */
 public class PublicApiManagementService {
 
     private final CustomAuthenticationRequestFilter filter;
     private final Monitor monitor;
 
+
     public PublicApiManagementService(CustomAuthenticationRequestFilter filter, Monitor monitor) {
         this.filter = filter;
         this.monitor = monitor.withPrefix("PublicApiManagementService");
     }
+
 
     /**
      * Add a collection of public endpoints for the request filter to accept.
@@ -52,6 +54,7 @@ public class PublicApiManagementService {
         filter.addEndpoints(endpoints.stream().filter(Objects::nonNull).toList());
     }
 
+
     /**
      * Add a temporary public endpoint for the request filter to accept.
      *
@@ -65,6 +68,7 @@ public class PublicApiManagementService {
         monitor.debug("Adding public endpoint %s.".formatted(endpoint.suffix()));
         filter.addTemporaryEndpoint(endpoint);
     }
+
 
     /**
      * Remove a collection of public endpoints for the request filter to accept.

@@ -79,4 +79,4 @@ Features in development:
 - Docker Hub container deployment [&#x2713;](.github/workflows/push_to_main.yml)
 - Support for AAS Registries: Share all AAS from AAS Registry &#x2713;
 - Client DPP Viewer: Directly view the requested DPP (AAS format)
-- Listen for updates on FA³ST message bus
+- Listen for updates on FA³ST message bus &#x2713;

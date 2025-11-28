@@ -14,7 +14,7 @@ junit-bom = "6.0.1"
 junit-platform-launcher = "6.0.1"
 jupiter = "6.0.1"
 mockito = "5.20.0"
-tractusx = "0.11.0"
+tractusx = "0.11.1"
 wiremock = "3.13.2"
 
 [libraries]

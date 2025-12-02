@@ -60,16 +60,11 @@
           "aas:AbstractLangString/text": "Das ist meine system test ConceptDescription beschreibung"
         }
       ],
-      "aas:Referable/idShort": "SystemTestConceptDescription",
-      "aas:Identifiable/id": "https://acplt.org/System_Test_ConceptDescription",
       "aas:modelingType": "ConceptDescription",
-      "aas:Identifiable/administration": {
-        "aas:AdministrativeInformation/revision": "2",
-        "aas:AdministrativeInformation/version": "4",
-        "aas:HasDataSpecification/embeddedDataSpecifications": []
-      },
+      "aas:Referable/idShort": "SystemTestConceptDescription",
       "contenttype": "application/json",
-      "id": "1351791412"
+      "id": "1351791412",
+      "aas:Identifiable/id": "https://acplt.org/System_Test_ConceptDescription"
     },
     {
       "@id": "792362498",
@@ -130,16 +125,11 @@
           "aas:AbstractLangString/text": "Das ist meine system test AAS beschreibung"
         }
       ],
-      "aas:Referable/idShort": "SystemTestAssetAdministrationShell",
-      "aas:Identifiable/id": "https://acplt.org/System_Test_AssetAdministrationShell",
       "aas:modelingType": "AssetAdministrationShell",
-      "aas:Identifiable/administration": {
-        "aas:AdministrativeInformation/revision": "37",
-        "aas:AdministrativeInformation/version": "13",
-        "aas:HasDataSpecification/embeddedDataSpecifications": []
-      },
+      "aas:Referable/idShort": "SystemTestAssetAdministrationShell",
       "contenttype": "application/json",
-      "id": "792362498"
+      "id": "792362498",
+      "aas:Identifiable/id": "https://acplt.org/System_Test_AssetAdministrationShell"
     },
     {
       "@id": "-799803758",
@@ -204,10 +194,10 @@
       "aas:modelingType": "SubmodelElementCollection",
       "aas:HasSemantics/semanticId": {
         "aas:Reference/keys": {
-          "aas:Key/type": "GLOBAL_REFERENCE",
+          "aas:Key/type": "GlobalReference",
           "aas:Key/value": "http://acplt.org/SubmodelElementCollections/System_Test_SubmodelElementCollection"
         },
-        "aas:Reference/type": "EXTERNAL_REFERENCE"
+        "aas:Reference/type": "ExternalReference"
       },
       "contenttype": "application/json",
       "id": "-799803758"
@@ -275,10 +265,10 @@
       "aas:modelingType": "Property",
       "aas:HasSemantics/semanticId": {
         "aas:Reference/keys": {
-          "aas:Key/type": "GLOBAL_REFERENCE",
+          "aas:Key/type": "GlobalReference",
           "aas:Key/value": "0173-1#02-AAO677#002"
         },
-        "aas:Reference/type": "EXTERNAL_REFERENCE"
+        "aas:Reference/type": "ExternalReference"
       },
       "aas:Referable/displayName": {
         "aas:AbstractLangString/language": "en-us",
@@ -351,15 +341,10 @@
       "aas:modelingType": "Submodel",
       "aas:HasSemantics/semanticId": {
         "aas:Reference/keys": {
-          "aas:Key/type": "SUBMODEL",
+          "aas:Key/type": "Submodel",
           "aas:Key/value": "http://acplt.org/SubmodelTemplates/SystemTest"
         },
-        "aas:Reference/type": "EXTERNAL_REFERENCE"
-      },
-      "aas:Identifiable/administration": {
-        "aas:AdministrativeInformation/revision": "9",
-        "aas:AdministrativeInformation/version": "0",
-        "aas:HasDataSpecification/embeddedDataSpecifications": []
+        "aas:Reference/type": "ExternalReference"
       },
       "contenttype": "application/json",
       "id": "1855961989"

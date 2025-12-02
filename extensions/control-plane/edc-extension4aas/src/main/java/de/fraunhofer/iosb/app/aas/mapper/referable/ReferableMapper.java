@@ -16,19 +16,20 @@
 package de.fraunhofer.iosb.app.aas.mapper.referable;
 
 import de.fraunhofer.iosb.app.aas.mapper.ElementMapper;
+import de.fraunhofer.iosb.app.aas.mapper.util.FilteredJsonSerializer;
 import de.fraunhofer.iosb.client.AasServerClient;
-import org.eclipse.digitaltwin.aas4j.v3.model.HasSemantics;
 import org.eclipse.digitaltwin.aas4j.v3.model.Referable;
 import org.eclipse.digitaltwin.aas4j.v3.model.annotations.IRI;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 
 import static de.fraunhofer.iosb.constants.AasConstants.AAS_V30_NAMESPACE;
+import static de.fraunhofer.iosb.constants.AasConstants.DEFAULT_EXPOSED_FIELDS_CATALOG;
 
 
 public abstract class ReferableMapper extends ElementMapper {
 
     public static final String CONTENT_TYPE = "application/json";
-    private static final String REFERABLE_NAMESPACE = AAS_V30_NAMESPACE.concat("Referable/");
+    private final FilteredJsonSerializer jsonSerializer = new FilteredJsonSerializer();
 
 
     protected ReferableMapper(AasServerClient client) {
@@ -37,30 +38,16 @@ public abstract class ReferableMapper extends ElementMapper {
 
 
     public Asset.Builder map(Referable referable) {
+
         var assetBuilder = Asset.Builder.newInstance();
+
+        var filterDefaults = jsonSerializer.toMap(referable, DEFAULT_EXPOSED_FIELDS_CATALOG);
+        assetBuilder.properties(filterDefaults);
 
         String[] modelingType = referable.getClass().getAnnotation(IRI.class).value();
 
         if (modelingType.length > 0) {
             assetBuilder.property(AAS_V30_NAMESPACE.concat("modelingType"), removeAasPrefix(modelingType[0]));
-        }
-
-        if (referable.getIdShort() != null && !referable.getIdShort().isEmpty()) {
-            assetBuilder.property(REFERABLE_NAMESPACE.concat("idShort"), referable.getIdShort());
-        }
-
-        if (referable.getDisplayName() != null && !referable.getDisplayName().isEmpty()) {
-            assetBuilder.property(REFERABLE_NAMESPACE.concat("displayName"), getNamespacedList(referable.getDisplayName()));
-        }
-
-        if (referable.getDescription() != null && !referable.getDescription().isEmpty()) {
-            assetBuilder.property(REFERABLE_NAMESPACE.concat("description"), getNamespacedList(referable.getDescription()));
-        }
-
-        if (referable instanceof HasSemantics semanticsHavingIdentifiable &&
-                semanticsHavingIdentifiable.getSemanticId() != null &&
-                !semanticsHavingIdentifiable.getSemanticId().getKeys().isEmpty()) {
-            assetBuilder.property(AAS_V30_NAMESPACE + "HasSemantics/" + "semanticId", getNamespaced(semanticsHavingIdentifiable.getSemanticId()));
         }
 
         return assetBuilder.contentType(CONTENT_TYPE);
@@ -73,5 +60,4 @@ public abstract class ReferableMapper extends ElementMapper {
         }
         return s;
     }
-
 }

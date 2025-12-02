@@ -15,6 +15,9 @@
  */
 package de.fraunhofer.iosb.constants;
 
+import java.util.Set;
+
+
 public interface AasConstants {
     String AAS_PREFIX = "aas";
     String AAS_V30_NAMESPACE = "https://admin-shell.io/aas/3/0/";
@@ -23,4 +26,26 @@ public interface AasConstants {
     String EDC_SETTINGS_PREFIX = "edc.aas";
 
     String DEFAULT_POLICY_DEFINITION_ID = "allow_all";
+
+    Set<String> DEFAULT_EXPOSED_FIELDS_CATALOG = Set.of(
+            "AbstractLangString/language",
+            "AbstractLangString/text",
+            "HasSemantics/semanticId", "Reference/keys", "Reference/type", "Key/type", "Key/value",
+            "Referable/idShort", "Referable/description", "Referable/displayName",
+            "Identifiable/id"
+    );
+    Set<String> DEFAULT_EXPOSED_FIELDS_SELF_DESCRIPTION = Set.of(
+            "Environment/assetAdministrationShells", "Environment/submodels", "Environment/conceptDescriptions",
+            "assetAdministrationShells", "submodels", "conceptDescriptions",
+            "AbstractLangString/language",
+            "AbstractLangString/text",
+            "HasSemantics/semanticId", "Reference/keys", "Reference/type", "Key/type", "Key/value",
+            "Referable/idShort", "Referable/description", "Referable/displayName",
+            "Identifiable/id",
+            // Containers
+            "Submodel/submodelElements", "SubmodelElementCollection/value", "SubmodelElementList/value",
+            // Display asset ID in self-description
+            "HasExtensions/extensions", "Extension/name", "Extension/value"
+    );
+
 }

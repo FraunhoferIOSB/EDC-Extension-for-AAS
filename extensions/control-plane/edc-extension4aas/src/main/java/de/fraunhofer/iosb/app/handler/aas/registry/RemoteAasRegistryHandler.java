@@ -36,12 +36,10 @@ import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultAssetAdministrationShe
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultAssetAdministrationShellDescriptor;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultAssetInformation;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultEnvironment;
-import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultExtension;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultSubmodel;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultSubmodelDescriptor;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.jetbrains.annotations.NotNull;
 
 import java.net.ConnectException;
 import java.net.URI;
@@ -51,16 +49,28 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.Function;
+import java.util.function.Consumer;
 
 import static de.fraunhofer.iosb.constants.AasConstants.SUPPORTED_AAS_VERSION;
 import static org.eclipse.edc.dataaddress.httpdata.spi.HttpDataAddressSchema.BASE_URL;
 
 
+/**
+ * Handles synchronization of AAS registries shell/submodel descriptors and EDC stores.
+ */
 public class RemoteAasRegistryHandler extends RemoteAasHandler<AasRegistryClient> {
     private static final List<String> SUPPORTED_PROTOCOLS = List.of("HTTP", "HTTPS", "http", "https");
 
 
+    /**
+     * Class constructor.
+     *
+     * @param monitor Logging.
+     * @param client Communication with AAS registry.
+     * @param edcStoreHandler EDC API.
+     * @throws UnauthorizedException Initial communication with AAS registry failed due to being unauthorized.
+     * @throws ConnectException Initial communication with AAS registry failed due to a connection exception.
+     */
     public RemoteAasRegistryHandler(Monitor monitor, AasRegistryClient client, EdcStoreHandler edcStoreHandler) throws UnauthorizedException,
             ConnectException {
         super(monitor, client, edcStoreHandler);
@@ -92,14 +102,14 @@ public class RemoteAasRegistryHandler extends RemoteAasHandler<AasRegistryClient
 
 
     @Override
-    protected Function<Identifiable, Identifiable> getSelfDescriptionIdentifiableMapper() {
-        return this::registryIdentifiableMapper;
+    protected Consumer<Identifiable> getSelfDescriptionIdentifiableMapper() {
+        return this::registryIdentifiableVisitor;
     }
 
 
-    private @NotNull Identifiable registryIdentifiableMapper(Identifiable identifiable) {
+    private void registryIdentifiableVisitor(Identifiable identifiable) {
         // Find suitable URI
-        String uri = this.referenceAssetMapping.entrySet().stream()
+        String uri = registeredAssets.entrySet().stream()
                 .filter(entry -> entry.getKey().referredElement().equals(AasUtils.toReference(identifiable)))
                 .map(Map.Entry::getValue)
                 .map(Asset::getDataAddress)
@@ -108,11 +118,7 @@ public class RemoteAasRegistryHandler extends RemoteAasHandler<AasRegistryClient
                 .findAny()
                 .orElseThrow();
 
-        identifiable.getExtensions().add(new DefaultExtension.Builder()
-                .name(Asset.PROPERTY_ID)
-                .value(AssetIdUtil.id(uri, identifiable))
-                .build());
-        return identifiable;
+        identifiable.setExtensions(List.of(buildExtension(AssetIdUtil.id(uri, identifiable))));
     }
 
 
@@ -178,18 +184,18 @@ public class RemoteAasRegistryHandler extends RemoteAasHandler<AasRegistryClient
 
 
     private <T extends Descriptor> URI getAppropriateEndpoint(List<Endpoint> endpoints, Class<T> clazz) throws NoEndpointException {
-        List<String> interfaceShortNames;
+        String interfaceShortNames;
         if (clazz.equals(AssetAdministrationShellDescriptor.class)) {
-            interfaceShortNames = List.of("AAS-".concat(SUPPORTED_AAS_VERSION), "AAS-REPOSITORY-".concat(SUPPORTED_AAS_VERSION));
+            interfaceShortNames = "AAS-".concat(SUPPORTED_AAS_VERSION);
         }
         else if (clazz.equals(SubmodelDescriptor.class)) {
-            interfaceShortNames = List.of("SUBMODEL-".concat(SUPPORTED_AAS_VERSION), "SUBMODEL-REPOSITORY-".concat(SUPPORTED_AAS_VERSION));
+            interfaceShortNames = "SUBMODEL-".concat(SUPPORTED_AAS_VERSION);
         }
         else {
             throw new IllegalArgumentException(String.format("Descriptor type not recognized: %s", clazz.getSimpleName()));
         }
         return endpoints.stream()
-                .filter(ep -> interfaceShortNames.contains(ep.get_interface()))
+                .filter(ep -> interfaceShortNames.equalsIgnoreCase(ep.get_interface()))
                 .map(Endpoint::getProtocolInformation)
                 .filter(protocolInformation -> SUPPORTED_PROTOCOLS.contains(protocolInformation.getEndpointProtocol()))
                 // Remove endpoints which require security

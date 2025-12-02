@@ -15,5 +15,8 @@
  */
 package de.fraunhofer.iosb.app.handler;
 
+/**
+ * A remote handler is defined by being runnable in a thread. This is used to be able to periodically fetch updates from the object behind the handler.
+ */
 public interface RemoteHandler extends Runnable {
 }

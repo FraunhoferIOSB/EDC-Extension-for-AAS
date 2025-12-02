@@ -24,18 +24,35 @@ import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractD
 import org.eclipse.edc.spi.result.StoreResult;
 
 
+/**
+ * Handles transactions with EDC. Makes sure that registering an asset and the asset to a contract is a transaction.
+ */
 public class EdcStoreHandler {
 
     private final AssetService assetService;
     private final ContractDefinitionService contractDefinitionService;
 
 
+    /**
+     * Class constructor.
+     *
+     * @param assetIndex To add/remove assets.
+     * @param contractDefinitionStore To add/remove asset ids to/from contracts, to create/remove contracts.
+     */
     public EdcStoreHandler(AssetIndex assetIndex, ContractDefinitionStore contractDefinitionStore) {
         this.assetService = new AssetService(assetIndex);
         this.contractDefinitionService = new ContractDefinitionService(contractDefinitionStore);
     }
 
 
+    /**
+     * Register an asset to the EDC AssetIndex and attach a contract with the policyIds from the policyBinding to it before registering said contract to the EDC
+     * ContractDefinitionStore.
+     *
+     * @param policyBinding PolicyBinding containing access and usage (contract) policy ids.
+     * @param asset Asset to register to EDC AssetIndex.
+     * @return Successful result if all the abovementioned process succeeded, else failure.
+     */
     public StoreResult<Void> register(PolicyBinding policyBinding, Asset asset) {
         StoreResult<Void> assetCreationResult = assetService.create(asset);
 
@@ -48,6 +65,14 @@ public class EdcStoreHandler {
     }
 
 
+    /**
+     * Unregister an asset from the EDC AssetIndex and detach the corresponding contract with the policyIds from the policyBinding to it, optionally unregistering said contract
+     * from the EDC ContractDefinitionStore if it is dangling after the detachment.
+     *
+     * @param policyBinding PolicyBinding containing access and usage (contract) policy ids.
+     * @param assetId id of the asset to unregister from EDC AssetIndex.
+     * @return Successful result if all the abovementioned process succeeded, else failure.
+     */
     public StoreResult<Void> unregister(PolicyBinding policyBinding, String assetId) {
         StoreResult<Asset> assetDeleteResult = assetService.delete(assetId);
 
@@ -60,8 +85,13 @@ public class EdcStoreHandler {
     }
 
 
+    /**
+     * Update an asset at the EDC AssetIndex does not alter the ContractStore.
+     *
+     * @param asset Asset to register to EDC AssetIndex.
+     * @return Successful result if all the abovementioned process succeeded, else failure.
+     */
     public StoreResult<Asset> update(Asset asset) {
         return assetService.update(asset);
     }
-
 }

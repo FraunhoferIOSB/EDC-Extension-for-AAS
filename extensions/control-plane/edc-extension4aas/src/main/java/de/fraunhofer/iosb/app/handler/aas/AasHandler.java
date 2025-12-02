@@ -18,20 +18,17 @@ package de.fraunhofer.iosb.app.handler.aas;
 import de.fraunhofer.iosb.aas.lib.model.PolicyBinding;
 import de.fraunhofer.iosb.app.aas.mapper.referable.SubmodelElementMapper;
 import de.fraunhofer.iosb.app.aas.mapper.referable.identifiable.IdentifiableMapper;
+import de.fraunhofer.iosb.app.aas.mapper.util.AssetIdUtil;
 import de.fraunhofer.iosb.app.handler.aas.util.EnvironmentVisitor;
 import de.fraunhofer.iosb.app.handler.edc.EdcStoreHandler;
 import de.fraunhofer.iosb.app.handler.util.MappingHelper;
 import de.fraunhofer.iosb.client.AasServerClient;
 import de.fraunhofer.iosb.client.exception.UnauthorizedException;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.util.AasUtils;
-import org.eclipse.digitaltwin.aas4j.v3.model.Blob;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
+import org.eclipse.digitaltwin.aas4j.v3.model.Extension;
 import org.eclipse.digitaltwin.aas4j.v3.model.Identifiable;
-import org.eclipse.digitaltwin.aas4j.v3.model.MultiLanguageProperty;
-import org.eclipse.digitaltwin.aas4j.v3.model.Property;
-import org.eclipse.digitaltwin.aas4j.v3.model.Range;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
-import org.eclipse.digitaltwin.aas4j.v3.model.ReferenceElement;
 import org.eclipse.digitaltwin.aas4j.v3.model.Submodel;
 import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElement;
 import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElementCollection;
@@ -48,12 +45,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.Function;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 
+/**
+ * Superclass for AAS server handlers to bundle shared functionality.
+ *
+ * @param <C> AAS server client implementation to communicate with AAS server.
+ */
 public abstract class AasHandler<C extends AasServerClient> {
 
     protected final IdentifiableMapper identifiableMapper;
@@ -69,6 +71,51 @@ public abstract class AasHandler<C extends AasServerClient> {
         this.monitor = monitor;
         this.edcStoreHandler = edcStoreHandler;
         this.client = client;
+    }
+
+
+    /**
+     * Returns the self-description entity for this AAS. The self-description is essentially a representation of this AAS preserving its structure, extended by EDC information for
+     * data space consumers to get the necessary information to negotiate the data represented by an AAS element.
+     *
+     * @return The self-description (An AAS Environment with EDC information added as AAS.Extensions using the HasExtension property of an AAS referable).
+     * @throws UnauthorizedException A call to the AAS was returned with a Status code of 401 or 403.
+     * @throws ConnectException A connection to the underlying AAS was unsuccessful.
+     */
+    public final Environment buildSelfDescription() throws UnauthorizedException, ConnectException {
+        Consumer<Identifiable> identifiableVisitor = getSelfDescriptionIdentifiableMapper();
+        Predicate<Identifiable> identifiableFilter = identifiable -> {
+            if (client.eligibleForRegistration(AasUtils.toReference(identifiable))) {
+                return true;
+            }
+            return (identifiable instanceof Submodel submodel) && !submodel.getSubmodelElements().isEmpty();
+        };
+
+        return new EnvironmentVisitor(getEnvironment())
+                .visitShells(identifiableFilter)
+                .visitShells(identifiableVisitor)
+                .visitConceptDescriptions(identifiableFilter)
+                .visitConceptDescriptions(identifiableVisitor)
+                .visitSubmodels(identifiableFilter, this::filterSubmodelElementStructure)
+                .visitSubmodels(identifiableVisitor, this::mapSubmodelElement)
+                .environment();
+    }
+
+
+    public void cleanUp() {
+        monitor.info("Unregistering...");
+        Map<PolicyBinding, Asset> filtered = getCurrentlyRegistered();
+
+        List<String> unregisterFailedMessages = filtered.entrySet().stream()
+                .map(entry -> unregisterSingle(entry.getKey(), entry.getValue().getId()))
+                .filter(AbstractResult::failed)
+                .map(StoreResult::getFailureDetail)
+                .toList();
+
+        monitor.warning(String.format("Failed unregistering assets with IDs %s", unregisterFailedMessages));
+
+        monitor.info(String.format("Unregistered %s AAS elements from repository %s.", filtered.size() - unregisterFailedMessages.size(),
+                client.getUri()));
     }
 
 
@@ -96,7 +143,7 @@ public abstract class AasHandler<C extends AasServerClient> {
         Map<Reference, Asset> mapped = MappingHelper.map(currentEnvironment, identifiableMapper::map, submodelElementMapper::map);
 
         return mapped.entrySet().stream()
-                .filter(entry -> client.doRegister(entry.getKey()))
+                .filter(entry -> client.eligibleForRegistration(entry.getKey()))
                 .map(entry -> Map.entry(policyBindingFor(entry.getKey()), entry.getValue()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
@@ -109,7 +156,7 @@ public abstract class AasHandler<C extends AasServerClient> {
         Map<Reference, Asset> mapped = MappingHelper.map(currentEnvironment, identifiableMapper::map, submodelElementMapper::map);
 
         Stream<Map.Entry<PolicyBinding, Asset>> filtered = mapped.entrySet().stream()
-                .filter(entry -> client.doRegister(entry.getKey()))
+                .filter(entry -> client.eligibleForRegistration(entry.getKey()))
                 .map(entry -> Map.entry(policyBindingFor(entry.getKey()), entry.getValue()));
 
         var registered = filtered
@@ -122,54 +169,25 @@ public abstract class AasHandler<C extends AasServerClient> {
     }
 
 
-    public void cleanUp() {
-        monitor.info("Unregistering...");
-        Map<PolicyBinding, Asset> filtered = getCurrentlyRegistered();
-
-        List<String> unregisterFailedMessages = filtered.entrySet().stream()
-                .map(entry -> unregisterSingle(entry.getKey(), entry.getValue().getId()))
-                .filter(AbstractResult::failed)
-                .map(StoreResult::getFailureDetail)
-                .toList();
-
-        monitor.warning(String.format("Failed unregistering assets with IDs %s", unregisterFailedMessages));
-
-        monitor.info(String.format("Unregistered %s AAS elements from repository %s.", filtered.size() - unregisterFailedMessages.size(),
-                client.getUri()));
-    }
-
-
     protected StoreResult<Void> registerSingle(PolicyBinding policyBinding, Asset asset) {
         StoreResult<Void> storeResult = edcStoreHandler.register(policyBinding, asset);
         if (storeResult.succeeded()) {
             return StoreResult.success();
         }
 
-        // note: if register is called but the AssetIndex already contains it, update it.
-        if (storeResult.reason() == StoreFailure.Reason.ALREADY_EXISTS) {
-            return updateSingle(policyBinding, asset);
-        }
-        else {
-            monitor.warning(storeResult.getFailureDetail());
-            return StoreResult.generalError(storeResult.getFailureDetail());
-        }
+        monitor.warning(storeResult.getFailureDetail());
+        return StoreResult.generalError(storeResult.getFailureDetail());
     }
 
 
-    protected StoreResult<Void> updateSingle(PolicyBinding policyBinding, Asset asset) {
+    protected StoreResult<Void> updateSingle(Asset asset) {
         StoreResult<Asset> storeResultWithAsset = edcStoreHandler.update(asset);
         if (storeResultWithAsset.succeeded()) {
             return StoreResult.success();
         }
 
-        // note: if an update is called but the AssetIndex cannot find it, create the asset.
-        if (storeResultWithAsset.reason() == StoreFailure.Reason.NOT_FOUND) {
-            return registerSingle(policyBinding, asset);
-        }
-        else {
-            monitor.warning(storeResultWithAsset.getFailureDetail());
-            return StoreResult.generalError(storeResultWithAsset.getFailureDetail());
-        }
+        monitor.warning(storeResultWithAsset.getFailureDetail());
+        return StoreResult.generalError(storeResultWithAsset.getFailureDetail());
     }
 
 
@@ -185,43 +203,11 @@ public abstract class AasHandler<C extends AasServerClient> {
     }
 
 
-    /**
-     * Returns the self-description entity for this AAS. The self-description is essentially a representation of this AAS preserving its structure, extended by EDC information for
-     * data space consumers to get the necessary information to negotiate the data represented by an AAS element.
-     *
-     * @return The self-description (An AAS Environment with EDC information added as AAS.Extensions using the HasExtension property of an AAS referable).
-     * @throws UnauthorizedException A call to the AAS was returned with a Status code of 401 or 403.
-     * @throws ConnectException A connection to the underlying AAS was unsuccessful.
-     */
-    public final Environment buildSelfDescription() throws UnauthorizedException, ConnectException {
-        Function<Identifiable, Identifiable> identifiableMapper = getSelfDescriptionIdentifiableMapper();
-        Predicate<Identifiable> identifiableFilter = identifiable -> {
-            if (client.doRegister(AasUtils.toReference(identifiable))) {
-                return true;
-            }
-            return (identifiable instanceof Submodel submodel) && !submodel.getSubmodelElements().isEmpty();
-        };
-
-        return new EnvironmentVisitor(getEnvironment())
-                .visitShells(identifiableFilter)
-                .visitShells(identifiableMapper)
-                .visitConceptDescriptions(identifiableFilter)
-                .visitConceptDescriptions(identifiableMapper)
-                .visitSubmodels(identifiableFilter, this::filterSubmodelElementStructure)
-                .visitSubmodels(identifiableMapper, this::mapSubmodelElement)
-                .environment();
-    }
-
-
-    protected Function<Identifiable, Identifiable> getSelfDescriptionIdentifiableMapper() {
+    protected Consumer<Identifiable> getSelfDescriptionIdentifiableMapper() {
         return identifiable -> {
-            if (!(identifiable instanceof Submodel) || client.doRegister(AasUtils.toReference(identifiable))) {
-                identifiable.getExtensions().add(new DefaultExtension.Builder()
-                        .name(Asset.PROPERTY_ID)
-                        .value(this.identifiableMapper.generateId(AasUtils.toReference(identifiable)))
-                        .build());
+            if (!(identifiable instanceof Submodel) || client.eligibleForRegistration(AasUtils.toReference(identifiable))) {
+                identifiable.setExtensions(List.of(buildExtension(AssetIdUtil.id(client.getUri().toString(), identifiable))));
             }
-            return identifiable;
         };
     }
 
@@ -245,40 +231,30 @@ public abstract class AasHandler<C extends AasServerClient> {
         }
         else if (submodelElement instanceof SubmodelElementCollection collection) {
             collection.getValue().forEach(element -> mapSubmodelElement(submodelElementReference, element));
-        } // TODO make this configurable
-        else if (submodelElement instanceof Property property) {
-            property.setValue(null);
-        }
-        else if (submodelElement instanceof Blob blob) {
-            blob.setValue(null);
-            blob.setContentType(null);
-        }
-        else if (submodelElement instanceof MultiLanguageProperty multiLanguageProperty) {
-            multiLanguageProperty.setValue(null);
-            multiLanguageProperty.setValueId(null);
-        }
-        else if (submodelElement instanceof Range range) {
-            range.setMin(null);
-            range.setMax(null);
-            range.setValueType(null);
-        }
-        else if (submodelElement instanceof ReferenceElement referenceElement) {
-            referenceElement.setValue(null);
         }
 
         // We don't want AAS elements that are not registered to be annotated with IDs
-        if (client.doRegister(submodelElementReference)) {
-            submodelElement.getExtensions().add(new DefaultExtension.Builder()
-                    .name(Asset.PROPERTY_ID)
-                    .value(submodelElementMapper.generateId(submodelElementReference))
-                    .build());
+        if (client.eligibleForRegistration(submodelElementReference)) {
+            submodelElement.setExtensions(List.of(buildExtension(AssetIdUtil.id(client.getUri().toString(), submodelElementReference))));
         }
         return submodelElement;
     }
 
 
-    protected SubmodelElement filterSubmodelElementStructure(Reference parent, SubmodelElement submodelElement) {
+    protected Extension buildExtension(String assetId) {
+        return new DefaultExtension.Builder()
+                .name(Asset.PROPERTY_ID)
+                .value(assetId)
+                .build();
+    }
 
+
+    /*
+    Top-down-search, bottom-up filtering of SME. If at least one child of an otherwise to-be-removed element needs to be kept, the element itself will not be removed.
+    This element will be shown in the self-description but will not have an EDC asset ID. This could compromise confidentiality in some cases, self-description should be
+    deactivated in that case.
+     */
+    protected SubmodelElement filterSubmodelElementStructure(Reference parent, SubmodelElement submodelElement) {
         Reference submodelElementReference = AasUtils.toReference(parent, submodelElement);
 
         if (submodelElement instanceof SubmodelElementList list) {
@@ -288,13 +264,13 @@ public abstract class AasHandler<C extends AasServerClient> {
             for (int i = 0; i < listChildren.size(); i++) {
                 SubmodelElement child = listChildren.get(i);
                 child.setIdShort(String.valueOf(i));
-                var filteredChild = filterSubmodelElementStructure(submodelElementReference, child);
 
-                if (Objects.nonNull(filteredChild)) {
+                SubmodelElement filteredChild = filterSubmodelElementStructure(submodelElementReference, child);
+
+                if (filteredChild != null) {
                     filteredChild.setIdShort(null);
                     filteredChildren.add(filteredChild);
                 }
-
             }
             list.setValue(filteredChildren);
         }
@@ -305,7 +281,7 @@ public abstract class AasHandler<C extends AasServerClient> {
                     .toList());
         }
 
-        if (client.doRegister(AasUtils.toReference(parent, submodelElement)) ||
+        if (client.eligibleForRegistration(AasUtils.toReference(parent, submodelElement)) ||
                 submodelElement instanceof SubmodelElementList list && !list.getValue().isEmpty() ||
                 submodelElement instanceof SubmodelElementCollection collection && !collection.getValue().isEmpty()) {
             return submodelElement;

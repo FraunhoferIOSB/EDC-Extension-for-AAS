@@ -33,6 +33,13 @@ import static de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress.validate;
  */
 public abstract class AssetIdUtil {
 
+    /**
+     * Generates a unique and fixed identifier for a given AAS reference and its location in the network.
+     *
+     * @param url Location of the AAS element in the network
+     * @param reference Location of the AAS element in its environment
+     * @return A unique and fixed identifier based on the given arguments
+     */
     public static String id(String url, Reference reference) {
         List<String> problems = validate(reference);
         if (!problems.isEmpty()) {

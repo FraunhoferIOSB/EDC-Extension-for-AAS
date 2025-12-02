@@ -24,7 +24,18 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 
+/**
+ * Helper class to compute additions, removals and changes to a list of assets.
+ */
 public abstract class DiffHelper {
+
+    /**
+     * For a list of assets and its updated counterpart, returns a list of the newly added assets.
+     *
+     * @param current The list of assets (possibly outdated).
+     * @param updated The new list of assets.
+     * @return Additions to current w.r.t. updated.
+     */
     public static Map<PolicyBinding, Asset> getToAdd(Map<PolicyBinding, Asset> current, Map<PolicyBinding, Asset> updated) {
         return updated.entrySet().stream()
                 .filter(entry -> current.values().stream().noneMatch(asset -> assetEqualityById(asset, entry.getValue())))
@@ -32,6 +43,14 @@ public abstract class DiffHelper {
     }
 
 
+    /**
+     * For a list of assets and its updated counterpart, returns a list of the newly changed assets. A changed asset is manifested by having the same identifier but different
+     * metadata / data address.
+     *
+     * @param current The list of assets (possibly outdated).
+     * @param updated The new list of assets.
+     * @return Removals from current w.r.t. updated.
+     */
     public static Map<PolicyBinding, Asset> getToUpdate(Map<PolicyBinding, Asset> current, Map<PolicyBinding, Asset> updated) {
         return updated.entrySet().stream()
                 // Get all that have an ID which already exists
@@ -43,6 +62,13 @@ public abstract class DiffHelper {
     }
 
 
+    /**
+     * For a list of assets and its updated counterpart, returns a list of the newly removed assets.
+     *
+     * @param current The list of assets (possibly outdated).
+     * @param updated The new list of assets.
+     * @return Removals from current w.r.t. updated.
+     */
     public static Map<PolicyBinding, Asset> getToRemove(Map<PolicyBinding, Asset> current, Map<PolicyBinding, Asset> updated) {
         return current.entrySet().stream()
                 // Filter all "to remove"

@@ -31,7 +31,6 @@ import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.SerializationException;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.json.JsonSerializer;
 import org.eclipse.digitaltwin.aas4j.v3.model.annotations.IRI;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -47,6 +46,9 @@ public class FilteredJsonSerializer extends JsonSerializer {
     };
 
 
+    /**
+     * Constructor of class
+     */
     public FilteredJsonSerializer() {
         mapper.setDefaultPropertyInclusion(JsonInclude.Value.construct(JsonInclude.Include.NON_EMPTY,  // drop empty lists/maps/arrays and empty strings
                 JsonInclude.Include.NON_NULL    // optional: drop null elements inside containers
@@ -58,6 +60,7 @@ public class FilteredJsonSerializer extends JsonSerializer {
      * Extends the default write() method with a filter to avoid unwanted fields from being exposed via self-description.
      *
      * @param aasInstance the AAS instance to serialize
+     * @param allowedFields Fields of the AAS object to keep during serialization. Fields not mentioned here will be removed
      * @return the string representation
      * @throws SerializationException if serialization fails
      */
@@ -65,29 +68,8 @@ public class FilteredJsonSerializer extends JsonSerializer {
         // Store copy of unmodified mapper
         JsonMapper mapperCopy = mapper.copy();
         try {
-            mapper.registerModule(moduleFor(allowedFields, true));
+            mapper.registerModule(moduleFor(allowedFields));
             return super.write(aasInstance);
-        }
-        finally {
-            // Be sure to not keep modified mapper
-            mapper = mapperCopy;
-        }
-    }
-
-
-    /**
-     * Extends the default writeList() method with a filter to avoid unwanted fields from being exposed via self-description.
-     *
-     * @param collection the collection to serialize. Not null.
-     * @return the string representation of the collection.
-     * @throws SerializationException if serialization fails
-     */
-    public String writeList(Collection<?> collection, Set<String> allowedFields) throws SerializationException {
-        // Store copy of unmodified mapper
-        JsonMapper mapperCopy = mapper.copy();
-        try {
-            mapper.registerModule(moduleFor(allowedFields, false));
-            return super.writeList(collection);
         }
         finally {
             // Be sure to not keep modified mapper
@@ -105,17 +87,15 @@ public class FilteredJsonSerializer extends JsonSerializer {
     public Map<String, Object> toMap(Object aasInstance, Set<String> allowedFields) {
         return mapper.copy()
                 .setAnnotationIntrospector(new NamespacingIntrospector())
-                .registerModule(moduleFor(allowedFields, true))
+                .registerModule(moduleFor(allowedFields))
                 .convertValue(aasInstance, JSON_MAP_TYPE_REF);
     }
 
 
-    private SimpleModule moduleFor(Set<String> allowedFields, boolean namespaced) {
-        Set<String> allowedIris = namespaced ?
-                allowedFields.stream()
-                        .map(AAS_V30_NAMESPACE::concat)
-                        .collect(java.util.stream.Collectors.toSet()) :
-                allowedFields;
+    private SimpleModule moduleFor(Set<String> allowedFields) {
+        Set<String> allowedIris = allowedFields.stream()
+                .map(AAS_V30_NAMESPACE::concat)
+                .collect(java.util.stream.Collectors.toSet());
 
         SimpleModule module = new SimpleModule();
         // Ignore fields that should not be exposed in the self-description / catalog

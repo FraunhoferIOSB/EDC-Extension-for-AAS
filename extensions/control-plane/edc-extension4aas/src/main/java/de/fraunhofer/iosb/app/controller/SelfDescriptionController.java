@@ -17,6 +17,7 @@ package de.fraunhofer.iosb.app.controller;
 
 import de.fraunhofer.iosb.app.aas.mapper.util.FilteredJsonSerializer;
 import de.fraunhofer.iosb.app.handler.aas.AasHandler;
+import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import de.fraunhofer.iosb.app.stores.repository.AasServerStore;
 import de.fraunhofer.iosb.client.exception.UnauthorizedException;
 import jakarta.ws.rs.BadRequestException;
@@ -32,12 +33,16 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import java.net.ConnectException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static de.fraunhofer.iosb.app.controller.SelfDescriptionController.SELF_DESCRIPTION_PATH;
-import static de.fraunhofer.iosb.constants.AasConstants.DEFAULT_EXPOSED_FIELDS_SELF_DESCRIPTION;
+import static de.fraunhofer.iosb.constants.AasConstants.DEFAULT_EXPOSED_FIELDS;
+import static de.fraunhofer.iosb.constants.AasConstants.EXPOSED_FIELDS_SELF_DESCRIPTION;
 
 
 /**
@@ -49,6 +54,8 @@ public class SelfDescriptionController {
 
     public static final String SELF_DESCRIPTION_PATH = "selfDescription";
 
+    private final Supplier<Set<String>> exposedFieldsSupplier = () -> Optional.ofNullable(Configuration.getInstance().getExposedFields())
+            .orElse(DEFAULT_EXPOSED_FIELDS);
     private final Monitor monitor;
     private final AasServerStore aasRepositoryStore;
     private final FilteredJsonSerializer filteredJsonSerializer = new FilteredJsonSerializer();
@@ -97,10 +104,13 @@ public class SelfDescriptionController {
             }
         }
 
+        Set<String> exposedFields = new HashSet<>(exposedFieldsSupplier.get());
+        exposedFields.addAll(EXPOSED_FIELDS_SELF_DESCRIPTION);
+
         return "[" + selfDescriptions.stream()
                 .map(selfDescription -> {
                     try {
-                        return filteredJsonSerializer.write(selfDescription, DEFAULT_EXPOSED_FIELDS_SELF_DESCRIPTION);
+                        return filteredJsonSerializer.write(selfDescription, exposedFields);
                     }
                     catch (SerializationException e) {
                         throw new RuntimeException(e);

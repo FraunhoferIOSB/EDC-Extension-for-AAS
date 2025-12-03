@@ -23,7 +23,7 @@ import org.eclipse.digitaltwin.aas4j.v3.model.annotations.IRI;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 
 import static de.fraunhofer.iosb.constants.AasConstants.AAS_V30_NAMESPACE;
-import static de.fraunhofer.iosb.constants.AasConstants.DEFAULT_EXPOSED_FIELDS_CATALOG;
+import static de.fraunhofer.iosb.constants.AasConstants.DEFAULT_EXPOSED_FIELDS;
 
 
 public abstract class ReferableMapper extends ElementMapper {
@@ -41,7 +41,7 @@ public abstract class ReferableMapper extends ElementMapper {
 
         var assetBuilder = Asset.Builder.newInstance();
 
-        var filterDefaults = jsonSerializer.toMap(referable, DEFAULT_EXPOSED_FIELDS_CATALOG);
+        var filterDefaults = jsonSerializer.toMap(referable, DEFAULT_EXPOSED_FIELDS);
         assetBuilder.properties(filterDefaults);
 
         String[] modelingType = referable.getClass().getAnnotation(IRI.class).value();

@@ -80,7 +80,7 @@ public class SelfDescriptionController {
      * @return Self description(s)
      */
     @GET
-    public String getSelfDescription(@QueryParam("url") URI uri) throws SerializationException {
+    public String getSelfDescription(@QueryParam("url") URI uri) {
         monitor.debug(String.format("GET %s", SELF_DESCRIPTION_PATH));
 
         List<AasHandler<?>> handlers = new ArrayList<>();

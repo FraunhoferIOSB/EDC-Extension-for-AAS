@@ -21,6 +21,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.Con
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.configuration.Config;
 
@@ -49,9 +50,10 @@ public class NegotiationController {
     public NegotiationController(ConsumerContractNegotiationManager consumerNegotiationManager,
                                  ContractNegotiationObservable observable,
                                  ContractNegotiationStore contractNegotiationStore,
+                                 ParticipantContext participantContext,
                                  Config config) {
         this.config = config;
-        this.negotiator = new Negotiator(consumerNegotiationManager, contractNegotiationStore);
+        this.negotiator = new Negotiator(consumerNegotiationManager, contractNegotiationStore, participantContext);
         this.listener = new ClientContractNegotiationListener();
         observable.registerListener(listener);
     }

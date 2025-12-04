@@ -23,6 +23,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.Contr
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
@@ -49,6 +50,7 @@ public class NegotiatorTest {
 
     private final ConsumerContractNegotiationManager ccnmMock = mock(ConsumerContractNegotiationManager.class);
     private final ContractNegotiationStore cnsMock = mock(ContractNegotiationStore.class);
+    private final ParticipantContext participantContextMock = mock(ParticipantContext.class);
     private final ContractNegotiationObservable contractNegotiationObservable = new ContractNegotiationObservableImpl();
 
     private final String assetId = "test-asset-id";
@@ -61,13 +63,13 @@ public class NegotiatorTest {
     @BeforeEach
     void initializeClientNegotiator() {
         defineMockBehaviour();
-        clientNegotiator = new Negotiator(ccnmMock, cnsMock);
+        clientNegotiator = new Negotiator(ccnmMock, cnsMock, participantContextMock);
     }
 
 
     void defineMockBehaviour() {
         when(cnsMock.queryAgreements(any())).thenReturn(Stream.of());
-        when(ccnmMock.initiate(any()))
+        when(ccnmMock.initiate(any(), any()))
                 .thenReturn(StatusResult.success(negotiation));
     }
 

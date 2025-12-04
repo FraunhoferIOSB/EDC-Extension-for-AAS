@@ -18,6 +18,7 @@ package de.fraunhofer.iosb.client.datatransfer;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
@@ -50,11 +51,11 @@ public class TransferInitiatorTest {
         var configMock = ConfigFactory.fromMap(Map.of("web.http.port", "8080", "web.http.path", "/api"));
 
         transferInitiator = new TransferInitiator(mock(Monitor.class), configMock, () -> "localhost",
-                mockTransferProcessManager);
+                mockTransferProcessManager, mock(ParticipantContext.class));
 
         mockStatusResult = (StatusResult<TransferProcess>) mock(StatusResult.class);
 
-        when(mockTransferProcessManager.initiateConsumerRequest(any())).thenReturn(mockStatusResult);
+        when(mockTransferProcessManager.initiateConsumerRequest(any(), any())).thenReturn(mockStatusResult);
     }
 
 
@@ -64,7 +65,7 @@ public class TransferInitiatorTest {
 
         transferInitiator.initiateTransferProcess(new URI("http://provider-url:1234"), "test-agreement-id",
                 UUID.randomUUID().toString());
-        verify(mockTransferProcessManager, times(1)).initiateConsumerRequest(any());
+        verify(mockTransferProcessManager, times(1)).initiateConsumerRequest(any(), any());
     }
 
 
@@ -74,7 +75,7 @@ public class TransferInitiatorTest {
         var dataSink = HttpDataAddress.Builder.newInstance().baseUrl("https://example.com").build();
         transferInitiator.initiateTransferProcess(new URI("http://provider-url:1234"),
                 "test-agreement-id", dataSink);
-        verify(mockTransferProcessManager, times(1)).initiateConsumerRequest(any());
+        verify(mockTransferProcessManager, times(1)).initiateConsumerRequest(any(), any());
     }
 
 }

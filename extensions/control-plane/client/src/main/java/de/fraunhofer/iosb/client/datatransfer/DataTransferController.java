@@ -29,6 +29,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
@@ -79,19 +80,23 @@ public class DataTransferController {
     public DataTransferController(Monitor monitor, Config config, WebService webService,
                                   PublicApiManagementService publicApiManagementService,
                                   TransferProcessManager transferProcessManager,
+                                  ParticipantContext participantContext,
                                   TransferProcessObservable transferProcessObservable,
                                   Hostname hostname) {
         this.config = config.getConfig("edc.client");
 
         this.monitor = monitor.withPrefix("DataTransferController");
 
-        transferInitiator = new TransferInitiator(monitor, config, hostname, transferProcessManager);
+        transferInitiator = new TransferInitiator(monitor, config, hostname, transferProcessManager, participantContext);
         dataTransferEndpointManager = new DataTransferEndpointManager(publicApiManagementService);
         dataTransferObservable = new DataTransferObservable<>(monitor);
         var dataTransferEndpoint = new DataTransferEndpoint(monitor, dataTransferObservable);
         nonNullNonEmptyObjectMapper = new ObjectMapper()
-                .setSerializationInclusion(JsonInclude.Include.NON_NULL)
-                .setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
+                .setDefaultPropertyInclusion(
+                        JsonInclude.Value.construct(
+                                JsonInclude.Include.NON_EMPTY,
+                                JsonInclude.Include.NON_NULL
+                        ));
 
         transferProcessObservable.registerListener(dataTransferObservable);
         webService.registerResource(dataTransferEndpoint);

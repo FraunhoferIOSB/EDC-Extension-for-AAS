@@ -19,6 +19,7 @@ import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.system.configuration.Config;
@@ -54,6 +55,7 @@ class PolicyControllerTest {
     void setUp() {
         testSubject = new PolicyController(new ConsoleMonitor(),
                 mock(CatalogService.class),
+                mock(ParticipantContext.class),
                 mock(TypeTransformerRegistry.class),
                 mock(Config.class));
     }

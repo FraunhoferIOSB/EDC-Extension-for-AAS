@@ -31,6 +31,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManage
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.controlplane.transform.odrl.OdrlTransformersFactory;
 import org.eclipse.edc.connector.core.agent.NoOpParticipantIdMapper;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -56,6 +57,8 @@ public class ClientExtension implements ServiceExtension {
     @Inject
     private Hostname hostname;
     @Inject
+    private ParticipantContext participantContext;
+    @Inject
     private TransferProcessManager transferProcessManager;
     @Inject
     private TransferProcessObservable transferProcessObservable;
@@ -75,6 +78,7 @@ public class ClientExtension implements ServiceExtension {
                 consumerNegotiationManager,
                 contractNegotiationObservable,
                 contractNegotiationStore,
+                participantContext,
                 config);
 
         var transferController = new DataTransferController(
@@ -83,12 +87,14 @@ public class ClientExtension implements ServiceExtension {
                 webService,
                 publicApiManagementService,
                 transferProcessManager,
+                participantContext,
                 transferProcessObservable,
                 hostname);
 
         var policyController = new PolicyController(
                 monitor,
                 catalogService,
+                participantContext,
                 transformer,
                 config);
 

@@ -33,6 +33,7 @@ import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.jsonld.spi.JsonLd;
+import org.eclipse.edc.participantcontext.spi.identity.ParticipantIdentityResolver;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.EdcException;
@@ -70,6 +71,8 @@ public class AasExtension implements ServiceExtension {
     private ContractDefinitionStore contractDefinitionStore;
     @Inject
     private Hostname hostname;
+    @Inject // context-specific participant-id
+    private ParticipantIdentityResolver participantIdentityResolver;
     @Inject // Create / manage EDC policies
     private PolicyDefinitionStore policyDefinitionStore;
     @Inject // Register http endpoint at EDC
@@ -103,7 +106,8 @@ public class AasExtension implements ServiceExtension {
         webService.registerResource(repositoryController);
         webService.registerResource(registryController);
 
-        String participantId = context.getParticipantId();
+        // This will probably fail if multiple participantIds are registered
+        String participantId = participantIdentityResolver.getParticipantId("default", "DSP");
 
         PolicyHelper.registerDefaultPolicies(monitor, policyDefinitionStore, participantId);
         monitor.debug(String.format("%s initialized.", NAME));

@@ -23,6 +23,7 @@ import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Distribution;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.Duty;
 import org.eclipse.edc.policy.model.Permission;
@@ -76,6 +77,7 @@ public class PolicyServiceTest {
     private static CompletableFuture<StatusResult<byte[]>> future;
 
     private final URI testUri;
+    private final ParticipantContext participantContext = mock(ParticipantContext.class);
     private CatalogService catalogService;
     private TypeTransformerRegistry typeTransformerRegistry;
     private PolicyServiceConfig config;
@@ -96,7 +98,7 @@ public class PolicyServiceTest {
         config = mock(PolicyServiceConfig.class);
         policyDefinitionStore = mock(PolicyDefinitionStore.class);
 
-        policyService = new PolicyService(catalogService, typeTransformerRegistry, config, policyDefinitionStore, new ConsoleMonitor().withPrefix(
+        policyService = new PolicyService(catalogService, participantContext, typeTransformerRegistry, config, policyDefinitionStore, new ConsoleMonitor().withPrefix(
                 "PolicyServiceTest"));
 
         future = new CompletableFuture<>();
@@ -107,7 +109,7 @@ public class PolicyServiceTest {
     void getDatasetCatalogResponseFailureTest() {
         future.complete(StatusResult.failure(ResponseStatus.FATAL_ERROR, "This is a test"));
 
-        when(catalogService.requestCatalog(TEST_COUNTER_PARTY_ID, testUri.toString(), DATASPACE_PROTOCOL_HTTP, ASSET_ID_QUERY_SPEC)).thenReturn(future);
+        when(catalogService.requestCatalog(participantContext, TEST_COUNTER_PARTY_ID, testUri.toString(), DATASPACE_PROTOCOL_HTTP, ASSET_ID_QUERY_SPEC)).thenReturn(future);
 
         var response = policyService.getDatasetForAssetId(TEST_COUNTER_PARTY_ID, testUri, TEST_ASSET_ID);
         assertEquals("Failed fetching catalog, FATAL_ERROR: This is a test", response.getFailureDetail());
@@ -348,6 +350,7 @@ public class PolicyServiceTest {
 
     private void mockCatalogServiceResponseWith(CompletableFuture<StatusResult<byte[]>> value) {
         when(catalogService.requestCatalog(
+                participantContext,
                 TEST_COUNTER_PARTY_ID,
                 testUri.toString(),
                 DATASPACE_PROTOCOL_HTTP,

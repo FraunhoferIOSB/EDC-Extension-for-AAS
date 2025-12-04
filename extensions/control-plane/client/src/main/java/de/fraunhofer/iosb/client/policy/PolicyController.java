@@ -32,6 +32,7 @@ import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceResult;
@@ -65,18 +66,21 @@ public class PolicyController {
     private final ObjectMapper objectMapper;
 
 
-    public PolicyController(Monitor monitor, CatalogService catalogService,
+    public PolicyController(Monitor monitor, CatalogService catalogService, ParticipantContext participantContext,
                             TypeTransformerRegistry typeTransformerRegistry, Config systemConfig) {
         var config = new PolicyServiceConfig(systemConfig);
 
         this.monitor = monitor.withPrefix("PolicyController");
         policyDefinitionStore = new PolicyDefinitionStore(monitor, config.getAcceptedPolicyDefinitionsPath());
-        policyService = new PolicyService(catalogService, typeTransformerRegistry, config,
+        policyService = new PolicyService(catalogService, participantContext, typeTransformerRegistry, config,
                 policyDefinitionStore, monitor);
 
         objectMapper = new ObjectMapper()
-                .setSerializationInclusion(JsonInclude.Include.NON_NULL)
-                .setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
+                .setDefaultPropertyInclusion(
+                        JsonInclude.Value.construct(
+                                JsonInclude.Include.NON_EMPTY,
+                                JsonInclude.Include.NON_NULL
+                        ));
     }
 
 

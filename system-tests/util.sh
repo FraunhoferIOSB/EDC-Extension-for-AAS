@@ -21,7 +21,9 @@ start_runtime() {
   local project_name="$1"
   local timeout_secs="${START_RUNTIME_TIMEOUT:-300}"
 
-  local config_path="${PWD}/system-tests/config/${project_name}.properties"
+  local config_name="${2:-${project_name}.properties}"
+
+  local config_path="${PWD}/system-tests/config/${config_name}"
 
   if [[ ! -f "$config_path" ]]; then
     echo "ERR: Config file not found: $config_path" >&2

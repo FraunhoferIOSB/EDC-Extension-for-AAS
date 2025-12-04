@@ -1,0 +1,369 @@
+{
+  "@type": "dcat:Catalog",
+  "dcat:dataset": [
+    {
+      "@id": "1351791412",
+      "@type": "dcat:Dataset",
+      "odrl:hasPolicy": {
+        "@type": "odrl:Offer",
+        "odrl:permission": {
+          "odrl:action": {
+            "@id": "odrl:use"
+          }
+        },
+        "odrl:prohibition": [],
+        "odrl:obligation": [],
+        "odrl:assigner": "provider"
+      },
+      "dcat:distribution": [
+        {
+          "@type": "dcat:Distribution",
+          "dct:format": {
+            "@id": "AasData-PUSH"
+          },
+          "dcat:accessService": {
+            "@type": "dcat:DataService",
+            "dcat:endpointDescription": "dspace:connector",
+            "dcat:endpointURL": "http://localhost:13340/dsp"
+          }
+        },
+        {
+          "@type": "dcat:Distribution",
+          "dct:format": {
+            "@id": "HttpData-PULL"
+          },
+          "dcat:accessService": {
+            "@type": "dcat:DataService",
+            "dcat:endpointDescription": "dspace:connector",
+            "dcat:endpointURL": "http://localhost:13340/dsp"
+          }
+        },
+        {
+          "@type": "dcat:Distribution",
+          "dct:format": {
+            "@id": "HttpData-PUSH"
+          },
+          "dcat:accessService": {
+            "@type": "dcat:DataService",
+            "dcat:endpointDescription": "dspace:connector",
+            "dcat:endpointURL": "http://localhost:13340/dsp"
+          }
+        }
+      ],
+      "https://admin-shell.io/aas/3/0/Referable/description": [
+        {
+          "https://admin-shell.io/aas/3/0/AbstractLangString/language": "en-us",
+          "https://admin-shell.io/aas/3/0/AbstractLangString/text": "This is my system test ConceptDescription description"
+        },
+        {
+          "https://admin-shell.io/aas/3/0/AbstractLangString/language": "de",
+          "https://admin-shell.io/aas/3/0/AbstractLangString/text": "Das ist meine system test ConceptDescription beschreibung"
+        }
+      ],
+      "https://admin-shell.io/aas/3/0/Referable/idShort": "SystemTestConceptDescription",
+      "https://admin-shell.io/aas/3/0/Identifiable/id": "https://acplt.org/System_Test_ConceptDescription",
+      "https://admin-shell.io/aas/3/0/modelingType": "ConceptDescription",
+      "id": "1351791412",
+      "contenttype": "application/json"
+    },
+    {
+      "@id": "792362498",
+      "@type": "dcat:Dataset",
+      "odrl:hasPolicy": {
+        "@type": "odrl:Offer",
+        "odrl:permission": {
+          "odrl:action": {
+            "@id": "odrl:use"
+          }
+        },
+        "odrl:prohibition": [],
+        "odrl:obligation": [],
+        "odrl:assigner": "provider"
+      },
+      "dcat:distribution": [
+        {
+          "@type": "dcat:Distribution",
+          "dct:format": {
+            "@id": "AasData-PUSH"
+          },
+          "dcat:accessService": {
+            "@type": "dcat:DataService",
+            "dcat:endpointDescription": "dspace:connector",
+            "dcat:endpointURL": "http://localhost:13340/dsp"
+          }
+        },
+        {
+          "@type": "dcat:Distribution",
+          "dct:format": {
+            "@id": "HttpData-PULL"
+          },
+          "dcat:accessService": {
+            "@type": "dcat:DataService",
+            "dcat:endpointDescription": "dspace:connector",
+            "dcat:endpointURL": "http://localhost:13340/dsp"
+          }
+        },
+        {
+          "@type": "dcat:Distribution",
+          "dct:format": {
+            "@id": "HttpData-PUSH"
+          },
+          "dcat:accessService": {
+            "@type": "dcat:DataService",
+            "dcat:endpointDescription": "dspace:connector",
+            "dcat:endpointURL": "http://localhost:13340/dsp"
+          }
+        }
+      ],
+      "https://admin-shell.io/aas/3/0/Referable/description": [
+        {
+          "https://admin-shell.io/aas/3/0/AbstractLangString/language": "en-us",
+          "https://admin-shell.io/aas/3/0/AbstractLangString/text": "This is my system test AAS description"
+        },
+        {
+          "https://admin-shell.io/aas/3/0/AbstractLangString/language": "de",
+          "https://admin-shell.io/aas/3/0/AbstractLangString/text": "Das ist meine system test AAS beschreibung"
+        }
+      ],
+      "https://admin-shell.io/aas/3/0/Referable/idShort": "SystemTestAssetAdministrationShell",
+      "https://admin-shell.io/aas/3/0/modelingType": "AssetAdministrationShell",
+      "contenttype": "application/json",
+      "id": "792362498",
+      "https://admin-shell.io/aas/3/0/Identifiable/id": "https://acplt.org/System_Test_AssetAdministrationShell"
+    },
+    {
+      "@id": "-799803758",
+      "@type": "dcat:Dataset",
+      "odrl:hasPolicy": {
+        "@type": "odrl:Offer",
+        "odrl:permission": {
+          "odrl:action": {
+            "@id": "odrl:use"
+          }
+        },
+        "odrl:prohibition": [],
+        "odrl:obligation": [],
+        "odrl:assigner": "provider"
+      },
+      "dcat:distribution": [
+        {
+          "@type": "dcat:Distribution",
+          "dct:format": {
+            "@id": "AasData-PUSH"
+          },
+          "dcat:accessService": {
+            "@type": "dcat:DataService",
+            "dcat:endpointDescription": "dspace:connector",
+            "dcat:endpointURL": "http://localhost:13340/dsp"
+          }
+        },
+        {
+          "@type": "dcat:Distribution",
+          "dct:format": {
+            "@id": "HttpData-PULL"
+          },
+          "dcat:accessService": {
+            "@type": "dcat:DataService",
+            "dcat:endpointDescription": "dspace:connector",
+            "dcat:endpointURL": "http://localhost:13340/dsp"
+          }
+        },
+        {
+          "@type": "dcat:Distribution",
+          "dct:format": {
+            "@id": "HttpData-PUSH"
+          },
+          "dcat:accessService": {
+            "@type": "dcat:DataService",
+            "dcat:endpointDescription": "dspace:connector",
+            "dcat:endpointURL": "http://localhost:13340/dsp"
+          }
+        }
+      ],
+      "https://admin-shell.io/aas/3/0/Referable/description": [
+        {
+          "https://admin-shell.io/aas/3/0/AbstractLangString/language": "en-us",
+          "https://admin-shell.io/aas/3/0/AbstractLangString/text": "This is my system test SMC description"
+        },
+        {
+          "https://admin-shell.io/aas/3/0/AbstractLangString/language": "de",
+          "https://admin-shell.io/aas/3/0/AbstractLangString/text": "Das ist meine system test SMC beschreibung"
+        }
+      ],
+      "https://admin-shell.io/aas/3/0/Referable/idShort": "SystemTestSubmodelElementCollection",
+      "https://admin-shell.io/aas/3/0/modelingType": "SubmodelElementCollection",
+      "https://admin-shell.io/aas/3/0/HasSemantics/semanticId": {
+        "https://admin-shell.io/aas/3/0/Reference/keys": {
+          "https://admin-shell.io/aas/3/0/Key/type": "GlobalReference",
+          "https://admin-shell.io/aas/3/0/Key/value": "http://acplt.org/SubmodelElementCollections/System_Test_SubmodelElementCollection"
+        },
+        "https://admin-shell.io/aas/3/0/Reference/type": "ExternalReference"
+      },
+      "contenttype": "application/json",
+      "id": "-799803758"
+    },
+    {
+      "@id": "458140152",
+      "@type": "dcat:Dataset",
+      "odrl:hasPolicy": {
+        "@type": "odrl:Offer",
+        "odrl:permission": {
+          "odrl:action": {
+            "@id": "odrl:use"
+          }
+        },
+        "odrl:prohibition": [],
+        "odrl:obligation": [],
+        "odrl:assigner": "provider"
+      },
+      "dcat:distribution": [
+        {
+          "@type": "dcat:Distribution",
+          "dct:format": {
+            "@id": "AasData-PUSH"
+          },
+          "dcat:accessService": {
+            "@type": "dcat:DataService",
+            "dcat:endpointDescription": "dspace:connector",
+            "dcat:endpointURL": "http://localhost:13340/dsp"
+          }
+        },
+        {
+          "@type": "dcat:Distribution",
+          "dct:format": {
+            "@id": "HttpData-PULL"
+          },
+          "dcat:accessService": {
+            "@type": "dcat:DataService",
+            "dcat:endpointDescription": "dspace:connector",
+            "dcat:endpointURL": "http://localhost:13340/dsp"
+          }
+        },
+        {
+          "@type": "dcat:Distribution",
+          "dct:format": {
+            "@id": "HttpData-PUSH"
+          },
+          "dcat:accessService": {
+            "@type": "dcat:DataService",
+            "dcat:endpointDescription": "dspace:connector",
+            "dcat:endpointURL": "http://localhost:13340/dsp"
+          }
+        }
+      ],
+      "https://admin-shell.io/aas/3/0/Referable/description": [
+        {
+          "https://admin-shell.io/aas/3/0/AbstractLangString/language": "en-us",
+          "https://admin-shell.io/aas/3/0/AbstractLangString/text": "Legally valid designation of the natural or judicial person which is directly responsible for the design, production, packaging and labeling of a product in respect to its being brought into circulation."
+        },
+        {
+          "https://admin-shell.io/aas/3/0/AbstractLangString/language": "de",
+          "https://admin-shell.io/aas/3/0/AbstractLangString/text": "Bezeichnung für eine natürliche oder juristische Person, die für die Auslegung, Herstellung und Verpackung sowie die Etikettierung eines Produkts im Hinblick auf das 'Inverkehrbringen' im eigenen Namen verantwortlich ist"
+        }
+      ],
+      "https://admin-shell.io/aas/3/0/Referable/idShort": "ManufacturerName",
+      "https://admin-shell.io/aas/3/0/modelingType": "Property",
+      "https://admin-shell.io/aas/3/0/HasSemantics/semanticId": {
+        "https://admin-shell.io/aas/3/0/Reference/keys": {
+          "https://admin-shell.io/aas/3/0/Key/type": "GlobalReference",
+          "https://admin-shell.io/aas/3/0/Key/value": "0173-1#02-AAO677#002"
+        },
+        "https://admin-shell.io/aas/3/0/Reference/type": "ExternalReference"
+      },
+      "https://admin-shell.io/aas/3/0/Referable/displayName": {
+        "https://admin-shell.io/aas/3/0/AbstractLangString/language": "en-us",
+        "https://admin-shell.io/aas/3/0/AbstractLangString/text": "Manufacturer Name"
+      },
+      "contenttype": "application/json",
+      "id": "458140152"
+    },
+    {
+      "@id": "1855961989",
+      "@type": "dcat:Dataset",
+      "odrl:hasPolicy": {
+        "@type": "odrl:Offer",
+        "odrl:permission": {
+          "odrl:action": {
+            "@id": "odrl:use"
+          }
+        },
+        "odrl:prohibition": [],
+        "odrl:obligation": [],
+        "odrl:assigner": "provider"
+      },
+      "dcat:distribution": [
+        {
+          "@type": "dcat:Distribution",
+          "dct:format": {
+            "@id": "AasData-PUSH"
+          },
+          "dcat:accessService": {
+            "@type": "dcat:DataService",
+            "dcat:endpointDescription": "dspace:connector",
+            "dcat:endpointURL": "http://localhost:13340/dsp"
+          }
+        },
+        {
+          "@type": "dcat:Distribution",
+          "dct:format": {
+            "@id": "HttpData-PULL"
+          },
+          "dcat:accessService": {
+            "@type": "dcat:DataService",
+            "dcat:endpointDescription": "dspace:connector",
+            "dcat:endpointURL": "http://localhost:13340/dsp"
+          }
+        },
+        {
+          "@type": "dcat:Distribution",
+          "dct:format": {
+            "@id": "HttpData-PUSH"
+          },
+          "dcat:accessService": {
+            "@type": "dcat:DataService",
+            "dcat:endpointDescription": "dspace:connector",
+            "dcat:endpointURL": "http://localhost:13340/dsp"
+          }
+        }
+      ],
+      "https://admin-shell.io/aas/3/0/Referable/description": [
+        {
+          "https://admin-shell.io/aas/3/0/AbstractLangString/language": "en-us",
+          "https://admin-shell.io/aas/3/0/AbstractLangString/text": "An example asset identification submodel for the test application"
+        },
+        {
+          "https://admin-shell.io/aas/3/0/AbstractLangString/language": "de",
+          "https://admin-shell.io/aas/3/0/AbstractLangString/text": "Ein Beispiel-Identifikations-Submodel für eine Test-Anwendung"
+        }
+      ],
+      "https://admin-shell.io/aas/3/0/Referable/idShort": "SystemTestSubmodel",
+      "https://admin-shell.io/aas/3/0/Identifiable/id": "http://acplt.org/Submodels/Assets/TestAsset/System_Test_Submodel",
+      "https://admin-shell.io/aas/3/0/modelingType": "Submodel",
+      "https://admin-shell.io/aas/3/0/HasSemantics/semanticId": {
+        "https://admin-shell.io/aas/3/0/Reference/keys": {
+          "https://admin-shell.io/aas/3/0/Key/type": "Submodel",
+          "https://admin-shell.io/aas/3/0/Key/value": "http://acplt.org/SubmodelTemplates/SystemTest"
+        },
+        "https://admin-shell.io/aas/3/0/Reference/type": "ExternalReference"
+      },
+      "contenttype": "application/json",
+      "id": "1855961989"
+    }
+  ],
+  "dcat:catalog": [],
+  "dcat:distribution": [],
+  "dcat:service": {
+    "@type": "dcat:DataService",
+    "dcat:endpointDescription": "dspace:connector",
+    "dcat:endpointURL": "http://localhost:13340/dsp"
+  },
+  "dspace:participantId": "provider",
+  "@context": {
+    "dcat": "http://www.w3.org/ns/dcat#",
+    "dct": "http://purl.org/dc/terms/",
+    "odrl": "http://www.w3.org/ns/odrl/2/",
+    "dspace": "https://w3id.org/dspace/v0.8/",
+    "@vocab": "https://w3id.org/edc/v0.0.1/ns/",
+    "edc": "https://w3id.org/edc/v0.0.1/ns/"
+  }
+}

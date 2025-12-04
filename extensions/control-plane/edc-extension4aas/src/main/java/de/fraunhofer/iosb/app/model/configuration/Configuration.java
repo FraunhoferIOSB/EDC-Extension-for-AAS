@@ -18,8 +18,10 @@ package de.fraunhofer.iosb.app.model.configuration;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.net.URI;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 
 /**
@@ -125,7 +127,7 @@ public class Configuration {
 
     public void setExposedFields(String exposedFields) {
         Optional.ofNullable(exposedFields)
-                .ifPresent(ef -> this.exposedFields = Set.of(ef.split(","))
+                .ifPresent(ef -> this.exposedFields = Arrays.stream(ef.split(",")).map(String::trim).collect(Collectors.toSet())
                 );
     }
 }

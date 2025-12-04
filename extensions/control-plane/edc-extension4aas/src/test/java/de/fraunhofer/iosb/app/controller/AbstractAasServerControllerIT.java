@@ -42,10 +42,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
-public abstract class AbstractAasServerControllerIT<C extends AbstractAasServerController> extends MockServerTestExtension {
+public abstract class AbstractAasServerControllerIT<C> extends MockServerTestExtension {
     protected AssetIndex assetIndex;
     protected ContractDefinitionStore contractDefinitionStore;
-    protected AasServerStore repository;
+    protected AasServerStore aasServerStore;
 
     protected C testSubject;
 
@@ -65,13 +65,13 @@ public abstract class AbstractAasServerControllerIT<C extends AbstractAasServerC
         if (element instanceof SubmodelElementList list) {
             list.getValue().forEach(AbstractAasServerControllerIT::clearExtensionsRec);
         }
-        element.getExtensions().clear();
+        element.setExtensions(List.of());
     }
 
 
     @BeforeEach
     void setUp() {
-        repository = new AasServerStore();
+        aasServerStore = new AasServerStore();
         var criterionRegistry = CriterionOperatorRegistryImpl.ofDefaults();
         assetIndex = new InMemoryAssetIndex(criterionRegistry);
         contractDefinitionStore = new InMemoryContractDefinitionStore(criterionRegistry);
@@ -84,11 +84,13 @@ public abstract class AbstractAasServerControllerIT<C extends AbstractAasServerC
 
     protected <T extends Identifiable> void assertIdentifiables(List<T> identifiablesShould, List<T> identifiablesIs) {
         assertEquals(identifiablesIs.size(), identifiablesShould.size());
-
         List<Extension> extensionsIs = new ArrayList<>();
         for (T identifiable: identifiablesIs) {
             // In this test, they don't have extensions beforehand.
-            extensionsIs.add(identifiable.getExtensions().remove(0));
+            if (!identifiable.getExtensions().isEmpty()) {
+                extensionsIs.add(identifiable.getExtensions().get(0));
+            }
+            identifiable.setExtensions(List.of());
             contains(identifiablesShould, identifiable);
         }
 

@@ -6,6 +6,12 @@ Compatibility: **Eclipse Dataspace Connector v0.15.0**
 
 ### New Features
 
+* **Selective AAS metadata**
+    * Users can now configure which AAS metadata is to be exposed in the catalog and (if enabled) self-description
+    * Configuration key: `edc.aas.exposedFields`
+    * Example: `edc.aas.exposedFields=HasSemantics/semanticId,Reference/keys,Reference/type,Key/type,Key/value`
+        * This will only expose the semanticId of an object (if available)
+    * By default, the following metadata is exposed: `id, semanticId, idShort, description, displayName`
 * **Redesign of Self-Description**
     * Self-Description is now AAS-conformant: An AAS environment containing EDC Asset IDs as AAS extension elements
 * **Synchronization via FA³ST Events**

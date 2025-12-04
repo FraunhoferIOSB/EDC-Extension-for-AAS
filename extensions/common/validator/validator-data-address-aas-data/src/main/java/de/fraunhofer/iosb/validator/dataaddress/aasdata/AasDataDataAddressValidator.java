@@ -15,6 +15,7 @@
  */
 package de.fraunhofer.iosb.validator.dataaddress.aasdata;
 
+import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.validator.spi.ValidationResult;
 import org.eclipse.edc.validator.spi.Validator;
@@ -23,6 +24,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 
+import static de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress.AAS_DATA_TYPE;
 import static de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress.METHOD;
 import static de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress.PATH;
 import static org.eclipse.edc.dataaddress.httpdata.spi.HttpDataAddressSchema.BASE_URL;
@@ -51,13 +53,25 @@ public class AasDataDataAddressValidator implements Validator<DataAddress> {
 
         var method = dataAddress.getStringProperty(METHOD);
         if (method != null && allowedMethods.stream().filter(allowed -> allowed.equalsIgnoreCase(method)).findAny().isEmpty()) {
-            var violation = violation("DataAddress of type %s needs a valid HTTP method, if one is provided.".formatted(HTTP_DATA_TYPE), "method", baseUrl);
+            var violation = violation("DataAddress of type %s needs a valid HTTP method, if one is provided.".formatted(AAS_DATA_TYPE), "method", baseUrl);
             return ValidationResult.failure(violation);
         }
 
-        var path = dataAddress.getStringProperty(PATH);
+        String path;
+        if (dataAddress.getType().equalsIgnoreCase(AAS_DATA_TYPE)) {
+            try {
+                path = AasDataAddress.Builder.newInstance().copyFrom(dataAddress).build().getPath();
+            }
+            catch (IllegalStateException illegalStateException) {
+                var violation = violation(illegalStateException.getMessage(), "path", baseUrl);
+                return ValidationResult.failure(violation);
+            }
+        }
+        else {
+            path = dataAddress.getStringProperty(PATH);
+        }
         if (path == null) {
-            var violation = violation("DataAddress of type %s must contain a valid path".formatted(HTTP_DATA_TYPE), "path", baseUrl);
+            var violation = violation("DataAddress of type %s must contain a valid path".formatted(AAS_DATA_TYPE), "path", baseUrl);
             return ValidationResult.failure(violation);
         }
 

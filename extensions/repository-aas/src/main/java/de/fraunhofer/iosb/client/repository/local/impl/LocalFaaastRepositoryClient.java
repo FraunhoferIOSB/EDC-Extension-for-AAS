@@ -39,12 +39,20 @@ import java.util.function.BiConsumer;
 import static de.fraunhofer.iosb.model.context.repository.remote.RemoteAasRepositoryContext.ERR_MSG_TEMPLATE;
 
 
+/**
+ * Local FA³ST service (repository) client. Subscribes to FA³ST event on the message bus to receive updates about the environment.
+ */
 public class LocalFaaastRepositoryClient extends LocalAasRepositoryClient<LocalFaaastRepositoryContext> {
 
     private final Map<EventTypes, Class<? extends EventMessage>> eventTypeMapping;
     private final Map<UUID, SubscriptionId> subscriptions = new ConcurrentHashMap<>();
 
 
+    /**
+     * Class constructor.
+     *
+     * @param context Context holding information about the FA³ST service.
+     */
     public LocalFaaastRepositoryClient(LocalFaaastRepositoryContext context) {
         super(context);
         eventTypeMapping = Map.of(
@@ -64,6 +72,13 @@ public class LocalFaaastRepositoryClient extends LocalAasRepositoryClient<LocalF
     }
 
 
+    /**
+     * Attach a consumer to an event emitted by the FA³ST service.
+     *
+     * @param eventType Event type such as "created", "updated", ...
+     * @param consumer Consumer of the event's payload.
+     * @return Subscription UUID to later clean up subscriptions on shutdown of the client.
+     */
     public UUID subscribeTo(EventTypes eventType, BiConsumer<Reference, Class<?>> consumer) {
         SubscriptionId subscriptionId;
         try {
@@ -84,15 +99,14 @@ public class LocalFaaastRepositoryClient extends LocalAasRepositoryClient<LocalF
             throw new EdcException(String.format(ERR_MSG_TEMPLATE, "Subscribing to event", getUri()), messageBusException);
         }
         return subscriptionId.getValue();
-
     }
 
 
-    private <T extends EventMessage> void doHandle(T message, BiConsumer<Reference, Class<?>> consumer) {
-        consumer.accept(message.getElement(), message.getClass());
-    }
-
-
+    /**
+     * Unsubscribe from an eventType using an acquired subscription id
+     *
+     * @param id The id of the subscription to be removed.
+     */
     public void unsubscribeFrom(UUID id) {
         try {
             context.unsubscribe(subscriptions.get(id));
@@ -101,4 +115,10 @@ public class LocalFaaastRepositoryClient extends LocalAasRepositoryClient<LocalF
             throw new EdcException(String.format(ERR_MSG_TEMPLATE, "Unsubscribing from event", getUri()), messageBusException);
         }
     }
+
+
+    private <T extends EventMessage> void doHandle(T message, BiConsumer<Reference, Class<?>> consumer) {
+        consumer.accept(message.getElement(), message.getClass());
+    }
+
 }

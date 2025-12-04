@@ -26,6 +26,9 @@ import java.util.List;
 import java.util.Objects;
 
 
+/**
+ * Context holding information about an AAS registry.
+ */
 public class RemoteAasRepositoryContext extends AasRepositoryContext {
 
     public static final String ERR_MSG_TEMPLATE = "%s from %s failed.";
@@ -42,6 +45,11 @@ public class RemoteAasRepositoryContext extends AasRepositoryContext {
     }
 
 
+    /**
+     * Returns whether to allow connections to this repository if it holds self-signed certificates.
+     *
+     * @return True if allowing connections to this repository if holding self-signed certificates, else false.
+     */
     public boolean allowSelfSigned() {
         return allowSelfSigned;
     }

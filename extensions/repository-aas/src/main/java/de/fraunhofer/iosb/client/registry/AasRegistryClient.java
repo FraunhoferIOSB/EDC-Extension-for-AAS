@@ -37,6 +37,9 @@ import java.util.List;
 import java.util.Map;
 
 
+/**
+ * Client for AAS registries implementing the /shell-descriptors, /submodel-descriptors APIs.
+ */
 public class AasRegistryClient implements AasServerClient {
 
     // FA³ST client
@@ -45,6 +48,11 @@ public class AasRegistryClient implements AasServerClient {
     private final AasRegistryContext context;
 
 
+    /**
+     * Class constructor.
+     *
+     * @param context Context holding information about communication with the AAS registry.
+     */
     public AasRegistryClient(AasRegistryContext context) {
         this.context = context;
 
@@ -60,15 +68,15 @@ public class AasRegistryClient implements AasServerClient {
                 .version(HttpClient.Version.HTTP_1_1)
                 .build();
 
-        // TODO when client gets builder, revise this
+        // TODO once client gets builder, revise this
         this.aasRegistryInterface = new AASRegistryInterface(context.getUri(), httpClient);
         this.submodelRegistryInterface = new SubmodelRegistryInterface(context.getUri(), httpClient);
     }
 
 
     @Override
-    public boolean doRegister(Reference reference) {
-        return context.doRegister(reference);
+    public boolean eligibleForRegistration(Reference reference) {
+        return context.eligibleForRegistration(reference);
     }
 
 

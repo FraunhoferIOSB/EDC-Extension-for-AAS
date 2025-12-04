@@ -23,14 +23,22 @@ import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElement;
 
 import java.util.Objects;
 import java.util.function.BiFunction;
-import java.util.function.Function;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 
+/**
+ * Visitor for environment shells, submodels, concept-descriptions, and submodel#submodelElements.
+ * <p>
+ * Allows Consumers to modify and Predicates to filter the environment's identifiable elements. Allows BiFunctions to alter and filter SubmodelElements. Note: BiFunctions should be
+ * recursive if the elements within a SubmodelCollection/List shall be altered/filtered too.
+ *
+ * @param environment The environment to visit.
+ */
 public record EnvironmentVisitor(Environment environment) {
 
-    public EnvironmentVisitor visitShells(Function<Identifiable, Identifiable> visitor) {
-        environment.getAssetAdministrationShells().forEach(visitor::apply);
+    public EnvironmentVisitor visitShells(Consumer<Identifiable> visitor) {
+        environment.getAssetAdministrationShells().forEach(visitor);
         return this;
     }
 
@@ -41,8 +49,8 @@ public record EnvironmentVisitor(Environment environment) {
     }
 
 
-    public EnvironmentVisitor visitConceptDescriptions(Function<Identifiable, Identifiable> visitor) {
-        environment.getConceptDescriptions().forEach(visitor::apply);
+    public EnvironmentVisitor visitConceptDescriptions(Consumer<Identifiable> visitor) {
+        environment.getConceptDescriptions().forEach(visitor);
         return this;
     }
 
@@ -53,12 +61,12 @@ public record EnvironmentVisitor(Environment environment) {
     }
 
 
-    public EnvironmentVisitor visitSubmodels(Function<Identifiable, Identifiable> visitor,
+    public EnvironmentVisitor visitSubmodels(Consumer<Identifiable> visitor,
                                              BiFunction<Reference, SubmodelElement, SubmodelElement> childVisitor) {
         environment.getSubmodels().forEach(submodel ->
                 submodel.getSubmodelElements().forEach(submodelElement -> childVisitor.apply(AasUtils.toReference(submodel),
                         submodelElement)));
-        environment.getSubmodels().forEach(visitor::apply);
+        environment.getSubmodels().forEach(visitor);
         return this;
     }
 

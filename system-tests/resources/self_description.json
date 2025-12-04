@@ -3,40 +3,12 @@
     "assetAdministrationShells": [
       {
         "modelType": "AssetAdministrationShell",
-        "assetInformation": {
-          "assetKind": "Instance",
-          "globalAssetId": "https://acplt.org/System_Test_Asset"
-        },
-        "derivedFrom": {
-          "keys": [
-            {
-              "type": "AssetAdministrationShell",
-              "value": "https://acplt.org/SystemTestAssetAdministrationShell"
-            }
-          ],
-          "type": "ExternalReference"
-        },
-        "submodels": [
-          {
-            "keys": [
-              {
-                "type": "Submodel",
-                "value": "https://acplt.org/System_Test_Submodel"
-              }
-            ],
-            "type": "ExternalReference"
-          }
-        ],
         "extensions": [
           {
             "name": "https://w3id.org/edc/v0.0.1/ns/id",
             "value": "792362498"
           }
         ],
-        "administration": {
-          "revision": "37",
-          "version": "13"
-        },
         "id": "https://acplt.org/System_Test_AssetAdministrationShell",
         "description": [
           {
@@ -54,27 +26,12 @@
     "conceptDescriptions": [
       {
         "modelType": "ConceptDescription",
-        "isCaseOf": [
-          {
-            "keys": [
-              {
-                "type": "GlobalReference",
-                "value": "http://acplt.org/DataSpecifications/Conceptdescription/SystemTestConceptDescription"
-              }
-            ],
-            "type": "ExternalReference"
-          }
-        ],
         "extensions": [
           {
             "name": "https://w3id.org/edc/v0.0.1/ns/id",
             "value": "1351791412"
           }
         ],
-        "administration": {
-          "revision": "2",
-          "version": "4"
-        },
         "id": "https://acplt.org/System_Test_ConceptDescription",
         "description": [
           {
@@ -98,7 +55,6 @@
             "value": "1855961989"
           }
         ],
-        "kind": "Instance",
         "semanticId": {
           "keys": [
             {
@@ -107,10 +63,6 @@
             }
           ],
           "type": "ExternalReference"
-        },
-        "administration": {
-          "revision": "9",
-          "version": "0"
         },
         "id": "http://acplt.org/Submodels/Assets/TestAsset/System_Test_Submodel",
         "description": [
@@ -142,7 +94,6 @@
               ],
               "type": "ExternalReference"
             },
-            "category": "PARAMETER",
             "description": [
               {
                 "language": "en-us",
@@ -172,30 +123,6 @@
                   ],
                   "type": "ExternalReference"
                 },
-                "valueId": {
-                  "keys": [
-                    {
-                      "type": "GlobalReference",
-                      "value": "http://acplt.org/ValueId/ACPLT"
-                    }
-                  ],
-                  "type": "ExternalReference"
-                },
-                "valueType": "xs:string",
-                "qualifiers": [
-                  {
-                    "kind": "ConceptQualifier",
-                    "type": "http://acplt.org/Qualifier/ExampleQualifier",
-                    "value": "100",
-                    "valueType": "xs:int"
-                  },
-                  {
-                    "kind": "ConceptQualifier",
-                    "type": "http://acplt.org/Qualifier/ExampleQualifier2",
-                    "value": "50",
-                    "valueType": "xs:int"
-                  }
-                ],
                 "description": [
                   {
                     "language": "en-us",

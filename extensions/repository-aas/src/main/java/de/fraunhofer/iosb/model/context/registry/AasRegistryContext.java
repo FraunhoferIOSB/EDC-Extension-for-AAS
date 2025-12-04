@@ -38,18 +38,28 @@ public class AasRegistryContext extends AasServerContext {
     }
 
 
+    /**
+     * Returns the authentication method required to connect to this registry.
+     *
+     * @return The authentication method.
+     */
     public AuthenticationMethod getAuthenticationMethod() {
         return authenticationMethod;
     }
 
 
+    /**
+     * Returns whether to allow self-signed certificates when connecting to this registry.
+     *
+     * @return Whether to allow self-signed certificates.
+     */
     public boolean allowSelfSigned() {
         return allowSelfSigned;
     }
 
 
     @Override
-    public boolean doRegister(Reference reference) {
+    public boolean eligibleForRegistration(Reference reference) {
         return true;
     }
 

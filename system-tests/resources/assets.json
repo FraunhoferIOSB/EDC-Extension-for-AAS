@@ -13,22 +13,17 @@
           "aas:AbstractLangString/text": "Das ist meine system test ConceptDescription beschreibung"
         }
       ],
-      "aas:Referable/idShort": "SystemTestConceptDescription",
-      "aas:Identifiable/id": "https://acplt.org/System_Test_ConceptDescription",
       "aas:modelingType": "ConceptDescription",
-      "aas:Identifiable/administration": {
-        "aas:AdministrativeInformation/revision": "2",
-        "aas:AdministrativeInformation/version": "4",
-        "aas:HasDataSpecification/embeddedDataSpecifications": []
-      },
+      "aas:Referable/idShort": "SystemTestConceptDescription",
+      "contenttype": "application/json",
       "id": "1351791412",
-      "contenttype": "application/json"
+      "aas:Identifiable/id": "https://acplt.org/System_Test_ConceptDescription"
     },
     "dataAddress": {
       "@type": "DataAddress",
-      "aas:reference": "[ModelRef](ConceptDescription)https://acplt.org/System_Test_ConceptDescription",
       "method": "GET",
       "type": "AasData",
+      "aas:reference": "[ModelRef](ConceptDescription)https://acplt.org/System_Test_ConceptDescription",
       "baseUrl": "https://localhost:60875/api/v3.0"
     },
     "@context": {
@@ -52,22 +47,17 @@
           "aas:AbstractLangString/text": "Das ist meine system test AAS beschreibung"
         }
       ],
-      "aas:Referable/idShort": "SystemTestAssetAdministrationShell",
-      "aas:Identifiable/id": "https://acplt.org/System_Test_AssetAdministrationShell",
       "aas:modelingType": "AssetAdministrationShell",
-      "aas:Identifiable/administration": {
-        "aas:AdministrativeInformation/revision": "37",
-        "aas:AdministrativeInformation/version": "13",
-        "aas:HasDataSpecification/embeddedDataSpecifications": []
-      },
+      "aas:Referable/idShort": "SystemTestAssetAdministrationShell",
+      "contenttype": "application/json",
       "id": "792362498",
-      "contenttype": "application/json"
+      "aas:Identifiable/id": "https://acplt.org/System_Test_AssetAdministrationShell"
     },
     "dataAddress": {
       "@type": "DataAddress",
-      "aas:reference": "[ModelRef](AssetAdministrationShell)https://acplt.org/System_Test_AssetAdministrationShell",
       "method": "GET",
       "type": "AasData",
+      "aas:reference": "[ModelRef](AssetAdministrationShell)https://acplt.org/System_Test_AssetAdministrationShell",
       "baseUrl": "https://localhost:60875/api/v3.0"
     },
     "@context": {
@@ -95,19 +85,19 @@
       "aas:modelingType": "SubmodelElementCollection",
       "aas:HasSemantics/semanticId": {
         "aas:Reference/keys": {
-          "aas:Key/type": "GLOBAL_REFERENCE",
+          "aas:Key/type": "GlobalReference",
           "aas:Key/value": "http://acplt.org/SubmodelElementCollections/System_Test_SubmodelElementCollection"
         },
-        "aas:Reference/type": "EXTERNAL_REFERENCE"
+        "aas:Reference/type": "ExternalReference"
       },
-      "id": "-799803758",
-      "contenttype": "application/json"
+      "contenttype": "application/json",
+      "id": "-799803758"
     },
     "dataAddress": {
       "@type": "DataAddress",
-      "aas:reference": "[ModelRef](Submodel)http://acplt.org/Submodels/Assets/TestAsset/System_Test_Submodel, (SubmodelElementCollection)SystemTestSubmodelElementCollection",
       "method": "GET",
       "type": "AasData",
+      "aas:reference": "[ModelRef](Submodel)http://acplt.org/Submodels/Assets/TestAsset/System_Test_Submodel, (SubmodelElementCollection)SystemTestSubmodelElementCollection",
       "baseUrl": "https://localhost:60875/api/v3.0"
     },
     "@context": {
@@ -135,23 +125,23 @@
       "aas:modelingType": "Property",
       "aas:HasSemantics/semanticId": {
         "aas:Reference/keys": {
-          "aas:Key/type": "GLOBAL_REFERENCE",
+          "aas:Key/type": "GlobalReference",
           "aas:Key/value": "0173-1#02-AAO677#002"
         },
-        "aas:Reference/type": "EXTERNAL_REFERENCE"
+        "aas:Reference/type": "ExternalReference"
       },
       "aas:Referable/displayName": {
         "aas:AbstractLangString/language": "en-us",
         "aas:AbstractLangString/text": "Manufacturer Name"
       },
-      "id": "458140152",
-      "contenttype": "application/json"
+      "contenttype": "application/json",
+      "id": "458140152"
     },
     "dataAddress": {
       "@type": "DataAddress",
-      "aas:reference": "[ModelRef](Submodel)http://acplt.org/Submodels/Assets/TestAsset/System_Test_Submodel, (SubmodelElementCollection)SystemTestSubmodelElementCollection, (Property)ManufacturerName",
       "method": "GET",
       "type": "AasData",
+      "aas:reference": "[ModelRef](Submodel)http://acplt.org/Submodels/Assets/TestAsset/System_Test_Submodel, (SubmodelElementCollection)SystemTestSubmodelElementCollection, (Property)ManufacturerName",
       "baseUrl": "https://localhost:60875/api/v3.0"
     },
     "@context": {
@@ -180,24 +170,19 @@
       "aas:modelingType": "Submodel",
       "aas:HasSemantics/semanticId": {
         "aas:Reference/keys": {
-          "aas:Key/type": "SUBMODEL",
+          "aas:Key/type": "Submodel",
           "aas:Key/value": "http://acplt.org/SubmodelTemplates/SystemTest"
         },
-        "aas:Reference/type": "EXTERNAL_REFERENCE"
+        "aas:Reference/type": "ExternalReference"
       },
-      "aas:Identifiable/administration": {
-        "aas:AdministrativeInformation/revision": "9",
-        "aas:AdministrativeInformation/version": "0",
-        "aas:HasDataSpecification/embeddedDataSpecifications": []
-      },
-      "id": "1855961989",
-      "contenttype": "application/json"
+      "contenttype": "application/json",
+      "id": "1855961989"
     },
     "dataAddress": {
       "@type": "DataAddress",
-      "aas:reference": "[ModelRef](Submodel)http://acplt.org/Submodels/Assets/TestAsset/System_Test_Submodel",
       "method": "GET",
       "type": "AasData",
+      "aas:reference": "[ModelRef](Submodel)http://acplt.org/Submodels/Assets/TestAsset/System_Test_Submodel",
       "baseUrl": "https://localhost:60875/api/v3.0"
     },
     "@context": {

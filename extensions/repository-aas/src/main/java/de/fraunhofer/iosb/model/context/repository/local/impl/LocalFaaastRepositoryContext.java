@@ -37,6 +37,9 @@ import java.util.Objects;
 import static de.fraunhofer.iosb.model.context.repository.remote.RemoteAasRepositoryContext.ERR_MSG_TEMPLATE;
 
 
+/**
+ * Context holding information specifically about a FA³ST service.
+ */
 public class LocalFaaastRepositoryContext extends AasRepositoryContext {
 
     private final MessageBus<?> messageBus;
@@ -52,16 +55,34 @@ public class LocalFaaastRepositoryContext extends AasRepositoryContext {
     }
 
 
+    /**
+     * Subscribe to an event with a consumer, both defined by the subscription info.
+     *
+     * @param subscriptionInfo Contains all info regarding event and handling.
+     * @return Subscription ID for traceability.
+     * @throws MessageBusException If the message bus of FA³ST does not work as intended.
+     */
     public SubscriptionId subscribe(SubscriptionInfo subscriptionInfo) throws MessageBusException {
         return messageBus.subscribe(subscriptionInfo);
     }
 
 
+    /**
+     * Unsubscribe from an event.
+     *
+     * @param id Handle for the subscription to be removed.
+     * @throws MessageBusException If the message bus of FA³ST does not work as intended.
+     */
     public void unsubscribe(SubscriptionId id) throws MessageBusException {
         messageBus.unsubscribe(id);
     }
 
 
+    /**
+     * Returns all AAS currently stored in the FA³ST service.
+     *
+     * @return All AAS currently stored.
+     */
     public List<AssetAdministrationShell> getAllAas() {
         try {
             return persistence.getAllAssetAdministrationShells(QueryModifier.DEFAULT, PagingInfo.ALL).getContent();
@@ -72,6 +93,11 @@ public class LocalFaaastRepositoryContext extends AasRepositoryContext {
     }
 
 
+    /**
+     * Returns all submodels currently stored in the FA³ST service.
+     *
+     * @return All submodels currently stored.
+     */
     public List<Submodel> getAllSubmodels() {
         try {
             return persistence.getAllSubmodels(QueryModifier.DEFAULT, PagingInfo.ALL).getContent();
@@ -82,6 +108,11 @@ public class LocalFaaastRepositoryContext extends AasRepositoryContext {
     }
 
 
+    /**
+     * Returns all concept descriptions currently stored in the FA³ST service.
+     *
+     * @return All concept descriptions currently stored.
+     */
     public List<ConceptDescription> getAllConceptDescriptions() {
         try {
             return persistence.getAllConceptDescriptions(QueryModifier.DEFAULT, PagingInfo.ALL).getContent();

@@ -15,7 +15,9 @@
  */
 package de.fraunhofer.iosb.app.controller;
 
+import de.fraunhofer.iosb.app.aas.mapper.util.FilteredJsonSerializer;
 import de.fraunhofer.iosb.app.handler.aas.AasHandler;
+import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import de.fraunhofer.iosb.app.stores.repository.AasServerStore;
 import de.fraunhofer.iosb.client.exception.UnauthorizedException;
 import jakarta.ws.rs.BadRequestException;
@@ -25,17 +27,22 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.SerializationException;
-import org.eclipse.digitaltwin.aas4j.v3.dataformat.json.JsonSerializer;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
 import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.net.ConnectException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static de.fraunhofer.iosb.app.controller.SelfDescriptionController.SELF_DESCRIPTION_PATH;
+import static de.fraunhofer.iosb.constants.AasConstants.DEFAULT_EXPOSED_FIELDS;
+import static de.fraunhofer.iosb.constants.AasConstants.EXPOSED_FIELDS_SELF_DESCRIPTION;
 
 
 /**
@@ -47,8 +54,11 @@ public class SelfDescriptionController {
 
     public static final String SELF_DESCRIPTION_PATH = "selfDescription";
 
+    private final Supplier<Set<String>> exposedFieldsSupplier = () -> Optional.ofNullable(Configuration.getInstance().getExposedFields())
+            .orElse(DEFAULT_EXPOSED_FIELDS);
     private final Monitor monitor;
     private final AasServerStore aasRepositoryStore;
+    private final FilteredJsonSerializer filteredJsonSerializer = new FilteredJsonSerializer();
 
 
     /**
@@ -70,7 +80,7 @@ public class SelfDescriptionController {
      * @return Self description(s)
      */
     @GET
-    public String getSelfDescription(@QueryParam("url") URI uri) throws SerializationException {
+    public String getSelfDescription(@QueryParam("url") URI uri) {
         monitor.debug(String.format("GET %s", SELF_DESCRIPTION_PATH));
 
         List<AasHandler<?>> handlers = new ArrayList<>();
@@ -93,6 +103,18 @@ public class SelfDescriptionController {
                 monitor.warning("Could not produce a self description", e);
             }
         }
-        return new JsonSerializer().writeList(selfDescriptions);
+
+        Set<String> exposedFields = new HashSet<>(exposedFieldsSupplier.get());
+        exposedFields.addAll(EXPOSED_FIELDS_SELF_DESCRIPTION);
+
+        return "[" + selfDescriptions.stream()
+                .map(selfDescription -> {
+                    try {
+                        return filteredJsonSerializer.write(selfDescription, exposedFields);
+                    }
+                    catch (SerializationException e) {
+                        throw new RuntimeException(e);
+                    }
+                }).collect(Collectors.joining(",")) + "]";
     }
 }

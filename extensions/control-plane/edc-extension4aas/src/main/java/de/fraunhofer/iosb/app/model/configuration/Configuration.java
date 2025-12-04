@@ -18,6 +18,10 @@ package de.fraunhofer.iosb.app.model.configuration;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.net.URI;
+import java.util.Arrays;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 
 /**
@@ -49,6 +53,8 @@ public class Configuration {
     private String defaultContractPolicyPath;
     @JsonProperty(SETTINGS_PREFIX + "useAasDataPlane")
     private boolean useAasDataPlane = true;
+    @JsonProperty(SETTINGS_PREFIX + "exposedFields")
+    private Set<String> exposedFields;
 
 
     public static synchronized Configuration getInstance() {
@@ -113,4 +119,15 @@ public class Configuration {
         return useAasDataPlane;
     }
 
+
+    public Set<String> getExposedFields() {
+        return exposedFields;
+    }
+
+
+    public void setExposedFields(String exposedFields) {
+        Optional.ofNullable(exposedFields)
+                .ifPresent(ef -> this.exposedFields = Arrays.stream(ef.split(",")).map(String::trim).collect(Collectors.toSet())
+                );
+    }
 }

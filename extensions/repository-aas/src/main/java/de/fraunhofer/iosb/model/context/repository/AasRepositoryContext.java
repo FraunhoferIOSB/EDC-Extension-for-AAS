@@ -28,6 +28,9 @@ import java.util.Objects;
 import java.util.Optional;
 
 
+/**
+ * Context holding information about an AAS repository.
+ */
 public abstract class AasRepositoryContext extends AasServerContext {
 
     private final List<PolicyBinding> policyBindings;
@@ -52,6 +55,13 @@ public abstract class AasRepositoryContext extends AasServerContext {
     }
 
 
+    /**
+     * Returns a policy binding for a given reference. Warning: this function returns a policy binding regardless of whether an element should be registered or not. Use
+     * {@link #eligibleForRegistration(Reference reference)} for that.
+     *
+     * @param reference Reference for which a policy binding is to be returned.
+     * @return The policy binding.
+     */
     public PolicyBinding getPolicyBinding(Reference reference) {
         return policyBindingIfPresent(reference)
                 .orElse(new PolicyBinding.Builder()
@@ -62,15 +72,8 @@ public abstract class AasRepositoryContext extends AasServerContext {
     }
 
 
-    private Optional<PolicyBinding> policyBindingIfPresent(Reference reference) {
-        return policyBindings.stream()
-                .filter(policyBinding -> Objects.equals(reference, policyBinding.referredElement()))
-                .findFirst();
-    }
-
-
     @Override
-    public boolean doRegister(Reference reference) {
+    public boolean eligibleForRegistration(Reference reference) {
         return policyBindings.isEmpty() || policyBindingIfPresent(reference).isPresent();
     }
 
@@ -86,8 +89,20 @@ public abstract class AasRepositoryContext extends AasServerContext {
     }
 
 
+    /**
+     * Returns whether only submodels are to be registered.
+     *
+     * @return True if only submodels are to be registered, else false.
+     */
     public boolean isOnlySubmodels() {
         return onlySubmodels;
+    }
+
+
+    private Optional<PolicyBinding> policyBindingIfPresent(Reference reference) {
+        return policyBindings.stream()
+                .filter(policyBinding -> Objects.equals(reference, policyBinding.referredElement()))
+                .findFirst();
     }
 
 

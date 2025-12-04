@@ -42,7 +42,7 @@ public class RepositoryControllerIT extends AbstractAasServerControllerIT<Reposi
 
     @Override
     protected RepositoryController getTestSubject() {
-        return new RepositoryController(monitor, repository, () -> "localhost", new EdcStoreHandler(assetIndex, contractDefinitionStore));
+        return new RepositoryController(monitor, aasServerStore, () -> "localhost", new EdcStoreHandler(assetIndex, contractDefinitionStore));
     }
 
 
@@ -57,7 +57,7 @@ public class RepositoryControllerIT extends AbstractAasServerControllerIT<Reposi
 
         assertEquals(result, getUri());
 
-        var handler = repository.get(result).orElseThrow();
+        var handler = aasServerStore.get(result).orElseThrow();
 
         var selfDescription = handler.buildSelfDescription();
 
@@ -68,6 +68,7 @@ public class RepositoryControllerIT extends AbstractAasServerControllerIT<Reposi
     }
 
 
+    @SuppressWarnings("resource")
     @Test
     void test_registerRepository_filledEnvironmentAllRegistered() throws UnauthorizedException,
             ConnectException, SerializationException, UnsupportedModifierException {
@@ -83,7 +84,7 @@ public class RepositoryControllerIT extends AbstractAasServerControllerIT<Reposi
 
         assertEquals(result, uri);
 
-        var handler = repository.get(result).orElseThrow();
+        var handler = aasServerStore.get(result).orElseThrow();
 
         var selfDescription = handler.buildSelfDescription();
 
@@ -111,7 +112,7 @@ public class RepositoryControllerIT extends AbstractAasServerControllerIT<Reposi
 
         assertEquals(result, getUri());
 
-        var handler = repository.get(result).orElseThrow();
+        var handler = aasServerStore.get(result).orElseThrow();
 
         var selfDescription = handler.buildSelfDescription();
 

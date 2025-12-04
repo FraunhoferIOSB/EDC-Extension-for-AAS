@@ -24,9 +24,26 @@ import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import java.net.ConnectException;
 
 
+/**
+ * Clients used to communicate with AAS repositories (e.g., FA³ST service).
+ */
 public interface AasRepositoryClient extends AasServerClient {
+
+    /**
+     * Return the environment that is stored with the AAS repository.
+     *
+     * @return Environment of AAS repository.
+     * @throws ConnectException Connection to the repository failed.
+     * @throws UnauthorizedException Not authorized to access resources of the repository.
+     */
     Environment getEnvironment() throws ConnectException, UnauthorizedException;
 
 
+    /**
+     * Returns a policy binding stored with the context pertaining to the AAS repository behind this client.
+     *
+     * @param reference Reference of the policy binding to return
+     * @return The policy binding.
+     */
     PolicyBinding getPolicyBinding(Reference reference);
 }

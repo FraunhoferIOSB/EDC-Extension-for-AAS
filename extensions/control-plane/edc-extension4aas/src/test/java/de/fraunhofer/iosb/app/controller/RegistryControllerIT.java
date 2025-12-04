@@ -44,7 +44,7 @@ public class RegistryControllerIT extends AbstractAasServerControllerIT<Registry
 
     @Override
     protected RegistryController getTestSubject() {
-        return new RegistryController(monitor, repository, new EdcStoreHandler(assetIndex, contractDefinitionStore));
+        return new RegistryController(monitor, aasServerStore, new EdcStoreHandler(assetIndex, contractDefinitionStore));
     }
 
 
@@ -60,7 +60,7 @@ public class RegistryControllerIT extends AbstractAasServerControllerIT<Registry
 
         assertEquals(result, getUri());
 
-        var handler = (RemoteAasRegistryHandler) repository.get(result).orElseThrow();
+        var handler = (RemoteAasRegistryHandler) aasServerStore.get(result).orElseThrow();
 
         var selfDescription = handler.buildSelfDescription();
 
@@ -83,7 +83,7 @@ public class RegistryControllerIT extends AbstractAasServerControllerIT<Registry
 
         assertEquals(result, getUri());
 
-        var handler = (RemoteAasRegistryHandler) repository.get(result).orElseThrow();
+        var handler = (RemoteAasRegistryHandler) aasServerStore.get(result).orElseThrow();
 
         var selfDescription = handler.buildSelfDescription();
 

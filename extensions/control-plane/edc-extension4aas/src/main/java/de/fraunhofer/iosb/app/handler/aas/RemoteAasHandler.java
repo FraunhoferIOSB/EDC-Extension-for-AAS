@@ -28,8 +28,8 @@ import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.net.ConnectException;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 
 /**
@@ -40,22 +40,22 @@ public abstract class RemoteAasHandler<C extends AasServerClient> extends AasHan
     // This map keeps tabs on the current state of registered assets/contracts.
     // If an asset or its contract could not be registered, they will not appear in this map.
     // We keep this "cache" to not flood the Asset/ContractStores with requests.
-    protected final Map<PolicyBinding, Asset> referenceAssetMapping;
+    protected final Map<PolicyBinding, Asset> registeredAssets;
 
 
     protected RemoteAasHandler(Monitor monitor, C client, EdcStoreHandler edcStoreHandler) throws UnauthorizedException,
             ConnectException {
         super(monitor, client, edcStoreHandler);
-        referenceAssetMapping = initialize();
+        registeredAssets = initialize();
     }
 
 
-    @Override
-    protected Map<PolicyBinding, Asset> getCurrentlyRegistered() {
-        return referenceAssetMapping;
-    }
-
-
+    /**
+     * Performs synchronization between the AAS environment and the EDC AssetIndex/ContractDefinitionStore.
+     * <p>
+     * Calling run() assumes that initialization succeeded, where a connection to the AAS server was successful. If, at a later time, authorization changes or the connection to the
+     * AAS server fails, it will be logged and treated as a transient error.
+     */
     @Override
     public void run() {
         if (!client.isAvailable()) {
@@ -77,28 +77,31 @@ public abstract class RemoteAasHandler<C extends AasServerClient> extends AasHan
 
         Map<Reference, Asset> mapped = MappingHelper.map(currentEnvironment, identifiableMapper::map, submodelElementMapper::map);
 
-        Map<PolicyBinding, Asset> filtered = mapped.entrySet().stream()
-                .filter(entry -> client.doRegister(entry.getKey()))
-                .map(entry -> Map.entry(policyBindingFor(entry.getKey()), entry.getValue()))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        mapped.entrySet().removeIf(entry -> !client.eligibleForRegistration(entry.getKey()));
 
-        // All elements that are not currently registered (as far as we know)
-        Map<PolicyBinding, Asset> toAdd = DiffHelper.getToAdd(referenceAssetMapping, filtered);
-        // All elements that are currently registered (as far as we know) but should not
-        Map<PolicyBinding, Asset> toRemove = DiffHelper.getToRemove(referenceAssetMapping, filtered);
-        // All elements to update (policy bindings are not modifiable, thus not need to be checked)
-        Map<PolicyBinding, Asset> toUpdate = DiffHelper.getToUpdate(referenceAssetMapping, filtered);
+        Map<PolicyBinding, Asset> updatedAssets = new HashMap<>();
 
-        toAdd.entrySet().stream()
+        mapped.keySet().forEach(referenceKey -> updatedAssets.put(policyBindingFor(referenceKey), mapped.get(referenceKey)));
+
+        // All elements that are not currently registered (as far as we know) shall be registered
+        DiffHelper.getToAdd(registeredAssets, updatedAssets).entrySet().stream()
                 .filter(entry -> registerSingle(entry.getKey(), entry.getValue()).succeeded())
-                .forEach(entry -> referenceAssetMapping.put(entry.getKey(), entry.getValue()));
+                .forEach(entry -> registeredAssets.put(entry.getKey(), entry.getValue()));
 
-        toRemove.entrySet().stream()
+        // All elements that are currently registered (as far as we know) but should not be shall be unregistered
+        DiffHelper.getToRemove(registeredAssets, updatedAssets).entrySet().stream()
                 .filter(entry -> unregisterSingle(entry.getKey(), entry.getValue().getId()).succeeded())
-                .forEach(entry -> referenceAssetMapping.remove(entry.getKey(), entry.getValue()));
+                .forEach(entry -> registeredAssets.remove(entry.getKey(), entry.getValue()));
 
-        toUpdate.entrySet().stream()
-                .filter(entry -> updateSingle(entry.getKey(), entry.getValue()).succeeded())
-                .forEach(entry -> referenceAssetMapping.put(entry.getKey(), entry.getValue()));
+        // All elements to update (policy bindings are not modifiable, thus not need to be checked) shall be updated
+        DiffHelper.getToUpdate(registeredAssets, updatedAssets).entrySet().stream()
+                .filter(entry -> updateSingle(entry.getValue()).succeeded())
+                .forEach(entry -> registeredAssets.put(entry.getKey(), entry.getValue()));
+    }
+
+
+    @Override
+    protected Map<PolicyBinding, Asset> getCurrentlyRegistered() {
+        return registeredAssets;
     }
 }

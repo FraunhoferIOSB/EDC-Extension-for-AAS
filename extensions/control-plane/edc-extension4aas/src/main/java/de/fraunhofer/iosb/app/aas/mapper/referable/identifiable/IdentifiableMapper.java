@@ -24,13 +24,8 @@ import org.eclipse.digitaltwin.aas4j.v3.model.Identifiable;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 
-import static de.fraunhofer.iosb.constants.AasConstants.AAS_V30_NAMESPACE;
-
 
 public class IdentifiableMapper extends ReferableMapper {
-
-    private static final String IDENTIFIABLE_NAMESPACE = AAS_V30_NAMESPACE.concat("Identifiable/");
-
 
     public IdentifiableMapper(AasServerClient client) {
         super(client);
@@ -50,14 +45,6 @@ public class IdentifiableMapper extends ReferableMapper {
         }
         else {
             builder.dataAddress(dataAddress.asHttpDataAddress());
-        }
-
-        builder.property(IDENTIFIABLE_NAMESPACE.concat("id"), identifiable.getId());
-
-        var admin = identifiable.getAdministration();
-
-        if (admin != null) {
-            builder.property(IDENTIFIABLE_NAMESPACE.concat("administration"), getNamespaced(admin));
         }
 
         return builder.build();

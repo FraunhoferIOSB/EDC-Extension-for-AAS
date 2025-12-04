@@ -24,6 +24,11 @@ import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import java.net.URI;
 
 
+/**
+ * Any local AAS repository client can extend this class. See {@link de.fraunhofer.iosb.client.repository.local.impl.LocalFaaastRepositoryClient}
+ *
+ * @param <CTX> Context type of the AAS repository context.
+ */
 public abstract class LocalAasRepositoryClient<CTX extends AasRepositoryContext> implements AasRepositoryClient {
     protected final CTX context;
 
@@ -33,6 +38,7 @@ public abstract class LocalAasRepositoryClient<CTX extends AasRepositoryContext>
     }
 
 
+    @Override
     public URI getUri() {
         return context.getUri();
     }
@@ -45,8 +51,8 @@ public abstract class LocalAasRepositoryClient<CTX extends AasRepositoryContext>
 
 
     @Override
-    public boolean doRegister(Reference reference) {
-        return context.doRegister(reference);
+    public boolean eligibleForRegistration(Reference reference) {
+        return context.eligibleForRegistration(reference);
     }
 
 
@@ -56,5 +62,10 @@ public abstract class LocalAasRepositoryClient<CTX extends AasRepositoryContext>
     }
 
 
+    /**
+     * Intentionally added this abstract function to signal no unauthorized/connect exceptions are thrown when using a subclass of LocalAasRepositoryClient.
+     *
+     * @return Environment.
+     */
     public abstract Environment getEnvironment();
 }

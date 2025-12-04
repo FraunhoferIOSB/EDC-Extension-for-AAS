@@ -36,6 +36,17 @@ import java.util.function.Function;
  */
 public abstract class MappingHelper {
 
+    /**
+     * Maps an environment of AAS elements to T. The mapping rules are defined by the identifiableMapper and elementMapper. The identifiableMapper will map all AAS, submodels and
+     * concept descriptions, while the element mapper will map all submodel elements.
+     *
+     * @param environment The environment containing the elements to map.
+     * @param identifiableMapper The identifiable mapper used to map all identifiable objects.
+     * @param elementMapper Used to map all referable but not identifiable objects.
+     * @param <T> The mappers will have a target type, most likely {@link org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset Asset}. AAS elements will be mapped
+     *         onto that type.
+     * @return Map of references to an element and its mapped counterpart.
+     */
     public static <T> Map<Reference, T> map(Environment environment, Function<Identifiable, T> identifiableMapper,
                                             BiFunction<Reference, SubmodelElement, T> elementMapper) {
         Map<Reference, T> result = new HashMap<>();

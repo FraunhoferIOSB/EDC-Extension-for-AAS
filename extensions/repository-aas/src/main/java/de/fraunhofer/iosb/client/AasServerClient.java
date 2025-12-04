@@ -21,22 +21,53 @@ import java.net.URI;
 import java.util.Map;
 
 
+/**
+ * An AAS server client is used for communications with an AAS server. AAS servers can be AAS repositories, Submodel repositories, Concept-Description repositories, AAS
+ * registries.
+ */
 public interface AasServerClient {
 
+    /**
+     * Returns whether the AAS server is reachable via its URL.
+     *
+     * @return Whether the AAS server is reachable.
+     */
     boolean isAvailable();
 
 
+    /**
+     * Returns the URI used to reach the AAS server.
+     *
+     * @return The URI of the AAS server.
+     */
     URI getUri();
 
 
-    boolean doRegister(Reference reference);
+    /**
+     * Returns whether a given reference is eligible for registration. An element is eligible if all elements are to be registered or a selection of elements are to be registered
+     * and this element is part of that selection.
+     *
+     * @param reference Reference of the element whose eligibility is to be checked
+     * @return Whether the element behind the reference is eligible for registration
+     */
+    boolean eligibleForRegistration(Reference reference);
 
 
+    /**
+     * Returns whether the AAS server requires some kind of authentication when communicating via its URL.
+     *
+     * @return Whether the AAS server requires authentication.
+     */
     default boolean requiresAuthentication() {
         return false;
     }
 
 
+    /**
+     * Returns potentially required additional headers for authenticating a request to the AAS server.
+     *
+     * @return Authentication headers.
+     */
     default Map<String, String> getHeaders() {
         return Map.of();
     }

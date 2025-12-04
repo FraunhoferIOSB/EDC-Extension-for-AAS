@@ -23,6 +23,9 @@ import java.util.Objects;
 import static de.fraunhofer.iosb.constants.AasConstants.DEFAULT_POLICY_DEFINITION_ID;
 
 
+/**
+ * Context holding information about an AAS server.
+ */
 public abstract class AasServerContext {
 
     protected final String defaultAccessPolicyDefinitionId;
@@ -38,12 +41,12 @@ public abstract class AasServerContext {
 
 
     /**
-     * Returns whether to register a referred element.
+     * Returns whether to register a referred element. Does not
      *
      * @param reference Element to register or not.
      * @return Whether to register it.
      */
-    public abstract boolean doRegister(Reference reference);
+    public abstract boolean eligibleForRegistration(Reference reference);
 
 
     /**

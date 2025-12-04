@@ -58,6 +58,11 @@ public class RemoteAasRepositoryClient implements AasRepositoryClient {
     private boolean conceptDescriptionInterfaceActivated = true;
 
 
+    /**
+     * Constructor of the class.
+     *
+     * @param context The context of the AAS repository, i.e. information needed to communicate with it.
+     */
     public RemoteAasRepositoryClient(RemoteAasRepositoryContext context) {
         this.context = context;
 
@@ -104,6 +109,42 @@ public class RemoteAasRepositoryClient implements AasRepositoryClient {
                 .submodels(submodels)
                 .conceptDescriptions(conceptDescriptions)
                 .build();
+    }
+
+
+    @Override
+    public boolean eligibleForRegistration(Reference reference) {
+        return context.eligibleForRegistration(reference);
+    }
+
+
+    @Override
+    public URI getUri() {
+        return context.getUri();
+    }
+
+
+    @Override
+    public PolicyBinding getPolicyBinding(Reference reference) {
+        return context.getPolicyBinding(reference);
+    }
+
+
+    @Override
+    public boolean requiresAuthentication() {
+        return context.getAuthenticationMethod().getHeader() != null;
+    }
+
+
+    @Override
+    public Map<String, String> getHeaders() {
+        return Map.ofEntries(context.getAuthenticationMethod().getHeader());
+    }
+
+
+    @Override
+    public boolean isAvailable() {
+        return InetTools.pingHost(getUri().getHost(), getUri().getPort());
     }
 
 
@@ -159,41 +200,5 @@ public class RemoteAasRepositoryClient implements AasRepositoryClient {
             conceptDescriptionInterfaceActivated = false;
             return getConceptDescriptions();
         }
-    }
-
-
-    @Override
-    public boolean doRegister(Reference reference) {
-        return context.doRegister(reference);
-    }
-
-
-    @Override
-    public URI getUri() {
-        return context.getUri();
-    }
-
-
-    @Override
-    public PolicyBinding getPolicyBinding(Reference reference) {
-        return context.getPolicyBinding(reference);
-    }
-
-
-    @Override
-    public boolean requiresAuthentication() {
-        return context.getAuthenticationMethod().getHeader() != null;
-    }
-
-
-    @Override
-    public Map<String, String> getHeaders() {
-        return Map.ofEntries(context.getAuthenticationMethod().getHeader());
-    }
-
-
-    @Override
-    public boolean isAvailable() {
-        return InetTools.pingHost(getUri().getHost(), getUri().getPort());
     }
 }

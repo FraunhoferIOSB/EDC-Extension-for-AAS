@@ -16,6 +16,7 @@
 package de.fraunhofer.iosb.app.handler.aas.repository.event.impl;
 
 import de.fraunhofer.iosb.aas.lib.model.PolicyBinding;
+import de.fraunhofer.iosb.app.aas.mapper.util.AssetIdUtil;
 import de.fraunhofer.iosb.app.handler.aas.repository.event.EventDrivenRepositoryHandler;
 import de.fraunhofer.iosb.app.handler.edc.EdcStoreHandler;
 import de.fraunhofer.iosb.client.exception.UnauthorizedException;
@@ -42,6 +43,15 @@ public class LocalFaaastRepositoryHandler extends EventDrivenRepositoryHandler<L
     private final List<UUID> subscriptions = new ArrayList<>();
 
 
+    /**
+     * Class constructor.
+     *
+     * @param monitor Logging.
+     * @param client Handles connections to the FA³ST service.
+     * @param edcStoreHandler API to the EDC's management stores.
+     * @throws UnauthorizedException Initial connection to the FA³ST service failed due to being unauthorized.
+     * @throws ConnectException Initial connection to the FA³ST service failed due to connection issues (should not happen as we directly connect to FA³STs persistence).
+     */
     public LocalFaaastRepositoryHandler(Monitor monitor, LocalFaaastRepositoryClient client, EdcStoreHandler edcStoreHandler) throws UnauthorizedException,
             ConnectException {
         super(monitor, client, edcStoreHandler);
@@ -64,7 +74,7 @@ public class LocalFaaastRepositoryHandler extends EventDrivenRepositoryHandler<L
 
 
     private void updated(Reference element, Class<?> clazz) {
-        doHandleWrap(element, clazz, this::updateSingle);
+        doHandleWrap(element, clazz, (policyBinding, asset) -> updateSingle(asset));
     }
 
 
@@ -76,7 +86,7 @@ public class LocalFaaastRepositoryHandler extends EventDrivenRepositoryHandler<L
     private void deleted(Reference element, Class<?> clazz) {
         try {
             PolicyBinding policyBinding = policyBindingFor(element);
-            unregisterSingle(policyBinding, identifiableMapper.generateId(element));
+            unregisterSingle(policyBinding, AssetIdUtil.id(client.getUri().toString(), element));
         }
         catch (Exception e) {
             monitor.severe("Exception thrown while handling event", e);
@@ -113,6 +123,6 @@ public class LocalFaaastRepositoryHandler extends EventDrivenRepositoryHandler<L
 
 
     private boolean eventInvalid(Reference element) {
-        return element == null || !client.doRegister(element);
+        return element == null || !client.eligibleForRegistration(element);
     }
 }

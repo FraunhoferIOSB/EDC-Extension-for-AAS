@@ -7,11 +7,11 @@ Compatibility: **Eclipse Dataspace Connector v0.14.1**
 ### New Features
 
 * **Selective AAS metadata**
-  * Users can now configure which AAS metadata is to be exposed in the catalog and (if enabled) self-description
-  * Configuration key: `edc.aas.exposedFields`
-  * Example: `edc.aas.exposedFields=HasSemantics/semanticId,Reference/keys,Reference/type,Key/type,Key/value`
-    * This will only expose the semanticId of an object (if available)
-  * By default, the following metadata is exposed: `id, semanticId, idShort, description, displayName`
+    * Users can now configure which AAS metadata is to be exposed in the catalog and (if enabled) self-description
+    * Configuration key: `edc.aas.exposedFields`
+    * Example: `edc.aas.exposedFields=HasSemantics/semanticId,Reference/keys,Reference/type,Key/type,Key/value`
+        * This will only expose the semanticId of an object (if available)
+    * By default, the following metadata is exposed: `id, semanticId, idShort, description, displayName`
 * **Redesign of Self-Description**
     * Self-Description is now AAS-conformant: An AAS environment containing EDC Asset IDs as AAS extension elements
 * **Synchronization via FA³ST Events**
@@ -74,7 +74,7 @@ Compatibility: **Eclipse Dataspace Connector v0.14.1**
 * **Added system tests**
 * Separated control-plane parts from data-plane parts to allow for distributed deployment scenarios
 * Updated internal FA³ST Service to version v1.3.0
-* Updated and tested compatibility to EDC version v0.13.0, v0.13.2, v0.14.0
+* Updated and tested compatibility to EDC version v0.13.0, v0.13.2, v0.14.0, v0.14.1
 
 ## V2.2.0
 

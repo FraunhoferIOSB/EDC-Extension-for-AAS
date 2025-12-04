@@ -59,7 +59,13 @@ public class AasDataDataAddressValidator implements Validator<DataAddress> {
 
         String path;
         if (dataAddress.getType().equalsIgnoreCase(AAS_DATA_TYPE)) {
-            path = AasDataAddress.Builder.newInstance().copyFrom(dataAddress).build().getPath();
+            try {
+                path = AasDataAddress.Builder.newInstance().copyFrom(dataAddress).build().getPath();
+            }
+            catch (IllegalStateException illegalStateException) {
+                var violation = violation(illegalStateException.getMessage(), "path", baseUrl);
+                return ValidationResult.failure(violation);
+            }
         }
         else {
             path = dataAddress.getStringProperty(PATH);

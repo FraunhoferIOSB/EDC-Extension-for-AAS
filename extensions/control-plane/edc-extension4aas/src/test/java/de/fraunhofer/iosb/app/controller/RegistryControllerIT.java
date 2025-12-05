@@ -44,7 +44,7 @@ public class RegistryControllerIT extends AbstractAasServerControllerIT<Registry
 
     @Override
     protected RegistryController getTestSubject() {
-        return new RegistryController(monitor, aasServerStore, new EdcStoreHandler(assetIndex, contractDefinitionStore));
+        return new RegistryController(monitor, aasServerStore, new EdcStoreHandler(assetIndex, contractDefinitionStore, "provider"));
     }
 
 

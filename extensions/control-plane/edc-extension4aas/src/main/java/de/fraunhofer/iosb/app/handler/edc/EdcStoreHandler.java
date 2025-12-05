@@ -38,10 +38,11 @@ public class EdcStoreHandler {
      *
      * @param assetIndex To add/remove assets.
      * @param contractDefinitionStore To add/remove asset ids to/from contracts, to create/remove contracts.
+     * @param participantId The participantId of the participant that the AAS extension publishes for.
      */
-    public EdcStoreHandler(AssetIndex assetIndex, ContractDefinitionStore contractDefinitionStore) {
-        this.assetService = new AssetService(assetIndex);
-        this.contractDefinitionService = new ContractDefinitionService(contractDefinitionStore);
+    public EdcStoreHandler(AssetIndex assetIndex, ContractDefinitionStore contractDefinitionStore, String participantId) {
+        this.assetService = new AssetService(assetIndex, participantId);
+        this.contractDefinitionService = new ContractDefinitionService(contractDefinitionStore, participantId);
     }
 
 

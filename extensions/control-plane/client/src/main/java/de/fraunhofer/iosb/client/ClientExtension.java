@@ -31,8 +31,9 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManage
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.controlplane.transform.odrl.OdrlTransformersFactory;
 import org.eclipse.edc.connector.core.agent.NoOpParticipantIdMapper;
-import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
+import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -57,7 +58,7 @@ public class ClientExtension implements ServiceExtension {
     @Inject
     private Hostname hostname;
     @Inject
-    private ParticipantContext participantContext;
+    private SingleParticipantContextSupplier singleParticipantContextSupplier;
     @Inject
     private TransferProcessManager transferProcessManager;
     @Inject
@@ -73,6 +74,8 @@ public class ClientExtension implements ServiceExtension {
         var monitor = context.getMonitor().withPrefix("Client");
         var config = context.getConfig("edc.client");
         registerTransformers();
+        var participantContext = singleParticipantContextSupplier.get()
+                .orElseThrow(failure -> new EdcException(failure.getFailureDetail()));
 
         var negotiationController = new NegotiationController(
                 consumerNegotiationManager,

@@ -20,27 +20,56 @@ import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.spi.result.StoreResult;
 
 
+/**
+ * Persists assets to, deletes assets by ID from and updates assets at the EDC asset store (AssetIndex).
+ */
 public class AssetService {
 
     private final AssetIndex assetIndex;
+    private final String participantId;
 
 
-    public AssetService(AssetIndex assetIndex) {
+    /**
+     * Class constructor.
+     *
+     * @param assetIndex The edc's asset store.
+     * @param participantId Participant ID under which AAS extension registers data in data space
+     */
+    public AssetService(AssetIndex assetIndex, String participantId) {
         this.assetIndex = assetIndex;
+        this.participantId = participantId;
     }
 
 
+    /**
+     * Persists this asset under the EDC's asset store. Also attaches the participantId to the asset!
+     *
+     * @param asset The asset to persist.
+     * @return Whether the operation succeeded or failed.
+     */
     public StoreResult<Void> create(Asset asset) {
-        return assetIndex.create(asset);
+        return assetIndex.create(asset.toBuilder().participantContextId(participantId).build());
     }
 
 
+    /**
+     * Removes the asset - defined by the assetId - from the EDC's asset store.
+     *
+     * @param assetId The assetId of the asset to remove.
+     * @return Whether the operation succeeded or failed.
+     */
     public StoreResult<Asset> delete(String assetId) {
         return assetIndex.deleteById(assetId);
     }
 
 
+    /**
+     * Persists an updated asset under the EDC's asset store. Also attaches the participantId to the asset!
+     *
+     * @param asset The asset to update.
+     * @return Whether the operation succeeded or failed.
+     */
     public StoreResult<Asset> update(Asset asset) {
-        return assetIndex.updateAsset(asset);
+        return assetIndex.updateAsset(asset.toBuilder().participantContextId(participantId).build());
     }
 }

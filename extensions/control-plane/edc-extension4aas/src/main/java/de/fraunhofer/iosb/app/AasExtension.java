@@ -93,8 +93,11 @@ public class AasExtension implements ServiceExtension {
 
         AasServerStore aasServerStore = new AasServerStore();
 
-        repositoryController = new RepositoryController(monitor, aasServerStore, hostname, new EdcStoreHandler(assetIndex, contractDefinitionStore));
-        registryController = new RegistryController(monitor, aasServerStore, new EdcStoreHandler(assetIndex, contractDefinitionStore));
+        // This will probably fail if multiple participantIds are registered
+        String participantId = participantIdentityResolver.getParticipantId("default", "dataspace-protocol-http");
+
+        repositoryController = new RepositoryController(monitor, aasServerStore, hostname, new EdcStoreHandler(assetIndex, contractDefinitionStore, participantId));
+        registryController = new RegistryController(monitor, aasServerStore, new EdcStoreHandler(assetIndex, contractDefinitionStore, participantId));
 
         // Add public endpoint if wanted by config
         if (Configuration.getInstance().isExposeSelfDescription()) {
@@ -105,9 +108,6 @@ public class AasExtension implements ServiceExtension {
         webService.registerResource(new SelfDescriptionController(monitor, aasServerStore));
         webService.registerResource(repositoryController);
         webService.registerResource(registryController);
-
-        // This will probably fail if multiple participantIds are registered
-        String participantId = participantIdentityResolver.getParticipantId("default", "DSP");
 
         PolicyHelper.registerDefaultPolicies(monitor, policyDefinitionStore, participantId);
         monitor.debug(String.format("%s initialized.", NAME));

@@ -2,7 +2,7 @@
 
 ## Current development version (V2.3.0-SNAPSHOT)
 
-Compatibility: **Eclipse Dataspace Connector v0.14.1**
+Compatibility: **Eclipse Dataspace Connector v0.15.0**
 
 ### New Features
 
@@ -74,7 +74,7 @@ Compatibility: **Eclipse Dataspace Connector v0.14.1**
 * **Added system tests**
 * Separated control-plane parts from data-plane parts to allow for distributed deployment scenarios
 * Updated internal FA³ST Service to version v1.3.0
-* Updated and tested compatibility to EDC version v0.13.0, v0.13.2, v0.14.0, v0.14.1
+* Updated and tested compatibility to EDC version v0.15.0 (due to breaking changes)
 
 ## V2.2.0
 

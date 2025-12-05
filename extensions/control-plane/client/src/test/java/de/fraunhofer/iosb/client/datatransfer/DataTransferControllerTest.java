@@ -27,6 +27,7 @@ import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultOperationVariable;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultProperty;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
@@ -44,6 +45,7 @@ import java.util.UUID;
 import static de.fraunhofer.iosb.client.datatransfer.DataTransferController.OPERATION_FIELD;
 import static java.lang.String.format;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -118,6 +120,7 @@ class DataTransferControllerTest {
                 mock(WebService.class),
                 mock(PublicApiManagementService.class),
                 mockTransferProcessManager,
+                mock(ParticipantContext.class),
                 mock(TransferProcessObservable.class),
                 () -> "localhost");
     }
@@ -143,7 +146,7 @@ class DataTransferControllerTest {
 
         testSubject.getData(uri, AGREEMENT_ID, dataSinkAddress);
         // Verify that operation is serialized before sending it to provider
-        verify(mockTransferProcessManager).initiateConsumerRequest(argThat(request ->
+        verify(mockTransferProcessManager).initiateConsumerRequest(any(), argThat(request ->
                 operationString.equals(request.getDataDestination().getStringProperty(OPERATION_FIELD))));
     }
 
@@ -156,7 +159,7 @@ class DataTransferControllerTest {
 
         testSubject.getData(uri, AGREEMENT_ID, dataSinkAddress);
         // Verify that operation is serialized before sending it to provider
-        verify(mockTransferProcessManager).initiateConsumerRequest(argThat(request ->
+        verify(mockTransferProcessManager).initiateConsumerRequest(any(), argThat(request ->
                 null == request.getDataDestination().getProperties().get(OPERATION_FIELD)));
     }
 

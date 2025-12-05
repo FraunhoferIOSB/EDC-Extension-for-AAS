@@ -23,6 +23,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractO
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLd;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.Rule;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -55,6 +56,7 @@ import static org.eclipse.edc.spi.query.Criterion.criterion;
 class PolicyService {
 
     private final CatalogService catalogService;
+    private final ParticipantContext participantContext;
     private final TypeTransformerRegistry transformer;
 
     private final PolicyServiceConfig config;
@@ -69,9 +71,10 @@ class PolicyService {
      * @param catalogService Fetching the catalog of a provider.
      * @param transformer Transform json-ld byte-array catalog to catalog class
      */
-    PolicyService(CatalogService catalogService, TypeTransformerRegistry transformer,
+    PolicyService(CatalogService catalogService, ParticipantContext participantContext, TypeTransformerRegistry transformer,
                   PolicyServiceConfig config, PolicyDefinitionStore policyDefinitionStore, Monitor monitor) {
         this.catalogService = catalogService;
+        this.participantContext = participantContext;
         this.transformer = transformer;
         this.config = config;
         this.policyDefinitionStore = policyDefinitionStore;
@@ -86,6 +89,7 @@ class PolicyService {
                 .build();
 
         var catalogFuture = catalogService.requestCatalog(
+                participantContext,
                 counterPartyId,
                 counterPartyUri.toString(),
                 DATASPACE_PROTOCOL_HTTP,

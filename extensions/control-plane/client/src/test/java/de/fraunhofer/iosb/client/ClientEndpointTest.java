@@ -34,6 +34,7 @@ import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogServic
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.ResponseStatus;
@@ -100,11 +101,13 @@ public class ClientEndpointTest {
                         mockConsumerNegotiationManager(),
                         mock(ContractNegotiationObservable.class),
                         mock(ContractNegotiationStore.class),
+                        mock(ParticipantContext.class),
                         mockConfig()))
                 .policyController(
                         new PolicyController(
                                 monitor,
                                 mockCatalogService(),
+                                mock(ParticipantContext.class),
                                 mockTransformer(),
                                 mock(Config.class)))
                 .transferController(new DataTransferController(
@@ -113,6 +116,7 @@ public class ClientEndpointTest {
                         mock(WebService.class),
                         mock(PublicApiManagementService.class),
                         mockTransferProcessManager(),
+                        mock(ParticipantContext.class),
                         mock(TransferProcessObservable.class),
                         () -> "localhost"))
                 .build();
@@ -139,7 +143,7 @@ public class ClientEndpointTest {
         StatusResult<TransferProcess> mockStatusResult = StatusResult.failure(ResponseStatus.FATAL_ERROR);
 
         var mockTransferProcessManager = mock(TransferProcessManager.class);
-        when(mockTransferProcessManager.initiateConsumerRequest(any())).thenReturn(mockStatusResult);
+        when(mockTransferProcessManager.initiateConsumerRequest(any(), any())).thenReturn(mockStatusResult);
         return mockTransferProcessManager;
     }
 
@@ -149,7 +153,7 @@ public class ClientEndpointTest {
         var completableFuture = new CompletableFuture<StatusResult<byte[]>>();
         completableFuture.complete(StatusResult.success(new ObjectMapper().writeValueAsBytes(mockCatalog)));
 
-        when(catalogService.requestCatalog(any(), any(), any(), any())).thenReturn(completableFuture);
+        when(catalogService.requestCatalog(any(), any(), any(), any(), any())).thenReturn(completableFuture);
         return catalogService;
     }
 
@@ -163,7 +167,7 @@ public class ClientEndpointTest {
                         .protocol("test-ContractNegotiation-protocol")
                         .build());
         var manager = mock(ConsumerContractNegotiationManager.class);
-        when(manager.initiate(any())).thenReturn(mockStatusResult);
+        when(manager.initiate(any(), any())).thenReturn(mockStatusResult);
         return manager;
     }
 

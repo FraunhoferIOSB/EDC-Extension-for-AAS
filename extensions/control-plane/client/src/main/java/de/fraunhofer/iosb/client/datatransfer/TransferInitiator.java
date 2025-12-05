@@ -20,6 +20,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManage
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.ResponseStatus;
@@ -51,12 +52,14 @@ class TransferInitiator {
 
     private final Monitor monitor;
     private final TransferProcessManager transferProcessManager;
+    private final ParticipantContext participantContext;
     private final URI ownUri;
 
 
-    TransferInitiator(Monitor monitor, Config config, Hostname hostname, TransferProcessManager transferProcessManager) {
+    TransferInitiator(Monitor monitor, Config config, Hostname hostname, TransferProcessManager transferProcessManager, ParticipantContext participantContext) {
         this.monitor = monitor;
         this.transferProcessManager = transferProcessManager;
+        this.participantContext = participantContext;
         this.ownUri = createOwnUriFromConfigurationValues(config, hostname);
     }
 
@@ -87,7 +90,7 @@ class TransferInitiator {
                 .dataDestination(dataSinkAddress)
                 .build();
 
-        return transferProcessManager.initiateConsumerRequest(transferRequest);
+        return transferProcessManager.initiateConsumerRequest(participantContext, transferRequest);
     }
 
 

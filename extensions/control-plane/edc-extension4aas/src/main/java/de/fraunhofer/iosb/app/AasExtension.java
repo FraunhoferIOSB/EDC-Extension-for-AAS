@@ -33,6 +33,7 @@ import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.jsonld.spi.JsonLd;
+import org.eclipse.edc.participantcontext.spi.identity.ParticipantIdentityResolver;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.EdcException;
@@ -70,6 +71,8 @@ public class AasExtension implements ServiceExtension {
     private ContractDefinitionStore contractDefinitionStore;
     @Inject
     private Hostname hostname;
+    @Inject // context-specific participant-id
+    private ParticipantIdentityResolver participantIdentityResolver;
     @Inject // Create / manage EDC policies
     private PolicyDefinitionStore policyDefinitionStore;
     @Inject // Register http endpoint at EDC
@@ -90,8 +93,11 @@ public class AasExtension implements ServiceExtension {
 
         AasServerStore aasServerStore = new AasServerStore();
 
-        repositoryController = new RepositoryController(monitor, aasServerStore, hostname, new EdcStoreHandler(assetIndex, contractDefinitionStore));
-        registryController = new RegistryController(monitor, aasServerStore, new EdcStoreHandler(assetIndex, contractDefinitionStore));
+        // This will probably fail if multiple participantIds are registered
+        String participantId = participantIdentityResolver.getParticipantId("default", "dataspace-protocol-http");
+
+        repositoryController = new RepositoryController(monitor, aasServerStore, hostname, new EdcStoreHandler(assetIndex, contractDefinitionStore, participantId));
+        registryController = new RegistryController(monitor, aasServerStore, new EdcStoreHandler(assetIndex, contractDefinitionStore, participantId));
 
         // Add public endpoint if wanted by config
         if (Configuration.getInstance().isExposeSelfDescription()) {
@@ -102,8 +108,6 @@ public class AasExtension implements ServiceExtension {
         webService.registerResource(new SelfDescriptionController(monitor, aasServerStore));
         webService.registerResource(repositoryController);
         webService.registerResource(registryController);
-
-        String participantId = context.getParticipantId();
 
         PolicyHelper.registerDefaultPolicies(monitor, policyDefinitionStore, participantId);
         monitor.debug(String.format("%s initialized.", NAME));

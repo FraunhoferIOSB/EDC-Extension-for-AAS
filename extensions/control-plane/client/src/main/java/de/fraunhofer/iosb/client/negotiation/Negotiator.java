@@ -19,6 +19,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ConsumerC
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.response.StatusResult;
 
@@ -30,6 +31,7 @@ public class Negotiator {
 
     private final ConsumerContractNegotiationManager consumerNegotiationManager;
     private final ContractNegotiationStore contractNegotiationStore;
+    private final ParticipantContext participantContext;
 
 
     /**
@@ -39,9 +41,10 @@ public class Negotiator {
      * @param contractNegotiationStore Check for existing agreements before negotiating
      */
     public Negotiator(ConsumerContractNegotiationManager consumerNegotiationManager,
-                      ContractNegotiationStore contractNegotiationStore) {
+                      ContractNegotiationStore contractNegotiationStore, ParticipantContext participantContext) {
         this.consumerNegotiationManager = consumerNegotiationManager;
         this.contractNegotiationStore = contractNegotiationStore;
+        this.participantContext = participantContext;
     }
 
 
@@ -71,7 +74,7 @@ public class Negotiator {
                             .build());
         }
 
-        return consumerNegotiationManager.initiate(contractRequest);
+        return consumerNegotiationManager.initiate(participantContext, contractRequest);
     }
 
 }

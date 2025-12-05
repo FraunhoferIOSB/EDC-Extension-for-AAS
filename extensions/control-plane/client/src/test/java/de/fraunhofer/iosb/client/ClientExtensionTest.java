@@ -23,8 +23,11 @@ import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.Con
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
+import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.web.spi.WebService;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,6 +54,8 @@ public class ClientExtensionTest {
         context.registerService(TransferProcessManager.class, mock(TransferProcessManager.class));
         context.registerService(WebService.class, mock(WebService.class));
         context.registerService(Monitor.class, new ConsoleMonitor());
+        context.registerService(SingleParticipantContextSupplier.class,
+                () -> ServiceResult.success(ParticipantContext.Builder.newInstance().participantContextId("participant").identity("participant").build()));
 
         clientExtension = factory.constructInstance(ClientExtension.class);
     }
@@ -61,5 +66,4 @@ public class ClientExtensionTest {
         // See if initializing the extension works
         clientExtension.initialize(context);
     }
-
 }

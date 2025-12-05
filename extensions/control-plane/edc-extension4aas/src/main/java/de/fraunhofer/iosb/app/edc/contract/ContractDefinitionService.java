@@ -36,16 +36,27 @@ import static org.eclipse.edc.spi.query.CriterionOperatorRegistry.IN;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.NOT_FOUND;
 
 
+/**
+ * Creates contracts, attaches asset IDs to existing contracts, removes asset IDs from contracts.
+ */
 public class ContractDefinitionService {
 
     public static final String ACCESS_POLICY_FIELD = "accessPolicyId";
     public static final String CONTRACT_POLICY_FIELD = "contractPolicyId";
 
     private final ContractDefinitionStore store;
+    private final String participantId;
 
 
-    public ContractDefinitionService(ContractDefinitionStore store) {
+    /**
+     * Class constructor.
+     *
+     * @param store Contract store of the EDC.
+     * @param participantId Participant ID under which AAS extension registers data in data space
+     */
+    public ContractDefinitionService(ContractDefinitionStore store, String participantId) {
         this.store = store;
+        this.participantId = participantId;
     }
 
 
@@ -70,6 +81,15 @@ public class ContractDefinitionService {
     }
 
 
+    /**
+     * Adds the asset ID to the contract definition defined by the access&contract policy IDs. If no suitable contract definition exists, one will be created and stored to the EDC
+     * contract definition store.
+     *
+     * @param assetId The asset id to be attached to the contract.
+     * @param accessPolicyId The access policy of the contract definition.
+     * @param contractPolicyId The contract (usage) policy of the contract definition.
+     * @return Store result containing the state of the operation.
+     */
     public StoreResult<Void> addToContractDefinition(String assetId, String accessPolicyId, String contractPolicyId) {
         Optional<ContractDefinition> maybeContract = findContracts(accessPolicyId, contractPolicyId).findFirst();
 
@@ -87,6 +107,15 @@ public class ContractDefinitionService {
     }
 
 
+    /**
+     * Removes the asset ID from the contract definition defined by the access&contract policy IDs. If multiple of such contract definition exist, the asset id will be removed from
+     * all of them.
+     *
+     * @param assetId The asset id to be removed from any matching contract.
+     * @param accessPolicyId The access policy of the contract definition.
+     * @param contractPolicyId The contract (usage) policy of the contract definition.
+     * @return Store result containing the state of the operation.
+     */
     public StoreResult<Void> removeFromContract(String assetId, String accessPolicyId, String contractPolicyId) {
         List<String> problems = new ArrayList<>();
 
@@ -180,6 +209,7 @@ public class ContractDefinitionService {
 
     private ContractDefinition.Builder baseContractDefinition() {
         return ContractDefinition.Builder.newInstance()
+                .participantContextId(participantId)
                 .privateProperty(EDC_NAMESPACE + "creator", AasExtension.NAME);
     }
 

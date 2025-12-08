@@ -1,0 +1,61 @@
+meta {
+  name: create
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{participants}}/{{participant-id}}/dids/publish
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "@context": [
+      "https://www.w3.org/ns/did/v1",
+      "https://w3id.org/dspace-dcp/v1.0/dcp.jsonld"
+    ],
+    "id": "did:web:iamaprovider",
+    "verificationMethod": [
+      {
+        "id": "did:web:iamaprovider#key-1",
+        "type": "JsonWebKey2020",
+        "controller": "did:web:iamaprovider",
+        "publicKeyJwk": {
+          "kty": "OKP",
+          "crv": "Ed25519",
+          "x": "REPLACE_WITH_BASE64URL_PUBLIC_KEY"
+        }
+      }
+    ],
+    "authentication": [
+      "did:web:iamaprovider#key-1"
+    ],
+    "capabilityInvocation": [
+      "did:web:iamaprovider#key-1"
+    ],
+    "service": [
+      {
+        "id": "did:web:iamaprovider#credential-service",
+        "type": "CredentialService",
+        "serviceEndpoint": "https://iamaprovider/credential-service"
+      },
+      {
+        "id": "did:web:iamaprovider#issuer-service",
+        "type": "IssuerService",
+        "serviceEndpoint": "https://iamaprovider/issuer-service"
+      },
+      {
+        "id": "did:web:iamaprovider#security-token-service",
+        "type": "SecurityTokenService",
+        "serviceEndpoint": "https://keycloak.your-domain/realms/fa3st/protocol/openid-connect/token"
+      }
+    ]
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

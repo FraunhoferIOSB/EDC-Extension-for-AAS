@@ -1,0 +1,20 @@
+meta {
+  name: identity
+  seq: 5
+}
+
+auth {
+  mode: apikey
+}
+
+auth:apikey {
+  key: x-api-key
+  value: c3VwZXJ1c2Vy.cGFzc3dvcmQ=
+  placement: header
+}
+vars:pre-request {
+  base_url: http://localhost:20001/identity/v1alpha
+  participants: {{base_url}}/participants
+  dids: {{base_url}}/dids
+  participant-id: cHJvdmlkZXItcGFydGljaXBhbnQ=
+}

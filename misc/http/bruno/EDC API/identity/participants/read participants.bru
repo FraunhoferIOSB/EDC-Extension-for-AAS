@@ -1,0 +1,16 @@
+meta {
+  name: read participants
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{participants}}
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

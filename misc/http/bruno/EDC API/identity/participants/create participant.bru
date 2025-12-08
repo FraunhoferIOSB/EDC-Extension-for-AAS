@@ -1,0 +1,45 @@
+meta {
+  name: create participant
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{participants}}
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "participantId": "provider-participant",
+    "key": {
+      "keyId": "key-123",
+      "type": "Ed25519",
+      "publicKeyPem": "-----BEGIN PUBLIC KEY-----\n...YourPublicKey...\n-----END PUBLIC KEY-----",
+      "usage": [
+        "sign_credentials"
+      ],
+      "privateKeyAlias": "alias"
+    },
+    "serviceEndpoints": [
+      {
+        "id": "service-1",
+        "type": "DataService",
+        "serviceEndpoint": "https://example-service.com"
+      }
+    ],
+    "roles": [
+      "issuer",
+      "holder"
+    ],
+    "active": true,
+    "did": "did:web:iamaprovider",
+    "apiKeyAlias": "my-api-key"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -19,7 +19,9 @@ import de.fraunhofer.iosb.app.executor.VariableRateScheduler;
 import de.fraunhofer.iosb.app.handler.edc.EdcStoreHandler;
 import de.fraunhofer.iosb.app.stores.repository.AasServerStore;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.security.Vault;
 
 import java.net.URI;
 
@@ -36,13 +38,18 @@ public abstract class AbstractAasServerController {
     // Manages remote AAS servers by polling their API
     protected final VariableRateScheduler scheduler;
     protected final EdcStoreHandler edcStoreHandler;
+    protected final Vault vault;
+    protected final Oauth2Client oauth2Client;
 
 
-    protected AbstractAasServerController(Monitor monitor, AasServerStore aasServerStore, VariableRateScheduler scheduler, EdcStoreHandler edcStoreHandler) {
+    protected AbstractAasServerController(Monitor monitor, AasServerStore aasServerStore, VariableRateScheduler scheduler, EdcStoreHandler edcStoreHandler, Vault vault,
+                                          Oauth2Client oauth2Client) {
         this.monitor = monitor;
         this.aasServerStore = aasServerStore;
         this.edcStoreHandler = edcStoreHandler;
         this.scheduler = scheduler;
+        this.vault = vault;
+        this.oauth2Client = oauth2Client;
         this.scheduler.run();
     }
 

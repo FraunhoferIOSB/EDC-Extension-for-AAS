@@ -19,12 +19,15 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import de.fraunhofer.iosb.aas.lib.auth.impl.ApiKey;
 import de.fraunhofer.iosb.aas.lib.auth.impl.BasicAuth;
+import de.fraunhofer.iosb.aas.lib.auth.impl.BearerAuth;
 import de.fraunhofer.iosb.aas.lib.auth.impl.NoAuth;
-import de.fraunhofer.iosb.aas.lib.auth.impl.VaultAuth;
+import org.eclipse.edc.spi.security.Vault;
 
 import java.net.http.HttpClient;
 import java.util.AbstractMap;
 import java.util.Map;
+import java.util.UUID;
+import java.util.function.Function;
 
 
 /**
@@ -34,24 +37,46 @@ import java.util.Map;
 @JsonSubTypes({
         @JsonSubTypes.Type(value = BasicAuth.class, name = "basic"),
         @JsonSubTypes.Type(value = ApiKey.class, name = "api-key"),
-        @JsonSubTypes.Type(value = VaultAuth.class, name = "vault"),
+        @JsonSubTypes.Type(value = BearerAuth.class, name = "bearer"),
         @JsonSubTypes.Type(value = NoAuth.class)
 })
 public abstract class AuthenticationMethod {
 
     /**
-     * Get the header value to add to the request headers to communicate with the service. Headers: [... , (getHeader().key, getHeader().value), ...]
+     * Get the header value to add to the request headers to communicate with the service. Headers: [... , (getHeader().key, getHeader().value), ...] The secrets needed to produce
+     * the header value are resolved from the vault.
      *
      * @return The header to place in the request in order to authenticate
      */
-    public Map.Entry<String, String> getHeader() {
-        return new AbstractMap.SimpleEntry<>("Authorization", getValue());
+    public Map.Entry<String, String> getHeader(Vault vault) {
+        return new AbstractMap.SimpleEntry<>("Authorization", getValue(vault));
     }
 
 
-    protected abstract String getValue();
+    /**
+     * Get HttpClient builder for this authentication method.
+     * @param vault Vault needed to retrieve secrets.
+     * @return HttpClient.Builder for use in FA³ST client.
+     */
+    public abstract HttpClient.Builder httpClientBuilderFor(Vault vault);
 
 
-    public abstract HttpClient.Builder httpClientBuilderFor();
+    protected abstract String getValue(Vault vault);
+
+
+    protected Function<Vault, String> getResolver(Vault vault, String secret) {
+        String alias = store(vault, secret);
+        return (Vault v) -> v.resolveSecret(alias);
+    }
+
+
+    private String store(Vault vault, String secret) {
+        String alias = UUID.randomUUID().toString();
+        var storeResult = vault.storeSecret(alias, secret);
+        if (storeResult.failed()) {
+            throw new IllegalArgumentException(storeResult.getFailureDetail());
+        }
+        return alias;
+    }
 
 }

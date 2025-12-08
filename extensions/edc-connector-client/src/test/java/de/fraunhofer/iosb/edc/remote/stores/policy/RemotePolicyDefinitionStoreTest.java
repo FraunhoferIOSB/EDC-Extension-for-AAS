@@ -127,11 +127,12 @@ class RemotePolicyDefinitionStoreTest extends AbstractControlPlaneConnectionHand
         authorizedServer();
 
         var testSubject = new RemotePolicyDefinitionStore.Builder()
-                .authenticationMethod(new ApiKey("x-api-key", apiKey.concat("prefixMakingApiKeyFalse")))
+                .authenticationMethod(new ApiKey("x-api-key", apiKey.concat("prefixMakingApiKeyFalse"), vault))
                 .managementUri(String.format("http://localhost:%s", server.getPort()))
                 .codec(mockCodec)
                 .httpClient(httpClient)
                 .monitor(monitor)
+                .vault(vault)
                 .build();
 
         when(mockCodec.serialize(any())).thenReturn(
@@ -151,22 +152,24 @@ class RemotePolicyDefinitionStoreTest extends AbstractControlPlaneConnectionHand
 
     private RemotePolicyDefinitionStore remotePolicyDefinitionStore() {
         return new RemotePolicyDefinitionStore.Builder()
-                .authenticationMethod(new ApiKey("x-api-key", apiKey))
+                .authenticationMethod(new ApiKey("x-api-key", apiKey, vault))
                 .managementUri(String.format("http://localhost:%s", server.getPort()))
                 .codec(mockCodec)
                 .httpClient(httpClient)
                 .monitor(monitor)
+                .vault(vault)
                 .build();
     }
 
 
     private RemotePolicyDefinitionStore remotePolicyDefinitionStoreWrongAuth() {
         return new RemotePolicyDefinitionStore.Builder()
-                .authenticationMethod(new ApiKey("x-api-key", apiKey.concat("wrong")))
+                .authenticationMethod(new ApiKey("x-api-key", apiKey.concat("wrong"), vault))
                 .managementUri(String.format("http://localhost:%s", server.getPort()))
                 .codec(mockCodec)
                 .httpClient(httpClient)
                 .monitor(monitor)
+                .vault(vault)
                 .build();
     }
 

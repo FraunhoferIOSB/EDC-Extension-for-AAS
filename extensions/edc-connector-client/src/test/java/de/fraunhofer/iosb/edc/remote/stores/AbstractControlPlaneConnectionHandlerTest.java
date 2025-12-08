@@ -7,10 +7,12 @@ import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import de.fraunhofer.iosb.edc.remote.transform.Codec;
 import dev.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
+import org.eclipse.edc.boot.vault.InMemoryVault;
 import org.eclipse.edc.http.client.EdcHttpClientImpl;
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.security.Vault;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -41,7 +43,7 @@ public abstract class AbstractControlPlaneConnectionHandlerTest {
     @Spy
     protected final Monitor monitor = spy(new ConsoleMonitor());
     protected Codec mockCodec = mock(Codec.class);
-
+    protected Vault vault = new InMemoryVault(monitor);
 
     @AfterAll
     static void tearDownAll() {

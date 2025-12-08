@@ -15,6 +15,9 @@
  */
 package de.fraunhofer.iosb.aas.lib.auth.impl;
 
+import org.eclipse.edc.boot.vault.InMemoryVault;
+import org.eclipse.edc.spi.monitor.ConsoleMonitor;
+import org.eclipse.edc.spi.security.Vault;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,10 +34,12 @@ class BasicAuthTest {
     private final String password = "my-password-34kj67j4h2g6";
     private BasicAuth testSubject;
 
+    private final Vault vault = new InMemoryVault(new ConsoleMonitor());
+
 
     @BeforeEach
     void setUp() {
-        testSubject = new BasicAuth(username, password);
+        testSubject = new BasicAuth(username, password, vault);
     }
 
 
@@ -50,7 +55,7 @@ class BasicAuthTest {
         String encodedAuthString = Base64.getEncoder().encodeToString(unencodedAuthString.getBytes(StandardCharsets.UTF_8));
         String authHeaderValue = "Basic %s".formatted(encodedAuthString);
 
-        assertEquals(authHeaderValue, testSubject.getValue());
+        assertEquals(authHeaderValue, testSubject.getValue(vault));
     }
 
 
@@ -60,8 +65,8 @@ class BasicAuthTest {
         String encodedAuthString = Base64.getEncoder().encodeToString(unencodedAuthString.getBytes(StandardCharsets.UTF_8));
         String authHeaderValue = "Basic %s".formatted(encodedAuthString);
 
-        assertEquals(authHeaderValue, testSubject.getHeader().getValue());
-        assertEquals("Authorization", testSubject.getHeader().getKey());
+        assertEquals(authHeaderValue, testSubject.getHeader(vault).getValue());
+        assertEquals("Authorization", testSubject.getHeader(vault).getKey());
 
     }
 }

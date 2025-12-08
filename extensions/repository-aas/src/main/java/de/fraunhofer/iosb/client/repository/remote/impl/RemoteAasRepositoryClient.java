@@ -34,6 +34,7 @@ import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.digitaltwin.aas4j.v3.model.Submodel;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultEnvironment;
+import org.eclipse.edc.spi.security.Vault;
 
 import java.net.ConnectException;
 import java.net.URI;
@@ -48,6 +49,7 @@ import java.util.Map;
  */
 public class RemoteAasRepositoryClient implements AasRepositoryClient {
 
+    private final Vault vault;
     // FA³ST client
     private final AASRepositoryInterface aasRepositoryInterface;
     private final SubmodelRepositoryInterface submodelRepositoryInterface;
@@ -63,11 +65,12 @@ public class RemoteAasRepositoryClient implements AasRepositoryClient {
      *
      * @param context The context of the AAS repository, i.e. information needed to communicate with it.
      */
-    public RemoteAasRepositoryClient(RemoteAasRepositoryContext context) {
+    public RemoteAasRepositoryClient(Vault vault, RemoteAasRepositoryContext context) {
+        this.vault = vault;
         this.context = context;
 
         HttpClient.Builder httpClientBuilder = context.getAuthenticationMethod()
-                .httpClientBuilderFor();
+                .httpClientBuilderFor(vault);
 
         if (context.allowSelfSigned()) {
             httpClientBuilder.sslContext(HttpHelper.newTrustAllCertificatesClient().sslContext());
@@ -132,13 +135,13 @@ public class RemoteAasRepositoryClient implements AasRepositoryClient {
 
     @Override
     public boolean requiresAuthentication() {
-        return context.getAuthenticationMethod().getHeader() != null;
+        return context.getAuthenticationMethod().getHeader(vault) != null;
     }
 
 
     @Override
     public Map<String, String> getHeaders() {
-        return Map.ofEntries(context.getAuthenticationMethod().getHeader());
+        return Map.ofEntries(context.getAuthenticationMethod().getHeader(vault));
     }
 
 

@@ -15,13 +15,16 @@
  */
 package de.fraunhofer.iosb.app.controller.dto;
 
-import de.fraunhofer.iosb.aas.lib.auth.AuthenticationMethod;
-import de.fraunhofer.iosb.aas.lib.auth.impl.NoAuth;
+import de.fraunhofer.iosb.app.controller.dto.auth.AuthenticationMethodDTO;
+import de.fraunhofer.iosb.app.controller.dto.auth.NoAuthDTO;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import de.fraunhofer.iosb.model.context.registry.AasRegistryContext;
+import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
+import org.eclipse.edc.spi.security.Vault;
 
 import java.net.URI;
 import java.util.Objects;
+import javax.annotation.Nullable;
 
 
 /**
@@ -30,30 +33,37 @@ import java.util.Objects;
  * @param url URI to use to connect to the AAS registry, including any path prefixes (e.g., /api/v3.0)
  * @param auth The authentication method used to communicate with the registry.
  */
-public record AasRegistryContextDTO(URI url, AuthenticationMethod auth, String defaultAccessPolicyDefinitionId, String defaultContractPolicyDefinitionId) {
+public record AasRegistryContextDTO(URI url, AuthenticationMethodDTO auth, String defaultAccessPolicyDefinitionId, String defaultContractPolicyDefinitionId)
+        implements RemoteAasServerDTO {
     public AasRegistryContextDTO {
         Objects.requireNonNull(url, "'url' cannot be null!");
-        auth = Objects.requireNonNullElse(auth, new NoAuth());
+        auth = Objects.requireNonNullElse(auth, new NoAuthDTO());
     }
 
 
     public AasRegistryContextDTO(URI url) {
-        this(url, new NoAuth());
+        this(url, new NoAuthDTO());
     }
 
 
-    public AasRegistryContextDTO(URI url, AuthenticationMethod auth) {
+    public AasRegistryContextDTO(URI url, AuthenticationMethodDTO auth) {
         this(url, auth, null, null);
     }
 
 
-    public AasRegistryContext asContext() {
+    public AasRegistryContext asContext(@Nullable Vault vault, @Nullable Oauth2Client oauth2Client) {
         return new AasRegistryContext.Builder()
                 .defaultAccessPolicyDefinitionId(defaultAccessPolicyDefinitionId())
                 .defaultContractPolicyDefinitionId(defaultContractPolicyDefinitionId())
                 .uri(this.url())
-                .authenticationMethod(this.auth())
+                .authenticationMethod(toAuthenticationMethod(vault, oauth2Client))
                 .allowSelfSigned(Configuration.getInstance().isAllowSelfSignedCertificates())
                 .build();
+    }
+
+
+    @Override
+    public AuthenticationMethodDTO getAuthenticationMethodDTO() {
+        return this.auth();
     }
 }

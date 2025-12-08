@@ -16,6 +16,9 @@
 package de.fraunhofer.iosb.aas.lib.auth.impl;
 
 import de.fraunhofer.iosb.aas.lib.auth.AuthenticationMethod;
+import org.eclipse.edc.boot.vault.InMemoryVault;
+import org.eclipse.edc.spi.monitor.ConsoleMonitor;
+import org.eclipse.edc.spi.security.Vault;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,10 +34,12 @@ class ApiKeyTest {
     private final String keyValue = "my-api-key-value";
     private AuthenticationMethod testSubject;
 
+    private final Vault vault = new InMemoryVault(new ConsoleMonitor());
+
 
     @BeforeEach
     void setUp() {
-        testSubject = new ApiKey(keyName, keyValue);
+        testSubject = new ApiKey(keyName, keyValue, vault);
     }
 
 
@@ -46,7 +51,7 @@ class ApiKeyTest {
 
     @Test
     void getHeader() {
-        assertEquals(keyName, Objects.requireNonNull(testSubject.getHeader()).getKey());
-        assertEquals(keyValue, testSubject.getHeader().getValue());
+        assertEquals(keyName, Objects.requireNonNull(testSubject.getHeader(vault)).getKey());
+        assertEquals(keyValue, testSubject.getHeader(vault).getValue());
     }
 }

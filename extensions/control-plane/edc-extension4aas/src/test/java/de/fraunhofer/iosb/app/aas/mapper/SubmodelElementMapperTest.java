@@ -34,7 +34,9 @@ import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultProperty;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultReference;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultSubmodelElementCollection;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultSubmodelElementList;
+import org.eclipse.edc.boot.vault.InMemoryVault;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
+import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -63,7 +65,7 @@ class SubmodelElementMapperTest {
 
     @BeforeEach
     void setUp() {
-        testSubject = new SubmodelElementMapper(new RemoteAasRepositoryClient(new RemoteAasRepositoryContext.Builder().uri(uri).build()));
+        testSubject = new SubmodelElementMapper(new RemoteAasRepositoryClient(new InMemoryVault(new ConsoleMonitor()), new RemoteAasRepositoryContext.Builder().uri(uri).build()));
     }
 
 

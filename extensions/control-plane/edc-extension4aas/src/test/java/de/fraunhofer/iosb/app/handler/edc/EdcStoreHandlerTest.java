@@ -7,11 +7,13 @@ import de.fraunhofer.iosb.model.context.repository.remote.RemoteAasRepositoryCon
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.util.AasUtils;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.digitaltwin.aas4j.v3.model.Submodel;
+import org.eclipse.edc.boot.vault.InMemoryVault;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.controlplane.defaults.storage.assetindex.InMemoryAssetIndex;
 import org.eclipse.edc.connector.controlplane.defaults.storage.contractdefinition.InMemoryContractDefinitionStore;
 import org.eclipse.edc.query.CriterionOperatorRegistryImpl;
+import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
@@ -35,7 +37,7 @@ class EdcStoreHandlerTest {
 
     private final CriterionOperatorRegistry criterionOperatorRegistry = CriterionOperatorRegistryImpl.ofDefaults();
     private final IdentifiableMapper identifiableMapper =
-            new IdentifiableMapper(new RemoteAasRepositoryClient(new RemoteAasRepositoryContext.Builder()
+            new IdentifiableMapper(new RemoteAasRepositoryClient(new InMemoryVault(new ConsoleMonitor()), new RemoteAasRepositoryContext.Builder()
                     .uri(URI.create("http://example.com"))
                     .build()));
     private EdcStoreHandler testSubject;

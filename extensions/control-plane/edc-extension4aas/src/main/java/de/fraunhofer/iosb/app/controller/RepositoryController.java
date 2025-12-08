@@ -41,7 +41,9 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.Hostname;
 
 import java.net.ConnectException;
@@ -66,8 +68,9 @@ public class RepositoryController extends AbstractAasServerController {
 
     public RepositoryController(Monitor monitor, AasServerStore aasServerStore,
                                 Hostname hostname,
-                                EdcStoreHandler edcStoreHandler) {
-        super(monitor, aasServerStore, new VariableRateScheduler(1, monitor), edcStoreHandler);
+                                EdcStoreHandler edcStoreHandler,
+                                Vault vault, Oauth2Client oauth2Client) {
+        super(monitor, aasServerStore, new VariableRateScheduler(1, monitor), edcStoreHandler, vault, oauth2Client);
         // Use FA³ST to start repositories internally.
         this.aasRepositoryManager = new FaaastRepositoryManager(monitor, hostname);
     }
@@ -104,7 +107,6 @@ public class RepositoryController extends AbstractAasServerController {
         aasServerStore.put(context.getUri(), handler);
 
         return context.getUri();
-
     }
 
 
@@ -122,8 +124,8 @@ public class RepositoryController extends AbstractAasServerController {
             throw new WebApplicationException(String.format(EXISTS_TEMPLATE, remoteAasRepositoryContextDTO.url()), Response.Status.CONFLICT);
         }
 
-        RemoteAasRepositoryContext context = remoteAasRepositoryContextDTO.asContext();
-        RemoteAasRepositoryClient client = new RemoteAasRepositoryClient(context);
+        RemoteAasRepositoryContext context = remoteAasRepositoryContextDTO.asContext(vault, oauth2Client);
+        RemoteAasRepositoryClient client = new RemoteAasRepositoryClient(vault, context);
 
         RemoteAasRepositoryHandler handler;
         try {

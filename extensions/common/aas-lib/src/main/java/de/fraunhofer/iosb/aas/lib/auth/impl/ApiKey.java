@@ -18,12 +18,15 @@ package de.fraunhofer.iosb.aas.lib.auth.impl;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import de.fraunhofer.iosb.aas.lib.auth.AuthenticationMethod;
+import org.eclipse.edc.spi.security.Vault;
 
 import java.net.Authenticator;
 import java.net.PasswordAuthentication;
 import java.net.http.HttpClient;
 import java.util.AbstractMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
 
 
 /**
@@ -32,34 +35,40 @@ import java.util.Map;
 public class ApiKey extends AuthenticationMethod {
 
     private final String keyName;
-    private final String keyValue;
+    private final Function<Vault, String> keyValueAlias;
+
+
+    public ApiKey(@JsonProperty("keyName") String keyName, @JsonProperty("keyValue") String keyValue, Vault vault) {
+        this.keyName = Objects.requireNonNull(keyName);
+        this.keyValueAlias = getResolver(vault, keyValue);
+    }
 
 
     @JsonCreator
-    public ApiKey(@JsonProperty("keyName") String keyName, @JsonProperty("keyValue") String keyValue) {
-        this.keyName = keyName;
-        this.keyValue = keyValue;
+    public ApiKey(@JsonProperty("keyName") String keyName, @JsonProperty("keyValueAlias") String keyValueAlias) {
+        this.keyName = Objects.requireNonNull(keyName);
+
+        Objects.requireNonNull(keyValueAlias);
+        this.keyValueAlias = (v) -> v.resolveSecret(keyValueAlias);
     }
 
 
     @Override
-    public Map.Entry<String, String> getHeader() {
-        return new AbstractMap.SimpleEntry<>(keyName, getValue());
+    public Map.Entry<String, String> getHeader(Vault vault) {
+        return new AbstractMap.SimpleEntry<>(keyName, getValue(vault));
+    }
+
+
+    protected String getValue(Vault vault) {
+        return keyValueAlias.apply(vault);
     }
 
 
     @Override
-    protected String getValue() {
-        return keyValue;
-    }
-
-
-    @Override
-    public HttpClient.Builder httpClientBuilderFor() {
-        // TODO
+    public HttpClient.Builder httpClientBuilderFor(Vault vault) {
         return HttpClient.newBuilder().authenticator(new Authenticator() {
             protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(keyName, keyValue.toCharArray());
+                return new PasswordAuthentication(keyName, getValue(vault).toCharArray());
             }
         });
     }

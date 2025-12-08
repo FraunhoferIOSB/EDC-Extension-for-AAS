@@ -15,15 +15,18 @@
  */
 package de.fraunhofer.iosb.app.controller.dto;
 
-import de.fraunhofer.iosb.aas.lib.auth.AuthenticationMethod;
-import de.fraunhofer.iosb.aas.lib.auth.impl.NoAuth;
 import de.fraunhofer.iosb.aas.lib.model.PolicyBinding;
+import de.fraunhofer.iosb.app.controller.dto.auth.AuthenticationMethodDTO;
+import de.fraunhofer.iosb.app.controller.dto.auth.NoAuthDTO;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import de.fraunhofer.iosb.model.context.repository.remote.RemoteAasRepositoryContext;
+import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
+import org.eclipse.edc.spi.security.Vault;
 
 import java.net.URI;
 import java.util.List;
 import java.util.Objects;
+import javax.annotation.Nullable;
 
 
 /**
@@ -34,34 +37,40 @@ import java.util.Objects;
  * @param policyBindings List of {@link PolicyBinding}. If defined, only elements referred by the policyBindings are registered (optional, default: no custom
  *         PolicyBindings, register all elements).
  */
-public record RemoteAasRepositoryContextDTO(URI url, AuthenticationMethod auth, List<PolicyBinding> policyBindings, String defaultAccessPolicyDefinitionId,
-        String defaultContractPolicyDefinitionId) {
+public record RemoteAasRepositoryContextDTO(URI url, AuthenticationMethodDTO auth, List<PolicyBinding> policyBindings, String defaultAccessPolicyDefinitionId,
+        String defaultContractPolicyDefinitionId) implements RemoteAasServerDTO {
     public RemoteAasRepositoryContextDTO {
         Objects.requireNonNull(url, "'url' cannot be null!");
-        auth = Objects.requireNonNullElse(auth, new NoAuth());
+        auth = Objects.requireNonNullElse(auth, new NoAuthDTO());
         policyBindings = Objects.requireNonNullElse(policyBindings, List.of());
     }
 
 
-    public RemoteAasRepositoryContextDTO(URI url, AuthenticationMethod auth) {
+    public RemoteAasRepositoryContextDTO(URI url, AuthenticationMethodDTO auth) {
         this(url, auth, List.of(), null, null);
     }
 
 
     public RemoteAasRepositoryContextDTO(URI url) {
-        this(url, new NoAuth());
+        this(url, new NoAuthDTO());
     }
 
 
-    public RemoteAasRepositoryContext asContext() {
+    public RemoteAasRepositoryContext asContext(@Nullable Vault vault, @Nullable Oauth2Client oauth2Client) {
         return new RemoteAasRepositoryContext.Builder()
                 .uri(this.url())
                 .defaultAccessPolicyDefinitionId(defaultAccessPolicyDefinitionId())
                 .defaultContractPolicyDefinitionId(defaultContractPolicyDefinitionId())
                 .policyBindings(this.policyBindings())
-                .authenticationMethod(this.auth())
+                .authenticationMethod(toAuthenticationMethod(vault, oauth2Client))
                 .onlySubmodels(Configuration.getInstance().onlySubmodels())
                 .allowSelfSigned(Configuration.getInstance().isAllowSelfSignedCertificates())
                 .build();
+    }
+
+
+    @Override
+    public AuthenticationMethodDTO getAuthenticationMethodDTO() {
+        return this.auth;
     }
 }

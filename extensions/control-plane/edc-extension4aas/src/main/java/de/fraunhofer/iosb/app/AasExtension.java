@@ -32,12 +32,14 @@ import de.fraunhofer.iosb.client.exception.UnauthorizedException;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
+import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.participantcontext.spi.identity.ParticipantIdentityResolver;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -71,6 +73,8 @@ public class AasExtension implements ServiceExtension {
     private ContractDefinitionStore contractDefinitionStore;
     @Inject
     private Hostname hostname;
+    @Inject(required = false)
+    private Oauth2Client oauth2Client;
     @Inject // context-specific participant-id
     private ParticipantIdentityResolver participantIdentityResolver;
     @Inject // Create / manage EDC policies
@@ -79,6 +83,8 @@ public class AasExtension implements ServiceExtension {
     private WebService webService;
     @Inject // Add AAS namespace to JSON LD context
     private JsonLd jsonLd;
+    @Inject(required = false)
+    private Vault vault;
     private RepositoryController repositoryController;
     private RegistryController registryController;
     private Monitor monitor;
@@ -96,8 +102,10 @@ public class AasExtension implements ServiceExtension {
         // This will probably fail if multiple participantIds are registered
         String participantId = participantIdentityResolver.getParticipantId("default", "dataspace-protocol-http");
 
-        repositoryController = new RepositoryController(monitor, aasServerStore, hostname, new EdcStoreHandler(assetIndex, contractDefinitionStore, participantId));
-        registryController = new RegistryController(monitor, aasServerStore, new EdcStoreHandler(assetIndex, contractDefinitionStore, participantId));
+        repositoryController = new RepositoryController(monitor, aasServerStore, hostname, new EdcStoreHandler(assetIndex, contractDefinitionStore, participantId), vault,
+                oauth2Client);
+        registryController = new RegistryController(monitor, aasServerStore, new EdcStoreHandler(assetIndex, contractDefinitionStore, participantId), vault,
+                oauth2Client);
 
         // Add public endpoint if wanted by config
         if (Configuration.getInstance().isExposeSelfDescription()) {

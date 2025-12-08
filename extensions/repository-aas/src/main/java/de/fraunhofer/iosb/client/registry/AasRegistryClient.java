@@ -29,6 +29,7 @@ import de.fraunhofer.iosb.model.context.registry.AasRegistryContext;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultAssetAdministrationShellDescriptor;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultSubmodelDescriptor;
+import org.eclipse.edc.spi.security.Vault;
 
 import java.net.ConnectException;
 import java.net.URI;
@@ -42,6 +43,7 @@ import java.util.Map;
  */
 public class AasRegistryClient implements AasServerClient {
 
+    private final Vault vault;
     // FA³ST client
     private final AASRegistryInterface aasRegistryInterface;
     private final SubmodelRegistryInterface submodelRegistryInterface;
@@ -53,11 +55,12 @@ public class AasRegistryClient implements AasServerClient {
      *
      * @param context Context holding information about communication with the AAS registry.
      */
-    public AasRegistryClient(AasRegistryContext context) {
+    public AasRegistryClient(Vault vault, AasRegistryContext context) {
+        this.vault = vault;
         this.context = context;
 
         HttpClient.Builder httpClientBuilder = context.getAuthenticationMethod()
-                .httpClientBuilderFor();
+                .httpClientBuilderFor(vault);
 
         if (context.allowSelfSigned()) {
             httpClientBuilder.sslContext(HttpHelper.newTrustAllCertificatesClient().sslContext());
@@ -88,13 +91,13 @@ public class AasRegistryClient implements AasServerClient {
 
     @Override
     public boolean requiresAuthentication() {
-        return context.getAuthenticationMethod().getHeader() != null;
+        return context.getAuthenticationMethod().getHeader(vault) != null;
     }
 
 
     @Override
     public Map<String, String> getHeaders() {
-        return Map.ofEntries(context.getAuthenticationMethod().getHeader());
+        return Map.ofEntries(context.getAuthenticationMethod().getHeader(vault));
     }
 
 

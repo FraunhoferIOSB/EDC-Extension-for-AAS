@@ -34,6 +34,7 @@ edc-auth-configuration = { module = "org.eclipse.edc:auth-configuration", versio
 edc-auth-spi = { module = "org.eclipse.edc:auth-spi", version.ref = "edc" }
 edc-auth-tokenbased = { module = "org.eclipse.edc:auth-tokenbased", version.ref = "edc" }
 edc-boot = { module = "org.eclipse.edc:boot", version.ref = "edc" }
+edc-boot-lib = { module = "org.eclipse.edc:boot-lib", version.ref = "edc" }
 edc-boot-spi = { module = "org.eclipse.edc:boot-spi", version.ref = "edc" }
 edc-configuration-filesystem = { module = "org.eclipse.edc:configuration-filesystem", version.ref = "edc" }
 edc-connector-core = { module = "org.eclipse.edc:connector-core", version.ref = "edc" }
@@ -59,6 +60,7 @@ edc-json-ld-spi = { module = "org.eclipse.edc:json-ld-spi", version.ref = "edc" 
 edc-json-lib = { module = "org.eclipse.edc:json-lib", version.ref = "edc" }
 edc-junit = { module = "org.eclipse.edc:junit", version.ref = "edc" }
 edc-management-api-configuration = { module = "org.eclipse.edc:management-api-configuration", version.ref = "edc" }
+edc-oauth2-spi = { module = "org.eclipse.edc:oauth2-spi", version.ref = "edc" }
 edc-participant-context-config-core = { module = "org.eclipse.edc:participant-context-config-core", version.ref = "edc" }
 edc-participant-context-single-core = { module = "org.eclipse.edc:participant-context-single-core", version.ref = "edc" }
 edc-query-lib = { module = "org.eclipse.edc:query-lib", version.ref = "edc" }

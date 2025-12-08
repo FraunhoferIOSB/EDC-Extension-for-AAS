@@ -24,6 +24,8 @@ import de.fraunhofer.iosb.ilt.faaast.service.dataformat.SerializationException;
 import de.fraunhofer.iosb.ilt.faaast.service.model.exception.UnsupportedModifierException;
 import jakarta.ws.rs.WebApplicationException;
 import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShellDescriptor;
+import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
+import org.eclipse.edc.spi.security.Vault;
 import org.junit.jupiter.api.Test;
 
 import java.net.ConnectException;
@@ -38,13 +40,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.Mockito.mock;
 
 
 public class RegistryControllerIT extends AbstractAasServerControllerIT<RegistryController> {
 
     @Override
     protected RegistryController getTestSubject() {
-        return new RegistryController(monitor, aasServerStore, new EdcStoreHandler(assetIndex, contractDefinitionStore, "provider"));
+        return new RegistryController(monitor, aasServerStore, new EdcStoreHandler(assetIndex, contractDefinitionStore, "provider"), mock(Vault.class), mock(Oauth2Client.class));
     }
 
 

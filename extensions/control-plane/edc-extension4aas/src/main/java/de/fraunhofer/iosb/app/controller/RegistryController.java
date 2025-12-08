@@ -33,7 +33,9 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.security.Vault;
 
 import java.net.ConnectException;
 import java.net.URI;
@@ -52,8 +54,8 @@ public class RegistryController extends AbstractAasServerController {
     public static final String REGISTRY_PATH = "registry";
 
 
-    public RegistryController(Monitor monitor, AasServerStore aasServerStore, EdcStoreHandler edcStoreHandler) {
-        super(monitor, aasServerStore, new VariableRateScheduler(1, monitor), edcStoreHandler);
+    public RegistryController(Monitor monitor, AasServerStore aasServerStore, EdcStoreHandler edcStoreHandler, Vault vault, Oauth2Client oauth2Client) {
+        super(monitor, aasServerStore, new VariableRateScheduler(1, monitor), edcStoreHandler, vault, oauth2Client);
     }
 
 
@@ -69,8 +71,8 @@ public class RegistryController extends AbstractAasServerController {
             throw new WebApplicationException(String.format(EXISTS_TEMPLATE, aasRegistryContextDTO.url()), Response.Status.CONFLICT);
         }
 
-        AasRegistryContext context = aasRegistryContextDTO.asContext();
-        AasRegistryClient client = new AasRegistryClient(context);
+        AasRegistryContext context = aasRegistryContextDTO.asContext(vault, oauth2Client);
+        AasRegistryClient client = new AasRegistryClient(vault, context);
 
         RemoteAasRegistryHandler handler;
         try {

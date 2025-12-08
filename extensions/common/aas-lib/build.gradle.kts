@@ -7,6 +7,7 @@ dependencies {
     api(project(":extensions:common:data-plane-aas-spi"))
     runtimeOnly(project(":extensions:common:validator:validator-data-address-aas-data"))
     implementation(libs.edc.asset.spi)
+    implementation(libs.edc.oauth2.spi)
     implementation(libs.fa3st.model) // ReferenceHelper
 
     testImplementation(libs.edc.junit)
@@ -19,6 +20,7 @@ dependencies {
     testFixturesApi(project(":extensions:common:data-plane-aas-spi"))
     testFixturesApi(platform(libs.junit.bom))
     testFixturesApi(libs.edc.junit)
+    testFixturesApi(libs.edc.boot.lib)
     testFixturesApi(libs.commons.io)
     testFixturesApi(libs.aas4j.dataformat.json)
     testFixturesApi(libs.mockito)

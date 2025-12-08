@@ -18,7 +18,6 @@ package de.fraunhofer.iosb.edc.remote;
 import de.fraunhofer.iosb.aas.lib.auth.AuthenticationMethod;
 import de.fraunhofer.iosb.aas.lib.auth.impl.ApiKey;
 import de.fraunhofer.iosb.aas.lib.auth.impl.NoAuth;
-import de.fraunhofer.iosb.aas.lib.auth.impl.VaultAuth;
 import de.fraunhofer.iosb.edc.remote.stores.asset.RemoteAssetIndex;
 import de.fraunhofer.iosb.edc.remote.stores.contract.RemoteContractDefinitionStore;
 import de.fraunhofer.iosb.edc.remote.stores.policy.RemotePolicyDefinitionStore;
@@ -106,11 +105,11 @@ public class EdcConnectorClientExtension implements ServiceExtension {
         registerTransformers();
 
         codec = new Codec(typeTransformerRegistry, jsonLd);
-        if (apiKeyAlias != null && vault != null) {
-            authenticationMethod = new VaultAuth(vault, apiKeyAlias);
+        if (apiKey != null && vault != null) {
+            authenticationMethod = new ApiKey("x-api-key", apiKey, vault);
         }
-        else if (apiKey != null) {
-            authenticationMethod = new ApiKey("x-api-key", apiKey);
+        else if (apiKeyAlias != null) {
+            authenticationMethod = new ApiKey("x-api-key", apiKeyAlias);
         }
         else {
             authenticationMethod = new NoAuth();

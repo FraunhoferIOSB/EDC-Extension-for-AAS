@@ -30,6 +30,7 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.result.StoreResult;
+import org.eclipse.edc.spi.security.Vault;
 
 import java.io.IOException;
 import java.net.URI;
@@ -227,6 +228,7 @@ public abstract class ControlPlaneConnectionHandler<T extends Entity> {
         protected String resourceName;
         private AuthenticationMethod authenticationMethod;
         private Codec codec;
+        private Vault vault;
 
 
         protected abstract B self();
@@ -265,6 +267,12 @@ public abstract class ControlPlaneConnectionHandler<T extends Entity> {
         }
 
 
+        public B vault(Vault vault) {
+            this.vault = vault;
+            return self();
+        }
+
+
         public T build() {
             Objects.requireNonNull(httpClient);
             Objects.requireNonNull(monitor);
@@ -272,7 +280,7 @@ public abstract class ControlPlaneConnectionHandler<T extends Entity> {
             Objects.requireNonNull(managementUri);
             Objects.requireNonNull(authenticationMethod);
 
-            ControlPlaneConnection connection = new ControlPlaneConnection(URI.create(managementUri), resourceName, authenticationMethod);
+            ControlPlaneConnection connection = new ControlPlaneConnection(URI.create(managementUri), resourceName, vault, authenticationMethod);
 
             return create(monitor, httpClient, codec, connection);
         }

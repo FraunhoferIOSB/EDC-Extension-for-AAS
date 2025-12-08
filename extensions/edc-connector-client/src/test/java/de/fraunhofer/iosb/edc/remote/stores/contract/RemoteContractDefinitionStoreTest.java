@@ -108,11 +108,12 @@ class RemoteContractDefinitionStoreTest extends AbstractControlPlaneConnectionHa
         authorizedServer();
 
         var testSubject = new RemoteContractDefinitionStore.Builder()
-                .authenticationMethod(new ApiKey("x-api-key", apiKey.concat("prefixMakingApiKeyFalse")))
+                .authenticationMethod(new ApiKey("x-api-key", apiKey.concat("prefixMakingApiKeyFalse"), vault))
                 .managementUri(String.format("http://localhost:%s", server.getPort()))
                 .codec(mockCodec)
                 .httpClient(httpClient)
                 .monitor(monitor)
+                .vault(vault)
                 .build();
 
         when(mockCodec.serialize(any())).thenReturn(
@@ -131,11 +132,12 @@ class RemoteContractDefinitionStoreTest extends AbstractControlPlaneConnectionHa
 
     private RemoteContractDefinitionStore testSubject() {
         return new RemoteContractDefinitionStore.Builder()
-                .authenticationMethod(new ApiKey("x-api-key", apiKey))
+                .authenticationMethod(new ApiKey("x-api-key", apiKey, vault))
                 .managementUri(String.format("http://localhost:%s", server.getPort()))
                 .codec(mockCodec)
                 .httpClient(httpClient)
                 .monitor(monitor)
+                .vault(vault)
                 .build();
     }
 

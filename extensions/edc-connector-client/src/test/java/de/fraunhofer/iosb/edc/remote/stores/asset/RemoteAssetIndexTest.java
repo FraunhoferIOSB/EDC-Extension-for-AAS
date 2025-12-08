@@ -114,11 +114,12 @@ class RemoteAssetIndexTest extends AbstractControlPlaneConnectionHandlerTest {
         authorizedServer();
 
         var testSubject = new RemoteAssetIndex.Builder()
-                .authenticationMethod(new ApiKey("x-api-key", apiKey.concat("prefixMakingApiKeyFalse")))
+                .authenticationMethod(new ApiKey("x-api-key", apiKey.concat("prefixMakingApiKeyFalse"), vault))
                 .managementUri(String.format("http://localhost:%s", server.getPort()))
                 .codec(mockCodec)
                 .httpClient(httpClient)
                 .monitor(monitor)
+                .vault(vault)
                 .build();
 
         when(mockCodec.serialize(any())).thenReturn(
@@ -137,11 +138,12 @@ class RemoteAssetIndexTest extends AbstractControlPlaneConnectionHandlerTest {
 
     private RemoteAssetIndex getRemoteAssetIndex() {
         return new RemoteAssetIndex.Builder()
-                .authenticationMethod(new ApiKey("x-api-key", apiKey))
+                .authenticationMethod(new ApiKey("x-api-key", apiKey, vault))
                 .managementUri(server.baseUrl())
                 .codec(mockCodec)
                 .httpClient(httpClient)
                 .monitor(monitor)
+                .vault(vault)
                 .build();
     }
 

@@ -22,7 +22,9 @@ import de.fraunhofer.iosb.ilt.faaast.service.dataformat.SerializationException;
 import de.fraunhofer.iosb.ilt.faaast.service.model.exception.UnsupportedModifierException;
 import jakarta.ws.rs.WebApplicationException;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
+import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
+import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.junit.jupiter.api.Test;
 
@@ -36,13 +38,15 @@ import static de.fraunhofer.iosb.constants.AasConstants.EDC_SETTINGS_PREFIX;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.Mockito.mock;
 
 
 public class RepositoryControllerIT extends AbstractAasServerControllerIT<RepositoryController> {
 
     @Override
     protected RepositoryController getTestSubject() {
-        return new RepositoryController(monitor, aasServerStore, () -> "localhost", new EdcStoreHandler(assetIndex, contractDefinitionStore, "provider"));
+        return new RepositoryController(monitor, aasServerStore, () -> "localhost", new EdcStoreHandler(assetIndex, contractDefinitionStore, "provider"), mock(Vault.class),
+                mock(Oauth2Client.class));
     }
 
 

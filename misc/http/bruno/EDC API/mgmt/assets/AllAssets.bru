@@ -13,8 +13,7 @@ post {
 body:json {
   {
     "@context": {
-      "@vocab": "https://w3id.org/edc/v0.0.1/ns/",
-      "aas": "https://admin-shell.io/aas/3/0/"
+      "@vocab": "https://w3id.org/edc/v0.0.1/ns/"
     },
     "@type": "QuerySpec",
     "limit": 31415926
@@ -23,4 +22,5 @@ body:json {
 
 settings {
   encodeUrl: true
+  timeout: 0
 }

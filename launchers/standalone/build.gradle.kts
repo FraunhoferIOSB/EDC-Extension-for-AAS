@@ -21,6 +21,8 @@ dependencies {
     implementation(project(":extensions:edc-connector-client"))
 
     runtimeOnly(libs.edc.iam.mock)
+    runtimeOnly(libs.edc.participant.context.config.core) // IAM Mock and Vault need participant context config
+    runtimeOnly(libs.edc.participant.context.single.core) // AAS extension needs this to resolve participant id for policies
 
     runtimeOnly(libs.edc.auth.tokenbased)
     runtimeOnly(libs.edc.auth.configuration)

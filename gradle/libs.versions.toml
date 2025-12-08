@@ -59,6 +59,8 @@ edc-json-ld-spi = { module = "org.eclipse.edc:json-ld-spi", version.ref = "edc" 
 edc-json-lib = { module = "org.eclipse.edc:json-lib", version.ref = "edc" }
 edc-junit = { module = "org.eclipse.edc:junit", version.ref = "edc" }
 edc-management-api-configuration = { module = "org.eclipse.edc:management-api-configuration", version.ref = "edc" }
+edc-participant-context-config-core = { module = "org.eclipse.edc:participant-context-config-core", version.ref = "edc" }
+edc-participant-context-single-core = { module = "org.eclipse.edc:participant-context-single-core", version.ref = "edc" }
 edc-query-lib = { module = "org.eclipse.edc:query-lib", version.ref = "edc" }
 edc-runtime-core = { module = "org.eclipse.edc:runtime-core", version.ref = "edc" }
 edc-transform-lib = { module = "org.eclipse.edc:transform-lib", version.ref = "edc" }

@@ -43,6 +43,15 @@ class EdcStoreHandlerTest {
     private InMemoryContractDefinitionStore contractDefinitionStore;
 
 
+    private static void assertEqualAssets(Asset asset, Asset otherAsset) {
+        // ParticipantContextId is not namespaced, i.e. cannot be verified
+        assertNotNull(otherAsset);
+        assertEquals(asset.getId(), otherAsset.getId());
+        assertEquals(asset.getDescription(), otherAsset.getDescription());
+        assertEquals(asset.getProperties(), otherAsset.getProperties());
+    }
+
+
     @BeforeEach
     void setUp() {
         assetIndex = new InMemoryAssetIndex(criterionOperatorRegistry);
@@ -159,14 +168,6 @@ class EdcStoreHandlerTest {
                 policyBinding.accessPolicyDefinitionId(),
                 policyBinding.contractPolicyDefinitionId(),
                 asset.getId());
-    }
-
-
-    private static void assertEqualAssets(Asset asset, Asset otherAsset) {
-        assertNotNull(otherAsset);
-        assertEquals(asset.getId(), otherAsset.getId());
-        assertEquals(asset.getDescription(), otherAsset.getDescription());
-        assertEquals(asset.getProperties(), otherAsset.getProperties());
     }
 
 

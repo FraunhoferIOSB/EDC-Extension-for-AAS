@@ -71,7 +71,10 @@ public class RemoteContractDefinitionStore extends ControlPlaneConnectionHandler
 
     @Override
     public StoreResult<Void> update(ContractDefinition contractDefinition) {
-        var result = updateEntity(contractDefinition, ContractDefinition.class);
+        // TODO sometime in the future, check if updating contract definitions is fixed...
+        deleteById(contractDefinition.getId());
+        var result = createEntity(contractDefinition);
+        // var result = updateEntity(contractDefinition, ContractDefinition.class);
 
         // This is the only case where Void is returned.
         if (result.succeeded()) {

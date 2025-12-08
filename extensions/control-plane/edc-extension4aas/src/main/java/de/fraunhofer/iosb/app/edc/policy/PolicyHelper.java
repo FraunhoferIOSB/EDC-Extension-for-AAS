@@ -55,6 +55,7 @@ public abstract class PolicyHelper {
         var defaultPolicyDefinition = PolicyDefinition.Builder.newInstance()
                 .id(DEFAULT_POLICY_DEFINITION_ID)
                 .policy(defaultPolicy)
+                .participantContextId(participantId)
                 .build();
 
         StoreResult<PolicyDefinition> storeResult = policyDefinitionStore.create(defaultPolicyDefinition);

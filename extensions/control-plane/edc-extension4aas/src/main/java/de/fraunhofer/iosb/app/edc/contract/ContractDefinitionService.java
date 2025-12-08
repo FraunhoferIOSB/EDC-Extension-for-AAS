@@ -140,7 +140,7 @@ public class ContractDefinitionService {
                 modifyResult = store.deleteById(contractDefinition.getId());
             }
             else {
-                modifyResult = store.update(contractDefinition);
+                modifyResult = store.update(contractDefinition.toBuilder().participantContextId(participantId).build());
             }
 
             if (modifyResult.failed() || (modifyResult.failed() && modifyResult.reason().equals(NOT_FOUND))) {
@@ -169,7 +169,7 @@ public class ContractDefinitionService {
         from.getAssetsSelector().clear();
         from.getAssetsSelector().add(updatedAssetsSelector);
 
-        return from;
+        return from.toBuilder().participantContextId(participantId).build();
     }
 
 

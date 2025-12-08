@@ -18,6 +18,7 @@ dependencies {
     runtimeOnly(libs.edc.configuration.filesystem)  // read config from files
     runtimeOnly(libs.edc.auth.tokenbased)
     runtimeOnly(libs.edc.vault.hashicorp)
+    runtimeOnly(libs.edc.participant.context.config.core) // Vault needs participant context config
     runtimeOnly(libs.edc.api.core) // ApiAuthenticationRegistry
     runtimeOnly(libs.edc.auth.configuration)
 

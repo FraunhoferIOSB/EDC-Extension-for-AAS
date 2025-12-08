@@ -1,0 +1,44 @@
+meta {
+  name: update
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{provider-management}}/v3/contractdefinitions
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "@id": "7aea3d92-3b8c-4276-bf4d-e6fbe6664411",
+    "@type": "ContractDefinition",
+    "https://w3id.org/edc/v0.0.1/ns/accessPolicyId": "allow_all",
+    "https://w3id.org/edc/v0.0.1/ns/contractPolicyId": "allow_all",
+    "https://w3id.org/edc/v0.0.1/ns/assetsSelector": [
+      {
+        "@type": "https://w3id.org/edc/v0.0.1/ns/Criterion",
+        "https://w3id.org/edc/v0.0.1/ns/operandLeft": "https://w3id.org/edc/v0.0.1/ns/id",
+        "https://w3id.org/edc/v0.0.1/ns/operator": "in",
+        "https://w3id.org/edc/v0.0.1/ns/operandRight": [
+          "-799803758",
+          "792362498",
+          "458140152",
+          "1351791412",
+          "1855961989",
+                  "1855961988"
+        ]
+      }
+    ],
+    "https://w3id.org/edc/v0.0.1/ns/privateProperties": {
+      "https://w3id.org/edc/v0.0.1/ns/creator": "EDC4AAS Extension"
+    },
+    "participantContextId": "provider"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -4,7 +4,7 @@ meta {
   seq: 4
 }
 
-put {
+post {
   url: {{provider-management}}/v3/assets
   body: json
   auth: inherit
@@ -12,14 +12,20 @@ put {
 
 body:json {
   {
-    "@id": "-1398493822",
+    "@id": "13371337",
     "@type": "Asset",
     "https://w3id.org/edc/v0.0.1/ns/properties": {
       "description": "hello world"
+    },
+    "https://w3id.org/edc/v0.0.1/ns/dataAddress": {
+      "https://w3id.org/edc/v0.0.1/ns/type": "HttpData",
+      "https://w3id.org/edc/v0.0.1/ns/baseUrl": "http://example.com",
+      "path": "xyz/cool"
     }
   }
 }
 
 settings {
   encodeUrl: true
+  timeout: 0
 }

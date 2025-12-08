@@ -1,0 +1,16 @@
+meta {
+  name: get all
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{provider-management}}/v3/contractdefinitions/request
+  body: json
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

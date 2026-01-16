@@ -15,6 +15,9 @@
  */
 package de.fraunhofer.iosb.client.registry;
 
+import de.fraunhofer.iosb.aas.lib.auth.AuthenticationMethod;
+import de.fraunhofer.iosb.aas.lib.auth.impl.BasicAuth;
+import de.fraunhofer.iosb.aas.lib.auth.impl.BearerAuth;
 import de.fraunhofer.iosb.aas.lib.util.InetTools;
 import de.fraunhofer.iosb.client.AasServerClient;
 import de.fraunhofer.iosb.client.exception.UnauthorizedException;
@@ -24,7 +27,6 @@ import de.fraunhofer.iosb.ilt.faaast.client.exception.MethodNotAllowedException;
 import de.fraunhofer.iosb.ilt.faaast.client.exception.StatusCodeException;
 import de.fraunhofer.iosb.ilt.faaast.client.interfaces.AASRegistryInterface;
 import de.fraunhofer.iosb.ilt.faaast.client.interfaces.SubmodelRegistryInterface;
-import de.fraunhofer.iosb.ilt.faaast.client.util.HttpHelper;
 import de.fraunhofer.iosb.model.context.registry.AasRegistryContext;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultAssetAdministrationShellDescriptor;
@@ -59,21 +61,36 @@ public class AasRegistryClient implements AasServerClient {
         this.vault = vault;
         this.context = context;
 
-        HttpClient.Builder httpClientBuilder = context.getAuthenticationMethod()
-                .httpClientBuilderFor(vault);
+        var aasRegistryInterfaceBuilder = new AASRegistryInterface.Builder()
+                .endpoint(context.getUri());
+        var submodelRegistryInterfaceBuilder = new SubmodelRegistryInterface.Builder()
+                .endpoint(context.getUri());
+        ;
 
-        if (context.allowSelfSigned()) {
-            httpClientBuilder.sslContext(HttpHelper.newTrustAllCertificatesClient().sslContext());
+        AuthenticationMethod authMethod = context.getAuthenticationMethod();
+
+        if (authMethod instanceof BasicAuth basicAuth) {
+            Map.Entry<String, String> header = basicAuth.getHeader(vault);
+            aasRegistryInterfaceBuilder.useBasicAuthentication(header.getKey(), header.getValue());
+            submodelRegistryInterfaceBuilder.useBasicAuthentication(header.getKey(), header.getValue());
+        }
+        else if (authMethod instanceof BearerAuth bearerAuth) {
+            aasRegistryInterfaceBuilder.authenticationHeaderProvider(bearerAuth.getAuthorizationHeaderSupplier(vault));
+            submodelRegistryInterfaceBuilder.authenticationHeaderProvider(bearerAuth.getAuthorizationHeaderSupplier(vault));
+        }
+        else {
+            var customHttpClient = authMethod.httpClientBuilderFor(vault).version(HttpClient.Version.HTTP_1_1);
+            aasRegistryInterfaceBuilder.customHttpClientBuilder(customHttpClient);
+            submodelRegistryInterfaceBuilder.customHttpClientBuilder(customHttpClient);
         }
 
-        // Version 1.1 fixes compatibility errors
-        HttpClient httpClient = httpClientBuilder
-                .version(HttpClient.Version.HTTP_1_1)
-                .build();
+        if (context.allowSelfSigned()) {
+            aasRegistryInterfaceBuilder.useTrustAllHttpClient();
+            submodelRegistryInterfaceBuilder.useTrustAllHttpClient();
+        }
 
-        // TODO once client gets builder, revise this
-        this.aasRegistryInterface = new AASRegistryInterface(context.getUri(), httpClient);
-        this.submodelRegistryInterface = new SubmodelRegistryInterface(context.getUri(), httpClient);
+        this.aasRegistryInterface = aasRegistryInterfaceBuilder.build();
+        this.submodelRegistryInterface = submodelRegistryInterfaceBuilder.build();
     }
 
 

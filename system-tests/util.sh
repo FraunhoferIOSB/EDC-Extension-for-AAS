@@ -97,8 +97,8 @@ verify_request() {
     exit 1
   fi
 
-if ! python3 'system-tests/json_subset.py' "system-tests/resources/${resource_name}.json" "${log_file}";
-  then
+  if ! python3 'system-tests/json_subset.py' "system-tests/resources/${resource_name}.json" "${log_file}";
+    then
       echo "ERR: $resource_name: Response JSON does not match expected. Failing test and dumping actual response."
       jq < "$log_file" >&2
       printf "\n"

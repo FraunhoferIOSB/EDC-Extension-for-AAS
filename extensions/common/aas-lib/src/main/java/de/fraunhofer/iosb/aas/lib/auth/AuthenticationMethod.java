@@ -55,6 +55,7 @@ public abstract class AuthenticationMethod {
 
     /**
      * Get HttpClient builder for this authentication method.
+     *
      * @param vault Vault needed to retrieve secrets.
      * @return HttpClient.Builder for use in FA³ST client.
      */
@@ -65,6 +66,9 @@ public abstract class AuthenticationMethod {
 
 
     protected Function<Vault, String> getResolver(Vault vault, String secret) {
+        if (secret == null) {
+            return (v) -> null;
+        }
         String alias = store(vault, secret);
         return (Vault v) -> v.resolveSecret(alias);
     }

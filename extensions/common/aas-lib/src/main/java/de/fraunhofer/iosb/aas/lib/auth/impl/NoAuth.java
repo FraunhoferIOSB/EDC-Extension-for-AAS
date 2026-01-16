@@ -23,6 +23,9 @@ import java.net.http.HttpClient;
 import java.util.Map;
 
 
+/**
+ * Describes unauthenticated state of resources. Returns null upon request of header.
+ */
 public class NoAuth extends AuthenticationMethod {
 
     public NoAuth() {

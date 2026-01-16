@@ -71,6 +71,7 @@ Compatibility: **Eclipse Dataspace Connector v0.15.0**
 
 ### Miscellaneous
 
+* Secrets like api keys for authentication are now stored in the vault
 * **Added system tests**
 * Separated control-plane parts from data-plane parts to allow for distributed deployment scenarios
 * Updated internal FA³ST Service to version v1.3.0

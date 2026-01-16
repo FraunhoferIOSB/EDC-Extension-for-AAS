@@ -93,7 +93,7 @@ public class EdcConnectorClientExtension implements ServiceExtension {
     private TypeManager typeManager;
     @Inject
     private TypeTransformerRegistry typeTransformerRegistry;
-    @Inject(required = false)
+    @Inject
     private Vault vault;
 
     private Codec codec;
@@ -125,6 +125,7 @@ public class EdcConnectorClientExtension implements ServiceExtension {
                 .managementUri(managementUri)
                 .authenticationMethod(authenticationMethod)
                 .codec(codec)
+                .vault(vault)
                 .build();
     }
 
@@ -137,6 +138,7 @@ public class EdcConnectorClientExtension implements ServiceExtension {
                 .managementUri(managementUri)
                 .authenticationMethod(authenticationMethod)
                 .codec(codec)
+                .vault(vault)
                 .build();
     }
 
@@ -149,6 +151,7 @@ public class EdcConnectorClientExtension implements ServiceExtension {
                 .managementUri(managementUri)
                 .authenticationMethod(authenticationMethod)
                 .codec(codec)
+                .vault(vault)
                 .build();
     }
 

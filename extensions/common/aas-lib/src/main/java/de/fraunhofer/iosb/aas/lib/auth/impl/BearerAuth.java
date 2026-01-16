@@ -24,6 +24,7 @@ import org.eclipse.edc.spi.security.Vault;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import javax.naming.OperationNotSupportedException;
 
 
@@ -64,8 +65,19 @@ public class BearerAuth extends AuthenticationMethod {
     }
 
 
+    /**
+     * To not provide the secret value to an AAS API, make it a "resolver".
+     *
+     * @param vault Vault to get value from.
+     * @return A supplier which, when called, retrieves the secret value from the given vault.
+     */
+    public Supplier<String> getAuthorizationHeaderSupplier(Vault vault) {
+        return () -> getValue(vault);
+    }
+
+
     @Override
     public HttpClient.Builder httpClientBuilderFor(Vault vault) {
-        throw new RuntimeException(new OperationNotSupportedException("Needs different fa3st client impl"));
+        throw new RuntimeException(new OperationNotSupportedException("Authorization headers cannot be registered directly at the http client."));
     }
 }

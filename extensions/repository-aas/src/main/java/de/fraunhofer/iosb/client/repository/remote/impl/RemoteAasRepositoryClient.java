@@ -15,6 +15,9 @@
  */
 package de.fraunhofer.iosb.client.repository.remote.impl;
 
+import de.fraunhofer.iosb.aas.lib.auth.AuthenticationMethod;
+import de.fraunhofer.iosb.aas.lib.auth.impl.BasicAuth;
+import de.fraunhofer.iosb.aas.lib.auth.impl.BearerAuth;
 import de.fraunhofer.iosb.aas.lib.model.PolicyBinding;
 import de.fraunhofer.iosb.aas.lib.util.InetTools;
 import de.fraunhofer.iosb.client.exception.UnauthorizedException;
@@ -26,7 +29,6 @@ import de.fraunhofer.iosb.ilt.faaast.client.exception.StatusCodeException;
 import de.fraunhofer.iosb.ilt.faaast.client.interfaces.AASRepositoryInterface;
 import de.fraunhofer.iosb.ilt.faaast.client.interfaces.ConceptDescriptionRepositoryInterface;
 import de.fraunhofer.iosb.ilt.faaast.client.interfaces.SubmodelRepositoryInterface;
-import de.fraunhofer.iosb.ilt.faaast.client.util.HttpHelper;
 import de.fraunhofer.iosb.model.context.repository.remote.RemoteAasRepositoryContext;
 import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShell;
 import org.eclipse.digitaltwin.aas4j.v3.model.ConceptDescription;
@@ -69,17 +71,38 @@ public class RemoteAasRepositoryClient implements AasRepositoryClient {
         this.vault = vault;
         this.context = context;
 
-        HttpClient.Builder httpClientBuilder = context.getAuthenticationMethod()
-                .httpClientBuilderFor(vault);
+        var aasRepoInterfaceBuilder = new AASRepositoryInterface.Builder()
+                .endpoint(context.getUri());
+        var submodelRepoInterfaceBuilder = new SubmodelRepositoryInterface.Builder()
+                .endpoint(context.getUri());
+        var conceptDescriptionRepoInterfaceBuilder = new ConceptDescriptionRepositoryInterface.Builder()
+                .endpoint(context.getUri());
 
-        if (context.allowSelfSigned()) {
-            httpClientBuilder.sslContext(HttpHelper.newTrustAllCertificatesClient().sslContext());
+        AuthenticationMethod authMethod = context.getAuthenticationMethod();
+
+        if (authMethod instanceof BasicAuth basicAuth) {
+            Map.Entry<String, String> header = basicAuth.getHeader(vault);
+            aasRepoInterfaceBuilder.useBasicAuthentication(header.getKey(), header.getValue());
+            submodelRepoInterfaceBuilder.useBasicAuthentication(header.getKey(), header.getValue());
+            conceptDescriptionRepoInterfaceBuilder.useBasicAuthentication(header.getKey(), header.getValue());
+        }
+        else if (authMethod instanceof BearerAuth bearerAuth) {
+            aasRepoInterfaceBuilder.authenticationHeaderProvider(bearerAuth.getAuthorizationHeaderSupplier(vault));
+            submodelRepoInterfaceBuilder.authenticationHeaderProvider(bearerAuth.getAuthorizationHeaderSupplier(vault));
+            conceptDescriptionRepoInterfaceBuilder.authenticationHeaderProvider(bearerAuth.getAuthorizationHeaderSupplier(vault));
+        }
+        else {
+            var customHttpClient = authMethod.httpClientBuilderFor(vault).version(HttpClient.Version.HTTP_1_1);
+            aasRepoInterfaceBuilder.customHttpClientBuilder(customHttpClient);
+            submodelRepoInterfaceBuilder.customHttpClientBuilder(customHttpClient);
+            conceptDescriptionRepoInterfaceBuilder.customHttpClientBuilder(customHttpClient);
         }
 
-        // Version 1.1 fixes compatibility errors
-        HttpClient httpClient = httpClientBuilder
-                .version(HttpClient.Version.HTTP_1_1)
-                .build();
+        if (context.allowSelfSigned()) {
+            aasRepoInterfaceBuilder.useTrustAllHttpClient();
+            submodelRepoInterfaceBuilder.useTrustAllHttpClient();
+            conceptDescriptionRepoInterfaceBuilder.useTrustAllHttpClient();
+        }
 
         if (context.isOnlySubmodels()) {
             // Disable shell and concept-description interfaces
@@ -87,9 +110,9 @@ public class RemoteAasRepositoryClient implements AasRepositoryClient {
             conceptDescriptionInterfaceActivated = false;
         }
 
-        this.aasRepositoryInterface = new AASRepositoryInterface(context.getUri(), httpClient);
-        this.submodelRepositoryInterface = new SubmodelRepositoryInterface(context.getUri(), httpClient);
-        this.conceptDescriptionRepositoryInterface = new ConceptDescriptionRepositoryInterface(context.getUri(), httpClient);
+        this.aasRepositoryInterface = aasRepoInterfaceBuilder.build();
+        this.submodelRepositoryInterface = submodelRepoInterfaceBuilder.build();
+        this.conceptDescriptionRepositoryInterface = conceptDescriptionRepoInterfaceBuilder.build();
     }
 
 

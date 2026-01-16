@@ -39,8 +39,6 @@ public record BearerAuthDTO(URI uri, String clientId, String clientSecret, Strin
     public BearerAuthDTO {
         Objects.requireNonNull(clientId);
         Objects.requireNonNull(clientSecret);
-        Objects.requireNonNull(username);
-        Objects.requireNonNull(password);
     }
 
 

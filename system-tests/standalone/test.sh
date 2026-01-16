@@ -9,7 +9,7 @@ source "system-tests/util.sh"
 cp ./launchers/standalone/build.gradle.kts ./launchers/standalone/build.gradle.kts.bak
 sed -i '/implementation(libs\.edc\.vault\.hashicorp)/d' ./launchers/standalone/build.gradle.kts
 
-# Step 0: Boot provider EDC (without AAS extension, this is the one we attach to)
+# Step 0: Boot EDC (without AAS extension, this is the one we attach to)
 echo "Starting control-plane (using consumer launcher as image)"
 start_runtime consumer control-plane.properties
 
@@ -104,7 +104,6 @@ diff -w <(echo "$received_data") <(echo "$should_be_data") > /dev/null
 echo "Transferred data checks out. Test complete!"
 
 
-# Step -1: Use in-memory-vault, functionally the test will be the same.
+# Step 7: Reinstate initial build file with hashicorp dependency.
 echo "Reinstating hashicorp vault dependency in standalone build file"
-cp ./launchers/standalone/build.gradle.kts.bak ./launchers/standalone/build.gradle.kts
-rm ./launchers/standalone/build.gradle.kts.bak
+mv ./launchers/standalone/build.gradle.kts.bak ./launchers/standalone/build.gradle.kts

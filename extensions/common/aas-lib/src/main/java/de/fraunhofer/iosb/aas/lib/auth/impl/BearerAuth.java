@@ -24,7 +24,6 @@ import org.eclipse.edc.spi.security.Vault;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import javax.naming.OperationNotSupportedException;
 
 
@@ -50,7 +49,7 @@ public class BearerAuth extends AuthenticationMethod {
 
 
     @Override
-    protected String getValue(Vault vault) {
+    public String getValue(Vault vault) {
         Oauth2CredentialsRequest req = PrivateKeyOauth2CredentialsRequest.Builder.newInstance()
                 .url(identityProvider.toString())
                 .grantType("client_credentials")
@@ -59,20 +58,11 @@ public class BearerAuth extends AuthenticationMethod {
                 .param("username", username.apply(vault))
                 .param("password", password.apply(vault))
                 .build();
-        return client.requestToken(req)
+        String token = client.requestToken(req)
                 .orElseThrow((failure) -> new RuntimeException(failure.getFailureDetail()))
                 .getToken();
-    }
 
-
-    /**
-     * To not provide the secret value to an AAS API, make it a "resolver".
-     *
-     * @param vault Vault to get value from.
-     * @return A supplier which, when called, retrieves the secret value from the given vault.
-     */
-    public Supplier<String> getAuthorizationHeaderSupplier(Vault vault) {
-        return () -> getValue(vault);
+        return "Bearer ".concat(token);
     }
 
 

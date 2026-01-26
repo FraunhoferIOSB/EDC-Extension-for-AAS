@@ -80,16 +80,10 @@ public class RemoteAasRepositoryClient implements AasRepositoryClient {
 
         AuthenticationMethod authMethod = context.getAuthenticationMethod();
 
-        if (authMethod instanceof BasicAuth basicAuth) {
-            Map.Entry<String, String> header = basicAuth.getHeader(vault);
-            aasRepoInterfaceBuilder.useBasicAuthentication(header.getKey(), header.getValue());
-            submodelRepoInterfaceBuilder.useBasicAuthentication(header.getKey(), header.getValue());
-            conceptDescriptionRepoInterfaceBuilder.useBasicAuthentication(header.getKey(), header.getValue());
-        }
-        else if (authMethod instanceof BearerAuth bearerAuth) {
-            aasRepoInterfaceBuilder.authenticationHeaderProvider(bearerAuth.getAuthorizationHeaderSupplier(vault));
-            submodelRepoInterfaceBuilder.authenticationHeaderProvider(bearerAuth.getAuthorizationHeaderSupplier(vault));
-            conceptDescriptionRepoInterfaceBuilder.authenticationHeaderProvider(bearerAuth.getAuthorizationHeaderSupplier(vault));
+        if (authMethod instanceof BasicAuth || authMethod instanceof BearerAuth) {
+            aasRepoInterfaceBuilder.authenticationHeaderProvider(() -> authMethod.getValue(vault));
+            submodelRepoInterfaceBuilder.authenticationHeaderProvider(() -> authMethod.getValue(vault));
+            conceptDescriptionRepoInterfaceBuilder.authenticationHeaderProvider(() -> authMethod.getValue(vault));
         }
         else {
             var customHttpClient = authMethod.httpClientBuilderFor(vault).version(HttpClient.Version.HTTP_1_1);

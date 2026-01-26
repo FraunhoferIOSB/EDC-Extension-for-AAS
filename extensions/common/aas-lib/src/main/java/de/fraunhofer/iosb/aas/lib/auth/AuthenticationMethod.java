@@ -62,7 +62,13 @@ public abstract class AuthenticationMethod {
     public abstract HttpClient.Builder httpClientBuilderFor(Vault vault);
 
 
-    protected abstract String getValue(Vault vault);
+    /**
+     * Get the value of the authorization header.
+     *
+     * @param vault Vault to retrieve secrets from.
+     * @return The value of the authorization header
+     */
+    public abstract String getValue(Vault vault);
 
 
     protected Function<Vault, String> getResolver(Vault vault, String secret) {

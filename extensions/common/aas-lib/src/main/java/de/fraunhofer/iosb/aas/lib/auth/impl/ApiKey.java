@@ -59,7 +59,7 @@ public class ApiKey extends AuthenticationMethod {
     }
 
 
-    protected String getValue(Vault vault) {
+    public String getValue(Vault vault) {
         return keyValueAlias.apply(vault);
     }
 

@@ -65,18 +65,12 @@ public class AasRegistryClient implements AasServerClient {
                 .endpoint(context.getUri());
         var submodelRegistryInterfaceBuilder = new SubmodelRegistryInterface.Builder()
                 .endpoint(context.getUri());
-        ;
 
         AuthenticationMethod authMethod = context.getAuthenticationMethod();
 
-        if (authMethod instanceof BasicAuth basicAuth) {
-            Map.Entry<String, String> header = basicAuth.getHeader(vault);
-            aasRegistryInterfaceBuilder.useBasicAuthentication(header.getKey(), header.getValue());
-            submodelRegistryInterfaceBuilder.useBasicAuthentication(header.getKey(), header.getValue());
-        }
-        else if (authMethod instanceof BearerAuth bearerAuth) {
-            aasRegistryInterfaceBuilder.authenticationHeaderProvider(bearerAuth.getAuthorizationHeaderSupplier(vault));
-            submodelRegistryInterfaceBuilder.authenticationHeaderProvider(bearerAuth.getAuthorizationHeaderSupplier(vault));
+        if (authMethod instanceof BasicAuth || authMethod instanceof BearerAuth) {
+            aasRegistryInterfaceBuilder.authenticationHeaderProvider(() -> authMethod.getValue(vault));
+            submodelRegistryInterfaceBuilder.authenticationHeaderProvider(() -> authMethod.getValue(vault));
         }
         else {
             var customHttpClient = authMethod.httpClientBuilderFor(vault).version(HttpClient.Version.HTTP_1_1);

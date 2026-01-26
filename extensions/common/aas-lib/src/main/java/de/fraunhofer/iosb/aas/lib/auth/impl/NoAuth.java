@@ -39,7 +39,7 @@ public class NoAuth extends AuthenticationMethod {
 
 
     @Override
-    protected @Nullable String getValue(Vault vault) {
+    public @Nullable String getValue(Vault vault) {
         return null;
     }
 

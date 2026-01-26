@@ -28,7 +28,7 @@ import java.util.function.Function;
 
 /**
  * <a href="https://datatracker.ietf.org/doc/html/rfc7617#section-2">rfc7617</a>
- * -> b64("Basic user:password")
+ * -> Basic b64(user+":"+password)
  */
 public class BasicAuth extends AuthenticationMethod {
 
@@ -44,7 +44,8 @@ public class BasicAuth extends AuthenticationMethod {
     }
 
 
-    protected String getValue(Vault vault) {
+    @Override
+    public String getValue(Vault vault) {
         return "Basic %s".formatted(BASE64_ENCODER.encodeToString("%s:%s".formatted(username, password.apply(vault)).getBytes()));
     }
 

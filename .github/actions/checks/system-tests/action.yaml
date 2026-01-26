@@ -37,3 +37,9 @@ runs:
     - name: Run provider test
       shell: bash
       run: system-tests/provider/test.sh
+    - name: Clean possible debris
+      shell: bash
+      run: ./gradlew clean
+    - name: Run provider test
+      shell: bash
+      run: system-tests/standalone/test.sh

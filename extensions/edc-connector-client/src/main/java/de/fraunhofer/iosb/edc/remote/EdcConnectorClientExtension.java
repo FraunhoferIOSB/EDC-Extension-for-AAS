@@ -58,6 +58,7 @@ import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToQuerySpecTransfo
 import org.eclipse.edc.transform.transformer.edc.to.JsonValueToGenericTypeTransformer;
 
 import java.util.Map;
+import java.util.Optional;
 
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
@@ -80,7 +81,7 @@ public class EdcConnectorClientExtension implements ServiceExtension {
     @Setting(description = "Remote control-plane API Key", key = CONTROL_PLANE + "auth.key", required = false)
     private String apiKey;
 
-    @Setting(description = "Remote control-plane vault secret alias for authentication", key = CONTROL_PLANE + "auth.key.alias", required = false)
+    @Setting(description = "Remote control-plane vault secret alias for authentication. Takes precedence over raw key", key = CONTROL_PLANE + "auth.key.alias", required = false)
     private String apiKeyAlias;
 
     @Inject
@@ -105,15 +106,13 @@ public class EdcConnectorClientExtension implements ServiceExtension {
         registerTransformers();
 
         codec = new Codec(typeTransformerRegistry, jsonLd);
-        if (apiKey != null && vault != null) {
-            authenticationMethod = new ApiKey("x-api-key", apiKey, vault);
-        }
-        else if (apiKeyAlias != null) {
-            authenticationMethod = new ApiKey("x-api-key", apiKeyAlias);
-        }
-        else {
-            authenticationMethod = new NoAuth();
-        }
+
+        authenticationMethod =
+                Optional.ofNullable(apiKeyAlias)
+                        .map(alias -> (AuthenticationMethod) new ApiKey("x-api-key", alias))
+                        .or(() -> Optional.ofNullable(apiKey)
+                                .map(k -> (AuthenticationMethod) new ApiKey("x-api-key", k, vault)))
+                        .orElseGet(NoAuth::new);
     }
 
 

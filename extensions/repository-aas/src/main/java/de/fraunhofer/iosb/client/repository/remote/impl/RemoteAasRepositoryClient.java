@@ -177,6 +177,8 @@ public class RemoteAasRepositoryClient implements AasRepositoryClient {
         }
         else if (e instanceof StatusCodeException) {
             throw new RuntimeException(e);
+        } else {
+            throw new RuntimeException(e);
         }
     }
 

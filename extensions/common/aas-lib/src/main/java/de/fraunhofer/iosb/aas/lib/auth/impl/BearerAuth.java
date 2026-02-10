@@ -18,7 +18,7 @@ package de.fraunhofer.iosb.aas.lib.auth.impl;
 import de.fraunhofer.iosb.aas.lib.auth.AuthenticationMethod;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2CredentialsRequest;
-import org.eclipse.edc.iam.oauth2.spi.client.PrivateKeyOauth2CredentialsRequest;
+import org.eclipse.edc.iam.oauth2.spi.client.SharedSecretOauth2CredentialsRequest;
 import org.eclipse.edc.spi.security.Vault;
 
 import java.net.URI;
@@ -50,11 +50,11 @@ public class BearerAuth extends AuthenticationMethod {
 
     @Override
     public String getValue(Vault vault) {
-        Oauth2CredentialsRequest req = PrivateKeyOauth2CredentialsRequest.Builder.newInstance()
+        Oauth2CredentialsRequest req = SharedSecretOauth2CredentialsRequest.Builder.newInstance()
                 .url(identityProvider.toString())
                 .grantType("client_credentials")
-                .param("client_id", clientId.apply(vault))
-                .param("client_secret", clientSecret.apply(vault))
+                .clientId(clientId.apply(vault))
+                .clientSecret(clientSecret.apply(vault))
                 .param("username", username.apply(vault))
                 .param("password", password.apply(vault))
                 .build();

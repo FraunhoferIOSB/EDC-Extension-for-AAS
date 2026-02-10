@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- NOTE: this file name has the suffix -test to take precedence over FA³ST logback file. -->
+<configuration debug="false">
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} %highlight(%-5level) %cyan(%-28.28logger{28}) | %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Turn down noisy packages -->
+    <logger name="org.eclipse.jetty" level="INFO"/>
+    <logger name="de.fraunhofer.iosb.ilt.faaast" level="INFO"/>
+    <logger name="org.eclipse.edc" level="INFO"/>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+</configuration>

@@ -17,8 +17,8 @@ dependencies {
     runtimeOnly(libs.edc.boot)
     runtimeOnly(libs.edc.configuration.filesystem)
 
-    implementation(project(":extensions:control-plane:edc-extension4aas"))
-    implementation(project(":extensions:edc-connector-client"))
+    runtimeOnly(project(":extensions:control-plane:edc-extension4aas"))
+    runtimeOnly(project(":extensions:edc-connector-client"))
 
     runtimeOnly(libs.edc.iam.mock)
     runtimeOnly(libs.edc.participant.context.config.core) // IAM Mock and Vault need participant context config

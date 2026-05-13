@@ -42,6 +42,7 @@ edc-contract-spi = { module = "org.eclipse.edc:contract-spi", version.ref = "edc
 edc-control-plane-contract = { module = "org.eclipse.edc:control-plane-contract", version.ref = "edc" }
 edc-control-plane-core = { module = "org.eclipse.edc:control-plane-core", version.ref = "edc" }
 edc-control-plane-spi = { module = "org.eclipse.edc:control-plane-spi", version.ref = "edc" }
+edc-control-plane-transfer = { module = "org.eclipse.edc:control-plane-transfer", version.ref = "edc" }
 edc-control-plane-transform = { module = "org.eclipse.edc:control-plane-transform", version.ref = "edc" }
 edc-core-spi = { module = "org.eclipse.edc:core-spi", version.ref = "edc" }
 edc-data-plane-http-spi = { module = "org.eclipse.edc:data-plane-http-spi", version.ref = "edc" }
@@ -63,7 +64,7 @@ edc-management-api-configuration = { module = "org.eclipse.edc:management-api-co
 edc-oauth2-spi = { module = "org.eclipse.edc:oauth2-spi", version.ref = "edc" }
 edc-oauth2-client = { module = "org.eclipse.edc:oauth2-client", version.ref = "edc" }
 edc-participant-context-config-core = { module = "org.eclipse.edc:participant-context-config-core", version.ref = "edc" }
-edc-participant-context-core = { module = "org.eclipse.edc:participant-context-core", version.ref = "edc" }
+edc-participant-context-connector-classic-core = { module = "org.eclipse.edc:participant-context-connector-classic-core", version.ref = "edc" }
 edc-query-lib = { module = "org.eclipse.edc:query-lib", version.ref = "edc" }
 edc-runtime-core = { module = "org.eclipse.edc:runtime-core", version.ref = "edc" }
 edc-transform-lib = { module = "org.eclipse.edc:transform-lib", version.ref = "edc" }

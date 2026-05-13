@@ -30,5 +30,3 @@ dependencies {
 
     testFixturesRuntimeOnly(libs.junit.platform.launcher)
 }
-
-

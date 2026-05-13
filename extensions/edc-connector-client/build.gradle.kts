@@ -17,5 +17,3 @@ dependencies {
     testImplementation(libs.edc.json.lib)
     testImplementation(libs.edc.json.ld.lib)
 }
-
-

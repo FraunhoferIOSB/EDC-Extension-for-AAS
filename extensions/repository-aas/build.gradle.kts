@@ -12,5 +12,3 @@ dependencies {
 
     testImplementation(testFixtures(project(":extensions:common:aas-lib")))
 }
-
-

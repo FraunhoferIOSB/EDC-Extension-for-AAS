@@ -28,6 +28,3 @@ dependencies {
     testImplementation(libs.edc.query.lib)
     testImplementation(libs.fa3st.dataformat.json)
 }
-
-
-

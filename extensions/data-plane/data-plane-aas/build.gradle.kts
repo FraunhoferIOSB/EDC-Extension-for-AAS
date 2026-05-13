@@ -12,5 +12,3 @@ dependencies {
 
     testImplementation(libs.aas4j.model)
 }
-
-

@@ -17,7 +17,7 @@ package de.fraunhofer.iosb.edc.remote.stores.asset;
 
 import de.fraunhofer.iosb.edc.remote.ControlPlaneConnection;
 import de.fraunhofer.iosb.edc.remote.stores.ControlPlaneConnectionHandler;
-import de.fraunhofer.iosb.edc.remote.transform.Codec;
+import de.fraunhofer.iosb.codec.Codec;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.http.spi.EdcHttpClient;

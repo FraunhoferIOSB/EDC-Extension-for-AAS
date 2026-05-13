@@ -88,10 +88,7 @@ public abstract class DiffHelper {
 
 
     private static boolean assetEqualityByDefaultValues(Asset a, Asset b) {
-        return Objects.equals(a.getId(), b.getId()) &&
-                Objects.equals(a.getVersion(), b.getVersion()) &&
-                Objects.equals(a.getName(), b.getName()) &&
-                Objects.equals(a.getContentType(), b.getContentType());
+        return Objects.equals(a.getId(), b.getId());
     }
 
 
@@ -99,6 +96,7 @@ public abstract class DiffHelper {
         return assetEqualityByDefaultValues(a, b) &&
                 dataAddressEquality(a.getDataAddress(), b.getDataAddress()) &&
                 Objects.equals(a.getProperties(), b.getProperties()) &&
-                Objects.equals(a.getPrivateProperties(), b.getPrivateProperties());
+                Objects.equals(a.getPrivateProperties(), b.getPrivateProperties()) &&
+                Objects.equals(a.getDataplaneMetadata(), b.getDataplaneMetadata());
     }
 }

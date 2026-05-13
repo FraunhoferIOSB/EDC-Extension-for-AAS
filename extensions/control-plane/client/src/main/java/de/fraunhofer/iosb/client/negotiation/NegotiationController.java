@@ -15,7 +15,7 @@
  */
 package de.fraunhofer.iosb.client.negotiation;
 
-import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ConsumerContractNegotiationManager;
+import org.eclipse.edc.connector.controlplane.contract.negotiation.command.handlers.InitiateNegotiationCommandHandler;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
@@ -47,13 +47,13 @@ public class NegotiationController {
     private final ClientContractNegotiationListener listener;
 
 
-    public NegotiationController(ConsumerContractNegotiationManager consumerNegotiationManager,
+    public NegotiationController(InitiateNegotiationCommandHandler initiateNegotiationCommandHandler,
                                  ContractNegotiationObservable observable,
                                  ContractNegotiationStore contractNegotiationStore,
                                  ParticipantContext participantContext,
                                  Config config) {
         this.config = config;
-        this.negotiator = new Negotiator(consumerNegotiationManager, contractNegotiationStore, participantContext);
+        this.negotiator = new Negotiator(initiateNegotiationCommandHandler, contractNegotiationStore, participantContext);
         this.listener = new ClientContractNegotiationListener();
         observable.registerListener(listener);
     }
@@ -65,9 +65,9 @@ public class NegotiationController {
             return Result.failure(negotiationStatusResult.getFailureDetail());
         }
 
-        var negotiation = negotiationStatusResult.getContent();
+        var negotiation = ((ContractNegotiation) negotiationStatusResult.getContent());
         if (Objects.nonNull(negotiation.getContractAgreement())) {
-            return Result.success(negotiationStatusResult.getContent().getContractAgreement());
+            return Result.success(negotiation.getContractAgreement());
         }
         else {
             return waitForAgreement(negotiation.getId());

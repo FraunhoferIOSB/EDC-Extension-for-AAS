@@ -151,8 +151,6 @@ class RemoteAssetIndexTest extends AbstractControlPlaneConnectionHandlerTest {
     private Asset getAsset() {
         return Asset.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
-                .contentType(UUID.randomUUID().toString())
-                .version(UUID.randomUUID().toString())
                 .description(UUID.randomUUID().toString())
                 .property("aas:id", UUID.randomUUID().toString())
                 .dataAddress(

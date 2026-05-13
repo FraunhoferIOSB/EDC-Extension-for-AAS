@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.edc.remote.transform;
+package de.fraunhofer.iosb.codec;
 
 import jakarta.json.Json;
 import jakarta.json.JsonObject;

@@ -25,7 +25,7 @@ import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultLangStringTextType;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultOperation;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultOperationVariable;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultProperty;
-import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager;
+import org.eclipse.edc.connector.controlplane.transfer.command.handlers.InitiateTransferCommandHandler;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
@@ -45,7 +45,6 @@ import java.util.UUID;
 import static de.fraunhofer.iosb.client.datatransfer.DataTransferController.OPERATION_FIELD;
 import static java.lang.String.format;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -54,7 +53,7 @@ import static org.mockito.Mockito.verify;
 class DataTransferControllerTest {
     private static final String AGREEMENT_ID = UUID.randomUUID().toString();
     private static URI uri;
-    private final TransferProcessManager mockTransferProcessManager = mock(TransferProcessManager.class);
+    private final InitiateTransferCommandHandler mockInitiateTransferCommandHandler = mock(InitiateTransferCommandHandler.class);
     private DataTransferController testSubject;
 
 
@@ -119,7 +118,7 @@ class DataTransferControllerTest {
                 mockConfig(),
                 mock(WebService.class),
                 mock(PublicApiManagementService.class),
-                mockTransferProcessManager,
+                mockInitiateTransferCommandHandler,
                 mock(ParticipantContext.class),
                 mock(TransferProcessObservable.class),
                 () -> "localhost");
@@ -146,8 +145,8 @@ class DataTransferControllerTest {
 
         testSubject.getData(uri, AGREEMENT_ID, dataSinkAddress);
         // Verify that operation is serialized before sending it to provider
-        verify(mockTransferProcessManager).initiateConsumerRequest(any(), argThat(request ->
-                operationString.equals(request.getDataDestination().getStringProperty(OPERATION_FIELD))));
+        verify(mockInitiateTransferCommandHandler).handle(argThat(request ->
+                operationString.equals(request.getRequest().getDataDestination().getStringProperty(OPERATION_FIELD))));
     }
 
 
@@ -159,8 +158,8 @@ class DataTransferControllerTest {
 
         testSubject.getData(uri, AGREEMENT_ID, dataSinkAddress);
         // Verify that operation is serialized before sending it to provider
-        verify(mockTransferProcessManager).initiateConsumerRequest(any(), argThat(request ->
-                null == request.getDataDestination().getProperties().get(OPERATION_FIELD)));
+        verify(mockInitiateTransferCommandHandler).handle(argThat(request ->
+                null == request.getRequest().getDataDestination().getProperties().get(OPERATION_FIELD)));
     }
 
 

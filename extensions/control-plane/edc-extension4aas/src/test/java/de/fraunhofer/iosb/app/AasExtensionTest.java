@@ -15,8 +15,8 @@
  */
 package de.fraunhofer.iosb.app;
 
+import de.fraunhofer.iosb.aas.test.DefaultVault;
 import org.eclipse.edc.boot.system.injection.ObjectFactory;
-import org.eclipse.edc.boot.vault.InMemoryVault;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.defaults.storage.contractdefinition.InMemoryContractDefinitionStore;
@@ -35,6 +35,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -50,12 +51,12 @@ public class AasExtensionTest {
         context.registerService(AssetIndex.class, mock(AssetIndex.class));
         context.registerService(ContractDefinitionStore.class, new InMemoryContractDefinitionStore(new CriterionOperatorRegistryImpl()));
         context.registerService(Monitor.class, new ConsoleMonitor());
-        context.registerService(Vault.class, new InMemoryVault(new ConsoleMonitor()));
+        context.registerService(Vault.class, new DefaultVault());
         context.registerService(Hostname.class, () -> "");
         context.registerService(PolicyDefinitionStore.class, new InMemoryPolicyDefinitionStore(new CriterionOperatorRegistryImpl()));
         context.registerService(WebService.class, mock(WebService.class));
 
-        when(context.getConfig()).thenReturn(mock(Config.class));
+        when(context.getConfig(any())).thenReturn(mock(Config.class));
 
         extension = factory.constructInstance(AasExtension.class);
     }

@@ -28,7 +28,6 @@ import static de.fraunhofer.iosb.constants.AasConstants.DEFAULT_EXPOSED_FIELDS;
 
 public abstract class ReferableMapper extends ElementMapper {
 
-    public static final String CONTENT_TYPE = "application/json";
     private final FilteredJsonSerializer jsonSerializer = new FilteredJsonSerializer();
 
 
@@ -50,7 +49,7 @@ public abstract class ReferableMapper extends ElementMapper {
             assetBuilder.property(AAS_V30_NAMESPACE.concat("modelingType"), removeAasPrefix(modelingType[0]));
         }
 
-        return assetBuilder.contentType(CONTENT_TYPE);
+        return assetBuilder;
     }
 
 

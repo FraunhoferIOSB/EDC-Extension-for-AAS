@@ -15,6 +15,7 @@
  */
 package de.fraunhofer.iosb.app.aas.mapper;
 
+import de.fraunhofer.iosb.aas.test.DefaultVault;
 import de.fraunhofer.iosb.app.aas.mapper.referable.SubmodelElementMapper;
 import de.fraunhofer.iosb.client.repository.remote.impl.RemoteAasRepositoryClient;
 import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;
@@ -34,9 +35,7 @@ import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultProperty;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultReference;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultSubmodelElementCollection;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultSubmodelElementList;
-import org.eclipse.edc.boot.vault.InMemoryVault;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
-import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -65,7 +64,7 @@ class SubmodelElementMapperTest {
 
     @BeforeEach
     void setUp() {
-        testSubject = new SubmodelElementMapper(new RemoteAasRepositoryClient(new InMemoryVault(new ConsoleMonitor()), new RemoteAasRepositoryContext.Builder().uri(uri).build()));
+        testSubject = new SubmodelElementMapper(new RemoteAasRepositoryClient(new DefaultVault(), new RemoteAasRepositoryContext.Builder().uri(uri).build()));
     }
 
 

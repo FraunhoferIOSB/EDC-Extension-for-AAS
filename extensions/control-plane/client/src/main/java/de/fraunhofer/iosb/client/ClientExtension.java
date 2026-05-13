@@ -23,10 +23,12 @@ import org.eclipse.edc.catalog.transform.JsonObjectToCatalogTransformer;
 import org.eclipse.edc.catalog.transform.JsonObjectToDataServiceTransformer;
 import org.eclipse.edc.catalog.transform.JsonObjectToDatasetTransformer;
 import org.eclipse.edc.catalog.transform.JsonObjectToDistributionTransformer;
+import org.eclipse.edc.connector.controlplane.contract.negotiation.command.handlers.InitiateNegotiationCommandHandler;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService;
+import org.eclipse.edc.connector.controlplane.transfer.command.handlers.InitiateTransferCommandHandler;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.controlplane.transform.odrl.OdrlTransformersFactory;
@@ -50,7 +52,7 @@ public class ClientExtension implements ServiceExtension {
     @Inject
     private CatalogService catalogService;
     @Inject
-    private ConsumerContractNegotiationManager consumerNegotiationManager;
+    private InitiateNegotiationCommandHandler initiateNegotiationCommandHandler;
     @Inject
     private ContractNegotiationObservable contractNegotiationObservable;
     @Inject
@@ -60,7 +62,7 @@ public class ClientExtension implements ServiceExtension {
     @Inject
     private SingleParticipantContextSupplier singleParticipantContextSupplier;
     @Inject
-    private TransferProcessManager transferProcessManager;
+    private InitiateTransferCommandHandler initiateTransferCommandHandler;
     @Inject
     private TransferProcessObservable transferProcessObservable;
     @Inject
@@ -78,7 +80,7 @@ public class ClientExtension implements ServiceExtension {
                 .orElseThrow(failure -> new EdcException(failure.getFailureDetail()));
 
         var negotiationController = new NegotiationController(
-                consumerNegotiationManager,
+                initiateNegotiationCommandHandler,
                 contractNegotiationObservable,
                 contractNegotiationStore,
                 participantContext,
@@ -89,7 +91,7 @@ public class ClientExtension implements ServiceExtension {
                 context.getConfig(),
                 webService,
                 publicApiManagementService,
-                transferProcessManager,
+                initiateTransferCommandHandler,
                 participantContext,
                 transferProcessObservable,
                 hostname);

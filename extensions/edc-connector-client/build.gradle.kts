@@ -4,13 +4,10 @@ plugins {
 
 dependencies {
     implementation(project(":extensions:common:aas-lib")) // AuthenticationMethod
+    implementation(project(":extensions:control-plane:codec"))
 
     implementation(libs.edc.asset.spi)
     implementation(libs.edc.contract.spi)
-
-    implementation(libs.edc.transform.lib)
-    implementation(libs.edc.control.plane.transform)
-    implementation(libs.edc.json.ld)
     implementation(libs.edc.runtime.core)
     implementation(libs.edc.connector.core)
 

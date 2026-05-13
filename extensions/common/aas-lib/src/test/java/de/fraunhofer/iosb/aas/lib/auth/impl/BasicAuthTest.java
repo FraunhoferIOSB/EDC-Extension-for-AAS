@@ -15,8 +15,7 @@
  */
 package de.fraunhofer.iosb.aas.lib.auth.impl;
 
-import org.eclipse.edc.boot.vault.InMemoryVault;
-import org.eclipse.edc.spi.monitor.ConsoleMonitor;
+import de.fraunhofer.iosb.aas.test.DefaultVault;
 import org.eclipse.edc.spi.security.Vault;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,7 +33,7 @@ class BasicAuthTest {
     private final String password = "my-password-34kj67j4h2g6";
     private BasicAuth testSubject;
 
-    private final Vault vault = new InMemoryVault(new ConsoleMonitor());
+    private final Vault vault = new DefaultVault();
 
 
     @BeforeEach

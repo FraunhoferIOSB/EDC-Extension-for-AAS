@@ -15,13 +15,14 @@
  */
 package de.fraunhofer.iosb.client.negotiation;
 
-import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ConsumerContractNegotiationManager;
+import org.eclipse.edc.connector.controlplane.contract.negotiation.command.handlers.InitiateNegotiationCommandHandler;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.command.InitiateNegotiationCommand;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
+import org.eclipse.edc.spi.command.CommandResult;
 import org.eclipse.edc.spi.query.QuerySpec;
-import org.eclipse.edc.spi.response.StatusResult;
 
 
 /**
@@ -29,7 +30,7 @@ import org.eclipse.edc.spi.response.StatusResult;
  */
 public class Negotiator {
 
-    private final ConsumerContractNegotiationManager consumerNegotiationManager;
+    private final InitiateNegotiationCommandHandler initiateNegotiationCommandHandler;
     private final ContractNegotiationStore contractNegotiationStore;
     private final ParticipantContext participantContext;
 
@@ -37,12 +38,12 @@ public class Negotiator {
     /**
      * Class constructor
      *
-     * @param consumerNegotiationManager Initiating a negotiation as a consumer.
+     * @param initiateNegotiationCommandHandler Initiating a negotiation as a consumer.
      * @param contractNegotiationStore Check for existing agreements before negotiating
      */
-    public Negotiator(ConsumerContractNegotiationManager consumerNegotiationManager,
+    public Negotiator(InitiateNegotiationCommandHandler initiateNegotiationCommandHandler,
                       ContractNegotiationStore contractNegotiationStore, ParticipantContext participantContext) {
-        this.consumerNegotiationManager = consumerNegotiationManager;
+        this.initiateNegotiationCommandHandler = initiateNegotiationCommandHandler;
         this.contractNegotiationStore = contractNegotiationStore;
         this.participantContext = participantContext;
     }
@@ -56,7 +57,7 @@ public class Negotiator {
      * aborted by throwing an exception. This exception can be inspected using the
      * getCause() method.
      */
-    StatusResult<ContractNegotiation> negotiate(ContractRequest contractRequest) {
+    CommandResult negotiate(ContractRequest contractRequest) {
         var previousAgreements = contractNegotiationStore.queryAgreements(QuerySpec.max());
         var relevantAgreements = previousAgreements
                 .filter(agreement -> agreement.getAssetId().equals(contractRequest.getContractOffer().getAssetId()))
@@ -65,7 +66,7 @@ public class Negotiator {
 
         if (!relevantAgreements.isEmpty()) {
             // assuming contractNegotiationStore removes invalid agreements
-            return StatusResult.success(
+            return CommandResult.success(
                     ContractNegotiation.Builder.newInstance()
                             .contractAgreement(relevantAgreements.get(0))
                             .counterPartyAddress(contractRequest.getCounterPartyAddress())
@@ -74,7 +75,7 @@ public class Negotiator {
                             .build());
         }
 
-        return consumerNegotiationManager.initiate(participantContext, contractRequest);
+        return initiateNegotiationCommandHandler.handle(new InitiateNegotiationCommand(participantContext, contractRequest));
     }
 
 }

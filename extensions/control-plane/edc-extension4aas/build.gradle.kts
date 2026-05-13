@@ -7,6 +7,7 @@ dependencies {
     implementation(project(":extensions:control-plane:public-api-management"))
     implementation(project(":extensions:common:aas-lib"))
     implementation(project(":extensions:repository-aas"))
+    implementation(project(":extensions:control-plane:codec"))
 
     implementation(libs.fa3st.model) // ReferenceHelper
     implementation(libs.aas4j.model) // AasUtils
@@ -14,6 +15,7 @@ dependencies {
 
     implementation(libs.edc.asset.spi)
     implementation(libs.edc.contract.spi)
+    implementation(libs.edc.control.plane.transform)
     implementation(libs.edc.data.plane.http.spi)
     implementation(libs.edc.http.lib)
     implementation(libs.edc.json.ld.spi)

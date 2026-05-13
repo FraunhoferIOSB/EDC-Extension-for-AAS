@@ -18,7 +18,7 @@ package de.fraunhofer.iosb.edc.remote.stores;
 import de.fraunhofer.iosb.aas.lib.auth.AuthenticationMethod;
 import de.fraunhofer.iosb.edc.remote.ControlPlaneConnection;
 import de.fraunhofer.iosb.edc.remote.HttpMethod;
-import de.fraunhofer.iosb.edc.remote.transform.Codec;
+import de.fraunhofer.iosb.codec.Codec;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;

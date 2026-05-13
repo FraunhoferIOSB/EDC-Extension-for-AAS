@@ -22,7 +22,7 @@ dependencies {
 
     runtimeOnly(libs.edc.iam.mock)
     runtimeOnly(libs.edc.participant.context.config.core) // IAM Mock and Vault need participant context config
-    runtimeOnly(libs.edc.participant.context.single.core) // AAS extension needs this to resolve participant id for policies
+    runtimeOnly(libs.edc.participant.context.core) // AAS extension needs this to resolve participant id for policies
 
     runtimeOnly(libs.edc.oauth2.client) // If using FA³ST security / AAS repository with oidc, an oauth client is needed
 

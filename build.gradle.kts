@@ -1,5 +1,4 @@
 import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
-import com.github.jengelman.gradle.plugins.shadow.ShadowJavaPlugin
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
@@ -48,18 +47,20 @@ subprojects {
         if (project.plugins.hasPlugin(libs.plugins.shadow.get().pluginId)) {
 
             val copyLegalDocs = tasks.register<Copy>("copyLegalDocs") {
+                description = "Copy legal documents into the docker image"
                 from(project.rootProject.projectDir)
                 into("build/legal")
                 include("LICENSE")
             }
 
             val copyDockerfile = tasks.register<Copy>("copyDockerfile") {
+                description = "Copy the docker file into the build directory"
                 from(rootProject.projectDir.toPath().resolve("launchers"))
                 into(project.layout.buildDirectory.dir("resources").get().dir("docker"))
                 include("Dockerfile")
             }
 
-            val shadowJarTask = tasks.named(ShadowJavaPlugin.SHADOW_JAR_TASK_NAME).get()
+            val shadowJarTask = tasks.named("shadowJar").get()
 
             shadowJarTask
                 .dependsOn(copyDockerfile)

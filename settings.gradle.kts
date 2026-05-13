@@ -18,8 +18,16 @@ include("launchers:tractus-x")
 
 include("extensions:control-plane:codec")
 
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+    }
+}
+
 dependencyResolutionManagement {
     repositories {
+        mavenLocal()
         mavenCentral()
     }
 }

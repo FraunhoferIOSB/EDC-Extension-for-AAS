@@ -72,6 +72,9 @@ edc-util-lib = { module = "org.eclipse.edc:util-lib", version.ref = "edc" }
 edc-validator-spi = { module = "org.eclipse.edc:validator-spi", version.ref = "edc" }
 edc-vault-hashicorp = { module = "org.eclipse.edc:vault-hashicorp", version.ref = "edc" }
 
+shadow-gradle-plugin = { module = "com.gradleup.shadow:shadow-gradle-plugin", version = "9.4.1" }
+docker-gradle-plugin = { module = "com.bmuschko:gradle-docker-plugin", version = "10.0.0" }
+
 commons-io = { module = "commons-io:commons-io", version.ref = "commons-io" }
 jersey-common = { module = "org.glassfish.jersey.core:jersey-common", version.ref = "jersey" }
 junit-bom = { module = "org.junit:junit-bom", version.ref = "junit-bom" }
@@ -81,6 +84,4 @@ mockito = { module = "org.mockito:mockito-core", version.ref = "mockito" }
 wiremock = { module = "org.wiremock:wiremock-jetty12", version.ref = "wiremock" }
 
 [plugins]
-shadow = { id = "com.gradleup.shadow", version = "9.4.1" }
-docker = { id = "com.bmuschko.docker-remote-api", version = "10.0.0" }
 edc-build = { id = "org.eclipse.edc.edc-build", version.ref = "edc-build" }

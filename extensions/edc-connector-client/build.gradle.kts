@@ -1,3 +1,7 @@
+plugins {
+    id("buildsrc.java-library")
+}
+
 dependencies {
     implementation(project(":extensions:common:aas-lib")) // AuthenticationMethod
 
@@ -17,6 +21,4 @@ dependencies {
     testImplementation(libs.edc.json.ld.lib)
 }
 
-tasks.test {
-    useJUnitPlatform()
-}
+

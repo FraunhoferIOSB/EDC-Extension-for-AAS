@@ -1,5 +1,5 @@
 plugins {
-    jacoco
+    id("buildsrc.java-library")
 }
 
 dependencies {
@@ -13,5 +13,4 @@ dependencies {
     testImplementation(libs.aas4j.model)
 }
 
-tasks.test { useJUnitPlatform() }
-tasks.jacocoTestReport { dependsOn(tasks.test) }
+

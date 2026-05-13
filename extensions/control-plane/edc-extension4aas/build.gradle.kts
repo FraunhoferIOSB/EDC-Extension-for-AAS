@@ -1,5 +1,5 @@
 plugins {
-    jacoco
+    id("buildsrc.java-library")
 }
 
 
@@ -27,6 +27,5 @@ dependencies {
     testImplementation(libs.fa3st.dataformat.json)
 }
 
-tasks.test { useJUnitPlatform() }
-tasks.jacocoTestReport { dependsOn(tasks.test) }
+
 

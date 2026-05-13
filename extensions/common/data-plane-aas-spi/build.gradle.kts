@@ -1,9 +1,6 @@
 plugins {
-    id("java")
+    id("buildsrc.java-library")
 }
-
-group = "de.fraunhofer.iosb"
-version = "2.3.0"
 
 dependencies {
     implementation(project(":extensions:common:constants"))
@@ -17,6 +14,4 @@ dependencies {
     testImplementation(testFixtures(project(":extensions:common:aas-lib")))
 }
 
-tasks.test {
-    useJUnitPlatform()
-}
+

@@ -9,8 +9,7 @@
  */
 
 plugins {
-    application
-    alias(libs.plugins.shadow)
+    id("buildsrc.application")
 }
 
 dependencies {

@@ -1,3 +1,7 @@
+plugins {
+    id("buildsrc.java-library")
+}
+
 dependencies {
     implementation(libs.edc.transform.lib)
     implementation(libs.edc.control.plane.transform)

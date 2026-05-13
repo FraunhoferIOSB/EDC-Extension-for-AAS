@@ -1,8 +1,31 @@
-import org.gradle.api.plugins.JavaLibraryPlugin
-import org.gradle.testing.jacoco.plugins.JacocoPlugin
+import com.diffplug.spotless.extra.wtp.EclipseWtpFormatterStep
 
-project.plugins.apply(JavaLibraryPlugin::class.java)
-project.plugins.apply(JacocoPlugin::class.java)
+plugins {
+    id("com.diffplug.spotless")
+    `java-library`
+}
+
+spotless {
+    format("misc") {
+        target("*.md", "*.yms", "*.json", "*.xml", "*.yaml", "*.yml", "*.properties", "*.gradle", "*.kts")
+
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+
+    java {
+        target("src/*/java/**/*.java")
+        eclipse("4.32").configFile(rootProject.file("misc/checkstyle/formatter.xml"))
+
+        importOrder()
+        removeUnusedImports()
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+}
+
+project.plugins.apply("java-library")
+project.plugins.apply("jacoco")
 
 tasks.named<Test>("test") {
     useJUnitPlatform()
@@ -10,4 +33,8 @@ tasks.named<Test>("test") {
 
 tasks.named<JacocoReport>("jacocoTestReport") {
     dependsOn(tasks.named("test"))
+}
+
+tasks.named("check") {
+    dependsOn("spotlessCheck")
 }

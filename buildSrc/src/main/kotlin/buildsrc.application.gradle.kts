@@ -26,14 +26,14 @@ tasks.named("startShadowScripts") { enabled = false }
 tasks.named("shadowDistZip") { enabled = false }
 tasks.named("shadowDistTar") { enabled = false }
 
-val copyLegalDocs = tasks.register("copyLegalDocs", org.gradle.api.tasks.Copy::class) {
+val copyLegalDocs = tasks.register("copyLegalDocs", Copy::class) {
     description = "Copy legal documents into the docker image"
     from(rootProject.projectDir)
     into("build/legal")
     include("LICENSE")
 }
 
-val copyDockerfile = tasks.register("copyDockerfile", org.gradle.api.tasks.Copy::class) {
+val copyDockerfile = tasks.register("copyDockerfile", Copy::class) {
     description = "Copy the docker file into the build directory"
     from(rootProject.projectDir.toPath().resolve("launchers"))
     into(layout.buildDirectory.dir("resources").get().dir("docker"))
@@ -47,7 +47,7 @@ tasks.named("shadowJar") {
 tasks.register("dockerize", com.bmuschko.gradle.docker.tasks.image.DockerBuildImage::class) {
     dependsOn(tasks.named("shadowJar"), tasks.named("test"))
 
-    dockerFile.set(java.io.File("build/resources/docker/Dockerfile"))
+    dockerFile.set(File("build/resources/docker/Dockerfile"))
     images.add("${project.name}:${project.version}")
     images.add("${project.name}:latest")
 

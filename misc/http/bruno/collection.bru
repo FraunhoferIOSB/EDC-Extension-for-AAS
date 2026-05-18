@@ -12,36 +12,21 @@ auth:apikey {
   placement: header
 }
 vars:pre-request {
-  provider-api: {{proto}}://{{p-hostname}}:{{p-api}}/api
-  provider-management: {{proto}}://{{p-hostname}}:{{p-mgmt}}/management
-  provider-dsp: {{proto}}://{{p-hostname}}:{{p-dsp}}/dsp
-  provider-control: {{proto}}://{{p-hostname}}:{{p-control}}/control
-  provider-version: {{proto}}://{{p-hostname}}:{{p-version}}/version
-  consumer-api: {{proto}}://{{c-hostname}}:{{c-api}}/api
-  consumer-management: {{proto}}://{{c-hostname}}:{{c-mgmt}}/management
-  consumer-dsp: {{proto}}://{{c-hostname}}:{{c-dsp}}/dsp
-  consumer-control: {{proto}}://{{c-hostname}}:{{c-control}}/control
-  consumer-version: {{proto}}://{{c-hostname}}:{{c-version}}/version
-  : 
-  : 
-  : 
-  : 
+  provider-api: {{proto}}://{{p-hostname}}:8281/api
+  provider-management: {{proto}}://{{p-hostname}}:8182/management
+  provider-dsp: {{proto}}://{{p-hostname}}:8282/dsp
+  provider-control: {{proto}}://{{p-hostname}}:8181/control
+  provider-version: {{proto}}://{{p-hostname}}:8183/version
+  consumer-api: {{proto}}://{{c-hostname}}:9291/api
+  consumer-management: {{proto}}://{{c-hostname}}:9192/management
+  consumer-dsp: {{proto}}://{{c-hostname}}:9292/dsp
+  consumer-control: {{proto}}://{{c-hostname}}:9191/control
+  consumer-version: {{proto}}://{{c-hostname}}:9193/version
   proto: http
   p-hostname: localhost
   c-hostname: localhost
-  p-api: 8281
-  c-api: 9291
-  p-mgmt: 8182
-  c-mgmt: 9192
-  p-dsp: 8282
-  c-dsp: 9292
-  p-control: 8181
-  c-control: 9191
-  p-version: 8183
-  c-version: 9193
   standalone-api: 18281
   faaast: http://localhost:12345/api/v3.0
   faaast-selfsigned: https://localhost:443/api/v3.0
-  asset-id: 2009548268
-  agreement-id: 3e0d789a-3f5a-4223-8cae-128f21baea2e
+  asset-id: -585713211
 }

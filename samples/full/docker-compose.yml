@@ -1,6 +1,6 @@
 services:
   provider:
-    image: provider:2.3.0-SNAPSHOT-local
+    image: provider:latest
     ports:
       - "8080:8080"
       - "8181:8181"
@@ -13,7 +13,7 @@ services:
       - ../config/docker/edc:/configurations
       - ../resources:/resources
   consumer:
-    image: fraunhoferiosb/edc-extension4aas:latest
+    image: consumer:latest
     ports:
       - "9191:9191"
       - "9291:9291"

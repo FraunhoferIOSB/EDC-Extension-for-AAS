@@ -19,6 +19,7 @@ import de.fraunhofer.iosb.aas.lib.model.PolicyBinding;
 import de.fraunhofer.iosb.aas.lib.util.InetTools;
 import de.fraunhofer.iosb.ilt.faaast.service.util.ReferenceHelper;
 import de.fraunhofer.iosb.model.context.AasServerContext;
+import org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 
 import java.net.URI;
@@ -74,7 +75,8 @@ public abstract class AasRepositoryContext extends AasServerContext {
 
     @Override
     public boolean eligibleForRegistration(Reference reference) {
-        return policyBindings.isEmpty() || policyBindingIfPresent(reference).isPresent();
+        return (policyBindings.isEmpty() || policyBindingIfPresent(reference).isPresent()) &&
+                (ReferenceHelper.getEffectiveKeyType(reference) == KeyTypes.SUBMODEL || !isOnlySubmodels());
     }
 
 

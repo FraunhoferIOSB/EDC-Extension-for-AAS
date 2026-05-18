@@ -19,7 +19,8 @@ import de.fraunhofer.iosb.app.aas.mapper.util.FilteredJsonSerializer;
 import de.fraunhofer.iosb.app.handler.aas.AasHandler;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import de.fraunhofer.iosb.app.stores.repository.AasServerStore;
-import de.fraunhofer.iosb.client.exception.UnauthorizedException;
+import de.fraunhofer.iosb.ilt.faaast.client.exception.ConnectivityException;
+import de.fraunhofer.iosb.ilt.faaast.client.exception.StatusCodeException;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -30,7 +31,6 @@ import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.SerializationException;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
 import org.eclipse.edc.spi.monitor.Monitor;
 
-import java.net.ConnectException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -99,7 +99,7 @@ public class SelfDescriptionController {
             try {
                 selfDescriptions.add(handler.buildSelfDescription());
             }
-            catch (UnauthorizedException | ConnectException e) {
+            catch (StatusCodeException | ConnectivityException e) {
                 monitor.warning("Could not produce a self description", e);
             }
         }

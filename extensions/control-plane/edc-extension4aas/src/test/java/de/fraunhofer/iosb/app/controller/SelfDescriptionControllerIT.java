@@ -17,15 +17,14 @@ package de.fraunhofer.iosb.app.controller;
 
 import de.fraunhofer.iosb.app.handler.aas.repository.AasRepositoryHandler;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
-import de.fraunhofer.iosb.client.exception.UnauthorizedException;
+import de.fraunhofer.iosb.ilt.faaast.client.exception.ConnectivityException;
+import de.fraunhofer.iosb.ilt.faaast.client.exception.StatusCodeException;
 import de.fraunhofer.iosb.ilt.faaast.service.dataformat.SerializationException;
 import de.fraunhofer.iosb.ilt.faaast.service.model.exception.UnsupportedModifierException;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.DeserializationException;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.json.JsonDeserializer;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
 import org.junit.jupiter.api.Test;
-
-import java.net.ConnectException;
 
 import static de.fraunhofer.iosb.app.testutils.AasCreator.getEnvironment;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -37,7 +36,7 @@ public class SelfDescriptionControllerIT extends AbstractAasServerControllerIT<S
 
     @Test
     public void getSelfDescription_noExposedFields_shouldNotBeEmpty()
-            throws SerializationException, UnsupportedModifierException, UnauthorizedException, ConnectException, DeserializationException {
+            throws SerializationException, UnsupportedModifierException, DeserializationException, StatusCodeException, ConnectivityException {
         Environment environment = getEnvironment();
 
         mockResponse(METHOD.GET, "/shells", asPage(environment.getAssetAdministrationShells()), 200);
@@ -72,7 +71,8 @@ public class SelfDescriptionControllerIT extends AbstractAasServerControllerIT<S
 
     @Test
     public void getSelfDescription_specificExposedField_shouldContainField()
-            throws SerializationException, UnsupportedModifierException, UnauthorizedException, ConnectException, DeserializationException {
+            throws SerializationException, UnsupportedModifierException, DeserializationException, StatusCodeException,
+            ConnectivityException {
         Environment environment = getEnvironment();
 
         mockResponse(METHOD.GET, "/shells", asPage(environment.getAssetAdministrationShells()), 200);

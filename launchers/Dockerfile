@@ -2,7 +2,7 @@
 # $ docker build -t <launcher-name>:<version> launchers --build-arg PROJECT=<launcher-name>
 # Example:
 # $ docker build -t consumer:latest launchers --build-arg PROJECT=consumer
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:21-jre-alpine
 
 ARG PROJECT
 ARG ADDITIONAL_FILES

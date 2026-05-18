@@ -18,7 +18,6 @@ package de.fraunhofer.iosb.app.controller;
 import de.fraunhofer.iosb.app.executor.VariableRateScheduler;
 import de.fraunhofer.iosb.app.handler.edc.EdcStoreHandler;
 import de.fraunhofer.iosb.app.stores.repository.AasServerStore;
-import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.security.Vault;
@@ -27,7 +26,6 @@ import java.net.URI;
 
 
 public abstract class AbstractAasServerController {
-    protected static final String FAILURE_TEMPLATE = "Failed registering: %s";
     protected static final String CONNECT_EXCEPTION_TEMPLATE = "Could not connect to %s";
     protected static final String UNAUTHORIZED_EXCEPTION_TEMPLATE = "Not authorized to connect to %s";
     protected static final String NOT_FOUND_TEMPLATE = "%s not found in registered AAS servers.";
@@ -51,13 +49,6 @@ public abstract class AbstractAasServerController {
         this.vault = vault;
         this.oauth2Client = oauth2Client;
         this.scheduler.run();
-    }
-
-
-    protected Response badRequest(String template, URI uri) {
-        return Response.status(Response.Status.BAD_REQUEST)
-                .entity(String.format(String.format(FAILURE_TEMPLATE, template), uri))
-                .build();
     }
 
 

@@ -1,7 +1,7 @@
 meta {
   name: 2. Initiate Negotiation using ContractOffer
   type: http
-  seq: 5
+  seq: 2
 }
 
 post {
@@ -20,7 +20,7 @@ body:json {
 }
 
 vars:post-response {
-  agreement-id: res.body.agreementId
+  agreement-id: res.body.content.id
 }
 
 settings {

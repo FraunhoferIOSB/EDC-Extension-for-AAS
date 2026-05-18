@@ -15,7 +15,6 @@
  */
 package de.fraunhofer.iosb.client.policy;
 
-import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService;
@@ -69,7 +68,7 @@ class PolicyControllerTest {
 
         testSubject.addAcceptedPolicyDefinitions(offers);
 
-        assertEquals(mockPolicyDefinitionsAsList, testSubject.getAcceptedPolicyDefinitions().getEntity());
+        assertEquals(mockPolicyDefinitionsAsList, testSubject.getAcceptedPolicyDefinitions());
     }
 
 
@@ -89,13 +88,13 @@ class PolicyControllerTest {
         mockContractOfferAsList.add(mockUpdatedContractOffer); // ClientEndpoint creates ArrayList
         testSubject.updateAcceptedPolicyDefinition(mockUpdatedContractOffer);
 
-        assertEquals(mockContractOfferAsList, testSubject.getAcceptedPolicyDefinitions().getEntity());
+        assertEquals(mockContractOfferAsList, testSubject.getAcceptedPolicyDefinitions());
 
     }
 
 
     @Test
     public void getAcceptedContractOffersTest() {
-        assertEquals(Response.Status.OK.getStatusCode(), testSubject.getAcceptedPolicyDefinitions().getStatus());
+        testSubject.getAcceptedPolicyDefinitions();
     }
 }

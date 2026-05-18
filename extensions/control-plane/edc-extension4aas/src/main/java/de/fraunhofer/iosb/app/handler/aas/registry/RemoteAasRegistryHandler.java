@@ -18,8 +18,9 @@ package de.fraunhofer.iosb.app.handler.aas.registry;
 import de.fraunhofer.iosb.app.aas.mapper.util.AssetIdUtil;
 import de.fraunhofer.iosb.app.handler.aas.RemoteAasHandler;
 import de.fraunhofer.iosb.app.handler.edc.EdcStoreHandler;
-import de.fraunhofer.iosb.client.exception.UnauthorizedException;
 import de.fraunhofer.iosb.client.registry.AasRegistryClient;
+import de.fraunhofer.iosb.ilt.faaast.client.exception.ConnectivityException;
+import de.fraunhofer.iosb.ilt.faaast.client.exception.StatusCodeException;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.util.AasUtils;
 import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShell;
 import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShellDescriptor;
@@ -41,7 +42,6 @@ import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultSubmodelDescriptor;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.spi.monitor.Monitor;
 
-import java.net.ConnectException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -68,17 +68,16 @@ public class RemoteAasRegistryHandler extends RemoteAasHandler<AasRegistryClient
      * @param monitor Logging.
      * @param client Communication with AAS registry.
      * @param edcStoreHandler EDC API.
-     * @throws UnauthorizedException Initial communication with AAS registry failed due to being unauthorized.
-     * @throws ConnectException Initial communication with AAS registry failed due to a connection exception.
+     * @throws StatusCodeException Initial communication with AAS registry failed with code != 2xx.
+     * @throws ConnectivityException Initial communication with AAS registry failed due to a connection exception.
      */
-    public RemoteAasRegistryHandler(Monitor monitor, AasRegistryClient client, EdcStoreHandler edcStoreHandler) throws UnauthorizedException,
-            ConnectException {
+    public RemoteAasRegistryHandler(Monitor monitor, AasRegistryClient client, EdcStoreHandler edcStoreHandler) throws StatusCodeException, ConnectivityException {
         super(monitor, client, edcStoreHandler);
     }
 
 
     @Override
-    protected Environment getEnvironment() throws UnauthorizedException, ConnectException {
+    protected Environment getEnvironment() throws StatusCodeException, ConnectivityException {
         List<AssetAdministrationShell> shells = List.of();
         List<Submodel> submodels = List.of();
         try {
@@ -122,7 +121,7 @@ public class RemoteAasRegistryHandler extends RemoteAasHandler<AasRegistryClient
     }
 
 
-    private Map<URI, Submodel> getAllAsSubmodels() throws UnauthorizedException, ConnectException, NoEndpointException {
+    private Map<URI, Submodel> getAllAsSubmodels() throws StatusCodeException, ConnectivityException, NoEndpointException {
         List<DefaultSubmodelDescriptor> submodelDescriptors = new ArrayList<>(client.getSubmodelDescriptors());
 
         client.getShellDescriptors().stream()
@@ -154,7 +153,7 @@ public class RemoteAasRegistryHandler extends RemoteAasHandler<AasRegistryClient
     }
 
 
-    private Map<URI, AssetAdministrationShell> getAllAsShells() throws UnauthorizedException, ConnectException, NoEndpointException {
+    private Map<URI, AssetAdministrationShell> getAllAsShells() throws StatusCodeException, ConnectivityException, NoEndpointException {
         List<DefaultAssetAdministrationShellDescriptor> shellDescriptors = client.getShellDescriptors();
         Map<URI, AssetAdministrationShell> collect = new HashMap<>();
         for (var descriptor: shellDescriptors) {

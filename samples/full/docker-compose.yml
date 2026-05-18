@@ -1,6 +1,6 @@
 services:
   provider:
-    image: provider:2.3.0-SNAPSHOT-local
+    image: fraunhoferiosb/edc-extension4aas:latest
     ports:
       - "8080:8080"
       - "8181:8181"

@@ -25,10 +25,12 @@ import java.util.Optional;
 public abstract class AasRepositoryConfig<C> {
 
     protected final List<PolicyBinding> policyBindings;
+    protected final boolean onlySubmodels;
 
 
-    protected AasRepositoryConfig(List<PolicyBinding> policyBindings) {
+    protected AasRepositoryConfig(List<PolicyBinding> policyBindings, boolean onlySubmodels) {
         this.policyBindings = policyBindings;
+        this.onlySubmodels = onlySubmodels;
     }
 
 
@@ -40,9 +42,15 @@ public abstract class AasRepositoryConfig<C> {
     }
 
 
+    public boolean isOnlySubmodels() {
+        return onlySubmodels;
+    }
+
+
     protected abstract static class Builder<B extends Builder<B, C>, C extends AasRepositoryConfig<?>> {
         protected Path model;
         protected List<PolicyBinding> policyBindings;
+        protected boolean onlySubmodels;
 
 
         public abstract B self();
@@ -56,6 +64,12 @@ public abstract class AasRepositoryConfig<C> {
 
         public B policyBindings(List<PolicyBinding> policyBindings) {
             this.policyBindings = policyBindings;
+            return self();
+        }
+
+
+        public B onlySubmodels(boolean onlySubmodels) {
+            this.onlySubmodels = onlySubmodels;
             return self();
         }
 

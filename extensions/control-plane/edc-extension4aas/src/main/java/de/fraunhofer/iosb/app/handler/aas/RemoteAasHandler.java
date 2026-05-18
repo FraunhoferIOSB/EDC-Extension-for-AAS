@@ -21,13 +21,13 @@ import de.fraunhofer.iosb.app.handler.edc.EdcStoreHandler;
 import de.fraunhofer.iosb.app.handler.util.DiffHelper;
 import de.fraunhofer.iosb.app.handler.util.MappingHelper;
 import de.fraunhofer.iosb.client.AasServerClient;
-import de.fraunhofer.iosb.client.exception.UnauthorizedException;
+import de.fraunhofer.iosb.ilt.faaast.client.exception.ConnectivityException;
+import de.fraunhofer.iosb.ilt.faaast.client.exception.StatusCodeException;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.spi.monitor.Monitor;
 
-import java.net.ConnectException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -43,8 +43,7 @@ public abstract class RemoteAasHandler<C extends AasServerClient> extends AasHan
     protected final Map<PolicyBinding, Asset> registeredAssets;
 
 
-    protected RemoteAasHandler(Monitor monitor, C client, EdcStoreHandler edcStoreHandler) throws UnauthorizedException,
-            ConnectException {
+    protected RemoteAasHandler(Monitor monitor, C client, EdcStoreHandler edcStoreHandler) throws StatusCodeException, ConnectivityException {
         super(monitor, client, edcStoreHandler);
         registeredAssets = initialize();
     }
@@ -66,11 +65,11 @@ public abstract class RemoteAasHandler<C extends AasServerClient> extends AasHan
         try {
             currentEnvironment = getEnvironment();
         }
-        catch (UnauthorizedException e) {
-            monitor.warning(String.format("Unauthorized exception when connecting to %s", client.getUri()), e);
+        catch (StatusCodeException e) {
+            monitor.warning(String.format("StatusCodeException when connecting to %s", client.getUri()), e);
             return;
         }
-        catch (ConnectException e) {
+        catch (ConnectivityException e) {
             monitor.warning(String.format("Could not connect to %s", client.getUri()), e);
             return;
         }

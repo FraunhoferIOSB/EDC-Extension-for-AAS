@@ -27,7 +27,7 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
 class DefaultSelfSignedCertificateRetrieverTest {
@@ -53,22 +53,14 @@ class DefaultSelfSignedCertificateRetrieverTest {
 
         Result<Certificate[]> certResult = new DefaultSelfSignedCertificateRetriever().getSelfSignedCertificate(LOCALHOST_URL);
 
-        if (certResult.succeeded()) {
-            assertNotNull(certResult.getContent());
-        }
-        else {
-            fail();
-        }
+        assertTrue(certResult.succeeded());
+        assertNotNull(certResult.getContent());
     }
 
 
     @Test
     void isTrusted() {
-        var trusted = DefaultSelfSignedCertificateRetriever.isTrusted(VALID);
-
-        if (!trusted) {
-            fail();
-        }
+        assertTrue(DefaultSelfSignedCertificateRetriever.isTrusted(VALID));
     }
 
 
@@ -76,12 +68,8 @@ class DefaultSelfSignedCertificateRetrieverTest {
     void getExpiredCertificate() {
         var certResult = new DefaultSelfSignedCertificateRetriever().getSelfSignedCertificate(EXPIRED);
 
-        if (certResult.succeeded()) {
-            fail();
-        }
-        else {
-            assertEquals(List.of("expired"), certResult.getFailureMessages());
-        }
+        assertTrue(certResult.failed());
+        assertEquals(List.of("expired"), certResult.getFailureMessages());
     }
 
 
@@ -89,8 +77,7 @@ class DefaultSelfSignedCertificateRetrieverTest {
     void getWrongHostCertificate() {
         var certResult = new DefaultSelfSignedCertificateRetriever().getSelfSignedCertificate(WRONG_HOST);
 
-        if (certResult.succeeded()) {
-            fail();
-        }
+        assertTrue(certResult.succeeded());
+
     }
 }

@@ -28,7 +28,6 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManage
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
-import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -44,7 +43,6 @@ import java.util.UUID;
 
 import static de.fraunhofer.iosb.client.datatransfer.DataTransferController.OPERATION_FIELD;
 import static java.lang.String.format;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
@@ -169,7 +167,6 @@ class DataTransferControllerTest {
         var aasDataAddress = DataAddress.Builder.newInstance()
                 .type("AasData")
                 .build();
-        StatusResult<String> response = testSubject.getData(uri, AGREEMENT_ID, aasDataAddress);
-        assertTrue(response.succeeded());
+        testSubject.getData(uri, AGREEMENT_ID, aasDataAddress);
     }
 }

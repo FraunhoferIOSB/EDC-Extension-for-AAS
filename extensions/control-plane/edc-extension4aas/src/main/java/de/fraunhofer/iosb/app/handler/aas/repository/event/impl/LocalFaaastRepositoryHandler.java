@@ -19,15 +19,15 @@ import de.fraunhofer.iosb.aas.lib.model.PolicyBinding;
 import de.fraunhofer.iosb.app.aas.mapper.util.AssetIdUtil;
 import de.fraunhofer.iosb.app.handler.aas.repository.event.EventDrivenRepositoryHandler;
 import de.fraunhofer.iosb.app.handler.edc.EdcStoreHandler;
-import de.fraunhofer.iosb.client.exception.UnauthorizedException;
 import de.fraunhofer.iosb.client.repository.local.event.EventTypes;
 import de.fraunhofer.iosb.client.repository.local.impl.LocalFaaastRepositoryClient;
+import de.fraunhofer.iosb.ilt.faaast.client.exception.ConnectivityException;
+import de.fraunhofer.iosb.ilt.faaast.client.exception.StatusCodeException;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.StoreResult;
 
-import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -49,11 +49,10 @@ public class LocalFaaastRepositoryHandler extends EventDrivenRepositoryHandler<L
      * @param monitor Logging.
      * @param client Handles connections to the FA³ST service.
      * @param edcStoreHandler API to the EDC's management stores.
-     * @throws UnauthorizedException Initial connection to the FA³ST service failed due to being unauthorized.
-     * @throws ConnectException Initial connection to the FA³ST service failed due to connection issues (should not happen as we directly connect to FA³STs persistence).
+     * @throws StatusCodeException Initial connection to the FA³ST service failed with status code != 2xx.
+     * @throws ConnectivityException Initial connection to the FA³ST service failed due to connection issues.
      */
-    public LocalFaaastRepositoryHandler(Monitor monitor, LocalFaaastRepositoryClient client, EdcStoreHandler edcStoreHandler) throws UnauthorizedException,
-            ConnectException {
+    public LocalFaaastRepositoryHandler(Monitor monitor, LocalFaaastRepositoryClient client, EdcStoreHandler edcStoreHandler) throws StatusCodeException, ConnectivityException {
         super(monitor, client, edcStoreHandler);
         initialize();
     }

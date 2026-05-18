@@ -17,7 +17,8 @@ package de.fraunhofer.iosb.app.controller;
 
 import de.fraunhofer.iosb.app.controller.dto.RemoteAasRepositoryContextDTO;
 import de.fraunhofer.iosb.app.handler.edc.EdcStoreHandler;
-import de.fraunhofer.iosb.client.exception.UnauthorizedException;
+import de.fraunhofer.iosb.ilt.faaast.client.exception.ConnectivityException;
+import de.fraunhofer.iosb.ilt.faaast.client.exception.StatusCodeException;
 import de.fraunhofer.iosb.ilt.faaast.service.dataformat.SerializationException;
 import de.fraunhofer.iosb.ilt.faaast.service.model.exception.UnsupportedModifierException;
 import jakarta.ws.rs.WebApplicationException;
@@ -28,8 +29,6 @@ import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
-import java.net.ConnectException;
 import java.net.URI;
 
 import static de.fraunhofer.iosb.app.testutils.AasCreator.getEmptyEnvironment;
@@ -51,8 +50,7 @@ public class RepositoryControllerIT extends AbstractAasServerControllerIT<Reposi
 
 
     @Test
-    void test_registerRepository_emptyEnvironmentNoFailure() throws SerializationException, UnsupportedModifierException, UnauthorizedException,
-            ConnectException {
+    void test_registerRepository_emptyEnvironmentNoFailure() throws SerializationException, UnsupportedModifierException, StatusCodeException, ConnectivityException {
         mockEmptyShellRequest();
         mockEmptySubmodelRequest();
         mockEmptyConceptDescriptionRequest();
@@ -74,8 +72,7 @@ public class RepositoryControllerIT extends AbstractAasServerControllerIT<Reposi
 
     @SuppressWarnings("resource")
     @Test
-    void test_registerRepository_filledEnvironmentAllRegistered() throws UnauthorizedException,
-            ConnectException, SerializationException, UnsupportedModifierException {
+    void test_registerRepository_filledEnvironmentAllRegistered() throws SerializationException, UnsupportedModifierException, StatusCodeException, ConnectivityException {
         Environment environment = getEnvironment();
 
         mockResponse(METHOD.GET, "/shells", asPage(environment.getAssetAdministrationShells()), 200);
@@ -101,8 +98,7 @@ public class RepositoryControllerIT extends AbstractAasServerControllerIT<Reposi
 
 
     @Test
-    void test_registerRepository_emtpyEnvironmentNoFault() throws UnauthorizedException,
-            IOException, SerializationException, UnsupportedModifierException {
+    void test_registerRepository_emtpyEnvironmentNoFault() throws SerializationException, UnsupportedModifierException, StatusCodeException, ConnectivityException {
         Environment environment = getEmptyEnvironment();
 
         mockResponse(METHOD.GET, "/environment", getEmptyEnvironment(), 200);

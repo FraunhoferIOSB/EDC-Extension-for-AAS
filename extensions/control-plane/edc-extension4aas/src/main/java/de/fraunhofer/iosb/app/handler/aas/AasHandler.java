@@ -23,7 +23,8 @@ import de.fraunhofer.iosb.app.handler.aas.util.EnvironmentVisitor;
 import de.fraunhofer.iosb.app.handler.edc.EdcStoreHandler;
 import de.fraunhofer.iosb.app.handler.util.MappingHelper;
 import de.fraunhofer.iosb.client.AasServerClient;
-import de.fraunhofer.iosb.client.exception.UnauthorizedException;
+import de.fraunhofer.iosb.ilt.faaast.client.exception.ConnectivityException;
+import de.fraunhofer.iosb.ilt.faaast.client.exception.StatusCodeException;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.util.AasUtils;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
 import org.eclipse.digitaltwin.aas4j.v3.model.Extension;
@@ -40,7 +41,6 @@ import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.StoreFailure;
 import org.eclipse.edc.spi.result.StoreResult;
 
-import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -79,10 +79,10 @@ public abstract class AasHandler<C extends AasServerClient> {
      * data space consumers to get the necessary information to negotiate the data represented by an AAS element.
      *
      * @return The self-description (An AAS Environment with EDC information added as AAS.Extensions using the HasExtension property of an AAS referable).
-     * @throws UnauthorizedException A call to the AAS was returned with a Status code of 401 or 403.
-     * @throws ConnectException A connection to the underlying AAS was unsuccessful.
+     * @throws StatusCodeException A call to the AAS was returned with a Status code != 2xx.
+     * @throws ConnectivityException A connection to the underlying AAS was unsuccessful.
      */
-    public final Environment buildSelfDescription() throws UnauthorizedException, ConnectException {
+    public final Environment buildSelfDescription() throws StatusCodeException, ConnectivityException {
         Consumer<Identifiable> identifiableVisitor = getSelfDescriptionIdentifiableMapper();
         Predicate<Identifiable> identifiableFilter = identifiable -> {
             if (client.eligibleForRegistration(AasUtils.toReference(identifiable))) {
@@ -124,10 +124,10 @@ public abstract class AasHandler<C extends AasServerClient> {
      * environment.
      *
      * @return The environment representing this AAS server
-     * @throws UnauthorizedException A call to the AAS was returned with a Status code of 401 or 403.
-     * @throws ConnectException A connection to the underlying AAS was unsuccessful.
+     * @throws StatusCodeException A call to the AAS was returned with a Status code != 2xx.
+     * @throws ConnectivityException A connection to the underlying AAS was unsuccessful.
      */
-    protected abstract Environment getEnvironment() throws UnauthorizedException, ConnectException;
+    protected abstract Environment getEnvironment() throws ConnectivityException, StatusCodeException;
 
 
     /* Override this if your implementation stores which assets are currently registered. */
@@ -136,7 +136,7 @@ public abstract class AasHandler<C extends AasServerClient> {
         try {
             currentEnvironment = getEnvironment();
         }
-        catch (UnauthorizedException | ConnectException e) {
+        catch (StatusCodeException | ConnectivityException e) {
             throw new RuntimeException(e);
         }
 
@@ -150,7 +150,7 @@ public abstract class AasHandler<C extends AasServerClient> {
 
 
     /* Initial population of EDC stores. */
-    protected Map<PolicyBinding, Asset> initialize() throws UnauthorizedException, ConnectException {
+    protected Map<PolicyBinding, Asset> initialize() throws StatusCodeException, ConnectivityException {
         Environment currentEnvironment = getEnvironment();
 
         Map<Reference, Asset> mapped = MappingHelper.map(currentEnvironment, identifiableMapper::map, submodelElementMapper::map);

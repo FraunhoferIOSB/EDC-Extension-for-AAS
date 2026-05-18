@@ -17,11 +17,10 @@ package de.fraunhofer.iosb.client.repository;
 
 import de.fraunhofer.iosb.aas.lib.model.PolicyBinding;
 import de.fraunhofer.iosb.client.AasServerClient;
-import de.fraunhofer.iosb.client.exception.UnauthorizedException;
+import de.fraunhofer.iosb.ilt.faaast.client.exception.ConnectivityException;
+import de.fraunhofer.iosb.ilt.faaast.client.exception.StatusCodeException;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
-
-import java.net.ConnectException;
 
 
 /**
@@ -33,10 +32,10 @@ public interface AasRepositoryClient extends AasServerClient {
      * Return the environment that is stored with the AAS repository.
      *
      * @return Environment of AAS repository.
-     * @throws ConnectException Connection to the repository failed.
-     * @throws UnauthorizedException Not authorized to access resources of the repository.
+     * @throws ConnectivityException Connection to the repository failed.
+     * @throws StatusCodeException Any status code other than 2xx coming from the repository.
      */
-    Environment getEnvironment() throws ConnectException, UnauthorizedException;
+    Environment getEnvironment() throws StatusCodeException, ConnectivityException;
 
 
     /**

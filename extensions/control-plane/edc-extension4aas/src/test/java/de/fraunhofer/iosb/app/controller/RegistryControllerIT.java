@@ -19,7 +19,8 @@ import de.fraunhofer.iosb.app.controller.dto.AasRegistryContextDTO;
 import de.fraunhofer.iosb.app.handler.aas.registry.RemoteAasRegistryHandler;
 import de.fraunhofer.iosb.app.handler.edc.EdcStoreHandler;
 import de.fraunhofer.iosb.app.testutils.MockServerTestExtension;
-import de.fraunhofer.iosb.client.exception.UnauthorizedException;
+import de.fraunhofer.iosb.ilt.faaast.client.exception.ConnectivityException;
+import de.fraunhofer.iosb.ilt.faaast.client.exception.StatusCodeException;
 import de.fraunhofer.iosb.ilt.faaast.service.dataformat.SerializationException;
 import de.fraunhofer.iosb.ilt.faaast.service.model.exception.UnsupportedModifierException;
 import jakarta.ws.rs.WebApplicationException;
@@ -28,7 +29,6 @@ import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
 import org.eclipse.edc.spi.security.Vault;
 import org.junit.jupiter.api.Test;
 
-import java.net.ConnectException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
@@ -53,7 +53,8 @@ public class RegistryControllerIT extends AbstractAasServerControllerIT<Registry
 
     @Test
     void test_register_singleShellDescriptorIncludingASubmodelDescriptor()
-            throws UnauthorizedException, ConnectException, UnsupportedModifierException, de.fraunhofer.iosb.ilt.faaast.service.dataformat.SerializationException {
+            throws UnsupportedModifierException, de.fraunhofer.iosb.ilt.faaast.service.dataformat.SerializationException,
+            StatusCodeException, ConnectivityException {
         AssetAdministrationShellDescriptor shellDescriptor = getShellDescriptor();
 
         mockResponse(MockServerTestExtension.METHOD.GET, String.format("/%s", "shell-descriptors"), asPage(List.of(shellDescriptor)), 200);
@@ -78,7 +79,7 @@ public class RegistryControllerIT extends AbstractAasServerControllerIT<Registry
 
 
     @Test
-    void test_register_emptyDescriptorResponseNoFault() throws SerializationException, UnsupportedModifierException, UnauthorizedException, ConnectException {
+    void test_register_emptyDescriptorResponseNoFault() throws SerializationException, UnsupportedModifierException, StatusCodeException, ConnectivityException {
         mockEmptyShellDescriptorRequest();
         mockEmptySubmodelDescriptorRequest();
 

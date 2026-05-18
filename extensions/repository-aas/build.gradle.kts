@@ -6,7 +6,7 @@ dependencies {
     implementation(libs.edc.boot.spi)
     implementation(project(":extensions:common:aas-lib")) // Ping Host for availability
 
-    implementation(libs.fa3st.client)
+    api(libs.fa3st.client)
     implementation(libs.fa3st.starter)
     implementation(libs.edc.util.lib)
 

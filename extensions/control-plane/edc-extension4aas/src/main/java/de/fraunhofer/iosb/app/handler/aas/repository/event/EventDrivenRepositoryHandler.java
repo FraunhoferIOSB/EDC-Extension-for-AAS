@@ -18,14 +18,14 @@ package de.fraunhofer.iosb.app.handler.aas.repository.event;
 import de.fraunhofer.iosb.aas.lib.model.PolicyBinding;
 import de.fraunhofer.iosb.app.handler.aas.repository.AasRepositoryHandler;
 import de.fraunhofer.iosb.app.handler.edc.EdcStoreHandler;
-import de.fraunhofer.iosb.client.exception.UnauthorizedException;
 import de.fraunhofer.iosb.client.repository.local.LocalAasRepositoryClient;
+import de.fraunhofer.iosb.ilt.faaast.client.exception.ConnectivityException;
+import de.fraunhofer.iosb.ilt.faaast.client.exception.StatusCodeException;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.StoreResult;
 
-import java.net.ConnectException;
 import java.util.Map;
 import java.util.function.BiFunction;
 
@@ -43,7 +43,7 @@ public abstract class EventDrivenRepositoryHandler<C extends LocalAasRepositoryC
 
 
     @Override
-    public Map<PolicyBinding, Asset> initialize() throws UnauthorizedException, ConnectException {
+    public Map<PolicyBinding, Asset> initialize() throws StatusCodeException, ConnectivityException {
         var map = super.initialize();
         subscribe();
         return map;

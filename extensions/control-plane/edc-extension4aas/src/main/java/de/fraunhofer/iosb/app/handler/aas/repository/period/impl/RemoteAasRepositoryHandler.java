@@ -17,12 +17,11 @@ package de.fraunhofer.iosb.app.handler.aas.repository.period.impl;
 
 import de.fraunhofer.iosb.app.handler.aas.RemoteAasHandler;
 import de.fraunhofer.iosb.app.handler.edc.EdcStoreHandler;
-import de.fraunhofer.iosb.client.exception.UnauthorizedException;
 import de.fraunhofer.iosb.client.repository.remote.impl.RemoteAasRepositoryClient;
+import de.fraunhofer.iosb.ilt.faaast.client.exception.ConnectivityException;
+import de.fraunhofer.iosb.ilt.faaast.client.exception.StatusCodeException;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
 import org.eclipse.edc.spi.monitor.Monitor;
-
-import java.net.ConnectException;
 
 
 /**
@@ -37,17 +36,17 @@ public class RemoteAasRepositoryHandler extends RemoteAasHandler<RemoteAasReposi
      * @param monitor Log messages.
      * @param client Client to communicate with remote AAS repository.
      * @param edcStoreHandler Keep EDC stores up-to-date
-     * @throws UnauthorizedException Initial connection to the repository failed due to unauthorized error.
-     * @throws ConnectException Initial connection to the repository failed due to connection error.
+     * @throws StatusCodeException Initial connection to the repository failed due to unauthorized error.
+     * @throws ConnectivityException Initial connection to the repository failed due to connection error.
      */
-    public RemoteAasRepositoryHandler(Monitor monitor, RemoteAasRepositoryClient client, EdcStoreHandler edcStoreHandler) throws UnauthorizedException,
-            ConnectException {
+    public RemoteAasRepositoryHandler(Monitor monitor, RemoteAasRepositoryClient client, EdcStoreHandler edcStoreHandler) throws StatusCodeException,
+            ConnectivityException {
         super(monitor, client, edcStoreHandler);
     }
 
 
     @Override
-    protected Environment getEnvironment() throws UnauthorizedException, ConnectException {
+    protected Environment getEnvironment() throws StatusCodeException, ConnectivityException {
         return client.getEnvironment();
     }
 }

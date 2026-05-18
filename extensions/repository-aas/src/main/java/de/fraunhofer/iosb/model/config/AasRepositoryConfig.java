@@ -41,6 +41,7 @@ public abstract class AasRepositoryConfig<C> {
         return policyBindings;
     }
 
+
     public boolean isOnlySubmodels() {
         return onlySubmodels;
     }

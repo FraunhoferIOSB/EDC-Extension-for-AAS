@@ -9,10 +9,11 @@ Running this example requires an installation of JDK, a docker engine and docker
 
 The material for this example can be found here:
 
-- `samples/config`: contains configuration files for different connectors (needed here: `provider.properties`, `consumer.properties`)
+- `samples/config`: contains configuration files for different connectors (needed here: `provider.properties`,
+  `consumer.properties`)
 - `samples/resources`: contains two example AAS files ('aas_v3_example_full_aas4j.json' and 'aas_model_v3.aasx') and an
   example config file ('exampleConfig.json') for the used AAS service (FA³ST). Additionally, there is a bruno
-  collection which can be used for requesting the consumer connector under `misc/http`. Lastly, there is a JSON with 
+  collection which can be used for requesting the consumer connector under `misc/http`. Lastly, there is a JSON with
   accepted contract offers for the client connector and a keystore for HTTPS use-cases
 - `samples/full/docker-compose.yml`: Docker compose file for running the example
 
@@ -67,22 +68,30 @@ java -Dedc.fs.config=./samples/config/consumer.properties -jar ./launchers/consu
 
 Using the bruno collection in `misc/http`, complete the following steps:
 
-1. Call the provider's self-description (bruno: `AAS Extension/discovery/SelfDescription` or 
+1. Call the provider's self-description (bruno: `AAS Extension/discovery/SelfDescription` or
    `http://localhost:8281/api/selfDescription` in your browser) and choose an element you want to transfer. Put its
-   EDC Asset Identifier (see below) as a variable in the bruno collection's variables section ("asset-id"). 
+   EDC Asset Identifier (see below) as a variable in the bruno collection's variables section ("asset-id").
    Below is an example of a registered submodel within a self-description.
 
 ```json
 {
-  "submodels" : [ {
-    "modelType" : "Submodel",
-    "extensions" : [ {
-      "name" : "https://w3id.org/edc/v0.0.1/ns/id",
-      "value" : "-585713211" <-- EDC Asset ID
-    } ],
-    "id" : "https://example.com/ids/sm/5213_1120_8022_9305",
-    "idShort" : "ControlComponentInstance"
-  } ]
+  "submodels": [
+    {
+      "modelType": "Submodel",
+      "extensions": [
+        {
+          "name": "https://w3id.org/edc/v0.0.1/ns/id",
+          "value": "-585713211"
+          <--
+          EDC
+          Asset
+          ID
+        }
+      ],
+      "id": "https://example.com/ids/sm/5213_1120_8022_9305",
+      "idShort": "ControlComponentInstance"
+    }
+  ]
 }
 ```
 
@@ -102,7 +111,8 @@ __Important__:
   request `EDC API/GET catalog`, policyDefinitions for all assets of the provider can be viewed and added to the
   consumer connector).
 
-1. Execute the request `Client/automated/Negotiation+Transfer`. The consumer connector will now try to negotiate a contract with
+1. Execute the request `Client/automated/Negotiation+Transfer`. The consumer connector will now try to negotiate a
+   contract with
    the provider to get the data of the selected asset. Optionally, you can provide a target address via the request
    body, where the data should be sent. If you just want to view the data, change the request body to "none". This must
    be a JSON representation of an EDC DataAddress like for example an AasDataAddress:
@@ -131,5 +141,5 @@ __Important__:
 3. Execute the request `2. Initiate Negotiation using ContractOffer`.
    This will negotiate a contract agreement with the provider EDC and return the agreement id used in the next step.
 
-4. Execute request `3. Get Data`. The client extension will then get the AAS data behind the EDC Asset. It will be 
+4. Execute request `3. Get Data`. The client extension will then get the AAS data behind the EDC Asset. It will be
    returned as the HTTP response.

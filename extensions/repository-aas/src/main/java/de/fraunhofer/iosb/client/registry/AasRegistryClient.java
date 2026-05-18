@@ -20,10 +20,7 @@ import de.fraunhofer.iosb.aas.lib.auth.impl.BasicAuth;
 import de.fraunhofer.iosb.aas.lib.auth.impl.BearerAuth;
 import de.fraunhofer.iosb.aas.lib.util.InetTools;
 import de.fraunhofer.iosb.client.AasServerClient;
-import de.fraunhofer.iosb.client.exception.UnauthorizedException;
 import de.fraunhofer.iosb.ilt.faaast.client.exception.ConnectivityException;
-import de.fraunhofer.iosb.ilt.faaast.client.exception.ForbiddenException;
-import de.fraunhofer.iosb.ilt.faaast.client.exception.MethodNotAllowedException;
 import de.fraunhofer.iosb.ilt.faaast.client.exception.StatusCodeException;
 import de.fraunhofer.iosb.ilt.faaast.client.interfaces.AASRegistryInterface;
 import de.fraunhofer.iosb.ilt.faaast.client.interfaces.SubmodelRegistryInterface;
@@ -33,7 +30,6 @@ import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultAssetAdministrationShe
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultSubmodelDescriptor;
 import org.eclipse.edc.spi.security.Vault;
 
-import java.net.ConnectException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.util.List;
@@ -116,23 +112,11 @@ public class AasRegistryClient implements AasServerClient {
      * Get all AAS descriptors published by the registry.
      *
      * @return List of AAS descriptors as published by the registry.
-     * @throws UnauthorizedException A call to this registry was unauthorized.
-     * @throws ConnectException A call to this registry was not possible due to a connection issue.
+     * @throws StatusCodeException A call to this registry failed with status code != 2xx.
+     * @throws ConnectivityException A call to this registry was not possible due to a connection issue.
      */
-    public List<DefaultAssetAdministrationShellDescriptor> getShellDescriptors() throws UnauthorizedException, ConnectException {
-        try {
-            return aasRegistryInterface.getAll();
-        }
-        catch (ForbiddenException | de.fraunhofer.iosb.ilt.faaast.client.exception.UnauthorizedException |
-                MethodNotAllowedException unauthorizedException) {
-            throw new UnauthorizedException(unauthorizedException);
-        }
-        catch (ConnectivityException | de.fraunhofer.iosb.ilt.faaast.client.exception.NotFoundException e) {
-            throw new ConnectException(e.getMessage());
-        }
-        catch (StatusCodeException e) {
-            throw new RuntimeException(e);
-        }
+    public List<DefaultAssetAdministrationShellDescriptor> getShellDescriptors() throws StatusCodeException, ConnectivityException {
+        return aasRegistryInterface.getAll();
     }
 
 
@@ -140,23 +124,12 @@ public class AasRegistryClient implements AasServerClient {
      * Get all submodel descriptors published by the registry.
      *
      * @return List of submodel descriptors as published by the registry.
-     * @throws UnauthorizedException A call to this registry was unauthorized.
-     * @throws ConnectException A call to this registry was not possible due to a connection issue.
+     * @throws StatusCodeException A call to this registry failed with status code != 2xx.
+     * @throws ConnectivityException A call to this registry was not possible due to a connection issue.
      */
-    public List<DefaultSubmodelDescriptor> getSubmodelDescriptors() throws UnauthorizedException, ConnectException {
-        try {
-            return submodelRegistryInterface.getAll();
-        }
-        catch (ForbiddenException | de.fraunhofer.iosb.ilt.faaast.client.exception.UnauthorizedException |
-                MethodNotAllowedException unauthorizedException) {
-            throw new UnauthorizedException(unauthorizedException);
-        }
-        catch (ConnectivityException e) {
-            throw new ConnectException(e.getMessage());
-        }
-        catch (StatusCodeException e) {
-            throw new RuntimeException(e);
-        }
+    public List<DefaultSubmodelDescriptor> getSubmodelDescriptors() throws StatusCodeException, ConnectivityException {
+        return submodelRegistryInterface.getAll();
+
     }
 
 

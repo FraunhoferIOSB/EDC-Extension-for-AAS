@@ -45,6 +45,7 @@ public abstract class AbstractControlPlaneConnectionHandlerTest {
     protected Codec mockCodec = mock(Codec.class);
     protected Vault vault = new InMemoryVault(monitor);
 
+
     @AfterAll
     static void tearDownAll() {
         server.shutdownServer();

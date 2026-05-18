@@ -15,6 +15,7 @@
  */
 package de.fraunhofer.iosb.client;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import de.fraunhofer.iosb.client.datatransfer.DataTransferController;
 import de.fraunhofer.iosb.client.negotiation.NegotiationController;
 import de.fraunhofer.iosb.client.policy.PolicyController;
@@ -26,7 +27,6 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.Con
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
@@ -76,10 +76,10 @@ public class ClientEndpoint {
      */
     @POST
     @Path(NEGOTIATE_PATH)
-    public StatusResult<String> negotiateContract(@QueryParam("providerUrl") URI counterPartyUri,
-                                                  @QueryParam("providerId") String counterPartyId,
-                                                  @QueryParam("assetId") String assetId,
-                                                  DataAddress dataAddress) {
+    public JsonNode negotiateContract(@QueryParam("providerUrl") URI counterPartyUri,
+                                      @QueryParam("providerId") String counterPartyId,
+                                      @QueryParam("assetId") String assetId,
+                                      DataAddress dataAddress) {
         monitor.info("POST /%s".formatted(NEGOTIATE_PATH));
         if (counterPartyUri == null || counterPartyId == null || assetId == null ||
                 assetId.isEmpty()) {

@@ -55,13 +55,13 @@ Build the EDC with the extensions.
 Start the provider connector:
 
 ```sh
-java -Dedc.fs.config=./samples/config/provider-https.properties -jar ./launchers/provider/build/libs/provider.jar
+java "-Dedc.fs.config=./samples/config/provider.properties" -jar ./launchers/provider/build/libs/provider.jar
 ```
 
 Start the consumer connector:
 
 ```sh
-java -Dedc.fs.config=./samples/config/consumer.properties -jar ./launchers/consumer/build/libs/consumer.jar
+java "-Dedc.fs.config=./samples/config/consumer.properties" -jar ./launchers/consumer/build/libs/consumer.jar
 ```
 
 ### Starting the data transfer from provider to consumer
@@ -81,11 +81,7 @@ Using the bruno collection in `misc/http`, complete the following steps:
       "extensions": [
         {
           "name": "https://w3id.org/edc/v0.0.1/ns/id",
-          "value": "-585713211"
-          <--
-          EDC
-          Asset
-          ID
+          "value": "-585713211" <-- EDC Asset ID
         }
       ],
       "id": "https://example.com/ids/sm/5213_1120_8022_9305",

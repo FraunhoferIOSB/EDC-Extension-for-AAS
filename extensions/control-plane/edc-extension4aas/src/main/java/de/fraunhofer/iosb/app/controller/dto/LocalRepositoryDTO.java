@@ -30,15 +30,21 @@ import java.util.Objects;
  * @param configPath Path to configuration for the AAS server (optional, default: no configuration/defaults).
  * @param policyBindings List of {@link PolicyBinding}. If defined, only elements referred by the policyBindings are registered (optional, default: no custom
  *         PolicyBindings, register all elements).
+ * @param onlySubmodels If true, only register submodels. Default: true
  */
-public record LocalRepositoryDTO(String modelPath, Integer port, String configPath, List<PolicyBinding> policyBindings) {
+public record LocalRepositoryDTO(String modelPath, Integer port, String configPath, List<PolicyBinding> policyBindings, boolean onlySubmodels) {
     public LocalRepositoryDTO {
         policyBindings = Objects.requireNonNullElse(policyBindings, List.of());
     }
 
 
+    public LocalRepositoryDTO(String modelPath, Integer port, String configPath, List<PolicyBinding> policyBindings) {
+        this(modelPath, port, configPath, policyBindings, true);
+    }
+
+
     public LocalRepositoryDTO(String modelPath, Integer port, String configPath) {
-        this(modelPath, port, configPath, List.of());
+        this(modelPath, port, configPath, List.of(), true);
     }
 
 
@@ -48,6 +54,7 @@ public record LocalRepositoryDTO(String modelPath, Integer port, String configPa
                 .port(port())
                 .configPath(configPath())
                 .policyBindings(policyBindings())
+                .onlySubmodels(onlySubmodels())
                 .build();
     }
 }

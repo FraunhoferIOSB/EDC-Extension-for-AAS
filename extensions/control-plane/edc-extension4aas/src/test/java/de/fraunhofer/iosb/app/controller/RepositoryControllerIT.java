@@ -21,12 +21,12 @@ import de.fraunhofer.iosb.ilt.faaast.client.exception.ConnectivityException;
 import de.fraunhofer.iosb.ilt.faaast.client.exception.StatusCodeException;
 import de.fraunhofer.iosb.ilt.faaast.service.dataformat.SerializationException;
 import de.fraunhofer.iosb.ilt.faaast.service.model.exception.UnsupportedModifierException;
-import jakarta.ws.rs.WebApplicationException;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
+import org.eclipse.edc.web.spi.exception.BadGatewayException;
 import org.junit.jupiter.api.Test;
 
 import java.net.URI;
@@ -35,8 +35,8 @@ import static de.fraunhofer.iosb.app.testutils.AasCreator.getEmptyEnvironment;
 import static de.fraunhofer.iosb.app.testutils.AasCreator.getEnvironment;
 import static de.fraunhofer.iosb.constants.AasConstants.EDC_SETTINGS_PREFIX;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 
 
@@ -126,12 +126,7 @@ public class RepositoryControllerIT extends AbstractAasServerControllerIT<Reposi
 
     @Test
     void test_registerRepository_emtpyEnvironment_shouldThrow() {
-        try {
-            testSubject.register(new RemoteAasRepositoryContextDTO(URI.create("https://locaIhost:65432/")));
-            fail();
-        }
-        catch (WebApplicationException expected) {
-        }
+        assertThrows(BadGatewayException.class, () -> testSubject.register(new RemoteAasRepositoryContextDTO(URI.create("https://locaIhost:65432/"))));
     }
 
 

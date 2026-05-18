@@ -27,6 +27,7 @@ import jakarta.ws.rs.WebApplicationException;
 import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShellDescriptor;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
 import org.eclipse.edc.spi.security.Vault;
+import org.eclipse.edc.web.spi.exception.BadGatewayException;
 import org.junit.jupiter.api.Test;
 
 import java.net.URI;
@@ -38,6 +39,7 @@ import static de.fraunhofer.iosb.app.testutils.RegistryElementCreator.asSubmodel
 import static de.fraunhofer.iosb.app.testutils.RegistryElementCreator.getShellDescriptor;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
@@ -108,12 +110,7 @@ public class RegistryControllerIT extends AbstractAasServerControllerIT<Registry
             throw new RuntimeException(e);
         }
 
-        try {
-            testSubject.register(new AasRegistryContextDTO(uri));
-            fail();
-        }
-        catch (WebApplicationException expected) {
-        }
+        assertThrows(BadGatewayException.class, () -> testSubject.register(new AasRegistryContextDTO(uri)));
     }
 
 

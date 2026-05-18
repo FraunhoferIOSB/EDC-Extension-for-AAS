@@ -26,10 +26,10 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
@@ -37,6 +37,7 @@ import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.web.spi.WebService;
+import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 
 import java.net.URI;
 import java.util.Objects;
@@ -114,25 +115,19 @@ public class DataTransferController {
      */
     @POST
     @Path(TRANSFER_PATH)
-    public Response getData(@QueryParam("providerUrl") URI providerUrl,
-                            @QueryParam("agreementId") String agreementId,
-                            DataAddress dataAddress) {
+    public StatusResult<String> getData(@QueryParam("providerUrl") URI providerUrl,
+                                        @QueryParam("agreementId") String agreementId,
+                                        DataAddress dataAddress) {
         monitor.info("POST /%s".formatted(TRANSFER_PATH));
         if (providerUrl == null || agreementId == null) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(MISSING_QUERY_PARAMETER_MESSAGE.formatted("providerUrl, agreementId"))
-                    .build();
+            throw new InvalidRequestException(MISSING_QUERY_PARAMETER_MESSAGE.formatted("providerUrl, agreementId"));
         }
         monitor.debug("providerUrl: %s".formatted(providerUrl.toString()));
         monitor.debug("agreementId: %s".formatted(agreementId));
 
         try {
             if (dataAddress == null) {
-                var tpResult = initiateTransferProcess(providerUrl, agreementId);
-                return tpResult.succeeded() ? Response.ok(tpResult.getContent()).build() :
-                        Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                                .entity(tpResult.getFailureDetail())
-                                .build();
+                return initiateTransferProcess(providerUrl, agreementId);
             }
 
             var op = dataAddress.getProperties().get("operation");
@@ -142,24 +137,16 @@ public class DataTransferController {
                 }
                 catch (JsonProcessingException e) {
                     // Operation invocation is required by client -> return
-                    return Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).build();
+                    throw new InvalidRequestException(e.getMessage());
                 }
             }
 
-            var dataResult = initiateTransferProcess(providerUrl, agreementId, dataAddress);
-
-            if (dataResult.succeeded()) {
-                return Response.ok(dataResult.getContent()).build();
-            }
-            return Response.status(Response.Status.EXPECTATION_FAILED).entity(dataResult.getFailureDetail()).build();
-
+            return initiateTransferProcess(providerUrl, agreementId, dataAddress);
         }
         catch (InterruptedException | ExecutionException futureException) {
             monitor.severe("Data transfer failed for provider %s and agreementId %s".formatted(providerUrl,
                     agreementId), futureException);
-            return Response.serverError()
-                    .entity(futureException.getMessage())
-                    .build();
+            throw new EdcException(futureException.getMessage());
         }
     }
 

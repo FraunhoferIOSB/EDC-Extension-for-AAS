@@ -32,6 +32,9 @@ import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.eclipse.edc.web.spi.exception.InvalidRequestException;
+import org.eclipse.edc.web.spi.exception.NotAuthorizedException;
+import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.ByteArrayInputStream;
@@ -143,6 +146,12 @@ class PolicyService {
         var datasetResult = getDatasetForAssetId(counterPartyId, counterPartyUri, assetId);
 
         if (datasetResult.failed()) {
+            switch (datasetResult.reason()) {
+                case NOT_FOUND -> throw new ObjectNotFoundException(ContractOffer.class, datasetResult.getFailureDetail());
+                case UNAUTHORIZED -> throw new NotAuthorizedException(datasetResult.getFailureDetail());
+                case BAD_REQUEST -> throw new InvalidRequestException(datasetResult.getFailureDetail());
+            }
+
             return Result.failure(List.of(datasetResult.reason().toString(), datasetResult.getFailureDetail()));
         }
 

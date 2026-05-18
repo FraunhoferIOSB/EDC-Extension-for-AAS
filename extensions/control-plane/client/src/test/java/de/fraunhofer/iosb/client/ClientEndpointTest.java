@@ -36,6 +36,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProce
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
@@ -54,11 +55,9 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static java.lang.String.format;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -174,7 +173,7 @@ public class ClientEndpointTest {
 
     @Test
     public void negotiateContractTest() {
-        try (var resultResponse = clientEndpoint.negotiateContract(
+        assertThrows(EdcException.class, () -> clientEndpoint.negotiateContract(
                 ContractRequest.Builder.newInstance()
                         .counterPartyAddress(uri.toString())
                         .contractOffer(
@@ -184,18 +183,12 @@ public class ClientEndpointTest {
                                         .assetId(UUID.randomUUID().toString())
                                         .build())
                         .protocol("dataspace-protocol-http")
-                        .build())) {
-            if ((resultResponse.getStatus() != INTERNAL_SERVER_ERROR.getStatusCode())) {
-                fail();
-            }
-        }
+                        .build()));
     }
 
 
     @Test
     public void negotiateContractAndTransferTest() {
-        try (var response = clientEndpoint.negotiateContract(uri, "test-id", "test-asset-id", null)) {
-            assertEquals(INTERNAL_SERVER_ERROR, response.getStatusInfo());
-        }
+        assertThrows(EdcException.class, () -> clientEndpoint.negotiateContract(uri, "test-id", "test-asset-id", null));
     }
 }

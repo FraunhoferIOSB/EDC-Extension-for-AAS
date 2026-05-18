@@ -18,22 +18,20 @@ package de.fraunhofer.iosb.client;
 import de.fraunhofer.iosb.client.datatransfer.DataTransferController;
 import de.fraunhofer.iosb.client.negotiation.NegotiationController;
 import de.fraunhofer.iosb.client.policy.PolicyController;
-import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 
 import java.net.URI;
-import java.util.Map;
 import java.util.Objects;
 
 import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
@@ -42,16 +40,8 @@ import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DA
 /**
  * Automated contract negotiation
  */
-@Consumes({
-        MediaType.APPLICATION_JSON,
-        MediaType.WILDCARD
-})
-@Produces({ MediaType.APPLICATION_JSON })
 @Path(ClientEndpoint.AUTOMATED_PATH)
 public class ClientEndpoint {
-    /*
-     * Root path for the client
-     */
     public static final String AUTOMATED_PATH = "automated";
     public static final String MISSING_QUERY_PARAMETER_MESSAGE = "Missing query parameter. Required parameters: %s";
     public static final String MISSING_REQUEST_BODY_MESSAGE = "Missing request body of type %s";
@@ -86,15 +76,14 @@ public class ClientEndpoint {
      */
     @POST
     @Path(NEGOTIATE_PATH)
-    public Response negotiateContract(@QueryParam("providerUrl") URI counterPartyUri,
-                                      @QueryParam("providerId") String counterPartyId,
-                                      @QueryParam("assetId") String assetId,
-                                      DataAddress dataAddress) {
+    public StatusResult<String> negotiateContract(@QueryParam("providerUrl") URI counterPartyUri,
+                                                  @QueryParam("providerId") String counterPartyId,
+                                                  @QueryParam("assetId") String assetId,
+                                                  DataAddress dataAddress) {
         monitor.info("POST /%s".formatted(NEGOTIATE_PATH));
         if (counterPartyUri == null || counterPartyId == null || assetId == null ||
                 assetId.isEmpty()) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(MISSING_QUERY_PARAMETER_MESSAGE.formatted("providerUrl, providerId, assetId")).build();
+            throw new InvalidRequestException(String.format(MISSING_QUERY_PARAMETER_MESSAGE, "providerUrl, providerId, assetId"));
         }
 
         Result<ContractOffer> contractOfferResult =
@@ -103,9 +92,7 @@ public class ClientEndpoint {
         if (contractOfferResult.failed()) {
             monitor.severe("Getting policies failed for provider %s and asset %s: %s".formatted(
                     counterPartyUri, assetId, contractOfferResult.getFailureDetail()));
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(contractOfferResult.getFailureDetail())
-                    .build();
+            throw new EdcException(contractOfferResult.getFailureDetail());
         }
 
         var contractRequest = ContractRequest.Builder.newInstance()
@@ -119,8 +106,7 @@ public class ClientEndpoint {
         if (agreementResult.failed()) {
             monitor.severe("Negotiation failed for provider %s and contractOffer %s: %s".formatted(
                     counterPartyUri, contractOfferResult.getContent().getId(), agreementResult.getFailureDetail()));
-
-            return Response.serverError().entity(agreementResult.getFailureDetail()).build();
+            throw new EdcException(agreementResult.getFailureDetail());
         }
 
         return transferController.getData(counterPartyUri, agreementResult.getContent().getId(), dataAddress);
@@ -135,11 +121,10 @@ public class ClientEndpoint {
      */
     @POST
     @Path(NEGOTIATE_CONTRACT_PATH)
-    public Response negotiateContract(ContractRequest contractRequest) {
+    public Result<ContractAgreement> negotiateContract(ContractRequest contractRequest) {
         monitor.info("POST /%s".formatted(NEGOTIATE_CONTRACT_PATH));
         if (Objects.isNull(contractRequest)) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(MISSING_REQUEST_BODY_MESSAGE.formatted("ContractRequest")).build();
+            throw new InvalidRequestException(MISSING_REQUEST_BODY_MESSAGE.formatted("ContractRequest"));
         }
 
         Result<ContractAgreement> agreementResult = negotiationController.negotiateContract(contractRequest);
@@ -148,11 +133,10 @@ public class ClientEndpoint {
             monitor.severe("Negotiation failed for provider %s and contractOffer %s: %s".formatted(
                     contractRequest.getProviderId(), contractRequest.getContractOffer().getId(),
                     agreementResult.getFailureDetail()));
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(agreementResult.getFailureDetail()).build();
+            throw new EdcException(agreementResult.getFailureDetail());
         }
 
-        return Response.ok(Map.of("agreementId", agreementResult.getContent().getId())).build();
+        return agreementResult;
     }
 
 

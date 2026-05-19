@@ -134,10 +134,10 @@ class DataTransferControllerTest {
     @Test
     void test_getData_correctlySerializeOperation() throws JsonProcessingException {
         Operation operation = getOperation();
-        var nnneObjectMapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL)
-                .setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
+        var objectMapper = new ObjectMapper().setDefaultPropertyInclusion(JsonInclude.Include.NON_NULL)
+                .setDefaultPropertyInclusion(JsonInclude.Include.NON_EMPTY);
 
-        var operationString = nnneObjectMapper.writeValueAsString(operation);
+        var operationString = objectMapper.writeValueAsString(operation);
         DataAddress dataSinkAddress = getDataAddress(operation);
 
         testSubject.getData(uri, AGREEMENT_ID, dataSinkAddress);

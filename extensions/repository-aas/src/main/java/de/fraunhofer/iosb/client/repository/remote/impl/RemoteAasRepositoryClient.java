@@ -157,22 +157,6 @@ public class RemoteAasRepositoryClient implements AasRepositoryClient {
     }
 
 
-    private void handleException(Exception e) throws ConnectException, UnauthorizedException {
-        if (e instanceof ForbiddenException | e instanceof de.fraunhofer.iosb.ilt.faaast.client.exception.UnauthorizedException) {
-            throw new UnauthorizedException(e);
-        }
-        else if (e instanceof ConnectivityException) {
-            throw new ConnectException(e.getMessage());
-        }
-        else if (e instanceof StatusCodeException) {
-            throw new RuntimeException(e);
-        }
-        else {
-            throw new RuntimeException(e);
-        }
-    }
-
-
     private List<AssetAdministrationShell> getAas() throws StatusCodeException, ConnectivityException {
         if (!shellInterfaceActivated) {
             return List.of();

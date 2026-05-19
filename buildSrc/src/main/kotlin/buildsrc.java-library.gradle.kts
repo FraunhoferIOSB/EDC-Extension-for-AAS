@@ -1,5 +1,3 @@
-import com.diffplug.spotless.extra.wtp.EclipseWtpFormatterStep
-
 plugins {
     id("com.diffplug.spotless")
     `java-library`

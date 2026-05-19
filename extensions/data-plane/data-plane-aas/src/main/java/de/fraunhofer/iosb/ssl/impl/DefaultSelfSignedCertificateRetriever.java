@@ -25,12 +25,15 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
 import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.X509Certificate;
 import java.util.List;
+import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
@@ -105,6 +108,7 @@ public class DefaultSelfSignedCertificateRetriever implements SelfSignedCertific
 
         try {
             conn = (HttpsURLConnection) uri.toURL().openConnection();
+            conn.setHostnameVerifier((hostname, session) -> true);
             conn.connect();
         }
         catch (IOException e) {

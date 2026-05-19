@@ -15,6 +15,7 @@
  */
 package de.fraunhofer.iosb.client.datatransfer;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import de.fraunhofer.iosb.client.ClientEndpoint;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
@@ -47,10 +48,10 @@ public class DataTransferEndpoint {
     static final String RECEIVE_DATA_PATH = "receiveData";
 
     private final Monitor monitor;
-    private final DataTransferObservable<String> observable;
+    private final DataTransferObservable<JsonNode> observable;
 
 
-    DataTransferEndpoint(Monitor monitor, DataTransferObservable<String> dataTransferObservable) {
+    DataTransferEndpoint(Monitor monitor, DataTransferObservable<JsonNode> dataTransferObservable) {
         this.monitor = monitor;
         this.observable = dataTransferObservable;
     }
@@ -65,7 +66,7 @@ public class DataTransferEndpoint {
      */
     @POST
     @Path("receiveData/{agreement}")
-    public Response receiveData(@PathParam("agreement") String agreementId, String requestBody) {
+    public Response receiveData(@PathParam("agreement") String agreementId, JsonNode requestBody) {
         monitor.info(format("Receiving data for agreement %s...", agreementId));
         Objects.requireNonNull(agreementId);
         Objects.requireNonNull(requestBody);

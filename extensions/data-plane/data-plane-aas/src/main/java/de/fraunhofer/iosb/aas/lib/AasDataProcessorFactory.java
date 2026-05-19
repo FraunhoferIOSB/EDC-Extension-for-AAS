@@ -80,6 +80,7 @@ public abstract class AasDataProcessorFactory {
         }
         else {
             monitor.info("Did not retrieve certificates for %s: %s".formatted(aasUrl, certResult.getFailureDetail()));
+            return Result.failure(certResult.getFailureMessages());
         }
 
         return Result.success(new AasDataProcessor(new EdcHttpClientImpl(client, edcRetryPolicy, monitor)));

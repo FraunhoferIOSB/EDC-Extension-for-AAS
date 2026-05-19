@@ -22,8 +22,11 @@ import de.fraunhofer.iosb.app.handler.aas.AasHandler;
 import de.fraunhofer.iosb.app.handler.aas.registry.RemoteAasRegistryHandler;
 import de.fraunhofer.iosb.app.handler.edc.EdcStoreHandler;
 import de.fraunhofer.iosb.app.stores.repository.AasServerStore;
-import de.fraunhofer.iosb.client.exception.UnauthorizedException;
 import de.fraunhofer.iosb.client.registry.AasRegistryClient;
+import de.fraunhofer.iosb.ilt.faaast.client.exception.ConnectivityException;
+import de.fraunhofer.iosb.ilt.faaast.client.exception.ForbiddenException;
+import de.fraunhofer.iosb.ilt.faaast.client.exception.StatusCodeException;
+import de.fraunhofer.iosb.ilt.faaast.client.exception.UnauthorizedException;
 import de.fraunhofer.iosb.model.context.registry.AasRegistryContext;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
@@ -36,8 +39,9 @@ import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.security.Vault;
+import org.eclipse.edc.web.spi.exception.BadGatewayException;
+import org.eclipse.edc.web.spi.exception.NotAuthorizedException;
 
-import java.net.ConnectException;
 import java.net.URI;
 import java.util.Optional;
 
@@ -78,13 +82,13 @@ public class RegistryController extends AbstractAasServerController {
         try {
             handler = new RemoteAasRegistryHandler(monitor, client, edcStoreHandler);
         }
-        catch (ConnectException connectException) {
-            monitor.warning(String.format(CONNECT_EXCEPTION_TEMPLATE, client.getUri()), connectException);
-            throw new WebApplicationException(badRequest(CONNECT_EXCEPTION_TEMPLATE, client.getUri()));
+        catch (UnauthorizedException | ForbiddenException unauthorizedException) {
+            monitor.warning(String.format(UNAUTHORIZED_EXCEPTION_TEMPLATE, client.getUri()), unauthorizedException);
+            throw new NotAuthorizedException(String.format(UNAUTHORIZED_EXCEPTION_TEMPLATE, client.getUri()));
         }
-        catch (UnauthorizedException unauthorizedException) {
-            monitor.warning(String.format(CONNECT_EXCEPTION_TEMPLATE, client.getUri()), unauthorizedException);
-            throw new WebApplicationException(badRequest(UNAUTHORIZED_EXCEPTION_TEMPLATE, client.getUri()));
+        catch (ConnectivityException | StatusCodeException connectException) {
+            monitor.warning(String.format(CONNECT_EXCEPTION_TEMPLATE, client.getUri()), connectException);
+            throw new BadGatewayException(String.format(CONNECT_EXCEPTION_TEMPLATE, client.getUri()));
         }
 
         aasServerStore.put(context.getUri(), handler);

@@ -34,8 +34,8 @@ public class FaaastRepositoryConfig extends AasRepositoryConfig<ServiceConfig> {
     private final ServiceConfig serviceConfig;
 
 
-    private FaaastRepositoryConfig(Integer customPort, ServiceConfig serviceConfig, List<PolicyBinding> policyBindings) {
-        super(policyBindings);
+    private FaaastRepositoryConfig(Integer customPort, ServiceConfig serviceConfig, List<PolicyBinding> policyBindings, boolean onlySubmodels) {
+        super(policyBindings, onlySubmodels);
         this.customPort = customPort;
         this.serviceConfig = serviceConfig;
     }
@@ -148,7 +148,7 @@ public class FaaastRepositoryConfig extends AasRepositoryConfig<ServiceConfig> {
             ServiceConfigHelper.autoComplete(serviceConfig);
 
             // A FA³ST service can be built with no model and default configuration.
-            return new FaaastRepositoryConfig(port, serviceConfig, policyBindings);
+            return new FaaastRepositoryConfig(port, serviceConfig, policyBindings, onlySubmodels);
         }
     }
 }

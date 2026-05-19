@@ -17,6 +17,7 @@ package de.fraunhofer.iosb.app.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
@@ -25,10 +26,10 @@ import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.PATCH;
 import jakarta.ws.rs.Path;
-import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
+import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 
 import java.util.Objects;
 
@@ -75,17 +76,9 @@ public class ConfigurationController {
      * @return Current configuration values
      */
     @GET
-    public Response getConfiguration() {
+    public JsonNode getConfiguration() {
         monitor.info("GET /config");
-
-        try {
-            var serializedConfiguration = objectMapper.writeValueAsString(configuration);
-            return Response.status(Response.Status.OK).entity(serializedConfiguration).build();
-        }
-        catch (JsonProcessingException jsonProcessingException) {
-            monitor.severe("Serialization of configuration object failed.\n", jsonProcessingException);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
-        }
+        return objectMapper.valueToTree(configuration);
     }
 
 
@@ -93,14 +86,13 @@ public class ConfigurationController {
      * Update the current configuration.
      *
      * @param newConfigValues New configuration values as JSON string
-     * @return Response with status code
      */
     @PATCH
-    public Response updateConfiguration(String newConfigValues) {
+    public void updateConfiguration(String newConfigValues) {
         monitor.info("PATCH /config");
 
         if (Objects.isNull(newConfigValues)) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Missing request body").build();
+            throw new InvalidRequestException("Missing request body");
         }
 
         try {
@@ -115,9 +107,7 @@ public class ConfigurationController {
         catch (JsonProcessingException jsonProcessingException) {
             monitor.severe("Updating configuration to this configuration failed:\n" + newConfigValues,
                     jsonProcessingException);
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            throw new InvalidRequestException(jsonProcessingException.getMessage());
         }
-
-        return Response.status(Response.Status.OK).build();
     }
 }

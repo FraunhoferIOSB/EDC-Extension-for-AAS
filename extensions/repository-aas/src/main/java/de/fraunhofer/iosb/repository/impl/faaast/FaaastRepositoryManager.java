@@ -84,6 +84,7 @@ public class FaaastRepositoryManager implements AasRepositoryManager<FaaastRepos
                 .messageBus(service.getMessageBus())
                 .persistence(service.getPersistence())
                 .policyBindings(config.getPolicyBindings())
+                .onlySubmodels(config.isOnlySubmodels())
                 .build();
     }
 

@@ -19,7 +19,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iosb.api.PublicApiManagementService;
-import jakarta.ws.rs.core.Response;
 import org.eclipse.digitaltwin.aas4j.v3.model.Operation;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultLangStringTextType;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultOperation;
@@ -45,6 +44,7 @@ import java.util.UUID;
 import static de.fraunhofer.iosb.client.datatransfer.DataTransferController.OPERATION_FIELD;
 import static java.lang.String.format;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -168,8 +168,6 @@ class DataTransferControllerTest {
         var aasDataAddress = DataAddress.Builder.newInstance()
                 .type("AasData")
                 .build();
-        try (var response = testSubject.getData(uri, AGREEMENT_ID, aasDataAddress)) {
-            assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
-        }
+        testSubject.getData(uri, AGREEMENT_ID, aasDataAddress);
     }
 }

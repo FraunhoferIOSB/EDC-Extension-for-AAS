@@ -18,8 +18,9 @@ package de.fraunhofer.iosb.app.handler.aas.repository;
 import de.fraunhofer.iosb.aas.lib.model.PolicyBinding;
 import de.fraunhofer.iosb.app.handler.aas.AasHandler;
 import de.fraunhofer.iosb.app.handler.edc.EdcStoreHandler;
-import de.fraunhofer.iosb.client.exception.UnauthorizedException;
 import de.fraunhofer.iosb.client.repository.AasRepositoryClient;
+import de.fraunhofer.iosb.ilt.faaast.client.exception.ConnectivityException;
+import de.fraunhofer.iosb.ilt.faaast.client.exception.StatusCodeException;
 import de.fraunhofer.iosb.ilt.faaast.service.util.ReferenceHelper;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.util.AasUtils;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
@@ -31,8 +32,6 @@ import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 
-import java.net.ConnectException;
-
 
 public abstract class AasRepositoryHandler<C extends AasRepositoryClient> extends AasHandler<C> {
 
@@ -41,7 +40,7 @@ public abstract class AasRepositoryHandler<C extends AasRepositoryClient> extend
     }
 
 
-    protected Environment getEnvironment() throws UnauthorizedException, ConnectException {
+    protected Environment getEnvironment() throws StatusCodeException, ConnectivityException {
         return client.getEnvironment();
     }
 

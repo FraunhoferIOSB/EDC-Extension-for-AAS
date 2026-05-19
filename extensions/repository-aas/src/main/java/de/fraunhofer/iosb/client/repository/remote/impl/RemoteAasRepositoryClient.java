@@ -111,23 +111,11 @@ public class RemoteAasRepositoryClient implements AasRepositoryClient {
 
 
     @Override
-    public Environment getEnvironment() throws ConnectException, UnauthorizedException {
-        List<AssetAdministrationShell> shells = null;
-        List<Submodel> submodels = null;
-        List<ConceptDescription> conceptDescriptions = null;
-        try {
-            shells = getAas();
-            submodels = getSubmodels();
-            conceptDescriptions = getConceptDescriptions();
-        }
-        catch (Exception e) {
-            handleException(e);
-        }
-
+    public Environment getEnvironment() throws ConnectivityException, StatusCodeException {
         return new DefaultEnvironment.Builder()
-                .assetAdministrationShells(shells)
-                .submodels(submodels)
-                .conceptDescriptions(conceptDescriptions)
+                .assetAdministrationShells(getAas())
+                .submodels(getSubmodels())
+                .conceptDescriptions(getConceptDescriptions())
                 .build();
     }
 
@@ -177,7 +165,8 @@ public class RemoteAasRepositoryClient implements AasRepositoryClient {
         }
         else if (e instanceof StatusCodeException) {
             throw new RuntimeException(e);
-        } else {
+        }
+        else {
             throw new RuntimeException(e);
         }
     }

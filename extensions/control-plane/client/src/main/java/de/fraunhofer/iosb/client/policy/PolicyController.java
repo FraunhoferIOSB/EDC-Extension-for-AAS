@@ -15,9 +15,6 @@
  */
 package de.fraunhofer.iosb.client.policy;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iosb.client.ClientEndpoint;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
@@ -25,6 +22,7 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -33,13 +31,18 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractO
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.eclipse.edc.web.spi.exception.InvalidRequestException;
+import org.eclipse.edc.web.spi.exception.NotAuthorizedException;
+import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
 
 import java.net.URI;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
@@ -51,19 +54,16 @@ import static de.fraunhofer.iosb.client.ClientEndpoint.MISSING_REQUEST_BODY_MESS
  * Provides API for accepted policy management and provider dataset retrieval. For documentation see {@link de.fraunhofer.iosb.client.ClientEndpoint}
  */
 @Consumes({ MediaType.APPLICATION_JSON })
+@Produces({ MediaType.APPLICATION_JSON })
 @Path(ClientEndpoint.AUTOMATED_PATH)
 public class PolicyController {
 
     static final String ACCEPTED_POLICIES_PATH = "acceptedPolicies";
     private static final String OFFER_PATH = "offer";
-    private static final String GET_OFFER_FAILED_MESSAGE = "Getting offer from the provider failed. Check connector " +
-            "output for details.";
 
     private final PolicyDefinitionStore policyDefinitionStore;
     private final PolicyService policyService;
     private final Monitor monitor;
-
-    private final ObjectMapper objectMapper;
 
 
     public PolicyController(Monitor monitor, CatalogService catalogService, ParticipantContext participantContext,
@@ -74,13 +74,6 @@ public class PolicyController {
         policyDefinitionStore = new PolicyDefinitionStore(monitor, config.getAcceptedPolicyDefinitionsPath());
         policyService = new PolicyService(catalogService, participantContext, typeTransformerRegistry, config,
                 policyDefinitionStore, monitor);
-
-        objectMapper = new ObjectMapper()
-                .setDefaultPropertyInclusion(
-                        JsonInclude.Value.construct(
-                                JsonInclude.Include.NON_EMPTY,
-                                JsonInclude.Include.NON_NULL
-                        ));
     }
 
 
@@ -95,40 +88,24 @@ public class PolicyController {
      */
     @GET
     @Path(OFFER_PATH)
-    public Response getDataset(@QueryParam("providerUrl") URI providerUri, @QueryParam("assetId") String assetId,
-                               @QueryParam("providerId") String counterPartyId) {
+    public List<ContractOffer> getDataset(@QueryParam("providerUrl") URI providerUri, @QueryParam("assetId") String assetId,
+                                          @QueryParam("providerId") String counterPartyId) {
         monitor.info("GET /%s".formatted(OFFER_PATH));
-        if (Objects.isNull(assetId) || Objects.isNull(providerUri)) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(MISSING_QUERY_PARAMETER_MESSAGE.formatted("assetId, providerId")).build();
+        if (assetId == null || providerUri == null) {
+            throw new InvalidRequestException(MISSING_QUERY_PARAMETER_MESSAGE.formatted("assetId, providerId"));
         }
 
         ServiceResult<Dataset> datasetResult = policyService.getDatasetForAssetId(counterPartyId, providerUri, assetId);
 
         if (datasetResult.failed()) {
-            var failureReason = datasetResult.reason();
-            monitor.severe("Getting Dataset of provider %s and asset %s failed. Reason: %s"
-                    .formatted(providerUri, assetId, failureReason));
-            monitor.severe(datasetResult.getFailureDetail());
-
-            return Response.serverError()
-                    .entity(GET_OFFER_FAILED_MESSAGE)
-                    .build();
+            throw switch (datasetResult.reason()) {
+                case NOT_FOUND -> new ObjectNotFoundException(Dataset.class, datasetResult.getFailureDetail());
+                case UNAUTHORIZED -> new NotAuthorizedException(datasetResult.getFailureDetail());
+                default -> new EdcException(datasetResult.getFailureDetail());
+            };
         }
 
-        var dataset = datasetResult.getContent();
-
-        try {
-            return Response.ok(objectMapper.writeValueAsString(buildResponseFrom(dataset))).build();
-        }
-        catch (JsonProcessingException objectMapperException) {
-            monitor.severe("Exception thrown while serializing Dataset of provider %s and asset %s."
-                            .formatted(providerUri, assetId),
-                    objectMapperException);
-            return Response.serverError()
-                    .entity(GET_OFFER_FAILED_MESSAGE)
-                    .build();
-        }
+        return buildResponseFrom(datasetResult.getContent());
     }
 
 
@@ -186,9 +163,9 @@ public class PolicyController {
      */
     @GET
     @Path(ACCEPTED_POLICIES_PATH)
-    public Response getAcceptedPolicyDefinitions() {
+    public Collection<PolicyDefinition> getAcceptedPolicyDefinitions() {
         monitor.info("GET /%s".formatted(ACCEPTED_POLICIES_PATH));
-        return Response.ok(policyDefinitionStore.getPolicyDefinitions()).build();
+        return policyDefinitionStore.getPolicyDefinitions();
     }
 
 
@@ -200,17 +177,17 @@ public class PolicyController {
      */
     @DELETE
     @Path(ACCEPTED_POLICIES_PATH)
-    public Response deleteAcceptedPolicyDefinition(String policyDefinitionId) {
+    public String deleteAcceptedPolicyDefinition(String policyDefinitionId) {
         monitor.info("DELETE /%s".formatted(ACCEPTED_POLICIES_PATH));
         if (Objects.isNull(policyDefinitionId)) {
-            return Response.status(Response.Status.BAD_REQUEST).entity(MISSING_QUERY_PARAMETER_MESSAGE.formatted(
-                    "policyDefinitionId")).build();
+            throw new InvalidRequestException(String.format(MISSING_QUERY_PARAMETER_MESSAGE, "policyDefinitionId"));
         }
 
         if (policyDefinitionStore.removePolicyDefinition(policyDefinitionId).isPresent()) {
-            return Response.ok(policyDefinitionId).build();
+            return policyDefinitionId;
         }
-        return Response.status(Response.Status.NOT_FOUND).entity("Unknown policyDefinitionId.").build();
+
+        throw new ObjectNotFoundException(PolicyDefinition.class, policyDefinitionId);
     }
 
 
@@ -222,17 +199,16 @@ public class PolicyController {
      */
     @PUT
     @Path(ACCEPTED_POLICIES_PATH)
-    public Response updateAcceptedPolicyDefinition(PolicyDefinition policyDefinition) {
+    public String updateAcceptedPolicyDefinition(PolicyDefinition policyDefinition) {
         monitor.info("PUT /%s".formatted(ACCEPTED_POLICIES_PATH));
         if (Objects.isNull(policyDefinition)) {
-            return Response.status(Response.Status.BAD_REQUEST).entity(MISSING_REQUEST_BODY_MESSAGE.formatted(
-                    "PolicyDefinition")).build();
+            throw new InvalidRequestException(String.format(MISSING_REQUEST_BODY_MESSAGE, "PolicyDefinition"));
         }
 
         if (policyDefinitionStore.updatePolicyDefinitions(policyDefinition).isPresent()) {
-            return Response.ok(policyDefinition.getId()).build();
+            return policyDefinition.getId();
         }
-        return Response.status(Response.Status.NOT_FOUND).entity("Unknown policyDefinitionId.").build();
+        throw new ObjectNotFoundException(PolicyDefinition.class, policyDefinition.getId());
     }
 
 }

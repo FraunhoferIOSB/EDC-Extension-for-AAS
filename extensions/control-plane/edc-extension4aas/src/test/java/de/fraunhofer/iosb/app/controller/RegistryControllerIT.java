@@ -23,7 +23,6 @@ import de.fraunhofer.iosb.ilt.faaast.client.exception.ConnectivityException;
 import de.fraunhofer.iosb.ilt.faaast.client.exception.StatusCodeException;
 import de.fraunhofer.iosb.ilt.faaast.service.dataformat.SerializationException;
 import de.fraunhofer.iosb.ilt.faaast.service.model.exception.UnsupportedModifierException;
-import jakarta.ws.rs.WebApplicationException;
 import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShellDescriptor;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
 import org.eclipse.edc.spi.security.Vault;
@@ -41,7 +40,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 
 

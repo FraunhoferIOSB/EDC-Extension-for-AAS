@@ -33,7 +33,8 @@ import java.util.concurrent.TimeoutException;
 
 
 /**
- * Provides API for contract negotiation by {@link de.fraunhofer.iosb.client.negotiation.Negotiator the Negotiator class}. For documentation see
+ * Provides API for contract negotiation by {@link de.fraunhofer.iosb.client.negotiation.Negotiator the Negotiator
+ * class}. For documentation see
  * {@link de.fraunhofer.iosb.client.ClientEndpoint}
  */
 public class NegotiationController {

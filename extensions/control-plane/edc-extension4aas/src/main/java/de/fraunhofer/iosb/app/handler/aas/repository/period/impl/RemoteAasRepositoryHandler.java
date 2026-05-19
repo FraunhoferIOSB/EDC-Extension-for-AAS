@@ -25,7 +25,8 @@ import org.eclipse.edc.spi.monitor.Monitor;
 
 
 /**
- * Handler for all AAS repositories that are registered via their URI / HTTP endpoints. The difference to the local handlers is that here, we have to poll the AAS repository
+ * Handler for all AAS repositories that are registered via their URI / HTTP endpoints. The difference to the local
+ * handlers is that here, we have to poll the AAS repository
  * periodically instead of listening to events.
  */
 public class RemoteAasRepositoryHandler extends RemoteAasHandler<RemoteAasRepositoryClient> {

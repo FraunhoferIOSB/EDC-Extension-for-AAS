@@ -43,8 +43,7 @@ public class AasDataSink implements DataSink {
     private Monitor monitor;
 
 
-    private AasDataSink() {
-    }
+    private AasDataSink() {}
 
 
     @Override
@@ -56,9 +55,7 @@ public class AasDataSink implements DataSink {
 
         return streamResult.getContent()
                 .map(this::transferPart)
-                .allMatch(AbstractResult::succeeded) ?
-                completedFuture(StreamResult.success()) :
-                completedFuture(StreamResult.error("Some parts were not transferred correctly"));
+                .allMatch(AbstractResult::succeeded) ? completedFuture(StreamResult.success()) : completedFuture(StreamResult.error("Some parts were not transferred correctly"));
     }
 
 

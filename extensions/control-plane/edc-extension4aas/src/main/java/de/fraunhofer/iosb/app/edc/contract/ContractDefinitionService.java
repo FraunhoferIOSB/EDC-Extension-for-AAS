@@ -82,7 +82,8 @@ public class ContractDefinitionService {
 
 
     /**
-     * Adds the asset ID to the contract definition defined by the access&contract policy IDs. If no suitable contract definition exists, one will be created and stored to the EDC
+     * Adds the asset ID to the contract definition defined by the access&contract policy IDs. If no suitable contract
+     * definition exists, one will be created and stored to the EDC
      * contract definition store.
      *
      * @param assetId The asset id to be attached to the contract.
@@ -108,7 +109,8 @@ public class ContractDefinitionService {
 
 
     /**
-     * Removes the asset ID from the contract definition defined by the access&contract policy IDs. If multiple of such contract definition exist, the asset id will be removed from
+     * Removes the asset ID from the contract definition defined by the access&contract policy IDs. If multiple of such
+     * contract definition exist, the asset id will be removed from
      * all of them.
      *
      * @param assetId The asset id to be removed from any matching contract.
@@ -181,8 +183,8 @@ public class ContractDefinitionService {
                 contractDefinition -> contractDefinition.getAssetsSelector()
                         .stream().filter(predicate -> predicate.getOperandLeft().equals(Asset.PROPERTY_ID))
                         .filter(predicate -> predicate.getOperator().equalsIgnoreCase(IN))
-                        .anyMatch(predicate -> ((List<?>) predicate.getOperandRight()).contains(assetId))
-        ).toList();
+                        .anyMatch(predicate -> ((List<?>) predicate.getOperandRight()).contains(assetId)))
+                .toList();
     }
 
 

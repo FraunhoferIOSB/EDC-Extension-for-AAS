@@ -71,8 +71,7 @@ class FaaastRepositoryManagerTest {
                     .build());
             fail("Exception should have been thrown");
         }
-        catch (IllegalArgumentException expected) {
-        }
+        catch (IllegalArgumentException expected) {}
     }
 
 
@@ -120,7 +119,7 @@ class FaaastRepositoryManagerTest {
 
     private URI startRepository() {
         var config = FaaastRepositoryConfig.Builder.newInstance().model(
-                        Path.of("./src/test/resources/aasEnvironment.json"))
+                Path.of("./src/test/resources/aasEnvironment.json"))
                 .port(getFreePort())
                 .ssl(false)
                 .build();

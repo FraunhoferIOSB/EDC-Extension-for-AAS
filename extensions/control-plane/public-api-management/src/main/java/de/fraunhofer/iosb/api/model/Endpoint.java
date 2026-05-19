@@ -38,7 +38,8 @@ public record Endpoint(String suffix, HttpMethod method, Map<String, List<String
 
 
     /**
-     * Check whether this endpoint instance is covered by the other endpoint. This means, suffix and  method have to match. Headers of this endpoint have to be within other's
+     * Check whether this endpoint instance is covered by the other endpoint. This means, suffix and method have to match.
+     * Headers of this endpoint have to be within other's
      * headers. This is to check if the other endpoint contains custom needed headers like additional api keys.
      *
      * @param other Other endpoint, whose headers must contain this endpoint's headers, as well as match suffix and method.
@@ -49,9 +50,8 @@ public record Endpoint(String suffix, HttpMethod method, Map<String, List<String
             return false;
         }
 
-        return this.customHeaders().entrySet().stream().allMatch(entry ->
-                other.customHeaders().containsKey(entry.getKey()) &&
-                        new HashSet<>(other.customHeaders().get(entry.getKey())).containsAll(entry.getValue()));
+        return this.customHeaders().entrySet().stream().allMatch(entry -> other.customHeaders().containsKey(entry.getKey()) &&
+                new HashSet<>(other.customHeaders().get(entry.getKey())).containsAll(entry.getValue()));
     }
 
 

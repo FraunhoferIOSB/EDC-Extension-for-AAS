@@ -28,8 +28,9 @@ import java.util.Objects;
  * @param modelPath Path to the AAS environment (optional, default: empty environment).
  * @param port Port to use for communications with AAS repository (optional, default: random available port).
  * @param configPath Path to configuration for the AAS server (optional, default: no configuration/defaults).
- * @param policyBindings List of {@link PolicyBinding}. If defined, only elements referred by the policyBindings are registered (optional, default: no custom
- *         PolicyBindings, register all elements).
+ * @param policyBindings List of {@link PolicyBinding}. If defined, only elements referred by the policyBindings are
+ *            registered (optional, default: no custom
+ *            PolicyBindings, register all elements).
  * @param onlySubmodels If true, only register submodels. Default: true
  */
 public record LocalRepositoryDTO(String modelPath, Integer port, String configPath, List<PolicyBinding> policyBindings, boolean onlySubmodels) {

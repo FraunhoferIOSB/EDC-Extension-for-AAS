@@ -111,10 +111,9 @@ public abstract class AbstractAasServerControllerIT<C> extends MockServerTestExt
             submodel.getSubmodelElements().forEach(AbstractAasServerControllerIT::clearExtensionsRec);
 
             assertTrue(subElementsShould.stream()
-                    .anyMatch(subElements ->
-                            subElements.containsAll(submodel.getSubmodelElements()) &&
-                                    submodel.getSubmodelElements()
-                                            .containsAll(subElements)));
+                    .anyMatch(subElements -> subElements.containsAll(submodel.getSubmodelElements()) &&
+                            submodel.getSubmodelElements()
+                                    .containsAll(subElements)));
         }
         else {
             assertTrue(identifiablesShould.contains(identifiable));

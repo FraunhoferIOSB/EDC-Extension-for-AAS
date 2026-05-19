@@ -95,8 +95,7 @@ public class DataTransferController {
                 .setDefaultPropertyInclusion(
                         JsonInclude.Value.construct(
                                 JsonInclude.Include.NON_EMPTY,
-                                JsonInclude.Include.NON_NULL
-                        ));
+                                JsonInclude.Include.NON_NULL));
 
         transferProcessObservable.registerListener(dataTransferObservable);
         webService.registerResource(dataTransferEndpoint);
@@ -166,11 +165,13 @@ public class DataTransferController {
 
 
     /**
-     * Initiates the transfer process defined by the arguments. The data of the transfer will be sent to {@link DataTransferEndpoint#RECEIVE_DATA_PATH}.
+     * Initiates the transfer process defined by the arguments. The data of the transfer will be sent to
+     * {@link DataTransferEndpoint#RECEIVE_DATA_PATH}.
      *
      * @param providerUri The provider from whom the data is to be fetched.
      * @param agreementId Non-null ContractAgreement of the negotiation process.
-     * @param dataSinkAddress DataAddress the result of the transfer should be sent to. (If null, send to extension and print in log)
+     * @param dataSinkAddress DataAddress the result of the transfer should be sent to. (If null, send to extension and
+     *            print in log)
      * @return JsonNode containing data or null on remote destination address
      * @throws InterruptedException If the data transfer was interrupted
      * @throws ExecutionException If the data transfer process failed

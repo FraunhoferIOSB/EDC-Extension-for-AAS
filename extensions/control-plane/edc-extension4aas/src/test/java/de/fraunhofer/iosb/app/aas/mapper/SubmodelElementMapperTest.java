@@ -117,14 +117,13 @@ class SubmodelElementMapperTest {
 
         String parentSubmodelId = UUID.randomUUID().toString();
 
-        Reference parentReference =
-                new DefaultReference.Builder()
-                        .type(ReferenceTypes.MODEL_REFERENCE)
-                        .keys(new DefaultKey.Builder()
-                                .type(KeyTypes.SUBMODEL)
-                                .value(parentSubmodelId)
-                                .build())
-                        .build();
+        Reference parentReference = new DefaultReference.Builder()
+                .type(ReferenceTypes.MODEL_REFERENCE)
+                .keys(new DefaultKey.Builder()
+                        .type(KeyTypes.SUBMODEL)
+                        .value(parentSubmodelId)
+                        .build())
+                .build();
 
         List<SubmodelElement> listElements = List.of(
                 new DefaultProperty.Builder().value("17")
@@ -138,8 +137,7 @@ class SubmodelElementMapperTest {
                         .build(),
                 new DefaultSubmodelElementList.Builder().description(new DefaultLangStringTextType.Builder().text("Test Description").build()).build(),
                 new DefaultSubmodelElementCollection.Builder().description(new DefaultLangStringTextType.Builder().text("Test Description").build()).build(),
-                new DefaultBlob.Builder().contentType("application/xml").build()
-        );
+                new DefaultBlob.Builder().contentType("application/xml").build());
 
         String listIdShort = "test-id-short";
         SubmodelElementList submodelElementList = new DefaultSubmodelElementList.Builder().idShort(listIdShort).value(listElements).build();

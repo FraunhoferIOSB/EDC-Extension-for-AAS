@@ -52,7 +52,8 @@ public abstract class RemoteAasHandler<C extends AasServerClient> extends AasHan
     /**
      * Performs synchronization between the AAS environment and the EDC AssetIndex/ContractDefinitionStore.
      * <p>
-     * Calling run() assumes that initialization succeeded, where a connection to the AAS server was successful. If, at a later time, authorization changes or the connection to the
+     * Calling run() assumes that initialization succeeded, where a connection to the AAS server was successful. If, at a
+     * later time, authorization changes or the connection to the
      * AAS server fails, it will be logged and treated as a transient error.
      */
     @Override

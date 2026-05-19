@@ -26,7 +26,8 @@ import static java.lang.String.format;
 
 
 /**
- * Accepts a completableFuture which gets completed upon a result of a contract negotiation with the given negotiationId. Accepted final states of a negotiation are: "Confirmed",
+ * Accepts a completableFuture which gets completed upon a result of a contract negotiation with the given
+ * negotiationId. Accepted final states of a negotiation are: "Confirmed",
  * "Declined", "Failed". "Approved" is not accepted as a final state.
  */
 public class ClientContractNegotiationListener implements ContractNegotiationListener {
@@ -35,7 +36,8 @@ public class ClientContractNegotiationListener implements ContractNegotiationLis
 
 
     /**
-     * Make this listener listen to contract negotiation events containing the given negotiationId in the Map, completing the given future on the predefined events "Confirmed",
+     * Make this listener listen to contract negotiation events containing the given negotiationId in the Map, completing
+     * the given future on the predefined events "Confirmed",
      * "Declined", "Failed".
      */
     ClientContractNegotiationListener() {

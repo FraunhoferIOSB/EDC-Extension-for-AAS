@@ -18,10 +18,10 @@ package de.fraunhofer.iosb.edc.remote;
 import de.fraunhofer.iosb.aas.lib.auth.AuthenticationMethod;
 import de.fraunhofer.iosb.aas.lib.auth.impl.ApiKey;
 import de.fraunhofer.iosb.aas.lib.auth.impl.NoAuth;
+import de.fraunhofer.iosb.codec.Codec;
 import de.fraunhofer.iosb.edc.remote.stores.asset.RemoteAssetIndex;
 import de.fraunhofer.iosb.edc.remote.stores.contract.RemoteContractDefinitionStore;
 import de.fraunhofer.iosb.edc.remote.stores.policy.RemotePolicyDefinitionStore;
-import de.fraunhofer.iosb.codec.Codec;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
@@ -71,12 +71,11 @@ public class EdcConnectorClientExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        authenticationMethod =
-                Optional.ofNullable(apiKeyAlias)
-                        .map(alias -> (AuthenticationMethod) new ApiKey("x-api-key", alias))
-                        .or(() -> Optional.ofNullable(apiKey)
-                                .map(k -> (AuthenticationMethod) new ApiKey("x-api-key", k, vault)))
-                        .orElseGet(NoAuth::new);
+        authenticationMethod = Optional.ofNullable(apiKeyAlias)
+                .map(alias -> (AuthenticationMethod) new ApiKey("x-api-key", alias))
+                .or(() -> Optional.ofNullable(apiKey)
+                        .map(k -> (AuthenticationMethod) new ApiKey("x-api-key", k, vault)))
+                .orElseGet(NoAuth::new);
     }
 
 

@@ -25,7 +25,8 @@ import java.net.URI;
 
 
 /**
- * Any local AAS repository client can extend this class. See {@link de.fraunhofer.iosb.client.repository.local.impl.LocalFaaastRepositoryClient}
+ * Any local AAS repository client can extend this class. See
+ * {@link de.fraunhofer.iosb.client.repository.local.impl.LocalFaaastRepositoryClient}
  *
  * @param <CTX> Context type of the AAS repository context.
  */
@@ -63,7 +64,8 @@ public abstract class LocalAasRepositoryClient<CTX extends AasRepositoryContext>
 
 
     /**
-     * Intentionally added this abstract function to signal no unauthorized/connect exceptions are thrown when using a subclass of LocalAasRepositoryClient.
+     * Intentionally added this abstract function to signal no unauthorized/connect exceptions are thrown when using a
+     * subclass of LocalAasRepositoryClient.
      *
      * @return Environment.
      */

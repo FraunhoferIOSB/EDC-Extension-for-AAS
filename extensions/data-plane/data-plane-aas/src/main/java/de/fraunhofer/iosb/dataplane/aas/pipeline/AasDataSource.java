@@ -52,8 +52,7 @@ public class AasDataSource implements DataSource {
     private AasDataAddress aasDataAddress;
 
 
-    private AasDataSource() {
-    }
+    private AasDataSource() {}
 
 
     @Override
@@ -89,8 +88,7 @@ public class AasDataSource implements DataSource {
                 }
                 var bodyStream = body.byteStream();
                 responseBodyStream.set(new ResponseBodyStream(body, bodyStream));
-                var mediaType =
-                        Optional.ofNullable(body.contentType()).map(MediaType::toString).orElse(APPLICATION_JSON);
+                var mediaType = Optional.ofNullable(body.contentType()).map(MediaType::toString).orElse(APPLICATION_JSON);
                 return StreamResult.success(Stream.of(new AasPart("AAS Part", bodyStream, mediaType)));
 
             }
@@ -141,8 +139,7 @@ public class AasDataSource implements DataSource {
     }
 
 
-    private record ResponseBodyStream(ResponseBody responseBody, InputStream stream) {
-    }
+    private record ResponseBodyStream(ResponseBody responseBody, InputStream stream) {}
 
 
     public static class Builder {

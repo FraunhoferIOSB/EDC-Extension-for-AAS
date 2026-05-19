@@ -16,8 +16,9 @@ spotless {
     java {
         target("src/*/java/**/*.java")
         eclipse("4.32").configFile(rootProject.file("misc/checkstyle/formatter.xml"))
+        licenseHeaderFile(rootProject.file("misc/checkstyle/license-header"))
 
-        importOrder()
+        importOrder("", "java", "\\#")
         removeUnusedImports()
         trimTrailingWhitespace()
         endWithNewline()

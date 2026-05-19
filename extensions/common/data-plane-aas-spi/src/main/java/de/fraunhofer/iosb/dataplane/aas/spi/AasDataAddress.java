@@ -48,7 +48,8 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 
 /**
- * Inspired by org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress Enables more specific communication with AAS services
+ * Inspired by org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress Enables more specific communication with AAS
+ * services
  */
 @JsonTypeName
 @JsonDeserialize(builder = DataAddress.Builder.class)
@@ -139,7 +140,8 @@ public class AasDataAddress extends DataAddress {
     /**
      * If an explicit path is available, return this path. Else, return the following:
      * <p>
-     * build and returns the HTTP URL path required to access this AAS data at the AAS service. Example: Reference: [Submodel x, SubmodelElementCollection y, SubmodelElement z] -->
+     * build and returns the HTTP URL path required to access this AAS data at the AAS service. Example: Reference:
+     * [Submodel x, SubmodelElementCollection y, SubmodelElement z] -->
      * path: submodels/base64(x)/submodel-elements/y.z
      *
      * @return Explicitly defined path or path correlating to reference stored in this DataAddress (no leading '/').
@@ -266,7 +268,8 @@ public class AasDataAddress extends DataAddress {
 
 
         /**
-         * As we only store the reference for this element and do not know the information of the parent element, the "value" of each key cannot be null. In case no idShort exists,
+         * As we only store the reference for this element and do not know the information of the parent element, the "value" of
+         * each key cannot be null. In case no idShort exists,
          * the value must be the list indexer.
          *
          * @param reference The reference pointing to the specific AAS element.

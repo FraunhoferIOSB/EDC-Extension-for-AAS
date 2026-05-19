@@ -24,7 +24,8 @@ import java.util.Objects;
 
 
 /**
- * Extensions can register their public endpoints here. Requests to those endpoints will not need authentication. If multiple extensions handle their own public endpoints with
+ * Extensions can register their public endpoints here. Requests to those endpoints will not need authentication. If
+ * multiple extensions handle their own public endpoints with
  * separate AuthenticationRequestFilters, they will interfere with each other.
  */
 public class PublicApiManagementService {

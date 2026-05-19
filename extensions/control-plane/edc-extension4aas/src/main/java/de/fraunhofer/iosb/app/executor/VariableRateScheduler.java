@@ -29,7 +29,8 @@ import java.util.function.Supplier;
 
 
 /**
- * Schedules a list of tasks at a variable rate defined by the {@link Configuration}. At each iteration (defined by the rate), all *finished* tasks are collected and called by
+ * Schedules a list of tasks at a variable rate defined by the {@link Configuration}. At each iteration (defined by the
+ * rate), all *finished* tasks are collected and called by
  * their run() function. When a task finishes, it will be called again in the next iteration.
  */
 public class VariableRateScheduler extends ScheduledThreadPoolExecutor {
@@ -65,7 +66,8 @@ public class VariableRateScheduler extends ScheduledThreadPoolExecutor {
 
 
     /**
-     * Places this runnable in the removal queue. In the next task iteration, this task will get removed from this scheduler. If this task is currently running or was scheduled to
+     * Places this runnable in the removal queue. In the next task iteration, this task will get removed from this
+     * scheduler. If this task is currently running or was scheduled to
      * run before the removeRunnable call, it will continue executing.
      *
      * @param runnable The runnable to remove from this scheduler
@@ -76,7 +78,8 @@ public class VariableRateScheduler extends ScheduledThreadPoolExecutor {
 
 
     /**
-     * Execute the runnable task at a rate supplied by the second argument. The initial delay is also the supplied rate. Blocking of different AAS services is avoided by enqueuing
+     * Execute the runnable task at a rate supplied by the second argument. The initial delay is also the supplied rate.
+     * Blocking of different AAS services is avoided by enqueuing
      * each service only after it has finished its processing.
      */
     public void run() {

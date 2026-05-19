@@ -16,9 +16,7 @@
 package de.fraunhofer.iosb.client.datatransfer;
 
 import de.fraunhofer.iosb.client.ClientEndpoint;
-import jdk.jshell.Snippet;
 import org.eclipse.edc.connector.controlplane.transfer.command.handlers.InitiateTransferCommandHandler;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.InitiateTransferCommand;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
@@ -26,8 +24,6 @@ import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.command.CommandResult;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.response.ResponseStatus;
-import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -84,7 +80,7 @@ class TransferInitiator {
 
 
     CommandResult initiateTransferProcess(URI providerUri, String agreementId,
-                                                          DataAddress dataSinkAddress) {
+                                          DataAddress dataSinkAddress) {
         var transferRequest = TransferRequest.Builder.newInstance()
                 .protocol(DATASPACE_PROTOCOL_HTTP)
                 .counterPartyAddress(providerUri.toString())

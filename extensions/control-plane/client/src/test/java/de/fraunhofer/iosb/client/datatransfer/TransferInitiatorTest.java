@@ -73,7 +73,7 @@ public class TransferInitiatorTest {
         var dataSink = HttpDataAddress.Builder.newInstance().baseUrl("https://example.com").build();
         transferInitiator.initiateTransferProcess(new URI("http://provider-url:1234"),
                 "test-agreement-id", dataSink);
-        verify(mockInitiateTransferCommandHandler, times(1)).handle( any());
+        verify(mockInitiateTransferCommandHandler, times(1)).handle(any());
     }
 
 }

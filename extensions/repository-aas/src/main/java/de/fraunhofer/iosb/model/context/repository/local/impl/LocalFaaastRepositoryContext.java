@@ -128,8 +128,7 @@ public class LocalFaaastRepositoryContext extends AasRepositoryContext {
         private Persistence<?> persistence;
 
 
-        public Builder() {
-        }
+        public Builder() {}
 
 
         public Builder messageBus(MessageBus<?> messageBus) {

@@ -74,7 +74,8 @@ public class SelfDescriptionController {
 
 
     /**
-     * Print self-descriptions of AAS environments registered at this EDC. If no query parameter is given, print all self-descriptions available.
+     * Print self-descriptions of AAS environments registered at this EDC. If no query parameter is given, print all
+     * self-descriptions available.
      *
      * @param uri Specify an AAS environment by its service
      * @return Self description(s)
@@ -86,13 +87,11 @@ public class SelfDescriptionController {
         List<AasHandler<?>> handlers = new ArrayList<>();
 
         Optional.ofNullable(uri)
-                .ifPresentOrElse(u ->
-                                handlers.addAll(aasRepositoryStore.get(u)
-                                        .map(List::of)
-                                        // If no uri is supplied, return all SelfDescriptions
-                                        .orElseThrow(() -> new BadRequestException("URI not registered."))),
-                        () -> handlers.addAll(aasRepositoryStore.getAll())
-                );
+                .ifPresentOrElse(u -> handlers.addAll(aasRepositoryStore.get(u)
+                        .map(List::of)
+                        // If no uri is supplied, return all SelfDescriptions
+                        .orElseThrow(() -> new BadRequestException("URI not registered."))),
+                        () -> handlers.addAll(aasRepositoryStore.getAll()));
 
         List<Environment> selfDescriptions = new ArrayList<>();
         for (AasHandler<?> handler: handlers) {

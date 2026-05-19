@@ -44,7 +44,8 @@ public abstract class DiffHelper {
 
 
     /**
-     * For a list of assets and its updated counterpart, returns a list of the newly changed assets. A changed asset is manifested by having the same identifier but different
+     * For a list of assets and its updated counterpart, returns a list of the newly changed assets. A changed asset is
+     * manifested by having the same identifier but different
      * metadata / data address.
      *
      * @param current The list of assets (possibly outdated).

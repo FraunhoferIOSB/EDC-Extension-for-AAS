@@ -22,7 +22,8 @@ import java.util.Map;
 
 
 /**
- * An AAS server client is used for communications with an AAS server. AAS servers can be AAS repositories, Submodel repositories, Concept-Description repositories, AAS
+ * An AAS server client is used for communications with an AAS server. AAS servers can be AAS repositories, Submodel
+ * repositories, Concept-Description repositories, AAS
  * registries.
  */
 public interface AasServerClient {
@@ -44,7 +45,8 @@ public interface AasServerClient {
 
 
     /**
-     * Returns whether a given reference is eligible for registration. An element is eligible if all elements are to be registered or a selection of elements are to be registered
+     * Returns whether a given reference is eligible for registration. An element is eligible if all elements are to be
+     * registered or a selection of elements are to be registered
      * and this element is part of that selection.
      *
      * @param reference Reference of the element whose eligibility is to be checked

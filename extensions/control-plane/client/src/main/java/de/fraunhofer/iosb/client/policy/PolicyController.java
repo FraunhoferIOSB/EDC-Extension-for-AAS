@@ -51,7 +51,8 @@ import static de.fraunhofer.iosb.client.ClientEndpoint.MISSING_REQUEST_BODY_MESS
 
 
 /**
- * Provides API for accepted policy management and provider dataset retrieval. For documentation see {@link de.fraunhofer.iosb.client.ClientEndpoint}
+ * Provides API for accepted policy management and provider dataset retrieval. For documentation see
+ * {@link de.fraunhofer.iosb.client.ClientEndpoint}
  */
 @Consumes({ MediaType.APPLICATION_JSON })
 @Produces({ MediaType.APPLICATION_JSON })
@@ -78,7 +79,8 @@ public class PolicyController {
 
 
     /**
-     * Return dataset for assetId that match any policyDefinition's policy of the services' policyDefinitionStore instance containing user added policyDefinitions. If more than one
+     * Return dataset for assetId that match any policyDefinition's policy of the services' policyDefinitionStore instance
+     * containing user added policyDefinitions. If more than one
      * policyDefinitions are provided by the provider connector, an AmbiguousOrNullException will be thrown.
      *
      * @param providerUri Provider of the asset.
@@ -111,18 +113,18 @@ public class PolicyController {
 
     private List<ContractOffer> buildResponseFrom(Dataset dataset) {
         return dataset.getOffers().entrySet().stream()
-                .map(entry ->
-                        ContractOffer.Builder.newInstance()
-                                .id(entry.getKey())
-                                .policy(entry.getValue().withTarget(dataset.getId()))
-                                .assetId(dataset.getId())
-                                .build())
+                .map(entry -> ContractOffer.Builder.newInstance()
+                        .id(entry.getKey())
+                        .policy(entry.getValue().withTarget(dataset.getId()))
+                        .assetId(dataset.getId())
+                        .build())
                 .toList();
     }
 
 
     /**
-     * Return policyDefinition for assetId that match any policyDefinitions' policy of the services' policyDefinitionStore instance containing user added policyDefinitions. If more
+     * Return policyDefinition for assetId that match any policyDefinitions' policy of the services' policyDefinitionStore
+     * instance containing user added policyDefinitions. If more
      * than one policyDefinitions are provided by the provider connector, an AmbiguousOrNullException will be thrown.
      *
      * @param counterPartyId Provider of the asset. (id)
@@ -137,7 +139,8 @@ public class PolicyController {
 
 
     /**
-     * Adds an accepted contractOffer to match when checking a provider contractOffer. Only the policies' rules are relevant.
+     * Adds an accepted contractOffer to match when checking a provider contractOffer. Only the policies' rules are
+     * relevant.
      *
      * @param policyDefinitions accepted policyDefinitions
      * @return "OK"-response if requestBody is not empty

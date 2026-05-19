@@ -38,8 +38,7 @@ import static org.eclipse.edc.spi.result.StoreFailure.Reason.ALREADY_EXISTS;
 
 public abstract class PolicyHelper {
 
-    private PolicyHelper() {
-    }
+    private PolicyHelper() {}
 
 
     /**

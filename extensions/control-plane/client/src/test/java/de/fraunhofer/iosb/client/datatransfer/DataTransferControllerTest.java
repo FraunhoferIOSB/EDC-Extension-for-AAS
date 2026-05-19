@@ -43,8 +43,6 @@ import java.util.UUID;
 
 import static de.fraunhofer.iosb.client.datatransfer.DataTransferController.OPERATION_FIELD;
 import static java.lang.String.format;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -103,8 +101,7 @@ class DataTransferControllerTest {
                                 .value(new DefaultProperty.Builder()
                                         .value("out")
                                         .build())
-                                .build()
-                ))
+                                .build()))
                 .build();
     }
 
@@ -145,8 +142,7 @@ class DataTransferControllerTest {
 
         testSubject.getData(uri, AGREEMENT_ID, dataSinkAddress);
         // Verify that operation is serialized before sending it to provider
-        verify(mockInitiateTransferCommandHandler).handle(argThat(request ->
-                operationString.equals(request.getRequest().getDataDestination().getStringProperty(OPERATION_FIELD))));
+        verify(mockInitiateTransferCommandHandler).handle(argThat(request -> operationString.equals(request.getRequest().getDataDestination().getStringProperty(OPERATION_FIELD))));
     }
 
 
@@ -158,8 +154,7 @@ class DataTransferControllerTest {
 
         testSubject.getData(uri, AGREEMENT_ID, dataSinkAddress);
         // Verify that operation is serialized before sending it to provider
-        verify(mockInitiateTransferCommandHandler).handle(argThat(request ->
-                null == request.getRequest().getDataDestination().getProperties().get(OPERATION_FIELD)));
+        verify(mockInitiateTransferCommandHandler).handle(argThat(request -> null == request.getRequest().getDataDestination().getProperties().get(OPERATION_FIELD)));
     }
 
 

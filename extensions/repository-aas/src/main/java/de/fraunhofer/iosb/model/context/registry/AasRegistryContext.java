@@ -69,8 +69,7 @@ public class AasRegistryContext extends AasServerContext {
         private boolean allowSelfSigned;
 
 
-        public Builder() {
-        }
+        public Builder() {}
 
 
         public Builder authenticationMethod(AuthenticationMethod authenticationMethod) {

@@ -46,7 +46,8 @@ import java.util.Map;
 
 
 /**
- * This client uses the FA³ST client as backend. The FA³ST client communicates over standardized AAS API calls, so it should be compatible to all standard-conformant AAS
+ * This client uses the FA³ST client as backend. The FA³ST client communicates over standardized AAS API calls, so it
+ * should be compatible to all standard-conformant AAS
  * repositories.
  */
 public class RemoteAasRepositoryClient implements AasRepositoryClient {

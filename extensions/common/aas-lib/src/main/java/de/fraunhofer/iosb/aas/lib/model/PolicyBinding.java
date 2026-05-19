@@ -34,6 +34,7 @@ import static de.fraunhofer.iosb.constants.AasConstants.DEFAULT_POLICY_DEFINITIO
 @JsonDeserialize(builder = PolicyBinding.Builder.class)
 public record PolicyBinding(Reference referredElement, @JsonAlias("accessPolicyId") String accessPolicyDefinitionId,
         @JsonAlias("usagePolicyId") String contractPolicyDefinitionId) {
+
     public PolicyBinding(Reference referredElement, String accessPolicyDefinitionId, String contractPolicyDefinitionId) {
         this.referredElement = Objects.requireNonNull(referredElement);
         this.accessPolicyDefinitionId = accessPolicyDefinitionId;

@@ -1,4 +1,4 @@
-import org.gradle.api.plugins.ApplicationPlugin
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 project.plugins.apply(ApplicationPlugin::class.java)
 project.plugins.apply("com.gradleup.shadow")
@@ -13,13 +13,11 @@ tasks.named<Jar>("jar") { enabled = false }
 tasks.named("distZip") { enabled = false }
 tasks.named("distTar") { enabled = false }
 
-tasks.named("shadowJar") {
-    configure<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
-        isZip64 = true
-        exclude("**/pom.properties", "**/pom.xml")
-        mergeServiceFiles()
-        archiveFileName.set("${project.projectDir.name}.jar")
-    }
+tasks.named<ShadowJar>("shadowJar") {
+    isZip64 = true
+    exclude("**/pom.properties", "**/pom.xml")
+    mergeServiceFiles()
+    archiveFileName.set("${project.projectDir.name}.jar")
 }
 
 tasks.named("startShadowScripts") { enabled = false }

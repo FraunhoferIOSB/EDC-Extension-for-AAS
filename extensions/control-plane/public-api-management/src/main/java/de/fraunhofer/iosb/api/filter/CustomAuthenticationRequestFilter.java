@@ -32,7 +32,8 @@ import static java.lang.String.format;
 
 
 /**
- * Custom AuthenticationRequestFilter filtering requests that go directly to public endpoints. Endpoints can be made public by adding them to this filter's list.
+ * Custom AuthenticationRequestFilter filtering requests that go directly to public endpoints. Endpoints can be made
+ * public by adding them to this filter's list.
  */
 public class CustomAuthenticationRequestFilter extends AuthenticationRequestFilter {
 
@@ -50,7 +51,8 @@ public class CustomAuthenticationRequestFilter extends AuthenticationRequestFilt
 
 
     /**
-     * On automated data transfer: If the request is valid, the key,value pair used for this request will no longer be valid.
+     * On automated data transfer: If the request is valid, the key,value pair used for this request will no longer be
+     * valid.
      */
     @Override
     public void filter(ContainerRequestContext requestContext) {

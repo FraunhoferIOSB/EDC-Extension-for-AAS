@@ -35,8 +35,8 @@ import org.eclipse.edc.connector.controlplane.transfer.command.handlers.Initiate
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.command.CommandResult;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.command.CommandResult;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;

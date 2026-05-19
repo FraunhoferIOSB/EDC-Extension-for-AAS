@@ -29,7 +29,6 @@ import de.fraunhofer.iosb.app.handler.edc.EdcStoreHandler;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import de.fraunhofer.iosb.app.stores.repository.AasServerStore;
 import de.fraunhofer.iosb.client.exception.UnauthorizedException;
-import de.fraunhofer.iosb.codec.Codec;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;

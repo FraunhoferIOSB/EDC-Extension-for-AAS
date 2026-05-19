@@ -148,8 +148,7 @@ public class RegistryElementCreator {
                                 .endpointProtocolVersion("0.98")
                                 .subprotocol(id)
                                 .build())
-                        .build()
-        );
+                        .build());
     }
 
 }

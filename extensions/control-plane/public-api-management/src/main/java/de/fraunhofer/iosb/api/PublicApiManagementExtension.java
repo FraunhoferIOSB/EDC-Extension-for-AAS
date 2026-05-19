@@ -26,7 +26,8 @@ import org.eclipse.edc.web.spi.WebService;
 
 
 /**
- * Manage public api endpoints in a unified extension. This is due to multiple independent authentication request filters not working properly, since they cannot "let a request
+ * Manage public api endpoints in a unified extension. This is due to multiple independent authentication request
+ * filters not working properly, since they cannot "let a request
  * through" to their endpoints without other registered authentication request filters accepting the request too.
  */
 @Provides(PublicApiManagementService.class)

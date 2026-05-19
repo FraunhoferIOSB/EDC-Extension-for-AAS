@@ -71,8 +71,7 @@ public class FaaastRepositoryConfig extends AasRepositoryConfig<ServiceConfig> {
         private boolean ssl = true;
 
 
-        private Builder() {
-        }
+        private Builder() {}
 
 
         public static Builder newInstance() {
@@ -114,19 +113,18 @@ public class FaaastRepositoryConfig extends AasRepositoryConfig<ServiceConfig> {
 
 
         public FaaastRepositoryConfig build() {
-            ServiceConfig serviceConfig =
-                    Optional.ofNullable(configPath)
-                            .map(Path::toFile)
-                            .map(file -> {
-                                try {
-                                    return ServiceConfigHelper.load(file);
-                                }
-                                catch (IOException e) {
-                                    throw new IllegalArgumentException(String.format("Could not load FA³ST service config from path %s",
-                                            configPath), e);
-                                }
-                            })
-                            .orElse(new ServiceConfig());
+            ServiceConfig serviceConfig = Optional.ofNullable(configPath)
+                    .map(Path::toFile)
+                    .map(file -> {
+                        try {
+                            return ServiceConfigHelper.load(file);
+                        }
+                        catch (IOException e) {
+                            throw new IllegalArgumentException(String.format("Could not load FA³ST service config from path %s",
+                                    configPath), e);
+                        }
+                    })
+                    .orElse(new ServiceConfig());
 
             // Any additional given argument supersedes or complements the values that are present in the config
             Optional.ofNullable(model)

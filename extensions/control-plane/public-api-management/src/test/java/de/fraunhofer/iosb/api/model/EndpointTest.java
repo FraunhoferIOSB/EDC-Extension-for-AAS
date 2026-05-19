@@ -98,8 +98,7 @@ public class EndpointTest {
             new Endpoint(null, HttpMethod.HEAD, Map.of("", List.of("")));
             fail();
         }
-        catch (NullPointerException expected) {
-        }
+        catch (NullPointerException expected) {}
 
     }
 

@@ -89,9 +89,7 @@ public class AasDataProcessor {
             String body = sourceDataAddress.getStringProperty(PROXY_BODY);
             if (body != null) {
                 requestBuilder.method(method,
-                        HttpMethod.permitsRequestBody(method) ?
-                                new AasTransferRequestBody(body.getBytes(StandardCharsets.UTF_8), "application/json") :
-                                null);
+                        HttpMethod.permitsRequestBody(method) ? new AasTransferRequestBody(body.getBytes(StandardCharsets.UTF_8), "application/json") : null);
             }
             else {
                 requestBuilder.method(method, null);

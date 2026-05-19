@@ -40,7 +40,8 @@ import static de.fraunhofer.iosb.model.context.repository.remote.RemoteAasReposi
 
 
 /**
- * Local FA³ST service (repository) client. Subscribes to FA³ST event on the message bus to receive updates about the environment.
+ * Local FA³ST service (repository) client. Subscribes to FA³ST event on the message bus to receive updates about the
+ * environment.
  */
 public class LocalFaaastRepositoryClient extends LocalAasRepositoryClient<LocalFaaastRepositoryContext> {
 

@@ -62,8 +62,10 @@ import static org.mockito.Mockito.when;
 
 
 /**
- * We assume here that catalogService does not return null objects as well as null catalogs inside their return value. Also, we assume that catalogs are valid JSON and expandable
- * by the connector's JSON LD expander TitaniumJsonLd.class. Finally, we assume that catalogs can be transformed with the TypeTransformerRegistry.
+ * We assume here that catalogService does not return null objects as well as null catalogs inside their return value.
+ * Also, we assume that catalogs are valid JSON and expandable
+ * by the connector's JSON LD expander TitaniumJsonLd.class. Finally, we assume that catalogs can be transformed with
+ * the TypeTransformerRegistry.
  */
 public class PolicyServiceTest {
 
@@ -339,7 +341,8 @@ public class PolicyServiceTest {
                                 .target(TEST_ASSET_ID)
                                 .duty(Duty.Builder.newInstance()
                                         .action(Action.Builder.newInstance().type("USE").build())
-                                        .consequence(Duty.Builder.newInstance().build()).build()).build())
+                                        .consequence(Duty.Builder.newInstance().build()).build())
+                                .build())
                 .distribution(Distribution.Builder.newInstance()
                         .dataService(DataService.Builder.newInstance().build())
                         .format("")

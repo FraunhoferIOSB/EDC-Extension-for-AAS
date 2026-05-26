@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
@@ -45,7 +46,7 @@ public class ContractDefinitionService {
     public static final String CONTRACT_POLICY_FIELD = "contractPolicyId";
 
     private final ContractDefinitionStore store;
-    private final String participantId;
+    private final Supplier<String> participantId;
 
 
     /**
@@ -54,7 +55,7 @@ public class ContractDefinitionService {
      * @param store Contract store of the EDC.
      * @param participantId Participant ID under which AAS extension registers data in data space
      */
-    public ContractDefinitionService(ContractDefinitionStore store, String participantId) {
+    public ContractDefinitionService(ContractDefinitionStore store, Supplier<String> participantId) {
         this.store = store;
         this.participantId = participantId;
     }
@@ -142,7 +143,7 @@ public class ContractDefinitionService {
                 modifyResult = store.deleteById(contractDefinition.getId());
             }
             else {
-                modifyResult = store.update(contractDefinition.toBuilder().participantContextId(participantId).build());
+                modifyResult = store.update(contractDefinition.toBuilder().participantContextId(participantId.get()).build());
             }
 
             if (modifyResult.failed() || (modifyResult.failed() && modifyResult.reason().equals(NOT_FOUND))) {
@@ -171,7 +172,7 @@ public class ContractDefinitionService {
         from.getAssetsSelector().clear();
         from.getAssetsSelector().add(updatedAssetsSelector);
 
-        return from.toBuilder().participantContextId(participantId).build();
+        return from.toBuilder().participantContextId(participantId.get()).build();
     }
 
 
@@ -211,7 +212,7 @@ public class ContractDefinitionService {
 
     private ContractDefinition.Builder baseContractDefinition() {
         return ContractDefinition.Builder.newInstance()
-                .participantContextId(participantId)
+                .participantContextId(participantId.get())
                 .privateProperty(EDC_NAMESPACE + "creator", AasExtension.NAME);
     }
 

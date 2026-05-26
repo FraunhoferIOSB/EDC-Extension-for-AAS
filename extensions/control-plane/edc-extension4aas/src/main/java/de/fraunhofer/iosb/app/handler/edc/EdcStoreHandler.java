@@ -23,6 +23,8 @@ import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.spi.result.StoreResult;
 
+import java.util.function.Supplier;
+
 
 /**
  * Handles transactions with EDC. Makes sure that registering an asset and the asset to a contract is a transaction.
@@ -40,7 +42,7 @@ public class EdcStoreHandler {
      * @param contractDefinitionStore To add/remove asset ids to/from contracts, to create/remove contracts.
      * @param participantId The participantId of the participant that the AAS extension publishes for.
      */
-    public EdcStoreHandler(AssetIndex assetIndex, ContractDefinitionStore contractDefinitionStore, String participantId) {
+    public EdcStoreHandler(AssetIndex assetIndex, ContractDefinitionStore contractDefinitionStore, Supplier<String> participantId) {
         this.assetService = new AssetService(assetIndex, participantId);
         this.contractDefinitionService = new ContractDefinitionService(contractDefinitionStore, participantId);
     }

@@ -51,6 +51,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Supplier;
 
 import static de.fraunhofer.iosb.app.controller.SelfDescriptionController.SELF_DESCRIPTION_PATH;
 import static de.fraunhofer.iosb.constants.AasConstants.AAS_PREFIX;
@@ -90,6 +91,7 @@ public class AasExtension implements ServiceExtension {
     private Vault vault;
     private RepositoryController repositoryController;
     private RegistryController registryController;
+    private Supplier<String> participantId;
     private Monitor monitor;
 
 
@@ -103,7 +105,7 @@ public class AasExtension implements ServiceExtension {
         AasServerStore aasServerStore = new AasServerStore();
 
         // This will probably fail if multiple participantIds are registered
-        String participantId = participantIdentityResolver.getParticipantId("default", "dataspace-protocol-http");
+        participantId = () -> participantIdentityResolver.getParticipantId("provider", "dataspace-protocol-http");
 
         repositoryController = new RepositoryController(monitor, aasServerStore, hostname, new EdcStoreHandler(assetIndex, contractDefinitionStore, participantId), vault,
                 oauth2Client);
@@ -120,7 +122,6 @@ public class AasExtension implements ServiceExtension {
         webService.registerResource(repositoryController);
         webService.registerResource(registryController);
 
-        PolicyHelper.registerDefaultPolicies(typeTransformerRegistry, monitor, policyDefinitionStore, participantId);
         monitor.debug(String.format("%s initialized.", NAME));
     }
 
@@ -128,6 +129,7 @@ public class AasExtension implements ServiceExtension {
     @Override
     public void start() {
         try {
+            PolicyHelper.registerDefaultPolicies(typeTransformerRegistry, monitor, policyDefinitionStore, participantId.get());
             bootstrapRepositories();
         }
         catch (UnauthorizedException e) {

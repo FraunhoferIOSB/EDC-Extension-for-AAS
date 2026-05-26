@@ -23,17 +23,16 @@ import org.eclipse.edc.catalog.transform.JsonObjectToCatalogTransformer;
 import org.eclipse.edc.catalog.transform.JsonObjectToDataServiceTransformer;
 import org.eclipse.edc.catalog.transform.JsonObjectToDatasetTransformer;
 import org.eclipse.edc.catalog.transform.JsonObjectToDistributionTransformer;
-import org.eclipse.edc.connector.controlplane.contract.negotiation.command.handlers.InitiateNegotiationCommandHandler;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService;
-import org.eclipse.edc.connector.controlplane.transfer.command.handlers.InitiateTransferCommandHandler;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.controlplane.transform.odrl.OdrlTransformersFactory;
 import org.eclipse.edc.connector.core.agent.NoOpParticipantIdMapper;
 import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.command.CommandHandlerRegistry;
 import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -50,17 +49,15 @@ public class ClientExtension implements ServiceExtension {
     @Inject
     private CatalogService catalogService;
     @Inject
-    private InitiateNegotiationCommandHandler initiateNegotiationCommandHandler;
-    @Inject
     private ContractNegotiationObservable contractNegotiationObservable;
     @Inject
     private ContractNegotiationStore contractNegotiationStore;
     @Inject
     private Hostname hostname;
     @Inject
-    private SingleParticipantContextSupplier singleParticipantContextSupplier;
+    private CommandHandlerRegistry commandHandlerRegistry;
     @Inject
-    private InitiateTransferCommandHandler initiateTransferCommandHandler;
+    private SingleParticipantContextSupplier singleParticipantContextSupplier;
     @Inject
     private TransferProcessObservable transferProcessObservable;
     @Inject
@@ -78,7 +75,7 @@ public class ClientExtension implements ServiceExtension {
                 .orElseThrow(failure -> new EdcException(failure.getFailureDetail()));
 
         var negotiationController = new NegotiationController(
-                initiateNegotiationCommandHandler,
+                commandHandlerRegistry,
                 contractNegotiationObservable,
                 contractNegotiationStore,
                 participantContext,
@@ -89,7 +86,7 @@ public class ClientExtension implements ServiceExtension {
                 context.getConfig(),
                 webService,
                 publicApiManagementService,
-                initiateTransferCommandHandler,
+                commandHandlerRegistry,
                 participantContext,
                 transferProcessObservable,
                 hostname);

@@ -16,12 +16,12 @@
 package de.fraunhofer.iosb.client.datatransfer;
 
 import de.fraunhofer.iosb.client.ClientEndpoint;
-import org.eclipse.edc.connector.controlplane.transfer.command.handlers.InitiateTransferCommandHandler;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.InitiateTransferCommand;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.command.CommandHandlerRegistry;
 import org.eclipse.edc.spi.command.CommandResult;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.Hostname;
@@ -50,14 +50,14 @@ class TransferInitiator {
     public static final String HTTP_PATH = "web.http.path";
 
     private final Monitor monitor;
-    private final InitiateTransferCommandHandler initiateTransferCommandHandler;
+    private final CommandHandlerRegistry commandHandlerRegistry;
     private final ParticipantContext participantContext;
     private final URI ownUri;
 
 
-    TransferInitiator(Monitor monitor, Config config, Hostname hostname, InitiateTransferCommandHandler initiateTransferCommandHandler, ParticipantContext participantContext) {
+    TransferInitiator(Monitor monitor, Config config, Hostname hostname, CommandHandlerRegistry commandHandlerRegistry, ParticipantContext participantContext) {
         this.monitor = monitor;
-        this.initiateTransferCommandHandler = initiateTransferCommandHandler;
+        this.commandHandlerRegistry = commandHandlerRegistry;
         this.participantContext = participantContext;
         this.ownUri = createOwnUriFromConfigurationValues(config, hostname);
     }
@@ -89,7 +89,7 @@ class TransferInitiator {
                 .dataDestination(dataSinkAddress)
                 .build();
 
-        return initiateTransferCommandHandler.handle(new InitiateTransferCommand(participantContext, transferRequest));
+        return commandHandlerRegistry.execute(new InitiateTransferCommand(participantContext, transferRequest));
     }
 
 

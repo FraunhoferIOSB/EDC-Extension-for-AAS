@@ -15,9 +15,9 @@
  */
 package de.fraunhofer.iosb.client.datatransfer;
 
-import org.eclipse.edc.connector.controlplane.transfer.command.handlers.InitiateTransferCommandHandler;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
+import org.eclipse.edc.spi.command.CommandHandlerRegistry;
 import org.eclipse.edc.spi.command.CommandResult;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
@@ -38,7 +38,7 @@ import static org.mockito.Mockito.when;
 
 public class TransferInitiatorTest {
 
-    private final InitiateTransferCommandHandler mockInitiateTransferCommandHandler = mock(InitiateTransferCommandHandler.class);
+    private final CommandHandlerRegistry mockCommandHandlerRegistry = mock(CommandHandlerRegistry.class);
 
     private TransferInitiator transferInitiator;
     private CommandResult mockStatusResult;
@@ -49,11 +49,11 @@ public class TransferInitiatorTest {
         var configMock = ConfigFactory.fromMap(Map.of("web.http.port", "8080", "web.http.path", "/api"));
 
         transferInitiator = new TransferInitiator(mock(Monitor.class), configMock, () -> "localhost",
-                mockInitiateTransferCommandHandler, mock(ParticipantContext.class));
+                mockCommandHandlerRegistry, mock(ParticipantContext.class));
 
         mockStatusResult = mock(CommandResult.class);
 
-        when(mockInitiateTransferCommandHandler.handle(any())).thenReturn(mockStatusResult);
+        when(mockCommandHandlerRegistry.execute(any())).thenReturn(mockStatusResult);
     }
 
 
@@ -63,7 +63,7 @@ public class TransferInitiatorTest {
 
         transferInitiator.initiateTransferProcess(new URI("http://provider-url:1234"), "test-agreement-id",
                 UUID.randomUUID().toString());
-        verify(mockInitiateTransferCommandHandler, times(1)).handle(any());
+        verify(mockCommandHandlerRegistry, times(1)).execute(any());
     }
 
 
@@ -73,7 +73,7 @@ public class TransferInitiatorTest {
         var dataSink = HttpDataAddress.Builder.newInstance().baseUrl("https://example.com").build();
         transferInitiator.initiateTransferProcess(new URI("http://provider-url:1234"),
                 "test-agreement-id", dataSink);
-        verify(mockInitiateTransferCommandHandler, times(1)).handle(any());
+        verify(mockCommandHandlerRegistry, times(1)).execute(any());
     }
 
 }

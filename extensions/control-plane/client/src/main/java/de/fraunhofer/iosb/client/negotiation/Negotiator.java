@@ -15,12 +15,12 @@
  */
 package de.fraunhofer.iosb.client.negotiation;
 
-import org.eclipse.edc.connector.controlplane.contract.negotiation.command.handlers.InitiateNegotiationCommandHandler;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.command.InitiateNegotiationCommand;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
+import org.eclipse.edc.spi.command.CommandHandlerRegistry;
 import org.eclipse.edc.spi.command.CommandResult;
 import org.eclipse.edc.spi.query.QuerySpec;
 
@@ -30,7 +30,7 @@ import org.eclipse.edc.spi.query.QuerySpec;
  */
 public class Negotiator {
 
-    private final InitiateNegotiationCommandHandler initiateNegotiationCommandHandler;
+    private final CommandHandlerRegistry commandHandlerRegistry;
     private final ContractNegotiationStore contractNegotiationStore;
     private final ParticipantContext participantContext;
 
@@ -38,12 +38,12 @@ public class Negotiator {
     /**
      * Class constructor
      *
-     * @param initiateNegotiationCommandHandler Initiating a negotiation as a consumer.
+     * @param commandHandlerRegistry Initiating a negotiation as a consumer.
      * @param contractNegotiationStore Check for existing agreements before negotiating
      */
-    public Negotiator(InitiateNegotiationCommandHandler initiateNegotiationCommandHandler,
+    public Negotiator(CommandHandlerRegistry commandHandlerRegistry,
                       ContractNegotiationStore contractNegotiationStore, ParticipantContext participantContext) {
-        this.initiateNegotiationCommandHandler = initiateNegotiationCommandHandler;
+        this.commandHandlerRegistry = commandHandlerRegistry;
         this.contractNegotiationStore = contractNegotiationStore;
         this.participantContext = participantContext;
     }
@@ -75,7 +75,7 @@ public class Negotiator {
                             .build());
         }
 
-        return initiateNegotiationCommandHandler.handle(new InitiateNegotiationCommand(participantContext, contractRequest));
+        return commandHandlerRegistry.execute(new InitiateNegotiationCommand(participantContext, contractRequest));
     }
 
 }

@@ -15,13 +15,13 @@
  */
 package de.fraunhofer.iosb.client.negotiation;
 
-import org.eclipse.edc.connector.controlplane.contract.negotiation.command.handlers.InitiateNegotiationCommandHandler;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
+import org.eclipse.edc.spi.command.CommandHandlerRegistry;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.configuration.Config;
 
@@ -48,13 +48,13 @@ public class NegotiationController {
     private final ClientContractNegotiationListener listener;
 
 
-    public NegotiationController(InitiateNegotiationCommandHandler initiateNegotiationCommandHandler,
+    public NegotiationController(CommandHandlerRegistry commandHandlerRegistry,
                                  ContractNegotiationObservable observable,
                                  ContractNegotiationStore contractNegotiationStore,
                                  ParticipantContext participantContext,
                                  Config config) {
         this.config = config;
-        this.negotiator = new Negotiator(initiateNegotiationCommandHandler, contractNegotiationStore, participantContext);
+        this.negotiator = new Negotiator(commandHandlerRegistry, contractNegotiationStore, participantContext);
         this.listener = new ClientContractNegotiationListener();
         observable.registerListener(listener);
     }

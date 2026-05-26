@@ -15,7 +15,6 @@
  */
 package de.fraunhofer.iosb.client.negotiation;
 
-import org.eclipse.edc.connector.controlplane.contract.negotiation.command.handlers.InitiateNegotiationCommandHandler;
 import org.eclipse.edc.connector.controlplane.contract.observe.ContractNegotiationObservableImpl;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
@@ -27,6 +26,7 @@ import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.command.CommandHandlerRegistry;
 import org.eclipse.edc.spi.command.CommandResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,7 +48,7 @@ import static org.mockito.Mockito.when;
 
 public class NegotiatorTest {
 
-    private final InitiateNegotiationCommandHandler mockInitiateNegotiationCommandHandler = mock(InitiateNegotiationCommandHandler.class);
+    private final CommandHandlerRegistry mockCommandHandlerRegistry = mock(CommandHandlerRegistry.class);
     private final ContractNegotiationStore cnsMock = mock(ContractNegotiationStore.class);
     private final ParticipantContext participantContextMock = mock(ParticipantContext.class);
     private final ContractNegotiationObservable contractNegotiationObservable = new ContractNegotiationObservableImpl();
@@ -63,13 +63,13 @@ public class NegotiatorTest {
     @BeforeEach
     void initializeClientNegotiator() {
         defineMockBehaviour();
-        clientNegotiator = new Negotiator(mockInitiateNegotiationCommandHandler, cnsMock, participantContextMock);
+        clientNegotiator = new Negotiator(mockCommandHandlerRegistry, cnsMock, participantContextMock);
     }
 
 
     void defineMockBehaviour() {
         when(cnsMock.queryAgreements(any())).thenReturn(Stream.of());
-        when(mockInitiateNegotiationCommandHandler.handle(any()))
+        when(mockCommandHandlerRegistry.execute(any()))
                 .thenReturn(CommandResult.success(negotiation));
     }
 

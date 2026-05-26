@@ -27,10 +27,10 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
-import org.eclipse.edc.connector.controlplane.transfer.command.handlers.InitiateTransferCommandHandler;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.command.CommandHandlerRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.configuration.Config;
@@ -79,7 +79,7 @@ public class DataTransferController {
      */
     public DataTransferController(Monitor monitor, Config config, WebService webService,
                                   PublicApiManagementService publicApiManagementService,
-                                  InitiateTransferCommandHandler initiateTransferCommandHandler,
+                                  CommandHandlerRegistry initiateTransferCommandHandler,
                                   ParticipantContext participantContext,
                                   TransferProcessObservable transferProcessObservable,
                                   Hostname hostname) {

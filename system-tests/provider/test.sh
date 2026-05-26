@@ -5,10 +5,14 @@ set -euo pipefail
 # Load utility functions
 source "system-tests/util.sh"
 
+# Step -1: Use in-memory-vault, functionally the test will be the same.
+cp ./launchers/provider/build.gradle.kts ./launchers/provider/build.gradle.kts.bak
+sed -i '/runtimeOnly(libs\.edc\.vault\.hashicorp)/d' ./launchers/provider/build.gradle.kts
+
 # Step 0: Boot connector
 start_runtime provider
 
-MANAGEMENT_API="http://localhost:13338/management/v3"
+MANAGEMENT_API="http://localhost:13338/management/v4"
 catalog_request="$(cat system-tests/resources/request_data/catalog_request.json)"
 query_spec="$(cat system-tests/resources/request_data/query_spec.json)"
 ################################ Step 1: Check catalog content ################################
@@ -25,7 +29,7 @@ verify_request "${SELF_DESCRIPTION_API}" "self_description" "GET"
 
 ################################ Step 6: Negotiate and transfer data ################################
 start_runtime consumer
-CONSUMER_MANAGEMENT_API="http://localhost:23338/management/v3"
+CONSUMER_MANAGEMENT_API="http://localhost:23338/management/v4"
 CONSUMER_CATALOG_API="${CONSUMER_MANAGEMENT_API}/catalog/request"
 CONTRACT_NEGOTIATION_API="${CONSUMER_MANAGEMENT_API}/contractnegotiations"
 
@@ -36,7 +40,7 @@ offer_id=$(curl -sS\
    --header "Content-Type: application/json"\
    --header "x-api-key: password" \
    --data "$catalog_request"\
-   | jq -r '."dcat:dataset"[0]."odrl:hasPolicy"."@id"')
+   | jq -r '.dataset[0].hasPolicy[0]."@id"')
 
 ################################ Step 6.2: Send offer (from consumer to provider) ################################
 
@@ -76,19 +80,24 @@ if [[ "$state" != "FINALIZED" ]]; then
 fi
 
 agreement_id=$(echo "$resp" | jq -r '.contractAgreementId')
-echo "$agreement_id"
+
 ################################ Step 6.4: Using client extension, get data from agreement directly as response to check if data transfer works ################################
+
 received_data=$(curl \
   --silent \
   --show-error \
   --request POST \
-  --url "http://localhost:23337/api/automated/transfer?providerUrl=http%3A%2F%2Flocalhost%3A13340%2Fdsp&agreementId=$agreement_id" \
+  --url "http://localhost:23337/api/automated/transfer?providerUrl=http%3A%2F%2Flocalhost%3A13340%2Fdsp%2F2025-1&agreementId=$agreement_id" \
   --header "x-api-key: password" \
   --header "Content-Type: application/json" \
   | jq -S -r)
 
-should_be_data=$(< system-tests/resources/aas.json jq -S -r '."conceptDescriptions"[0]')
+should_be_data=$(< system-tests/resources/aas.json jq -S -r '.conceptDescriptions[0]')
 
 diff -w <(echo "$received_data") <(echo "$should_be_data") > /dev/null
 
 echo "Transferred data checks out. Test complete!"
+
+# Step 7: Reinstate initial build file with hashicorp dependency.
+echo "Reinstating hashicorp vault dependency in provider build file"
+mv ./launchers/provider/build.gradle.kts.bak ./launchers/provider/build.gradle.kts

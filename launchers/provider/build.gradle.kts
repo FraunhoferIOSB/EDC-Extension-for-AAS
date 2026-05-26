@@ -24,5 +24,6 @@ dependencies {
         // This requires edc.dpf.selector.url which we don't need here as the dataplane is running in the same instance
         // as the control-plane.
         exclude("org.eclipse.edc", "data-plane-selector-client")
+        exclude("org.eclipse.edc", "vault-hashicorp")
     }
 }

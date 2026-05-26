@@ -1,8 +1,9 @@
 {
+  "@type": "CatalogRequest",
+  "counterPartyAddress": "http://localhost:13340/dsp/2025-1",
+  "counterPartyId": "provider",
+  "protocol": "dataspace-protocol-http:2025-1",
   "@context": {
     "edc": "https://w3id.org/edc/v0.0.1/ns/"
-  },
-  "counterPartyAddress": "http://localhost:13340/dsp",
-  "counterPartyId": "provider",
-  "protocol": "dataspace-protocol-http"
+  }
 }

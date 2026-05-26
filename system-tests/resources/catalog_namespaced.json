@@ -1,5 +1,5 @@
 {
-  "@type": "dcat:Catalog",
+  "@type": "Catalog",
   "dcat:dataset": [
     {
       "@id": "1351791412",

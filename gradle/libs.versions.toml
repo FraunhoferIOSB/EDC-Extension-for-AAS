@@ -47,6 +47,7 @@ edc-core-spi = { module = "org.eclipse.edc:core-spi", version.ref = "edc" }
 edc-data-plane-http-spi = { module = "org.eclipse.edc:data-plane-http-spi", version.ref = "edc" }
 edc-data-plane-spi = { module = "org.eclipse.edc:data-plane-spi", version.ref = "edc" }
 edc-dsp-catalog-http-dispatcher = { module = "org.eclipse.edc:dsp-catalog-http-dispatcher", version.ref = "edc" }
+edc-dsp2025 = { module = "org.eclipse.edc:dsp-2025", version.ref = "edc" }
 edc-federated-catalog-core = { module = "org.eclipse.edc:federated-catalog-core", version.ref = "edc" }
 edc-federated-catalog-core2025 = { module = "org.eclipse.edc:federated-catalog-core-2025", version.ref = "edc" }
 edc-http-lib = { module = "org.eclipse.edc:http-lib", version.ref = "edc" }

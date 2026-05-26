@@ -15,7 +15,7 @@
  */
 package de.fraunhofer.iosb.repository.impl.faaast;
 
-import de.fraunhofer.iosb.aas.test.DefaultEdcHttpClient;
+import de.fraunhofer.iosb.aas.test.defaults.DefaultEdcHttpClient;
 import de.fraunhofer.iosb.model.config.impl.faaast.FaaastRepositoryConfig;
 import de.fraunhofer.iosb.model.context.repository.AasRepositoryContext;
 import okhttp3.Request;

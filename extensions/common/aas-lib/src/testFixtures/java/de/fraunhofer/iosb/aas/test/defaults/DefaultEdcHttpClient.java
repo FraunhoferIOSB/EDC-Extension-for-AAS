@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.aas.test;
+package de.fraunhofer.iosb.aas.test.defaults;
 
 import dev.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;

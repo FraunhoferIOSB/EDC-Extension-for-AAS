@@ -80,7 +80,7 @@ public class CodecExtension implements ServiceExtension {
 
 
     @Provider(isDefault = true)
-    Codec provideCodec() {
+    public Codec provideCodec() {
         return new Codec(typeTransformerRegistry, jsonLd);
     }
 

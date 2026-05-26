@@ -15,7 +15,7 @@
  */
 package de.fraunhofer.iosb.app;
 
-import de.fraunhofer.iosb.aas.test.DefaultVault;
+import de.fraunhofer.iosb.aas.test.defaults.DefaultVault;
 import org.eclipse.edc.boot.system.injection.ObjectFactory;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;

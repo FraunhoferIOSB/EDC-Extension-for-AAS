@@ -13,7 +13,5 @@ dependencies {
 
     testImplementation(testFixtures(project(":extensions:common:aas-lib")))
 
-    testImplementation(libs.edc.http.lib) // EdcHttpClientImpl
-    testImplementation(libs.edc.json.lib)
-    testImplementation(libs.edc.json.ld.lib)
+    testImplementation(libs.edc.json.ld)
 }

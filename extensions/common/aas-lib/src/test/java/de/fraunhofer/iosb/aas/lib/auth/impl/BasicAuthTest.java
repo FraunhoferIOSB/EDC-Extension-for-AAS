@@ -15,7 +15,7 @@
  */
 package de.fraunhofer.iosb.aas.lib.auth.impl;
 
-import de.fraunhofer.iosb.aas.test.DefaultVault;
+import de.fraunhofer.iosb.aas.test.defaults.DefaultVault;
 import org.eclipse.edc.spi.security.Vault;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;

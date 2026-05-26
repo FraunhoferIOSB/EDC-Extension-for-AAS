@@ -16,7 +16,7 @@
 package de.fraunhofer.iosb.app.handler.edc;
 
 import de.fraunhofer.iosb.aas.lib.model.PolicyBinding;
-import de.fraunhofer.iosb.aas.test.DefaultVault;
+import de.fraunhofer.iosb.aas.test.defaults.DefaultVault;
 import de.fraunhofer.iosb.app.aas.mapper.referable.identifiable.IdentifiableMapper;
 import de.fraunhofer.iosb.client.repository.remote.impl.RemoteAasRepositoryClient;
 import de.fraunhofer.iosb.model.context.repository.remote.RemoteAasRepositoryContext;

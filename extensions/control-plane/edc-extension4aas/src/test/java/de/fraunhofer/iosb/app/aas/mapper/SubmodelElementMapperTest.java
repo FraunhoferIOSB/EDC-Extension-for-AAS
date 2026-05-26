@@ -15,7 +15,7 @@
  */
 package de.fraunhofer.iosb.app.aas.mapper;
 
-import de.fraunhofer.iosb.aas.test.DefaultVault;
+import de.fraunhofer.iosb.aas.test.defaults.DefaultVault;
 import de.fraunhofer.iosb.app.aas.mapper.referable.SubmodelElementMapper;
 import de.fraunhofer.iosb.client.repository.remote.impl.RemoteAasRepositoryClient;
 import de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress;

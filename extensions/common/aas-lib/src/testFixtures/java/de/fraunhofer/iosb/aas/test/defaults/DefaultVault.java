@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.aas.test;
+package de.fraunhofer.iosb.aas.test.defaults;
 
 import org.eclipse.edc.boot.vault.InMemoryVault;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;

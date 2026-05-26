@@ -20,10 +20,8 @@ import de.fraunhofer.iosb.aas.lib.auth.impl.BasicAuth;
 import de.fraunhofer.iosb.aas.lib.auth.impl.BearerAuth;
 import de.fraunhofer.iosb.aas.lib.model.PolicyBinding;
 import de.fraunhofer.iosb.aas.lib.util.InetTools;
-import de.fraunhofer.iosb.client.exception.UnauthorizedException;
 import de.fraunhofer.iosb.client.repository.AasRepositoryClient;
 import de.fraunhofer.iosb.ilt.faaast.client.exception.ConnectivityException;
-import de.fraunhofer.iosb.ilt.faaast.client.exception.ForbiddenException;
 import de.fraunhofer.iosb.ilt.faaast.client.exception.MethodNotAllowedException;
 import de.fraunhofer.iosb.ilt.faaast.client.exception.StatusCodeException;
 import de.fraunhofer.iosb.ilt.faaast.client.interfaces.AASRepositoryInterface;
@@ -38,7 +36,6 @@ import org.eclipse.digitaltwin.aas4j.v3.model.Submodel;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultEnvironment;
 import org.eclipse.edc.spi.security.Vault;
 
-import java.net.ConnectException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.util.List;

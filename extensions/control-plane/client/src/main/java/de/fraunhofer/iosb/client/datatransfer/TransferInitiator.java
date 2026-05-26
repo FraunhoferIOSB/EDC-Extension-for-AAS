@@ -34,7 +34,7 @@ import java.util.Objects;
 
 import static de.fraunhofer.iosb.client.datatransfer.DataTransferController.DATA_TRANSFER_API_KEY;
 import static java.lang.String.join;
-import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DATASPACE_PROTOCOL_HTTP_V_2025_1;
 import static org.eclipse.edc.spi.types.domain.transfer.FlowType.PUSH;
 
 
@@ -70,8 +70,7 @@ class TransferInitiator {
         monitor.debug("Starting transfer process for provider: " + providerUri.toString());
         monitor.debug("agreementId: " + agreementId);
         var dataDestination = HttpDataAddress.Builder.newInstance()
-                .baseUrl(ownUri.toString())
-                .path(agreementId)
+                .baseUrl(String.join("/", ownUri.toString(), agreementId))
                 .addAdditionalHeader(DATA_TRANSFER_API_KEY, apiKey) // API key for validation on consumer side
                 .build();
 
@@ -82,7 +81,7 @@ class TransferInitiator {
     CommandResult initiateTransferProcess(URI providerUri, String agreementId,
                                           DataAddress dataSinkAddress) {
         var transferRequest = TransferRequest.Builder.newInstance()
-                .protocol(DATASPACE_PROTOCOL_HTTP)
+                .protocol(DATASPACE_PROTOCOL_HTTP_V_2025_1)
                 .counterPartyAddress(providerUri.toString())
                 .contractId(agreementId)
                 .transferType(join("-", dataSinkAddress.getType(), PUSH.name()))

@@ -48,7 +48,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DATASPACE_PROTOCOL_HTTP_V_2025_1;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
 
 
@@ -96,7 +96,7 @@ class PolicyService {
                 participantContext,
                 counterPartyId,
                 counterPartyUri.toString(),
-                DATASPACE_PROTOCOL_HTTP,
+                DATASPACE_PROTOCOL_HTTP_V_2025_1,
                 assetQuerySpec);
 
         StatusResult<byte[]> catalogResponse;

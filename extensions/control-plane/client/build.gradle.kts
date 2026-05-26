@@ -14,6 +14,7 @@ dependencies {
     implementation(libs.edc.federated.catalog.core) // Transformers
     implementation(libs.edc.federated.catalog.core2025) // JsonObjectToCatalogTransformer
     implementation(libs.edc.json.ld.lib) // JsonLD expansion
+    implementation(libs.edc.dsp2025) // DSP 2025 constants (protocol name)
 
     testImplementation(testFixtures(project(":extensions:common:aas-lib")))
 

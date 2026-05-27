@@ -34,7 +34,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractD
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
 import org.eclipse.edc.jsonld.spi.JsonLd;
-import org.eclipse.edc.participantcontext.spi.identity.ParticipantIdentityResolver;
+import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.EdcException;
@@ -79,8 +79,8 @@ public class AasExtension implements ServiceExtension {
     private Hostname hostname;
     @Inject(required = false)
     private Oauth2Client oauth2Client;
-    @Inject // context-specific participant-id
-    private ParticipantIdentityResolver participantIdentityResolver;
+    @Inject
+    private SingleParticipantContextSupplier singleParticipantContextSupplier;
     @Inject // Create / manage EDC policies
     private PolicyDefinitionStore policyDefinitionStore;
     @Inject // Register http endpoint at EDC
@@ -104,8 +104,8 @@ public class AasExtension implements ServiceExtension {
 
         AasServerStore aasServerStore = new AasServerStore();
 
-        // This will probably fail if multiple participantIds are registered
-        participantId = () -> participantIdentityResolver.getParticipantId("provider", "dataspace-protocol-http");
+        participantId = () -> singleParticipantContextSupplier.get()
+                .orElseThrow(msg -> new EdcException(msg.getFailureDetail())).getParticipantContextId();
 
         repositoryController = new RepositoryController(monitor, aasServerStore, hostname, new EdcStoreHandler(assetIndex, contractDefinitionStore, participantId), vault,
                 oauth2Client);

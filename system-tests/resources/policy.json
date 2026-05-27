@@ -14,10 +14,7 @@
       "odrl:assigner": "provider"
     },
     "@context": [
-      "https://w3id.org/edc/connector/management/v2",
-      {
-        "aas": "https://admin-shell.io/aas/3/0/"
-      }
+      "https://w3id.org/edc/connector/management/v2"
     ]
   }
 ]

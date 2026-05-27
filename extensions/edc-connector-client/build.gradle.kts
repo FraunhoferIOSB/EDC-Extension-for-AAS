@@ -4,7 +4,7 @@ plugins {
 
 dependencies {
     implementation(project(":extensions:common:aas-lib")) // AuthenticationMethod
-    implementation(project(":extensions:control-plane:codec"))
+    implementation(project(":extensions:control-plane:codec")) // Codec
 
     implementation(libs.edc.asset.spi)
     implementation(libs.edc.contract.spi)

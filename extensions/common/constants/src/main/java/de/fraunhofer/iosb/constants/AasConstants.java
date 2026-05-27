@@ -15,6 +15,9 @@
  */
 package de.fraunhofer.iosb.constants;
 
+import java.util.Set;
+
+
 public interface AasConstants {
     String AAS_PREFIX = "aas";
     String AAS_V30_NAMESPACE = "https://admin-shell.io/aas/3/0/";
@@ -33,7 +36,7 @@ public interface AasConstants {
      * self-description should not be exposed (use edc.aas
      * .exposeSelfDescription=false).
      */
-    java.util.Set<String> DEFAULT_EXPOSED_FIELDS = java.util.Set.of(
+    Set<String> DEFAULT_EXPOSED_FIELDS = Set.of(
             "AbstractLangString/language", "AbstractLangString/text",
             "HasSemantics/semanticId", "Reference/keys", "Reference/type", "Key/type", "Key/value",
             "Referable/idShort", "Referable/description", "Referable/displayName",
@@ -49,7 +52,7 @@ public interface AasConstants {
      * exposed and the catalog should be used as a discovery
      * mechanism instead.
      */
-    java.util.Set<String> EXPOSED_FIELDS_SELF_DESCRIPTION = java.util.Set.of(
+    Set<String> EXPOSED_FIELDS_SELF_DESCRIPTION = Set.of(
             // Environment top-level elements
             "Environment/assetAdministrationShells", "Environment/submodels", "Environment/conceptDescriptions",
             // Containers

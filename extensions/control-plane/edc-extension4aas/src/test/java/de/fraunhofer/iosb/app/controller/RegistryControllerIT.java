@@ -47,7 +47,8 @@ public class RegistryControllerIT extends AbstractAasServerControllerIT<Registry
 
     @Override
     protected RegistryController getTestSubject() {
-        return new RegistryController(monitor, aasServerStore, new EdcStoreHandler(assetIndex, contractDefinitionStore, "provider"), mock(Vault.class), mock(Oauth2Client.class));
+        return new RegistryController(monitor, aasServerStore, new EdcStoreHandler(assetIndex, contractDefinitionStore, () -> "provider"), mock(Vault.class),
+                mock(Oauth2Client.class));
     }
 
 

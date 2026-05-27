@@ -17,7 +17,6 @@ dependencies {
     runtimeOnly(project(":extensions:control-plane:edc-extension4aas"))
     runtimeOnly(project(":extensions:control-plane:client"))
 
-    runtimeOnly(libs.edc.vault.hashicorp)
     runtimeOnly(libs.edc.iam.mock) // Only for participant ID extraction function
 
     runtimeOnly(project(":launchers:aas-data-plane")) {

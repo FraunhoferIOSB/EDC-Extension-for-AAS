@@ -21,6 +21,7 @@ dependencies {
     implementation(libs.edc.json.ld.spi)
     implementation(libs.edc.oauth2.spi)
     implementation(libs.edc.util.lib)
+    implementation(libs.edc.participant.context.single.spi) // SingleParticipantResolver
 
     testImplementation(testFixtures(project(":extensions:common:aas-lib")))
 

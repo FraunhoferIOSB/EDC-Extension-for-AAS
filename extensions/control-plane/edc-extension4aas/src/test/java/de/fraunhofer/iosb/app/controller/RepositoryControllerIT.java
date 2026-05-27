@@ -44,7 +44,7 @@ public class RepositoryControllerIT extends AbstractAasServerControllerIT<Reposi
 
     @Override
     protected RepositoryController getTestSubject() {
-        return new RepositoryController(monitor, aasServerStore, () -> "localhost", new EdcStoreHandler(assetIndex, contractDefinitionStore, "provider"), mock(Vault.class),
+        return new RepositoryController(monitor, aasServerStore, () -> "localhost", new EdcStoreHandler(assetIndex, contractDefinitionStore, () -> "provider"), mock(Vault.class),
                 mock(Oauth2Client.class));
     }
 

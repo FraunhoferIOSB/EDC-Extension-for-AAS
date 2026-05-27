@@ -71,7 +71,7 @@ class EdcStoreHandlerTest {
     void setUp() {
         assetIndex = new InMemoryAssetIndex(criterionOperatorRegistry);
         contractDefinitionStore = new InMemoryContractDefinitionStore(criterionOperatorRegistry);
-        testSubject = new EdcStoreHandler(assetIndex, contractDefinitionStore, "provider");
+        testSubject = new EdcStoreHandler(assetIndex, contractDefinitionStore, () -> "provider");
     }
 
 

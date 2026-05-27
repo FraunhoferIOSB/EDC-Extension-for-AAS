@@ -23,7 +23,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.eclipse.edc.http.spi.EdcHttpClient;
-import org.eclipse.edc.spi.entity.Entity;
+import org.eclipse.edc.participantcontext.spi.types.AbstractParticipantResource;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
@@ -42,7 +42,7 @@ import static org.eclipse.edc.spi.result.ServiceFailure.Reason.CONFLICT;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.NOT_FOUND;
 
 
-public abstract class ControlPlaneConnectionHandler<T extends Entity> {
+public abstract class ControlPlaneConnectionHandler<T extends AbstractParticipantResource> {
 
     public static final String MESSAGE_CODE_TEMPLATE = "Message: %s; Status code: %d";
     public static final String NO_MESSAGE = "No message from control-plane.";

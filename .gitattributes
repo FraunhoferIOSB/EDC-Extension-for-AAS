@@ -1,7 +1,7 @@
 # Set default behavior to automatically normalize line endings.
 * text=auto
 
-gradlew text eol=lf
+*.{md|yms|json|xml|yaml|yml|properties|gradle|gradlew|kts} text eol=lf
 
 # Force bash scripts to always use LF line endings so that if a repo is accessed
 # in Unix via a file share from Windows, the scripts will work.

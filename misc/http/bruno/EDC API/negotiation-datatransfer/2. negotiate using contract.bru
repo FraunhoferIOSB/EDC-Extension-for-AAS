@@ -13,7 +13,7 @@ post {
 body:json {
   {
     "@type": "ContractRequest",
-    "protocol": "dataspace-protocol-http",
+    "protocol": "dataspace-protocol-http:2025-1",
     "counterPartyAddress": "{{provider-dsp}}",
     "policy": {
       "@context": "http://www.w3.org/ns/odrl.jsonld",
@@ -41,4 +41,5 @@ vars:post-response {
 
 settings {
   encodeUrl: true
+  timeout: 0
 }

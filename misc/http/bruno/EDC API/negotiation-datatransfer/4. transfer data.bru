@@ -13,12 +13,12 @@ post {
 body:json {
   {
     "counterPartyAddress": "{{provider-dsp}}",
-    "protocol": "dataspace-protocol-http",
+    "protocol": "dataspace-protocol-http:2025-1",
     "@type": "TransferRequestMessage",
     "contractId": "{{agreement-id}}",
     "transferType": "AasData-PUSH",
     "dataDestination": {
-      "type": "AasData",
+      "type": "HttpData",
       "@type": "DataAddress",
       "properties": {
         "baseUrl": "http://localhost:54321/data",

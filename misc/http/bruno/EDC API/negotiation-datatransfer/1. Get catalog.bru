@@ -16,19 +16,21 @@ body:json {
           "@vocab": "https://w3id.org/edc/v0.0.1/ns/"
       },
       "counterPartyAddress": "{{provider-dsp}}",
-      "protocol": "dataspace-protocol-http"
+      "counterPartyId": "provider",
+      "protocol": "dataspace-protocol-http:2025-1"
   }
 }
 
 vars:post-response {
-  asset-id: res.body['dcat:dataset'][0]['@id']
-  offer-id: res.body['dcat:dataset'][0]['odrl:hasPolicy']['@id']
-  permissions: res.body['dcat:dataset'][0]['odrl:hasPolicy']['odrl:permission']
-  prohibitions: res.body['dcat:dataset'][0]['odrl:hasPolicy']['odrl:prohibition']
-  obligations: res.body['dcat:dataset'][0]['odrl:hasPolicy']['odrl:obligation']
-  assigner: res.body['dcat:dataset'][0]['odrl:hasPolicy']['odrl:assigner']
+  asset-id: res.body.dataset[0]['@id']
+  permissions: res.body.dataset[0].hasPolicy[0].permission
+  prohibitions: res.body.dataset[0].hasPolicy[0].prohibition
+  obligations: res.body.dataset[0].hasPolicy[0].obligation
+  assigner: res.body.dataset[0].hasPolicy[0].assigner
+  offer-id: res.body.dataset[0].hasPolicy[0]['@id']
 }
 
 settings {
   encodeUrl: true
+  timeout: 0
 }

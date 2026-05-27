@@ -5,11 +5,12 @@ meta {
 }
 
 get {
-  url: {{provider-control}}/v1/dataplanes
+  url: {{consumer-control}}/v1/dataplanes
   body: none
   auth: inherit
 }
 
 settings {
   encodeUrl: true
+  timeout: 0
 }

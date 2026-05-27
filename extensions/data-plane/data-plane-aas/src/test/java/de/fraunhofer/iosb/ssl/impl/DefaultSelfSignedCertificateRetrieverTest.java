@@ -37,15 +37,14 @@ class DefaultSelfSignedCertificateRetrieverTest {
     static int httpsPort = getFreePort();
     private static final String LOCALHOST_URL = String.format("https://localhost:%d", httpsPort);
     @RegisterExtension
-    static WireMockExtension wireMockExtension =
-            WireMockExtension.extensionOptions()
-                    .options(wireMockConfig()
-                            .httpsPort(httpsPort)
-                            .httpDisabled(true)
-                            .keystorePath("src/test/resources/server.jks")
-                            .keystorePassword("changeit")
-                            .keyManagerPassword("changeit"))
-                    .build();
+    static WireMockExtension wireMockExtension = WireMockExtension.extensionOptions()
+            .options(wireMockConfig()
+                    .httpsPort(httpsPort)
+                    .httpDisabled(true)
+                    .keystorePath("src/test/resources/server.jks")
+                    .keystorePassword("changeit")
+                    .keyManagerPassword("changeit"))
+            .build();
 
 
     @Test

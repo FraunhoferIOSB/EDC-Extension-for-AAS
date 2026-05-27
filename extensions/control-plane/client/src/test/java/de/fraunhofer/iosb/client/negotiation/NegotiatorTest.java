@@ -16,7 +16,6 @@
 package de.fraunhofer.iosb.client.negotiation;
 
 import org.eclipse.edc.connector.controlplane.contract.observe.ContractNegotiationObservableImpl;
-import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
@@ -27,7 +26,8 @@ import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.spi.command.CommandHandlerRegistry;
+import org.eclipse.edc.spi.command.CommandResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -48,7 +48,7 @@ import static org.mockito.Mockito.when;
 
 public class NegotiatorTest {
 
-    private final ConsumerContractNegotiationManager ccnmMock = mock(ConsumerContractNegotiationManager.class);
+    private final CommandHandlerRegistry mockCommandHandlerRegistry = mock(CommandHandlerRegistry.class);
     private final ContractNegotiationStore cnsMock = mock(ContractNegotiationStore.class);
     private final ParticipantContext participantContextMock = mock(ParticipantContext.class);
     private final ContractNegotiationObservable contractNegotiationObservable = new ContractNegotiationObservableImpl();
@@ -63,14 +63,14 @@ public class NegotiatorTest {
     @BeforeEach
     void initializeClientNegotiator() {
         defineMockBehaviour();
-        clientNegotiator = new Negotiator(ccnmMock, cnsMock, participantContextMock);
+        clientNegotiator = new Negotiator(mockCommandHandlerRegistry, cnsMock, participantContextMock);
     }
 
 
     void defineMockBehaviour() {
         when(cnsMock.queryAgreements(any())).thenReturn(Stream.of());
-        when(ccnmMock.initiate(any(), any()))
-                .thenReturn(StatusResult.success(negotiation));
+        when(mockCommandHandlerRegistry.execute(any()))
+                .thenReturn(CommandResult.success(negotiation));
     }
 
 
@@ -112,8 +112,8 @@ public class NegotiatorTest {
         assertNotNull(future);
         var contractNegotiation = future.get();
         assertNotNull(contractNegotiation);
-        assertEquals(mockPolicy, contractNegotiation.getContent().getContractAgreement().getPolicy());
-        assertEquals(assetId, contractNegotiation.getContent().getContractAgreement().getAssetId());
+        assertEquals(mockPolicy, ((ContractNegotiation) contractNegotiation.getContent()).getContractAgreement().getPolicy());
+        assertEquals(assetId, ((ContractNegotiation) contractNegotiation.getContent()).getContractAgreement().getAssetId());
     }
 
 

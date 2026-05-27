@@ -63,4 +63,3 @@ public class AasTransferRequestBody extends RequestBody {
         return MediaType.parse(contentType);
     }
 }
-

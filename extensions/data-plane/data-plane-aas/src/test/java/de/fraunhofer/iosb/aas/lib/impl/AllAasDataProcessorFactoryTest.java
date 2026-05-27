@@ -43,15 +43,14 @@ import static org.mockito.Mockito.mock;
 class AllAasDataProcessorFactoryTest {
     static int httpsPort = getFreePort();
     @RegisterExtension
-    static WireMockExtension wireMockExtension =
-            WireMockExtension.extensionOptions()
-                    .options(wireMockConfig()
-                            .httpsPort(httpsPort)
-                            .httpDisabled(true)
-                            .keystorePath("src/test/resources/server.jks")
-                            .keystorePassword("changeit")
-                            .keyManagerPassword("changeit"))
-                    .build();
+    static WireMockExtension wireMockExtension = WireMockExtension.extensionOptions()
+            .options(wireMockConfig()
+                    .httpsPort(httpsPort)
+                    .httpDisabled(true)
+                    .keystorePath("src/test/resources/server.jks")
+                    .keystorePassword("changeit")
+                    .keyManagerPassword("changeit"))
+            .build();
 
 
     @Test

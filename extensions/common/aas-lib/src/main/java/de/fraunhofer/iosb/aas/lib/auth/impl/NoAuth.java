@@ -28,8 +28,7 @@ import java.util.Map;
  */
 public class NoAuth extends AuthenticationMethod {
 
-    public NoAuth() {
-    }
+    public NoAuth() {}
 
 
     @Override

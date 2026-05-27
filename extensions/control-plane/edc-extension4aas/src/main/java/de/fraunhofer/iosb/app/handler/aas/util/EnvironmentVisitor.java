@@ -30,7 +30,8 @@ import java.util.function.Predicate;
 /**
  * Visitor for environment shells, submodels, concept-descriptions, and submodel#submodelElements.
  * <p>
- * Allows Consumers to modify and Predicates to filter the environment's identifiable elements. Allows BiFunctions to alter and filter SubmodelElements. Note: BiFunctions should be
+ * Allows Consumers to modify and Predicates to filter the environment's identifiable elements. Allows BiFunctions to
+ * alter and filter SubmodelElements. Note: BiFunctions should be
  * recursive if the elements within a SubmodelCollection/List shall be altered/filtered too.
  *
  * @param environment The environment to visit.
@@ -63,9 +64,8 @@ public record EnvironmentVisitor(Environment environment) {
 
     public EnvironmentVisitor visitSubmodels(Consumer<Identifiable> visitor,
                                              BiFunction<Reference, SubmodelElement, SubmodelElement> childVisitor) {
-        environment.getSubmodels().forEach(submodel ->
-                submodel.getSubmodelElements().forEach(submodelElement -> childVisitor.apply(AasUtils.toReference(submodel),
-                        submodelElement)));
+        environment.getSubmodels().forEach(submodel -> submodel.getSubmodelElements().forEach(submodelElement -> childVisitor.apply(AasUtils.toReference(submodel),
+                submodelElement)));
         environment.getSubmodels().forEach(visitor);
         return this;
     }
@@ -73,13 +73,11 @@ public record EnvironmentVisitor(Environment environment) {
 
     public EnvironmentVisitor visitSubmodels(Predicate<Identifiable> eliminator,
                                              BiFunction<Reference, SubmodelElement, SubmodelElement> childEliminator) {
-        environment.getSubmodels().forEach(submodel ->
-                submodel.setSubmodelElements(
-                        submodel.getSubmodelElements().stream()
-                                .map(submodelElement ->
-                                        childEliminator.apply(AasUtils.toReference(submodel), submodelElement))
-                                .filter(Objects::nonNull)
-                                .toList()));
+        environment.getSubmodels().forEach(submodel -> submodel.setSubmodelElements(
+                submodel.getSubmodelElements().stream()
+                        .map(submodelElement -> childEliminator.apply(AasUtils.toReference(submodel), submodelElement))
+                        .filter(Objects::nonNull)
+                        .toList()));
 
         environment.setSubmodels(environment.getSubmodels().stream().filter(eliminator).toList());
         return this;

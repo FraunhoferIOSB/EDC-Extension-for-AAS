@@ -54,8 +54,7 @@ class ConfigurationControllerTest {
 
     @Test
     public void putWrongConfigValueTest() {
-        assertThrows(InvalidRequestException.class, () ->
-                testSubject.updateConfiguration("{\"" + CONFIG_VALUE_PREFIX + "falseconfigvalue\":12}"));
+        assertThrows(InvalidRequestException.class, () -> testSubject.updateConfiguration("{\"" + CONFIG_VALUE_PREFIX + "falseconfigvalue\":12}"));
     }
 
 }

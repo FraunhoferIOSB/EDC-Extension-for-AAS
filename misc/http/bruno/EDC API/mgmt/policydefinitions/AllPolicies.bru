@@ -5,7 +5,7 @@ meta {
 }
 
 post {
-  url: {{provider-management}}/v3/policydefinitions/request
+  url: {{provider-management}}/v4/policydefinitions/request
   body: json
   auth: inherit
 }
@@ -23,4 +23,5 @@ body:json {
 
 settings {
   encodeUrl: true
+  timeout: 0
 }

@@ -9,8 +9,7 @@
  */
 
 plugins {
-    application
-    alias(libs.plugins.shadow)
+    id("buildsrc.application")
 }
 
 dependencies {
@@ -18,12 +17,12 @@ dependencies {
     runtimeOnly(project(":extensions:control-plane:edc-extension4aas"))
     runtimeOnly(project(":extensions:control-plane:client"))
 
-    runtimeOnly(libs.edc.vault.hashicorp)
     runtimeOnly(libs.edc.iam.mock) // Only for participant ID extraction function
 
     runtimeOnly(project(":launchers:aas-data-plane")) {
         // This requires edc.dpf.selector.url which we don't need here as the dataplane is running in the same instance
         // as the control-plane.
         exclude("org.eclipse.edc", "data-plane-selector-client")
+        exclude("org.eclipse.edc", "vault-hashicorp")
     }
 }

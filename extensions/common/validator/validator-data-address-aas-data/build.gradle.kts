@@ -1,3 +1,7 @@
+plugins {
+    id("buildsrc.java-library")
+}
+
 dependencies {
     implementation(project(":extensions:common:data-plane-aas-spi"))
     implementation(libs.edc.validator.spi)
@@ -6,8 +10,4 @@ dependencies {
     testImplementation(testFixtures(project(":extensions:common:aas-lib")))
 
     testImplementation(libs.aas4j.model)
-}
-
-tasks.test {
-    useJUnitPlatform()
 }

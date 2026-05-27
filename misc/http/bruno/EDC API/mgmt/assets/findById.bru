@@ -5,11 +5,12 @@ meta {
 }
 
 get {
-  url: {{provider-management}}/v3/assets/{{asset-id}}
+  url: {{provider-management}}/v4/assets/{{asset-id}}
   body: none
   auth: inherit
 }
 
 settings {
   encodeUrl: true
+  timeout: 0
 }

@@ -129,8 +129,7 @@ public class FaaastRepositoryManager implements AasRepositoryManager<FaaastRepos
             service = new Service(serviceConfig);
             service.start();
         }
-        catch (AssetConnectionException | ConfigurationException | PersistenceException | MessageBusException |
-                EndpointException faaastServiceException) {
+        catch (AssetConnectionException | ConfigurationException | PersistenceException | MessageBusException | EndpointException faaastServiceException) {
             throw new EdcException(GENERIC_EXCEPTION_MESSAGE, faaastServiceException);
         }
         return service;

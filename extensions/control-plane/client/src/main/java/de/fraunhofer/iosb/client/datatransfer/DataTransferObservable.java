@@ -29,7 +29,8 @@ import static java.lang.String.format;
 
 
 /**
- * Gets notified about incoming data by a provider connector. Also notified by the transfer process observable regarding termination of transfer processes
+ * Gets notified about incoming data by a provider connector. Also notified by the transfer process observable regarding
+ * termination of transfer processes
  */
 class DataTransferObservable<T> implements TransferProcessListener {
 

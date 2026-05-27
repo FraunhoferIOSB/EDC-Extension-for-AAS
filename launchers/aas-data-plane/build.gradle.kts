@@ -9,16 +9,18 @@
  */
 
 plugins {
-    application
-    alias(libs.plugins.shadow)
+    id("buildsrc.application")
 }
 
 dependencies {
     runtimeOnly(libs.edc.dataplane.base.bom)
-    runtimeOnly(libs.edc.configuration.filesystem)  // read config from files
+
     runtimeOnly(libs.edc.auth.tokenbased)
     runtimeOnly(libs.edc.vault.hashicorp)
-    runtimeOnly(libs.edc.participant.context.config.core) // Vault needs participant context config
+
+    runtimeOnly(libs.edc.participant.context.config.core) // ParticipantContextConfig
+    runtimeOnly(libs.edc.participant.context.core) // Vault needs participant context config
+
     runtimeOnly(libs.edc.api.core) // ApiAuthenticationRegistry
     runtimeOnly(libs.edc.auth.configuration)
 

@@ -16,15 +16,14 @@
 package de.fraunhofer.iosb.client.datatransfer;
 
 import de.fraunhofer.iosb.client.ClientEndpoint;
-import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.InitiateTransferCommand;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.command.CommandHandlerRegistry;
+import org.eclipse.edc.spi.command.CommandResult;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.response.ResponseStatus;
-import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -35,7 +34,7 @@ import java.util.Objects;
 
 import static de.fraunhofer.iosb.client.datatransfer.DataTransferController.DATA_TRANSFER_API_KEY;
 import static java.lang.String.join;
-import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DATASPACE_PROTOCOL_HTTP_V_2025_1;
 import static org.eclipse.edc.spi.types.domain.transfer.FlowType.PUSH;
 
 
@@ -51,28 +50,27 @@ class TransferInitiator {
     public static final String HTTP_PATH = "web.http.path";
 
     private final Monitor monitor;
-    private final TransferProcessManager transferProcessManager;
+    private final CommandHandlerRegistry commandHandlerRegistry;
     private final ParticipantContext participantContext;
     private final URI ownUri;
 
 
-    TransferInitiator(Monitor monitor, Config config, Hostname hostname, TransferProcessManager transferProcessManager, ParticipantContext participantContext) {
+    TransferInitiator(Monitor monitor, Config config, Hostname hostname, CommandHandlerRegistry commandHandlerRegistry, ParticipantContext participantContext) {
         this.monitor = monitor;
-        this.transferProcessManager = transferProcessManager;
+        this.commandHandlerRegistry = commandHandlerRegistry;
         this.participantContext = participantContext;
         this.ownUri = createOwnUriFromConfigurationValues(config, hostname);
     }
 
 
-    StatusResult<TransferProcess> initiateTransferProcess(URI providerUri, String agreementId, String apiKey) {
+    CommandResult initiateTransferProcess(URI providerUri, String agreementId, String apiKey) {
         if (Objects.isNull(ownUri)) {
-            return StatusResult.failure(ResponseStatus.FATAL_ERROR, COULD_NOT_BUILD_URI_MESSAGE);
+            return CommandResult.notExecutable(COULD_NOT_BUILD_URI_MESSAGE);
         }
         monitor.debug("Starting transfer process for provider: " + providerUri.toString());
         monitor.debug("agreementId: " + agreementId);
         var dataDestination = HttpDataAddress.Builder.newInstance()
-                .baseUrl(ownUri.toString())
-                .path(agreementId)
+                .baseUrl(String.join("/", ownUri.toString(), agreementId))
                 .addAdditionalHeader(DATA_TRANSFER_API_KEY, apiKey) // API key for validation on consumer side
                 .build();
 
@@ -80,17 +78,17 @@ class TransferInitiator {
     }
 
 
-    StatusResult<TransferProcess> initiateTransferProcess(URI providerUri, String agreementId,
-                                                          DataAddress dataSinkAddress) {
+    CommandResult initiateTransferProcess(URI providerUri, String agreementId,
+                                          DataAddress dataSinkAddress) {
         var transferRequest = TransferRequest.Builder.newInstance()
-                .protocol(DATASPACE_PROTOCOL_HTTP)
+                .protocol(DATASPACE_PROTOCOL_HTTP_V_2025_1)
                 .counterPartyAddress(providerUri.toString())
                 .contractId(agreementId)
                 .transferType(join("-", dataSinkAddress.getType(), PUSH.name()))
                 .dataDestination(dataSinkAddress)
                 .build();
 
-        return transferProcessManager.initiateConsumerRequest(participantContext, transferRequest);
+        return commandHandlerRegistry.execute(new InitiateTransferCommand(participantContext, transferRequest));
     }
 
 

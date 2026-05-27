@@ -50,7 +50,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DATASPACE_PROTOCOL_HTTP_V_2025_1;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.UNEXPECTED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -62,8 +62,10 @@ import static org.mockito.Mockito.when;
 
 
 /**
- * We assume here that catalogService does not return null objects as well as null catalogs inside their return value. Also, we assume that catalogs are valid JSON and expandable
- * by the connector's JSON LD expander TitaniumJsonLd.class. Finally, we assume that catalogs can be transformed with the TypeTransformerRegistry.
+ * We assume here that catalogService does not return null objects as well as null catalogs inside their return value.
+ * Also, we assume that catalogs are valid JSON and expandable
+ * by the connector's JSON LD expander TitaniumJsonLd.class. Finally, we assume that catalogs can be transformed with
+ * the TypeTransformerRegistry.
  */
 public class PolicyServiceTest {
 
@@ -108,8 +110,7 @@ public class PolicyServiceTest {
     @Test
     void getDatasetCatalogResponseFailureTest() {
         future.complete(StatusResult.failure(ResponseStatus.FATAL_ERROR, "This is a test"));
-
-        when(catalogService.requestCatalog(participantContext, TEST_COUNTER_PARTY_ID, testUri.toString(), DATASPACE_PROTOCOL_HTTP, ASSET_ID_QUERY_SPEC)).thenReturn(future);
+        mockCatalogServiceResponseWith(future);
 
         var response = policyService.getDatasetForAssetId(TEST_COUNTER_PARTY_ID, testUri, TEST_ASSET_ID);
         assertEquals("Failed fetching catalog, FATAL_ERROR: This is a test", response.getFailureDetail());
@@ -339,7 +340,8 @@ public class PolicyServiceTest {
                                 .target(TEST_ASSET_ID)
                                 .duty(Duty.Builder.newInstance()
                                         .action(Action.Builder.newInstance().type("USE").build())
-                                        .consequence(Duty.Builder.newInstance().build()).build()).build())
+                                        .consequence(Duty.Builder.newInstance().build()).build())
+                                .build())
                 .distribution(Distribution.Builder.newInstance()
                         .dataService(DataService.Builder.newInstance().build())
                         .format("")
@@ -353,7 +355,7 @@ public class PolicyServiceTest {
                 participantContext,
                 TEST_COUNTER_PARTY_ID,
                 testUri.toString(),
-                DATASPACE_PROTOCOL_HTTP,
+                DATASPACE_PROTOCOL_HTTP_V_2025_1,
                 ASSET_ID_QUERY_SPEC))
                 .thenReturn(value);
     }

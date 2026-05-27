@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.edc.remote.transform;
+package de.fraunhofer.iosb.codec;
 
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
@@ -88,9 +88,8 @@ public class Codec {
      * @return Serialized object in compacted json-ld form.
      */
     public String serialize(@NotNull Object toSerialize) {
-        var jsonRepresentation =
-                transformers.transform(toSerialize, JsonObject.class).orElseThrow(failure -> new EdcException(String.format(SERIALIZATION_ERROR,
-                        toSerialize.getClass().getSimpleName(), failure.getFailureDetail())));
+        var jsonRepresentation = transformers.transform(toSerialize, JsonObject.class).orElseThrow(failure -> new EdcException(String.format(SERIALIZATION_ERROR,
+                toSerialize.getClass().getSimpleName(), failure.getFailureDetail())));
 
         var compacted = jsonLd.compact(jsonRepresentation).orElseThrow(failure -> new EdcException(String.format(COMPACTION_ERROR,
                 toSerialize.getClass().getSimpleName(), failure.getFailureDetail())));

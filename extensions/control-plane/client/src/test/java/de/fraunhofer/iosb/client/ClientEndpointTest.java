@@ -23,7 +23,6 @@ import de.fraunhofer.iosb.client.policy.PolicyController;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
-import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
@@ -31,12 +30,12 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.Con
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService;
-import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.command.CommandHandlerRegistry;
+import org.eclipse.edc.spi.command.CommandResult;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
@@ -97,7 +96,7 @@ public class ClientEndpointTest {
         clientEndpoint = ClientEndpoint.Builder.newInstance()
                 .monitor(monitor)
                 .negotiationController(new NegotiationController(
-                        mockConsumerNegotiationManager(),
+                        mockCommandHandlerRegistry(),
                         mock(ContractNegotiationObservable.class),
                         mock(ContractNegotiationStore.class),
                         mock(ParticipantContext.class),
@@ -114,7 +113,7 @@ public class ClientEndpointTest {
                         mockConfig(),
                         mock(WebService.class),
                         mock(PublicApiManagementService.class),
-                        mockTransferProcessManager(),
+                        mockFatalResultHandler(),
                         mock(ParticipantContext.class),
                         mock(TransferProcessObservable.class),
                         () -> "localhost"))
@@ -138,12 +137,12 @@ public class ClientEndpointTest {
     }
 
 
-    private TransferProcessManager mockTransferProcessManager() {
-        StatusResult<TransferProcess> mockStatusResult = StatusResult.failure(ResponseStatus.FATAL_ERROR);
+    private CommandHandlerRegistry mockFatalResultHandler() {
+        CommandResult result = CommandResult.conflict(ResponseStatus.FATAL_ERROR.toString());
 
-        var mockTransferProcessManager = mock(TransferProcessManager.class);
-        when(mockTransferProcessManager.initiateConsumerRequest(any(), any())).thenReturn(mockStatusResult);
-        return mockTransferProcessManager;
+        var mockCommandHandlerRegistry = mock(CommandHandlerRegistry.class);
+        when(mockCommandHandlerRegistry.execute(any())).thenReturn(result);
+        return mockCommandHandlerRegistry;
     }
 
 
@@ -157,16 +156,16 @@ public class ClientEndpointTest {
     }
 
 
-    private ConsumerContractNegotiationManager mockConsumerNegotiationManager() {
-        var mockStatusResult = StatusResult.success(
+    private CommandHandlerRegistry mockCommandHandlerRegistry() {
+        var mockStatusResult = CommandResult.success(
                 ContractNegotiation.Builder.newInstance()
                         .id("test-ContractNegotiation-id")
                         .counterPartyId("test-ContractNegotiation-counterparty-id")
                         .counterPartyAddress("test-ContractNegotiation-counterparty-address")
                         .protocol("test-ContractNegotiation-protocol")
                         .build());
-        var manager = mock(ConsumerContractNegotiationManager.class);
-        when(manager.initiate(any(), any())).thenReturn(mockStatusResult);
+        var manager = mock(CommandHandlerRegistry.class);
+        when(manager.execute(any())).thenReturn(mockStatusResult);
         return manager;
     }
 

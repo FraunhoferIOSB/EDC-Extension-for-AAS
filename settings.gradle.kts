@@ -3,6 +3,7 @@ include("extensions:common:constants")
 include("extensions:common:data-plane-aas-spi")
 include("extensions:common:validator:validator-data-address-aas-data")
 include("extensions:control-plane:client")
+include("extensions:control-plane:codec")
 include("extensions:control-plane:edc-extension4aas")
 include("extensions:control-plane:public-api-management")
 include("extensions:data-plane:data-plane-aas")
@@ -15,9 +16,22 @@ include("launchers:provider")
 include("launchers:standalone")
 include("launchers:tractus-x")
 
+include("extensions:control-plane:codec")
+
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+    }
+    plugins {
+        id("com.gradleup.shadow") version "9.4.1"
+        id("com.bmuschko.docker-remote-api") version "10.0.0"
+    }
+}
+
 dependencyResolutionManagement {
     repositories {
-        maven("https://central.sonatype.com/repository/maven-snapshots/")
+        mavenLocal()
         mavenCentral()
     }
 }

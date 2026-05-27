@@ -12,15 +12,15 @@ auth:apikey {
   placement: header
 }
 vars:pre-request {
-  provider-api: {{proto}}://{{p-hostname}}:8281/api
-  provider-management: {{proto}}://{{p-hostname}}:8182/management
-  provider-dsp: {{proto}}://localhost:8282/dsp
+  provider-api: {{proto}}://{{p-hostname}}:13337/api
+  provider-management: {{proto}}://{{p-hostname}}:13338/management
+  provider-dsp: {{proto}}://localhost:13340/dsp/2025-1
   provider-control: {{proto}}://{{p-hostname}}:8181/control
   provider-version: {{proto}}://{{p-hostname}}:8183/version
-  consumer-api: {{proto}}://{{c-hostname}}:9291/api
-  consumer-management: {{proto}}://{{c-hostname}}:9192/management
-  consumer-dsp: {{proto}}://localhost:9292/dsp
-  consumer-control: {{proto}}://{{c-hostname}}:9191/control
+  consumer-api: {{proto}}://{{c-hostname}}:23337/api
+  consumer-management: {{proto}}://{{c-hostname}}:23338/management
+  consumer-dsp: {{proto}}://localhost:23340/dsp
+  consumer-control: {{proto}}://{{c-hostname}}:23339/control
   consumer-version: {{proto}}://{{c-hostname}}:9193/version
   proto: http
   p-hostname: localhost
@@ -29,4 +29,7 @@ vars:pre-request {
   faaast: http://localhost:12345/api/v3.0
   faaast-selfsigned: https://localhost:443/api/v3.0
   asset-id: -585713211
+  obligations: []
+  prohibitions: []
+  permissions: []
 }

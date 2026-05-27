@@ -37,15 +37,15 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 /**
  * Provides support for communicating with AAS services. Specifically this is:
  * <ul>
- *     <li>
- *         A data address where instead of a URL path,
- *         a reference chain to an AAS element is stored:
- *         (Submodel X, SubmodelElementCollection Y, SubmodelElement Z).
- *     </li>
- *     <li>
- *         An interface allowing the registration of AAS services with
- *         self-signed SSL certificates this EDC is allowed to communicate with.
- *     </li>
+ * <li>
+ * A data address where instead of a URL path,
+ * a reference chain to an AAS element is stored:
+ * (Submodel X, SubmodelElementCollection Y, SubmodelElement Z).
+ * </li>
+ * <li>
+ * An interface allowing the registration of AAS services with
+ * self-signed SSL certificates this EDC is allowed to communicate with.
+ * </li>
  * </ul>
  */
 @Provides({ AasDataProcessorFactory.class })

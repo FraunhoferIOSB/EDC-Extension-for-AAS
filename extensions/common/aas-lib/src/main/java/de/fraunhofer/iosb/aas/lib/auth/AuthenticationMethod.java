@@ -31,7 +31,8 @@ import java.util.function.Function;
 
 
 /**
- * Describes authentication methods for HTTP authentication, i.e. key-value pairs appended to the headers of an HTTP request.
+ * Describes authentication methods for HTTP authentication, i.e. key-value pairs appended to the headers of an HTTP
+ * request.
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes({
@@ -43,7 +44,8 @@ import java.util.function.Function;
 public abstract class AuthenticationMethod {
 
     /**
-     * Get the header value to add to the request headers to communicate with the service. Headers: [... , (getHeader().key, getHeader().value), ...] The secrets needed to produce
+     * Get the header value to add to the request headers to communicate with the service. Headers: [... , (getHeader().key,
+     * getHeader().value), ...] The secrets needed to produce
      * the header value are resolved from the vault.
      *
      * @return The header to place in the request in order to authenticate

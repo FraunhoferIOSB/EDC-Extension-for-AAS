@@ -23,6 +23,8 @@ import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.spi.result.StoreResult;
 
+import java.util.function.Supplier;
+
 
 /**
  * Handles transactions with EDC. Makes sure that registering an asset and the asset to a contract is a transaction.
@@ -40,14 +42,15 @@ public class EdcStoreHandler {
      * @param contractDefinitionStore To add/remove asset ids to/from contracts, to create/remove contracts.
      * @param participantId The participantId of the participant that the AAS extension publishes for.
      */
-    public EdcStoreHandler(AssetIndex assetIndex, ContractDefinitionStore contractDefinitionStore, String participantId) {
+    public EdcStoreHandler(AssetIndex assetIndex, ContractDefinitionStore contractDefinitionStore, Supplier<String> participantId) {
         this.assetService = new AssetService(assetIndex, participantId);
         this.contractDefinitionService = new ContractDefinitionService(contractDefinitionStore, participantId);
     }
 
 
     /**
-     * Register an asset to the EDC AssetIndex and attach a contract with the policyIds from the policyBinding to it before registering said contract to the EDC
+     * Register an asset to the EDC AssetIndex and attach a contract with the policyIds from the policyBinding to it before
+     * registering said contract to the EDC
      * ContractDefinitionStore.
      *
      * @param policyBinding PolicyBinding containing access and usage (contract) policy ids.
@@ -67,7 +70,8 @@ public class EdcStoreHandler {
 
 
     /**
-     * Unregister an asset from the EDC AssetIndex and detach the corresponding contract with the policyIds from the policyBinding to it, optionally unregistering said contract
+     * Unregister an asset from the EDC AssetIndex and detach the corresponding contract with the policyIds from the
+     * policyBinding to it, optionally unregistering said contract
      * from the EDC ContractDefinitionStore if it is dangling after the detachment.
      *
      * @param policyBinding PolicyBinding containing access and usage (contract) policy ids.

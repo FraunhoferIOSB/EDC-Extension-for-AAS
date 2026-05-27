@@ -37,4 +37,3 @@ Features in development:
 - Use external AAS properties as input variables in AAS operation
 - Store external AAS submodel-properties in own AAS submodel-properties
 - AAS Events
-

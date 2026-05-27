@@ -238,7 +238,8 @@ public class AasCreator {
                 .dataSpecificationContent(new DefaultDataSpecificationIec61360.Builder()
                         .dataType(DataTypeIec61360.STRING)
                         .value(id)
-                        .build()).build();
+                        .build())
+                .build();
     }
 
 

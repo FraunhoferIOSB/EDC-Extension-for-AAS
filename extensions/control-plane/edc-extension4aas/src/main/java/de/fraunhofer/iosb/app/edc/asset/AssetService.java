@@ -19,6 +19,8 @@ import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.spi.result.StoreResult;
 
+import java.util.function.Supplier;
+
 
 /**
  * Persists assets to, deletes assets by ID from and updates assets at the EDC asset store (AssetIndex).
@@ -26,7 +28,7 @@ import org.eclipse.edc.spi.result.StoreResult;
 public class AssetService {
 
     private final AssetIndex assetIndex;
-    private final String participantId;
+    private final Supplier<String> participantId;
 
 
     /**
@@ -35,7 +37,7 @@ public class AssetService {
      * @param assetIndex The edc's asset store.
      * @param participantId Participant ID under which AAS extension registers data in data space
      */
-    public AssetService(AssetIndex assetIndex, String participantId) {
+    public AssetService(AssetIndex assetIndex, Supplier<String> participantId) {
         this.assetIndex = assetIndex;
         this.participantId = participantId;
     }
@@ -48,7 +50,7 @@ public class AssetService {
      * @return Whether the operation succeeded or failed.
      */
     public StoreResult<Void> create(Asset asset) {
-        return assetIndex.create(asset.toBuilder().participantContextId(participantId).build());
+        return assetIndex.create(asset.toBuilder().participantContextId(participantId.get()).build());
     }
 
 
@@ -70,6 +72,6 @@ public class AssetService {
      * @return Whether the operation succeeded or failed.
      */
     public StoreResult<Asset> update(Asset asset) {
-        return assetIndex.updateAsset(asset.toBuilder().participantContextId(participantId).build());
+        return assetIndex.updateAsset(asset.toBuilder().participantContextId(participantId.get()).build());
     }
 }

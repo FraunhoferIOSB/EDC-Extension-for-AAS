@@ -15,7 +15,6 @@
       ],
       "aas:modelingType": "ConceptDescription",
       "aas:Referable/idShort": "SystemTestConceptDescription",
-      "contenttype": "application/json",
       "id": "1351791412",
       "aas:Identifiable/id": "https://acplt.org/System_Test_ConceptDescription"
     },
@@ -26,12 +25,12 @@
       "aas:reference": "[ModelRef](ConceptDescription)https://acplt.org/System_Test_ConceptDescription",
       "baseUrl": "https://localhost:60875/api/v3.0"
     },
-    "@context": {
-      "aas": "https://admin-shell.io/aas/3/0/",
-      "@vocab": "https://w3id.org/edc/v0.0.1/ns/",
-      "edc": "https://w3id.org/edc/v0.0.1/ns/",
-      "odrl": "http://www.w3.org/ns/odrl/2/"
-    }
+    "@context": [
+      "https://w3id.org/edc/connector/management/v2",
+      {
+        "aas": "https://admin-shell.io/aas/3/0/"
+      }
+    ]
   },
   {
     "@id": "792362498",
@@ -49,7 +48,6 @@
       ],
       "aas:modelingType": "AssetAdministrationShell",
       "aas:Referable/idShort": "SystemTestAssetAdministrationShell",
-      "contenttype": "application/json",
       "id": "792362498",
       "aas:Identifiable/id": "https://acplt.org/System_Test_AssetAdministrationShell"
     },
@@ -60,12 +58,12 @@
       "aas:reference": "[ModelRef](AssetAdministrationShell)https://acplt.org/System_Test_AssetAdministrationShell",
       "baseUrl": "https://localhost:60875/api/v3.0"
     },
-    "@context": {
-      "aas": "https://admin-shell.io/aas/3/0/",
-      "@vocab": "https://w3id.org/edc/v0.0.1/ns/",
-      "edc": "https://w3id.org/edc/v0.0.1/ns/",
-      "odrl": "http://www.w3.org/ns/odrl/2/"
-    }
+    "@context": [
+      "https://w3id.org/edc/connector/management/v2",
+      {
+        "aas": "https://admin-shell.io/aas/3/0/"
+      }
+    ]
   },
   {
     "@id": "-799803758",
@@ -90,7 +88,6 @@
         },
         "aas:Reference/type": "ExternalReference"
       },
-      "contenttype": "application/json",
       "id": "-799803758"
     },
     "dataAddress": {
@@ -100,12 +97,12 @@
       "aas:reference": "[ModelRef](Submodel)http://acplt.org/Submodels/Assets/TestAsset/System_Test_Submodel, (SubmodelElementCollection)SystemTestSubmodelElementCollection",
       "baseUrl": "https://localhost:60875/api/v3.0"
     },
-    "@context": {
-      "aas": "https://admin-shell.io/aas/3/0/",
-      "@vocab": "https://w3id.org/edc/v0.0.1/ns/",
-      "edc": "https://w3id.org/edc/v0.0.1/ns/",
-      "odrl": "http://www.w3.org/ns/odrl/2/"
-    }
+    "@context": [
+      "https://w3id.org/edc/connector/management/v2",
+      {
+        "aas": "https://admin-shell.io/aas/3/0/"
+      }
+    ]
   },
   {
     "@id": "458140152",
@@ -134,7 +131,6 @@
         "aas:AbstractLangString/language": "en-us",
         "aas:AbstractLangString/text": "Manufacturer Name"
       },
-      "contenttype": "application/json",
       "id": "458140152"
     },
     "dataAddress": {
@@ -144,12 +140,12 @@
       "aas:reference": "[ModelRef](Submodel)http://acplt.org/Submodels/Assets/TestAsset/System_Test_Submodel, (SubmodelElementCollection)SystemTestSubmodelElementCollection, (Property)ManufacturerName",
       "baseUrl": "https://localhost:60875/api/v3.0"
     },
-    "@context": {
-      "aas": "https://admin-shell.io/aas/3/0/",
-      "@vocab": "https://w3id.org/edc/v0.0.1/ns/",
-      "edc": "https://w3id.org/edc/v0.0.1/ns/",
-      "odrl": "http://www.w3.org/ns/odrl/2/"
-    }
+    "@context": [
+      "https://w3id.org/edc/connector/management/v2",
+      {
+        "aas": "https://admin-shell.io/aas/3/0/"
+      }
+    ]
   },
   {
     "@id": "1855961989",
@@ -175,7 +171,6 @@
         },
         "aas:Reference/type": "ExternalReference"
       },
-      "contenttype": "application/json",
       "id": "1855961989"
     },
     "dataAddress": {
@@ -185,11 +180,11 @@
       "aas:reference": "[ModelRef](Submodel)http://acplt.org/Submodels/Assets/TestAsset/System_Test_Submodel",
       "baseUrl": "https://localhost:60875/api/v3.0"
     },
-    "@context": {
-      "aas": "https://admin-shell.io/aas/3/0/",
-      "@vocab": "https://w3id.org/edc/v0.0.1/ns/",
-      "edc": "https://w3id.org/edc/v0.0.1/ns/",
-      "odrl": "http://www.w3.org/ns/odrl/2/"
-    }
+    "@context": [
+      "https://w3id.org/edc/connector/management/v2",
+      {
+        "aas": "https://admin-shell.io/aas/3/0/"
+      }
+    ]
   }
 ]

@@ -34,8 +34,9 @@ import javax.annotation.Nullable;
  *
  * @param url URI to use to connect to the AAS repository, including any path prefixes (e.g., /api/v3.0)
  * @param auth The authentication method used to communicate with the registry.
- * @param policyBindings List of {@link PolicyBinding}. If defined, only elements referred by the policyBindings are registered (optional, default: no custom
- *         PolicyBindings, register all elements).
+ * @param policyBindings List of {@link PolicyBinding}. If defined, only elements referred by the policyBindings are
+ *            registered (optional, default: no custom
+ *            PolicyBindings, register all elements).
  */
 public record RemoteAasRepositoryContextDTO(URI url, AuthenticationMethodDTO auth, List<PolicyBinding> policyBindings, String defaultAccessPolicyDefinitionId,
         String defaultContractPolicyDefinitionId) implements RemoteAasServerDTO {

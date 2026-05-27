@@ -9,8 +9,7 @@
  */
 
 plugins {
-    application
-    alias(libs.plugins.shadow)
+    id("buildsrc.application")
 }
 
 dependencies {
@@ -20,13 +19,14 @@ dependencies {
     runtimeOnly(project(":extensions:control-plane:edc-extension4aas"))
     runtimeOnly(project(":extensions:edc-connector-client"))
 
-    runtimeOnly(libs.edc.iam.mock)
-    runtimeOnly(libs.edc.participant.context.config.core) // IAM Mock and Vault need participant context config
-    runtimeOnly(libs.edc.participant.context.single.core) // AAS extension needs this to resolve participant id for policies
+    runtimeOnly(libs.edc.participant.context.core) // IAM Mock and Vault need participant context config
 
+    runtimeOnly(libs.edc.participant.context.connector.classic.core) // AAS extension needs this to resolve participant id for policies
+    runtimeOnly(libs.edc.participant.context.config.core) // ParticipantContextConfig
     runtimeOnly(libs.edc.oauth2.client) // If using FA³ST security / AAS repository with oidc, an oauth client is needed
+
+    runtimeOnly(libs.edc.iam.mock) // Only for participant ID extraction function
 
     runtimeOnly(libs.edc.auth.tokenbased)
     runtimeOnly(libs.edc.auth.configuration)
-    runtimeOnly(libs.edc.vault.hashicorp)
 }

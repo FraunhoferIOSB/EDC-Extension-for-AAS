@@ -15,9 +15,9 @@
  */
 package de.fraunhofer.iosb.edc.remote.stores.contract;
 
+import de.fraunhofer.iosb.codec.Codec;
 import de.fraunhofer.iosb.edc.remote.ControlPlaneConnection;
 import de.fraunhofer.iosb.edc.remote.stores.ControlPlaneConnectionHandler;
-import de.fraunhofer.iosb.edc.remote.transform.Codec;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.http.spi.EdcHttpClient;

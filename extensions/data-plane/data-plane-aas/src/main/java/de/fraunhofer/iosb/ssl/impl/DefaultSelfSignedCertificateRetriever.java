@@ -25,15 +25,12 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.Certificate;
-import java.security.cert.CertificateException;
 import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.X509Certificate;
 import java.util.List;
-import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
@@ -41,7 +38,8 @@ import javax.net.ssl.X509TrustManager;
 
 
 /**
- * Retrieve certificates of an online service by its URL. This should only be used for explicitly known services and URLs! (Example: Create a FA³ST service which uses TLS with a
+ * Retrieve certificates of an online service by its URL. This should only be used for explicitly known services and
+ * URLs! (Example: Create a FA³ST service which uses TLS with a
  * self-signed certificate if no other is provided. -> Need its cert to communicate with it)
  */
 public class DefaultSelfSignedCertificateRetriever implements SelfSignedCertificateRetriever {
@@ -53,12 +51,10 @@ public class DefaultSelfSignedCertificateRetriever implements SelfSignedCertific
                 }
 
 
-                public void checkClientTrusted(X509Certificate[] certs, String authType) {
-                }
+                public void checkClientTrusted(X509Certificate[] certs, String authType) {}
 
 
-                public void checkServerTrusted(X509Certificate[] certs, String authType) {
-                }
+                public void checkServerTrusted(X509Certificate[] certs, String authType) {}
             }
     };
 

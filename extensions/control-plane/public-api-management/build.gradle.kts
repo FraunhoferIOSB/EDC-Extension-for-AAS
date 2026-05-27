@@ -1,5 +1,5 @@
 plugins {
-    jacoco
+    id("buildsrc.java-library")
 }
 
 dependencies {
@@ -9,12 +9,4 @@ dependencies {
     implementation(libs.edc.api.core) // ApiAuthenticationRegistry
 
     testImplementation(testFixtures(project(":extensions:common:aas-lib")))
-}
-
-tasks.test {
-    useJUnitPlatform()
-}
-
-tasks.jacocoTestReport {
-    dependsOn(tasks.test) // tests are required to run before generating the report
 }

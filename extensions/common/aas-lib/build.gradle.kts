@@ -1,4 +1,5 @@
 plugins {
+    id("buildsrc.java-library")
     `java-test-fixtures`
 }
 
@@ -28,8 +29,4 @@ dependencies {
     testFixturesApi(libs.jersey.common)
 
     testFixturesRuntimeOnly(libs.junit.platform.launcher)
-}
-
-tasks.test {
-    useJUnitPlatform()
 }

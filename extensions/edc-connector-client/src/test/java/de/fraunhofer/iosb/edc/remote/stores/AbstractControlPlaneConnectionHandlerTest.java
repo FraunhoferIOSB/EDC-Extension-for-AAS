@@ -1,14 +1,27 @@
+/*
+ * Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
+ * Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
+ * Forschung e.V.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package de.fraunhofer.iosb.edc.remote.stores;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.http.Body;
 import com.github.tomakehurst.wiremock.http.ContentTypeHeader;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
-import de.fraunhofer.iosb.edc.remote.transform.Codec;
-import dev.failsafe.RetryPolicy;
-import okhttp3.OkHttpClient;
-import org.eclipse.edc.boot.vault.InMemoryVault;
-import org.eclipse.edc.http.client.EdcHttpClientImpl;
+import de.fraunhofer.iosb.aas.test.defaults.DefaultEdcHttpClient;
+import de.fraunhofer.iosb.aas.test.defaults.DefaultVault;
+import de.fraunhofer.iosb.codec.Codec;
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -38,12 +51,12 @@ public abstract class AbstractControlPlaneConnectionHandlerTest {
     protected static WireMockExtension server = WireMockExtension.newInstance()
             .options(wireMockConfig().dynamicPort())
             .build();
-    protected final EdcHttpClient httpClient = new EdcHttpClientImpl(new OkHttpClient(), RetryPolicy.ofDefaults(), new ConsoleMonitor());
+    protected final EdcHttpClient httpClient = new DefaultEdcHttpClient();
     protected final String apiKey = UUID.randomUUID().toString();
     @Spy
     protected final Monitor monitor = spy(new ConsoleMonitor());
     protected Codec mockCodec = mock(Codec.class);
-    protected Vault vault = new InMemoryVault(monitor);
+    protected Vault vault = new DefaultVault();
 
 
     @AfterAll

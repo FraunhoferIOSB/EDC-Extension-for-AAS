@@ -31,7 +31,8 @@ import java.util.function.BiFunction;
 
 
 /**
- * Handler for any event-driven AAS repository, i.e. repositories where the corresponding clients allow subscriptions to events for created/updated/deleted AAS elements.
+ * Handler for any event-driven AAS repository, i.e. repositories where the corresponding clients allow subscriptions to
+ * events for created/updated/deleted AAS elements.
  *
  * @param <C> A client supporting subscribing to AAS repository events.
  */

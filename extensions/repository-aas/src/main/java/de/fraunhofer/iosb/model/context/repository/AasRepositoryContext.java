@@ -57,7 +57,8 @@ public abstract class AasRepositoryContext extends AasServerContext {
 
 
     /**
-     * Returns a policy binding for a given reference. Warning: this function returns a policy binding regardless of whether an element should be registered or not. Use
+     * Returns a policy binding for a given reference. Warning: this function returns a policy binding regardless of whether
+     * an element should be registered or not. Use
      * {@link #eligibleForRegistration(Reference reference)} for that.
      *
      * @param reference Reference for which a policy binding is to be returned.
@@ -81,7 +82,8 @@ public abstract class AasRepositoryContext extends AasServerContext {
 
 
     /**
-     * Returns references that shall be registered by this extension. If all elements shall be registered, the optional will be empty.
+     * Returns references that shall be registered by this extension. If all elements shall be registered, the optional will
+     * be empty.
      *
      * @return References to register to EDC.
      */
@@ -114,8 +116,7 @@ public abstract class AasRepositoryContext extends AasServerContext {
         protected boolean onlySubmodels;
 
 
-        protected AbstractBuilder() {
-        }
+        protected AbstractBuilder() {}
 
 
         @SuppressWarnings("unchecked")

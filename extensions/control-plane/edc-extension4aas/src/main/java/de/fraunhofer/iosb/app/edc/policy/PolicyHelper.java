@@ -17,17 +17,19 @@ package de.fraunhofer.iosb.app.edc.policy;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
+import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.StoreResult;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Optional;
 
 import static de.fraunhofer.iosb.constants.AasConstants.DEFAULT_POLICY_DEFINITION_ID;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_USE_ACTION_ATTRIBUTE;
@@ -36,21 +38,22 @@ import static org.eclipse.edc.spi.result.StoreFailure.Reason.ALREADY_EXISTS;
 
 public abstract class PolicyHelper {
 
-    private PolicyHelper() {
-    }
+    private PolicyHelper() {}
 
 
     /**
      * Register default access and contract policies either by configuration variables or using internal (minimal) policies.
      *
+     * @param typeTransformerRegistry Deserialize policy
      * @param monitor monitor to log messages.
      * @param policyDefinitionStore Store implementation to register policies.
      * @param participantId Used for the default policies.
      */
-    public static void registerDefaultPolicies(Monitor monitor, PolicyDefinitionStore policyDefinitionStore, String participantId) {
+    public static void registerDefaultPolicies(TypeTransformerRegistry typeTransformerRegistry, Monitor monitor, PolicyDefinitionStore policyDefinitionStore,
+                                               String participantId) {
         Configuration configuration = Configuration.getInstance();
 
-        Policy defaultPolicy = getPolicy(monitor, participantId, configuration.getDefaultAccessPolicyPath());
+        Policy defaultPolicy = getPolicy(typeTransformerRegistry, monitor, participantId, configuration.getDefaultAccessPolicyPath());
 
         var defaultPolicyDefinition = PolicyDefinition.Builder.newInstance()
                 .id(DEFAULT_POLICY_DEFINITION_ID)
@@ -66,10 +69,13 @@ public abstract class PolicyHelper {
     }
 
 
-    private static Policy getPolicy(Monitor monitor, String participantId, String path) {
+    private static Policy getPolicy(TypeTransformerRegistry typeTransformerRegistry, Monitor monitor, String participantId, String path) {
         Policy policy;
         if (path != null) {
-            policy = getPolicyDefinitionFromFile(monitor, path).orElse(defaultPolicy(participantId));
+            policy = getPolicyDefinitionFromFile(typeTransformerRegistry, path).orElse(failure -> {
+                monitor.severe(failure.getFailureDetail());
+                return defaultPolicy(participantId);
+            });
         }
         else {
             policy = defaultPolicy(participantId);
@@ -78,14 +84,12 @@ public abstract class PolicyHelper {
     }
 
 
-    private static Optional<Policy> getPolicyDefinitionFromFile(Monitor monitor, String filePath) {
+    private static Result<Policy> getPolicyDefinitionFromFile(TypeTransformerRegistry typeTransformerRegistry, String filePath) {
         try {
-            Policy filePolicy = new ObjectMapper().readerFor(Policy.class).readValue(Path.of(filePath).toFile());
-            return Optional.of(filePolicy);
+            return typeTransformerRegistry.transform(new ObjectMapper().readValue(Path.of(filePath).toFile(), JsonObject.class), Policy.class);
         }
         catch (IOException ioException) {
-            monitor.severe(String.format("Could not find a valid policy at path %s. Using internal policy as default.", filePath));
-            return Optional.empty();
+            return Result.failure(String.format("Could not find a valid policy at path %s. Using internal policy as default.", filePath));
         }
     }
 

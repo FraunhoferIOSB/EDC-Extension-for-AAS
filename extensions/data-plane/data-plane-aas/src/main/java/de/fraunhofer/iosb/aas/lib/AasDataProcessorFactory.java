@@ -49,7 +49,8 @@ public abstract class AasDataProcessorFactory {
 
 
     /**
-     * Return a processor accepting the certificates of the server behind the given URL. This is for AAS services with self-signed certificates. Allowing self-signed certificates
+     * Return a processor accepting the certificates of the server behind the given URL. This is for AAS services with
+     * self-signed certificates. Allowing self-signed certificates
      * can be configured (see readme).
      *
      * @param aasUrl URL of AAS service without element access suffix (e.g., /submodels)

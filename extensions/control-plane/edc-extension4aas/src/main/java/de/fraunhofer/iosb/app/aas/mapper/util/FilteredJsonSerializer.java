@@ -42,16 +42,15 @@ import static de.fraunhofer.iosb.constants.AasConstants.AAS_V30_NAMESPACE;
  * Extension of the aas4j-JsonSerializer that is able to remove unwanted fields from AAS objects.
  */
 public class FilteredJsonSerializer extends JsonSerializer {
-    private static final TypeReference<Map<String, Object>> JSON_MAP_TYPE_REF = new TypeReference<>() {
-    };
+    private static final TypeReference<Map<String, Object>> JSON_MAP_TYPE_REF = new TypeReference<>() {};
 
 
     /**
      * Constructor of class
      */
     public FilteredJsonSerializer() {
-        mapper.setDefaultPropertyInclusion(JsonInclude.Value.construct(JsonInclude.Include.NON_EMPTY,  // drop empty lists/maps/arrays and empty strings
-                JsonInclude.Include.NON_NULL    // optional: drop null elements inside containers
+        mapper.setDefaultPropertyInclusion(JsonInclude.Value.construct(JsonInclude.Include.NON_EMPTY, // drop empty lists/maps/arrays and empty strings
+                JsonInclude.Include.NON_NULL // optional: drop null elements inside containers
         ));
     }
 

@@ -1,16 +1,16 @@
 {
   "@type": "ContractRequest",
-  "protocol": "dataspace-protocol-http",
-  "counterPartyAddress": "http://localhost:13340/dsp",
+  "protocol": "dataspace-protocol-http:2025-1",
+  "counterPartyAddress": "http://localhost:13340/dsp/2025-1",
   "policy": {
     "@context": "http://www.w3.org/ns/odrl.jsonld",
     "@type": "odrl:Offer",
     "@id": "${offer_id}",
-    "permission": {
-      "odrl:action": {
-        "@id": "odrl:use"
+    "permission": [
+      {
+        "action": "use"
       }
-    },
+    ],
     "prohibition": [],
     "obligation": [],
     "assigner": "provider",

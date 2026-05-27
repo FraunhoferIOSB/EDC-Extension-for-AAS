@@ -27,10 +27,10 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
-import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.command.CommandHandlerRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.configuration.Config;
@@ -75,11 +75,11 @@ public class DataTransferController {
      * @param config Read config value transfer timeout and own URI
      * @param webService Register data transfer endpoint.
      * @param publicApiManagementService Creating and passing through custom api keys for each data transfer.
-     * @param transferProcessManager Initiating a transfer process as a consumer.
+     * @param initiateTransferCommandHandler Initiating a transfer process as a consumer.
      */
     public DataTransferController(Monitor monitor, Config config, WebService webService,
                                   PublicApiManagementService publicApiManagementService,
-                                  TransferProcessManager transferProcessManager,
+                                  CommandHandlerRegistry initiateTransferCommandHandler,
                                   ParticipantContext participantContext,
                                   TransferProcessObservable transferProcessObservable,
                                   Hostname hostname) {
@@ -87,7 +87,7 @@ public class DataTransferController {
 
         this.monitor = monitor.withPrefix("DataTransferController");
 
-        transferInitiator = new TransferInitiator(monitor, config, hostname, transferProcessManager, participantContext);
+        transferInitiator = new TransferInitiator(monitor, config, hostname, initiateTransferCommandHandler, participantContext);
         dataTransferEndpointManager = new DataTransferEndpointManager(publicApiManagementService);
         dataTransferObservable = new DataTransferObservable<>(monitor);
         var dataTransferEndpoint = new DataTransferEndpoint(monitor, dataTransferObservable);
@@ -95,8 +95,7 @@ public class DataTransferController {
                 .setDefaultPropertyInclusion(
                         JsonInclude.Value.construct(
                                 JsonInclude.Include.NON_EMPTY,
-                                JsonInclude.Include.NON_NULL
-                        ));
+                                JsonInclude.Include.NON_NULL));
 
         transferProcessObservable.registerListener(dataTransferObservable);
         webService.registerResource(dataTransferEndpoint);
@@ -166,12 +165,14 @@ public class DataTransferController {
 
 
     /**
-     * Initiates the transfer process defined by the arguments. The data of the transfer will be sent to {@link DataTransferEndpoint#RECEIVE_DATA_PATH}.
+     * Initiates the transfer process defined by the arguments. The data of the transfer will be sent to
+     * {@link DataTransferEndpoint#RECEIVE_DATA_PATH}.
      *
      * @param providerUri The provider from whom the data is to be fetched.
      * @param agreementId Non-null ContractAgreement of the negotiation process.
-     * @param dataSinkAddress DataAddress the result of the transfer should be sent to. (If null, send to extension and print in log)
-     * @return String containing data or null on remote destination address
+     * @param dataSinkAddress DataAddress the result of the transfer should be sent to. (If null, send to extension and
+     *            print in log)
+     * @return JsonNode containing data or null on remote destination address
      * @throws InterruptedException If the data transfer was interrupted
      * @throws ExecutionException If the data transfer process failed
      */

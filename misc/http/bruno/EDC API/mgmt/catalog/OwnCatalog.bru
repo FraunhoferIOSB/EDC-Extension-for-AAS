@@ -5,7 +5,7 @@ meta {
 }
 
 post {
-  url: {{provider-management}}/v3/catalog/request
+  url: {{provider-management}}/v4/catalog/request
   body: json
   auth: inherit
 }
@@ -19,8 +19,10 @@ body:json {
     "@context": {
       "edc": "https://w3id.org/edc/v0.0.1/ns/"
     },
+    "@type": "CatalogRequest",
     "counterPartyAddress": "{{provider-dsp}}",
-    "protocol": "dataspace-protocol-http",
+    "counterPartyId": "provider",
+    "protocol": "dataspace-protocol-http:2025-1",
     "querySpec": {
       "limit": 31415926
     }

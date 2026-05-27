@@ -65,8 +65,7 @@ public class RemoteAasRepositoryContext extends AasRepositoryContext {
         private boolean allowSelfSigned;
 
 
-        public Builder() {
-        }
+        public Builder() {}
 
 
         public Builder authenticationMethod(AuthenticationMethod authenticationMethod) {

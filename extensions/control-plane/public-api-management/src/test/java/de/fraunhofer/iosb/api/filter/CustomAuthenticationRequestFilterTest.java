@@ -106,8 +106,7 @@ class CustomAuthenticationRequestFilterTest {
             customAuthenticationRequestFilter.filter(mockRequest);
             fail();
         }
-        catch (AuthenticationFailedException expected) {
-        }
+        catch (AuthenticationFailedException expected) {}
         // This should be called once
         verify(mockApiAuthenticationRegistry.resolve("default"), times(1)).isAuthenticated(any());
     }

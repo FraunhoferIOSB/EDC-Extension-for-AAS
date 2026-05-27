@@ -1,9 +1,6 @@
 plugins {
-    id("java")
+    id("buildsrc.java-library")
 }
-
-group = "de.fraunhofer.iosb"
-version = "2.3.0"
 
 dependencies {
     implementation(project(":extensions:common:constants"))
@@ -15,8 +12,4 @@ dependencies {
     implementation(libs.aas4j.dataformat.json) // Json (De)Serializer
 
     testImplementation(testFixtures(project(":extensions:common:aas-lib")))
-}
-
-tasks.test {
-    useJUnitPlatform()
 }

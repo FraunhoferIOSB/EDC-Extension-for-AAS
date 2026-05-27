@@ -1,19 +1,33 @@
+/*
+ * Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
+ * Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
+ * Forschung e.V.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package de.fraunhofer.iosb.app.handler.edc;
 
 import de.fraunhofer.iosb.aas.lib.model.PolicyBinding;
+import de.fraunhofer.iosb.aas.test.defaults.DefaultVault;
 import de.fraunhofer.iosb.app.aas.mapper.referable.identifiable.IdentifiableMapper;
 import de.fraunhofer.iosb.client.repository.remote.impl.RemoteAasRepositoryClient;
 import de.fraunhofer.iosb.model.context.repository.remote.RemoteAasRepositoryContext;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.util.AasUtils;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.digitaltwin.aas4j.v3.model.Submodel;
-import org.eclipse.edc.boot.vault.InMemoryVault;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.controlplane.defaults.storage.assetindex.InMemoryAssetIndex;
 import org.eclipse.edc.connector.controlplane.defaults.storage.contractdefinition.InMemoryContractDefinitionStore;
 import org.eclipse.edc.query.CriterionOperatorRegistryImpl;
-import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
@@ -36,10 +50,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class EdcStoreHandlerTest {
 
     private final CriterionOperatorRegistry criterionOperatorRegistry = CriterionOperatorRegistryImpl.ofDefaults();
-    private final IdentifiableMapper identifiableMapper =
-            new IdentifiableMapper(new RemoteAasRepositoryClient(new InMemoryVault(new ConsoleMonitor()), new RemoteAasRepositoryContext.Builder()
-                    .uri(URI.create("http://example.com"))
-                    .build()));
+    private final IdentifiableMapper identifiableMapper = new IdentifiableMapper(new RemoteAasRepositoryClient(new DefaultVault(), new RemoteAasRepositoryContext.Builder()
+            .uri(URI.create("http://example.com"))
+            .build()));
     private EdcStoreHandler testSubject;
     private InMemoryAssetIndex assetIndex;
     private InMemoryContractDefinitionStore contractDefinitionStore;
@@ -58,7 +71,7 @@ class EdcStoreHandlerTest {
     void setUp() {
         assetIndex = new InMemoryAssetIndex(criterionOperatorRegistry);
         contractDefinitionStore = new InMemoryContractDefinitionStore(criterionOperatorRegistry);
-        testSubject = new EdcStoreHandler(assetIndex, contractDefinitionStore, "provider");
+        testSubject = new EdcStoreHandler(assetIndex, contractDefinitionStore, () -> "provider");
     }
 
 

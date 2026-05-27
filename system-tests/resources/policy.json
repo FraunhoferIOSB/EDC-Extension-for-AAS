@@ -3,20 +3,18 @@
     "@id": "allow_all",
     "@type": "PolicyDefinition",
     "policy": {
-      "@type": "odrl:Set",
-      "odrl:permission": {
-        "odrl:action": {
-          "@id": "odrl:use"
+      "@type": "Set",
+      "permission": [
+        {
+          "action": "use"
         }
-      },
-      "odrl:prohibition": [],
-      "odrl:obligation": [],
+      ],
+      "prohibition": [],
+      "obligation": [],
       "odrl:assigner": "provider"
     },
-    "@context": {
-      "@vocab": "https://w3id.org/edc/v0.0.1/ns/",
-      "edc": "https://w3id.org/edc/v0.0.1/ns/",
-      "odrl": "http://www.w3.org/ns/odrl/2/"
-    }
+    "@context": [
+      "https://w3id.org/edc/connector/management/v2"
+    ]
   }
 ]

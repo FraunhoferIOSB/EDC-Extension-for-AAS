@@ -127,7 +127,6 @@ public class Configuration {
 
     public void setExposedFields(String exposedFields) {
         Optional.ofNullable(exposedFields)
-                .ifPresent(ef -> this.exposedFields = Arrays.stream(ef.split(",")).map(String::trim).collect(Collectors.toSet())
-                );
+                .ifPresent(ef -> this.exposedFields = Arrays.stream(ef.split(",")).map(String::trim).collect(Collectors.toSet()));
     }
 }

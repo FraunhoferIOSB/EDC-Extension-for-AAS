@@ -25,7 +25,8 @@ import java.util.Map;
 
 
 /**
- * Custom AuthenticationRequestFilter filtering requests that go directly to an AAS service (managed by this extension) or the extension's configuration.
+ * Custom AuthenticationRequestFilter filtering requests that go directly to an AAS service (managed by this extension)
+ * or the extension's configuration.
  */
 public class DataTransferEndpointManager {
 

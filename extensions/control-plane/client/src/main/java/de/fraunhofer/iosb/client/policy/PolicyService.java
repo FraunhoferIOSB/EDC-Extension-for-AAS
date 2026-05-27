@@ -48,12 +48,13 @@ import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DATASPACE_PROTOCOL_HTTP_V_2025_1;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
 
 
 /**
- * Communicates with a provider EDC to retrieve its Catalog. Returns dataset / contract offer for a requested provider asset to the user of this EDC (consumer). Datasets are
+ * Communicates with a provider EDC to retrieve its Catalog. Returns dataset / contract offer for a requested provider
+ * asset to the user of this EDC (consumer). Datasets are
  * returned as-is, contract offers are filtered by checking if they are acceptable given the stored acceptable policies.
  */
 class PolicyService {
@@ -95,7 +96,7 @@ class PolicyService {
                 participantContext,
                 counterPartyId,
                 counterPartyUri.toString(),
-                DATASPACE_PROTOCOL_HTTP,
+                DATASPACE_PROTOCOL_HTTP_V_2025_1,
                 assetQuerySpec);
 
         StatusResult<byte[]> catalogResponse;
@@ -160,12 +161,11 @@ class PolicyService {
                 .filter(entry -> config.isAcceptAllProviderOffers() || matchesOwnPolicyDefinitions(entry.getValue()))
                 .findAny();
 
-        return acceptablePolicy.map(idPolicyEntry ->
-                        Result.success(ContractOffer.Builder.newInstance()
-                                .id(idPolicyEntry.getKey())
-                                .policy(idPolicyEntry.getValue().withTarget(assetId))
-                                .assetId(assetId)
-                                .build()))
+        return acceptablePolicy.map(idPolicyEntry -> Result.success(ContractOffer.Builder.newInstance()
+                .id(idPolicyEntry.getKey())
+                .policy(idPolicyEntry.getValue().withTarget(assetId))
+                .assetId(assetId)
+                .build()))
                 .orElse(Result.failure("Could not find acceptable policyDefinition"));
     }
 
@@ -179,25 +179,24 @@ class PolicyService {
 
     private boolean matchesOwnPolicyDefinitions(Policy policy) {
         return policyDefinitionStore.getPolicyDefinitions().stream()
-                .anyMatch(acceptedPolicyDefinition ->
-                        policyDefinitionRulesEquality(
-                                acceptedPolicyDefinition.getPolicy(),
-                                policy));
+                .anyMatch(acceptedPolicyDefinition -> policyDefinitionRulesEquality(
+                        acceptedPolicyDefinition.getPolicy(),
+                        policy));
     }
 
 
     private boolean policyDefinitionRulesEquality(Policy first, Policy second) {
         List<Rule> firstRules = Stream.of(
-                        first.getPermissions(),
-                        first.getProhibitions(),
-                        first.getObligations())
+                first.getPermissions(),
+                first.getProhibitions(),
+                first.getObligations())
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList());
 
         List<Rule> secondRules = Stream.of(
-                        second.getPermissions(),
-                        second.getProhibitions(),
-                        second.getObligations())
+                second.getPermissions(),
+                second.getProhibitions(),
+                second.getObligations())
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList());
 

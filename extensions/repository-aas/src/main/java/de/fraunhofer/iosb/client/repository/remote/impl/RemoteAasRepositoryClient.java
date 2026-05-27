@@ -20,10 +20,8 @@ import de.fraunhofer.iosb.aas.lib.auth.impl.BasicAuth;
 import de.fraunhofer.iosb.aas.lib.auth.impl.BearerAuth;
 import de.fraunhofer.iosb.aas.lib.model.PolicyBinding;
 import de.fraunhofer.iosb.aas.lib.util.InetTools;
-import de.fraunhofer.iosb.client.exception.UnauthorizedException;
 import de.fraunhofer.iosb.client.repository.AasRepositoryClient;
 import de.fraunhofer.iosb.ilt.faaast.client.exception.ConnectivityException;
-import de.fraunhofer.iosb.ilt.faaast.client.exception.ForbiddenException;
 import de.fraunhofer.iosb.ilt.faaast.client.exception.MethodNotAllowedException;
 import de.fraunhofer.iosb.ilt.faaast.client.exception.StatusCodeException;
 import de.fraunhofer.iosb.ilt.faaast.client.interfaces.AASRepositoryInterface;
@@ -38,7 +36,6 @@ import org.eclipse.digitaltwin.aas4j.v3.model.Submodel;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultEnvironment;
 import org.eclipse.edc.spi.security.Vault;
 
-import java.net.ConnectException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.util.List;
@@ -46,7 +43,8 @@ import java.util.Map;
 
 
 /**
- * This client uses the FA³ST client as backend. The FA³ST client communicates over standardized AAS API calls, so it should be compatible to all standard-conformant AAS
+ * This client uses the FA³ST client as backend. The FA³ST client communicates over standardized AAS API calls, so it
+ * should be compatible to all standard-conformant AAS
  * repositories.
  */
 public class RemoteAasRepositoryClient implements AasRepositoryClient {
@@ -153,22 +151,6 @@ public class RemoteAasRepositoryClient implements AasRepositoryClient {
     @Override
     public boolean isAvailable() {
         return InetTools.pingHost(getUri().getHost(), getUri().getPort());
-    }
-
-
-    private void handleException(Exception e) throws ConnectException, UnauthorizedException {
-        if (e instanceof ForbiddenException | e instanceof de.fraunhofer.iosb.ilt.faaast.client.exception.UnauthorizedException) {
-            throw new UnauthorizedException(e);
-        }
-        else if (e instanceof ConnectivityException) {
-            throw new ConnectException(e.getMessage());
-        }
-        else if (e instanceof StatusCodeException) {
-            throw new RuntimeException(e);
-        }
-        else {
-            throw new RuntimeException(e);
-        }
     }
 
 

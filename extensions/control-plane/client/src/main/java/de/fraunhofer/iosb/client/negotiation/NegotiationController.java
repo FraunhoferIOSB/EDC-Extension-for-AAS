@@ -15,13 +15,13 @@
  */
 package de.fraunhofer.iosb.client.negotiation;
 
-import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
+import org.eclipse.edc.spi.command.CommandHandlerRegistry;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.configuration.Config;
 
@@ -33,7 +33,8 @@ import java.util.concurrent.TimeoutException;
 
 
 /**
- * Provides API for contract negotiation by {@link de.fraunhofer.iosb.client.negotiation.Negotiator the Negotiator class}. For documentation see
+ * Provides API for contract negotiation by {@link de.fraunhofer.iosb.client.negotiation.Negotiator the Negotiator
+ * class}. For documentation see
  * {@link de.fraunhofer.iosb.client.ClientEndpoint}
  */
 public class NegotiationController {
@@ -47,13 +48,13 @@ public class NegotiationController {
     private final ClientContractNegotiationListener listener;
 
 
-    public NegotiationController(ConsumerContractNegotiationManager consumerNegotiationManager,
+    public NegotiationController(CommandHandlerRegistry commandHandlerRegistry,
                                  ContractNegotiationObservable observable,
                                  ContractNegotiationStore contractNegotiationStore,
                                  ParticipantContext participantContext,
                                  Config config) {
         this.config = config;
-        this.negotiator = new Negotiator(consumerNegotiationManager, contractNegotiationStore, participantContext);
+        this.negotiator = new Negotiator(commandHandlerRegistry, contractNegotiationStore, participantContext);
         this.listener = new ClientContractNegotiationListener();
         observable.registerListener(listener);
     }
@@ -65,9 +66,9 @@ public class NegotiationController {
             return Result.failure(negotiationStatusResult.getFailureDetail());
         }
 
-        var negotiation = negotiationStatusResult.getContent();
+        var negotiation = ((ContractNegotiation) negotiationStatusResult.getContent());
         if (Objects.nonNull(negotiation.getContractAgreement())) {
-            return Result.success(negotiationStatusResult.getContent().getContractAgreement());
+            return Result.success(negotiation.getContractAgreement());
         }
         else {
             return waitForAgreement(negotiation.getId());

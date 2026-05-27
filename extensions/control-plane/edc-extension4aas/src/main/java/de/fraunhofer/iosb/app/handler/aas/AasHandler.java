@@ -75,10 +75,12 @@ public abstract class AasHandler<C extends AasServerClient> {
 
 
     /**
-     * Returns the self-description entity for this AAS. The self-description is essentially a representation of this AAS preserving its structure, extended by EDC information for
+     * Returns the self-description entity for this AAS. The self-description is essentially a representation of this AAS
+     * preserving its structure, extended by EDC information for
      * data space consumers to get the necessary information to negotiate the data represented by an AAS element.
      *
-     * @return The self-description (An AAS Environment with EDC information added as AAS.Extensions using the HasExtension property of an AAS referable).
+     * @return The self-description (An AAS Environment with EDC information added as AAS.Extensions using the HasExtension
+     *         property of an AAS referable).
      * @throws StatusCodeException A call to the AAS was returned with a Status code != 2xx.
      * @throws ConnectivityException A connection to the underlying AAS was unsuccessful.
      */
@@ -120,7 +122,8 @@ public abstract class AasHandler<C extends AasServerClient> {
 
 
     /**
-     * Returns the environment of the AAS server. This could be the environment of an AAS repository or the shell/submodel descriptors of an AAS registry converted into an
+     * Returns the environment of the AAS server. This could be the environment of an AAS repository or the shell/submodel
+     * descriptors of an AAS registry converted into an
      * environment.
      *
      * @return The environment representing this AAS server
@@ -250,9 +253,11 @@ public abstract class AasHandler<C extends AasServerClient> {
 
 
     /*
-    Top-down-search, bottom-up filtering of SME. If at least one child of an otherwise to-be-removed element needs to be kept, the element itself will not be removed.
-    This element will be shown in the self-description but will not have an EDC asset ID. This could compromise confidentiality in some cases, self-description should be
-    deactivated in that case.
+     * Top-down-search, bottom-up filtering of SME. If at least one child of an otherwise to-be-removed element needs to be
+     * kept, the element itself will not be removed.
+     * This element will be shown in the self-description but will not have an EDC asset ID. This could compromise
+     * confidentiality in some cases, self-description should be
+     * deactivated in that case.
      */
     protected SubmodelElement filterSubmodelElementStructure(Reference parent, SubmodelElement submodelElement) {
         Reference submodelElementReference = AasUtils.toReference(parent, submodelElement);

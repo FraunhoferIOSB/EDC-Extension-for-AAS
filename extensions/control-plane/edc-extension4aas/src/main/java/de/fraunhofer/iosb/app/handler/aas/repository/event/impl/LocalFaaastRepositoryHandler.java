@@ -35,7 +35,8 @@ import java.util.function.BiFunction;
 
 
 /**
- * Handles locally started FA³ST service instances. Since we have direct access to the message bus, we can subscribe to events and obtain changes instantly as opposed to remote
+ * Handles locally started FA³ST service instances. Since we have direct access to the message bus, we can subscribe to
+ * events and obtain changes instantly as opposed to remote
  * AAS, where updates have to be polled.
  */
 public class LocalFaaastRepositoryHandler extends EventDrivenRepositoryHandler<LocalFaaastRepositoryClient> {

@@ -86,8 +86,7 @@ public class ClientEndpoint {
             throw new InvalidRequestException(String.format(MISSING_QUERY_PARAMETER_MESSAGE, "providerUrl, providerId, assetId"));
         }
 
-        Result<ContractOffer> contractOfferResult =
-                policyController.getAcceptableContractOfferForAssetId(counterPartyId, counterPartyUri, assetId);
+        Result<ContractOffer> contractOfferResult = policyController.getAcceptableContractOfferForAssetId(counterPartyId, counterPartyUri, assetId);
 
         if (contractOfferResult.failed()) {
             monitor.severe("Getting policies failed for provider %s and asset %s: %s".formatted(
@@ -147,8 +146,7 @@ public class ClientEndpoint {
         private DataTransferController transferController;
 
 
-        private Builder() {
-        }
+        private Builder() {}
 
 
         public static Builder newInstance() {

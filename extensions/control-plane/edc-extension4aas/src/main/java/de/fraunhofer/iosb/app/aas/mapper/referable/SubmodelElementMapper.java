@@ -43,7 +43,8 @@ public class SubmodelElementMapper extends ReferableMapper {
 
 
     /**
-     * Map the submodelElement to an EDC asset. All metadata of the submodelElement is serialized into a map which is subsequently added as Asset.properties. The DataAddress points
+     * Map the submodelElement to an EDC asset. All metadata of the submodelElement is serialized into a map which is
+     * subsequently added as Asset.properties. The DataAddress points
      * to the submodelElement from the AAS server using
      *
      * @param parent Parent element to resolve the path in the environment.

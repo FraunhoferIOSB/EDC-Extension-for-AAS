@@ -15,12 +15,10 @@
  */
 package de.fraunhofer.iosb.repository.impl.faaast;
 
+import de.fraunhofer.iosb.aas.test.defaults.DefaultEdcHttpClient;
 import de.fraunhofer.iosb.model.config.impl.faaast.FaaastRepositoryConfig;
 import de.fraunhofer.iosb.model.context.repository.AasRepositoryContext;
-import dev.failsafe.RetryPolicy;
-import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import org.eclipse.edc.http.client.EdcHttpClientImpl;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,7 +50,7 @@ class FaaastRepositoryManagerTest {
 
         var uri = startRepository();
 
-        var edcHttpClient = new EdcHttpClientImpl(new OkHttpClient(), RetryPolicy.ofDefaults(), new ConsoleMonitor());
+        var edcHttpClient = new DefaultEdcHttpClient();
 
         try (var response = edcHttpClient.execute(new Request.Builder()
                 .url(uri.toString() + "/shells")
@@ -73,8 +71,7 @@ class FaaastRepositoryManagerTest {
                     .build());
             fail("Exception should have been thrown");
         }
-        catch (IllegalArgumentException expected) {
-        }
+        catch (IllegalArgumentException expected) {}
     }
 
 
@@ -122,7 +119,7 @@ class FaaastRepositoryManagerTest {
 
     private URI startRepository() {
         var config = FaaastRepositoryConfig.Builder.newInstance().model(
-                        Path.of("./src/test/resources/aasEnvironment.json"))
+                Path.of("./src/test/resources/aasEnvironment.json"))
                 .port(getFreePort())
                 .ssl(false)
                 .build();

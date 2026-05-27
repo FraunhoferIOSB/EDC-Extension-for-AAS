@@ -198,11 +198,10 @@ public class RemoteAasRegistryHandler extends RemoteAasHandler<AasRegistryClient
                 .map(Endpoint::getProtocolInformation)
                 .filter(protocolInformation -> SUPPORTED_PROTOCOLS.contains(protocolInformation.getEndpointProtocol()))
                 // Remove endpoints which require security
-                .filter(protocolInformation ->
-                        protocolInformation.getSecurityAttributes().isEmpty() ||
-                                protocolInformation.getSecurityAttributes().stream()
-                                        .map(SecurityAttributeObject::getType)
-                                        .anyMatch(type -> type.equals(SecurityTypeEnum.NONE)))
+                .filter(protocolInformation -> protocolInformation.getSecurityAttributes().isEmpty() ||
+                        protocolInformation.getSecurityAttributes().stream()
+                                .map(SecurityAttributeObject::getType)
+                                .anyMatch(type -> type.equals(SecurityTypeEnum.NONE)))
                 .map(ProtocolInformation::getHref)
                 .map(URI::create)
                 .findAny().orElseThrow(() -> new NoEndpointException("No suitable endpoints found."));

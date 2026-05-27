@@ -16,7 +16,8 @@
 package de.fraunhofer.iosb.client.exception;
 
 /**
- * An attempted connection to an AAS client was rejected due to the client being unauthorized or forbidden (401, 403) to access a resource.
+ * An attempted connection to an AAS client was rejected due to the client being unauthorized or forbidden (401, 403) to
+ * access a resource.
  */
 public class UnauthorizedException extends Exception {
 

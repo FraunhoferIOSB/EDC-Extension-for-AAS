@@ -37,7 +37,7 @@ start_runtime() {
   touch $log_file
 
   echo "Starting ${project_name}..." >&2
-  EDC_FS_CONFIG="$config_path" "${PWD}/gradlew" --no-daemon --console=plain "launchers:${project_name}:run" \
+  EDC_FS_CONFIG="$config_path" "${PWD}/gradlew" --no-daemon --console=plain "launchers:${project_name}:run" "--args='--log-level=DEBUG'" \
     > "$log_file" 2>&1 &
   local pid=$!
 
@@ -94,8 +94,8 @@ verify_request() {
   http_code=$(curl "${curl_args[@]}")
 
   if [[ "$http_code" != 2?? ]]; then
-    echo "ERR: $resource_name: $method request returned HTTP $http_code. Failing test and dumping actual response."
-    cat "$log_file" >&2
+    echo "ERR: $resource_name: $method request to $url returned HTTP $http_code. Failing test and dumping actual response."
+    cat "$log_file\n" >&2
     exit 1
   fi
 

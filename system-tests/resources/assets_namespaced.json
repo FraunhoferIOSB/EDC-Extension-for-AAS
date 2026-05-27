@@ -16,8 +16,7 @@
       "https://admin-shell.io/aas/3/0/Referable/idShort": "SystemTestConceptDescription",
       "https://admin-shell.io/aas/3/0/Identifiable/id": "https://acplt.org/System_Test_ConceptDescription",
       "https://admin-shell.io/aas/3/0/modelingType": "ConceptDescription",
-      "id": "1351791412",
-      "contenttype": "application/json"
+      "id": "1351791412"
     },
     "dataAddress": {
       "@type": "DataAddress",
@@ -26,11 +25,9 @@
       "https://admin-shell.io/aas/3/0/reference": "[ModelRef](ConceptDescription)https://acplt.org/System_Test_ConceptDescription",
       "baseUrl": "https://localhost:60875/api/v3.0"
     },
-    "@context": {
-      "@vocab": "https://w3id.org/edc/v0.0.1/ns/",
-      "edc": "https://w3id.org/edc/v0.0.1/ns/",
-      "odrl": "http://www.w3.org/ns/odrl/2/"
-    }
+    "@context": [
+      "https://w3id.org/edc/connector/management/v2"
+    ]
   },
   {
     "@id": "792362498",
@@ -49,8 +46,7 @@
       "https://admin-shell.io/aas/3/0/Referable/idShort": "SystemTestAssetAdministrationShell",
       "https://admin-shell.io/aas/3/0/Identifiable/id": "https://acplt.org/System_Test_AssetAdministrationShell",
       "https://admin-shell.io/aas/3/0/modelingType": "AssetAdministrationShell",
-      "id": "792362498",
-      "contenttype": "application/json"
+      "id": "792362498"
     },
     "dataAddress": {
       "@type": "DataAddress",
@@ -59,11 +55,9 @@
       "https://admin-shell.io/aas/3/0/reference": "[ModelRef](AssetAdministrationShell)https://acplt.org/System_Test_AssetAdministrationShell",
       "baseUrl": "https://localhost:60875/api/v3.0"
     },
-    "@context": {
-      "@vocab": "https://w3id.org/edc/v0.0.1/ns/",
-      "edc": "https://w3id.org/edc/v0.0.1/ns/",
-      "odrl": "http://www.w3.org/ns/odrl/2/"
-    }
+    "@context": [
+      "https://w3id.org/edc/connector/management/v2"
+    ]
   },
   {
     "@id": "-799803758",
@@ -88,8 +82,7 @@
         },
         "https://admin-shell.io/aas/3/0/Reference/type": "ExternalReference"
       },
-      "id": "-799803758",
-      "contenttype": "application/json"
+      "id": "-799803758"
     },
     "dataAddress": {
       "@type": "DataAddress",
@@ -98,11 +91,9 @@
       "https://admin-shell.io/aas/3/0/reference": "[ModelRef](Submodel)http://acplt.org/Submodels/Assets/TestAsset/System_Test_Submodel, (SubmodelElementCollection)SystemTestSubmodelElementCollection",
       "baseUrl": "https://localhost:60875/api/v3.0"
     },
-    "@context": {
-      "@vocab": "https://w3id.org/edc/v0.0.1/ns/",
-      "edc": "https://w3id.org/edc/v0.0.1/ns/",
-      "odrl": "http://www.w3.org/ns/odrl/2/"
-    }
+    "@context": [
+      "https://w3id.org/edc/connector/management/v2"
+    ]
   },
   {
     "@id": "458140152",
@@ -131,8 +122,7 @@
         "https://admin-shell.io/aas/3/0/AbstractLangString/language": "en-us",
         "https://admin-shell.io/aas/3/0/AbstractLangString/text": "Manufacturer Name"
       },
-      "id": "458140152",
-      "contenttype": "application/json"
+      "id": "458140152"
     },
     "dataAddress": {
       "@type": "DataAddress",
@@ -141,11 +131,9 @@
       "https://admin-shell.io/aas/3/0/reference": "[ModelRef](Submodel)http://acplt.org/Submodels/Assets/TestAsset/System_Test_Submodel, (SubmodelElementCollection)SystemTestSubmodelElementCollection, (Property)ManufacturerName",
       "baseUrl": "https://localhost:60875/api/v3.0"
     },
-    "@context": {
-      "@vocab": "https://w3id.org/edc/v0.0.1/ns/",
-      "edc": "https://w3id.org/edc/v0.0.1/ns/",
-      "odrl": "http://www.w3.org/ns/odrl/2/"
-    }
+    "@context": [
+      "https://w3id.org/edc/connector/management/v2"
+    ]
   },
   {
     "@id": "1855961989",
@@ -171,8 +159,7 @@
         },
         "https://admin-shell.io/aas/3/0/Reference/type": "ExternalReference"
       },
-      "id": "1855961989",
-      "contenttype": "application/json"
+      "id": "1855961989"
     },
     "dataAddress": {
       "@type": "DataAddress",
@@ -181,10 +168,8 @@
       "https://admin-shell.io/aas/3/0/reference": "[ModelRef](Submodel)http://acplt.org/Submodels/Assets/TestAsset/System_Test_Submodel",
       "baseUrl": "https://localhost:60875/api/v3.0"
     },
-    "@context": {
-      "@vocab": "https://w3id.org/edc/v0.0.1/ns/",
-      "edc": "https://w3id.org/edc/v0.0.1/ns/",
-      "odrl": "http://www.w3.org/ns/odrl/2/"
-    }
+    "@context": [
+      "https://w3id.org/edc/connector/management/v2"
+    ]
   }
 ]

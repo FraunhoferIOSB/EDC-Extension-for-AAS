@@ -49,6 +49,7 @@ on:
         default: "edc-extension4aas"
   push:
     branches: [ "main" ]
+    tags: [ "v*" ]
 
 permissions:
   contents: read

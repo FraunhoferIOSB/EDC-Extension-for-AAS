@@ -10,7 +10,7 @@ fa3st-client = "1.1.0"
 
 commons-io = "2.21.0"
 jersey = "4.0.2"
-junit-bom = "6.0.3"
+junit-bom = "6.1.0"
 junit-platform-launcher = "6.0.3"
 jupiter = "6.0.3"
 mockito = "5.23.0"

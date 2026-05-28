@@ -28,6 +28,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   release:
@@ -55,38 +56,55 @@ jobs:
           fi
           echo "Version matches: $CURRENT"
 
-      - name: Update gradle.properties to release version
-        shell: bash
-        run: |
-          sed -i "s/^version=.*-SNAPSHOT/version=${{ inputs.version }}/" gradle.properties
-
-      - name: Update changelog heading
-        shell: bash
-        run: |
-          sed -i "s/^## Current development version (V${{ inputs.version }}-SNAPSHOT)/## V${{ inputs.version }}/" changelog.md
-
-      - name: Commit release preparation
+      - name: Set up git user
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Create release commit and tag
+        shell: bash
+        run: |
+          BRANCH="release/v${{ inputs.version }}"
+          git checkout -b "$BRANCH"
+
+          sed -i "s/^version=.*-SNAPSHOT/version=${{ inputs.version }}/" gradle.properties
+          sed -i "s/^## Current development version (V${{ inputs.version }}-SNAPSHOT)/## V${{ inputs.version }}/" changelog.md
           git add gradle.properties changelog.md
           git commit -m "chore: prepare release v${{ inputs.version }}"
 
-      - name: Create tag
-        shell: bash
-        run: |
           git tag v${{ inputs.version }}
 
-      - name: Build project
-        shell: bash
-        run: ./gradlew build
-
-      - name: Push commit and tag
+      - name: Bump to next development version
         shell: bash
         run: |
-          git push
-          git push --tags
+          sed -i "s/^version=.*/version=${{ inputs.next_version }}/" gradle.properties
+          NEXT="## Current development version (V${{ inputs.next_version }})"
+          RELEASE="## V${{ inputs.version }}"
+          SECTIONS="### New Features\n\n### Bugfixes\n\n### Miscellaneous"
+          sed -i "s/^${RELEASE}/${NEXT}\n\n${SECTIONS}\n\n${RELEASE}/" changelog.md
+          git add gradle.properties changelog.md
+          git commit -m "chore: bump to ${{ inputs.next_version }}"
+
+      - name: Push release branch and tag
+        shell: bash
+        run: |
+          BRANCH="release/v${{ inputs.version }}"
+          git push origin "$BRANCH"
+          git push origin v${{ inputs.version }}
+
+      - name: Create Pull Request
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr create \
+            --base main \
+            --head "release/v${{ inputs.version }}" \
+            --title "Release V${{ inputs.version }}" \
+            --body "This PR prepares the V${{ inputs.version }} release.
+
+          After merging, the Docker image will be built and published automatically."
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -96,23 +114,3 @@ jobs:
           body: |
             Release V${{ inputs.version }} of the EDC-Extension-for-AAS.
           token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Bump gradle.properties to next snapshot
-        shell: bash
-        run: |
-          sed -i "s/^version=.*/version=${{ inputs.next_version }}/" gradle.properties
-
-      - name: Add new changelog section
-        shell: bash
-        run: |
-          NEXT="## Current development version (V${{ inputs.next_version }})"
-          RELEASE="## V${{ inputs.version }}"
-          SECTIONS="### New Features\n\n### Bugfixes\n\n### Miscellaneous"
-          sed -i "s/^${RELEASE}/${NEXT}\n\n${SECTIONS}\n\n${RELEASE}/" changelog.md
-
-      - name: Commit and push next development version
-        shell: bash
-        run: |
-          git add gradle.properties changelog.md
-          git commit -m "chore: bump to ${{ inputs.next_version }}"
-          git push

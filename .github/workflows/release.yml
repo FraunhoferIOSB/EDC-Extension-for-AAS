@@ -107,7 +107,7 @@ jobs:
           After merging, the Docker image will be built and published automatically."
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: v${{ inputs.version }}
           name: V${{ inputs.version }}

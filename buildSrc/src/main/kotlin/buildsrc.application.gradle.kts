@@ -13,13 +13,6 @@ tasks.named<Jar>("jar") { enabled = false }
 tasks.named("distZip") { enabled = false }
 tasks.named("distTar") { enabled = false }
 
-tasks.named<ShadowJar>("shadowJar") {
-    isZip64 = true
-    exclude("**/pom.properties", "**/pom.xml")
-    mergeServiceFiles()
-    archiveFileName.set("${project.projectDir.name}.jar")
-}
-
 tasks.named("startShadowScripts") { enabled = false }
 tasks.named("shadowDistZip") { enabled = false }
 tasks.named("shadowDistTar") { enabled = false }
@@ -38,7 +31,12 @@ val copyDockerfile = tasks.register("copyDockerfile", Copy::class) {
     include("Dockerfile")
 }
 
-tasks.named("shadowJar") {
+tasks.named<ShadowJar>("shadowJar") {
+    setProperty("zip64", true)
+    setProperty("archiveFileName", "${project.projectDir.name}.jar")
+    exclude("**/pom.properties", "**/pom.xml")
+    mergeServiceFiles() // merges META-INF/services/**
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
     dependsOn(copyDockerfile, copyLegalDocs)
 }
 

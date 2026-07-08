@@ -15,9 +15,8 @@
  */
 package de.fraunhofer.iosb.app.edc.policy;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
-import jakarta.json.JsonObject;
+import de.fraunhofer.iosb.codec.Codec;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.policy.model.Action;
@@ -26,12 +25,13 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.StoreResult;
-import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
-import static de.fraunhofer.iosb.constants.AasConstants.DEFAULT_POLICY_DEFINITION_ID;
+import static de.fraunhofer.iosb.constants.AasConstants.DEFAULT_ACCESS_POLICY_DEFINITION_ID;
+import static de.fraunhofer.iosb.constants.AasConstants.DEFAULT_USAGE_POLICY_DEFINITION_ID;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_USE_ACTION_ATTRIBUTE;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.ALREADY_EXISTS;
 
@@ -44,37 +44,50 @@ public abstract class PolicyHelper {
     /**
      * Register default access and contract policies either by configuration variables or using internal (minimal) policies.
      *
-     * @param typeTransformerRegistry Deserialize policy
+     * @param codec Deserialize policy
      * @param monitor monitor to log messages.
      * @param policyDefinitionStore Store implementation to register policies.
      * @param participantId Used for the default policies.
      */
-    public static void registerDefaultPolicies(TypeTransformerRegistry typeTransformerRegistry, Monitor monitor, PolicyDefinitionStore policyDefinitionStore,
+    public static void registerDefaultPolicies(Codec codec, Monitor monitor, PolicyDefinitionStore policyDefinitionStore,
                                                String participantId) {
         Configuration configuration = Configuration.getInstance();
 
-        Policy defaultPolicy = getPolicy(typeTransformerRegistry, monitor, participantId, configuration.getDefaultAccessPolicyPath());
+        Policy defaultAccessPolicy = getPolicy(codec, monitor, participantId, configuration.getDefaultAccessPolicyPath());
+        Policy defaultUsagePolicy = getPolicy(codec, monitor, participantId, configuration.getDefaultContractPolicyPath());
 
-        var defaultPolicyDefinition = PolicyDefinition.Builder.newInstance()
-                .id(DEFAULT_POLICY_DEFINITION_ID)
-                .policy(defaultPolicy)
+        var defaultAccessPolicyDefinition = PolicyDefinition.Builder.newInstance()
+                .id(DEFAULT_ACCESS_POLICY_DEFINITION_ID)
+                .policy(defaultAccessPolicy)
                 .participantContextId(participantId)
                 .build();
 
-        StoreResult<PolicyDefinition> storeResult = policyDefinitionStore.create(defaultPolicyDefinition);
+        StoreResult<PolicyDefinition> accessPolicyDefinitionStoreResult = policyDefinitionStore.create(defaultAccessPolicyDefinition);
 
-        if (storeResult.failed() && ALREADY_EXISTS != storeResult.reason()) {
-            throw new IllegalArgumentException(storeResult.getFailureDetail());
+        if (accessPolicyDefinitionStoreResult.failed() && ALREADY_EXISTS != accessPolicyDefinitionStoreResult.reason()) {
+            throw new IllegalArgumentException(accessPolicyDefinitionStoreResult.getFailureDetail());
         }
+
+        var defaultUsagePolicyDefinition = PolicyDefinition.Builder.newInstance()
+                .id(DEFAULT_USAGE_POLICY_DEFINITION_ID)
+                .policy(defaultUsagePolicy)
+                .participantContextId(participantId)
+                .build();
+
+        StoreResult<PolicyDefinition> usagePolicyDefinitionStoreResult = policyDefinitionStore.create(defaultUsagePolicyDefinition);
+
+        if (usagePolicyDefinitionStoreResult.failed() && ALREADY_EXISTS != usagePolicyDefinitionStoreResult.reason()) {
+            throw new IllegalArgumentException(usagePolicyDefinitionStoreResult.getFailureDetail());
+        }
+
     }
 
 
-    private static Policy getPolicy(TypeTransformerRegistry typeTransformerRegistry, Monitor monitor, String participantId, String path) {
+    private static Policy getPolicy(Codec codec, Monitor monitor, String participantId, String path) {
         Policy policy;
         if (path != null) {
-            policy = getPolicyDefinitionFromFile(typeTransformerRegistry, path).orElse(failure -> {
-                monitor.severe(failure.getFailureDetail());
-                return defaultPolicy(participantId);
+            policy = getPolicyFromFile(codec, path).orElse(failure -> {
+                throw new IllegalArgumentException(String.format("Could not parse default policy from %s: %s", path, failure.getFailureDetail()));
             });
         }
         else {
@@ -84,12 +97,12 @@ public abstract class PolicyHelper {
     }
 
 
-    private static Result<Policy> getPolicyDefinitionFromFile(TypeTransformerRegistry typeTransformerRegistry, String filePath) {
+    private static Result<Policy> getPolicyFromFile(Codec codec, String filePath) {
         try {
-            return typeTransformerRegistry.transform(new ObjectMapper().readValue(Path.of(filePath).toFile(), JsonObject.class), Policy.class);
+            return codec.deserialize(Files.readString(Path.of(filePath)), Policy.class);
         }
         catch (IOException ioException) {
-            return Result.failure(String.format("Could not find a valid policy at path %s. Using internal policy as default.", filePath));
+            return Result.failure(ioException.getMessage());
         }
     }
 

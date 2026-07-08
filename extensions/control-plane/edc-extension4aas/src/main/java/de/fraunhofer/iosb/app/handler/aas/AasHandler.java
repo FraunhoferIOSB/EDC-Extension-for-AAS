@@ -114,7 +114,9 @@ public abstract class AasHandler<C extends AasServerClient> {
                 .map(StoreResult::getFailureDetail)
                 .toList();
 
-        monitor.warning(String.format("Failed unregistering assets with IDs %s", unregisterFailedMessages));
+        if (unregisterFailedMessages.size() > 0) {
+            monitor.warning(String.format("Failed unregistering assets with IDs %s", unregisterFailedMessages));
+        }
 
         monitor.info(String.format("Unregistered %s AAS elements from repository %s.", filtered.size() - unregisterFailedMessages.size(),
                 client.getUri()));

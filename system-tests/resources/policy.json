@@ -1,6 +1,22 @@
 [
   {
-    "@id": "allow_all",
+    "@type": "PolicyDefinition",
+    "policy": {
+      "@type": "Set",
+      "permission": [
+        {
+          "action": "use"
+        }
+      ],
+      "prohibition": [],
+      "obligation": [],
+      "odrl:assigner": "provider"
+    },
+    "@context": [
+      "https://w3id.org/edc/connector/management/v2"
+    ]
+  },
+  {
     "@type": "PolicyDefinition",
     "policy": {
       "@type": "Set",

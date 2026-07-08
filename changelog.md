@@ -6,6 +6,9 @@
 
 ### Bugfixes
 
+* Fixed loading/deserializing default access / contract policies
+* Fixed build goal by including duplicate files
+
 ### Miscellaneous
 
 ## V2.3.0

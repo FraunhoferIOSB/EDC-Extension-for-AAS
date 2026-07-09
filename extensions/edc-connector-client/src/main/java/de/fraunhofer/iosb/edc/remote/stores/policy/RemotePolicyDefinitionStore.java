@@ -60,8 +60,8 @@ public class RemotePolicyDefinitionStore extends ControlPlaneConnectionHandler<P
         // Since you cannot create StoreResult<T> from StoreResult<U>:
         String failureDetail = createResult.getFailureDetail();
         return switch (createResult.reason()) {
-            case NOT_FOUND -> StoreResult.notFound(createResult.getFailureDetail());
-            case ALREADY_EXISTS -> StoreResult.alreadyExists(createResult.getFailureDetail());
+            case NOT_FOUND -> StoreResult.notFound(failureDetail);
+            case ALREADY_EXISTS -> StoreResult.alreadyExists(failureDetail);
             case DUPLICATE_KEYS -> StoreResult.duplicateKeys(failureDetail);
             case ALREADY_LEASED -> StoreResult.alreadyLeased(failureDetail);
             default -> StoreResult.generalError(failureDetail);

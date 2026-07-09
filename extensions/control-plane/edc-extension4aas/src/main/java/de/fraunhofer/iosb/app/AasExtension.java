@@ -29,6 +29,7 @@ import de.fraunhofer.iosb.app.handler.edc.EdcStoreHandler;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import de.fraunhofer.iosb.app.stores.repository.AasServerStore;
 import de.fraunhofer.iosb.client.exception.UnauthorizedException;
+import de.fraunhofer.iosb.codec.Codec;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
@@ -43,7 +44,6 @@ import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.spi.WebService;
 
 import java.net.ConnectException;
@@ -67,14 +67,14 @@ public class AasExtension implements ServiceExtension {
 
     public static final String NAME = "EDC4AAS Extension";
 
-    @Inject
-    private TypeTransformerRegistry typeTransformerRegistry;
     @Inject // Register public endpoints
     private PublicApiManagementService publicApiManagementService;
     @Inject
     private AssetIndex assetIndex;
     @Inject
     private ContractDefinitionStore contractDefinitionStore;
+    @Inject
+    private Codec codec;
     @Inject
     private Hostname hostname;
     @Inject(required = false)
@@ -129,7 +129,7 @@ public class AasExtension implements ServiceExtension {
     @Override
     public void start() {
         try {
-            PolicyHelper.registerDefaultPolicies(typeTransformerRegistry, monitor, policyDefinitionStore, participantId.get());
+            PolicyHelper.registerDefaultPolicies(codec, monitor, policyDefinitionStore, participantId.get());
             bootstrapRepositories();
         }
         catch (UnauthorizedException e) {

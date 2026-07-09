@@ -1,8 +1,6 @@
 [
   {
     "@type": "ContractDefinition",
-    "accessPolicyId": "allow_all",
-    "contractPolicyId": "allow_all",
     "assetsSelector": [
       {
         "@type": "Criterion",

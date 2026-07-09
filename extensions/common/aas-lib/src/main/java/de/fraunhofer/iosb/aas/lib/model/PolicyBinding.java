@@ -25,7 +25,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
-import static de.fraunhofer.iosb.constants.AasConstants.DEFAULT_POLICY_DEFINITION_ID;
+import static de.fraunhofer.iosb.constants.AasConstants.DEFAULT_ACCESS_POLICY_DEFINITION_ID;
+import static de.fraunhofer.iosb.constants.AasConstants.DEFAULT_USAGE_POLICY_DEFINITION_ID;
 
 
 /**
@@ -45,8 +46,8 @@ public record PolicyBinding(Reference referredElement, @JsonAlias("accessPolicyI
     public static PolicyBinding ofDefaults(Reference reference) {
         return new Builder()
                 .withReferredElement(ReferenceHelper.asString(reference))
-                .withAccessPolicyDefinitionId(DEFAULT_POLICY_DEFINITION_ID)
-                .withContractPolicyDefinitionId(DEFAULT_POLICY_DEFINITION_ID)
+                .withAccessPolicyDefinitionId(DEFAULT_ACCESS_POLICY_DEFINITION_ID)
+                .withContractPolicyDefinitionId(DEFAULT_USAGE_POLICY_DEFINITION_ID)
                 .build();
     }
 

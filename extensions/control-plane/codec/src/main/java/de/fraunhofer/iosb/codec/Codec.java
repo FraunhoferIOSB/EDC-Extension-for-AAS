@@ -66,7 +66,7 @@ public class Codec {
     }
 
 
-    public <T extends Entity> Result<T> deserialize(String entityJson, Class<T> type) {
+    public <T> Result<T> deserialize(String entityJson, Class<T> type) {
         var assetJsonObject = Json.createReader(new StringReader(entityJson)).readObject();
 
         var expandedResult = jsonLd.expand(assetJsonObject);

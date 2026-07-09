@@ -20,7 +20,8 @@ import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import java.net.URI;
 import java.util.Objects;
 
-import static de.fraunhofer.iosb.constants.AasConstants.DEFAULT_POLICY_DEFINITION_ID;
+import static de.fraunhofer.iosb.constants.AasConstants.DEFAULT_ACCESS_POLICY_DEFINITION_ID;
+import static de.fraunhofer.iosb.constants.AasConstants.DEFAULT_USAGE_POLICY_DEFINITION_ID;
 
 
 /**
@@ -90,8 +91,8 @@ public abstract class AasServerContext {
 
 
         protected void validate() {
-            defaultAccessPolicyDefinitionId = Objects.requireNonNullElse(defaultAccessPolicyDefinitionId, DEFAULT_POLICY_DEFINITION_ID);
-            defaultContractPolicyDefinitionId = Objects.requireNonNullElse(defaultContractPolicyDefinitionId, DEFAULT_POLICY_DEFINITION_ID);
+            defaultAccessPolicyDefinitionId = Objects.requireNonNullElse(defaultAccessPolicyDefinitionId, DEFAULT_ACCESS_POLICY_DEFINITION_ID);
+            defaultContractPolicyDefinitionId = Objects.requireNonNullElse(defaultContractPolicyDefinitionId, DEFAULT_USAGE_POLICY_DEFINITION_ID);
         }
     }
 }

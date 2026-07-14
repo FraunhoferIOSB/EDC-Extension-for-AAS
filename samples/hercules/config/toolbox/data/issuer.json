@@ -1,0 +1,9 @@
+{
+  "did": "did:web:issuer-service%3A10100",
+  "issuerApi": "http://issuer-service:15152/api/issuer",
+  "identityApi": "http://issuer-service:15151/api/identity",
+  "issuanceApi": "http://issuer-service:13132/api/issuance",
+  "apiKey": "YWRtaW4=.s3cr3t",
+  "hostname": "issuer-service",
+  "protocol": "http"
+}

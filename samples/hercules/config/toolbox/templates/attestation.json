@@ -1,0 +1,9 @@
+{
+  "attestationType": "presentation",
+  "configuration": {
+    "credentialType": "MembershipCredential",
+    "outputClaim": "isMember",
+    "required": false
+  },
+  "id": "MC-Attestation"
+}

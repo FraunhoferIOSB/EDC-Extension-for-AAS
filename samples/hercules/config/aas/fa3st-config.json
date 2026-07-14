@@ -1,0 +1,19 @@
+{
+  "core": {
+    "aasRegistries": ["http://dtr:8090"]
+  },
+  "endpoints": [
+    {
+      "@class": "de.fraunhofer.iosb.ilt.faaast.service.endpoint.http.HttpEndpoint",
+      "port": 12345,
+      "hostname": "http://data-plane:9500/public",
+      "subprotocol": "DSP",
+      "subprotocolBody": "id=${id};dspEndpoint=http://control-plane:8084/api/v1/dsp",
+      "subprotocolBodyEncoding": "plain"
+    }
+  ],
+  "persistence": {
+    "@class": "de.fraunhofer.iosb.ilt.faaast.service.persistence.memory.PersistenceInMemory",
+    "initialModelFile": "/resources/fa3st/model.aasx"
+  }
+}

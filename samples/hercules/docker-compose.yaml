@@ -1,0 +1,235 @@
+services:
+  control-plane:
+    image: ghcr.io/factory-x-contributions/edc-controlplane-postgresql-hashicorp-vault:sha-dd6f929
+    container_name: control-plane
+    healthcheck:
+      test: ["CMD-SHELL", "wget --server-response --spider --quiet http://localhost:8080/api 2>&1 | grep 'HTTP/.* 404' || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    depends_on:
+      postgres:
+        condition: service_healthy
+      vault:
+        condition: service_healthy
+    environment:
+      EDC_FS_CONFIG: /app/configuration.properties
+      OTEL_SDK_DISABLED: "true"
+      edc.vault.hashicorp.url: http://vault:${VAULT_PORT:-8200}
+      edc.vault.hashicorp.token: ${VAULT_TOKEN:-token}
+      JAVA_TOOL_OPTIONS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=0.0.0.0:5005
+    # Activate debug logging:
+    # entrypoint: ["java", "-jar", "edc-runtime.jar", "--log-level=DEBUG"]
+    volumes:
+      - ./config/edc/controlplane/participant1.properties:/app/configuration.properties
+      - ./config/edc/opentelemetry.properties:/app/opentelemetry.properties:ro
+    ports:
+      # - "8080:8080" # API /api
+      # - "8081:8081" # MANAGEMENT /management
+      # - "9090:9090" # METRICS /metrics
+      - "8084:8084" # PROTOCOL /api/v1/dsp
+      - "8085:8085" # CATALOG /catalog
+
+  standalone:
+    image: standalone:latest
+    container_name: standalone
+    depends_on:
+      control-plane:
+        condition: service_healthy
+      vault:
+        condition: service_healthy
+      dtr:
+        condition: service_healthy
+    volumes:
+      - ./config/edc/extension/configuration.properties:/resources/configuration.properties
+      - ./config/aas/model.aasx:/resources/fa3st/model.aasx
+      - ./config/aas/fa3st-config.json:/resources/fa3st/config.json
+    environment:
+      EDC_FS_CONFIG: /resources/configuration.properties
+      edc.vault.hashicorp.url: http://vault:${VAULT_PORT:-8200}
+      edc.vault.hashicorp.token: ${VAULT_TOKEN:-token}
+      JAVA_TOOL_OPTIONS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=0.0.0.0:5005
+
+    stop_signal: SIGTERM
+    # Allow extension to unregister assets/policies/contracts
+    stop_grace_period: 5s
+    ports:
+      # - "5005:5005" # debug
+      # - "8181:8181" # API /api
+      - "8080:8080" # FA³ST
+
+  dtr:
+    image: fraunhoferiosb/faaast-registry:1.2.0-SNAPSHOT
+    container_name: dtr
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -kfsS -o /dev/null http://localhost:8090/shell-descriptors" ]
+      interval: 2s
+      timeout: 2s
+      retries: 24
+      start_period: 90s
+    ports:
+      - 8090:8090
+    volumes:
+      - ./config/aas/dtr.properties:/app/config/application.properties
+
+  data-plane:
+    container_name: data-plane
+    image: ghcr.io/factory-x-contributions/edc-dataplane-hashicorp-vault:sha-dd6f929
+    depends_on:
+      postgres:
+        condition: service_healthy
+      control-plane:
+        condition: service_healthy
+      vault:
+        condition: service_healthy
+    # Activate debug logging:
+    # entrypoint: ["java", "-jar", "edc-runtime.jar", "--log-level=DEBUG"]
+    volumes:
+      - ./config/edc/dataplane/configuration.properties:/app/configuration.properties
+      - ./config/edc/opentelemetry.properties:/app/opentelemetry.properties:ro
+    environment:
+      EDC_FS_CONFIG: /app/configuration.properties
+      edc.vault.hashicorp.url: http://vault:${VAULT_PORT:-8200}
+      edc.vault.hashicorp.token: ${VAULT_TOKEN:-token}
+    ports:
+      # - "5005:5005" # debug
+      - "9500:9500" # PUBLIC /public
+
+  identity-hub:
+    container_name: identity-hub
+    image: tractusx/identityhub:v0.3.2
+    depends_on:
+      vault:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    ports:
+      # - "5005:5005" # debug
+      # - "8181:8181" # API /api
+      - "7171:7171" # VERSION /.well-known/api
+      - "13131:13131" # CREDENTIALS /api/credentials
+      - "10100:10100" # DID /
+      - "15151:15151" # IDENTITY /api/identity
+      - "9292:9292" # STS /api/sts
+    volumes:
+      - ./config/edc/identityhub/configuration.properties:/app/configuration.properties
+      - ./config/edc/logging.properties:/app/logging.properties:ro
+    environment:
+      edc.vault.hashicorp.url: http://vault:${VAULT_PORT:-8200}
+      edc.vault.hashicorp.token: ${VAULT_TOKEN:-token}
+
+  vault:
+    image: hashicorp/vault
+    container_name: vault
+    command:
+      - sh
+      - -c
+      - |
+        set -e
+        vault server -dev -dev-root-token-id=${VAULT_TOKEN:-token} -dev-listen-address=0.0.0.0:${VAULT_PORT:-8200} &
+        until vault status >/dev/null 2>&1; do sleep 0.1; done
+        export VAULT_TOKEN=${VAULT_TOKEN:-token}
+        vault kv put secret/edc.datasource.default.user content=${POSTGRES_USER:-admin} value=${POSTGRES_USER:-admin}
+        vault kv put secret/edc.datasource.default.password content=${POSTGRES_PASSWORD:-password} value=${POSTGRES_PASSWORD:-password}
+        vault kv put secret/api-key-control-plane content=${CONTROL_PLANE_API_KEY:-password} value=${CONTROL_PLANE_API_KEY:-password}
+        vault kv put secret/api-key-standalone content=${EXTENSION_API_KEY:-password} value=${EXTENSION_API_KEY:-password}
+        wait
+    cap_add:
+      - IPC_LOCK
+    environment:
+      VAULT_ADDR: http://127.0.0.1:${VAULT_PORT:-8200}
+      SKIP_SETCAP: true
+      SKIP_CHOWN: true
+    healthcheck:
+      test: [ "CMD-SHELL", "vault status >/dev/null 2>&1" ]
+      interval: 3s
+      timeout: 3s
+      retries: 40
+      start_period: 5s
+    ports:
+      - "${VAULT_PORT:-8200}:${VAULT_PORT:-8200}"
+
+  issuer-service:
+    container_name: issuer-service
+    # TODO replace w construct-x wallet
+    image: ghcr.io/factory-x-contributions/fx-id-hub-charts/issuerservice:latest
+    depends_on:
+      vault:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    ports:
+      # - "5005:5005" # debug
+      # - "8181:8181" # API /api
+      # - "7171:7171" # VERSION /.well-known/api
+      - "9999:9999" # STATUSLIST /statuslist
+      # - "10100:10100" # DID /
+      - "13132:13132" # ISSUANCE /api/issuance
+      # - "15151:15151" # IDENTITY /api/identity
+      - "15152:15152" # ISSUERADMIN /api/issuer
+      # - "9292:9292" # STS /api/sts
+    volumes:
+      - ./config/edc/issuerservice/configuration.properties:/app/configuration.properties:ro
+      - ./config/edc/logging.properties:/app/logging.properties:ro
+      - ./config/edc/issuerservice/credentials/membership.json:/app/setup.json
+    environment:
+      edc.vault.hashicorp.url: http://vault:${VAULT_PORT:-8200}
+      edc.vault.hashicorp.token: ${VAULT_TOKEN:-token}
+
+  postgres:
+    image: postgres:16.4-alpine
+    container_name: postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+    volumes:
+      - ./config/postgres:/docker-entrypoint-initdb.d
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U $${POSTGRES_USER} -h 127.0.0.1 || exit 1",
+        ]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  # Init container + full linux machine to explore docker compose universe
+  toolbox:
+    build: ./toolbox/
+    container_name: toolbox
+    stdin_open: true
+    tty: true
+    cap_add:
+      - NET_RAW
+    depends_on:
+      identity-hub:
+        condition: service_started
+      issuer-service:
+        condition: service_started
+    volumes:
+      - ./config/toolbox:/scripts
+
+  participant2:
+    image: ghcr.io/factory-x-contributions/edc-controlplane-postgresql-hashicorp-vault:sha-dd6f929
+    container_name: participant2
+    environment:
+      EDC_FS_CONFIG: /app/configuration.properties
+      OTEL_SDK_DISABLED: "true"
+      edc.vault.hashicorp.url: http://vault:${VAULT_PORT:-8200}
+      edc.vault.hashicorp.token: ${VAULT_TOKEN:-token}
+      JAVA_TOOL_OPTIONS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=0.0.0.0:5005
+
+    # Activate debug logging:
+    entrypoint: ["java", "-jar", "edc-runtime.jar", "--log-level=DEBUG"]
+    volumes:
+      - ./config/edc/controlplane/participant2.properties:/app/configuration.properties
+      - ./config/edc/opentelemetry.properties:/app/opentelemetry.properties:ro
+    ports:
+      - "5005:5005" # DEBUG
+      # - "8080:8080" # API /api
+      - "8081:8081" # MANAGEMENT /management
+      # - "9090:9090" # METRICS /metrics
+      # - "8084:8084" # PROTOCOL /api/v1/dsp
+      # - "8085:8085" # CATALOG /catalog

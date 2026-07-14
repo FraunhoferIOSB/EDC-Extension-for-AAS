@@ -1,0 +1,4 @@
+CREATE DATABASE edc;
+CREATE DATABASE identity_hub;
+CREATE DATABASE issuer_service;
+CREATE DATABASE participant2;

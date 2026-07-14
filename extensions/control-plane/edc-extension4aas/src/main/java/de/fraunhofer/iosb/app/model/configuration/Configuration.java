@@ -55,6 +55,8 @@ public class Configuration {
     private boolean useAasDataPlane = true;
     @JsonProperty(SETTINGS_PREFIX + "exposedFields")
     private Set<String> exposedFields;
+    @JsonProperty(SETTINGS_PREFIX + "hercules")
+    private boolean hercules;
 
 
     public static synchronized Configuration getInstance() {
@@ -128,5 +130,10 @@ public class Configuration {
     public void setExposedFields(String exposedFields) {
         Optional.ofNullable(exposedFields)
                 .ifPresent(ef -> this.exposedFields = Arrays.stream(ef.split(",")).map(String::trim).collect(Collectors.toSet()));
+    }
+
+
+    public boolean isHercules() {
+        return hercules;
     }
 }

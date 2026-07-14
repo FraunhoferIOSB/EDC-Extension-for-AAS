@@ -51,7 +51,6 @@ public class FaaastRepositoryManager implements AasRepositoryManager<FaaastRepos
     private final Monitor monitor;
     private final Map<URI, Service> repository;
 
-
     public FaaastRepositoryManager(Monitor monitor, Hostname hostname) {
         this.monitor = monitor;
         this.hostname = hostname;
@@ -68,13 +67,12 @@ public class FaaastRepositoryManager implements AasRepositoryManager<FaaastRepos
 
         HttpEndpointConfig endpointConfig = config.getPort();
 
-        URI accessUri = URI.create(
-                "http".concat(endpointConfig.isSslEnabled() ? "s" : "") // proto
-                        .concat("://")
-                        .concat(Optional.ofNullable(endpointConfig.getHostname()).orElse(hostname.get())) // hostname
-                        .concat(":")
-                        .concat(String.valueOf(endpointConfig.getPort())) // port
-                        .concat("/api/v3.0")); // mandatory FA³ST path
+        URI accessUri = Optional.ofNullable(endpointConfig.getHostname())
+                .map(URI::create)
+                .orElse(URI.create(String.format("http%s://%s:%s/%s",
+                        endpointConfig.isSslEnabled() ? "s" : "", hostname.get(),
+                        endpointConfig.getPort(),
+                        endpointConfig.getPathPrefix() == null ? "" : endpointConfig.getPathPrefix())));
 
         repository.put(accessUri, service);
         monitor.debug("Started %s service with access URL: %s.".formatted(FAAAST, accessUri));
@@ -117,7 +115,8 @@ public class FaaastRepositoryManager implements AasRepositoryManager<FaaastRepos
                 serviceToStop.stop();
             }
             catch (Exception e) {
-                monitor.warning(String.format("Could not stop internal %s service with URI %s", FAAAST, repositoryUri), e);
+                monitor.warning(String.format("Could not stop internal %s service with URI %s", FAAAST, repositoryUri),
+                        e);
             }
         });
     }
@@ -129,7 +128,8 @@ public class FaaastRepositoryManager implements AasRepositoryManager<FaaastRepos
             service = new Service(serviceConfig);
             service.start();
         }
-        catch (AssetConnectionException | ConfigurationException | PersistenceException | MessageBusException | EndpointException faaastServiceException) {
+        catch (AssetConnectionException | ConfigurationException | PersistenceException | MessageBusException
+                | EndpointException faaastServiceException) {
             throw new EdcException(GENERIC_EXCEPTION_MESSAGE, faaastServiceException);
         }
         return service;

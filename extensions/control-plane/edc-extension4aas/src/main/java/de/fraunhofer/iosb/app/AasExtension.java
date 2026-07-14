@@ -113,12 +113,12 @@ public class AasExtension implements ServiceExtension {
                 oauth2Client);
 
         // Add public endpoint if wanted by config
-        if (Configuration.getInstance().isExposeSelfDescription()) {
+        if (Configuration.getInstance().isExposeSelfDescription() && !Configuration.getInstance().isHercules()) {
             publicApiManagementService.addEndpoints(List.of(new Endpoint(SELF_DESCRIPTION_PATH, HttpMethod.GET,
                     Map.of())));
+            webService.registerResource(new SelfDescriptionController(monitor, aasServerStore));
         }
 
-        webService.registerResource(new SelfDescriptionController(monitor, aasServerStore));
         webService.registerResource(repositoryController);
         webService.registerResource(registryController);
 
@@ -151,7 +151,7 @@ public class AasExtension implements ServiceExtension {
             monitor.debug(String.format("Registered AAS repository with url %s", serviceUri));
         }
 
-        if (Objects.isNull(configInstance.getLocalAasModelPath())) {
+        if (Objects.isNull(configInstance.getLocalAasModelPath()) && Objects.isNull(configInstance.getAasServiceConfigPath())) {
             return;
         }
 
@@ -160,7 +160,7 @@ public class AasExtension implements ServiceExtension {
                 configInstance.getLocalAasServicePort(),
                 configInstance.getAasServiceConfigPath(),
                 List.of(),
-                configInstance.onlySubmodels());
+                configInstance.onlySubmodels() || Configuration.getInstance().isHercules());
 
         URI serviceUri = repositoryController.register(localRepositoryDto);
         monitor.debug(String.format("Started FA³ST service with url %s", serviceUri));

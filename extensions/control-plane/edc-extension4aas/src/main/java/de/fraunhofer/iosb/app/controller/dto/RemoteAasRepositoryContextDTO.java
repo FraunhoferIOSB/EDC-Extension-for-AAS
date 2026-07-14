@@ -64,7 +64,7 @@ public record RemoteAasRepositoryContextDTO(URI url, AuthenticationMethodDTO aut
                 .defaultContractPolicyDefinitionId(defaultContractPolicyDefinitionId())
                 .policyBindings(this.policyBindings())
                 .authenticationMethod(toAuthenticationMethod(vault, oauth2Client))
-                .onlySubmodels(Configuration.getInstance().onlySubmodels())
+                .onlySubmodels(Configuration.getInstance().onlySubmodels() || Configuration.getInstance().isHercules())
                 .allowSelfSigned(Configuration.getInstance().isAllowSelfSignedCertificates())
                 .build();
     }

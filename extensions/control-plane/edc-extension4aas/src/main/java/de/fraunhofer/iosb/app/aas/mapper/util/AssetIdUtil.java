@@ -15,6 +15,7 @@
  */
 package de.fraunhofer.iosb.app.aas.mapper.util;
 
+import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import de.fraunhofer.iosb.ilt.faaast.service.util.ReferenceHelper;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.util.AasUtils;
 import org.eclipse.digitaltwin.aas4j.v3.model.Identifiable;
@@ -34,17 +35,19 @@ import static de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress.validate;
 public abstract class AssetIdUtil {
 
     /**
-     * Generates a unique and fixed identifier for a given AAS reference and its location in the network.
+     * Generates a unique and fixed identifier for a given AAS reference and its
+     * location in the network.
      *
      * @param url Location of the AAS element in the network
      * @param reference Location of the AAS element in its environment
      * @return A unique and fixed identifier based on the given arguments
      */
-    public static String id(String url, Reference reference) {
+    public static String ofHashedAccessUrl(String url, Reference reference) {
         List<String> problems = validate(reference);
         if (!problems.isEmpty()) {
-            throw new IllegalStateException(String.format("Malformed reference in AasDataAddress: %s \n problems:\n\t%s", reference,
-                    String.join("\n\t- ", problems)));
+            throw new IllegalStateException(
+                    String.format("Malformed reference in AasDataAddress: %s \n problems:\n\t%s", reference,
+                            String.join("\n\t- ", problems)));
         }
 
         Key root = ReferenceHelper.getRoot(reference);
@@ -53,7 +56,8 @@ public abstract class AssetIdUtil {
             case SUBMODEL -> "submodels/";
             case ASSET_ADMINISTRATION_SHELL -> "shells/";
             case CONCEPT_DESCRIPTION -> "concept-descriptions/";
-            default -> throw new IllegalStateException(String.format("Malformed reference in AasDataAddress: %s", reference));
+            default ->
+                throw new IllegalStateException(String.format("Malformed reference in AasDataAddress: %s", reference));
         };
 
         path = path.concat(Base64.getUrlEncoder().encodeToString(root.getValue().getBytes(StandardCharsets.UTF_8)));
@@ -67,7 +71,19 @@ public abstract class AssetIdUtil {
     }
 
 
+    private static String ofIdentifiableId(Reference reference) {
+        return ReferenceHelper.getRoot(reference).getValue();
+    }
+
+
     public static String id(String url, Identifiable identifiable) {
-        return id(url, AasUtils.toReference(identifiable));
+        return Configuration.getInstance().isHercules() ? ofIdentifiableId(AasUtils.toReference(identifiable))
+                : ofHashedAccessUrl(url, AasUtils.toReference(identifiable));
+    }
+
+
+    public static String id(String url, Reference reference) {
+        return Configuration.getInstance().isHercules() ? ofIdentifiableId(reference)
+                : ofHashedAccessUrl(url, reference);
     }
 }

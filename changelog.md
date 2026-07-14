@@ -4,6 +4,11 @@
 
 ### New Features
 
+* Add **Hercules** compatibility
+    * With config `edc.aas.hercules=true`, the extension will register only submodels without meta-data and use the HTTP data plane.
+    * Also, added a new sample: `/samples/hercules`, providing a close-to-complete deployment of an MX-Port Hercules.
+        * This of course is only for testing/demo purposes
+
 ### Bugfixes
 
 * Fixed loading/deserializing default access / contract policies

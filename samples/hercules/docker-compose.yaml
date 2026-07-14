@@ -152,7 +152,8 @@ services:
 
   issuer-service:
     container_name: issuer-service
-    # TODO replace w construct-x wallet
+    # The tractus-x issuer-service is currently missing a way to freely define the contents of a credentialSubject field for a Verifiable Credential.
+    # A similar functionality as this (private) image is provided in https://github.com/project-construct-x/wallet.
     image: ghcr.io/factory-x-contributions/fx-id-hub-charts/issuerservice:latest
     depends_on:
       vault:

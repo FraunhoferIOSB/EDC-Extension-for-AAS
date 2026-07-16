@@ -75,7 +75,7 @@ edc-util-lib = { module = "org.eclipse.edc:util-lib", version.ref = "edc" }
 edc-validator-spi = { module = "org.eclipse.edc:validator-spi", version.ref = "edc" }
 edc-vault-hashicorp = { module = "org.eclipse.edc:vault-hashicorp", version.ref = "edc" }
 
-shadow-gradle-plugin = { module = "com.gradleup.shadow:shadow-gradle-plugin", version = "9.5.1" }
+shadow-gradle-plugin = { module = "com.gradleup.shadow:shadow-gradle-plugin", version = "9.6.0" }
 docker-gradle-plugin = { module = "com.bmuschko:gradle-docker-plugin", version = "10.0.0" }
 spotless-gradle-plugin = { module = "com.diffplug.spotless:spotless-plugin-gradle", version = "8.8.0" }
 

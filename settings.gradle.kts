@@ -24,7 +24,7 @@ pluginManagement {
         mavenCentral()
     }
     plugins {
-        id("com.gradleup.shadow") version "9.5.1"
+        id("com.gradleup.shadow") version "9.6.0"
         id("com.bmuschko.docker-remote-api") version "10.0.0"
     }
 }

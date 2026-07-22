@@ -1,0 +1,33 @@
+info:
+  name: Catalog
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{p2-management-api}}/catalog/request"
+  headers:
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "@context": {
+          "@vocab": "https://w3id.org/edc/v0.0.1/ns/"
+        },
+        "@type": "CatalogRequest",
+        "counterPartyAddress": "http://control-plane:8084/api/v1/dsp/2025-1",
+        "counterPartyId": "did:web:identity-hub%3A10100:participant1",
+        "protocol": "dataspace-protocol-http:2025-1",
+        "additionalScopes": [
+          "org.eclipse.tractusx.vc.type:MembershipCredential:read"
+        ]
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

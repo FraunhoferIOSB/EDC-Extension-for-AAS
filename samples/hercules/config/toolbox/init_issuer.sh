@@ -13,7 +13,7 @@ b64=$(printf %s "$did" | base64 | tr -d '\n')
 ###########################
 ## Issuer Service ##
 ###########################
-printf "Creating issuer participant"
+printf "Creating issuer participant\n"
 # Issuer Participant
 issuer_participant="$(
   jq \

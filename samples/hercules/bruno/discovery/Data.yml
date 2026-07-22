@@ -1,0 +1,17 @@
+info:
+  name: Data
+  type: http
+  seq: 7
+
+http:
+  method: GET
+  url: http://data-plane:9500/public
+  headers:
+    - name: Authorization
+      value: eyJraWQiOiJwdWJsaWMta2V5IiwiYWxnIjoiUlMyNTYifQ.eyJpc3MiOiJkaWQ6d2ViOmlkZW50aXR5LWh1YiUzQTEwMTAwOnBhcnRpY2lwYW50MSIsImF1ZCI6ImRpZDp3ZWI6aWRlbnRpdHktaHViJTNBMTAxMDA6cGFydGljaXBhbnQyIiwic3ViIjoiZGlkOndlYjppZGVudGl0eS1odWIlM0ExMDEwMDpwYXJ0aWNpcGFudDEiLCJleHAiOjE3ODQ3MjU5MzYsImlhdCI6MTc4NDcyNTYzNiwianRpIjoiZTBhOWNjZTctODdjYS00NjY1LWJmOTUtY2EyNDU0YTQ4NzIzIn0.aW4GlzGkRsr4ht2WuJYuXUFTgaf4sHeXT7vG7FBg69SnzWt7nzNniea7YbE_h_zawVqc0cwgTDHWajhM3eJpU-TngeDQ9Z2K3GMmwOAwiAKCIH6wQIu8Nvb9iAabxrAxDfZXBt4RpSWwyyYKWYmWdABBjqlZYbxbJ918hkKD9ZhZMokUVrsH0LSir4ylMeFDUI2krVcLxTHxlcH8ITP-t4bG0pv5AmckZskXFuJYPMAKt6nw-t6OjbHRytfya1-UmwXXOF6hlAagfriFmGMzjEzHB5tx68b8L4u-3s3bB-nKEhKQ1ekzQwNNjsL_smzm6H6-G7d2JXuOdY8fl7wdxw
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

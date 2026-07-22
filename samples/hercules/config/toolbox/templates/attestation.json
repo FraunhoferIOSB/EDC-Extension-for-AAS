@@ -1,9 +1,18 @@
 {
+  "id": "MC-Attestation",
   "attestationType": "presentation",
   "configuration": {
+    "did:web:identity-hub:10100:participant1": {
+      "isMember": true
+    },
+    "did:web:identity-hub:10100:participant2": {
+      "isMember": true
+    },
+    "default": {
+      "isMember": false
+    },
     "credentialType": "MembershipCredential",
     "outputClaim": "isMember",
     "required": false
-  },
-  "id": "MC-Attestation"
+  }
 }

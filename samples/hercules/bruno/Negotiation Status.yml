@@ -1,0 +1,24 @@
+info:
+  name: Negotiation Status
+  type: http
+  seq: 3
+
+http:
+  method: GET
+  url: "{{p2-management-api}}/contractnegotiations/:negotiation-id"
+  headers:
+    - name: content-type
+      value: application/json
+    - name: x-api-key
+      value: password
+  params:
+    - name: negotiation-id
+      value: 78a552bd-989a-4816-bf75-5654eeaf73db
+      type: path
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

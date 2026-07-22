@@ -1,0 +1,41 @@
+info:
+  name: EDR
+  type: http
+  seq: 6
+
+http:
+  method: GET
+  url: "{{p2-management-api}}/edrs/:transfer-id/dataaddress?auto_refresh=true"
+  params:
+    - name: auto_refresh
+      value: "true"
+      type: query
+    - name: transfer-id
+      value: 0f2df75d-9d8c-4243-b783-c7dcb07d97e1
+      type: path
+  auth: inherit
+
+runtime:
+  actions:
+    - type: set-variable
+      phase: after-response
+      selector:
+        expression: res.body.authorization
+        method: jsonq
+      variable:
+        name: pull-secret
+        scope: runtime
+    - type: set-variable
+      phase: after-response
+      selector:
+        expression: res.body.endpoint
+        method: jsonq
+      variable:
+        name: dataplane
+        scope: runtime
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

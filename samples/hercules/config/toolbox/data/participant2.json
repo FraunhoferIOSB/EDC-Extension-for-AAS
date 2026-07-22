@@ -4,5 +4,8 @@
   "contextId": "did:web:identity-hub%3A10100:participant2",
   "credentialsApi": "http://identity-hub:13131/api/credentials",
   "identityApi": "http://identity-hub:15151/api/identity",
-  "stsClientSecretAlias": "participant2-sts-client-secret"
+  "stsClientSecretAlias": "participant2-sts-client-secret",
+    "dataPlanePrivateKeyAlias": "ignore.private",
+  "dataPlanePublicKeyAlias": "ignore.public"
+
 }

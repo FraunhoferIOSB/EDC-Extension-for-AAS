@@ -16,11 +16,14 @@ function initialize() {
     credentialsApi="$(jq -r '.credentialsApi' "$participantFile")"
     identityApi="$(jq -r '.identityApi' "$participantFile")"
     stsClientSecretAlias="$(jq -r '.stsClientSecretAlias' "$participantFile")"
+    dataPlanePrivateKeyAlias="$(jq -r '.dataPlanePrivateKeyAlias' "$participantFile")"
+    dataPlanePublicKeyAlias="$(jq -r '.dataPlanePublicKeyAlias' "$participantFile")"
 
     secret=$(create_participant "$did" "$adminApiKey" "$credentialsApi" "$identityApi" "$contextId")
     store_secret "$vaultUrl" "$vaultToken" "$stsClientSecretAlias" "$secret"
     create_holder_at_issuer "$did" "$issuerDid" "$issuerAdminApiKey" "$issuerIssuerApi"
     request_verifiable_credential "$did" "$adminApiKey" "$identityApi" "$issuerDid"
+    initialize_data_plane "$vaultUrl" "$vaultToken" "$dataPlanePrivateKeyAlias" "$dataPlanePublicKeyAlias"
 }
 
 function create_participant() {
@@ -49,7 +52,7 @@ function create_participant() {
     ' /scripts/templates/participant.json
   )"
 
-  printf "\nCreating participant for %s" "$did"
+  printf "\nCreating participant for %s\n" "$did" >&2
   response=$(curl -fsSL\
     --request POST \
     --url "$identityApi/v1alpha/participants" \
@@ -61,9 +64,9 @@ function create_participant() {
   participantClientId=$(echo "$response"| jq -r '.clientId')
   participantClientSecret=$(echo "$response"| jq -r '.clientSecret')
 
-  echo "Client API Key ($did): $participantApiKey"
-  echo "Client ID ($did): $participantClientId"
-  echo "Client Secret ($did): $participantClientSecret"
+  echo "Client API Key ($did): $participantApiKey" >&2
+  echo "Client ID ($did): $participantClientId" >&2
+  echo "Client Secret ($did): $participantClientSecret" >&2
 
   printf "%s" "$participantClientSecret"
 }
@@ -90,11 +93,17 @@ function store_secret() {
   alias=$3
   secretValue=$4
 
-  printf "\nStoring secret %s at vault %s" "$alias" "$vaultUrl"
-  curl --url "$vaultUrl/$alias" \
+  printf "\nStoring secret %s at vault %s" "$alias" "$vaultUrl" >&2
+
+  payload="$(jq -n --arg secretValue "$secretValue" \
+    '{data: {content: $secretValue}}'
+  )"
+
+  curl -fsSL \
+    --url "$vaultUrl/$alias" \
     --header "X-Vault-Token: $vaultToken" \
     --header "Content-Type: application/json" \
-    --data "{\"data\":{\"content\":\"$secretValue\"}}"
+    --data "$payload"
 }
 
 function request_verifiable_credential() {
@@ -112,6 +121,26 @@ function request_verifiable_credential() {
     --header 'content-type: application/json' \
     --header "x-api-key: $adminApiKey" \
     --data "$cred_req"
+}
+
+function initialize_data_plane() {
+  vaultUrl=$1
+  vaultToken=$2
+  privKeyAlias=$3
+  pubKeyAlias=$4
+
+  # create rsa keypair
+  openssl genrsa -out /tmp/priv_pkcs1.pem 2048
+  openssl pkcs8 -topk8 -nocrypt -in /tmp/priv_pkcs1.pem -out /tmp/priv_pkcs8.pem
+  openssl rsa -in /tmp/priv_pkcs1.pem -pubout -out /tmp/pub.pem
+  
+  privKey="$(cat /tmp/priv_pkcs8.pem)"
+  pubKey="$(cat /tmp/pub.pem)"
+  
+  # deploy secrets for provider dataplane to vault
+  store_secret "$vaultUrl" "$vaultToken" "$privKeyAlias" "$privKey"
+
+  store_secret "$vaultUrl" "$vaultToken" "$pubKeyAlias" "$pubKey"
 }
 
 printf "\n\nInitializing participants...\n"

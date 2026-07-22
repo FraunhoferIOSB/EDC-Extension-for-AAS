@@ -1,0 +1,26 @@
+info:
+  name: get all policies
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{p1-management-api}}/policydefinitions/request"
+  body:
+    type: json
+    data: |-
+      {
+        "@context": {
+          "@vocab": "https://w3id.org/edc/v0.0.1/ns/",
+          "aas": "https://admin-shell.io/aas/3/0/"
+        },
+        "@type": "QuerySpec",
+        "limit": 31415926
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

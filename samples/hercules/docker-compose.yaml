@@ -18,33 +18,36 @@ services:
       OTEL_SDK_DISABLED: "true"
       edc.vault.hashicorp.url: http://vault:${VAULT_PORT:-8200}
       edc.vault.hashicorp.token: ${VAULT_TOKEN:-token}
+      LOG4J_CONFIGURATION_FILE: /app/log4j2.xml
       JAVA_TOOL_OPTIONS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=0.0.0.0:5005
-    # Activate debug logging:
-    # entrypoint: ["java", "-jar", "edc-runtime.jar", "--log-level=DEBUG"]
     volumes:
-      - ./config/edc/controlplane/participant1.properties:/app/configuration.properties
+      - ./config/edc/controlplane/participant1.properties:/app/configuration.properties:ro
       - ./config/edc/opentelemetry.properties:/app/opentelemetry.properties:ro
+      - ./config/edc/log4j2.xml:/app/log4j2.xml:ro
     ports:
+      # - "5005:5005" # DEBUG
       # - "8080:8080" # API /api
-      # - "8081:8081" # MANAGEMENT /management
+      - "8081:8081" # MANAGEMENT /management
       # - "9090:9090" # METRICS /metrics
       - "8084:8084" # PROTOCOL /api/v1/dsp
       - "8085:8085" # CATALOG /catalog
 
   standalone:
-    image: standalone:latest
+    image: standalone-hercules:latest
     container_name: standalone
     depends_on:
       control-plane:
         condition: service_healthy
       vault:
         condition: service_healthy
+      # The FA³ST Service will be started in standalone, which requires DTR
       dtr:
         condition: service_healthy
     volumes:
       - ./config/edc/extension/configuration.properties:/resources/configuration.properties
       - ./config/aas/model.aasx:/resources/fa3st/model.aasx
       - ./config/aas/fa3st-config.json:/resources/fa3st/config.json
+      - ./config/edc/extension/default_policy.json:/resources/access.json
     environment:
       EDC_FS_CONFIG: /resources/configuration.properties
       edc.vault.hashicorp.url: http://vault:${VAULT_PORT:-8200}
@@ -55,7 +58,7 @@ services:
     # Allow extension to unregister assets/policies/contracts
     stop_grace_period: 5s
     ports:
-      # - "5005:5005" # debug
+      - "5005:5005" # debug
       # - "8181:8181" # API /api
       - "8080:8080" # FA³ST
 
@@ -83,15 +86,15 @@ services:
         condition: service_healthy
       vault:
         condition: service_healthy
-    # Activate debug logging:
-    # entrypoint: ["java", "-jar", "edc-runtime.jar", "--log-level=DEBUG"]
     volumes:
-      - ./config/edc/dataplane/configuration.properties:/app/configuration.properties
+      - ./config/edc/dataplane/configuration.properties:/app/configuration.properties:ro
       - ./config/edc/opentelemetry.properties:/app/opentelemetry.properties:ro
+      - ./config/edc/log4j2.xml:/app/log4j2.xml:ro
     environment:
       EDC_FS_CONFIG: /app/configuration.properties
       edc.vault.hashicorp.url: http://vault:${VAULT_PORT:-8200}
       edc.vault.hashicorp.token: ${VAULT_TOKEN:-token}
+      LOG4J_CONFIGURATION_FILE: /app/log4j2.xml
     ports:
       # - "5005:5005" # debug
       - "9500:9500" # PUBLIC /public
@@ -113,7 +116,7 @@ services:
       - "15151:15151" # IDENTITY /api/identity
       - "9292:9292" # STS /api/sts
     volumes:
-      - ./config/edc/identityhub/configuration.properties:/app/configuration.properties
+      - ./config/edc/identityhub/participant1.properties:/app/configuration.properties
       - ./config/edc/logging.properties:/app/logging.properties:ro
     environment:
       edc.vault.hashicorp.url: http://vault:${VAULT_PORT:-8200}
@@ -154,7 +157,7 @@ services:
     container_name: issuer-service
     # The tractus-x issuer-service is currently missing a way to freely define the contents of a credentialSubject field for a Verifiable Credential.
     # A similar functionality as this (private) image is provided in https://github.com/project-construct-x/wallet.
-    image: ghcr.io/factory-x-contributions/fx-id-hub-charts/issuerservice:latest
+    image: ghcr.io/factory-x-contributions/fx-id-hub-charts/issuerservice:0.0.1-tp4a-146
     depends_on:
       vault:
         condition: service_healthy
@@ -177,6 +180,7 @@ services:
     environment:
       edc.vault.hashicorp.url: http://vault:${VAULT_PORT:-8200}
       edc.vault.hashicorp.token: ${VAULT_TOKEN:-token}
+      JAVA_TOOL_OPTIONS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=0.0.0.0:5005
 
   postgres:
     image: postgres:16.4-alpine
@@ -215,22 +219,44 @@ services:
   participant2:
     image: ghcr.io/factory-x-contributions/edc-controlplane-postgresql-hashicorp-vault:sha-dd6f929
     container_name: participant2
+    depends_on:
+      postgres2:
+        condition: service_healthy
+      vault:
+        condition: service_healthy
     environment:
       EDC_FS_CONFIG: /app/configuration.properties
       OTEL_SDK_DISABLED: "true"
       edc.vault.hashicorp.url: http://vault:${VAULT_PORT:-8200}
       edc.vault.hashicorp.token: ${VAULT_TOKEN:-token}
       JAVA_TOOL_OPTIONS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=0.0.0.0:5005
-
-    # Activate debug logging:
-    entrypoint: ["java", "-jar", "edc-runtime.jar", "--log-level=DEBUG"]
+      LOG4J_CONFIGURATION_FILE: /app/log4j2.xml
     volumes:
-      - ./config/edc/controlplane/participant2.properties:/app/configuration.properties
+      - ./config/edc/controlplane/participant2.properties:/app/configuration.properties:ro
       - ./config/edc/opentelemetry.properties:/app/opentelemetry.properties:ro
-    ports:
-      - "5005:5005" # DEBUG
+      - ./config/edc/log4j2.xml:/app/log4j2.xml:ro
+    # ports:
+      # - "5005:5005" # DEBUG
       # - "8080:8080" # API /api
-      - "8081:8081" # MANAGEMENT /management
+      # - "8081:8081" # MANAGEMENT /management
       # - "9090:9090" # METRICS /metrics
       # - "8084:8084" # PROTOCOL /api/v1/dsp
       # - "8085:8085" # CATALOG /catalog
+
+  postgres2:
+    image: postgres:16.4-alpine
+    container_name: postgres2
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+    volumes:
+      - ./config/postgres:/docker-entrypoint-initdb.d
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U $${POSTGRES_USER} -h 127.0.0.1 || exit 1",
+        ]
+      interval: 3s
+      timeout: 3s
+      retries: 20

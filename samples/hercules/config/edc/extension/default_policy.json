@@ -1,0 +1,24 @@
+{
+    "@context": [
+        "https://w3id.org/factoryx/policy/v1.0/context.jsonld",
+        {
+            "@vocab": "https://w3id.org/edc/v0.0.1/ns/",
+            "odrl": "http://www.w3.org/ns/odrl/2/"
+        }
+    ],
+    "@type": "odrl:Set",
+    "odrl:permission": [
+        {
+            "odrl:action": "use",
+            "odrl:constraint": [
+                {
+                    "odrl:leftOperand": "https://w3id.org/factoryx/policy/v1.0/BusinessPartnerDID",
+                    "odrl:operator": {
+                        "@id": "odrl:eq"
+                    },
+                    "odrl:rightOperand": "did:web:identity-hub%3A10100:participant2"
+                }
+            ]
+        }
+    ]
+}

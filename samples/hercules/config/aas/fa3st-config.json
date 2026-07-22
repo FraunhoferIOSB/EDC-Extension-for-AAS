@@ -9,7 +9,9 @@
       "hostname": "http://data-plane:9500/public",
       "subprotocol": "DSP",
       "subprotocolBody": "id=${id};dspEndpoint=http://control-plane:8084/api/v1/dsp",
-      "subprotocolBodyEncoding": "plain"
+      "subprotocolBodyEncoding": "plain",
+      "sniEnabled": false,
+      "sslEnabled": false
     }
   ],
   "persistence": {

@@ -1,0 +1,34 @@
+info:
+  name: Initiate Pull Transfer
+  type: http
+  seq: 4
+
+http:
+  method: POST
+  url: "{{p2-management-api}}/transferprocesses"
+  body:
+    type: json
+    data: |-
+      {
+        "@context": {
+          "edc": "https://w3id.org/edc/v0.0.1/ns/"
+        },
+        "@type": "TransferRequestMessage",
+        "protocol": "dataspace-protocol-http:2025-1",
+        "contractId": "{{contractAgreementId}}",
+        "counterPartyAddress": "http://control-plane:8084/api/v1/dsp/2025-1",
+        "connectorId": "did:web:identity-hub%3A10100:participant1",
+        "transferType": "HttpData-PULL"
+      }
+  auth: inherit
+
+runtime:
+  variables:
+    - name: contractAgreementId
+      value: 893ebc28-5311-47b3-88a0-2c0e5325c945
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

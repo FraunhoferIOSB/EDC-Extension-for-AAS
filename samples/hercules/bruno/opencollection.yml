@@ -1,0 +1,37 @@
+opencollection: 1.0.0
+
+info:
+  name: hercules
+config:
+  proxy:
+    inherit: true
+    config:
+      protocol: http
+      hostname: ""
+      port: ""
+      auth:
+        username: ""
+        password: ""
+      bypassProxy: ""
+
+request:
+  auth:
+    type: apikey
+    key: x-api-key
+    value: password
+    placement: header
+  variables:
+    - name: p2-management-api
+      value: http://participant2:8081/management/v3
+    - name: p1-management-api
+      value: http://control-plane:8081/management/v3
+
+docs:
+  content: All of the requests need to be copied as cURL and used in the toolbox container.
+  type: text/markdown
+bundled: false
+extensions:
+  bruno:
+    ignore:
+      - node_modules
+      - .git

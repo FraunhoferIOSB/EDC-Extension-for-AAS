@@ -34,7 +34,6 @@ import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
-import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -54,8 +53,6 @@ import java.util.Objects;
 import java.util.function.Supplier;
 
 import static de.fraunhofer.iosb.app.controller.SelfDescriptionController.SELF_DESCRIPTION_PATH;
-import static de.fraunhofer.iosb.constants.AasConstants.AAS_PREFIX;
-import static de.fraunhofer.iosb.constants.AasConstants.AAS_V30_NAMESPACE;
 import static de.fraunhofer.iosb.constants.AasConstants.EDC_SETTINGS_PREFIX;
 
 
@@ -85,8 +82,6 @@ public class AasExtension implements ServiceExtension {
     private PolicyDefinitionStore policyDefinitionStore;
     @Inject // Register http endpoint at EDC
     private WebService webService;
-    @Inject // Add AAS namespace to JSON LD context
-    private JsonLd jsonLd;
     @Inject(required = false)
     private Vault vault;
     private RepositoryController repositoryController;
@@ -97,7 +92,6 @@ public class AasExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        jsonLd.registerNamespace(AAS_PREFIX, AAS_V30_NAMESPACE);
 
         monitor = context.getMonitor().withPrefix(NAME);
         webService.registerResource(new ConfigurationController(context.getConfig(EDC_SETTINGS_PREFIX), monitor));

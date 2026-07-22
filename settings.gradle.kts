@@ -1,7 +1,11 @@
 include("extensions:common:aas-lib")
 include("extensions:common:constants")
 include("extensions:common:data-plane-aas-spi")
+include("extensions:common:json-ld:json-ld-fx")
+include("extensions:common:json-ld:json-ld-aas")
+include("extensions:common:data-plane-aas-spi")
 include("extensions:common:validator:validator-data-address-aas-data")
+include("extensions:control-plane:aas:dtr")
 include("extensions:control-plane:client")
 include("extensions:control-plane:codec")
 include("extensions:control-plane:edc-extension4aas")
@@ -15,8 +19,7 @@ include("launchers:consumer")
 include("launchers:provider")
 include("launchers:standalone")
 include("launchers:tractus-x")
-
-include("extensions:control-plane:codec")
+include("samples:hercules:standalone-hercules")
 
 pluginManagement {
     repositories {

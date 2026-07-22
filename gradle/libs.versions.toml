@@ -74,6 +74,9 @@ edc-transform-lib = { module = "org.eclipse.edc:transform-lib", version.ref = "e
 edc-util-lib = { module = "org.eclipse.edc:util-lib", version.ref = "edc" }
 edc-validator-spi = { module = "org.eclipse.edc:validator-spi", version.ref = "edc" }
 edc-vault-hashicorp = { module = "org.eclipse.edc:vault-hashicorp", version.ref = "edc" }
+eclipse-tractusx-core-spi = { module = "org.eclipse.tractusx.edc:core-spi", version.ref = "tractusx" }
+eclipse-tractusx-core-utils = { module = "org.eclipse.tractusx.edc:core-utils", version.ref = "tractusx" }
+
 
 shadow-gradle-plugin = { module = "com.gradleup.shadow:shadow-gradle-plugin", version = "9.5.1" }
 docker-gradle-plugin = { module = "com.bmuschko:gradle-docker-plugin", version = "10.0.0" }

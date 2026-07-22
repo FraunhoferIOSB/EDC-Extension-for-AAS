@@ -17,6 +17,7 @@ package de.fraunhofer.iosb.app.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -33,7 +34,6 @@ import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 
 import java.util.Objects;
 
-
 /**
  * Handles requests regarding the application's configuration.
  */
@@ -46,29 +46,28 @@ public class ConfigurationController {
     private final ObjectReader objectReader;
     private Configuration configuration;
 
-
     public ConfigurationController(Config config, Monitor monitor) {
         this.sysConfig = config;
         this.monitor = monitor;
         configuration = Configuration.getInstance();
-        objectMapper = JsonMapper.builder().configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true).build();
+        objectMapper = JsonMapper.builder()
+                .configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true)
+                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                .build();
         objectReader = objectMapper.readerForUpdating(configuration);
 
         initializeConfiguration();
     }
 
-
     private void initializeConfiguration() {
         try {
             configuration = objectReader.readValue(objectMapper.writeValueAsString(sysConfig.getEntries()));
-        }
-        catch (JsonProcessingException jsonProcessingException) {
+        } catch (JsonProcessingException jsonProcessingException) {
             monitor.severe("Initializing AAS extension configuration failed",
                     jsonProcessingException);
         }
 
     }
-
 
     /**
      * Return the current configuration values of this extension.
@@ -80,7 +79,6 @@ public class ConfigurationController {
         monitor.info("GET /config");
         return objectMapper.valueToTree(configuration);
     }
-
 
     /**
      * Update the current configuration.
@@ -99,11 +97,11 @@ public class ConfigurationController {
             // Read config values as map -> edc Config -> merge with old
             // -> set as AAS extension config
             Config newConfig = ConfigFactory.fromMap(objectMapper.readValue(newConfigValues,
-                    new TypeReference<>() {}));
+                    new TypeReference<>() {
+                    }));
             Config mergedConfig = sysConfig.merge(newConfig);
             configuration = objectReader.readValue(objectMapper.writeValueAsString(mergedConfig.getEntries()));
-        }
-        catch (JsonProcessingException jsonProcessingException) {
+        } catch (JsonProcessingException jsonProcessingException) {
             monitor.severe("Updating configuration to this configuration failed:\n" + newConfigValues,
                     jsonProcessingException);
             throw new InvalidRequestException(jsonProcessingException.getMessage());

@@ -97,7 +97,7 @@ public abstract class PolicyHelper {
     }
 
 
-    private static Result<Policy> getPolicyFromFile(Codec codec, String filePath) {
+    public static Result<Policy> getPolicyFromFile(Codec codec, String filePath) {
         try {
             return codec.deserialize(Files.readString(Path.of(filePath)), Policy.class);
         }

@@ -196,9 +196,8 @@ public class AasDataAddress extends DataAddress {
         this.getAdditionalHeaders().forEach(httpDataAddress::addAdditionalHeader);
 
         return httpDataAddress
-                .baseUrl(this.getBaseUrl())
+                .baseUrl(String.format("%s/%s", this.getBaseUrl(), this.getPath()))
                 .method(this.getMethod())
-                .path(this.getPath())
                 .build();
     }
 

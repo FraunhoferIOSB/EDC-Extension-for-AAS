@@ -8,6 +8,7 @@ dependencies {
     implementation(project(":extensions:common:aas-lib"))
     implementation(project(":extensions:repository-aas"))
     implementation(project(":extensions:control-plane:codec"))
+    implementation(project(":extensions:common:json-ld:json-ld-aas"))
 
     implementation(libs.fa3st.model) // ReferenceHelper
     implementation(libs.aas4j.model) // AasUtils
@@ -18,7 +19,6 @@ dependencies {
     implementation(libs.edc.control.plane.transform)
     implementation(libs.edc.data.plane.http.spi)
     implementation(libs.edc.http.lib)
-    implementation(libs.edc.json.ld.spi)
     implementation(libs.edc.oauth2.spi)
     implementation(libs.edc.util.lib)
     implementation(libs.edc.participant.context.single.spi) // SingleParticipantResolver

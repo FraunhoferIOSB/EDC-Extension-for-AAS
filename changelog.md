@@ -5,9 +5,12 @@
 ### New Features
 
 * Add **Hercules** compatibility
-    * With config `edc.aas.hercules=true`, the extension will register only submodels without meta-data and use the HTTP data plane.
+    * With config `edc.aas.hercules.enabled=true`, the extension will register only submodels without meta-data and use the HTTP data plane.
     * Also, added a new sample: `/samples/hercules`, providing a close-to-complete deployment of an MX-Port Hercules.
         * This of course is only for testing/demo purposes
+    * With config `edc.aas.hercules.dtr.url`, a Digital Twin Registry will be registered as a dataset.
+      * Access policy is defined with `edc.aas.hercules.dtr.accessPolicyPath` or `edc.aas.hercules.dtr.accessPolicyId`
+      * Usage policy is defined with `edc.aas.hercules.dtr.usagePolicyPath` or `edc.aas.hercules.dtr.usagePolicyId`
 
 ### Bugfixes
 

@@ -47,8 +47,11 @@ public abstract class ReferableMapper extends ElementMapper {
 
         var assetBuilder = Asset.Builder.newInstance();
 
-        var filterDefaults = jsonSerializer.toMap(referable, exposedFieldsSupplier.get());
-        assetBuilder.properties(filterDefaults);
+        // Hercules catalog entries don't have additional metadata
+        if (!Configuration.getInstance().isHercules()) {
+            var filterDefaults = jsonSerializer.toMap(referable, exposedFieldsSupplier.get());
+            assetBuilder.properties(filterDefaults);
+        }
 
         String[] modelingType = referable.getClass().getAnnotation(IRI.class).value();
 

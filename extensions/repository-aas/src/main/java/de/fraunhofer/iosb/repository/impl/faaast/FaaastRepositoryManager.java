@@ -35,7 +35,6 @@ import org.jetbrains.annotations.NotNull;
 import java.net.URI;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -67,12 +66,12 @@ public class FaaastRepositoryManager implements AasRepositoryManager<FaaastRepos
 
         HttpEndpointConfig endpointConfig = config.getPort();
 
-        URI accessUri = Optional.ofNullable(endpointConfig.getHostname())
-                .map(URI::create)
-                .orElse(URI.create(String.format("http%s://%s:%s/%s",
-                        endpointConfig.isSslEnabled() ? "s" : "", hostname.get(),
-                        endpointConfig.getPort(),
-                        endpointConfig.getPathPrefix() == null ? "" : endpointConfig.getPathPrefix())));
+        // Access hostname is always localhost/127.0.0.1 when starting FA³ST locally.
+        URI accessUri = URI.create(String.format("http%s://%s:%s%s",
+                endpointConfig.isSslEnabled() ? "s" : "",
+                hostname.get(),
+                endpointConfig.getPort(),
+                endpointConfig.getPathPrefix() == null ? "" : endpointConfig.getPathPrefix()));
 
         repository.put(accessUri, service);
         monitor.debug("Started %s service with access URL: %s.".formatted(FAAAST, accessUri));

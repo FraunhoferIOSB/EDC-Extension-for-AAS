@@ -40,7 +40,7 @@ public class IdentifiableMapper extends ReferableMapper {
         Asset.Builder builder = super.map(identifiable)
                 .id(generateId(reference));
 
-        if (Configuration.getInstance().useAasDataPlane()) {
+        if (Configuration.getInstance().useAasDataPlane() && !Configuration.getInstance().isHercules()) {
             builder.dataAddress(dataAddress);
         }
         else {

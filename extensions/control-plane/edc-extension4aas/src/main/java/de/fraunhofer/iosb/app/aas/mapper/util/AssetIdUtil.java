@@ -77,13 +77,11 @@ public abstract class AssetIdUtil {
 
 
     public static String id(String url, Identifiable identifiable) {
-        return Configuration.getInstance().isHercules() ? ofIdentifiableId(AasUtils.toReference(identifiable))
-                : ofHashedAccessUrl(url, AasUtils.toReference(identifiable));
+        return ofHashedAccessUrl(url, AasUtils.toReference(identifiable));
     }
 
 
     public static String id(String url, Reference reference) {
-        return Configuration.getInstance().isHercules() ? ofIdentifiableId(reference)
-                : ofHashedAccessUrl(url, reference);
+        return ofHashedAccessUrl(url, reference);
     }
 }

@@ -15,7 +15,6 @@
  */
 package de.fraunhofer.iosb.app.aas.mapper.util;
 
-import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import de.fraunhofer.iosb.ilt.faaast.service.util.ReferenceHelper;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.util.AasUtils;
 import org.eclipse.digitaltwin.aas4j.v3.model.Identifiable;

@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.app.edc.policy;
+package de.fraunhofer.iosb.util.policy;
 
-import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import de.fraunhofer.iosb.codec.Codec;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
@@ -42,7 +41,7 @@ public abstract class PolicyHelper {
 
 
     /**
-     * Register default access and contract policies either by configuration variables or using internal (minimal) policies.
+     * Register default access and contract policies.
      *
      * @param codec Deserialize policy
      * @param monitor monitor to log messages.
@@ -50,11 +49,10 @@ public abstract class PolicyHelper {
      * @param participantId Used for the default policies.
      */
     public static void registerDefaultPolicies(Codec codec, Monitor monitor, PolicyDefinitionStore policyDefinitionStore,
-                                               String participantId) {
-        Configuration configuration = Configuration.getInstance();
+                                               String participantId, String accessPolicyPath, String usagePolicyPath) {
 
-        Policy defaultAccessPolicy = getPolicy(codec, monitor, participantId, configuration.getDefaultAccessPolicyPath());
-        Policy defaultUsagePolicy = getPolicy(codec, monitor, participantId, configuration.getDefaultContractPolicyPath());
+        Policy defaultAccessPolicy = getPolicy(codec, monitor, participantId, accessPolicyPath);
+        Policy defaultUsagePolicy = getPolicy(codec, monitor, participantId, usagePolicyPath);
 
         var defaultAccessPolicyDefinition = PolicyDefinition.Builder.newInstance()
                 .id(DEFAULT_ACCESS_POLICY_DEFINITION_ID)

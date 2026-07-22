@@ -34,6 +34,7 @@ import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 
 import java.util.Objects;
 
+
 /**
  * Handles requests regarding the application's configuration.
  */
@@ -59,15 +60,18 @@ public class ConfigurationController {
         initializeConfiguration();
     }
 
+
     private void initializeConfiguration() {
         try {
             configuration = objectReader.readValue(objectMapper.writeValueAsString(sysConfig.getEntries()));
-        } catch (JsonProcessingException jsonProcessingException) {
+        }
+        catch (JsonProcessingException jsonProcessingException) {
             monitor.severe("Initializing AAS extension configuration failed",
                     jsonProcessingException);
         }
 
     }
+
 
     /**
      * Return the current configuration values of this extension.
@@ -79,6 +83,7 @@ public class ConfigurationController {
         monitor.info("GET /config");
         return objectMapper.valueToTree(configuration);
     }
+
 
     /**
      * Update the current configuration.
@@ -97,11 +102,11 @@ public class ConfigurationController {
             // Read config values as map -> edc Config -> merge with old
             // -> set as AAS extension config
             Config newConfig = ConfigFactory.fromMap(objectMapper.readValue(newConfigValues,
-                    new TypeReference<>() {
-                    }));
+                    new TypeReference<>() {}));
             Config mergedConfig = sysConfig.merge(newConfig);
             configuration = objectReader.readValue(objectMapper.writeValueAsString(mergedConfig.getEntries()));
-        } catch (JsonProcessingException jsonProcessingException) {
+        }
+        catch (JsonProcessingException jsonProcessingException) {
             monitor.severe("Updating configuration to this configuration failed:\n" + newConfigValues,
                     jsonProcessingException);
             throw new InvalidRequestException(jsonProcessingException.getMessage());

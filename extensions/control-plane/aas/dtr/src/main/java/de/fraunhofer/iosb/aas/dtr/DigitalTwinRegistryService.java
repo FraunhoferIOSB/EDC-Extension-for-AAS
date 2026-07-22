@@ -15,8 +15,8 @@
  */
 package de.fraunhofer.iosb.aas.dtr;
 
-import de.fraunhofer.iosb.app.edc.policy.PolicyHelper;
 import de.fraunhofer.iosb.codec.Codec;
+import de.fraunhofer.iosb.util.policy.PolicyHelper;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
@@ -37,6 +37,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Supplier;
 
+
 public class DigitalTwinRegistryService {
 
     private static final String DTR_TAXONOMY_TYPE = "https://w3id.org/catenax/taxonomy#DigitalTwinRegistry";
@@ -55,8 +56,8 @@ public class DigitalTwinRegistryService {
     private String contractDefinitionId;
 
     public DigitalTwinRegistryService(AssetIndex assetIndex, ContractDefinitionStore contractDefinitionStore,
-            PolicyDefinitionStore policyDefinitionStore, Supplier<String> participantContextId,
-            Codec codec, DigitalTwinRegistryExtensionConfiguration configuration) {
+                                      PolicyDefinitionStore policyDefinitionStore, Supplier<String> participantContextId,
+                                      Codec codec, DigitalTwinRegistryExtensionConfiguration configuration) {
         this.assetIndex = assetIndex;
         this.contractDefinitionStore = contractDefinitionStore;
         this.policyDefinitionStore = policyDefinitionStore;
@@ -81,10 +82,12 @@ public class DigitalTwinRegistryService {
                 });
     }
 
+
     public void register() {
         assetIndex.create(buildAsset());
         contractDefinitionStore.save(builContractDefinition());
     }
+
 
     public void cleanUp() {
         // Remove asset, policies, contract
@@ -96,6 +99,7 @@ public class DigitalTwinRegistryService {
         }
     }
 
+
     private ContractDefinition builContractDefinition() {
         this.contractDefinitionId = UUID.randomUUID().toString();
         return ContractDefinition.Builder.newInstance()
@@ -106,6 +110,7 @@ public class DigitalTwinRegistryService {
                         List.of(Criterion.criterion(Asset.PROPERTY_ID, CriterionOperatorRegistry.EQUAL, assetId)))
                 .build();
     }
+
 
     private Asset buildAsset() {
         Asset.Builder assetBuilder = Asset.Builder.newInstance();
@@ -121,14 +126,16 @@ public class DigitalTwinRegistryService {
         return assetBuilder.build();
     }
 
+
     private DataAddress buildDataAddress() {
         return HttpDataAddress.Builder.newInstance()
                 .baseUrl(registryUri)
                 .build();
     }
 
+
     private String initializePolicy(Supplier<String> participantContextId,
-            Codec codec, String policyPath) {
+                                    Codec codec, String policyPath) {
 
         if (policyPath == null) {
             throw new EdcException("DTR Extension requires policy either as path or ID");

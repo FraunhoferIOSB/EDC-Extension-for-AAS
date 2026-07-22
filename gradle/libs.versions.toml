@@ -68,6 +68,7 @@ edc-participant-context-connector-core = { module = "org.eclipse.edc:participant
 edc-participant-context-config-core = { module = "org.eclipse.edc:participant-context-config-core", version.ref = "edc" }
 edc-participant-context-single-spi = { module = "org.eclipse.edc:participant-context-single-spi", version.ref = "edc" }
 edc-participant-context-core = { module = "org.eclipse.edc:participant-context-core", version.ref = "edc" }
+edc-policy-spi = { module = "org.eclipse.edc:policy-spi", version.ref = "edc" }
 edc-query-lib = { module = "org.eclipse.edc:query-lib", version.ref = "edc" }
 edc-runtime-core = { module = "org.eclipse.edc:runtime-core", version.ref = "edc" }
 edc-transform-lib = { module = "org.eclipse.edc:transform-lib", version.ref = "edc" }

@@ -24,12 +24,12 @@ import de.fraunhofer.iosb.app.controller.RepositoryController;
 import de.fraunhofer.iosb.app.controller.SelfDescriptionController;
 import de.fraunhofer.iosb.app.controller.dto.LocalRepositoryDTO;
 import de.fraunhofer.iosb.app.controller.dto.RemoteAasRepositoryContextDTO;
-import de.fraunhofer.iosb.app.edc.policy.PolicyHelper;
 import de.fraunhofer.iosb.app.handler.edc.EdcStoreHandler;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import de.fraunhofer.iosb.app.stores.repository.AasServerStore;
 import de.fraunhofer.iosb.client.exception.UnauthorizedException;
 import de.fraunhofer.iosb.codec.Codec;
+import de.fraunhofer.iosb.util.policy.PolicyHelper;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
@@ -123,7 +123,8 @@ public class AasExtension implements ServiceExtension {
     @Override
     public void start() {
         try {
-            PolicyHelper.registerDefaultPolicies(codec, monitor, policyDefinitionStore, participantId.get());
+            PolicyHelper.registerDefaultPolicies(codec, monitor, policyDefinitionStore, participantId.get(), Configuration.getInstance().getDefaultAccessPolicyPath(),
+                    Configuration.getInstance().getDefaultContractPolicyPath());
             bootstrapRepositories();
         }
         catch (UnauthorizedException e) {

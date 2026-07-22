@@ -9,7 +9,7 @@ dependencies {
     //implementation(project(":extensions:common:aas-lib"))
     implementation(project(":extensions:repository-aas"))
     implementation(project(":extensions:control-plane:codec"))
-    implementation(project(":extensions:control-plane:edc-extension4aas")) // TODO replace by policy-util extension
+    implementation(project(":extensions:common:util:policy-util"))
 
     implementation(libs.edc.asset.spi)
     implementation(libs.edc.contract.spi)

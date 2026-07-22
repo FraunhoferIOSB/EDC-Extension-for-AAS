@@ -20,6 +20,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Settings;
 
 import javax.annotation.Nullable;
 
+
 @Settings
 public class DigitalTwinRegistryExtensionConfiguration {
 
@@ -57,21 +58,26 @@ public class DigitalTwinRegistryExtensionConfiguration {
         return url;
     }
 
+
     public String getSpecificationVersion() {
         return specificationVersion;
     }
+
 
     public @Nullable String getAccessPolicyDefinitionId() {
         return accessPolicyDefinitionId;
     }
 
+
     public @Nullable String getAccessPolicyPath() {
         return accessPolicyPath;
     }
 
+
     public @Nullable String getUsagePolicyDefinitionId() {
         return usagePolicyDefinitionId;
     }
+
 
     public @Nullable String getUsagePolicyPath() {
         return usagePolicyPath;

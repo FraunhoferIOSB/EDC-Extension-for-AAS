@@ -6,6 +6,7 @@ plugins {
 dependencies {
     implementation(project(":extensions:control-plane:public-api-management"))
     implementation(project(":extensions:common:aas-lib"))
+    implementation(project(":extensions:common:util:policy-util"))
     implementation(project(":extensions:repository-aas"))
     implementation(project(":extensions:control-plane:codec"))
     implementation(project(":extensions:common:json-ld:json-ld-aas"))

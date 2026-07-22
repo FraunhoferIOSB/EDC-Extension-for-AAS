@@ -19,16 +19,15 @@ import de.fraunhofer.iosb.codec.Codec;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
-import org.eclipse.edc.participantcontext.spi.service.ParticipantContextSupplier;
+import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.spi.system.ServiceExtension;
-import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.system.ServiceExtension;
 
 import java.util.function.Supplier;
+
 
 @Extension(value = DigitalTwinRegistryExtension.NAME)
 public class DigitalTwinRegistryExtension implements ServiceExtension {
@@ -65,6 +64,7 @@ public class DigitalTwinRegistryExtension implements ServiceExtension {
 
         digitalTwinRegistryService.register();
     }
+
 
     @Override
     public void shutdown() {

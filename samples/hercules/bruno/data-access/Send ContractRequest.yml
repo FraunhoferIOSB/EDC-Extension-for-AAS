@@ -1,7 +1,7 @@
 info:
   name: Send ContractRequest
   type: http
-  seq: 2
+  seq: 1
 
 http:
   method: POST
@@ -30,7 +30,7 @@ http:
         "counterPartyId": "did:web:identity-hub%3A10100:participant1",
         "protocol": "dataspace-protocol-http:2025-1",
         "policy": {
-          "@id": "Nzk4MjE3MGItYmVhYy00ZmJmLWFiZjItOGU0MzMwZjk2NmRh:LTM2NTA4MTM2Mg==:YWY0YWRiZmQtNjQ5OS00ZGU5LWIzYzAtODY4YzMwZjQ4MTg0",
+          "@id": "MmQ0YWU5ZWMtYmE4YS00YzhmLTlhOTMtNGJlYmQ2ZDBkNjZk:LTM2NTA4MTM2Mg==:NmYxZGQ1MTktNzAzMC00OTJkLTliOWUtNWEyMzAyMWFmODgy",
           "@type": "odrl:Offer",
           "odrl:permission": [
             {

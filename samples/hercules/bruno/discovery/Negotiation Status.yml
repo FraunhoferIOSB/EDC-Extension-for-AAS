@@ -13,7 +13,7 @@ http:
       value: password
   params:
     - name: negotiation-id
-      value: c76605ee-5fbd-40d3-8f40-2e72f908afe1
+      value: 70ffef9a-21f3-40cd-9232-80265577f587
       type: path
   auth: inherit
 

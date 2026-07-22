@@ -1,7 +1,7 @@
 info:
   name: identity-hub
   type: folder
-  seq: 8
+  seq: 1
 
 request:
   auth: inherit

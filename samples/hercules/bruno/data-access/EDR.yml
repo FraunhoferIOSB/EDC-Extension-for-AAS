@@ -1,7 +1,7 @@
 info:
   name: EDR
   type: http
-  seq: 6
+  seq: 1
 
 http:
   method: GET
@@ -11,7 +11,7 @@ http:
       value: "true"
       type: query
     - name: transfer-id
-      value: a0775d0c-1136-445f-a262-ded4d9dfe902
+      value: 40a477a0-8be2-4483-89a7-e5f39cf83897
       type: path
   auth: inherit
 

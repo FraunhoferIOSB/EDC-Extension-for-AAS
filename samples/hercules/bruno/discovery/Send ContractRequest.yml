@@ -30,7 +30,7 @@ http:
         "counterPartyId": "did:web:identity-hub%3A10100:participant1",
         "protocol": "dataspace-protocol-http:2025-1",
         "policy": {
-          "@id": "M2NlMWI4NzAtNzdlNy00MzllLTg1NWYtMjBiZThhNWVjZTRm:ZmQ5M2IzYzUtMjQyYS00M2QxLWExYTItMjg0ODViYmVjMzVk:YWY0ZWE5MzktYzAwYS00YTU2LWFjMTQtNTVmY2IzMmZhYmEw",
+          "@id": "ZDVmZDI2YWYtOGJhZS00YjI0LWJlMzgtNWU2YjA3NDI4ODRh:NTM5Nzc2YzYtNGQ0Yi00N2FjLWEyZWQtYzQzYTU0NWZhZWZl:NTM0MTRkMzktMGM4Ny00MzQxLWFiYWQtYTkwNjRjMGQ5ZjA1",
           "@type": "odrl:Offer",
           "odrl:permission": [
             {

@@ -1,7 +1,7 @@
 info:
   name: Negotiation Status
   type: http
-  seq: 3
+  seq: 1
 
 http:
   method: GET
@@ -13,7 +13,7 @@ http:
       value: password
   params:
     - name: negotiation-id
-      value: 78a552bd-989a-4816-bf75-5654eeaf73db
+      value: 6ccce577-2a94-42ae-9c06-1ebec2d8a34a
       type: path
   auth: inherit
 

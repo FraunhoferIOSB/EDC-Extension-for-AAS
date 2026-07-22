@@ -1,7 +1,7 @@
 info:
   name: control-plane
   type: folder
-  seq: 9
+  seq: 2
 
 request:
   auth: inherit

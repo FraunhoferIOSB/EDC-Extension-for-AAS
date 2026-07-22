@@ -1,7 +1,7 @@
 info:
   name: Initiate Pull Transfer
   type: http
-  seq: 4
+  seq: 1
 
 http:
   method: POST
@@ -15,7 +15,7 @@ http:
         },
         "@type": "TransferRequestMessage",
         "protocol": "dataspace-protocol-http:2025-1",
-        "contractId": "18bd2ef4-3ff3-4564-8c27-1a5b29e6a6b9",
+        "contractId": "549e1447-d7ec-499d-a122-5a5b510736ca",
         "counterPartyAddress": "http://control-plane:8084/api/v1/dsp/2025-1",
         "connectorId": "did:web:identity-hub%3A10100:participant1",
         "transferType": "HttpData-PULL"

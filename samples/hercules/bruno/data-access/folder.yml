@@ -1,7 +1,7 @@
 info:
-  name: discovery
+  name: data-access
   type: folder
-  seq: 3
+  seq: 4
 
 request:
   auth: inherit

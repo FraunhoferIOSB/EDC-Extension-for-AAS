@@ -22,7 +22,17 @@ http:
         "protocol": "dataspace-protocol-http:2025-1",
         "additionalScopes": [
           "org.eclipse.tractusx.vc.type:MembershipCredential:read"
-        ]
+        ],
+        "querySpec": {
+          "@type": "QuerySpec",
+          "filterExpression": [
+            {
+              "operandLeft": "https://w3id.org/edc/v0.0.1/ns/id",
+              "operator": "=",
+              "operandRight": "TODO"
+            }
+          ]
+        }
       }
   auth: inherit
 

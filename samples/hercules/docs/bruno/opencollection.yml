@@ -22,9 +22,15 @@ request:
     placement: header
   variables:
     - name: p2-management-api
-      value: http://participant2:8081/management/v3
+      value: http://localhost:8081/management/v3
     - name: p1-management-api
-      value: http://control-plane:8081/management/v3
+      value: http://localhost:18081/management/v3
+    - name: p1-data-plane-public
+      value: http://localhost:9500/public
+    - name: p1-did
+      value: did:web:identity-hub%3A10100:participant1
+    - name: p2-did
+      value: did:web:identity-hub%3A10100:participant2
 
 docs:
   content: All of the requests need to be copied as cURL and used in the toolbox container.

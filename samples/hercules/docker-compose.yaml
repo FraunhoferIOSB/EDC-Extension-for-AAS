@@ -3,7 +3,11 @@ services:
     image: ghcr.io/factory-x-contributions/edc-controlplane-postgresql-hashicorp-vault:sha-dd6f929
     container_name: control-plane
     healthcheck:
-      test: ["CMD-SHELL", "wget --server-response --spider --quiet http://localhost:8080/api 2>&1 | grep 'HTTP/.* 404' || exit 1"]
+      test:
+        [
+          "CMD-SHELL",
+          "wget --server-response --spider --quiet http://localhost:8080/api 2>&1 | grep 'HTTP/.* 404' || exit 1",
+        ]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -24,13 +28,13 @@ services:
       - ./config/edc/controlplane/participant1.properties:/app/configuration.properties:ro
       - ./config/edc/opentelemetry.properties:/app/opentelemetry.properties:ro
       - ./config/edc/log4j2.xml:/app/log4j2.xml:ro
-    ports:
-      # - "5005:5005" # DEBUG
-      # - "8080:8080" # API /api
-      - "8081:8081" # MANAGEMENT /management
-      # - "9090:9090" # METRICS /metrics
-      - "8084:8084" # PROTOCOL /api/v1/dsp
-      - "8085:8085" # CATALOG /catalog
+    # ports:
+    # - "5005:5005" # DEBUG
+    # - "8080:8080" # API /api
+    # - "18081:8081" # MANAGEMENT /management
+    # - "9090:9090" # METRICS /metrics
+    # - "8084:8084" # PROTOCOL /api/v1/dsp
+    # - "8085:8085" # CATALOG /catalog
 
   standalone:
     image: standalone-hercules:latest
@@ -57,22 +61,26 @@ services:
     stop_signal: SIGTERM
     # Allow extension to unregister assets/policies/contracts
     stop_grace_period: 5s
-    ports:
-      - "5005:5005" # debug
-      # - "8181:8181" # API /api
-      - "8080:8080" # FA³ST
+    # ports:
+    # - "5005:5005" # debug
+    # - "8181:8181" # API /api
+    # - "8080:8080" # FA³ST
 
   dtr:
     image: fraunhoferiosb/faaast-registry:1.2.0-SNAPSHOT
     container_name: dtr
     healthcheck:
-      test: [ "CMD-SHELL", "curl -kfsS -o /dev/null http://localhost:8090/shell-descriptors" ]
+      test:
+        [
+          "CMD-SHELL",
+          "curl -kfsS -o /dev/null http://localhost:8090/shell-descriptors",
+        ]
       interval: 2s
       timeout: 2s
       retries: 24
       start_period: 90s
-    ports:
-      - 8090:8090
+    # ports:
+    #   - 8090:8090
     volumes:
       - ./config/aas/dtr.properties:/app/config/application.properties
 
@@ -110,11 +118,11 @@ services:
     ports:
       # - "5005:5005" # debug
       # - "8181:8181" # API /api
-      - "7171:7171" # VERSION /.well-known/api
-      - "13131:13131" # CREDENTIALS /api/credentials
+      # - "7171:7171" # VERSION /.well-known/api
+      # - "13131:13131" # CREDENTIALS /api/credentials
       - "10100:10100" # DID /
       - "15151:15151" # IDENTITY /api/identity
-      - "9292:9292" # STS /api/sts
+      # - "9292:9292" # STS /api/sts
     volumes:
       - ./config/edc/identityhub/participant1.properties:/app/configuration.properties
       - ./config/edc/logging.properties:/app/logging.properties:ro
@@ -145,7 +153,7 @@ services:
       SKIP_SETCAP: true
       SKIP_CHOWN: true
     healthcheck:
-      test: [ "CMD-SHELL", "vault status >/dev/null 2>&1" ]
+      test: ["CMD-SHELL", "vault status >/dev/null 2>&1"]
       interval: 3s
       timeout: 3s
       retries: 40
@@ -163,16 +171,16 @@ services:
         condition: service_healthy
       postgres:
         condition: service_healthy
-    ports:
-      # - "5005:5005" # debug
-      # - "8181:8181" # API /api
-      # - "7171:7171" # VERSION /.well-known/api
-      - "9999:9999" # STATUSLIST /statuslist
-      # - "10100:10100" # DID /
-      - "13132:13132" # ISSUANCE /api/issuance
-      # - "15151:15151" # IDENTITY /api/identity
-      - "15152:15152" # ISSUERADMIN /api/issuer
-      # - "9292:9292" # STS /api/sts
+    # ports:
+    # - "5005:5005" # debug
+    # - "8181:8181" # API /api
+    # - "7171:7171" # VERSION /.well-known/api
+    # - "9999:9999" # STATUSLIST /statuslist
+    # - "10100:10100" # DID /
+    # - "13132:13132" # ISSUANCE /api/issuance
+    # - "15151:15151" # IDENTITY /api/identity
+    # - "15152:15152" # ISSUERADMIN /api/issuer
+    # - "9292:9292" # STS /api/sts
     volumes:
       - ./config/edc/issuerservice/configuration.properties:/app/configuration.properties:ro
       - ./config/edc/logging.properties:/app/logging.properties:ro
@@ -192,10 +200,7 @@ services:
       - ./config/postgres:/docker-entrypoint-initdb.d
     healthcheck:
       test:
-        [
-          "CMD-SHELL",
-          "pg_isready -U $${POSTGRES_USER} -h 127.0.0.1 || exit 1",
-        ]
+        ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -h 127.0.0.1 || exit 1"]
       interval: 3s
       timeout: 3s
       retries: 20
@@ -235,10 +240,10 @@ services:
       - ./config/edc/controlplane/participant2.properties:/app/configuration.properties:ro
       - ./config/edc/opentelemetry.properties:/app/opentelemetry.properties:ro
       - ./config/edc/log4j2.xml:/app/log4j2.xml:ro
-    # ports:
+    ports:
       # - "5005:5005" # DEBUG
       # - "8080:8080" # API /api
-      # - "8081:8081" # MANAGEMENT /management
+      - "8081:8081" # MANAGEMENT /management
       # - "9090:9090" # METRICS /metrics
       # - "8084:8084" # PROTOCOL /api/v1/dsp
       # - "8085:8085" # CATALOG /catalog
@@ -253,10 +258,7 @@ services:
       - ./config/postgres:/docker-entrypoint-initdb.d
     healthcheck:
       test:
-        [
-          "CMD-SHELL",
-          "pg_isready -U $${POSTGRES_USER} -h 127.0.0.1 || exit 1",
-        ]
+        ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -h 127.0.0.1 || exit 1"]
       interval: 3s
       timeout: 3s
       retries: 20

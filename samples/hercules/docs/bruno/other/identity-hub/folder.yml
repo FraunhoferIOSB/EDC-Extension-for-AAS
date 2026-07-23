@@ -1,0 +1,11 @@
+info:
+  name: identity-hub
+  type: folder
+  seq: 1
+
+request:
+  auth:
+    type: apikey
+    key: x-api-key
+    value: YWRtaW4=.s3cr3t
+    placement: header

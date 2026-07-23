@@ -27,10 +27,10 @@ http:
         ],
         "@type": "ContractRequest",
         "counterPartyAddress": "http://control-plane:8084/api/v1/dsp/2025-1",
-        "counterPartyId": "did:web:identity-hub%3A10100:participant1",
+        "counterPartyId": "{{p1-did}}",
         "protocol": "dataspace-protocol-http:2025-1",
         "policy": {
-          "@id": "ZDVmZDI2YWYtOGJhZS00YjI0LWJlMzgtNWU2YjA3NDI4ODRh:NTM5Nzc2YzYtNGQ0Yi00N2FjLWEyZWQtYzQzYTU0NWZhZWZl:NTM0MTRkMzktMGM4Ny00MzQxLWFiYWQtYTkwNjRjMGQ5ZjA1",
+          "@id": "{{policy-id}}",
           "@type": "odrl:Offer",
           "odrl:permission": [
             {
@@ -60,6 +60,17 @@ http:
         ]
       }
   auth: inherit
+
+runtime:
+  actions:
+    - type: set-variable
+      phase: after-response
+      selector:
+        expression: res.body['@id']
+        method: jsonq
+      variable:
+        name: negotiation-id
+        scope: runtime
 
 settings:
   encodeUrl: true

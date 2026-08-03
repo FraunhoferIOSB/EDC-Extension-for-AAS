@@ -18,6 +18,7 @@ tractusx = "0.12.1"
 wiremock = "3.13.2"
 
 [libraries]
+fa3st-core = { module = "de.fraunhofer.iosb.ilt.faaast.service:core", version.ref = "fa3st" }
 fa3st-model = { module = "de.fraunhofer.iosb.ilt.faaast.service:model", version.ref = "fa3st" }
 fa3st-dataformat-json = { module = "de.fraunhofer.iosb.ilt.faaast.service:dataformat-json", version.ref = "fa3st" }
 fa3st-starter = { module = "de.fraunhofer.iosb.ilt.faaast.service:starter", version.ref = "fa3st" }

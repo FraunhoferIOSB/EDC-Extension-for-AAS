@@ -13,9 +13,20 @@ http:
       value: password
   params:
     - name: negotiation-id
-      value: 6ccce577-2a94-42ae-9c06-1ebec2d8a34a
+      value: "{{data-access-contract-negotiation-id}}"
       type: path
   auth: inherit
+
+runtime:
+  actions:
+    - type: set-variable
+      phase: after-response
+      selector:
+        expression: res.body.contractAgreementId
+        method: jsonq
+      variable:
+        name: agreement-id
+        scope: runtime
 
 settings:
   encodeUrl: true

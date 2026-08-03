@@ -8,7 +8,7 @@ http:
   url: "{{p2-management-api}}/transferprocesses/:transfer-id"
   params:
     - name: transfer-id
-      value: 40a477a0-8be2-4483-89a7-e5f39cf83897
+      value: "{{transferprocess-id}}"
       type: path
   auth: inherit
 

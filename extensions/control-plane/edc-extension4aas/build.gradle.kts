@@ -12,6 +12,7 @@ dependencies {
     implementation(project(":extensions:common:json-ld:json-ld-aas"))
 
     implementation(libs.fa3st.model) // ReferenceHelper
+    implementation(libs.fa3st.core) // ReferenceHelper
     implementation(libs.aas4j.model) // AasUtils
     implementation(libs.aas4j.dataformat.json) // AAS Serialization
 

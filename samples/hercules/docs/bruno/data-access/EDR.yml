@@ -11,7 +11,7 @@ http:
       value: "true"
       type: query
     - name: transfer-id
-      value: 40a477a0-8be2-4483-89a7-e5f39cf83897
+      value: "{{transfer-id}}"
       type: path
   auth: inherit
 

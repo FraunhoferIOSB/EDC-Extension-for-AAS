@@ -26,16 +26,6 @@ runtime:
         const id = subprotocolBody.match(/id=([^;]+)/)[1];
 
         bru.setVar("submodel-id", id);
-  actions:
-    - type: set-variable
-      phase: after-response
-      selector:
-        expression: res.body.result[0].submodelDescriptors.endpoints.protocolInformation.subprotocolBody
-        method: jsonq
-      variable:
-        name: asset-id
-        scope: runtime
-      disabled: true
 
 settings:
   encodeUrl: true

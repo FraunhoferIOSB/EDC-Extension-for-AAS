@@ -36,6 +36,25 @@ http:
       }
   auth: inherit
 
+runtime:
+  actions:
+    - type: set-variable
+      phase: after-response
+      selector:
+        expression: res.body.dataset[0].hasPolicy[0]['@id']
+        method: jsonq
+      variable:
+        name: policy-id
+        scope: runtime
+    - type: set-variable
+      phase: after-response
+      selector:
+        expression: res.body.dataset[0].distribution[0].accessService.endpointURL
+        method: jsonq
+      variable:
+        name: p1-dsp
+        scope: runtime
+
 settings:
   encodeUrl: true
   timeout: 0

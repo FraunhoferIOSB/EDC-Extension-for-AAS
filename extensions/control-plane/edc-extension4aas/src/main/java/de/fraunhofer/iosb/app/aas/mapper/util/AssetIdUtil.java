@@ -15,6 +15,8 @@
  */
 package de.fraunhofer.iosb.app.aas.mapper.util;
 
+import de.fraunhofer.iosb.app.model.configuration.Configuration;
+import de.fraunhofer.iosb.ilt.faaast.service.util.HashHelper;
 import de.fraunhofer.iosb.ilt.faaast.service.util.ReferenceHelper;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.util.AasUtils;
 import org.eclipse.digitaltwin.aas4j.v3.model.Identifiable;
@@ -70,17 +72,19 @@ public abstract class AssetIdUtil {
     }
 
 
-    private static String ofIdentifiableId(Reference reference) {
-        return ReferenceHelper.getRoot(reference).getValue();
+    private static String ofHashedIdentifiableId(Reference reference) {
+        return HashHelper.sha256(ReferenceHelper.getRoot(reference).getValue());
     }
 
 
     public static String id(String url, Identifiable identifiable) {
-        return ofHashedAccessUrl(url, AasUtils.toReference(identifiable));
+        return Configuration.getInstance().isHercules() ? ofHashedIdentifiableId(AasUtils.toReference(identifiable))
+                : ofHashedAccessUrl(url, AasUtils.toReference(identifiable));
     }
 
 
     public static String id(String url, Reference reference) {
-        return ofHashedAccessUrl(url, reference);
+        return Configuration.getInstance().isHercules() ? ofHashedIdentifiableId(reference)
+                : ofHashedAccessUrl(url, reference);
     }
 }

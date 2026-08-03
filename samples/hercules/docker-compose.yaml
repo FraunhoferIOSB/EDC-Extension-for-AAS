@@ -115,6 +115,16 @@ services:
         condition: service_healthy
       postgres:
         condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget --server-response --spider --quiet http://localhost:15151 2>&1 | grep 'HTTP/.* 404' || exit 1",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     ports:
       # - "5005:5005" # debug
       # - "8181:8181" # API /api
@@ -171,6 +181,16 @@ services:
         condition: service_healthy
       postgres:
         condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget --server-response --spider --quiet http://localhost:15151 2>&1 | grep 'HTTP/.* 404' || exit 1",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     # ports:
     # - "5005:5005" # debug
     # - "8181:8181" # API /api
@@ -215,9 +235,9 @@ services:
       - NET_RAW
     depends_on:
       identity-hub:
-        condition: service_started
+        condition: service_healthy
       issuer-service:
-        condition: service_started
+        condition: service_healthy
     volumes:
       - ./config/toolbox:/scripts
 

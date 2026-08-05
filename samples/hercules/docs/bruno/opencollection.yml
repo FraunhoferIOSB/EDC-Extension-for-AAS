@@ -28,9 +28,9 @@ request:
     - name: p1-data-plane-public
       value: http://localhost:9500/public
     - name: p1-did
-      value: did:web:identity-hub%3A10100:participant1
+      value: did:web:wallet%3A10100:participant1
     - name: p2-did
-      value: did:web:identity-hub%3A10100:participant2
+      value: did:web:wallet%3A10100:participant2
 
 docs:
   content: All of the requests need to be copied as cURL and used in the toolbox container.

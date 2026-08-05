@@ -19,7 +19,7 @@ The Hercules sample implements an end-to-end MX-Port data space with the MX-Port
 **Purpose**: EDC Extension for AAS that integrates FA³ST service for digital twin management; performs automated AAS registration. Automatically registers all Submodel Repositories with the EDC Control Plane and registers FA³ST AAS at the Digital Twin Registry (DTR). No additional configuration needed beyond the extension configuration. This enables traceability in the data space by making each Submodel a separate data set that can be independently negotiated and transferred.
 
 ### Identity Hub (Wallet)
-**Flavor**: [Tractus-X Identity Hub](https://github.com/eclipse-tractusx/identity-hub)  
+**Flavor**: [Tractus-X Identity Hub](https://github.com/eclipse-tractusx/wallet)  
 **Purpose**: DID-based identity management for all participants in the data space, commonly referred to as "Wallet". Provides three key services: (1) DID service where participants can look up and verify what services other participants offer, (2) Credential service where verifiable credentials can be acquired from an issuer and forwarded to participant components like their connector, and (3) Secure Token Service (STS) that generates bearer tokens containing the participant's credentials. The Identity Hub is essential for participant discovery and credential-based authorization in the data space. Currently shared by both participants but could in theory be deployed per-participant.
 
 ### Issuer Service
@@ -163,7 +163,7 @@ bruno run docs/bruno/data-access
   - `8084`: DSP Protocol (`/api/v1/dsp`)
   - `8085`: Catalog API (`/catalog`)
 - **Purpose**: MX-Port provider's EDC connector managing assets, policies, and negotiations
-- **Participant ID**: `did:web:identity-hub%3A10100:participant1`
+- **Participant ID**: `did:web:wallet%3A10100:participant1`
 
 ### Extension (Standalone) - MX-Port Provider AAS Integration
 - **Image**: `standalone-hercules:latest` (custom build)
@@ -173,9 +173,9 @@ bruno run docs/bruno/data-access
   - `5005`: Debug port
 - **Purpose**: MX-Port provider extension integrating FA³ST AAS service with EDC for digital twin management
 - **Configuration**: `config/edc/extension/configuration.properties`
-- **Network Access**: Connects to `control-plane`, `dtr`, `data-plane`, `identity-hub`, `issuer-service`, and `vault` via Docker network
+- **Network Access**: Connects to `control-plane`, `dtr`, `data-plane`, `wallet`, `issuer-service`, and `vault` via Docker network
 - **Automated AAS Registration**: Automatically registers Submodel Repository and FA³ST AAS at EDC Control Plane and DTR on startup
-- **Participant**: Uses `participant1` identity (`did:web:identity-hub%3A10100:participant1`)
+- **Participant**: Uses `participant1` identity (`did:web:wallet%3A10100:participant1`)
 
 ### Data Plane - MX-Port Provider
 - **Image**: `ghcr.io/factory-x-contributions/edc-dataplane-hashicorp-vault`
@@ -243,7 +243,7 @@ bruno run docs/bruno/data-access
 - **Ports**:
   - `8081`: Management API (`/management`)
 - **Purpose**: Consumer control plane for testing MX-Port cross-participant communication
-- **Participant ID**: `did:web:identity-hub%3A10100:participant2`
+- **Participant ID**: `did:web:wallet%3A10100:participant2`
 - **Network Access**: Connects to `postgres2` and `vault` via Docker network; accessible from all other containers
 - **Note**: No host ports exposed for protocol/catalog, accessed only from other containers (e.g., `curl http://participant2:8081/management`)
 - **Configuration**: `config/edc/controlplane/participant2.properties`
@@ -317,7 +317,7 @@ samples/hercules/
 │   ├── control-plane/         #Control plane API tests
 │   ├── discovery/             #Discovery protocol tests
 │   ├── data-access/           #Data access tests
-│   └── other/                 #Other service API tests (identity-hub, etc.)
+│   └── other/                 #Other service API tests (wallet, etc.)
 ├── standalone-hercules/        # Standalone application
 │   ├── build.gradle.kts        # Gradle build configuration
 │   └── build/                  # Built JAR (generated)
@@ -337,7 +337,7 @@ Docker Compose creates a default bridge network named `<project_name>_default` (
 Services communicate internally using their container names as hostnames:
 - `http://control-plane:8081/management/v3`
 - `http://data-plane:9500/public`
-- `http://identity-hub:15151/api/identity`
+- `http://wallet:15151/api/identity`
 
 All container names resolve automatically within the Docker network.
 
@@ -397,7 +397,7 @@ All services in this environment are connected to the default network:
 | control-plane | `control-plane` | 172.x.x.x |
 | standalone | `standalone` | 172.x.x.x |
 | data-plane | `data-plane` | 172.x.x.x |
-| identity-hub | `identity-hub` | 172.x.x.x |
+| wallet | `wallet` | 172.x.x.x |
 | issuer-service | `issuer-service` | 172.x.x.x |
 | dtr | `dtr` | 172.x.x.x |
 | participant2 | `participant2` | 172.x.x.x |
@@ -413,14 +413,14 @@ All services in this environment are connected to the default network:
 | `standalone` | `control-plane:8081` | EDC management API |
 | `standalone` | `data-plane:9500` | Data access via public endpoint |
 | `standalone` | `dtr:8090` | FA³ST registry for AAS |
-| `standalone` | `identity-hub:15151` | Identity management |
+| `standalone` | `wallet:15151` | Identity management |
 | `standalone` | `issuer-service:13132` | Credential issuance |
 | `standalone` | `vault:8200` | Secrets management |
 | `data-plane` | `control-plane:8083` | Dataplane selector |
 | `data-plane` | `vault:8200` |Keys management |
 | `participant2` | `postgres2:5432` | PostgreSQL database |
 | `participant2` | `vault:8200` | Secrets management |
-| All services | `identity-hub:13131` | Credentials API |
+| All services | `wallet:13131` | Credentials API |
 | All services | `issuer-service:15152` | Issuer admin API |
 
 ## Understanding the Workflow
@@ -433,7 +433,7 @@ All services in this environment are connected to the default network:
    - Services wait for dependencies (health checks)
    
 2. **Network Resolution**: Services connect via Docker's internal DNS:
-   - Hostnames like `control-plane`, `data-plane`, `identity-hub` resolve automatically
+   - Hostnames like `control-plane`, `data-plane`, `wallet` resolve automatically
    - All services must be on the same Docker network (default bridge)
 
 3. **Participant Initialization** (`init_participant.sh`):
@@ -515,10 +515,10 @@ Each participant has a JSON configuration file (`config/toolbox/data/*.json`):
 ```json
 {
   "apiKey": "YWRtaW4=.s3cr3t",
-  "did": "did:web:identity-hub%3A10100:participant1",
-  "contextId": "did:web:identity-hub%3A10100:participant1",
-  "credentialsApi": "http://identity-hub:13131/api/credentials",
-  "identityApi": "http://identity-hub:15151/api/identity",
+  "did": "did:web:wallet%3A10100:participant1",
+  "contextId": "did:web:wallet%3A10100:participant1",
+  "credentialsApi": "http://wallet:13131/api/credentials",
+  "identityApi": "http://wallet:15151/api/identity",
   "stsClientSecretAlias": "participant1-sts-client-secret",
   "dataPlanePrivateKeyAlias": "private-key",
   "dataPlanePublicKeyAlias": "public-key"
@@ -636,7 +636,7 @@ docker compose logs vault
 
 ```bash
 docker compose exec toolbox cat /scripts/data/issuer.json
-docker compose exec toolbox curl -v http://identity-hub:15151/api/identity
+docker compose exec toolbox curl -v http://wallet:15151/api/identity
 docker compose exec toolbox curl -v http://data-plane:9500/public
 docker compose exec toolbox curl -v http://participant2:8081/management
 docker compose exec toolbox ping data-plane
@@ -669,7 +669,7 @@ If services cannot reach each other:
 docker compose exec toolbox ping control-plane
 docker compose exec toolbox ping data-plane
 docker compose exec toolbox ping participant2
-docker compose exec toolbox curl -v http://identity-hub:15151/api/identity
+docker compose exec toolbox curl -v http://wallet:15151/api/identity
 
 # Verify services are on the same network
 docker compose network inspect hercules_default
@@ -710,5 +710,5 @@ For production deployment:
 - [EDC Extension for AAS](../../README.md)
 - [FA³ST Service](https://github.com/admin-shell-io/faaast-service)
 - [Eclipse DITTO Connectors](https://github.com/eclipse-ditto/ditto-clients)
-- [Tractus-X Identity Hub](https://github.com/eclipse-tractusx/identity-hub)
+- [Tractus-X Identity Hub](https://github.com/eclipse-tractusx/wallet)
 - [FA³ST Registry](https://github.com/FraunhoferIOSB/FAAAST-Registry)

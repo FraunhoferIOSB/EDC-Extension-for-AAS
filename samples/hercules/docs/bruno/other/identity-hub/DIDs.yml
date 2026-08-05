@@ -5,7 +5,7 @@ info:
 
 http:
   method: GET
-  url: http://localhost:15151/api/identity/v1alpha/dids
+  url: http://localhost:15151/api/identity/v1beta/dids
   auth: inherit
 
 settings:

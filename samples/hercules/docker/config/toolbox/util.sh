@@ -22,8 +22,8 @@ post_json() {
   if [[ ! "$http_code" =~ ^2 ]]; then
     echo "Request failed with HTTP $http_code" >&2
     echo "curl $url \\" >&2
-    echo "--header 'content-type: application/json'"\\
-    echo "--header 'x-api-key: $api_key'"\\
+    echo '--header "content-type: application/json"' >&2
+    echo "--header 'x-api-key: $api_key'" >&2
     echo "-d '" >&2
     echo "$data'" >&2
     echo "Error response:" >&2

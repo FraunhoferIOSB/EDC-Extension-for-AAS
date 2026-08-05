@@ -18,10 +18,10 @@ http:
         },
         "@type": "CatalogRequest",
         "counterPartyAddress": "http://control-plane:8084/api/v1/dsp/2025-1",
-        "counterPartyId": "did:web:identity-hub%3A10100:participant1",
+        "counterPartyId": "did:web:wallet%3A10100:participant1",
         "protocol": "dataspace-protocol-http:2025-1",
         "additionalScopes": [
-          "org.eclipse.tractusx.vc.type:MembershipCredential:read"
+          "org.eclipse.dspace.dcp.vc.type:MembershipCredential:read"
         ],
         "querySpec": {
           "@type": "QuerySpec",

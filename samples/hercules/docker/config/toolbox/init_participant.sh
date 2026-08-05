@@ -48,7 +48,7 @@ function create_participant() {
     --arg serviceType "CredentialService" \
     '
       .serviceEndpoints[0].type = $serviceType
-      | .serviceEndpoints[0].serviceEndpoint = ($credentialsApi + "/participants/" + $contextIdB64)
+      | .serviceEndpoints[0].serviceEndpoint = ($credentialsApi + "/participants/" + $contextId)
       | .participantId = $did
       | .participantContextId = $contextId
       | .did = $did
@@ -120,10 +120,12 @@ function request_verifiable_credential() {
   contextId=$5
   contextIdB64=$(printf %s "$contextId" | base64 | tr -d '\n')
 
-  cred_req="$(jq --arg did "$issuerDid" ' .issuerDid = $did ' /scripts/templates/credential_request.json)"
+  cred_req="$(jq --arg issuerDid "$issuerDid" ' .issuerDid = $issuerDid ' /scripts/templates/credential_request.json)"
+
+  printf "%s" "$cred_req"
 
   printf "\nRequesting verifiable credential for participant %s (contextId=%s) from issuer %s" "$did" "$contextId" "$issuerDid"
-  post_json "$identityApi/participants/$contextIdB64/credentials/request" "$adminApiKey" "$cred_req"
+  post_json "$identityApi/participants/$contextId/credentials/request" "$adminApiKey" "$cred_req"
 }
 
 function initialize_data_plane() {

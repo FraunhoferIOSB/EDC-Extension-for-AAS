@@ -21,7 +21,7 @@ http:
         "counterPartyId": "{{p1-did}}",
         "protocol": "dataspace-protocol-http:2025-1",
         "additionalScopes": [
-          "org.eclipse.tractusx.vc.type:MembershipCredential:read"
+          "org.eclipse.dspace.dcp.vc.type:MembershipCredential:read"
         ],
         "querySpec": {
           "@type": "QuerySpec",

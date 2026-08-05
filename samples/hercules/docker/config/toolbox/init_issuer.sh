@@ -28,7 +28,7 @@ issuer_participant="$(
   --arg serviceType "IssuerService" \
   '
     .serviceEndpoints[0].type = $serviceType
-    | .serviceEndpoints[0].serviceEndpoint = ($url + "/participants/" + $contextIdB64)
+    | .serviceEndpoints[0].serviceEndpoint = ($url + "/participants/" + $contextId)
     | .participantId = $did
     | .participantContextId = $contextId
     | .did = $did

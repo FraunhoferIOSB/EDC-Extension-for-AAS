@@ -16,7 +16,7 @@
                     "odrl:operator": {
                         "@id": "odrl:eq"
                     },
-                    "odrl:rightOperand": "did:web:identity-hub%3A10100:participant2"
+                    "odrl:rightOperand": "did:web:wallet%3A10100:participant2"
                 }
             ]
         }

@@ -107,9 +107,11 @@ services:
       # - "5005:5005" # debug
       - "9500:9500" # PUBLIC /public
 
-  identity-hub:
-    container_name: identity-hub
-    image: tractusx/identityhub:v0.3.2
+  wallet:
+    container_name: wallet
+    # Any identityhub can be used which uses upstream version =0.18.0
+    # Docker image source https://github.com/project-construct-x/wallet/tree/develop/launcher/con-x-wallet-sql-vault
+    image: wallet-sql-vault:0.18.0-1
     depends_on:
       vault:
         condition: service_healthy
@@ -123,7 +125,7 @@ services:
         ]
       interval: 30s
       timeout: 5s
-      retries: 3
+      retries: 15
       start_period: 10s
     ports:
       # - "5005:5005" # debug
@@ -134,12 +136,14 @@ services:
       - "15151:15151" # IDENTITY /api/identity
       # - "9292:9292" # STS /api/sts
     volumes:
-      - ./config/edc/identityhub/participant1.properties:/app/configuration.properties
+      - ./config/edc/identityhub/configuration.properties:/app/dataspaceconnector-configuration.properties
       - ./config/edc/logging.properties:/app/logging.properties:ro
     environment:
       edc.vault.hashicorp.url: http://vault:${VAULT_PORT:-8200}
       edc.vault.hashicorp.token: ${VAULT_TOKEN:-token}
       JAVA_TOOL_OPTIONS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=0.0.0.0:5005
+      EDC_DATASOURCE_DEFAULT_USER: ${POSTGRES_USER:-admin}
+      EDC_DATASOURCE_DEFAULT_PASSWORD: ${POSTGRES_PASSWORD:-password}
 
   vault:
     image: hashicorp/vault
@@ -174,9 +178,8 @@ services:
 
   issuer-service:
     container_name: issuer-service
-    # The tractus-x issuer-service is currently missing a way to freely define the contents of a credentialSubject field for a Verifiable Credential.
-    # A similar functionality as this (private) image is provided in https://github.com/project-construct-x/wallet.
-    image: ghcr.io/factory-x-contributions/fx-id-hub-charts/issuerservice:0.0.1-tp4a-146
+    # Docker image source https://github.com/project-construct-x/wallet/tree/develop/launcher/con-x-wallet-sql-vault
+    image: wallet-sql-vault:0.18.0-1
     depends_on:
       vault:
         condition: service_healthy
@@ -188,12 +191,12 @@ services:
           "CMD-SHELL",
           "wget --server-response --spider --quiet http://localhost:15151 2>&1 | grep 'HTTP/.* 404' || exit 1",
         ]
-      interval: 30s
+      interval: 5s
       timeout: 5s
-      retries: 3
+      retries: 15
       start_period: 10s
-    # ports:
-    # - "5005:5005" # debug
+    ports:
+      - "5005:5005" # debug
     # - "8181:8181" # API /api
     # - "7171:7171" # VERSION /.well-known/api
     # - "9999:9999" # STATUSLIST /statuslist
@@ -203,9 +206,8 @@ services:
     # - "15152:15152" # ISSUERADMIN /api/issuer
     # - "9292:9292" # STS /api/sts
     volumes:
-      - ./config/edc/issuerservice/configuration.properties:/app/configuration.properties:ro
+      - ./config/edc/issuerservice/configuration.properties:/app/dataspaceconnector-configuration.properties:ro
       - ./config/edc/logging.properties:/app/logging.properties:ro
-      - ./config/edc/issuerservice/credentials/membership.json:/app/setup.json
     environment:
       edc.vault.hashicorp.url: http://vault:${VAULT_PORT:-8200}
       edc.vault.hashicorp.token: ${VAULT_TOKEN:-token}
@@ -237,7 +239,7 @@ services:
     cap_add:
       - NET_RAW
     depends_on:
-      identity-hub:
+      wallet:
         condition: service_healthy
       issuer-service:
         condition: service_healthy

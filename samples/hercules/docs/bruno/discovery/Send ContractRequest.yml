@@ -43,20 +43,20 @@ http:
                   "odrl:operator": {
                     "@id": "odrl:eq"
                   },
-                  "odrl:rightOperand": "did:web:identity-hub%3A10100:participant2"
+                  "odrl:rightOperand": "did:web:wallet%3A10100:participant2"
                 }
               ]
             }
           ],
           "odrl:assigner": {
-            "@id": "did:web:identity-hub%3A10100:participant1"
+            "@id": "did:web:wallet%3A10100:participant1"
           },
           "odrl:target": {
             "@id": "1990331179"
           }
         },
         "additionalScopes": [
-          "org.eclipse.tractusx.vc.type:MembershipCredential:read"
+          "org.eclipse.dspace.dcp.vc.type:MembershipCredential:read"
         ]
       }
   auth: inherit

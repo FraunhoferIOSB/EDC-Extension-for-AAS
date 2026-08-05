@@ -1,0 +1,17 @@
+{
+  "id": "MC-Attestation",
+  "attestationType": "dev",
+  "configuration": {
+    "did:web:wallet%3A10100:participant1": {
+      "favoriteColor": "green",
+      "isMember": true
+    },
+    "did:web:wallet%3A10100:participant2": {
+      "favoriteColor": "blue",
+      "isMember": true
+    },
+    "default": {
+      "isMember": false
+    }
+  }
+}

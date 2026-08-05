@@ -3,13 +3,15 @@ source /scripts/util.sh
 
 function initialize() {
     participantFile=$1
+    issuerFile="/scripts/data/issuer.json"
 
     vaultUrl=http://vault:${VAULT_PORT:-8200}/v1/secret/data
     vaultToken=${VAULT_TOKEN:-token}
 
-    issuerAdminApiKey="$(jq -r '.apiKey' /scripts/data/issuer.json)"
-    issuerIssuerApi="$(jq -r '.issuerApi' /scripts/data/issuer.json)"
-    issuerDid="$(jq -r '.did' /scripts/data/issuer.json)"
+    issuerAdminApiKey="$(jq -r '.apiKey' $issuerFile)"
+    issuerIssuerApi="$(jq -r '.issuerApi' $issuerFile)"
+    issuerDid="$(jq -r '.did' $issuerFile)"
+    issuerContextId="$(jq -r '.contextId' $issuerFile)"
 
     did="$(jq -r '.did' "$participantFile")"
     contextId="$(jq -r '.contextId' "$participantFile")"
@@ -22,7 +24,8 @@ function initialize() {
 
     secret=$(create_participant "$did" "$adminApiKey" "$credentialsApi" "$identityApi" "$contextId")
     store_secret "$vaultUrl" "$vaultToken" "$stsClientSecretAlias" "$secret"
-    create_holder_at_issuer "$did" "$issuerDid" "$issuerAdminApiKey" "$issuerIssuerApi"
+    # activate_participant "$adminApiKey" "$identityApi" "$contextId"
+    create_holder_at_issuer "$did" "$issuerDid" "$issuerAdminApiKey" "$issuerIssuerApi" "$issuerContextId"
     request_verifiable_credential "$did" "$adminApiKey" "$identityApi" "$issuerDid" "$contextId"
     initialize_data_plane "$vaultUrl" "$vaultToken" "$dataPlanePrivateKeyAlias" "$dataPlanePublicKeyAlias"
 }
@@ -45,7 +48,7 @@ function create_participant() {
     --arg serviceType "CredentialService" \
     '
       .serviceEndpoints[0].type = $serviceType
-      | .serviceEndpoints[0].serviceEndpoint = ($credentialsApi + "/v1/participants/" + $contextIdB64)
+      | .serviceEndpoints[0].serviceEndpoint = ($credentialsApi + "/participants/" + $contextIdB64)
       | .participantId = $did
       | .participantContextId = $contextId
       | .did = $did
@@ -55,7 +58,7 @@ function create_participant() {
   )"
 
   printf "\nCreating participant for %s\n" "$did" >&2
-  response=$(post_json "$identityApi/v1alpha/participants" "$adminApiKey" "$participant")
+  response=$(post_json "$identityApi/participants" "$adminApiKey" "$participant")
 
   participantApiKey=$(echo "$response"| jq -r '.apiKey')
   participantClientId=$(echo "$response"| jq -r '.clientId')
@@ -68,16 +71,26 @@ function create_participant() {
   printf "%s" "$participantClientSecret"
 }
 
+
+function activate_participant() {
+  adminApiKey=$1
+  identityApi=$2
+  contextId=$3
+  contextIdB64=$(printf %s "$contextId" | base64 | tr -d '\n')
+
+  post_json "$identityApi/participants/$contextIdB64/state" "$adminApiKey" '{"state": "ACTIVATED"}'
+}
+
 function create_holder_at_issuer() {
   did=$1
   issuerDid=$2
   issuerAdminApiKey=$3
   issuerIssuerApi=$4
-  issuerB64=$(printf %s "$issuerDid" | base64 | tr -d '\n')
+  issuerContextId=$5
 
-  printf "\nCreating holder for participant %s at issuer %s" "$did" "$issuerDid"
+  printf "\nCreating holder for participant %s at issuer %s (contextId=%s)" "$did" "$issuerDid" "$issuerContextId"
   holder="$(jq --arg did "$did" '.holderId = $did | .did = $did | .name = $did' /scripts/templates/holder.json)"
-  post_json "$issuerIssuerApi/v1alpha/participants/$issuerB64/holders" "$issuerAdminApiKey" "$holder"
+  post_json "$issuerIssuerApi/participants/$issuerContextId/holders" "$issuerAdminApiKey" "$holder"
 }
 
 function store_secret() {
@@ -109,8 +122,8 @@ function request_verifiable_credential() {
 
   cred_req="$(jq --arg did "$issuerDid" ' .issuerDid = $did ' /scripts/templates/credential_request.json)"
 
-  printf "\nRequesting verifiable credential for participant %s from issuer %s" "$did" "$issuerDid"
-  post_json "$identityApi/v1alpha/participants/$contextIdB64/credentials/request" "$adminApiKey" "$cred_req"
+  printf "\nRequesting verifiable credential for participant %s (contextId=%s) from issuer %s" "$did" "$contextId" "$issuerDid"
+  post_json "$identityApi/participants/$contextIdB64/credentials/request" "$adminApiKey" "$cred_req"
 }
 
 function initialize_data_plane() {
@@ -134,6 +147,7 @@ function initialize_data_plane() {
   store_secret "$vaultUrl" "$vaultToken" "$pubKeyAlias" "$pubKey"
 }
 
-printf "\n\nInitializing participants...\n"
+
+printf "\n\nInitializing participants..."
 initialize "/scripts/data/participant1.json"
 initialize "/scripts/data/participant2.json"

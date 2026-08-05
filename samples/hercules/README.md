@@ -1,22 +1,68 @@
 # Hercules Sample Environment
 
-Hercules is a comprehensive sample environment demonstrating the EDC Extension for AAS (Asset Administration Shell). It provides a complete end-to-end setup with multiple EDC connectors, identity services, and a FA³ST service for managing digital twins and their asset information.
+Hercules is an MX-Port variant from the [Factory-X Project](https://github.com/factory-x-contributions), showcasing the complete MX-Port implementation on the provider side. This sample environment demonstrates a functional data space with a full-stack MX-Port provider service (Control Plane, Data Plane, Extension with FA³ST integration) alongside essential infrastructure components and a consumer control plane for cross-participant data exchange.
 
-## Overview
+## Overview - Components at a Glance
 
-The Hercules sample implements a multi-participant EDC (Eclipse Dataspace Connectors) environment with:
-- **Control Plane**: Primary EDC connector with management and protocol endpoints
-- **Standalone**: EDC extension for AAS integration with FA³ST service
-- **Data Plane**: Secure data transfer endpoint
-- **Identity Hub**: DID-based identity management for participants
-- **Issuer Service**: Verifiable credential issuance (MembershipCredentials)
-- **FA³ST Registry**: Digital Twin Registry for AAS asset descriptors
-- **PostgreSQL**: Shared database for all services
-- **HashiCorp Vault**: Secrets management for credentials and keys
+The Hercules sample implements an end-to-end MX-Port data space with the MX-Port Provider service stack and supporting infrastructure. Each component belongs to a specific ecosystem and serves a distinct purpose.
+
+### Control Plane (Participant 1) - MX-Port Provider
+**Flavor**: [Factory-X EDC Control Plane](https://github.com/factory-x-contributions/edccontrolplane)  
+**Purpose**: Primary EDC connector for the MX-Port provider managing assets, policies, and negotiations. Offers DSP (Dataspaces Protocol) endpoints for catalog discovery, contract negotiation, and data exchange. Works with the Data Plane for secure data transfer and with the Identity Hub for participant authentication and credential-based access policies. The Control Plane acts as the central coordinating component for the provider's data offering.
+
+### Data Plane - MX-Port Provider
+**Flavor**: [Factory-X EDC Data Plane](https://github.com/factory-x-contributions/edcdataplane)  
+**Purpose**: Secure data transfer endpoint using signature-based access tokens for the MX-Port provider. When a consumer wants to access data (e.g., from the FA³ST AAS service), the Data Plane validates the access token and serves the data based on the policy granted during contract negotiation. It integrates with the Control Plane to receive token validation instructions and uses keys stored in Vault for token signing/verification.
+
+### Extension (Standalone) - MX-Port Provider AAS Integration
+**Flavor**: Custom EDC Extension for AAS (Catenax AAS Integration)  
+**Purpose**: EDC Extension for AAS that integrates FA³ST service for digital twin management; performs automated AAS registration. Automatically registers all Submodel Repositories with the EDC Control Plane and registers FA³ST AAS at the Digital Twin Registry (DTR). No additional configuration needed beyond the extension configuration. This enables traceability in the data space by making each Submodel a separate data set that can be independently negotiated and transferred.
+
+### Identity Hub (Wallet)
+**Flavor**: [Tractus-X Identity Hub](https://github.com/eclipse-tractusx/identity-hub)  
+**Purpose**: DID-based identity management for all participants in the data space, commonly referred to as "Wallet". Provides three key services: (1) DID service where participants can look up and verify what services other participants offer, (2) Credential service where verifiable credentials can be acquired from an issuer and forwarded to participant components like their connector, and (3) Secure Token Service (STS) that generates bearer tokens containing the participant's credentials. The Identity Hub is essential for participant discovery and credential-based authorization in the data space. Currently shared by both participants but could in theory be deployed per-participant.
+
+### Issuer Service
+**Flavor**: [Construct-X Wallet Issuer Service](https://github.com/project-construct-x/wallet)  
+**Purpose**: Verifiable credential issuer (MembershipCredentials) for the MX-Port data space. Issues signed credentials that participants can use to prove their membership and access rights within the data space. Note: The publicly available issuer services by Eclipse EDC and Eclipse TractusX do not yet support the required credential issuance functionality for this demo. To use this example, you need to build and run the Construct-X Wallet fork which contains the necessary functionality. The Issuer Service is currently shared by both participants but could in theory be deployed per-participant.
+
+### FA³ST Registry (DTR)
+**Flavor**: [Fraunhofer FA³ST Registry](https://github.com/FraunhoferIOSB/FAAAST-Registry)  
+**Purpose**: Digital Twin Registry (DTR) as defined by [Catena-X standard CX-0002](https://catenax-ev.github.io/docs/standards/CX-0002-DigitalTwinsInCatenaX#122-digital-twin-registry). Stores AAS (Asset Administration Shell) shell descriptors for all digital twins in the data space. separate from EDC's asset management/catalog - it follows the Catena-X digital twin specification. The Extension (Standalone) registers FA³ST AAS services with this registry to enable participant discovery.
+
+### Consumer Control Plane (Participant 2)
+**Flavor**: [Factory-X EDC Control Plane](https://github.com/factory-x-contributions/edccontrolplane)  
+**Purpose**: EDC connector acting as a consumer participant for testing cross-participant data exchange. Demonstrates how an external participant can discover assets from the MX-Port provider, negotiate access, and transfer data using the EDC protocol. Uses a dedicated PostgreSQL database (`postgres2`) separate from the provider's infrastructure.
+
+### PostgreSQL
+**Flavor**: [PostgreSQL 16](https://www.postgresql.org/)  
+**Purpose**: Shared database for all services. Provides persistent storage for the EDC Control Plane (Participant 1), Data Plane, Identity Hub, Issuer Service, and Postgres2 (for Participant 2). Hosts multiple databases (`edc`, `identity_hub`, `issuer_service`, `participant2`) to separate data for different participants and services.
+
+### HashiCorp Vault
+**Flavor**: [HashiCorp Vault](https://www.vaultproject.io/)  
+**Purpose**: Secrets management service for credentials and cryptographic keys. Stores database credentials, API keys, STS client secrets, and data plane public/private key pairs. Provides a secure centralized store that all EDC services use to retrieve their secrets. Currently shared by both participants but could in theory be deployed per-participant.
+
+### Toolbox
+**Flavor**: Debian-based utility container (custom)  
+**Purpose**: Utility container with tools for debugging and initialization (`curl`, `jq`, `vim`, `iputils-ping`). Used to run initialization scripts that onboard participants and issue credentials. Provides a shell environment for testing API calls and interacting with services during development and troubleshooting.
+
+## API Access
+
+Services expose the following ports for external access via `localhost`:
+
+| Service | Port | Description |
+|---------|------|-------------|
+| Control Plane (Participant 1) | `18081` | Management API (via docker-compose port mapping) |
+| Control Plane (Participant 2) | `8081` | Management API |
+| Data Plane | `9500` | Public data endpoint (`/public`) |
+| Identity Hub | `10100` | DID endpoint |
+| Identity Hub | `15151` | Identity API |
+| FA³ST Registry (DTR) | `8090` | Shell Descriptors (uncomment in docker-compose to enable) |
+| Vault | `8200` | HashiCorp Vault API |
 
 ## Architecture
 
-<img src="./architecture.drawio.svg">
+<img src="./docs/architecture.drawio.svg">
 
 
 **Note**: All services communicate via Docker's internal DNS on the default network.
@@ -29,6 +75,7 @@ The Hercules sample implements a multi-participant EDC (Eclipse Dataspace Connec
 - [Docker](https://docs.docker.com/get-docker/)
 - [Docker Compose](https://docs.docker.com/compose/install/)
 - [Bruno](https://www.usebruno.com/) (optional, for API testing)
+- [Bruno CLI](https://www.usebruno.com/docs/cli/installation) (optional, for running tests from command line)
 
 ## Quick Start
 
@@ -64,40 +111,77 @@ The Hercules sample implements a multi-participant EDC (Eclipse Dataspace Connec
    ```
 
 4. **Access services**:
-   - Control Plane Management: `http://localhost:8081/management`
-   - Standalone AAS Extension: `http://localhost:8080`
-   - FA³ST Registry: `http://localhost:8090/shell-descriptors`
+   - Control Plane Management (P1): `http://localhost:18081/management`
+   - Control Plane Management (P2): `http://localhost:8081/management`
+   - Data Plane: `http://localhost:9500/public`
    - Identity Hub: `http://localhost:10100`
+   - Identity Hub API: `http://localhost:15151`
+   - FA³ST Registry: `http://localhost:8090/shell-descriptors` (uncomment in docker-compose to enable)
    - PostgreSQL: `localhost:5432`
    - Vault: `http://localhost:8200`
 
+## API Testing
+
+The bruno collections in `docs/bruno/` enable complete testing of the MX-Port data space, including contract negotiation and data transfer flows as specified in the [Hercules architecture decision records](./docs/adr/).
+
+### Test Flows
+
+| Collection | Tests | Purpose |
+|------------|-------|---------|
+| `docs/bruno/discovery/` | Catalog, Negotiation, EDR, Data | EDC discovery protocol (find, negotiate, get EDR, access data) |
+| `docs/bruno/data-access/` | Catalog, Negotiation, Transfer, Data | End-to-end data transfer using EDC extension |
+| `docs/bruno/other/` | Identity Hub, DID, Credentials | Identity and credential services |
+
+### Automated AAS Registration
+
+The EDC Extension for AAS performs **automatic registration** of AAS components:
+- Submodel Repository at the EDC Control Plane
+- FA³ST AAS service at the FA³ST Digital Twin Registry (DTR)
+
+No manual registration steps are required - the extension handles these automatically on startup.
+
+### Running Tests from Host
+
+```bash
+# Install Bruno CLI (optional)
+npm install -g @usebruno/cli
+
+# Run discovery protocol tests (catalog, negotiation, EDR)
+cd samples/hercules
+bruno run docs/bruno/discovery
+
+# Run data access tests (end-to-end transfer)
+bruno run docs/bruno/data-access
+```
+
 ## Service Details
 
-### Control Plane (Participant 1)
+### Control Plane (Participant 1) - MX-Port Provider
 - **Image**: `ghcr.io/factory-x-contributions/edc-controlplane-postgresql-hashicorp-vault`
 - **Ports**:
-  - `8081`: Management API (`/management`)
+  - `18081`: Management API (`/management`)
   - `8084`: DSP Protocol (`/api/v1/dsp`)
   - `8085`: Catalog API (`/catalog`)
-- **Purpose**: Primary EDC connector managing assets, policies, and negotiations
+- **Purpose**: MX-Port provider's EDC connector managing assets, policies, and negotiations
 - **Participant ID**: `did:web:identity-hub%3A10100:participant1`
 
-### Standalone (Extension)
+### Extension (Standalone) - MX-Port Provider AAS Integration
 - **Image**: `standalone-hercules:latest` (custom build)
 - **Ports**:
   - `8080`: FA³ST Service
   - `8181`: EDC Extension API (internal)
   - `5005`: Debug port
-- **Purpose**: Integrates FA³ST AAS service with EDC for digital twin management
+- **Purpose**: MX-Port provider extension integrating FA³ST AAS service with EDC for digital twin management
 - **Configuration**: `config/edc/extension/configuration.properties`
 - **Network Access**: Connects to `control-plane`, `dtr`, `data-plane`, `identity-hub`, `issuer-service`, and `vault` via Docker network
+- **Automated AAS Registration**: Automatically registers Submodel Repository and FA³ST AAS at EDC Control Plane and DTR on startup
 - **Participant**: Uses `participant1` identity (`did:web:identity-hub%3A10100:participant1`)
 
-### Data Plane
+### Data Plane - MX-Port Provider
 - **Image**: `ghcr.io/factory-x-contributions/edc-dataplane-hashicorp-vault`
 - **Ports**:
   - `9500`: Public data endpoint (`/public`)
-- **Purpose**: Secure data transfer endpoint with signature-based access
+- **Purpose**: Secure data transfer endpoint using signature-based access tokens for the MX-Port provider
 - **Keys**: Generated and stored in HashiCorp Vault during initialization
 - **Network Access**: Connects to `control-plane` and `vault` via Docker network; accessed by `standalone` for data transfer
 - **Participant**: Uses `participant1` identity
@@ -154,12 +238,14 @@ The Hercules sample implements a multi-participant EDC (Eclipse Dataspace Connec
 - **Purpose**: Utility container with tools for debugging and initialization
 - **Includes**: `curl`, `jq`, `vim`, `iputils-ping`, `ca-certificates`
 
-### Participant2
+### Control Plane (Participant 2) - Consumer
 - **Image**: `ghcr.io/factory-x-contributions/edc-controlplane-postgresql-hashicorp-vault`
-- **Purpose**: Secondary EDC connector for testing cross-participant communication
+- **Ports**:
+  - `8081`: Management API (`/management`)
+- **Purpose**: Consumer control plane for testing MX-Port cross-participant communication
 - **Participant ID**: `did:web:identity-hub%3A10100:participant2`
 - **Network Access**: Connects to `postgres2` and `vault` via Docker network; accessible from all other containers
-- **Note**: No host ports exposed, accessed only from other containers (e.g., `curl http://participant2:8081/management`)
+- **Note**: No host ports exposed for protocol/catalog, accessed only from other containers (e.g., `curl http://participant2:8081/management`)
 - **Configuration**: `config/edc/controlplane/participant2.properties`
 
 ## Directory Structure
@@ -168,8 +254,17 @@ The Hercules sample implements a multi-participant EDC (Eclipse Dataspace Connec
 samples/hercules/
 ├── .env.example                  # Environment variable template
 ├── docker-compose.yaml           # Main compose definition
-├── bruno/                        #Bruno API test collections
-│   ├── opencollection.yml       # Shared collection config
+├── bruno/                        # Bruno API test collections (deprecated - internal hostnames)
+│   ├── opencollection.yml       # Shared collection config (deprecated)
+│   ├── control-plane/           # Control plane API tests
+│   ├── discovery/               # Discovery protocol tests
+│   └── data-access/             # Data access tests
+├── docs/bruno/                  # Bruno API test collections (recommended - localhost:PORT)
+│   ├── opencollection.yml       # Shared collection config (recommended)
+│   ├── control-plane/           # Control plane API tests
+│   ├── discovery/               # Discovery protocol tests
+│   ├── data-access/             # Data access tests
+│   └── other/                   # Other service API tests
 │   ├── control-plane/           # Control plane API tests
 │   ├── discovery/               # Discovery protocol tests
 │   └── data-access/             # Data access tests
@@ -212,6 +307,17 @@ samples/hercules/
 │       │   └── credential_request.json
 │       ├── init_participant.sh #Participant initialization script
 │       └── init_issuer.sh      #Issuer initialization script
+├── bruno/                      #Bruno API test collections (deprecated)
+│   ├── opencollection.yml     #Shared collection config (internal hostnames)
+│   ├── control-plane/         #Control plane API tests
+│   ├── discovery/             #Discovery protocol tests
+│   └── data-access/           #Data access tests
+├── docs/bruno/                 #Bruno API test collections
+│   ├── opencollection.yml     #Shared collection config (localhost:PORT)
+│   ├── control-plane/         #Control plane API tests
+│   ├── discovery/             #Discovery protocol tests
+│   ├── data-access/           #Data access tests
+│   └── other/                 #Other service API tests (identity-hub, etc.)
 ├── standalone-hercules/        # Standalone application
 │   ├── build.gradle.kts        # Gradle build configuration
 │   └── build/                  # Built JAR (generated)
@@ -222,7 +328,34 @@ samples/hercules/
 
 ## Network Architecture
 
+### Docker Networking
+
 Docker Compose creates a default bridge network named `<project_name>_default` (e.g., `hercules_default`). All services that don't specify a custom network are connected to this default network.
+
+#### Internal Communication (Docker DNS)
+
+Services communicate internally using their container names as hostnames:
+- `http://control-plane:8081/management/v3`
+- `http://data-plane:9500/public`
+- `http://identity-hub:15151/api/identity`
+
+All container names resolve automatically within the Docker network.
+
+#### External Access (localhost:PORT)
+
+Services expose specific ports on `localhost` for external access:
+
+| Service | Port | Internal Path | External URL |
+|---------|------|---------------|--------------|
+| Control Plane 1 | `18081` | `/management` | `http://localhost:18081/management` |
+| Control Plane 2 | `8081` | `/management` | `http://localhost:8081/management` |
+| Data Plane | `9500` | `/public` | `http://localhost:9500/public` |
+| Identity Hub | `10100` | `/` | `http://localhost:10100/` |
+| Identity Hub API | `15151` | `/api/identity` | `http://localhost:15151/api/identity` |
+| FA³ST Registry | `8090` | `/shell-descriptors` | `http://localhost:8090/shell-descriptors` |
+| Vault | `8200` | `/v1/` | `http://localhost:8200/v1/` |
+
+**Note**: Uncomment the port mappings in `docker-compose.yaml` to enable external access to services.
 
 ### Default Docker Network
 
@@ -317,45 +450,47 @@ All services in this environment are connected to the default network:
 ### Credential Flow
 
 ```
-┌──────────────┐     ┌─────────────────┐     ┌──────────────┐
-│ Participant  │────▶│  Identity Hub   │◀────│   Issuer     │
-│   1          │     │                 │     │   Service    │
-└──────────────┘     └─────────────────┘     └──────────────┘
-                          │                          │
-                          │                          │
-                          ▼                          ▼
-                  ┌─────────────────┐     ┌──────────────┐
-                  │  STS Token      │     │ Attestation  │
-                  │  Service        │     │ / Credentials│
-                  └─────────────────┘     └──────────────┘
+┌─────────────────────┐     ┌───────────────────┐     ┌──────────────────┐
+│ MX-Port Provider    │────▶│  Identity Hub     │◀────│   Issuer         │
+│   (Participant 1)   │     │                   │     │   Service        │
+└─────────────────────┘     └───────────────────┘     └──────────────────┘
+                               │                          │
+                               │                          │
+                               ▼                          ▼
+                       ┌───────────────────┐     ┌──────────────────┐
+                       │  STS Token         │     │ Attestation      │
+                       │  Service           │     │ / Credentials    │
+                       └───────────────────┘     └──────────────────┘
 ```
 
-1. Participant registers with Identity Hub
-2. Participant requests MembershipCredential from Issuer
-3. Issuer verifies participant (via attestation)
-4. Issuer issues signed credential
-5. Credential stored in participant's Identity Hub
+1. MX-Port Provider registers with Identity Hub
+2. Issuer registers with Identity Hub
+3. MX-Port Provider requests MembershipCredential from Issuer
+4. Issuer verifies provider (via attestation)
+5. Issuer issues signed credential
+6. Credential stored in provider's Identity Hub
 
 ### Data Access Flow
 
 ```
-┌──────────────┐     ┌──────────────┐     ┌──────────────┐
-│ Participant  │────▶│  Control     │────▶│  Data Plane  │
-│   2          │     │  Plane       │     │              │
-└──────────────┘     └──────────────┘     └──────────────┘
-                          │
-                          │
-                  ┌──────────────┐
-                  │  FA³ST       │
-                  │  Service     │
-                  └──────────────┘
+┌──────────────────────────┐     ┌─────────────────┐     ┌──────────────┐
+│ MX-Port Provider         │────▶│  Control Plane  │────▶│  Data Plane  │
+│   (Participant 1)        │     │  (Provider)     │     │              │
+└──────────────────────────┘     └─────────────────┘     └──────────────┘
+                                                               │
+                                                               │
+                                                        ┌──────────────┐
+                                                        │ Consumer     │
+                                                        │ (P2)         │
+                                                        └──────────────┘
 ```
 
-1. Participant 2 requests catalog from Participant 1
-2. Negotiation for asset access occurs
-3. Contract agreement established
-4. Data plane token generated
-5. Data access via signed token
+1. Consumer (Participant 2) requests catalog from MX-Port Provider
+2. Provider exposes FA³ST AAS data via Data Plane
+3. Negotiation for asset access occurs via DSP protocol
+4. Contract agreement established with MembershipCredential-based policy
+5. Data plane token generated using provider's keys
+6. Consumer accesses data via signed token at Data Plane
 
 ## Configuration
 
@@ -404,21 +539,41 @@ Each participant has a JSON configuration file (`config/toolbox/data/*.json`):
 
 ##Bruno API Testing
 
-Bruno collections are provided for testing APIs:
+Bruno collections are provided for testing APIs. The collections in `docs/bruno/` use `localhost:PORT` addresses, allowing you to test directly from your host machine.
 
-```bash
-# Import into Bruno:
-# File: samples/hercules/bruno/opencollection.yml
+### Using Bruno from Host Machine
 
-# Example: Get catalog from Participant 2
-cd samples/hercules/bruno
-bruno run "discovery/Get Catalog.yml" -e default
-```
+1. **Install Bruno CLI** (optional):
+   ```bash
+   npm install -g @usebruno/cli
+   ```
 
-Available collections:
-- `control-plane/`: Policy and configuration queries
-- `discovery/`: EDC discovery protocol (catalog, negotiation)
-- `data-access/`: Data transfer operations
+2. **Run tests from host**:
+   ```bash
+   cd samples/hercules
+   bruno run docs/bruno/discovery/Get Catalog.yml
+   ```
+
+3. **Environment variables**:
+   - Authentication: Uses `x-api-key: password` header (see `docs/bruno/opencollection.yml`)
+   - Variables defined: `p1-management-api` (localhost:18081), `p2-management-api` (localhost:8081), `p1-data-plane-public` (localhost:9500)
+
+### Available Collections
+
+- `docs/bruno/control-plane/`: Policy and configuration queries
+- `docs/bruno/discovery/`: EDC discovery protocol (catalog, negotiation, transfers)
+- `docs/bruno/data-access/`: Data transfer operations
+- `docs/bruno/other/`: Identity Hub and other service tests
+
+### Bruno Collection Changes
+
+The `docs/bruno/` collection uses:
+- **Internal hostnames** (e.g., `control-plane:8081`) → for testing within Docker network
+- **Localhost ports** (e.g., `localhost:18081`) → for testing from host machine
+
+The `bruno/` directory contains older collections with internal hostnames (deprecated).
+
+**Recommended**: Use `docs/bruno/` collection for host-based testing.
 
 ## Common Tasks
 
@@ -435,15 +590,6 @@ docker compose logs -f Standalone
 ```bash
 docker compose restart control-plane
 docker compose restart standalone
-```
-
-### Accessing toolbox for debugging
-
-```bash
-docker compose exec toolbox sh
-# Inside toolbox:
-curl http://control-plane:8081/management
-jq . config/toolbox/data/issuer.json
 ```
 
 ### Stopping all services

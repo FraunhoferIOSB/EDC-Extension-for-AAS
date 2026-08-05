@@ -8,6 +8,8 @@ issuanceApi="$(jq -r '.issuanceApi' /scripts/data/issuer.json)"
 identityApi="$(jq -r '.identityApi' /scripts/data/issuer.json)"
 issuerApi="$(jq -r '.issuerApi' /scripts/data/issuer.json)"
 did="$(jq -r '.did' /scripts/data/issuer.json)"
+contextId="$(jq -r '.contextId' /scripts/data/issuer.json)"
+contextIdB64=$(printf %s "$contextId" | base64 | tr -d '\n')
 b64=$(printf %s "$did" | base64 | tr -d '\n')
 contextId="$(jq -r '.contextId' /scripts/data/issuer.json)"
 
@@ -22,10 +24,11 @@ issuer_participant="$(
   --arg did "$did" \
   --arg contextId "$contextId" \
   --arg b64 "$b64" \
+  --arg contextIdB64 "$contextIdB64" \
   --arg serviceType "IssuerService" \
   '
     .serviceEndpoints[0].type = $serviceType
-    | .serviceEndpoints[0].serviceEndpoint = ($url + "/v1alpha/participants/" + $b64)
+    | .serviceEndpoints[0].serviceEndpoint = ($url + "/participants/" + $contextIdB64)
     | .participantId = $did
     | .participantContextId = $contextId
     | .did = $did
@@ -34,7 +37,7 @@ issuer_participant="$(
   ' /scripts/templates/participant.json
 )"
 
-response=$(post_json "$identityApi/v1alpha/participants" "$adminApiKey" "$issuer_participant")
+response=$(post_json "$identityApi/participants" "$adminApiKey" "$issuer_participant")
 
 issuerApiKey=$(echo "$response"| jq -r '.apiKey')
 issuerClientId=$(echo "$response"| jq -r '.clientId')
@@ -45,9 +48,9 @@ echo "Client ID ($did): $issuerClientId"
 echo "Client Secret ($did): $issuerClientSecret"
 
 printf "Creating Attestation"
-post_json "$issuerApi/v1alpha/participants/$b64/attestations" "$adminApiKey" "$(jq '.'  /scripts/templates/attestation.json)"
+post_json "$issuerApi/participants/$contextId/attestations" "$adminApiKey" "$(jq '.'  /scripts/templates/attestation.json)"
 
 printf "Creating MembershipCredential"
-post_json "$issuerApi/v1alpha/participants/$b64/credentialdefinitions" "$adminApiKey" "$(jq '.'  /scripts/templates/credential.json)"
+post_json "$issuerApi/participants/$contextId/credentialdefinitions" "$adminApiKey" "$(jq '.'  /scripts/templates/credential.json)"
 
-printf "\n--- Initialized issuer ---"
+printf "Initialized issuer"

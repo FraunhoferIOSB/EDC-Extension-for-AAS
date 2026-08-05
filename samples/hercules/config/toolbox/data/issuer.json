@@ -1,9 +1,9 @@
 {
   "did": "did:web:issuer-service%3A10100",
   "contextId": "issuercontextid",
-  "issuerApi": "http://issuer-service:15152/api/issuer",
-  "identityApi": "http://issuer-service:15151/api/identity",
-  "issuanceApi": "http://issuer-service:13132/api/issuance",
+  "issuerApi": "http://issuer-service:15152/api/issuer/v1alpha",
+  "identityApi": "http://issuer-service:15151/api/identity/v1alpha",
+  "issuanceApi": "http://issuer-service:13132/api/issuance/v1alpha",
   "apiKey": "YWRtaW4=.s3cr3t",
   "hostname": "issuer-service",
   "protocol": "http"

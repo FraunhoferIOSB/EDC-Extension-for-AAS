@@ -139,6 +139,7 @@ services:
     environment:
       edc.vault.hashicorp.url: http://vault:${VAULT_PORT:-8200}
       edc.vault.hashicorp.token: ${VAULT_TOKEN:-token}
+      JAVA_TOOL_OPTIONS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=0.0.0.0:5005
 
   vault:
     image: hashicorp/vault
@@ -208,7 +209,9 @@ services:
     environment:
       edc.vault.hashicorp.url: http://vault:${VAULT_PORT:-8200}
       edc.vault.hashicorp.token: ${VAULT_TOKEN:-token}
-      JAVA_TOOL_OPTIONS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=0.0.0.0:5005
+      JAVA_TOOL_OPTIONS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+      EDC_DATASOURCE_DEFAULT_USER: ${POSTGRES_USER:-admin}
+      EDC_DATASOURCE_DEFAULT_PASSWORD: ${POSTGRES_PASSWORD:-password}
 
   postgres:
     image: postgres:16.4-alpine

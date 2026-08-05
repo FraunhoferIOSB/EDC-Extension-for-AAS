@@ -2,8 +2,8 @@
   "apiKey": "YWRtaW4=.s3cr3t",
   "did": "did:web:identity-hub%3A10100:participant1",
   "contextId": "participant1contextid",
-  "credentialsApi": "http://identity-hub:13131/api/credentials",
-  "identityApi": "http://identity-hub:15151/api/identity",
+  "credentialsApi": "http://identity-hub:13131/api/credentials/v1",
+  "identityApi": "http://identity-hub:15151/api/identity/v1alpha",
   "stsClientSecretAlias": "participant1-sts-client-secret",
   "dataPlanePrivateKeyAlias": "private-key",
   "dataPlanePublicKeyAlias": "public-key"

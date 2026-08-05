@@ -1,5 +1,6 @@
 {
   "did": "did:web:issuer-service%3A10100",
+  "contextId": "issuercontextid",
   "issuerApi": "http://issuer-service:15152/api/issuer",
   "identityApi": "http://issuer-service:15151/api/identity",
   "issuanceApi": "http://issuer-service:13132/api/issuance",

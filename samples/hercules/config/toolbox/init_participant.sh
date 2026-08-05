@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+source /scripts/util.sh
 
 function initialize() {
     participantFile=$1
@@ -22,7 +23,7 @@ function initialize() {
     secret=$(create_participant "$did" "$adminApiKey" "$credentialsApi" "$identityApi" "$contextId")
     store_secret "$vaultUrl" "$vaultToken" "$stsClientSecretAlias" "$secret"
     create_holder_at_issuer "$did" "$issuerDid" "$issuerAdminApiKey" "$issuerIssuerApi"
-    request_verifiable_credential "$did" "$adminApiKey" "$identityApi" "$issuerDid"
+    request_verifiable_credential "$did" "$adminApiKey" "$identityApi" "$issuerDid" "$contextId"
     initialize_data_plane "$vaultUrl" "$vaultToken" "$dataPlanePrivateKeyAlias" "$dataPlanePublicKeyAlias"
 }
 
@@ -33,17 +34,18 @@ function create_participant() {
   identityApi=$4
   contextId=$5
   b64=$(printf %s "$did" | base64 | tr -d '\n')
+  contextIdB64=$(printf %s "$contextId" | base64 | tr -d '\n')
 
   participant="$(
     jq \
     --arg credentialsApi "$credentialsApi" \
     --arg contextId "$contextId" \
     --arg did "$did" \
-    --arg b64 "$b64" \
+    --arg contextIdB64 "$contextIdB64" \
     --arg serviceType "CredentialService" \
     '
       .serviceEndpoints[0].type = $serviceType
-      | .serviceEndpoints[0].serviceEndpoint = ($credentialsApi + "/v1/participants/" + $b64)
+      | .serviceEndpoints[0].serviceEndpoint = ($credentialsApi + "/v1/participants/" + $contextIdB64)
       | .participantId = $did
       | .participantContextId = $contextId
       | .did = $did
@@ -53,12 +55,7 @@ function create_participant() {
   )"
 
   printf "\nCreating participant for %s\n" "$did" >&2
-  response=$(curl -fsSL\
-    --request POST \
-    --url "$identityApi/v1alpha/participants" \
-    --header 'content-type: application/json' \
-    --header "x-api-key: $adminApiKey" \
-    --data "$participant")
+  response=$(post_json "$identityApi/v1alpha/participants" "$adminApiKey" "$participant")
 
   participantApiKey=$(echo "$response"| jq -r '.apiKey')
   participantClientId=$(echo "$response"| jq -r '.clientId')
@@ -80,11 +77,7 @@ function create_holder_at_issuer() {
 
   printf "\nCreating holder for participant %s at issuer %s" "$did" "$issuerDid"
   holder="$(jq --arg did "$did" '.holderId = $did | .did = $did | .name = $did' /scripts/templates/holder.json)"
-  curl -fsSL\
-    --url "$issuerIssuerApi/v1alpha/participants/$issuerB64/holders" \
-    --header 'content-type: application/json' \
-    --header "x-api-key: $issuerAdminApiKey" \
-    --data "$holder"
+  post_json "$issuerIssuerApi/v1alpha/participants/$issuerB64/holders" "$issuerAdminApiKey" "$holder"
 }
 
 function store_secret() {
@@ -111,16 +104,13 @@ function request_verifiable_credential() {
   adminApiKey=$2
   identityApi=$3
   issuerDid=$4
-  b64=$(printf %s "$did" | base64 | tr -d '\n')
+  contextId=$5
+  contextIdB64=$(printf %s "$contextId" | base64 | tr -d '\n')
 
   cred_req="$(jq --arg did "$issuerDid" ' .issuerDid = $did ' /scripts/templates/credential_request.json)"
 
   printf "\nRequesting verifiable credential for participant %s from issuer %s" "$did" "$issuerDid"
-  curl -fsSL \
-    --url "$identityApi/v1alpha/participants/$b64/credentials/request" \
-    --header 'content-type: application/json' \
-    --header "x-api-key: $adminApiKey" \
-    --data "$cred_req"
+  post_json "$identityApi/v1alpha/participants/$contextIdB64/credentials/request" "$adminApiKey" "$cred_req"
 }
 
 function initialize_data_plane() {
@@ -129,6 +119,7 @@ function initialize_data_plane() {
   privKeyAlias=$3
   pubKeyAlias=$4
 
+  printf "\nGenerating keypair for dataplane to create EDRs"
   # create rsa keypair
   openssl genrsa -out /tmp/priv_pkcs1.pem 2048
   openssl pkcs8 -topk8 -nocrypt -in /tmp/priv_pkcs1.pem -out /tmp/priv_pkcs8.pem

@@ -5,7 +5,7 @@ info:
 
 http:
   method: POST
-  url: "{{p2-management-api}}/transferprocesses"
+  url: "{{p2-management-api}}/v3/transferprocesses"
   body:
     type: json
     data: |-

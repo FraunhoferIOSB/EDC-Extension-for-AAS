@@ -5,7 +5,7 @@ info:
 
 http:
   method: POST
-  url: "{{p2-management-api}}/catalog/request"
+  url: "{{p2-management-api}}/v3/catalog/request"
   headers:
     - name: Content-Type
       value: application/json

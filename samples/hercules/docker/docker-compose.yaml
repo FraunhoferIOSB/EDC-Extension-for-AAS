@@ -1,3 +1,4 @@
+name: Hercules
 services:
   control-plane:
     image: ghcr.io/factory-x-contributions/edc-controlplane-postgresql-hashicorp-vault:sha-dd6f929
@@ -195,8 +196,8 @@ services:
       timeout: 5s
       retries: 15
       start_period: 10s
-    ports:
-      - "5005:5005" # debug
+    # ports:
+    # - "5005:5005" # debug
     # - "8181:8181" # API /api
     # - "7171:7171" # VERSION /.well-known/api
     # - "9999:9999" # STATUSLIST /statuslist

@@ -5,7 +5,7 @@ info:
 
 http:
   method: POST
-  url: "{{p1-management-api}}/policydefinitions/request"
+  url: "{{p1-management-api}}/v3/policydefinitions/request"
   body:
     type: json
     data: |-

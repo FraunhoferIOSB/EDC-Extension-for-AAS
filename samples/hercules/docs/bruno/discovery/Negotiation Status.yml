@@ -5,7 +5,7 @@ info:
 
 http:
   method: GET
-  url: "{{p2-management-api}}/contractnegotiations/:negotiation-id"
+  url: "{{p2-management-api}}/v3/contractnegotiations/:negotiation-id"
   headers:
     - name: content-type
       value: application/json

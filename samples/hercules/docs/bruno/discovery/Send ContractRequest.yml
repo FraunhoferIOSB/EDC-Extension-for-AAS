@@ -5,7 +5,7 @@ info:
 
 http:
   method: POST
-  url: "{{p2-management-api}}/contractnegotiations"
+  url: "{{p2-management-api}}/v3/contractnegotiations"
   headers:
     - name: Content-Type
       value: application/json

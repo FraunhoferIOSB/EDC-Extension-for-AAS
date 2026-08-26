@@ -22,9 +22,9 @@ request:
     placement: header
   variables:
     - name: p2-management-api
-      value: http://localhost:8081/management/v3
+      value: http://localhost:8081/management
     - name: p1-management-api
-      value: http://localhost:18081/management/v3
+      value: http://localhost:18081/management
     - name: p1-data-plane-public
       value: http://localhost:9500/public
     - name: p1-did

@@ -5,7 +5,7 @@ info:
 
 http:
   method: GET
-  url: "{{p2-management-api}}/edrs/:transfer-id/dataaddress?auto_refresh=true"
+  url: "{{p2-management-api}}/v3/edrs/:transfer-id/dataaddress?auto_refresh=true"
   params:
     - name: auto_refresh
       value: "true"

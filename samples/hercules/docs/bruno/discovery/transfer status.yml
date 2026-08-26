@@ -5,7 +5,7 @@ info:
 
 http:
   method: GET
-  url: "{{p2-management-api}}/transferprocesses/:transfer-id"
+  url: "{{p2-management-api}}/v3/transferprocesses/:transfer-id"
   params:
     - name: transfer-id
       value: "{{transferprocess-id}}"

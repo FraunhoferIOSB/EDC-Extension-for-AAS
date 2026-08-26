@@ -1,0 +1,3 @@
+[submodule "samples/hercules/project-construct-x-wallet"]
+	path = samples/hercules/project-construct-x-wallet
+	url = git@github.com:project-construct-x/wallet.git

@@ -50,15 +50,15 @@ The Hercules sample implements an end-to-end MX-Port data space with the MX-Port
 
 Services expose the following ports for external access via `localhost`:
 
-| Service | Port | Description |
-|---------|------|-------------|
-| Control Plane (Participant 1) | `18081` | Management API (via docker-compose port mapping) |
-| Control Plane (Participant 2) | `8081` | Management API |
-| Data Plane | `9500` | Public data endpoint (`/public`) |
-| Identity Hub | `10100` | DID endpoint |
-| Identity Hub | `15151` | Identity API |
-| FA³ST Registry (DTR) | `8090` | Shell Descriptors (uncomment in docker-compose to enable) |
-| Vault | `8200` | HashiCorp Vault API |
+| Service                       | Port    | Description                                               |
+| ----------------------------- | ------- | --------------------------------------------------------- |
+| Control Plane (Participant 1) | `18081` | Management API (via docker-compose port mapping)          |
+| Control Plane (Participant 2) | `8081`  | Management API                                            |
+| Data Plane                    | `9500`  | Public data endpoint (`/public`)                          |
+| Identity Hub                  | `10100` | DID endpoint                                              |
+| Identity Hub                  | `15151` | Identity API                                              |
+| FA³ST Registry (DTR)          | `8090`  | Shell Descriptors (uncomment in docker-compose to enable) |
+| Vault                         | `8200`  | HashiCorp Vault API                                       |
 
 ## Architecture
 
@@ -93,32 +93,21 @@ Services expose the following ports for external access via `localhost`:
    docker compose build standalone
    ```
 
-3. **Start all services**:
+3. ** Build the Wallet (IdentityHub):
    ```bash
-   docker compose up -d
+   cd samples/hercules/project-construct-x-wallet
+   ./gradlew :launcher:identityhub:shadowJar
+   docker build -t wallet-sql-vault:0.18.0-1 ./launcher/identityhub
    ```
 
-4. **Initialize participants and credentials** (in correct order):
+4. **Start all services**:
    ```bash
-   # Wait for services to be healthy (takes ~30-60 seconds)
-   docker compose ps
-   
-   # Initialize issuer first
-   docker compose exec toolbox ./init_issuer.sh
-   
-   # Then initialize participants
-   docker compose exec toolbox ./init_participant.sh
+   cd samples/hercules/docker
+   docker compose up --build -d
    ```
 
-4. **Access services**:
-   - Control Plane Management (P1): `http://localhost:18081/management`
-   - Control Plane Management (P2): `http://localhost:8081/management`
-   - Data Plane: `http://localhost:9500/public`
-   - Identity Hub: `http://localhost:10100`
-   - Identity Hub API: `http://localhost:15151`
-   - FA³ST Registry: `http://localhost:8090/shell-descriptors` (uncomment in docker-compose to enable)
-   - PostgreSQL: `localhost:5432`
-   - Vault: `http://localhost:8200`
+5. **Access services**:
+   Use the bruno collection provided in `samples/hercules/docs/bruno`
 
 ## API Testing
 
@@ -126,11 +115,11 @@ The bruno collections in `docs/bruno/` enable complete testing of the MX-Port da
 
 ### Test Flows
 
-| Collection | Tests | Purpose |
-|------------|-------|---------|
-| `docs/bruno/discovery/` | Catalog, Negotiation, EDR, Data | EDC discovery protocol (find, negotiate, get EDR, access data) |
-| `docs/bruno/data-access/` | Catalog, Negotiation, Transfer, Data | End-to-end data transfer using EDC extension |
-| `docs/bruno/other/` | Identity Hub, DID, Credentials | Identity and credential services |
+| Collection                | Tests                                | Purpose                                                        |
+| ------------------------- | ------------------------------------ | -------------------------------------------------------------- |
+| `docs/bruno/discovery/`   | Catalog, Negotiation, EDR, Data      | EDC discovery protocol (find, negotiate, get EDR, access data) |
+| `docs/bruno/data-access/` | Catalog, Negotiation, Transfer, Data | End-to-end data transfer using EDC extension                   |
+| `docs/bruno/other/`       | Identity Hub, DID, Credentials       | Identity and credential services                               |
 
 ### Automated AAS Registration
 
@@ -345,15 +334,15 @@ All container names resolve automatically within the Docker network.
 
 Services expose specific ports on `localhost` for external access:
 
-| Service | Port | Internal Path | External URL |
-|---------|------|---------------|--------------|
-| Control Plane 1 | `18081` | `/management` | `http://localhost:18081/management` |
-| Control Plane 2 | `8081` | `/management` | `http://localhost:8081/management` |
-| Data Plane | `9500` | `/public` | `http://localhost:9500/public` |
-| Identity Hub | `10100` | `/` | `http://localhost:10100/` |
-| Identity Hub API | `15151` | `/api/identity` | `http://localhost:15151/api/identity` |
-| FA³ST Registry | `8090` | `/shell-descriptors` | `http://localhost:8090/shell-descriptors` |
-| Vault | `8200` | `/v1/` | `http://localhost:8200/v1/` |
+| Service          | Port    | Internal Path        | External URL                              |
+| ---------------- | ------- | -------------------- | ----------------------------------------- |
+| Control Plane 1  | `18081` | `/management`        | `http://localhost:18081/management`       |
+| Control Plane 2  | `8081`  | `/management`        | `http://localhost:8081/management`        |
+| Data Plane       | `9500`  | `/public`            | `http://localhost:9500/public`            |
+| Identity Hub     | `10100` | `/`                  | `http://localhost:10100/`                 |
+| Identity Hub API | `15151` | `/api/identity`      | `http://localhost:15151/api/identity`     |
+| FA³ST Registry   | `8090`  | `/shell-descriptors` | `http://localhost:8090/shell-descriptors` |
+| Vault            | `8200`  | `/v1/`               | `http://localhost:8200/v1/`               |
 
 **Note**: Uncomment the port mappings in `docker-compose.yaml` to enable external access to services.
 
@@ -392,36 +381,36 @@ All services in this environment are connected to the default network:
 
 ### Service Hostname Resolution
 
-| Service Name | Hostname | IP (Docker DNS) |
-|-------------|----------|-----------------|
-| control-plane | `control-plane` | 172.x.x.x |
-| standalone | `standalone` | 172.x.x.x |
-| data-plane | `data-plane` | 172.x.x.x |
-| wallet | `wallet` | 172.x.x.x |
-| issuer-service | `issuer-service` | 172.x.x.x |
-| dtr | `dtr` | 172.x.x.x |
-| participant2 | `participant2` | 172.x.x.x |
-| toolbox | `toolbox` | 172.x.x.x |
-| postgres | `postgres` | 172.x.x.x |
-| postgres2 | `postgres2` | 172.x.x.x |
-| vault | `vault` | 172.x.x.x |
+| Service Name   | Hostname         | IP (Docker DNS) |
+| -------------- | ---------------- | --------------- |
+| control-plane  | `control-plane`  | 172.x.x.x       |
+| standalone     | `standalone`     | 172.x.x.x       |
+| data-plane     | `data-plane`     | 172.x.x.x       |
+| wallet         | `wallet`         | 172.x.x.x       |
+| issuer-service | `issuer-service` | 172.x.x.x       |
+| dtr            | `dtr`            | 172.x.x.x       |
+| participant2   | `participant2`   | 172.x.x.x       |
+| toolbox        | `toolbox`        | 172.x.x.x       |
+| postgres       | `postgres`       | 172.x.x.x       |
+| postgres2      | `postgres2`      | 172.x.x.x       |
+| vault          | `vault`          | 172.x.x.x       |
 
 ### Key Network Connections
 
-| Service | Connects To | Purpose |
-|---------|-------------|---------|
-| `standalone` | `control-plane:8081` | EDC management API |
-| `standalone` | `data-plane:9500` | Data access via public endpoint |
-| `standalone` | `dtr:8090` | FA³ST registry for AAS |
-| `standalone` | `wallet:15151` | Identity management |
-| `standalone` | `issuer-service:13132` | Credential issuance |
-| `standalone` | `vault:8200` | Secrets management |
-| `data-plane` | `control-plane:8083` | Dataplane selector |
-| `data-plane` | `vault:8200` |Keys management |
-| `participant2` | `postgres2:5432` | PostgreSQL database |
-| `participant2` | `vault:8200` | Secrets management |
-| All services | `wallet:13131` | Credentials API |
-| All services | `issuer-service:15152` | Issuer admin API |
+| Service        | Connects To            | Purpose                         |
+| -------------- | ---------------------- | ------------------------------- |
+| `standalone`   | `control-plane:8081`   | EDC management API              |
+| `standalone`   | `data-plane:9500`      | Data access via public endpoint |
+| `standalone`   | `dtr:8090`             | FA³ST registry for AAS          |
+| `standalone`   | `wallet:15151`         | Identity management             |
+| `standalone`   | `issuer-service:13132` | Credential issuance             |
+| `standalone`   | `vault:8200`           | Secrets management              |
+| `data-plane`   | `control-plane:8083`   | Dataplane selector              |
+| `data-plane`   | `vault:8200`           | Keys management                 |
+| `participant2` | `postgres2:5432`       | PostgreSQL database             |
+| `participant2` | `vault:8200`           | Secrets management              |
+| All services   | `wallet:13131`         | Credentials API                 |
+| All services   | `issuer-service:15152` | Issuer admin API                |
 
 ## Understanding the Workflow
 
@@ -496,18 +485,18 @@ All services in this environment are connected to the default network:
 
 ### Environment Variables (`.env`)
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `CONTROL_PLANE_API_KEY` | API key for control plane management | `password` |
-| `EXTENSION_API_KEY` | API key for standalone extension | `password` |
-| `IDENTITY_HUB_SUPERUSER_ID` | Identity Hub admin user | `admin` |
-| `IDENTITY_HUB_SUPERUSER_KEY` | Identity Hub admin key | `YWRtaW4=.s3cr3t` |
-| `ISSUER_SERVICE_SUPERUSER_ID` | Issuer service admin user | `admin` |
-| `ISSUER_SERVICE_SUPERUSER_KEY` | Issuer service admin key | `YWRtaW4=.s3cr3t` |
-| `POSTGRES_USER` | PostgreSQL username | `postgres` |
-| `POSTGRES_PASSWORD` | PostgreSQL password | `password` |
-| `VAULT_TOKEN` | HashiCorp Vault root token | `token` |
-| `VAULT_PORT` | HashiCorp Vault port | `8200` |
+| Variable                       | Description                          | Default           |
+| ------------------------------ | ------------------------------------ | ----------------- |
+| `CONTROL_PLANE_API_KEY`        | API key for control plane management | `password`        |
+| `EXTENSION_API_KEY`            | API key for standalone extension     | `password`        |
+| `IDENTITY_HUB_SUPERUSER_ID`    | Identity Hub admin user              | `admin`           |
+| `IDENTITY_HUB_SUPERUSER_KEY`   | Identity Hub admin key               | `YWRtaW4=.s3cr3t` |
+| `ISSUER_SERVICE_SUPERUSER_ID`  | Issuer service admin user            | `admin`           |
+| `ISSUER_SERVICE_SUPERUSER_KEY` | Issuer service admin key             | `YWRtaW4=.s3cr3t` |
+| `POSTGRES_USER`                | PostgreSQL username                  | `postgres`        |
+| `POSTGRES_PASSWORD`            | PostgreSQL password                  | `password`        |
+| `VAULT_TOKEN`                  | HashiCorp Vault root token           | `token`           |
+| `VAULT_PORT`                   | HashiCorp Vault port                 | `8200`            |
 
 ### Participant Configuration
 

@@ -66,11 +66,7 @@ public abstract class AasRepositoryContext extends AasServerContext {
      */
     public PolicyBinding getPolicyBinding(Reference reference) {
         return policyBindingIfPresent(reference)
-                .orElse(new PolicyBinding.Builder()
-                        .withReferredElement(ReferenceHelper.asString(reference))
-                        .withAccessPolicyDefinitionId(defaultAccessPolicyDefinitionId)
-                        .withContractPolicyDefinitionId(defaultContractPolicyDefinitionId)
-                        .build());
+                .orElse(new PolicyBinding(reference, defaultAccessPolicyDefinitionId, defaultContractPolicyDefinitionId));
     }
 
 

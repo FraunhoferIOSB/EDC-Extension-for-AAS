@@ -37,6 +37,7 @@ import static de.fraunhofer.iosb.app.testutils.AasCreator.getLangStringNameType;
 import static de.fraunhofer.iosb.app.testutils.AasCreator.getLangStringTextType;
 import static de.fraunhofer.iosb.app.testutils.AasCreator.getReference;
 import static de.fraunhofer.iosb.app.testutils.AasCreator.uuid;
+import static de.fraunhofer.iosb.constants.AasConstants.SUPPORTED_AAS_VERSION;
 
 
 public class RegistryElementCreator {
@@ -55,7 +56,7 @@ public class RegistryElementCreator {
                 .id(descriptor.getId())
                 .idShort(descriptor.getIdShort())
                 .semanticId(descriptor.getSemanticId())
-                .supplementalSemanticIds(descriptor.getSupplementalSemanticId())
+                .supplementalSemanticIds(descriptor.getSupplementalSemanticIds())
                 .build();
     }
 
@@ -123,7 +124,7 @@ public class RegistryElementCreator {
     private static List<Endpoint> getEndpoints(String id, String type) {
         return List.of(
                 new DefaultEndpoint.Builder()
-                        ._interface("%s-3.0".formatted(type))
+                        ._interface("%s-%s".formatted(type, SUPPORTED_AAS_VERSION))
                         .protocolInformation(new DefaultProtocolInformation.Builder()
                                 .href("https://localhost:12345")
                                 .endpointProtocol("HTTPS")
@@ -132,7 +133,7 @@ public class RegistryElementCreator {
                                 .build())
                         .build(),
                 new DefaultEndpoint.Builder()
-                        ._interface("%s-REPOSITORY-3.0".formatted(type))
+                        ._interface("%s-REPOSITORY-%s".formatted(type, SUPPORTED_AAS_VERSION))
                         .protocolInformation(new DefaultProtocolInformation.Builder()
                                 .href("http://localhost:420")
                                 .endpointProtocol("HTTP")

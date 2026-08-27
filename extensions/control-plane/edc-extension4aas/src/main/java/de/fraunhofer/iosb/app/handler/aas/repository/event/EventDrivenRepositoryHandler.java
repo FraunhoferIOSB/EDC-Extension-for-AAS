@@ -65,16 +65,20 @@ public abstract class EventDrivenRepositoryHandler<C extends LocalAasRepositoryC
 
 
     protected StoreResult<Void> doHandle(Reference reference, BiFunction<PolicyBinding, Asset, StoreResult<Void>> consumer) {
-        PolicyBinding policyBinding = policyBindingFor(reference);
-        Asset asset = referenceToAsset(reference, client.getEnvironment());
+        Asset baseAsset = referenceToAsset(reference, client.getEnvironment());
 
-        StoreResult<Void> result = consumer.apply(policyBinding, asset);
+        StoreResult<Void> result = StoreResult.success();
+        for (PolicyBinding binding: policyBindingsFor(reference)) {
+            Asset asset = assetForBinding(reference, baseAsset, binding);
+            StoreResult<Void> singleResult = consumer.apply(binding, asset);
 
-        if (result.failed()) {
-            result.getFailureMessages().add(0, String.format("Asset with id %s from repository %s could not be processed", asset.getId(),
-                    client.getUri()));
+            if (singleResult.failed()) {
+                singleResult.getFailureMessages().add(0, String.format("Asset with id %s from repository %s could not be processed", asset.getId(),
+                        client.getUri()));
+                return singleResult;
+            }
+            result = singleResult;
         }
-
         return result;
     }
 }

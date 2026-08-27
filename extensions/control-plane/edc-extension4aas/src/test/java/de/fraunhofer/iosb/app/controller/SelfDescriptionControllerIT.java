@@ -57,15 +57,15 @@ public class SelfDescriptionControllerIT extends AbstractAasServerControllerIT<S
 
         assertSelfDescription(selfDescriptionSerialized);
 
-        assertEquals(selfDescriptionSerialized.getAssetAdministrationShells().size(), environment.getAssetAdministrationShells().size());
-        assertEquals(selfDescriptionSerialized.getSubmodels().size(), environment.getSubmodels().size());
+        assertEquals(environment.getAssetAdministrationShells().size(), selfDescriptionSerialized.getAssetAdministrationShells().size());
+        assertEquals(environment.getSubmodels().size(), selfDescriptionSerialized.getSubmodels().size());
 
         for (int i = 0; i < selfDescriptionSerialized.getSubmodels().size(); i++) {
-            assertEquals(selfDescriptionSerialized.getSubmodels().get(i).getSubmodelElements().size(),
-                    environment.getSubmodels().get(i).getSubmodelElements().size());
+            assertEquals(environment.getSubmodels().get(i).getSubmodelElements().size(),
+                    selfDescriptionSerialized.getSubmodels().get(i).getSubmodelElements().size());
         }
 
-        assertEquals(selfDescriptionSerialized.getConceptDescriptions().size(), environment.getConceptDescriptions().size());
+        assertEquals(environment.getConceptDescriptions().size(), selfDescriptionSerialized.getConceptDescriptions().size());
     }
 
 

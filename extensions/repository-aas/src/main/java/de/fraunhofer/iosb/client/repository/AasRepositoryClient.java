@@ -22,6 +22,8 @@ import de.fraunhofer.iosb.ilt.faaast.client.exception.StatusCodeException;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 
+import java.util.List;
+
 
 /**
  * Clients used to communicate with AAS repositories (e.g., FA³ST service).
@@ -45,4 +47,15 @@ public interface AasRepositoryClient extends AasServerClient {
      * @return The policy binding.
      */
     PolicyBinding getPolicyBinding(Reference reference);
+
+
+    /**
+     * Returns all policy bindings stored with the context pertaining to the AAS repository behind this client for the
+     * given reference. In register-all mode a single default binding is returned; in selective mode only the matching
+     * bindings are returned (possibly empty).
+     *
+     * @param reference Reference of the policy bindings to return
+     * @return List of policy bindings for the reference (never null, possibly empty in selective mode).
+     */
+    List<PolicyBinding> getPolicyBindings(Reference reference);
 }

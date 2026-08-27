@@ -45,6 +45,7 @@ public class ConfigurationController {
     private final Config sysConfig;
     private final ObjectMapper objectMapper;
     private final ObjectReader objectReader;
+    private final ObjectReader strictObjectReader;
     private Configuration configuration;
 
     public ConfigurationController(Config config, Monitor monitor) {
@@ -56,6 +57,7 @@ public class ConfigurationController {
                 .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
                 .build();
         objectReader = objectMapper.readerForUpdating(configuration);
+        strictObjectReader = objectReader.with(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
         initializeConfiguration();
     }
@@ -104,7 +106,7 @@ public class ConfigurationController {
             Config newConfig = ConfigFactory.fromMap(objectMapper.readValue(newConfigValues,
                     new TypeReference<>() {}));
             Config mergedConfig = sysConfig.merge(newConfig);
-            configuration = objectReader.readValue(objectMapper.writeValueAsString(mergedConfig.getEntries()));
+            configuration = strictObjectReader.readValue(objectMapper.writeValueAsString(mergedConfig.getEntries()));
         }
         catch (JsonProcessingException jsonProcessingException) {
             monitor.severe("Updating configuration to this configuration failed:\n" + newConfigValues,

@@ -85,8 +85,9 @@ public class LocalFaaastRepositoryHandler extends EventDrivenRepositoryHandler<L
 
     private void deleted(Reference element, Class<?> clazz) {
         try {
-            PolicyBinding policyBinding = policyBindingFor(element);
-            unregisterSingle(policyBinding, AssetIdUtil.id(client.getUri().toString(), element));
+            for (PolicyBinding binding: policyBindingsFor(element)) {
+                unregisterSingle(binding, AssetIdUtil.id(client.getUri().toString(), element, binding));
+            }
         }
         catch (Exception e) {
             monitor.severe("Exception thrown while handling event", e);

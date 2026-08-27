@@ -15,7 +15,6 @@
  */
 package de.fraunhofer.iosb.app.handler.aas.registry;
 
-import de.fraunhofer.iosb.app.aas.mapper.util.AssetIdUtil;
 import de.fraunhofer.iosb.app.handler.aas.RemoteAasHandler;
 import de.fraunhofer.iosb.app.handler.edc.EdcStoreHandler;
 import de.fraunhofer.iosb.client.registry.AasRegistryClient;
@@ -27,8 +26,10 @@ import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShellDescriptor
 import org.eclipse.digitaltwin.aas4j.v3.model.Descriptor;
 import org.eclipse.digitaltwin.aas4j.v3.model.Endpoint;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
+import org.eclipse.digitaltwin.aas4j.v3.model.Extension;
 import org.eclipse.digitaltwin.aas4j.v3.model.Identifiable;
 import org.eclipse.digitaltwin.aas4j.v3.model.ProtocolInformation;
+import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.digitaltwin.aas4j.v3.model.SecurityAttributeObject;
 import org.eclipse.digitaltwin.aas4j.v3.model.SecurityTypeEnum;
 import org.eclipse.digitaltwin.aas4j.v3.model.Submodel;
@@ -48,11 +49,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Consumer;
 
 import static de.fraunhofer.iosb.constants.AasConstants.SUPPORTED_AAS_VERSION;
-import static org.eclipse.edc.dataaddress.httpdata.spi.HttpDataAddressSchema.BASE_URL;
 
 
 /**
@@ -107,17 +106,18 @@ public class RemoteAasRegistryHandler extends RemoteAasHandler<AasRegistryClient
 
 
     private void registryIdentifiableVisitor(Identifiable identifiable) {
-        // Find suitable URI
-        String uri = registeredAssets.entrySet().stream()
-                .filter(entry -> entry.getKey().referredElement().equals(AasUtils.toReference(identifiable)))
+        Reference reference = AasUtils.toReference(identifiable);
+        // Emit one Extension per registered asset (i.e. one per policy binding) for this identifiable
+        List<Extension> extensions = registeredAssets.entrySet().stream()
+                .filter(entry -> entry.getKey().referredElement().equals(reference))
                 .map(Map.Entry::getValue)
-                .map(Asset::getDataAddress)
-                .map(da -> (String) da.getProperty(BASE_URL))
-                .filter(Objects::nonNull)
-                .findAny()
-                .orElseThrow();
-
-        identifiable.setExtensions(List.of(buildExtension(AssetIdUtil.id(uri, identifiable))));
+                .map(Asset::getId)
+                .map(this::buildExtension)
+                .toList();
+        if (extensions.isEmpty()) {
+            throw new IllegalStateException(String.format("No registered asset found for identifiable %s at registry %s", reference, client.getUri()));
+        }
+        identifiable.setExtensions(extensions);
     }
 
 
@@ -148,7 +148,7 @@ public class RemoteAasRegistryHandler extends RemoteAasHandler<AasRegistryClient
                 .id(descriptor.getId())
                 .idShort(descriptor.getIdShort())
                 .semanticId(descriptor.getSemanticId())
-                .supplementalSemanticIds(descriptor.getSupplementalSemanticId())
+                .supplementalSemanticIds(descriptor.getSupplementalSemanticIds())
                 .build();
     }
 

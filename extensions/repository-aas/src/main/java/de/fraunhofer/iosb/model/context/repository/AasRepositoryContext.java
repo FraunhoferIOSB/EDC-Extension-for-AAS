@@ -65,8 +65,27 @@ public abstract class AasRepositoryContext extends AasServerContext {
      * @return The policy binding.
      */
     public PolicyBinding getPolicyBinding(Reference reference) {
-        return policyBindingIfPresent(reference)
+        return getPolicyBindings(reference).stream()
+                .findFirst()
                 .orElse(new PolicyBinding(reference, defaultAccessPolicyDefinitionId, defaultContractPolicyDefinitionId));
+    }
+
+
+    /**
+     * Returns all policy bindings for a given reference. When no explicit policy bindings are configured (register-all
+     * mode), a single default binding is returned. Otherwise, only bindings whose referred element matches the given
+     * reference are returned (possibly empty).
+     *
+     * @param reference Reference for which policy bindings are to be returned.
+     * @return List of policy bindings for the reference (never null, possibly empty in selective mode).
+     */
+    public List<PolicyBinding> getPolicyBindings(Reference reference) {
+        if (policyBindings.isEmpty()) {
+            return List.of(new PolicyBinding(reference, defaultAccessPolicyDefinitionId, defaultContractPolicyDefinitionId));
+        }
+        return policyBindings.stream()
+                .filter(policyBinding -> Objects.equals(reference, policyBinding.referredElement()))
+                .toList();
     }
 
 

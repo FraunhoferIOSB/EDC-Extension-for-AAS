@@ -46,15 +46,9 @@ jobs:
           distribution: 'temurin'
 
       - name: Verify version snapshot
-        shell: bash
-        run: |
-          SNAPSHOT="${{ inputs.version }}-SNAPSHOT"
-          CURRENT=$(grep '^version=' gradle.properties | cut -d= -f2)
-          if [ "$CURRENT" != "$SNAPSHOT" ]; then
-            echo "Expected version=$SNAPSHOT in gradle.properties but found version=$CURRENT" >&2
-            exit 1
-          fi
-          echo "Version matches: $CURRENT"
+        uses: ./.github/actions/release/verify_version_snapshot
+        with:
+          version: ${{ inputs.version }}
 
       - name: Set up git user
         shell: bash
@@ -63,28 +57,15 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
       - name: Create release commit and tag
-        shell: bash
-        run: |
-          BRANCH="release/v${{ inputs.version }}"
-          git checkout -b "$BRANCH"
-
-          sed -i "s/^version=.*-SNAPSHOT/version=${{ inputs.version }}/" gradle.properties
-          sed -i "s/^## Current development version (V${{ inputs.version }}-SNAPSHOT)/## V${{ inputs.version }}/" changelog.md
-          git add gradle.properties changelog.md
-          git commit -m "chore: prepare release v${{ inputs.version }}"
-
-          git tag v${{ inputs.version }}
+        uses: ./.github/actions/release/create_release_commit_and_tag
+        with:
+          version: ${{ inputs.version }}
 
       - name: Bump to next development version
-        shell: bash
-        run: |
-          sed -i "s/^version=.*/version=${{ inputs.next_version }}/" gradle.properties
-          NEXT="## Current development version (V${{ inputs.next_version }})"
-          RELEASE="## V${{ inputs.version }}"
-          SECTIONS="### New Features\n\n### Bugfixes\n\n### Miscellaneous"
-          sed -i "s/^${RELEASE}/${NEXT}\n\n${SECTIONS}\n\n${RELEASE}/" changelog.md
-          git add gradle.properties changelog.md
-          git commit -m "chore: bump to ${{ inputs.next_version }}"
+        uses: ./.github/actions/release/bump_to_next_development_version
+        with:
+          version: ${{ inputs.version }}
+          next_version: ${{ inputs.next_version }}
 
       - name: Push release branch and tag
         shell: bash

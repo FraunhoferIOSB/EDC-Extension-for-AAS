@@ -1,0 +1,38 @@
+# Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
+# Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
+# Forschung e.V.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# http://www.apache.org/licenses/LICENSE-2.0
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: Create release commit and tag
+description: Creates a release commit on the main branch and tags the current state
+
+inputs:
+  version:
+    description: 'Release version (x.y.z)'
+    required: true
+
+
+runs:
+  using: "composite"
+  steps:
+    - name: Create release commit and tag
+      shell: bash
+      run: |
+        BRANCH="release/v${{ inputs.version }}"
+        git checkout -b "$BRANCH"
+        
+        sed -i "s/^version=.*-SNAPSHOT/version=${{ inputs.version }}/" gradle.properties
+        sed -i "s/^## Current development version (V${{ inputs.version }}-SNAPSHOT)/## V${{ inputs.version }}/" changelog.md
+        git add gradle.properties changelog.md
+        git commit -m "chore: prepare release v${{ inputs.version }}"
+        
+        git tag v${{ inputs.version }}

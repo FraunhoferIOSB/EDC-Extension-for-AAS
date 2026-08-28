@@ -12,29 +12,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: Run system tests
-description: Runs the system tests defined in system-tests.
+name: Verify version snapshot
+description: Verify that the current version is equal to the input version without the "snapshot" suffix
+
+inputs:
+  version:
+    description: 'Release version (x.y.z)'
+    required: true
+
 
 runs:
   using: "composite"
   steps:
-    - name: Checkout sources
-      uses: actions/checkout@v4
-    - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v3
-    - name: Setup python 3.x
-      uses: actions/setup-python@v6
-      with:
-        python-version: '3.13'
-    - name: Install system-test dependency
+    - name: Verify version snapshot
       shell: bash
-      run: sudo apt-get update && sudo apt-get install -y gettext-base
-    - name: Run data plane test
-      shell: bash
-      run: system-tests/aas-data-plane/test.sh
-    - name: Run provider test
-      shell: bash
-      run: system-tests/provider/test.sh
-    - name: Run standalone test
-      shell: bash
-      run: system-tests/standalone/test.sh
+      run: |
+        SNAPSHOT="${{ inputs.version }}-SNAPSHOT"
+        CURRENT=$(grep '^version=' gradle.properties | cut -d= -f2)
+        if [ "$CURRENT" != "$SNAPSHOT" ]; then
+          echo "Expected version=$SNAPSHOT in gradle.properties but found version=$CURRENT" >&2
+          exit 1
+        fi
+        echo "Version matches: $CURRENT"

@@ -13,6 +13,7 @@
 # limitations under the License.
 
 name: Build default
+description: Build only the "default" launcher, i.e. the complete EDC connector featuring control plane, data plane and AAS extension
 
 runs:
   using: "composite"

@@ -5,8 +5,7 @@
         "modelType": "AssetAdministrationShell",
         "extensions": [
           {
-            "name": "https://w3id.org/edc/v0.0.1/ns/id",
-            "value": "792362498"
+            "name": "https://w3id.org/edc/v0.0.1/ns/id"
           }
         ],
         "id": "https://acplt.org/System_Test_AssetAdministrationShell",
@@ -28,8 +27,7 @@
         "modelType": "ConceptDescription",
         "extensions": [
           {
-            "name": "https://w3id.org/edc/v0.0.1/ns/id",
-            "value": "1351791412"
+            "name": "https://w3id.org/edc/v0.0.1/ns/id"
           }
         ],
         "id": "https://acplt.org/System_Test_ConceptDescription",
@@ -51,8 +49,7 @@
         "modelType": "Submodel",
         "extensions": [
           {
-            "name": "https://w3id.org/edc/v0.0.1/ns/id",
-            "value": "1855961989"
+            "name": "https://w3id.org/edc/v0.0.1/ns/id"
           }
         ],
         "semanticId": {
@@ -81,8 +78,7 @@
             "modelType": "SubmodelElementCollection",
             "extensions": [
               {
-                "name": "https://w3id.org/edc/v0.0.1/ns/id",
-                "value": "-799803758"
+                "name": "https://w3id.org/edc/v0.0.1/ns/id"
               }
             ],
             "semanticId": {
@@ -110,8 +106,7 @@
                 "modelType": "Property",
                 "extensions": [
                   {
-                    "name": "https://w3id.org/edc/v0.0.1/ns/id",
-                    "value": "458140152"
+                    "name": "https://w3id.org/edc/v0.0.1/ns/id"
                   }
                 ],
                 "semanticId": {

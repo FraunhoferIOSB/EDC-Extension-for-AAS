@@ -21,9 +21,6 @@ runs:
       uses: actions/checkout@v4
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
-    - name: Clean possible debris
-      shell: bash
-      run: ./gradlew clean
     - name: Build all extensions and launchers
       shell: bash
       run: ./gradlew build

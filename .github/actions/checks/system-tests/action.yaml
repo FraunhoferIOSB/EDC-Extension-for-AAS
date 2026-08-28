@@ -31,15 +31,9 @@ runs:
     - name: Run data plane test
       shell: bash
       run: system-tests/aas-data-plane/test.sh
-    - name: Clean possible debris
-      shell: bash
-      run: ./gradlew clean
     - name: Run provider test
       shell: bash
       run: system-tests/provider/test.sh
-    - name: Clean possible debris
-      shell: bash
-      run: ./gradlew clean
-    - name: Run provider test
+    - name: Run standalone test
       shell: bash
       run: system-tests/standalone/test.sh

@@ -36,6 +36,23 @@
   cycle; re-register the affected services to apply the new IDs.
 * Updated `SUPPORTED_AAS_VERSION` from `3.0` to `3.1` to match aas4j 2.0.2; AAS registry endpoint interface short
   names now use `AAS-3.1` / `SUBMODEL-3.1`.
+* **Build pipeline optimization**
+    * `edc-build` plugin now applied to all projects, providing consistent checkstyle, JUnit Platform, test logging,
+      and jar conventions (LICENSE/NOTICE in META-INF) across the whole build.
+    * Removed redundant `java-library` and `useJUnitPlatform()` declarations from `buildsrc.java-library.gradle.kts`
+      — `edc-build` handles both.
+    * Checkstyle is now wired up with `misc/checkstyle/checkstyle.xml` for all modules; `CustomImportOrder` and
+      `GenericWhitespace` checks disabled (Spotless already enforces import order and whitespace formatting).
+    * Added `org.gradle.caching=true` to `gradle.properties` for build-cache reuse across tasks and CI jobs.
+    * Remove `mavenLocal` added by `edc-build` at project level to prevent stale local POMs (e.g. FA³ST snapshots
+      with unresolved properties) from overriding remote snapshot resolution.
+    * `dockerize` task now depends on `build` to satisfy Gradle's implicit-dependency validation when
+      checkstyle and sourcesJar tasks are present on launcher projects.
+    * Removed all `./gradlew clean` calls from CI composite actions; Gradle's incremental build cache now survives
+      between system test scripts and build steps, dramatically reducing CI time.
+    * PR workflow now uses `concurrency: cancel-in-progress` to cancel stale runs and `paths-ignore` to skip
+      doc-only changes.
+    * PR workflow split into two parallel jobs (`build`, `system-tests`) for faster feedback.
 
 ## V2.3.0
 

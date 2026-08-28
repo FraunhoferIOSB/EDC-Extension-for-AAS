@@ -21,6 +21,6 @@ runs:
       uses: actions/checkout@v4
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
-    - name: Clean possible debris + Build the default launcher  + Create docker image with the current version and 'latest' as tags
+    - name: Build the default launcher and create docker image
       shell: bash
-      run: ./gradlew clean :launchers:provider:build :launchers:provider:dockerize
+      run: ./gradlew :launchers:provider:build :launchers:provider:dockerize

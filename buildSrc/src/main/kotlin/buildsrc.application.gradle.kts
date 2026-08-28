@@ -41,7 +41,7 @@ tasks.named<ShadowJar>("shadowJar") {
 }
 
 tasks.register("dockerize", com.bmuschko.gradle.docker.tasks.image.DockerBuildImage::class) {
-    dependsOn(tasks.named("shadowJar"), tasks.named("test"))
+    dependsOn(tasks.named("build"))
 
     dockerFile.set(File("build/resources/docker/Dockerfile"))
     images.add("${project.name}:${project.version}")

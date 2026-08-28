@@ -17,16 +17,34 @@ name: Build project on PR
 on:
   pull_request:
     branches: [ "main" ]
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+      - "LICENSE"
   workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      - name: Build project and docker image
+        uses: ./.github/actions/checks/build_all
+
+  system-tests:
+    runs-on: ubuntu-latest
+    steps:
       - name: Set up JDK
         uses: actions/setup-java@v5
         with:
@@ -34,5 +52,3 @@ jobs:
           distribution: 'temurin'
       - name: Run system tests
         uses: ./.github/actions/checks/system-tests
-      - name: Build project and docker image
-        uses: ./.github/actions/checks/build_all

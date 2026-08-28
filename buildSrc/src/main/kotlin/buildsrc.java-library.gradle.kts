@@ -1,6 +1,5 @@
 plugins {
     id("com.diffplug.spotless")
-    `java-library`
 }
 
 spotless {
@@ -23,12 +22,7 @@ spotless {
     }
 }
 
-project.plugins.apply("java-library")
 project.plugins.apply("jacoco")
-
-tasks.named<Test>("test") {
-    useJUnitPlatform()
-}
 
 tasks.named<JacocoReport>("jacocoTestReport") {
     dependsOn(tasks.named("test"))

@@ -39,9 +39,9 @@ public class SelfDescriptionControllerIT extends AbstractAasServerControllerIT<S
             throws SerializationException, UnsupportedModifierException, DeserializationException, StatusCodeException, ConnectivityException {
         Environment environment = getEnvironment();
 
-        mockResponse(METHOD.GET, "/shells", asPage(environment.getAssetAdministrationShells()), 200);
-        mockResponse(METHOD.GET, "/submodels", asPage(environment.getSubmodels()), 200);
-        mockResponse(METHOD.GET, "/concept-descriptions", asPage(environment.getConceptDescriptions()), 200);
+        mockResponse(Method.GET, "/shells", asPage(environment.getAssetAdministrationShells()), 200);
+        mockResponse(Method.GET, "/submodels", asPage(environment.getSubmodels()), 200);
+        mockResponse(Method.GET, "/concept-descriptions", asPage(environment.getConceptDescriptions()), 200);
 
         var uri = getUri();
 
@@ -75,9 +75,9 @@ public class SelfDescriptionControllerIT extends AbstractAasServerControllerIT<S
             ConnectivityException {
         Environment environment = getEnvironment();
 
-        mockResponse(METHOD.GET, "/shells", asPage(environment.getAssetAdministrationShells()), 200);
-        mockResponse(METHOD.GET, "/submodels", asPage(environment.getSubmodels()), 200);
-        mockResponse(METHOD.GET, "/concept-descriptions", asPage(environment.getConceptDescriptions()), 200);
+        mockResponse(Method.GET, "/shells", asPage(environment.getAssetAdministrationShells()), 200);
+        mockResponse(Method.GET, "/submodels", asPage(environment.getSubmodels()), 200);
+        mockResponse(Method.GET, "/concept-descriptions", asPage(environment.getConceptDescriptions()), 200);
 
         var uri = getUri();
 

@@ -46,13 +46,15 @@ public class MockServerTestExtension {
     }
 
 
-    protected void mockResponse(METHOD method, String requestPath, Object responseBody, int responseStatus) throws SerializationException,
+    protected void mockResponse(Method method, String requestPath, Object responseBody, int responseStatus) throws SerializationException,
             UnsupportedModifierException {
         switch (method) {
             case GET -> mockGetResponse(requestPath, responseBody, responseStatus);
             case PUT -> mockPutResponse(requestPath, responseBody, responseStatus);
             case DELETE -> mockDeleteResponse(requestPath, responseStatus);
             case POST -> mockPostResponse(requestPath, responseBody, responseStatus);
+            default -> {
+            }
         }
     }
 
@@ -94,7 +96,7 @@ public class MockServerTestExtension {
     }
 
 
-    protected enum METHOD {
+    protected enum Method {
         GET,
         PUT,
         POST,

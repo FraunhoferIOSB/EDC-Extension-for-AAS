@@ -33,6 +33,7 @@ import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Supplier;
@@ -73,8 +74,8 @@ public class DigitalTwinRegistryService {
                 .orElseGet(() -> {
                     // If access policy path is the same as usage policy path, no need to create a
                     // second policy definition.
-                    if (configuration.getAccessPolicyDefinitionId() == null
-                            && configuration.getAccessPolicyPath().equals(configuration.getUsagePolicyPath())) {
+                    if (configuration.getAccessPolicyDefinitionId() == null &&
+                            Objects.equals(configuration.getAccessPolicyPath(), configuration.getUsagePolicyPath())) {
                         return this.accessPolicyDefinitionId;
                     }
                     return initializePolicy(participantContextId, codec,

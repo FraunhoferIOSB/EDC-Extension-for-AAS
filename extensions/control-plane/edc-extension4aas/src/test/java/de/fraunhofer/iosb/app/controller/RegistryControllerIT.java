@@ -58,7 +58,7 @@ public class RegistryControllerIT extends AbstractAasServerControllerIT<Registry
             StatusCodeException, ConnectivityException {
         AssetAdministrationShellDescriptor shellDescriptor = getShellDescriptor();
 
-        mockResponse(MockServerTestExtension.METHOD.GET, String.format("/%s", "shell-descriptors"), asPage(List.of(shellDescriptor)), 200);
+        mockResponse(MockServerTestExtension.Method.GET, String.format("/%s", "shell-descriptors"), asPage(List.of(shellDescriptor)), 200);
         mockEmptySubmodelDescriptorRequest();
 
         var result = testSubject.register(new AasRegistryContextDTO(getUri()));
@@ -114,12 +114,12 @@ public class RegistryControllerIT extends AbstractAasServerControllerIT<Registry
 
 
     private void mockEmptyShellDescriptorRequest() throws SerializationException, UnsupportedModifierException {
-        mockResponse(METHOD.GET, String.format("/%s", "shell-descriptors"), emptyPage(), 200);
+        mockResponse(Method.GET, String.format("/%s", "shell-descriptors"), emptyPage(), 200);
     }
 
 
     private void mockEmptySubmodelDescriptorRequest() throws de.fraunhofer.iosb.ilt.faaast.service.dataformat.SerializationException, UnsupportedModifierException {
-        mockResponse(METHOD.GET, String.format("/%s", "submodel-descriptors"), emptyPage(), 200);
+        mockResponse(Method.GET, String.format("/%s", "submodel-descriptors"), emptyPage(), 200);
     }
 
 }

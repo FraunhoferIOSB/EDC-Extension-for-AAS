@@ -34,19 +34,19 @@ public class DigitalTwinRegistryExtensionConfiguration {
     @Setting(description = DTR + " URL", key = CONTEXT + ".url")
     private String url;
 
-    @Setting(description = DTR + " AAS Specification Version", key = CONTEXT
-            + ".specification.version", required = false, defaultValue = "3.1")
+    @Setting(description = DTR + " AAS Specification Version", key = CONTEXT +
+            ".specification.version", required = false, defaultValue = "3.1")
     private String specificationVersion;
 
-    @Setting(description = DTR + ACCESS_POLICY + DEFINITION + ID
-            + ". Preferred over path", key = CONTEXT + ".accessPolicyDefinitionId", required = false)
+    @Setting(description = DTR + ACCESS_POLICY + DEFINITION + ID +
+            ". Preferred over path", key = CONTEXT + ".accessPolicyDefinitionId", required = false)
     private String accessPolicyDefinitionId;
 
     @Setting(description = DTR + ACCESS_POLICY + PATH, key = CONTEXT + ".accessPolicyPath", required = false)
     private String accessPolicyPath;
 
-    @Setting(description = DTR + USAGE_POLICY + DEFINITION + ID
-            + ". Preferred over path", key = CONTEXT + ".usagePolicyDefinitionId", required = false)
+    @Setting(description = DTR + USAGE_POLICY + DEFINITION + ID +
+            ". Preferred over path", key = CONTEXT + ".usagePolicyDefinitionId", required = false)
     private String usagePolicyDefinitionId;
 
     @Setting(description = DTR + USAGE_POLICY + PATH, key = CONTEXT + ".usagePolicyPath", required = false)

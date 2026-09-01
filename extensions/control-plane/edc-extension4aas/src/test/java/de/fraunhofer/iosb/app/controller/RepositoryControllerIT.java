@@ -75,9 +75,9 @@ public class RepositoryControllerIT extends AbstractAasServerControllerIT<Reposi
     void test_registerRepository_filledEnvironmentAllRegistered() throws SerializationException, UnsupportedModifierException, StatusCodeException, ConnectivityException {
         Environment environment = getEnvironment();
 
-        mockResponse(METHOD.GET, "/shells", asPage(environment.getAssetAdministrationShells()), 200);
-        mockResponse(METHOD.GET, "/submodels", asPage(environment.getSubmodels()), 200);
-        mockResponse(METHOD.GET, "/concept-descriptions", asPage(environment.getConceptDescriptions()), 200);
+        mockResponse(Method.GET, "/shells", asPage(environment.getAssetAdministrationShells()), 200);
+        mockResponse(Method.GET, "/submodels", asPage(environment.getSubmodels()), 200);
+        mockResponse(Method.GET, "/concept-descriptions", asPage(environment.getConceptDescriptions()), 200);
 
         var uri = getUri();
         new ConfigurationController(ConfigFactory.empty(), new ConsoleMonitor()).updateConfiguration("{\"" + EDC_SETTINGS_PREFIX + ".onlySubmodels\":false}");
@@ -101,10 +101,10 @@ public class RepositoryControllerIT extends AbstractAasServerControllerIT<Reposi
     void test_registerRepository_emtpyEnvironmentNoFault() throws SerializationException, UnsupportedModifierException, StatusCodeException, ConnectivityException {
         Environment environment = getEmptyEnvironment();
 
-        mockResponse(METHOD.GET, "/environment", getEmptyEnvironment(), 200);
-        mockResponse(METHOD.GET, "/shells", emptyPage(), 200);
-        mockResponse(METHOD.GET, "/submodels", emptyPage(), 200);
-        mockResponse(METHOD.GET, "/concept-descriptions", emptyPage(), 200);
+        mockResponse(Method.GET, "/environment", getEmptyEnvironment(), 200);
+        mockResponse(Method.GET, "/shells", emptyPage(), 200);
+        mockResponse(Method.GET, "/submodels", emptyPage(), 200);
+        mockResponse(Method.GET, "/concept-descriptions", emptyPage(), 200);
 
         var base = getUri();
 
@@ -131,17 +131,17 @@ public class RepositoryControllerIT extends AbstractAasServerControllerIT<Reposi
 
 
     private void mockEmptyShellRequest() throws SerializationException, UnsupportedModifierException {
-        mockResponse(METHOD.GET, "/shells", emptyPage(), 200);
+        mockResponse(Method.GET, "/shells", emptyPage(), 200);
     }
 
 
     private void mockEmptySubmodelRequest() throws SerializationException, UnsupportedModifierException {
-        mockResponse(METHOD.GET, "/submodels", emptyPage(), 200);
+        mockResponse(Method.GET, "/submodels", emptyPage(), 200);
     }
 
 
     private void mockEmptyConceptDescriptionRequest() throws SerializationException, UnsupportedModifierException {
-        mockResponse(METHOD.GET, "/concept-descriptions", emptyPage(), 200);
+        mockResponse(Method.GET, "/concept-descriptions", emptyPage(), 200);
     }
 
 }

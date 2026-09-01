@@ -22,6 +22,7 @@ import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 
 import java.net.URI;
+import java.util.List;
 
 
 /**
@@ -60,6 +61,12 @@ public abstract class LocalAasRepositoryClient<CTX extends AasRepositoryContext>
     @Override
     public PolicyBinding getPolicyBinding(Reference reference) {
         return context.getPolicyBinding(reference);
+    }
+
+
+    @Override
+    public List<PolicyBinding> getPolicyBindings(Reference reference) {
+        return context.getPolicyBindings(reference);
     }
 
 

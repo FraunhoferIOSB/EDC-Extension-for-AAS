@@ -35,6 +35,5 @@ public class JsonLdExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         jsonLdService.registerNamespace(AAS_PREFIX, AAS_V31_NAMESPACE);
-
     }
 }

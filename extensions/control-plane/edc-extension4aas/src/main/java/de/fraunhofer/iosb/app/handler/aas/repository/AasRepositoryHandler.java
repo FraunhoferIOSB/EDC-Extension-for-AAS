@@ -32,6 +32,8 @@ import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 
+import java.util.List;
+
 
 public abstract class AasRepositoryHandler<C extends AasRepositoryClient> extends AasHandler<C> {
 
@@ -46,8 +48,8 @@ public abstract class AasRepositoryHandler<C extends AasRepositoryClient> extend
 
 
     @Override
-    protected PolicyBinding policyBindingFor(Reference reference) {
-        return client.getPolicyBinding(reference);
+    protected List<PolicyBinding> policyBindingsFor(Reference reference) {
+        return client.getPolicyBindings(reference);
     }
 
 

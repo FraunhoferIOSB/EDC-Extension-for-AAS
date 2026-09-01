@@ -27,10 +27,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - name: Set up JDK
-        uses: actions/setup-java@v6
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-      - name: Run system tests
+      - uses: gradle/actions/setup-gradle@v3
+      - name: Build system-test image
+        shell: bash
+        run: docker build -t edc-systest system-tests
+      - name: Run data plane test
         uses: ./.github/actions/checks/system-tests
+        with:
+          test_name: "aas-data-plane"
+      - name: Run provider test
+        uses: ./.github/actions/checks/system-tests
+        with:
+          test_name: "provider"
+      - name: Run standalone test
+        uses: ./.github/actions/checks/system-tests
+        with:
+          test_name: "standalone"

@@ -12,21 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: Run system tests
-description: Runs the system tests defined in system-tests.
+name: Create release commit and tag
+description: Creates a release commit on the main branch and tags the current state
+
 inputs:
-  test_name:
+  version:
+    description: 'Release version (x.y.z)'
     required: true
-    description: The name of the test to be run
+
 
 runs:
   using: "composite"
   steps:
-    - name: Run test
+    - name: Create release commit and tag
       shell: bash
-      run: >-
-        docker run --rm --network host
-        -v "$PWD":/work
-        -v "$HOME/.gradle":/root/.gradle
-        -w /work
-        edc-systest bash system-tests/${{ inputs.test_name }}/test.sh
+      run: |
+        BRANCH="release/v${{ inputs.version }}"
+        git checkout -b "$BRANCH"
+        
+        sed -i "s/^version=.*-SNAPSHOT/version=${{ inputs.version }}/" gradle.properties
+        sed -i "s/^## Current development version (V${{ inputs.version }}-SNAPSHOT)/## V${{ inputs.version }}/" changelog.md
+        git add gradle.properties changelog.md
+        git commit -m "chore: prepare release v${{ inputs.version }}"
+        
+        git tag v${{ inputs.version }}

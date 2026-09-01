@@ -137,6 +137,12 @@ public class RemoteAasRepositoryClient implements AasRepositoryClient {
 
 
     @Override
+    public List<PolicyBinding> getPolicyBindings(Reference reference) {
+        return context.getPolicyBindings(reference);
+    }
+
+
+    @Override
     public boolean requiresAuthentication() {
         return context.getAuthenticationMethod().getHeader(vault) != null;
     }

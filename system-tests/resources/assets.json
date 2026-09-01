@@ -1,6 +1,5 @@
 [
   {
-    "@id": "-1088830347",
     "@type": "Asset",
     "properties": {
       "aas:Referable/description": [
@@ -15,7 +14,6 @@
       ],
       "aas:modelingType": "ConceptDescription",
       "aas:Referable/idShort": "SystemTestConceptDescription",
-      "id": "-1088830347",
       "aas:Identifiable/id": "https://acplt.org/System_Test_ConceptDescription"
     },
     "dataAddress": {
@@ -33,7 +31,6 @@
     ]
   },
   {
-    "@id": "263443459",
     "@type": "Asset",
     "properties": {
       "aas:Referable/description": [
@@ -48,7 +45,6 @@
       ],
       "aas:modelingType": "AssetAdministrationShell",
       "aas:Referable/idShort": "SystemTestAssetAdministrationShell",
-      "id": "263443459",
       "aas:Identifiable/id": "https://acplt.org/System_Test_AssetAdministrationShell"
     },
     "dataAddress": {
@@ -66,7 +62,6 @@
     ]
   },
   {
-    "@id": "-1105438287",
     "@type": "Asset",
     "properties": {
       "aas:Referable/description": [
@@ -87,8 +82,7 @@
           "aas:Key/value": "http://acplt.org/SubmodelElementCollections/System_Test_SubmodelElementCollection"
         },
         "aas:Reference/type": "ExternalReference"
-      },
-      "id": "-1105438287"
+      }
     },
     "dataAddress": {
       "@type": "DataAddress",
@@ -105,7 +99,6 @@
     ]
   },
   {
-    "@id": "-1365047111",
     "@type": "Asset",
     "properties": {
       "aas:Referable/description": [
@@ -127,7 +120,6 @@
         },
         "aas:Reference/type": "ExternalReference"
       },
-      "id": "-1365047111",
       "aas:Referable/displayName": {
         "aas:AbstractLangString/language": "en-us",
         "aas:AbstractLangString/text": "Manufacturer Name"
@@ -148,7 +140,6 @@
     ]
   },
   {
-    "@id": "657226724",
     "@type": "Asset",
     "properties": {
       "aas:Referable/description": [
@@ -170,8 +161,7 @@
           "aas:Key/value": "http://acplt.org/SubmodelTemplates/SystemTest"
         },
         "aas:Reference/type": "ExternalReference"
-      },
-      "id": "657226724"
+      }
     },
     "dataAddress": {
       "@type": "DataAddress",

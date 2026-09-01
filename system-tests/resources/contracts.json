@@ -6,13 +6,7 @@
         "@type": "Criterion",
         "operandLeft": "https://w3id.org/edc/v0.0.1/ns/id",
         "operator": "in",
-        "operandRight": [
-          "263443459",
-          "-1088830347",
-          "-1105438287",
-          "657226724",
-          "-1365047111"
-        ]
+        "operandRight": []
       }
     ],
     "privateProperties": {

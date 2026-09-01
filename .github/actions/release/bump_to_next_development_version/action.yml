@@ -12,21 +12,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: Run system tests
-description: Runs the system tests defined in system-tests.
+name: Verify version snapshot
+description: Verify that the current version is equal to the input version without the "snapshot" suffix
+
 inputs:
-  test_name:
+  version:
+    description: 'Release version (x.y.z)'
     required: true
-    description: The name of the test to be run
+
 
 runs:
   using: "composite"
   steps:
-    - name: Run test
+    - name: Verify version snapshot
       shell: bash
-      run: >-
-        docker run --rm --network host
-        -v "$PWD":/work
-        -v "$HOME/.gradle":/root/.gradle
-        -w /work
-        edc-systest bash system-tests/${{ inputs.test_name }}/test.sh
+      run: |
+        SNAPSHOT="${{ inputs.version }}-SNAPSHOT"
+        CURRENT=$(grep '^version=' gradle.properties | cut -d= -f2)
+        if [ "$CURRENT" != "$SNAPSHOT" ]; then
+          echo "Expected version=$SNAPSHOT in gradle.properties but found version=$CURRENT" >&2
+          exit 1
+        fi
+        echo "Version matches: $CURRENT"

@@ -21,6 +21,7 @@ import de.fraunhofer.iosb.app.aas.mapper.referable.identifiable.IdentifiableMapp
 import de.fraunhofer.iosb.app.aas.mapper.util.AssetIdUtil;
 import de.fraunhofer.iosb.app.handler.aas.util.EnvironmentVisitor;
 import de.fraunhofer.iosb.app.handler.edc.EdcStoreHandler;
+import de.fraunhofer.iosb.app.handler.util.DataAddressMerger;
 import de.fraunhofer.iosb.app.handler.util.MappingHelper;
 import de.fraunhofer.iosb.client.AasServerClient;
 import de.fraunhofer.iosb.ilt.faaast.client.exception.ConnectivityException;
@@ -42,13 +43,13 @@ import org.eclipse.edc.spi.result.StoreFailure;
 import org.eclipse.edc.spi.result.StoreResult;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 
 /**
@@ -147,10 +148,7 @@ public abstract class AasHandler<C extends AasServerClient> {
 
         Map<Reference, Asset> mapped = MappingHelper.map(currentEnvironment, identifiableMapper::map, submodelElementMapper::map);
 
-        return mapped.entrySet().stream()
-                .filter(entry -> client.eligibleForRegistration(entry.getKey()))
-                .map(entry -> Map.entry(policyBindingFor(entry.getKey()), entry.getValue()))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        return expandBindings(mapped);
     }
 
 
@@ -160,17 +158,55 @@ public abstract class AasHandler<C extends AasServerClient> {
 
         Map<Reference, Asset> mapped = MappingHelper.map(currentEnvironment, identifiableMapper::map, submodelElementMapper::map);
 
-        Stream<Map.Entry<PolicyBinding, Asset>> filtered = mapped.entrySet().stream()
-                .filter(entry -> client.eligibleForRegistration(entry.getKey()))
-                .map(entry -> Map.entry(policyBindingFor(entry.getKey()), entry.getValue()));
+        Map<PolicyBinding, Asset> expanded = expandBindings(mapped);
 
-        var registered = filtered
+        var registered = expanded.entrySet().stream()
                 .filter(entry -> registerSingle(entry.getKey(), entry.getValue()).succeeded())
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         monitor.info(String.format("Registered %s AAS elements from repository %s.", registered.size(), client.getUri()));
 
         return registered;
+    }
+
+
+    /**
+     * Expands the single-asset-per-reference mapping into one asset per applicable policy binding. For each eligible
+     * reference, the base asset (as produced by the mappers) is cloned per binding, assigning a binding-specific asset
+     * ID and merging the binding's data address properties onto the base data address.
+     *
+     * @param mapped Base mapping of references to assets (one asset per reference).
+     * @return Mapping of policy bindings to binding-specific assets.
+     */
+    protected Map<PolicyBinding, Asset> expandBindings(Map<Reference, Asset> mapped) {
+        Map<PolicyBinding, Asset> result = new HashMap<>();
+        mapped.forEach((reference, baseAsset) -> {
+            if (client.eligibleForRegistration(reference)) {
+                for (PolicyBinding binding: policyBindingsFor(reference)) {
+                    result.put(binding, assetForBinding(reference, baseAsset, binding));
+                }
+            }
+        });
+        return result;
+    }
+
+
+    /**
+     * Builds a binding-specific asset by cloning the base asset and overriding its ID and data address. The binding's
+     * {@code dataAddressProperties} are merged onto the base data address, with binding-provided properties taking
+     * precedence on key conflict.
+     *
+     * @param reference Reference of the AAS element.
+     * @param baseAsset Base asset produced by the mapper.
+     * @param binding Policy binding to apply.
+     * @return A new asset specific to the given binding.
+     */
+    protected Asset assetForBinding(Reference reference, Asset baseAsset, PolicyBinding binding) {
+        var mergedDataAddress = DataAddressMerger.merge(baseAsset.getDataAddress(), binding.dataAddressProperties());
+        return baseAsset.toBuilder()
+                .id(AssetIdUtil.id(client.getUri().toString(), reference, binding))
+                .dataAddress(mergedDataAddress)
+                .build();
     }
 
 
@@ -210,15 +246,27 @@ public abstract class AasHandler<C extends AasServerClient> {
 
     protected Consumer<Identifiable> getSelfDescriptionIdentifiableMapper() {
         return identifiable -> {
-            if (!(identifiable instanceof Submodel) || client.eligibleForRegistration(AasUtils.toReference(identifiable))) {
-                identifiable.setExtensions(List.of(buildExtension(AssetIdUtil.id(client.getUri().toString(), identifiable))));
+            Reference reference = AasUtils.toReference(identifiable);
+            if (!(identifiable instanceof Submodel) || client.eligibleForRegistration(reference)) {
+                List<Extension> extensions = policyBindingsFor(reference).stream()
+                        .map(binding -> buildExtension(AssetIdUtil.id(client.getUri().toString(), reference, binding)))
+                        .toList();
+                identifiable.setExtensions(extensions);
             }
         };
     }
 
 
-    protected PolicyBinding policyBindingFor(Reference identifiableReference) {
-        return PolicyBinding.ofDefaults(identifiableReference);
+    /**
+     * Returns all policy bindings applicable to the given reference. The default implementation returns a single
+     * default binding; subclasses backed by an AAS repository override this to return the configured bindings (one per
+     * registered policy/data-address combination).
+     *
+     * @param identifiableReference Reference of the AAS element.
+     * @return List of policy bindings for the reference (never null, possibly empty).
+     */
+    protected List<PolicyBinding> policyBindingsFor(Reference identifiableReference) {
+        return List.of(PolicyBinding.ofDefaults(identifiableReference));
     }
 
 
@@ -240,7 +288,10 @@ public abstract class AasHandler<C extends AasServerClient> {
 
         // We don't want AAS elements that are not registered to be annotated with IDs
         if (client.eligibleForRegistration(submodelElementReference)) {
-            submodelElement.setExtensions(List.of(buildExtension(AssetIdUtil.id(client.getUri().toString(), submodelElementReference))));
+            List<Extension> extensions = policyBindingsFor(submodelElementReference).stream()
+                    .map(binding -> buildExtension(AssetIdUtil.id(client.getUri().toString(), submodelElementReference, binding)))
+                    .toList();
+            submodelElement.setExtensions(extensions);
         }
         return submodelElement;
     }

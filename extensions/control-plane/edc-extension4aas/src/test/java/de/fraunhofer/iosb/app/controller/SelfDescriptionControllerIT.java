@@ -39,9 +39,9 @@ public class SelfDescriptionControllerIT extends AbstractAasServerControllerIT<S
             throws SerializationException, UnsupportedModifierException, DeserializationException, StatusCodeException, ConnectivityException {
         Environment environment = getEnvironment();
 
-        mockResponse(METHOD.GET, "/shells", asPage(environment.getAssetAdministrationShells()), 200);
-        mockResponse(METHOD.GET, "/submodels", asPage(environment.getSubmodels()), 200);
-        mockResponse(METHOD.GET, "/concept-descriptions", asPage(environment.getConceptDescriptions()), 200);
+        mockResponse(Method.GET, "/shells", asPage(environment.getAssetAdministrationShells()), 200);
+        mockResponse(Method.GET, "/submodels", asPage(environment.getSubmodels()), 200);
+        mockResponse(Method.GET, "/concept-descriptions", asPage(environment.getConceptDescriptions()), 200);
 
         var uri = getUri();
 
@@ -57,15 +57,15 @@ public class SelfDescriptionControllerIT extends AbstractAasServerControllerIT<S
 
         assertSelfDescription(selfDescriptionSerialized);
 
-        assertEquals(selfDescriptionSerialized.getAssetAdministrationShells().size(), environment.getAssetAdministrationShells().size());
-        assertEquals(selfDescriptionSerialized.getSubmodels().size(), environment.getSubmodels().size());
+        assertEquals(environment.getAssetAdministrationShells().size(), selfDescriptionSerialized.getAssetAdministrationShells().size());
+        assertEquals(environment.getSubmodels().size(), selfDescriptionSerialized.getSubmodels().size());
 
         for (int i = 0; i < selfDescriptionSerialized.getSubmodels().size(); i++) {
-            assertEquals(selfDescriptionSerialized.getSubmodels().get(i).getSubmodelElements().size(),
-                    environment.getSubmodels().get(i).getSubmodelElements().size());
+            assertEquals(environment.getSubmodels().get(i).getSubmodelElements().size(),
+                    selfDescriptionSerialized.getSubmodels().get(i).getSubmodelElements().size());
         }
 
-        assertEquals(selfDescriptionSerialized.getConceptDescriptions().size(), environment.getConceptDescriptions().size());
+        assertEquals(environment.getConceptDescriptions().size(), selfDescriptionSerialized.getConceptDescriptions().size());
     }
 
 
@@ -75,9 +75,9 @@ public class SelfDescriptionControllerIT extends AbstractAasServerControllerIT<S
             ConnectivityException {
         Environment environment = getEnvironment();
 
-        mockResponse(METHOD.GET, "/shells", asPage(environment.getAssetAdministrationShells()), 200);
-        mockResponse(METHOD.GET, "/submodels", asPage(environment.getSubmodels()), 200);
-        mockResponse(METHOD.GET, "/concept-descriptions", asPage(environment.getConceptDescriptions()), 200);
+        mockResponse(Method.GET, "/shells", asPage(environment.getAssetAdministrationShells()), 200);
+        mockResponse(Method.GET, "/submodels", asPage(environment.getSubmodels()), 200);
+        mockResponse(Method.GET, "/concept-descriptions", asPage(environment.getConceptDescriptions()), 200);
 
         var uri = getUri();
 

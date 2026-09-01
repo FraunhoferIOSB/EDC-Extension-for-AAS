@@ -18,6 +18,8 @@ package de.fraunhofer.iosb.app.handler.edc;
 import de.fraunhofer.iosb.aas.lib.model.PolicyBinding;
 import de.fraunhofer.iosb.aas.test.defaults.DefaultVault;
 import de.fraunhofer.iosb.app.aas.mapper.referable.identifiable.IdentifiableMapper;
+import de.fraunhofer.iosb.app.aas.mapper.util.AssetIdUtil;
+import de.fraunhofer.iosb.app.handler.util.DataAddressMerger;
 import de.fraunhofer.iosb.client.repository.remote.impl.RemoteAasRepositoryClient;
 import de.fraunhofer.iosb.model.context.repository.remote.RemoteAasRepositoryContext;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.util.AasUtils;
@@ -31,14 +33,18 @@ import org.eclipse.edc.query.CriterionOperatorRegistryImpl;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 
 import static de.fraunhofer.iosb.app.testutils.AasCreator.getSubmodel;
 import static de.fraunhofer.iosb.constants.AasConstants.AAS_V31_NAMESPACE;
+import static de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress.PROXY_METHOD;
+import static org.eclipse.edc.dataaddress.httpdata.spi.HttpDataAddressSchema.BASE_URL;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -51,7 +57,7 @@ class EdcStoreHandlerTest {
 
     private final CriterionOperatorRegistry criterionOperatorRegistry = CriterionOperatorRegistryImpl.ofDefaults();
     private final IdentifiableMapper identifiableMapper = new IdentifiableMapper(new RemoteAasRepositoryClient(new DefaultVault(), new RemoteAasRepositoryContext.Builder()
-            .uri(URI.create("http://example.com"))
+            .uri(URI.create("http://invalid.local"))
             .build()));
     private EdcStoreHandler testSubject;
     private InMemoryAssetIndex assetIndex;
@@ -170,6 +176,131 @@ class EdcStoreHandlerTest {
     }
 
 
+    @Test
+    void assetIdUtil_distinctBindings_shouldYieldDistinctIds() {
+        Reference reference = AasUtils.toReference(getSubmodel());
+        String url = "http://invalid.local";
+
+        PolicyBinding firstBinding = new PolicyBinding(reference, "access-policy-1", "contract-policy-1");
+        PolicyBinding secondBinding = new PolicyBinding(reference, "access-policy-2", "contract-policy-2");
+
+        String firstId = AssetIdUtil.id(url, reference, firstBinding);
+        String secondId = AssetIdUtil.id(url, reference, secondBinding);
+
+        assertNotEquals(firstId, secondId);
+        assertEquals(firstId, AssetIdUtil.id(url, reference, firstBinding));
+    }
+
+
+    @Test
+    void assetIdUtil_distinctDataAddressProperties_shouldYieldDistinctIds() {
+        Reference reference = AasUtils.toReference(getSubmodel());
+        String url = "http://invalid.local";
+
+        PolicyBinding withoutProperties = new PolicyBinding(reference, "access-policy", "contract-policy", Map.of());
+        PolicyBinding withProperties = new PolicyBinding(reference, "access-policy", "contract-policy", Map.of("method", "POST"));
+
+        assertNotEquals(
+                AssetIdUtil.id(url, reference, withoutProperties),
+                AssetIdUtil.id(url, reference, withProperties));
+    }
+
+
+    @Test
+    void dataAddressMerger_bindingProperties_shouldOverrideBase() {
+        DataAddress base = DataAddress.Builder.newInstance()
+                .type("AasData")
+                .property(BASE_URL, "http://base.invalid.local")
+                .property("custom", "base-value")
+                .build();
+
+        DataAddress merged = DataAddressMerger.merge(base, Map.of(BASE_URL, "http://override.invalid.local", "new-key", "new-value"));
+
+        assertEquals("AasData", merged.getType());
+        assertEquals("http://override.invalid.local", merged.getStringProperty(BASE_URL));
+        assertEquals("base-value", merged.getStringProperty("custom"));
+        assertEquals("new-value", merged.getStringProperty("new-key"));
+    }
+
+
+    @Test
+    void register_multipleBindingsSameElement_shouldRegisterDistinctAssets() {
+        Submodel submodel = getSubmodel();
+        Asset baseAsset = identifiableMapper.map(submodel);
+        Reference reference = AasUtils.toReference(submodel);
+        String url = "http://invalid.local";
+
+        PolicyBinding firstBinding = new PolicyBinding(reference, "access-policy-1", "contract-policy-1");
+        PolicyBinding secondBinding = new PolicyBinding(reference, "access-policy-2", "contract-policy-2");
+
+        Asset firstAsset = assetForBinding(url, reference, baseAsset, firstBinding);
+        Asset secondAsset = assetForBinding(url, reference, baseAsset, secondBinding);
+
+        assertNotEquals(firstAsset.getId(), secondAsset.getId());
+
+        assertTrue(testSubject.register(firstBinding, firstAsset).succeeded());
+        assertTrue(testSubject.register(secondBinding, secondAsset).succeeded());
+
+        assertEquals(2, assetIndex.countAssets(List.of()));
+        assertNotNull(assetIndex.findById(firstAsset.getId()));
+        assertNotNull(assetIndex.findById(secondAsset.getId()));
+
+        assertEquals(2, contractDefinitionStore.findAll(QuerySpec.max()).count());
+        assertContractDefinitionFor(firstBinding.accessPolicyDefinitionId(), firstBinding.contractPolicyDefinitionId(), firstAsset.getId());
+        assertContractDefinitionFor(secondBinding.accessPolicyDefinitionId(), secondBinding.contractPolicyDefinitionId(), secondAsset.getId());
+    }
+
+
+    @Test
+    void register_bindingWithDataAddressProperties_shouldStoreMergedDataAddress() {
+        Submodel submodel = getSubmodel();
+        Asset baseAsset = identifiableMapper.map(submodel);
+        Reference reference = AasUtils.toReference(submodel);
+        String url = "http://invalid.local";
+
+        PolicyBinding binding = new PolicyBinding(reference, "access-policy", "contract-policy",
+                Map.of(BASE_URL, "http://override.invalid.local"));
+
+        Asset asset = assetForBinding(url, reference, baseAsset, binding);
+
+        assertTrue(testSubject.register(binding, asset).succeeded());
+
+        Asset storedAsset = assetIndex.findById(asset.getId());
+        assertNotNull(storedAsset);
+        assertEquals("http://override.invalid.local", storedAsset.getDataAddress().getStringProperty(BASE_URL));
+    }
+
+
+    @Test
+    void register_bindingWithDataAddressProperties_shouldAddCustomDataAddressProperties() {
+        Submodel submodel = getSubmodel();
+        Asset baseAsset = identifiableMapper.map(submodel);
+        Reference reference = AasUtils.toReference(submodel);
+        String url = "http://invalid.local";
+
+        PolicyBinding binding = new PolicyBinding(reference, "access-policy", "contract-policy",
+                Map.of(PROXY_METHOD, "POST", "AnyCustomProp", "MyValue"));
+
+        Asset asset = assetForBinding(url, reference, baseAsset, binding);
+
+        assertTrue(testSubject.register(binding, asset).succeeded());
+
+        Asset storedAsset = assetIndex.findById(asset.getId());
+        assertNotNull(storedAsset);
+        assertEquals("POST", storedAsset.getDataAddress().getStringProperty(PROXY_METHOD));
+        assertEquals("MyValue", storedAsset.getDataAddress().getStringProperty("AnyCustomProp"));
+    }
+
+
+    private static Asset assetForBinding(String url, Reference reference, Asset baseAsset, PolicyBinding binding) {
+        var mergedDataAddress = DataAddressMerger.merge(baseAsset.getDataAddress(), binding.dataAddressProperties());
+        return baseAsset.toBuilder()
+                .id(AssetIdUtil.id(url, reference, binding))
+                .dataAddress(mergedDataAddress)
+                .build();
+    }
+
+
     private void assertRegister(PolicyBinding policyBinding, Asset asset) {
         StoreResult<Void> result = testSubject.register(policyBinding, asset);
 
@@ -217,6 +348,16 @@ class EdcStoreHandlerTest {
         assertEquals(accessPolicyId, contractDefinition.getAccessPolicyId());
         assertEquals(contractPolicyId, contractDefinition.getContractPolicyId());
         assertEquals(assetId, ((List<?>) contractDefinition.getAssetsSelector().get(0).getOperandRight()).get(0));
+    }
+
+
+    private void assertContractDefinitionFor(String accessPolicyId, String contractPolicyId, String assetId) {
+        ContractDefinition contractDefinition = contractDefinitionStore.findAll(QuerySpec.max())
+                .filter(cd -> cd.getAccessPolicyId().equals(accessPolicyId) && cd.getContractPolicyId().equals(contractPolicyId))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("No contract definition for " + accessPolicyId + "/" + contractPolicyId));
+        List<?> assetSelectorTarget = (List<?>) contractDefinition.getAssetsSelector().get(0).getOperandRight();
+        assertTrue(assetSelectorTarget.contains(assetId));
     }
 
 

@@ -15,6 +15,7 @@
  */
 package de.fraunhofer.iosb.app.aas.mapper.util;
 
+import de.fraunhofer.iosb.aas.lib.model.PolicyBinding;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import de.fraunhofer.iosb.ilt.faaast.service.util.HashHelper;
 import de.fraunhofer.iosb.ilt.faaast.service.util.ReferenceHelper;
@@ -26,6 +27,8 @@ import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress.validate;
 
@@ -86,5 +89,34 @@ public abstract class AssetIdUtil {
     public static String id(String url, Reference reference) {
         return Configuration.getInstance().isHercules() ? ofHashedIdentifiableId(reference)
                 : ofHashedAccessUrl(url, reference);
+    }
+
+
+    /**
+     * Generates a unique and fixed identifier for a given AAS reference, its location in the network and the policy
+     * binding applied to it. Two bindings with distinct policies or {@code dataAddressProperties} yield distinct asset
+     * IDs, allowing multiple assets for the same AAS element.
+     *
+     * @param url Location of the AAS element in the network
+     * @param reference Location of the AAS element in its environment
+     * @param policyBinding Policy binding applied to the element; its access/contract policy IDs and data address
+     *            properties are hashed into the suffix.
+     * @return A unique and fixed identifier based on the given arguments.
+     */
+    public static String id(String url, Reference reference, PolicyBinding policyBinding) {
+        return id(url, reference) + ":" + bindingSuffix(policyBinding);
+    }
+
+
+    private static String bindingSuffix(PolicyBinding policyBinding) {
+        String accessPolicyId = String.valueOf(policyBinding.accessPolicyDefinitionId());
+        String contractPolicyId = String.valueOf(policyBinding.contractPolicyDefinitionId());
+        Map<String, String> dataAddressProperties = policyBinding.dataAddressProperties();
+        String dataAddressPart = dataAddressProperties == null ? ""
+                : dataAddressProperties.entrySet().stream()
+                        .sorted(Map.Entry.comparingByKey())
+                        .map(entry -> entry.getKey() + "=" + entry.getValue())
+                        .collect(Collectors.joining("&"));
+        return HashHelper.sha256(accessPolicyId + "|" + contractPolicyId + "|" + dataAddressPart);
     }
 }

@@ -151,6 +151,8 @@ class PolicyService {
                 case NOT_FOUND -> throw new ObjectNotFoundException(ContractOffer.class, datasetResult.getFailureDetail());
                 case UNAUTHORIZED -> throw new NotAuthorizedException(datasetResult.getFailureDetail());
                 case BAD_REQUEST -> throw new InvalidRequestException(datasetResult.getFailureDetail());
+                default -> {
+                }
             }
 
             return Result.failure(List.of(datasetResult.reason().toString(), datasetResult.getFailureDetail()));

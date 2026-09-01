@@ -2,7 +2,6 @@
   "@type": "Catalog",
   "dataset": [
     {
-      "@id": "-1088830347",
       "@type": "Dataset",
       "hasPolicy": [
         {
@@ -56,11 +55,9 @@
       ],
       "https://admin-shell.io/aas/3/1/Referable/idShort": "SystemTestConceptDescription",
       "https://admin-shell.io/aas/3/1/Identifiable/id": "https://acplt.org/System_Test_ConceptDescription",
-      "https://admin-shell.io/aas/3/1/modelingType": "ConceptDescription",
-      "id": "-1088830347"
+      "https://admin-shell.io/aas/3/1/modelingType": "ConceptDescription"
     },
     {
-      "@id": "263443459",
       "@type": "Dataset",
       "hasPolicy": [
         {
@@ -114,11 +111,9 @@
       ],
       "https://admin-shell.io/aas/3/1/Referable/idShort": "SystemTestAssetAdministrationShell",
       "https://admin-shell.io/aas/3/1/modelingType": "AssetAdministrationShell",
-      "id": "263443459",
       "https://admin-shell.io/aas/3/1/Identifiable/id": "https://acplt.org/System_Test_AssetAdministrationShell"
     },
     {
-      "@id": "-1105438287",
       "@type": "Dataset",
       "hasPolicy": [
         {
@@ -178,11 +173,9 @@
           "https://admin-shell.io/aas/3/1/Key/value": "http://acplt.org/SubmodelElementCollections/System_Test_SubmodelElementCollection"
         },
         "https://admin-shell.io/aas/3/1/Reference/type": "ExternalReference"
-      },
-      "id": "-1105438287"
+      }
     },
     {
-      "@id": "-1365047111",
       "@type": "Dataset",
       "hasPolicy": [
         {
@@ -246,11 +239,9 @@
       "https://admin-shell.io/aas/3/1/Referable/displayName": {
         "https://admin-shell.io/aas/3/1/AbstractLangString/language": "en-us",
         "https://admin-shell.io/aas/3/1/AbstractLangString/text": "Manufacturer Name"
-      },
-      "id": "-1365047111"
+      }
     },
     {
-      "@id": "657226724",
       "@type": "Dataset",
       "hasPolicy": [
         {
@@ -311,8 +302,7 @@
           "https://admin-shell.io/aas/3/1/Key/value": "http://acplt.org/SubmodelTemplates/SystemTest"
         },
         "https://admin-shell.io/aas/3/1/Reference/type": "ExternalReference"
-      },
-      "id": "657226724"
+      }
     }
   ],
   "service": [

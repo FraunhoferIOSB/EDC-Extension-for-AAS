@@ -2,7 +2,6 @@
   "@type": "Catalog",
   "dataset": [
     {
-      "@id": "-1088830347",
       "@type": "Dataset",
       "hasPolicy": [
         {
@@ -56,11 +55,9 @@
       ],
       "aas:modelingType": "ConceptDescription",
       "aas:Referable/idShort": "SystemTestConceptDescription",
-      "id": "-1088830347",
       "aas:Identifiable/id": "https://acplt.org/System_Test_ConceptDescription"
     },
     {
-      "@id": "263443459",
       "@type": "Dataset",
       "hasPolicy": [
         {
@@ -114,11 +111,9 @@
       ],
       "aas:modelingType": "AssetAdministrationShell",
       "aas:Referable/idShort": "SystemTestAssetAdministrationShell",
-      "id": "263443459",
       "aas:Identifiable/id": "https://acplt.org/System_Test_AssetAdministrationShell"
     },
     {
-      "@id": "-1105438287",
       "@type": "Dataset",
       "hasPolicy": [
         {
@@ -178,11 +173,9 @@
           "aas:Key/value": "http://acplt.org/SubmodelElementCollections/System_Test_SubmodelElementCollection"
         },
         "aas:Reference/type": "ExternalReference"
-      },
-      "id": "-1105438287"
+      }
     },
     {
-      "@id": "-1365047111",
       "@type": "Dataset",
       "hasPolicy": [
         {
@@ -246,11 +239,9 @@
       "aas:Referable/displayName": {
         "aas:AbstractLangString/language": "en-us",
         "aas:AbstractLangString/text": "Manufacturer Name"
-      },
-      "id": "-1365047111"
+      }
     },
     {
-      "@id": "657226724",
       "@type": "Dataset",
       "hasPolicy": [
         {
@@ -311,8 +302,7 @@
           "aas:Key/value": "http://acplt.org/SubmodelTemplates/SystemTest"
         },
         "aas:Reference/type": "ExternalReference"
-      },
-      "id": "657226724"
+      }
     }
   ],
   "service": [

@@ -28,7 +28,6 @@ import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.spi.monitor.Monitor;
 
-import java.util.HashMap;
 import java.util.Map;
 
 
@@ -77,11 +76,7 @@ public abstract class RemoteAasHandler<C extends AasServerClient> extends AasHan
 
         Map<Reference, Asset> mapped = MappingHelper.map(currentEnvironment, identifiableMapper::map, submodelElementMapper::map);
 
-        mapped.entrySet().removeIf(entry -> !client.eligibleForRegistration(entry.getKey()));
-
-        Map<PolicyBinding, Asset> updatedAssets = new HashMap<>();
-
-        mapped.keySet().forEach(referenceKey -> updatedAssets.put(policyBindingFor(referenceKey), mapped.get(referenceKey)));
+        Map<PolicyBinding, Asset> updatedAssets = expandBindings(mapped);
 
         // All elements that are not currently registered (as far as we know) shall be registered
         DiffHelper.getToAdd(registeredAssets, updatedAssets).entrySet().stream()

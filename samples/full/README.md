@@ -117,7 +117,7 @@ __Important__:
       "type": "AasData",
       "properties": {
         "https://w3id.org/edc/v0.0.1/ns/baseUrl": "https://localhost:8080/api/v3.0",
-        "https://admin-shell.io/aas/3/0/reference": "[ModelRef](Submodel)https://example.com/ids/sm/5213_1120_8022_9305",
+        "https://admin-shell.io/aas/3/1/reference": "[ModelRef](Submodel)https://example.com/ids/sm/5213_1120_8022_9305",
         "https://w3id.org/edc/v0.0.1/ns/method": "PUT",
         "header:x-api-key": "password"
       }

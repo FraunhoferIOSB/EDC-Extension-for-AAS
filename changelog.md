@@ -5,19 +5,54 @@
 ### New Features
 
 * Add **Hercules** compatibility
-    * With config `edc.aas.hercules.enabled=true`, the extension will register only submodels without meta-data and use the HTTP data plane.
+    * With config `edc.aas.hercules.enabled=true`, the extension will register only submodels without metadata and use the HTTP data plane.
     * Also, added a new sample: `/samples/hercules`, providing a close-to-complete deployment of an MX-Port Hercules.
         * This of course is only for testing/demo purposes
     * With config `edc.aas.hercules.dtr.url`, a Digital Twin Registry will be registered as a dataset.
       * Access policy is defined with `edc.aas.hercules.dtr.accessPolicyPath` or `edc.aas.hercules.dtr.accessPolicyId`
       * Usage policy is defined with `edc.aas.hercules.dtr.usagePolicyPath` or `edc.aas.hercules.dtr.usagePolicyId`
+* **Multiple policy bindings per AAS element**
+    * A single AAS element can now be registered with multiple access/usage policy combinations; each combination yields
+      a distinct EDC asset, contract definition and self-description extension.
+    * The `policyBindings` array in the service JSON may now contain multiple entries sharing the same `referredElement`.
+* **Configurable data address properties**
+    * Policy bindings now accept an optional `dataAddressProperties` map; these properties are merged onto the
+      mapper-generated data address, with binding-provided properties taking precedence on key conflict.
+    * This allows overriding or extending the data address (e.g. HTTP method, headers) per binding without changing the
+      AAS service configuration.
 
 ### Bugfixes
 
 * Fixed loading/deserializing default access / contract policies
 * Fixed build goal by including duplicate files
+* Fixed aas4j 2.0.2 compatibility: updated AAS namespace from 3/0 to 3/1 to match `@IRI` annotations
+* Excluded `fa3st.starter` fat-jar from `fa3st.client` transitive dependencies to prevent old aas4j 1.0.x classes from shadowing aas4j-model 2.0.2 on the compile classpath
+* Fixed `ConfigurationController` to reject unknown configuration keys with `InvalidRequestException`
 
 ### Miscellaneous
+
+* Asset IDs now include a binding-specific suffix so that multiple bindings for the same element produce distinct
+  assets. Existing assets get new IDs on upgrade, causing a one-time remove/add churn on the first synchronization
+  cycle; re-register the affected services to apply the new IDs.
+* Updated `SUPPORTED_AAS_VERSION` from `3.0` to `3.1` to match aas4j 2.0.2; AAS registry endpoint interface short
+  names now use `AAS-3.1` / `SUBMODEL-3.1`.
+* **Build pipeline optimization**
+    * `edc-build` plugin now applied to all projects, providing consistent checkstyle, JUnit Platform, test logging,
+      and jar conventions (LICENSE/NOTICE in META-INF) across the whole build.
+    * Removed redundant `java-library` and `useJUnitPlatform()` declarations from `buildsrc.java-library.gradle.kts`
+      — `edc-build` handles both.
+    * Checkstyle is now wired up with `misc/checkstyle/checkstyle.xml` for all modules; `CustomImportOrder` and
+      `GenericWhitespace` checks disabled (Spotless already enforces import order and whitespace formatting).
+    * Added `org.gradle.caching=true` to `gradle.properties` for build-cache reuse across tasks and CI jobs.
+    * Remove `mavenLocal` added by `edc-build` at project level to prevent stale local POMs (e.g. FA³ST snapshots
+      with unresolved properties) from overriding remote snapshot resolution.
+    * `dockerize` task now depends on `build` to satisfy Gradle's implicit-dependency validation when
+      checkstyle and sourcesJar tasks are present on launcher projects.
+    * Removed all `./gradlew clean` calls from CI composite actions; Gradle's incremental build cache now survives
+      between system test scripts and build steps, dramatically reducing CI time.
+    * PR workflow now uses `concurrency: cancel-in-progress` to cancel stale runs and `paths-ignore` to skip
+      doc-only changes.
+    * PR workflow split into two parallel jobs (`build`, `system-tests`) for faster feedback.
 
 ## V2.3.0
 

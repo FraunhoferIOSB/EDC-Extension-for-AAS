@@ -34,7 +34,7 @@ start_runtime() {
 
   local log_file="logs/${project_name}.log"
   # Create file if not exists
-  touch $log_file
+  touch "$log_file"
 
   echo "Starting ${project_name}..." >&2
   EDC_FS_CONFIG="$config_path" "${PWD}/gradlew" --no-daemon --console=plain "launchers:${project_name}:run" "--args='--log-level=DEBUG'" \

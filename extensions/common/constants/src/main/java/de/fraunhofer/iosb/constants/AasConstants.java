@@ -21,7 +21,7 @@ import java.util.UUID;
 
 public interface AasConstants {
     String AAS_PREFIX = "aas";
-    String AAS_V30_NAMESPACE = "https://admin-shell.io/aas/3/1/";
+    String AAS_V31_NAMESPACE = "https://admin-shell.io/aas/3/1/";
     String SUPPORTED_AAS_VERSION = "3.1";
 
     String EDC_SETTINGS_PREFIX = "edc.aas";

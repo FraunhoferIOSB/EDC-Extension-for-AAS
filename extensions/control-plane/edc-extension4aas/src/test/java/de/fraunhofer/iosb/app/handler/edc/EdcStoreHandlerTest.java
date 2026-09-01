@@ -42,7 +42,7 @@ import java.util.List;
 import java.util.Map;
 
 import static de.fraunhofer.iosb.app.testutils.AasCreator.getSubmodel;
-import static de.fraunhofer.iosb.constants.AasConstants.AAS_V30_NAMESPACE;
+import static de.fraunhofer.iosb.constants.AasConstants.AAS_V31_NAMESPACE;
 import static org.eclipse.edc.dataaddress.httpdata.spi.HttpDataAddressSchema.BASE_URL;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -137,7 +137,7 @@ class EdcStoreHandlerTest {
 
         assertRegister(policyBinding, asset);
         Asset assetUpdated = asset.toBuilder()
-                .property(AAS_V30_NAMESPACE.concat("modelingType"), "NewProperty")
+                .property(AAS_V31_NAMESPACE.concat("modelingType"), "NewProperty")
                 .build();
 
         StoreResult<Asset> result = testSubject.update(assetUpdated);
@@ -161,7 +161,7 @@ class EdcStoreHandlerTest {
         // Intentionally commented out. Do not register this asset.
         // assertRegister(policyBinding, asset);
         Asset assetUpdated = asset.toBuilder()
-                .property(AAS_V30_NAMESPACE.concat("modelingType"), "NewProperty")
+                .property(AAS_V31_NAMESPACE.concat("modelingType"), "NewProperty")
                 .build();
 
         StoreResult<Asset> result = testSubject.update(assetUpdated);

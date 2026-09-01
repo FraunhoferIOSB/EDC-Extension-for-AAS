@@ -18,8 +18,6 @@ package de.fraunhofer.iosb.aas.dtr;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.runtime.metamodel.annotation.Settings;
 
-import javax.annotation.Nullable;
-
 
 @Settings
 public class DigitalTwinRegistryExtensionConfiguration {
@@ -64,22 +62,22 @@ public class DigitalTwinRegistryExtensionConfiguration {
     }
 
 
-    public @Nullable String getAccessPolicyDefinitionId() {
+    public String getAccessPolicyDefinitionId() {
         return accessPolicyDefinitionId;
     }
 
 
-    public @Nullable String getAccessPolicyPath() {
+    public String getAccessPolicyPath() {
         return accessPolicyPath;
     }
 
 
-    public @Nullable String getUsagePolicyDefinitionId() {
+    public String getUsagePolicyDefinitionId() {
         return usagePolicyDefinitionId;
     }
 
 
-    public @Nullable String getUsagePolicyPath() {
+    public String getUsagePolicyPath() {
         return usagePolicyPath;
     }
 }

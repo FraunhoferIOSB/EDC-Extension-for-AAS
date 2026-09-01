@@ -21,7 +21,7 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
 import static de.fraunhofer.iosb.constants.AasConstants.AAS_PREFIX;
-import static de.fraunhofer.iosb.constants.AasConstants.AAS_V30_NAMESPACE;
+import static de.fraunhofer.iosb.constants.AasConstants.AAS_V31_NAMESPACE;
 
 
 /**
@@ -34,6 +34,6 @@ public class JsonLdExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        jsonLdService.registerNamespace(AAS_PREFIX, AAS_V30_NAMESPACE);
+        jsonLdService.registerNamespace(AAS_PREFIX, AAS_V31_NAMESPACE);
     }
 }

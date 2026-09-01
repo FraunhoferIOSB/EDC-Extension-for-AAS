@@ -124,7 +124,7 @@ public class RegistryElementCreator {
     private static List<Endpoint> getEndpoints(String id, String type) {
         return List.of(
                 new DefaultEndpoint.Builder()
-                        ._interface("%s-%s".formatted(type, SUPPORTED_AAS_VERSION))
+                        ._interface(String.format("%s-%s", type, SUPPORTED_AAS_VERSION))
                         .protocolInformation(new DefaultProtocolInformation.Builder()
                                 .href("https://localhost:12345")
                                 .endpointProtocol("HTTPS")
@@ -133,7 +133,7 @@ public class RegistryElementCreator {
                                 .build())
                         .build(),
                 new DefaultEndpoint.Builder()
-                        ._interface("%s-REPOSITORY-%s".formatted(type, SUPPORTED_AAS_VERSION))
+                        ._interface(String.format("%s-REPOSITORY-%s", type, SUPPORTED_AAS_VERSION))
                         .protocolInformation(new DefaultProtocolInformation.Builder()
                                 .href("http://localhost:420")
                                 .endpointProtocol("HTTP")

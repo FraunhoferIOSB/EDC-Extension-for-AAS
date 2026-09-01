@@ -10,9 +10,9 @@ fa3st-client = "1.1.0"
 
 commons-io = "2.22.0"
 jersey = "4.0.2"
-junit-bom = "6.1.1"
-junit-platform-launcher = "6.1.1"
-jupiter = "6.1.1"
+junit-bom = "6.1.3"
+junit-platform-launcher = "6.1.3"
+jupiter = "6.1.3"
 mockito = "5.23.0"
 tractusx = "0.12.1"
 wiremock = "3.13.2"
@@ -80,7 +80,7 @@ eclipse-tractusx-core-spi = { module = "org.eclipse.tractusx.edc:core-spi", vers
 eclipse-tractusx-core-utils = { module = "org.eclipse.tractusx.edc:core-utils", version.ref = "tractusx" }
 
 
-shadow-gradle-plugin = { module = "com.gradleup.shadow:shadow-gradle-plugin", version = "9.5.1" }
+shadow-gradle-plugin = { module = "com.gradleup.shadow:shadow-gradle-plugin", version = "9.6.1" }
 docker-gradle-plugin = { module = "com.bmuschko:gradle-docker-plugin", version = "10.0.0" }
 spotless-gradle-plugin = { module = "com.diffplug.spotless:spotless-plugin-gradle", version = "8.10.0" }
 

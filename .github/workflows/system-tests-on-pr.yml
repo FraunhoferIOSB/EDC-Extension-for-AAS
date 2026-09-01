@@ -12,23 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: Build project on PR
+name: Run system tests on PR
 
 on:
   pull_request:
     branches: [ "main" ]
-    paths-ignore:
-      - "**.md"
-      - "docs/**"
-      - "LICENSE"
   workflow_dispatch:
 
 permissions:
   contents: read
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
 
 jobs:
   build:
@@ -40,5 +32,5 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-      - name: Build project and docker image
-        uses: ./.github/actions/checks/build_all
+      - name: Run system tests
+        uses: ./.github/actions/checks/system-tests

@@ -43,6 +43,7 @@ import java.util.Map;
 
 import static de.fraunhofer.iosb.app.testutils.AasCreator.getSubmodel;
 import static de.fraunhofer.iosb.constants.AasConstants.AAS_V31_NAMESPACE;
+import static de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress.PROXY_METHOD;
 import static org.eclipse.edc.dataaddress.httpdata.spi.HttpDataAddressSchema.BASE_URL;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -258,7 +259,7 @@ class EdcStoreHandlerTest {
         String url = "http://invalid.local";
 
         PolicyBinding binding = new PolicyBinding(reference, "access-policy", "contract-policy",
-                Map.of(BASE_URL, "http://override.invalid.local"));
+                Map.of(PROXY_METHOD, "POST"));
 
         Asset asset = assetForBinding(url, reference, baseAsset, binding);
 
@@ -267,6 +268,27 @@ class EdcStoreHandlerTest {
         Asset storedAsset = assetIndex.findById(asset.getId());
         assertNotNull(storedAsset);
         assertEquals("http://override.invalid.local", storedAsset.getDataAddress().getStringProperty(BASE_URL));
+    }
+
+
+    @Test
+    void register_bindingWithDataAddressProperties_shouldAddCustomDataAddressProperties() {
+        Submodel submodel = getSubmodel();
+        Asset baseAsset = identifiableMapper.map(submodel);
+        Reference reference = AasUtils.toReference(submodel);
+        String url = "http://invalid.local";
+
+        PolicyBinding binding = new PolicyBinding(reference, "access-policy", "contract-policy",
+                Map.of(PROXY_METHOD, "POST", "AnyCustomProp", "MyValue"));
+
+        Asset asset = assetForBinding(url, reference, baseAsset, binding);
+
+        assertTrue(testSubject.register(binding, asset).succeeded());
+
+        Asset storedAsset = assetIndex.findById(asset.getId());
+        assertNotNull(storedAsset);
+        assertEquals("POST", storedAsset.getDataAddress().getStringProperty(PROXY_METHOD));
+        assertEquals("MyValue", storedAsset.getDataAddress().getStringProperty("AnyCustomProp"));
     }
 
 

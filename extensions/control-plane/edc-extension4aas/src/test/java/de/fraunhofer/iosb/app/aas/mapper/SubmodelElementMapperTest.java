@@ -48,7 +48,7 @@ import java.util.UUID;
 
 import static de.fraunhofer.iosb.app.aas.mapper.referable.SubmodelElementMapper.SMC_CHILDREN_LOCATION;
 import static de.fraunhofer.iosb.app.testutils.AasCreator.getProperty;
-import static de.fraunhofer.iosb.constants.AasConstants.AAS_V30_NAMESPACE;
+import static de.fraunhofer.iosb.constants.AasConstants.AAS_V31_NAMESPACE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
@@ -105,9 +105,9 @@ class SubmodelElementMapperTest {
 
         var resultAsset = testSubject.map(mockParent, mockOperation);
 
-        assertEquals(mockInputVariables, resultAsset.getProperty(AAS_V30_NAMESPACE + "Operation/" + "inputVariables"));
-        assertEquals(mockInoutputVariables, resultAsset.getProperty(AAS_V30_NAMESPACE + "Operation/" + "inoutputVariables"));
-        assertEquals(mockOutputVariables, resultAsset.getProperty(AAS_V30_NAMESPACE + "Operation/" + "outputVariables"));
+        assertEquals(mockInputVariables, resultAsset.getProperty(AAS_V31_NAMESPACE + "Operation/" + "inputVariables"));
+        assertEquals(mockInoutputVariables, resultAsset.getProperty(AAS_V31_NAMESPACE + "Operation/" + "inoutputVariables"));
+        assertEquals(mockOutputVariables, resultAsset.getProperty(AAS_V31_NAMESPACE + "Operation/" + "outputVariables"));
     }
 
 
@@ -165,26 +165,26 @@ class SubmodelElementMapperTest {
                 .concat("[%s]");
 
         Asset mappedProperty = mappedChildren.get(0);
-        assertEquals("Property", mappedProperty.getProperty(AAS_V30_NAMESPACE.concat("modelingType")));
+        assertEquals("Property", mappedProperty.getProperty(AAS_V31_NAMESPACE.concat("modelingType")));
         assertInstanceOf(AasDataAddress.class, mappedProperty.getDataAddress());
         assertEquals(uri.toString(), ((AasDataAddress) mappedProperty.getDataAddress()).getBaseUrl());
         assertEquals(String.format(listAccessorPathTemplate, "0"), ((AasDataAddress) mappedProperty.getDataAddress()).getPath());
 
         Asset mappedList = mappedChildren.get(1);
-        assertEquals("SubmodelElementList", mappedList.getProperty(AAS_V30_NAMESPACE.concat("modelingType")));
+        assertEquals("SubmodelElementList", mappedList.getProperty(AAS_V31_NAMESPACE.concat("modelingType")));
         assertInstanceOf(AasDataAddress.class, mappedList.getDataAddress());
         assertEquals(uri.toString(), ((AasDataAddress) mappedList.getDataAddress()).getBaseUrl());
         assertEquals(String.format(listAccessorPathTemplate, "1"), ((AasDataAddress) mappedList.getDataAddress()).getPath());
 
         Asset mappedCollection = mappedChildren.get(2);
         assertEquals("SubmodelElementCollection",
-                mappedCollection.getProperty(AAS_V30_NAMESPACE.concat("modelingType")));
+                mappedCollection.getProperty(AAS_V31_NAMESPACE.concat("modelingType")));
         assertInstanceOf(AasDataAddress.class, mappedCollection.getDataAddress());
         assertEquals(uri.toString(), ((AasDataAddress) mappedCollection.getDataAddress()).getBaseUrl());
         assertEquals(String.format(listAccessorPathTemplate, "2"), ((AasDataAddress) mappedCollection.getDataAddress()).getPath());
 
         Asset mappedBlob = mappedChildren.get(3);
-        assertEquals("Blob", mappedBlob.getProperty(AAS_V30_NAMESPACE.concat("modelingType")));
+        assertEquals("Blob", mappedBlob.getProperty(AAS_V31_NAMESPACE.concat("modelingType")));
         assertInstanceOf(AasDataAddress.class, mappedBlob.getDataAddress());
         assertEquals(uri.toString(), ((AasDataAddress) mappedBlob.getDataAddress()).getBaseUrl());
         assertEquals(String.format(listAccessorPathTemplate, "3"), ((AasDataAddress) mappedBlob.getDataAddress()).getPath());

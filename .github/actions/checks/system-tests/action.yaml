@@ -14,38 +14,19 @@
 
 name: Run system tests
 description: Runs the system tests defined in system-tests.
+inputs:
+  test_name:
+    required: true
+    description: The name of the test to be run
 
 runs:
   using: "composite"
   steps:
-    - name: Checkout sources
-      uses: actions/checkout@v4
-    - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v3
-    - name: Build system-test image
-      shell: bash
-      run: docker build -t edc-systest system-tests
-    - name: Run data plane test
+    - name: Run test
       shell: bash
       run: >-
         docker run --rm --network host
         -v "$PWD":/work
         -v "$HOME/.gradle":/root/.gradle
         -w /work
-        edc-systest bash system-tests/aas-data-plane/test.sh
-    - name: Run provider test
-      shell: bash
-      run: >-
-        docker run --rm --network host
-        -v "$PWD":/work
-        -v "$HOME/.gradle":/root/.gradle
-        -w /work
-        edc-systest bash system-tests/provider/test.sh
-    - name: Run standalone test
-      shell: bash
-      run: >-
-        docker run --rm --network host
-        -v "$PWD":/work
-        -v "$HOME/.gradle":/root/.gradle
-        -w /work
-        edc-systest bash system-tests/standalone/test.sh
+        edc-systest bash system-tests/${{ inputs.test_name }}/test.sh

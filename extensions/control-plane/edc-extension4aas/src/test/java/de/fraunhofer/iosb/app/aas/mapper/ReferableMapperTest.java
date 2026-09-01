@@ -31,7 +31,6 @@ import java.net.URI;
 
 import static de.fraunhofer.iosb.app.testutils.AasCreator.getSubmodel;
 import static de.fraunhofer.iosb.constants.AasConstants.AAS_V31_NAMESPACE;
-import static de.fraunhofer.iosb.constants.AasConstants.DEFAULT_EXPOSED_FIELDS;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 

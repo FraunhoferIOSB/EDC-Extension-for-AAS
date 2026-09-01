@@ -32,9 +32,11 @@ runs:
     - name: Run data plane test
       shell: bash
       run: system-tests/aas-data-plane/test.sh
+    # We sleep to let the system clean up used ports
     - name: Run provider test
       shell: bash
-      run: system-tests/provider/test.sh
+      run: sleep 3 &&system-tests/provider/test.sh
+    # We sleep to let the system clean up used ports
     - name: Run standalone test
       shell: bash
-      run: system-tests/standalone/test.sh
+      run: sleep 3 &&system-tests/standalone/test.sh

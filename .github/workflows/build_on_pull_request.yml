@@ -34,11 +34,19 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - name: Set up JDK
-        uses: actions/setup-java@v6
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-      - name: Build project and docker image
-        uses: ./.github/actions/checks/build_all
+      - name: Checkout sources
+        uses: actions/checkout@v4
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+      - name: compile sources
+        shell: bash
+        run: ./gradlew compileJava compileTestJava
+      - name: spotless, tests
+        shell: bash
+        run: ./gradlew spotlessCheck test
+      - name: build extensions, launchers
+        shell: bash
+        run: ./gradlew build
+      - name: build docker images
+        shell: bash
+        run: ./gradlew dockerize

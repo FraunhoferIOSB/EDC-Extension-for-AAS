@@ -1,0 +1,34 @@
+info:
+  name: Data
+  type: http
+  seq: 7
+
+http:
+  method: GET
+  url: "{{p1-data-plane-public}}"
+  headers:
+    - name: Authorization
+      value: "{{pull-secret}}"
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        const body = res.getBody();
+
+        const subprotocolBody =
+          body.result[0]
+            .submodelDescriptors[0]
+            .endpoints[0]
+            .protocolInformation
+            .subprotocolBody;
+
+        const id = subprotocolBody.match(/id=([^;]+)/)[1];
+
+        bru.setVar("submodel-id", id);
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,0 +1,22 @@
+{
+  "roles": [],
+  "serviceEndpoints": [
+    {
+      "id": "my-id",
+      "type": "",
+      "serviceEndpoint": ""
+    }
+  ],
+  "active": true,
+  "participantId": "",
+  "participantContextId": "",
+  "did": "",
+  "key": {
+    "keyId": "",
+    "privateKeyAlias": "",
+    "keyGeneratorParams": {
+      "algorithm": "EdDSA",
+      "curve": "Ed25519"
+    }
+  }
+}

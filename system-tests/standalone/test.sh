@@ -46,7 +46,7 @@ offer_id=$(curl -sS\
    --header "Content-Type: application/json"\
    --header "x-api-key: password" \
    --data "$catalog_request"\
-   | jq -r '.dataset[0].hasPolicy[0]."@id"')
+   | jq -r '.dataset[] | select(."@id" | startswith("-1088830347")) | .hasPolicy[0]."@id"')
 
 ################################ Step 6.2: Send offer (from consumer to provider) ################################
 
@@ -99,9 +99,9 @@ received_data=$(curl \
 
 should_be_data=$(< system-tests/resources/aas.json jq -S -r '.conceptDescriptions[0]')
 
-diff -w <(echo "$received_data") <(echo "$should_be_data") > /dev/null
+diff -w <(echo "$received_data") <(echo "$should_be_data") && echo "Transferred data checks out."
 
-echo "Transferred data checks out. Test complete!"
+echo "Test complete!"
 
 
 # Step 7: Reinstate initial build file with hashicorp dependency.

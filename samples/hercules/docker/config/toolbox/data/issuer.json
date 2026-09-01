@@ -1,0 +1,10 @@
+{
+  "did": "did:web:issuer-service%3A10100",
+  "contextId": "issuercontextid",
+  "issuerApi": "http://issuer-service:15152/api/issuer/v1beta",
+  "identityApi": "http://issuer-service:15151/api/identity/v1beta",
+  "issuanceApi": "http://issuer-service:13132/api/issuance/v1beta",
+  "apiKey": "YWRtaW4=.s3cr3t",
+  "hostname": "issuer-service",
+  "protocol": "http"
+}

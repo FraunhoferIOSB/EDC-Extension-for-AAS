@@ -1,6 +1,6 @@
 [
   {
-    "@id": "1351791412",
+    "@id": "-1088830347",
     "@type": "Asset",
     "properties": {
       "aas:Referable/description": [
@@ -15,7 +15,7 @@
       ],
       "aas:modelingType": "ConceptDescription",
       "aas:Referable/idShort": "SystemTestConceptDescription",
-      "id": "1351791412",
+      "id": "-1088830347",
       "aas:Identifiable/id": "https://acplt.org/System_Test_ConceptDescription"
     },
     "dataAddress": {
@@ -23,17 +23,17 @@
       "method": "GET",
       "type": "AasData",
       "aas:reference": "[ModelRef](ConceptDescription)https://acplt.org/System_Test_ConceptDescription",
-      "baseUrl": "https://localhost:60875/api/v3.0"
+      "baseUrl": "https://localhost:60875/api/v3.1"
     },
     "@context": [
       "https://w3id.org/edc/connector/management/v2",
       {
-        "aas": "https://admin-shell.io/aas/3/0/"
+        "aas": "https://admin-shell.io/aas/3/1/"
       }
     ]
   },
   {
-    "@id": "792362498",
+    "@id": "263443459",
     "@type": "Asset",
     "properties": {
       "aas:Referable/description": [
@@ -48,7 +48,7 @@
       ],
       "aas:modelingType": "AssetAdministrationShell",
       "aas:Referable/idShort": "SystemTestAssetAdministrationShell",
-      "id": "792362498",
+      "id": "263443459",
       "aas:Identifiable/id": "https://acplt.org/System_Test_AssetAdministrationShell"
     },
     "dataAddress": {
@@ -56,17 +56,17 @@
       "method": "GET",
       "type": "AasData",
       "aas:reference": "[ModelRef](AssetAdministrationShell)https://acplt.org/System_Test_AssetAdministrationShell",
-      "baseUrl": "https://localhost:60875/api/v3.0"
+      "baseUrl": "https://localhost:60875/api/v3.1"
     },
     "@context": [
       "https://w3id.org/edc/connector/management/v2",
       {
-        "aas": "https://admin-shell.io/aas/3/0/"
+        "aas": "https://admin-shell.io/aas/3/1/"
       }
     ]
   },
   {
-    "@id": "-799803758",
+    "@id": "-1105438287",
     "@type": "Asset",
     "properties": {
       "aas:Referable/description": [
@@ -88,24 +88,24 @@
         },
         "aas:Reference/type": "ExternalReference"
       },
-      "id": "-799803758"
+      "id": "-1105438287"
     },
     "dataAddress": {
       "@type": "DataAddress",
       "method": "GET",
       "type": "AasData",
       "aas:reference": "[ModelRef](Submodel)http://acplt.org/Submodels/Assets/TestAsset/System_Test_Submodel, (SubmodelElementCollection)SystemTestSubmodelElementCollection",
-      "baseUrl": "https://localhost:60875/api/v3.0"
+      "baseUrl": "https://localhost:60875/api/v3.1"
     },
     "@context": [
       "https://w3id.org/edc/connector/management/v2",
       {
-        "aas": "https://admin-shell.io/aas/3/0/"
+        "aas": "https://admin-shell.io/aas/3/1/"
       }
     ]
   },
   {
-    "@id": "458140152",
+    "@id": "-1365047111",
     "@type": "Asset",
     "properties": {
       "aas:Referable/description": [
@@ -127,28 +127,28 @@
         },
         "aas:Reference/type": "ExternalReference"
       },
+      "id": "-1365047111",
       "aas:Referable/displayName": {
         "aas:AbstractLangString/language": "en-us",
         "aas:AbstractLangString/text": "Manufacturer Name"
-      },
-      "id": "458140152"
+      }
     },
     "dataAddress": {
       "@type": "DataAddress",
       "method": "GET",
       "type": "AasData",
       "aas:reference": "[ModelRef](Submodel)http://acplt.org/Submodels/Assets/TestAsset/System_Test_Submodel, (SubmodelElementCollection)SystemTestSubmodelElementCollection, (Property)ManufacturerName",
-      "baseUrl": "https://localhost:60875/api/v3.0"
+      "baseUrl": "https://localhost:60875/api/v3.1"
     },
     "@context": [
       "https://w3id.org/edc/connector/management/v2",
       {
-        "aas": "https://admin-shell.io/aas/3/0/"
+        "aas": "https://admin-shell.io/aas/3/1/"
       }
     ]
   },
   {
-    "@id": "1855961989",
+    "@id": "657226724",
     "@type": "Asset",
     "properties": {
       "aas:Referable/description": [
@@ -171,19 +171,19 @@
         },
         "aas:Reference/type": "ExternalReference"
       },
-      "id": "1855961989"
+      "id": "657226724"
     },
     "dataAddress": {
       "@type": "DataAddress",
       "method": "GET",
       "type": "AasData",
       "aas:reference": "[ModelRef](Submodel)http://acplt.org/Submodels/Assets/TestAsset/System_Test_Submodel",
-      "baseUrl": "https://localhost:60875/api/v3.0"
+      "baseUrl": "https://localhost:60875/api/v3.1"
     },
     "@context": [
       "https://w3id.org/edc/connector/management/v2",
       {
-        "aas": "https://admin-shell.io/aas/3/0/"
+        "aas": "https://admin-shell.io/aas/3/1/"
       }
     ]
   }

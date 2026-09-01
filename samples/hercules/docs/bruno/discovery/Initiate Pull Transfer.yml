@@ -1,0 +1,40 @@
+info:
+  name: Initiate Pull Transfer
+  type: http
+  seq: 4
+
+http:
+  method: POST
+  url: "{{p2-management-api}}/v3/transferprocesses"
+  body:
+    type: json
+    data: |-
+      {
+        "@context": {
+          "edc": "https://w3id.org/edc/v0.0.1/ns/"
+        },
+        "@type": "TransferRequestMessage",
+        "protocol": "dataspace-protocol-http:2025-1",
+        "contractId": "{{agreement-id}}",
+        "counterPartyAddress": "{{p1-dsp}}",
+        "connectorId": "{{p1-did}}",
+        "transferType": "HttpData-PULL"
+      }
+  auth: inherit
+
+runtime:
+  actions:
+    - type: set-variable
+      phase: after-response
+      selector:
+        expression: res.body['@id']
+        method: jsonq
+      variable:
+        name: transferprocess-id
+        scope: runtime
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

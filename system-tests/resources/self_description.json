@@ -6,7 +6,7 @@
         "extensions": [
           {
             "name": "https://w3id.org/edc/v0.0.1/ns/id",
-            "value": "792362498"
+            "value": "263443459"
           }
         ],
         "id": "https://acplt.org/System_Test_AssetAdministrationShell",
@@ -29,7 +29,7 @@
         "extensions": [
           {
             "name": "https://w3id.org/edc/v0.0.1/ns/id",
-            "value": "1351791412"
+            "value": "-1088830347"
           }
         ],
         "id": "https://acplt.org/System_Test_ConceptDescription",
@@ -52,7 +52,7 @@
         "extensions": [
           {
             "name": "https://w3id.org/edc/v0.0.1/ns/id",
-            "value": "1855961989"
+            "value": "657226724"
           }
         ],
         "semanticId": {
@@ -82,7 +82,7 @@
             "extensions": [
               {
                 "name": "https://w3id.org/edc/v0.0.1/ns/id",
-                "value": "-799803758"
+                "value": "-1105438287"
               }
             ],
             "semanticId": {
@@ -111,7 +111,7 @@
                 "extensions": [
                   {
                     "name": "https://w3id.org/edc/v0.0.1/ns/id",
-                    "value": "458140152"
+                    "value": "-1365047111"
                   }
                 ],
                 "semanticId": {

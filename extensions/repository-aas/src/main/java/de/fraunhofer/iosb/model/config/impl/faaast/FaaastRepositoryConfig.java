@@ -53,7 +53,7 @@ public class FaaastRepositoryConfig extends AasRepositoryConfig<ServiceConfig> {
 
         // Find any pre-defined endpoint to return or else return the possibly custom EDC-communication port.
         return httpEndpoints.stream()
-                .filter(ep -> ep.getPort() != customPort)
+                .filter(ep -> customPort == null || (ep.getPort() != customPort))
                 .findFirst()
                 .orElseGet(() -> httpEndpoints.get(0));
     }

@@ -1,172 +1,172 @@
 [
   {
-    "@id": "1351791412",
+    "@id": "-1088830347",
     "@type": "Asset",
     "properties": {
-      "https://admin-shell.io/aas/3/0/Referable/description": [
+      "https://admin-shell.io/aas/3/1/Referable/description": [
         {
-          "https://admin-shell.io/aas/3/0/AbstractLangString/language": "en-us",
-          "https://admin-shell.io/aas/3/0/AbstractLangString/text": "This is my system test ConceptDescription description"
+          "https://admin-shell.io/aas/3/1/AbstractLangString/language": "en-us",
+          "https://admin-shell.io/aas/3/1/AbstractLangString/text": "This is my system test ConceptDescription description"
         },
         {
-          "https://admin-shell.io/aas/3/0/AbstractLangString/language": "de",
-          "https://admin-shell.io/aas/3/0/AbstractLangString/text": "Das ist meine system test ConceptDescription beschreibung"
+          "https://admin-shell.io/aas/3/1/AbstractLangString/language": "de",
+          "https://admin-shell.io/aas/3/1/AbstractLangString/text": "Das ist meine system test ConceptDescription beschreibung"
         }
       ],
-      "https://admin-shell.io/aas/3/0/Referable/idShort": "SystemTestConceptDescription",
-      "https://admin-shell.io/aas/3/0/Identifiable/id": "https://acplt.org/System_Test_ConceptDescription",
-      "https://admin-shell.io/aas/3/0/modelingType": "ConceptDescription",
-      "id": "1351791412"
+      "https://admin-shell.io/aas/3/1/Referable/idShort": "SystemTestConceptDescription",
+      "https://admin-shell.io/aas/3/1/Identifiable/id": "https://acplt.org/System_Test_ConceptDescription",
+      "https://admin-shell.io/aas/3/1/modelingType": "ConceptDescription",
+      "id": "-1088830347"
     },
     "dataAddress": {
       "@type": "DataAddress",
       "method": "GET",
       "type": "AasData",
-      "https://admin-shell.io/aas/3/0/reference": "[ModelRef](ConceptDescription)https://acplt.org/System_Test_ConceptDescription",
-      "baseUrl": "https://localhost:60875/api/v3.0"
+      "https://admin-shell.io/aas/3/1/reference": "[ModelRef](ConceptDescription)https://acplt.org/System_Test_ConceptDescription",
+      "baseUrl": "https://localhost:60875/api/v3.1"
     },
     "@context": [
       "https://w3id.org/edc/connector/management/v2"
     ]
   },
   {
-    "@id": "792362498",
+    "@id": "263443459",
     "@type": "Asset",
     "properties": {
-      "https://admin-shell.io/aas/3/0/Referable/description": [
+      "https://admin-shell.io/aas/3/1/Referable/description": [
         {
-          "https://admin-shell.io/aas/3/0/AbstractLangString/language": "en-us",
-          "https://admin-shell.io/aas/3/0/AbstractLangString/text": "This is my system test AAS description"
+          "https://admin-shell.io/aas/3/1/AbstractLangString/language": "en-us",
+          "https://admin-shell.io/aas/3/1/AbstractLangString/text": "This is my system test AAS description"
         },
         {
-          "https://admin-shell.io/aas/3/0/AbstractLangString/language": "de",
-          "https://admin-shell.io/aas/3/0/AbstractLangString/text": "Das ist meine system test AAS beschreibung"
+          "https://admin-shell.io/aas/3/1/AbstractLangString/language": "de",
+          "https://admin-shell.io/aas/3/1/AbstractLangString/text": "Das ist meine system test AAS beschreibung"
         }
       ],
-      "https://admin-shell.io/aas/3/0/Referable/idShort": "SystemTestAssetAdministrationShell",
-      "https://admin-shell.io/aas/3/0/Identifiable/id": "https://acplt.org/System_Test_AssetAdministrationShell",
-      "https://admin-shell.io/aas/3/0/modelingType": "AssetAdministrationShell",
-      "id": "792362498"
+      "https://admin-shell.io/aas/3/1/Referable/idShort": "SystemTestAssetAdministrationShell",
+      "https://admin-shell.io/aas/3/1/Identifiable/id": "https://acplt.org/System_Test_AssetAdministrationShell",
+      "https://admin-shell.io/aas/3/1/modelingType": "AssetAdministrationShell",
+      "id": "263443459"
     },
     "dataAddress": {
       "@type": "DataAddress",
       "method": "GET",
       "type": "AasData",
-      "https://admin-shell.io/aas/3/0/reference": "[ModelRef](AssetAdministrationShell)https://acplt.org/System_Test_AssetAdministrationShell",
-      "baseUrl": "https://localhost:60875/api/v3.0"
+      "https://admin-shell.io/aas/3/1/reference": "[ModelRef](AssetAdministrationShell)https://acplt.org/System_Test_AssetAdministrationShell",
+      "baseUrl": "https://localhost:60875/api/v3.1"
     },
     "@context": [
       "https://w3id.org/edc/connector/management/v2"
     ]
   },
   {
-    "@id": "-799803758",
+    "@id": "-1105438287",
     "@type": "Asset",
     "properties": {
-      "https://admin-shell.io/aas/3/0/Referable/description": [
+      "https://admin-shell.io/aas/3/1/Referable/description": [
         {
-          "https://admin-shell.io/aas/3/0/AbstractLangString/language": "en-us",
-          "https://admin-shell.io/aas/3/0/AbstractLangString/text": "This is my system test SMC description"
+          "https://admin-shell.io/aas/3/1/AbstractLangString/language": "en-us",
+          "https://admin-shell.io/aas/3/1/AbstractLangString/text": "This is my system test SMC description"
         },
         {
-          "https://admin-shell.io/aas/3/0/AbstractLangString/language": "de",
-          "https://admin-shell.io/aas/3/0/AbstractLangString/text": "Das ist meine system test SMC beschreibung"
+          "https://admin-shell.io/aas/3/1/AbstractLangString/language": "de",
+          "https://admin-shell.io/aas/3/1/AbstractLangString/text": "Das ist meine system test SMC beschreibung"
         }
       ],
-      "https://admin-shell.io/aas/3/0/Referable/idShort": "SystemTestSubmodelElementCollection",
-      "https://admin-shell.io/aas/3/0/modelingType": "SubmodelElementCollection",
-      "https://admin-shell.io/aas/3/0/HasSemantics/semanticId": {
-        "https://admin-shell.io/aas/3/0/Reference/keys": {
-          "https://admin-shell.io/aas/3/0/Key/type": "GlobalReference",
-          "https://admin-shell.io/aas/3/0/Key/value": "http://acplt.org/SubmodelElementCollections/System_Test_SubmodelElementCollection"
+      "https://admin-shell.io/aas/3/1/Referable/idShort": "SystemTestSubmodelElementCollection",
+      "https://admin-shell.io/aas/3/1/modelingType": "SubmodelElementCollection",
+      "https://admin-shell.io/aas/3/1/HasSemantics/semanticId": {
+        "https://admin-shell.io/aas/3/1/Reference/keys": {
+          "https://admin-shell.io/aas/3/1/Key/type": "GlobalReference",
+          "https://admin-shell.io/aas/3/1/Key/value": "http://acplt.org/SubmodelElementCollections/System_Test_SubmodelElementCollection"
         },
-        "https://admin-shell.io/aas/3/0/Reference/type": "ExternalReference"
+        "https://admin-shell.io/aas/3/1/Reference/type": "ExternalReference"
       },
-      "id": "-799803758"
+      "id": "-1105438287"
     },
     "dataAddress": {
       "@type": "DataAddress",
       "method": "GET",
       "type": "AasData",
-      "https://admin-shell.io/aas/3/0/reference": "[ModelRef](Submodel)http://acplt.org/Submodels/Assets/TestAsset/System_Test_Submodel, (SubmodelElementCollection)SystemTestSubmodelElementCollection",
-      "baseUrl": "https://localhost:60875/api/v3.0"
+      "https://admin-shell.io/aas/3/1/reference": "[ModelRef](Submodel)http://acplt.org/Submodels/Assets/TestAsset/System_Test_Submodel, (SubmodelElementCollection)SystemTestSubmodelElementCollection",
+      "baseUrl": "https://localhost:60875/api/v3.1"
     },
     "@context": [
       "https://w3id.org/edc/connector/management/v2"
     ]
   },
   {
-    "@id": "458140152",
+    "@id": "-1365047111",
     "@type": "Asset",
     "properties": {
-      "https://admin-shell.io/aas/3/0/Referable/description": [
+      "https://admin-shell.io/aas/3/1/Referable/description": [
         {
-          "https://admin-shell.io/aas/3/0/AbstractLangString/language": "en-us",
-          "https://admin-shell.io/aas/3/0/AbstractLangString/text": "Legally valid designation of the natural or judicial person which is directly responsible for the design, production, packaging and labeling of a product in respect to its being brought into circulation."
+          "https://admin-shell.io/aas/3/1/AbstractLangString/language": "en-us",
+          "https://admin-shell.io/aas/3/1/AbstractLangString/text": "Legally valid designation of the natural or judicial person which is directly responsible for the design, production, packaging and labeling of a product in respect to its being brought into circulation."
         },
         {
-          "https://admin-shell.io/aas/3/0/AbstractLangString/language": "de",
-          "https://admin-shell.io/aas/3/0/AbstractLangString/text": "Bezeichnung für eine natürliche oder juristische Person, die für die Auslegung, Herstellung und Verpackung sowie die Etikettierung eines Produkts im Hinblick auf das 'Inverkehrbringen' im eigenen Namen verantwortlich ist"
+          "https://admin-shell.io/aas/3/1/AbstractLangString/language": "de",
+          "https://admin-shell.io/aas/3/1/AbstractLangString/text": "Bezeichnung für eine natürliche oder juristische Person, die für die Auslegung, Herstellung und Verpackung sowie die Etikettierung eines Produkts im Hinblick auf das 'Inverkehrbringen' im eigenen Namen verantwortlich ist"
         }
       ],
-      "https://admin-shell.io/aas/3/0/Referable/idShort": "ManufacturerName",
-      "https://admin-shell.io/aas/3/0/modelingType": "Property",
-      "https://admin-shell.io/aas/3/0/HasSemantics/semanticId": {
-        "https://admin-shell.io/aas/3/0/Reference/keys": {
-          "https://admin-shell.io/aas/3/0/Key/type": "GlobalReference",
-          "https://admin-shell.io/aas/3/0/Key/value": "0173-1#02-AAO677#002"
+      "https://admin-shell.io/aas/3/1/Referable/idShort": "ManufacturerName",
+      "https://admin-shell.io/aas/3/1/modelingType": "Property",
+      "https://admin-shell.io/aas/3/1/HasSemantics/semanticId": {
+        "https://admin-shell.io/aas/3/1/Reference/keys": {
+          "https://admin-shell.io/aas/3/1/Key/type": "GlobalReference",
+          "https://admin-shell.io/aas/3/1/Key/value": "0173-1#02-AAO677#002"
         },
-        "https://admin-shell.io/aas/3/0/Reference/type": "ExternalReference"
+        "https://admin-shell.io/aas/3/1/Reference/type": "ExternalReference"
       },
-      "https://admin-shell.io/aas/3/0/Referable/displayName": {
-        "https://admin-shell.io/aas/3/0/AbstractLangString/language": "en-us",
-        "https://admin-shell.io/aas/3/0/AbstractLangString/text": "Manufacturer Name"
+      "https://admin-shell.io/aas/3/1/Referable/displayName": {
+        "https://admin-shell.io/aas/3/1/AbstractLangString/language": "en-us",
+        "https://admin-shell.io/aas/3/1/AbstractLangString/text": "Manufacturer Name"
       },
-      "id": "458140152"
+      "id": "-1365047111"
     },
     "dataAddress": {
       "@type": "DataAddress",
       "method": "GET",
       "type": "AasData",
-      "https://admin-shell.io/aas/3/0/reference": "[ModelRef](Submodel)http://acplt.org/Submodels/Assets/TestAsset/System_Test_Submodel, (SubmodelElementCollection)SystemTestSubmodelElementCollection, (Property)ManufacturerName",
-      "baseUrl": "https://localhost:60875/api/v3.0"
+      "https://admin-shell.io/aas/3/1/reference": "[ModelRef](Submodel)http://acplt.org/Submodels/Assets/TestAsset/System_Test_Submodel, (SubmodelElementCollection)SystemTestSubmodelElementCollection, (Property)ManufacturerName",
+      "baseUrl": "https://localhost:60875/api/v3.1"
     },
     "@context": [
       "https://w3id.org/edc/connector/management/v2"
     ]
   },
   {
-    "@id": "1855961989",
+    "@id": "657226724",
     "@type": "Asset",
     "properties": {
-      "https://admin-shell.io/aas/3/0/Referable/description": [
+      "https://admin-shell.io/aas/3/1/Referable/description": [
         {
-          "https://admin-shell.io/aas/3/0/AbstractLangString/language": "en-us",
-          "https://admin-shell.io/aas/3/0/AbstractLangString/text": "An example asset identification submodel for the test application"
+          "https://admin-shell.io/aas/3/1/AbstractLangString/language": "en-us",
+          "https://admin-shell.io/aas/3/1/AbstractLangString/text": "An example asset identification submodel for the test application"
         },
         {
-          "https://admin-shell.io/aas/3/0/AbstractLangString/language": "de",
-          "https://admin-shell.io/aas/3/0/AbstractLangString/text": "Ein Beispiel-Identifikations-Submodel für eine Test-Anwendung"
+          "https://admin-shell.io/aas/3/1/AbstractLangString/language": "de",
+          "https://admin-shell.io/aas/3/1/AbstractLangString/text": "Ein Beispiel-Identifikations-Submodel für eine Test-Anwendung"
         }
       ],
-      "https://admin-shell.io/aas/3/0/Referable/idShort": "SystemTestSubmodel",
-      "https://admin-shell.io/aas/3/0/Identifiable/id": "http://acplt.org/Submodels/Assets/TestAsset/System_Test_Submodel",
-      "https://admin-shell.io/aas/3/0/modelingType": "Submodel",
-      "https://admin-shell.io/aas/3/0/HasSemantics/semanticId": {
-        "https://admin-shell.io/aas/3/0/Reference/keys": {
-          "https://admin-shell.io/aas/3/0/Key/type": "Submodel",
-          "https://admin-shell.io/aas/3/0/Key/value": "http://acplt.org/SubmodelTemplates/SystemTest"
+      "https://admin-shell.io/aas/3/1/Referable/idShort": "SystemTestSubmodel",
+      "https://admin-shell.io/aas/3/1/Identifiable/id": "http://acplt.org/Submodels/Assets/TestAsset/System_Test_Submodel",
+      "https://admin-shell.io/aas/3/1/modelingType": "Submodel",
+      "https://admin-shell.io/aas/3/1/HasSemantics/semanticId": {
+        "https://admin-shell.io/aas/3/1/Reference/keys": {
+          "https://admin-shell.io/aas/3/1/Key/type": "Submodel",
+          "https://admin-shell.io/aas/3/1/Key/value": "http://acplt.org/SubmodelTemplates/SystemTest"
         },
-        "https://admin-shell.io/aas/3/0/Reference/type": "ExternalReference"
+        "https://admin-shell.io/aas/3/1/Reference/type": "ExternalReference"
       },
-      "id": "1855961989"
+      "id": "657226724"
     },
     "dataAddress": {
       "@type": "DataAddress",
       "method": "GET",
       "type": "AasData",
-      "https://admin-shell.io/aas/3/0/reference": "[ModelRef](Submodel)http://acplt.org/Submodels/Assets/TestAsset/System_Test_Submodel",
-      "baseUrl": "https://localhost:60875/api/v3.0"
+      "https://admin-shell.io/aas/3/1/reference": "[ModelRef](Submodel)http://acplt.org/Submodels/Assets/TestAsset/System_Test_Submodel",
+      "baseUrl": "https://localhost:60875/api/v3.1"
     },
     "@context": [
       "https://w3id.org/edc/connector/management/v2"

@@ -19,12 +19,10 @@ import de.fraunhofer.iosb.aas.test.FileManager;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
-import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
@@ -49,12 +47,6 @@ class ConfigurationControllerTest {
 
         assertTrue(Configuration.getInstance().isExposeSelfDescription());
         assertEquals(123456, Configuration.getInstance().getSyncPeriod());
-    }
-
-
-    @Test
-    public void putWrongConfigValueTest() {
-        assertThrows(InvalidRequestException.class, () -> testSubject.updateConfiguration("{\"" + CONFIG_VALUE_PREFIX + "falseconfigvalue\":12}"));
     }
 
 }

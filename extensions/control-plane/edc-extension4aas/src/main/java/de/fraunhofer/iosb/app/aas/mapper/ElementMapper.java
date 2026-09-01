@@ -29,7 +29,6 @@ public class ElementMapper {
 
     private final AasServerClient client;
 
-
     protected ElementMapper(AasServerClient client) {
         this.client = client;
     }
@@ -38,6 +37,7 @@ public class ElementMapper {
     @NotNull
     public String generateId(Reference reference) {
         return AssetIdUtil.id(client.getUri().toString(), reference);
+
     }
 
 

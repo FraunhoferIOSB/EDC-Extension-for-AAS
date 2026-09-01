@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static de.fraunhofer.iosb.constants.AasConstants.AAS_V30_NAMESPACE;
+import static de.fraunhofer.iosb.constants.AasConstants.AAS_V31_NAMESPACE;
 import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toMap;
 import static org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes.ASSET_ADMINISTRATION_SHELL;
@@ -56,13 +56,13 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 public class AasDataAddress extends DataAddress {
 
     public static final String AAS_DATA_TYPE = "AasData";
-    public static final String PROXY_OPERATION = AAS_V30_NAMESPACE + "proxyOperation";
-    public static final String PROXY_METHOD = AAS_V30_NAMESPACE + "proxyMethod";
-    public static final String PROXY_PATH = AAS_V30_NAMESPACE + "proxyPath";
-    public static final String PROXY_BODY = AAS_V30_NAMESPACE + "proxyBody";
+    public static final String PROXY_OPERATION = AAS_V31_NAMESPACE + "proxyOperation";
+    public static final String PROXY_METHOD = AAS_V31_NAMESPACE + "proxyMethod";
+    public static final String PROXY_PATH = AAS_V31_NAMESPACE + "proxyPath";
+    public static final String PROXY_BODY = AAS_V31_NAMESPACE + "proxyBody";
     public static final String ADDITIONAL_HEADER = "aas:header:";
     public static final String METHOD = EDC_NAMESPACE + "method";
-    public static final String REFERENCE = AAS_V30_NAMESPACE + "reference";
+    public static final String REFERENCE = AAS_V31_NAMESPACE + "reference";
     public static final String PATH = EDC_NAMESPACE + "path";
 
     private static final List<KeyTypes> IDENTIFIABLE_KEY_TYPES = List.of(ASSET_ADMINISTRATION_SHELL, SUBMODEL, CONCEPT_DESCRIPTION);
@@ -196,9 +196,8 @@ public class AasDataAddress extends DataAddress {
         this.getAdditionalHeaders().forEach(httpDataAddress::addAdditionalHeader);
 
         return httpDataAddress
-                .baseUrl(this.getBaseUrl())
+                .baseUrl(String.format("%s/%s", this.getBaseUrl(), this.getPath()))
                 .method(this.getMethod())
-                .path(this.getPath())
                 .build();
     }
 

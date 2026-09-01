@@ -17,6 +17,7 @@ package de.fraunhofer.iosb.app.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -46,12 +47,14 @@ public class ConfigurationController {
     private final ObjectReader objectReader;
     private Configuration configuration;
 
-
     public ConfigurationController(Config config, Monitor monitor) {
         this.sysConfig = config;
         this.monitor = monitor;
         configuration = Configuration.getInstance();
-        objectMapper = JsonMapper.builder().configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true).build();
+        objectMapper = JsonMapper.builder()
+                .configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true)
+                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                .build();
         objectReader = objectMapper.readerForUpdating(configuration);
 
         initializeConfiguration();

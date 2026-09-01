@@ -1,0 +1,72 @@
+info:
+  name: Send ContractRequest
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{p2-management-api}}/v3/contractnegotiations"
+  headers:
+    - name: Content-Type
+      value: application/json
+    - name: Accept
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "@context": [
+          "https://w3id.org/tractusx/auth/v1.0.0",
+          "https://w3id.org/dspace/2025/1/context.jsonld",
+          "https://w3id.org/edc/dspace/v0.0.1",
+          {
+            "@vocab": "https://w3id.org/edc/v0.0.1/ns/",
+            "odrl": "http://www.w3.org/ns/odrl/2/",
+            "fx-policy": "https://w3id.org/factoryx/policy/v1.0/"
+          }
+        ],
+        "@type": "ContractRequest",
+        "counterPartyAddress": "http://control-plane:8084/api/v1/dsp/2025-1",
+        "counterPartyId": "{{p1-did}}",
+        "protocol": "dataspace-protocol-http:2025-1",
+        "policy": {
+          "@id": "{{policy-id}}",
+          "@type": "odrl:Offer",
+          "odrl:permission": [
+            {
+              "odrl:action": {
+                "@id": "odrl:use"
+              }
+            }
+          ],
+          "odrl:assigner": {
+            "@id": "did:web:wallet%3A10100:participant1"
+          },
+          "odrl:target": {
+            "@id": "1990331179"
+          }
+        },
+        "additionalScopes": [
+          "org.eclipse.dspace.dcp.vc.type:MembershipCredential:read"
+        ]
+      }
+  auth: inherit
+
+runtime:
+  actions:
+    - type: set-variable
+      phase: after-response
+      selector:
+        expression: res.body['@id']
+        method: jsonq
+      variable:
+        name: data-access-contract-negotiation-id
+        scope: runtime
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: Initiates an EDR negotiation by handling a contract negotiation first and then a transfer process for a given offer and with the given counter part. Please note that successfully invoking this endpoint only means that the negotiation was initiated.

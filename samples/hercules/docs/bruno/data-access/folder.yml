@@ -1,0 +1,7 @@
+info:
+  name: data-access
+  type: folder
+  seq: 2
+
+request:
+  auth: inherit

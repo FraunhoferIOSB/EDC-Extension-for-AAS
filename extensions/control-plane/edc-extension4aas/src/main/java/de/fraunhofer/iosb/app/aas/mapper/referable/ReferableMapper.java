@@ -17,18 +17,25 @@ package de.fraunhofer.iosb.app.aas.mapper.referable;
 
 import de.fraunhofer.iosb.app.aas.mapper.ElementMapper;
 import de.fraunhofer.iosb.app.aas.mapper.util.FilteredJsonSerializer;
+import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import de.fraunhofer.iosb.client.AasServerClient;
 import org.eclipse.digitaltwin.aas4j.v3.model.Referable;
 import org.eclipse.digitaltwin.aas4j.v3.model.annotations.IRI;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 
-import static de.fraunhofer.iosb.constants.AasConstants.AAS_V30_NAMESPACE;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Supplier;
+
+import static de.fraunhofer.iosb.constants.AasConstants.AAS_V31_NAMESPACE;
 import static de.fraunhofer.iosb.constants.AasConstants.DEFAULT_EXPOSED_FIELDS;
 
 
 public abstract class ReferableMapper extends ElementMapper {
 
     private final FilteredJsonSerializer jsonSerializer = new FilteredJsonSerializer();
+    private final Supplier<Set<String>> exposedFieldsSupplier = () -> Optional.ofNullable(Configuration.getInstance().getExposedFields())
+            .orElse(DEFAULT_EXPOSED_FIELDS);
 
 
     protected ReferableMapper(AasServerClient client) {
@@ -40,13 +47,16 @@ public abstract class ReferableMapper extends ElementMapper {
 
         var assetBuilder = Asset.Builder.newInstance();
 
-        var filterDefaults = jsonSerializer.toMap(referable, DEFAULT_EXPOSED_FIELDS);
-        assetBuilder.properties(filterDefaults);
+        // Hercules catalog entries don't have additional metadata
+        if (!Configuration.getInstance().isHercules()) {
+            var filterDefaults = jsonSerializer.toMap(referable, exposedFieldsSupplier.get());
+            assetBuilder.properties(filterDefaults);
+        }
 
         String[] modelingType = referable.getClass().getAnnotation(IRI.class).value();
 
         if (modelingType.length > 0) {
-            assetBuilder.property(AAS_V30_NAMESPACE.concat("modelingType"), removeAasPrefix(modelingType[0]));
+            assetBuilder.property(AAS_V31_NAMESPACE.concat("modelingType"), removeAasPrefix(modelingType[0]));
         }
 
         return assetBuilder;

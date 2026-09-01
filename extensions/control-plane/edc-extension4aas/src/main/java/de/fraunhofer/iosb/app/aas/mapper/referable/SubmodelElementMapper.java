@@ -70,7 +70,7 @@ public class SubmodelElementMapper extends ReferableMapper {
         Asset.Builder assetBuilder = super.map(submodelElement)
                 .id(generateId(reference));
 
-        if (Configuration.getInstance().useAasDataPlane()) {
+        if (Configuration.getInstance().useAasDataPlane() && !Configuration.getInstance().isHercules()) {
             assetBuilder.dataAddress(dataAddress);
         }
         else {

@@ -23,6 +23,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static de.fraunhofer.iosb.constants.AasConstants.DEFAULT_EXPOSED_FIELDS;
+
 
 /**
  * The configuration of the application.
@@ -55,7 +57,8 @@ public class Configuration {
     private boolean useAasDataPlane = true;
     @JsonProperty(SETTINGS_PREFIX + "exposedFields")
     private Set<String> exposedFields;
-
+    @JsonProperty(SETTINGS_PREFIX + "hercules.enabled")
+    private boolean hercules;
 
     public static synchronized Configuration getInstance() {
         if (instance == null) {
@@ -127,6 +130,14 @@ public class Configuration {
 
     public void setExposedFields(String exposedFields) {
         Optional.ofNullable(exposedFields)
-                .ifPresent(ef -> this.exposedFields = Arrays.stream(ef.split(",")).map(String::trim).collect(Collectors.toSet()));
+                .ifPresentOrElse(
+                        ef -> this.exposedFields = Arrays.stream(ef.split(",")).map(String::trim)
+                                .collect(Collectors.toSet()),
+                        () -> this.exposedFields = DEFAULT_EXPOSED_FIELDS);
+    }
+
+
+    public boolean isHercules() {
+        return hercules;
     }
 }

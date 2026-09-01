@@ -33,14 +33,14 @@ CONSUMER_MANAGEMENT_API="http://localhost:23338/management/v4"
 CONSUMER_CATALOG_API="${CONSUMER_MANAGEMENT_API}/catalog/request"
 CONTRACT_NEGOTIATION_API="${CONSUMER_MANAGEMENT_API}/contractnegotiations"
 
-# Step 6.1: Get offer ID
+# Step 6.1: Get offer ID for the ConceptDescription
 offer_id=$(curl -sS\
    --request POST\
    --url "${CONSUMER_CATALOG_API}"\
    --header "Content-Type: application/json"\
    --header "x-api-key: password" \
    --data "$catalog_request"\
-   | jq -r '.dataset[0].hasPolicy[0]."@id"')
+   | jq -r '.dataset[] | select(."@id" | startswith("-1088830347")) | .hasPolicy[0]."@id"')
 
 ################################ Step 6.2: Send offer (from consumer to provider) ################################
 
@@ -80,6 +80,7 @@ if [[ "$state" != "FINALIZED" ]]; then
 fi
 
 agreement_id=$(echo "$resp" | jq -r '.contractAgreementId')
+echo "Agreement achieved: $agreement_id" >&2
 
 ################################ Step 6.4: Using client extension, get data from agreement directly as response to check if data transfer works ################################
 

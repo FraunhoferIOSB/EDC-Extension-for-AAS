@@ -67,32 +67,32 @@ public class Codec {
 
 
     public <T> Result<T> deserialize(String entityJson, Class<T> type) {
-        var assetJsonObject = Json.createReader(new StringReader(entityJson)).readObject();
-
-        var expandedResult = jsonLd.expand(assetJsonObject);
-
+        JsonObject jsonObject = Json.createReader(new StringReader(entityJson)).readObject();
+        Result<JsonObject> expandedResult = jsonLd.expand(jsonObject);
         if (expandedResult.failed()) {
             Failure failure = expandedResult.getFailure();
             return Result.failure(String.format(EXPANSION_ERROR, failure.getClass().getSimpleName(),
                     failure.getFailureDetail()));
         }
-
         return transformers.transform(expandedResult.getContent(), type);
     }
 
 
     /**
-     * Try to serialize any POJO into jakarta JsonObjects using EDC JsonObjectFrom*Transformers.
+     * Try to serialize any POJO into jakarta JsonObjects using EDC
+     * JsonObjectFrom*Transformers.
      *
      * @param toSerialize The object to serialize
      * @return Serialized object in compacted json-ld form.
      */
     public String serialize(@NotNull Object toSerialize) {
-        var jsonRepresentation = transformers.transform(toSerialize, JsonObject.class).orElseThrow(failure -> new EdcException(String.format(SERIALIZATION_ERROR,
-                toSerialize.getClass().getSimpleName(), failure.getFailureDetail())));
+        var jsonRepresentation = transformers.transform(toSerialize, JsonObject.class)
+                .orElseThrow(failure -> new EdcException(String.format(SERIALIZATION_ERROR,
+                        toSerialize.getClass().getSimpleName(), failure.getFailureDetail())));
 
-        var compacted = jsonLd.compact(jsonRepresentation).orElseThrow(failure -> new EdcException(String.format(COMPACTION_ERROR,
-                toSerialize.getClass().getSimpleName(), failure.getFailureDetail())));
+        var compacted = jsonLd.compact(jsonRepresentation)
+                .orElseThrow(failure -> new EdcException(String.format(COMPACTION_ERROR,
+                        toSerialize.getClass().getSimpleName(), failure.getFailureDetail())));
         return compacted.toString();
     }
 }

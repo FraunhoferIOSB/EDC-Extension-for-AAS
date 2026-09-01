@@ -1,0 +1,43 @@
+opencollection: 1.0.0
+
+info:
+  name: hercules
+config:
+  proxy:
+    inherit: true
+    config:
+      protocol: http
+      hostname: ""
+      port: ""
+      auth:
+        username: ""
+        password: ""
+      bypassProxy: ""
+
+request:
+  auth:
+    type: apikey
+    key: x-api-key
+    value: password
+    placement: header
+  variables:
+    - name: p2-management-api
+      value: http://localhost:8081/management
+    - name: p1-management-api
+      value: http://localhost:18081/management
+    - name: p1-data-plane-public
+      value: http://localhost:9500/public
+    - name: p1-did
+      value: did:web:wallet%3A10100:participant1
+    - name: p2-did
+      value: did:web:wallet%3A10100:participant2
+
+docs:
+  content: All of the requests need to be copied as cURL and used in the toolbox container.
+  type: text/markdown
+bundled: false
+extensions:
+  bruno:
+    ignore:
+      - node_modules
+      - .git

@@ -1,0 +1,62 @@
+info:
+  name: Catalog
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{p2-management-api}}/v3/catalog/request"
+  headers:
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "@context": {
+          "@vocab": "https://w3id.org/edc/v0.0.1/ns/"
+        },
+        "@type": "CatalogRequest",
+        "counterPartyAddress": "http://control-plane:8084/api/v1/dsp/2025-1",
+        "counterPartyId": "did:web:wallet%3A10100:participant1",
+        "protocol": "dataspace-protocol-http:2025-1",
+        "additionalScopes": [
+          "org.eclipse.dspace.dcp.vc.type:MembershipCredential:read"
+        ],
+        "querySpec": {
+          "@type": "QuerySpec",
+          "filterExpression": [
+            {
+              "operandLeft": "https://w3id.org/edc/v0.0.1/ns/id",
+              "operator": "=",
+              "operandRight": "{{submodel-id}}"
+            }
+          ]
+        }
+      }
+  auth: inherit
+
+runtime:
+  actions:
+    - type: set-variable
+      phase: after-response
+      selector:
+        expression: res.body.dataset[0].hasPolicy[0]['@id']
+        method: jsonq
+      variable:
+        name: policy-id
+        scope: runtime
+    - type: set-variable
+      phase: after-response
+      selector:
+        expression: res.body.dataset[0].distribution[0].accessService.endpointURL
+        method: jsonq
+      variable:
+        name: p1-dsp
+        scope: runtime
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

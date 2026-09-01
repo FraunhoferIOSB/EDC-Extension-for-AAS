@@ -15,8 +15,6 @@
  */
 package de.fraunhofer.iosb.app.aas.mapper.util;
 
-import de.fraunhofer.iosb.app.model.configuration.Configuration;
-import de.fraunhofer.iosb.ilt.faaast.service.util.HashHelper;
 import de.fraunhofer.iosb.aas.lib.model.PolicyBinding;
 import de.fraunhofer.iosb.app.model.configuration.Configuration;
 import de.fraunhofer.iosb.ilt.faaast.service.util.HashHelper;

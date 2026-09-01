@@ -17,5 +17,5 @@ dependencies {
     runtimeOnly(project(":launchers:standalone"))
 
     runtimeOnly(project(":extensions:common:json-ld:json-ld-fx"))
-    runtimeOnly("org.eclipse.tractusx.edc:json-ld-cx:0.12.1")
+    runtimeOnly("org.eclipse.tractusx.edc:json-ld-cx:0.13.0")
 }

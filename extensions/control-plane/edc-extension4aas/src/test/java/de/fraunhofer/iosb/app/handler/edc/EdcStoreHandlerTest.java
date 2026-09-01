@@ -259,7 +259,7 @@ class EdcStoreHandlerTest {
         String url = "http://invalid.local";
 
         PolicyBinding binding = new PolicyBinding(reference, "access-policy", "contract-policy",
-                Map.of(PROXY_METHOD, "POST"));
+                Map.of(BASE_URL, "http://override.invalid.local"));
 
         Asset asset = assetForBinding(url, reference, baseAsset, binding);
 

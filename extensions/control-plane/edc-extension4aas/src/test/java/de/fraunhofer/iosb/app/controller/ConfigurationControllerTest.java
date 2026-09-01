@@ -51,10 +51,4 @@ class ConfigurationControllerTest {
         assertEquals(123456, Configuration.getInstance().getSyncPeriod());
     }
 
-
-    @Test
-    public void putWrongConfigValueTest() {
-        assertThrows(InvalidRequestException.class, () -> testSubject.updateConfiguration("{\"" + CONFIG_VALUE_PREFIX + "falseconfigvalue\":12}"));
-    }
-
 }

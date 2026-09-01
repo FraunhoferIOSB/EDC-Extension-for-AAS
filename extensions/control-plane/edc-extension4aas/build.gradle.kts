@@ -15,6 +15,9 @@ dependencies {
     implementation(libs.fa3st.core) // ReferenceHelper
     implementation(libs.aas4j.model) // AasUtils
     implementation(libs.aas4j.dataformat.json) // AAS Serialization
+    implementation(libs.fa3st.client) {
+        exclude(group = "de.fraunhofer.iosb.ilt.faaast.service", module = "starter")
+    }
 
     implementation(libs.edc.asset.spi)
     implementation(libs.edc.contract.spi)

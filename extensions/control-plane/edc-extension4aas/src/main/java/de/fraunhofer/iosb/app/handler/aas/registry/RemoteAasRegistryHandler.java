@@ -148,7 +148,7 @@ public class RemoteAasRegistryHandler extends RemoteAasHandler<AasRegistryClient
                 .id(descriptor.getId())
                 .idShort(descriptor.getIdShort())
                 .semanticId(descriptor.getSemanticId())
-                .supplementalSemanticIds(descriptor.getSupplementalSemanticId())
+                .supplementalSemanticIds(descriptor.getSupplementalSemanticIds())
                 .build();
     }
 

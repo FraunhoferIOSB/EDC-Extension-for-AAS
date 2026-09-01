@@ -22,21 +22,30 @@ runs:
       uses: actions/checkout@v4
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
-    - name: Setup python 3.x
-      uses: actions/setup-python@v6
-      with:
-        python-version: '3.13'
-    - name: Install system-test dependency
+    - name: Build system-test image
       shell: bash
-      run: sudo apt-get update && sudo apt-get install -y gettext-base
+      run: docker build -t edc-systest system-tests
     - name: Run data plane test
       shell: bash
-      run: system-tests/aas-data-plane/test.sh
-    # We sleep to let the system clean up used ports
+      run: >-
+        docker run --rm --network host
+        -v "$PWD":/work
+        -v "$HOME/.gradle":/root/.gradle
+        -w /work
+        edc-systest bash system-tests/aas-data-plane/test.sh
     - name: Run provider test
       shell: bash
-      run: sleep 3 &&system-tests/provider/test.sh
-    # We sleep to let the system clean up used ports
+      run: >-
+        docker run --rm --network host
+        -v "$PWD":/work
+        -v "$HOME/.gradle":/root/.gradle
+        -w /work
+        edc-systest bash system-tests/provider/test.sh
     - name: Run standalone test
       shell: bash
-      run: sleep 3 &&system-tests/standalone/test.sh
+      run: >-
+        docker run --rm --network host
+        -v "$PWD":/work
+        -v "$HOME/.gradle":/root/.gradle
+        -w /work
+        edc-systest bash system-tests/standalone/test.sh

@@ -34,12 +34,10 @@ start_runtime() {
 
   local log_file="logs/${project_name}.log"
   # Create file if not exists
-  touch $log_file
+  touch "$log_file"
 
   echo "Starting ${project_name}..." >&2
-  # Launch in a new session via setsid so the gradle wrapper and its forked
-  # Java runtime form an isolated process group; cleanup_pid kills that group.
-  setsid env EDC_FS_CONFIG="$config_path" "${PWD}/gradlew" --no-daemon --console=plain "launchers:${project_name}:run" "--args='--log-level=DEBUG'" \
+  EDC_FS_CONFIG="$config_path" "${PWD}/gradlew" --no-daemon --console=plain "launchers:${project_name}:run" "--args='--log-level=DEBUG'" \
     > "$log_file" 2>&1 &
   local pid=$!
 
@@ -59,13 +57,9 @@ start_runtime() {
 cleanup_pid() {
   local raw="$1"
   [[ "$raw" =~ ^[0-9]+$ ]] || return 0
-  # Runtimes are launched via setsid, so $raw is also the PGID of a group
-  # containing the gradle wrapper AND its forked Java runtime. Killing the
-  # whole group ensures the forked JVM (which holds the network ports) is
-  # torn down and cannot survive the gradle wrapper being killed.
-  kill -TERM -- -"$raw" 2>/dev/null || kill -TERM "$raw" 2>/dev/null || true
+  kill -TERM "$raw" 2>/dev/null || true
   sleep 2
-  kill -KILL -- -"$raw" 2>/dev/null || kill -KILL "$raw" 2>/dev/null || true
+  kill -KILL "$raw" 2>/dev/null || true
 }
 
 cleanup_all() {

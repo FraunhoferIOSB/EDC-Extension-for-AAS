@@ -42,17 +42,30 @@ import static org.eclipse.edc.spi.result.ServiceFailure.Reason.CONFLICT;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.NOT_FOUND;
 
 
+/**
+ * Abstract base handler that interacts with the EDC control plane via HTTP for participant resources.
+ *
+ * @param <T> the participant resource type handled by this handler.
+ */
 public abstract class ControlPlaneConnectionHandler<T extends AbstractParticipantResource> {
 
-    public static final String MESSAGE_CODE_TEMPLATE = "Message: %s; Status code: %d";
-    public static final String NO_MESSAGE = "No message from control-plane.";
+    private static final String MESSAGE_CODE_TEMPLATE = "Message: %s; Status code: %d";
+    private static final String NO_MESSAGE = "No message from control-plane.";
 
-    protected final ControlPlaneConnection controlPlane;
-    protected final EdcHttpClient httpClient;
-    protected final Monitor monitor;
-    protected final Codec codec;
+    private final ControlPlaneConnection controlPlane;
+    private final EdcHttpClient httpClient;
+    private final Monitor monitor;
+    private final Codec codec;
 
 
+    /**
+     * Creates a new control-plane connection handler.
+     *
+     * @param monitor the monitor used for logging.
+     * @param httpClient the HTTP client used to execute requests.
+     * @param codec the codec used to serialize and deserialize entities.
+     * @param connection the control-plane connection used to build requests.
+     */
     public ControlPlaneConnectionHandler(Monitor monitor, EdcHttpClient httpClient, Codec codec, ControlPlaneConnection connection) {
         this.monitor = monitor;
         this.httpClient = httpClient;
@@ -61,6 +74,13 @@ public abstract class ControlPlaneConnectionHandler<T extends AbstractParticipan
     }
 
 
+    /**
+     * Queries entities from the control plane matching the given query specification.
+     *
+     * @param spec the query specification to serialize and send.
+     * @param clazz the target entity type.
+     * @return a stream of matching entities, or an empty stream on failure.
+     */
     protected Stream<T> queryEntities(QuerySpec spec, Class<T> clazz) {
         String querySpecString = codec.serialize(spec);
 
@@ -86,6 +106,13 @@ public abstract class ControlPlaneConnectionHandler<T extends AbstractParticipan
     }
 
 
+    /**
+     * Retrieves an entity by its identifier from the control plane.
+     *
+     * @param entityId the identifier of the entity to retrieve.
+     * @param clazz the target entity type.
+     * @return the entity, or {@code null} if it is not found or deserialization fails.
+     */
     protected T findById(String entityId, Class<T> clazz) {
         var request = controlPlane.prepareRequest(HttpMethod.GET, entityId, null);
 
@@ -112,6 +139,12 @@ public abstract class ControlPlaneConnectionHandler<T extends AbstractParticipan
     }
 
 
+    /**
+     * Creates an entity on the control plane.
+     *
+     * @param entity the entity to create.
+     * @return a store result indicating success, already-exists, or a general error.
+     */
     protected StoreResult<Void> createEntity(T entity) {
         var serialized = codec.serialize(entity);
 
@@ -131,6 +164,13 @@ public abstract class ControlPlaneConnectionHandler<T extends AbstractParticipan
     }
 
 
+    /**
+     * Deletes an entity by its identifier from the control plane.
+     *
+     * @param entityId the identifier of the entity to delete.
+     * @param clazz the target entity type.
+     * @return a store result with the deleted entity, or a not-found, already-leased, or general error.
+     */
     protected StoreResult<T> deleteById(String entityId, Class<T> clazz) {
         // NOTE: since deleteById requires the deleted asset as return value and the mgmt-api does not return it, we have to get it first.
         var entity = this.findById(entityId, clazz);
@@ -159,6 +199,13 @@ public abstract class ControlPlaneConnectionHandler<T extends AbstractParticipan
     }
 
 
+    /**
+     * Updates an entity on the control plane.
+     *
+     * @param entity the entity to update.
+     * @param clazz the target entity type.
+     * @return a store result with the updated entity, or a not-found or general error.
+     */
     protected StoreResult<T> updateEntity(T entity, Class<T> clazz) {
         var entityString = codec.serialize(entity);
 
@@ -179,13 +226,23 @@ public abstract class ControlPlaneConnectionHandler<T extends AbstractParticipan
     }
 
 
+    /**
+     * Returns the message template used when an entity already exists.
+     *
+     * @return the message template used when an entity already exists.
+     */
     protected abstract String getExistsTemplate();
 
 
+    /**
+     * Returns the message template used when an entity is not found.
+     *
+     * @return the message template used when an entity is not found.
+     */
     protected abstract String getNotFoundTemplate();
 
 
-    protected ServiceResult<String> executeRequest(Request request) {
+    private ServiceResult<String> executeRequest(Request request) {
         try (Response response = this.httpClient.execute(request)) {
 
             ResponseBody body = response.body();
@@ -221,58 +278,125 @@ public abstract class ControlPlaneConnectionHandler<T extends AbstractParticipan
     }
 
 
+    /**
+     * Abstract builder for control-plane connection handlers.
+     *
+     * @param <T> the handler type produced by this builder.
+     * @param <B> the builder subtype for fluent chaining.
+     */
     public abstract static class Builder<T extends ControlPlaneConnectionHandler<?>, B extends Builder<T, B>> {
-        protected EdcHttpClient httpClient;
-        protected Monitor monitor;
-        protected String managementUri;
+
+        /** Default constructor. */
+        public Builder() {
+        }
+
+        /** Resource name appended to the control-plane URL. */
         protected String resourceName;
+        private EdcHttpClient httpClient;
+        private Monitor monitor;
+        private String managementUri;
         private AuthenticationMethod authenticationMethod;
         private Codec codec;
         private Vault vault;
 
 
+        /**
+         * Returns this builder instance for fluent chaining.
+         *
+         * @return this builder instance for fluent chaining.
+         */
         protected abstract B self();
 
 
+        /**
+         * Creates the handler instance from the prepared dependencies.
+         *
+         * @param monitor the monitor used for logging.
+         * @param httpClient the HTTP client used to execute requests.
+         * @param codec the codec used to serialize and deserialize entities.
+         * @param connection the control-plane connection used to build requests.
+         * @return the created handler instance.
+         */
         protected abstract T create(Monitor monitor, EdcHttpClient httpClient, Codec codec, ControlPlaneConnection connection);
 
 
+        /**
+         * Sets the monitor.
+         *
+         * @param v the monitor used for logging.
+         * @return this builder.
+         */
         public B monitor(Monitor v) {
             this.monitor = v;
             return self();
         }
 
 
+        /**
+         * Sets the codec.
+         *
+         * @param codec the codec used to serialize and deserialize entities.
+         * @return this builder.
+         */
         public B codec(Codec codec) {
             this.codec = codec;
             return self();
         }
 
 
+        /**
+         * Sets the HTTP client.
+         *
+         * @param v the HTTP client used to execute requests.
+         * @return this builder.
+         */
         public B httpClient(EdcHttpClient v) {
             this.httpClient = v;
             return self();
         }
 
 
+        /**
+         * Sets the management API URL of the control plane.
+         *
+         * @param managementUri the management API URL.
+         * @return this builder.
+         */
         public B managementUri(String managementUri) {
             this.managementUri = managementUri;
             return self();
         }
 
 
+        /**
+         * Sets the authentication method.
+         *
+         * @param authenticationMethod the authentication method applied to requests.
+         * @return this builder.
+         */
         public B authenticationMethod(AuthenticationMethod authenticationMethod) {
             this.authenticationMethod = authenticationMethod;
             return self();
         }
 
 
+        /**
+         * Sets the vault used to resolve authentication secrets.
+         *
+         * @param vault the vault.
+         * @return this builder.
+         */
         public B vault(Vault vault) {
             this.vault = vault;
             return self();
         }
 
 
+        /**
+         * Builds the handler instance from the configured dependencies.
+         *
+         * @return the constructed handler.
+         */
         public T build() {
             Objects.requireNonNull(httpClient);
             Objects.requireNonNull(monitor);

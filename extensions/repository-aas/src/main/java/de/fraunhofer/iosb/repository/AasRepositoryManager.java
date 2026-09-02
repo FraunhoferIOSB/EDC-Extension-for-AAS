@@ -23,12 +23,15 @@ import java.net.URI;
 
 /**
  * Manages a specific type of AAS repositories like FA³ST or BaSyx
+ *
+ * @param <CFG> the AAS repository configuration type
  */
 public interface AasRepositoryManager<CFG extends AasRepositoryConfig<?>> {
 
     /**
      * Boot up an AAS repository by environment, an open port will be used.
      *
+     * @param <CTX> the AAS repository context type
      * @param config AAS repository configuration
      * @return A repository context containing meta-information and possibly accessor logic to the AAS repository.
      */

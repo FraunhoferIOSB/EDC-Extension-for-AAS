@@ -39,6 +39,10 @@ import java.util.UUID;
 import java.util.function.Supplier;
 
 
+/**
+ * Service that registers a Digital Twin Registry as an EDC asset, creating the corresponding access and usage policy
+ * definitions (from IDs or files) and the contract definition linking them together.
+ */
 public class DigitalTwinRegistryService {
 
     private static final String DTR_TAXONOMY_TYPE = "https://w3id.org/catenax/taxonomy#DigitalTwinRegistry";
@@ -56,6 +60,17 @@ public class DigitalTwinRegistryService {
     private String assetId;
     private String contractDefinitionId;
 
+    /**
+     * Creates a new Digital Twin Registry service. Access and usage policy definition IDs are resolved from the given
+     * configuration, loading policies from files when only paths are provided.
+     *
+     * @param assetIndex Asset index used to register the DTR asset.
+     * @param contractDefinitionStore Contract definition store used to register the DTR contract definition.
+     * @param policyDefinitionStore Policy definition store used to register the access and usage policies.
+     * @param participantContextId Supplier of the participant context id for created policy definitions.
+     * @param codec Codec used to deserialize policy files.
+     * @param configuration The Digital Twin Registry extension configuration.
+     */
     public DigitalTwinRegistryService(AssetIndex assetIndex, ContractDefinitionStore contractDefinitionStore,
                                       PolicyDefinitionStore policyDefinitionStore, Supplier<String> participantContextId,
                                       Codec codec, DigitalTwinRegistryExtensionConfiguration configuration) {
@@ -84,12 +99,18 @@ public class DigitalTwinRegistryService {
     }
 
 
+    /**
+     * Registers the Digital Twin Registry asset and its contract definition in the EDC stores.
+     */
     public void register() {
         assetIndex.create(buildAsset());
         contractDefinitionStore.save(builContractDefinition());
     }
 
 
+    /**
+     * Removes the registered asset, contract definition and policy definitions from the EDC stores.
+     */
     public void cleanUp() {
         // Remove asset, policies, contract
         assetIndex.deleteById(assetId);

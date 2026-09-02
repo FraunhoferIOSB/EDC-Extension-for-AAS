@@ -63,6 +63,7 @@ public class RemoteAasRepositoryClient implements AasRepositoryClient {
     /**
      * Constructor of the class.
      *
+     * @param vault The vault holding credentials for authentication.
      * @param context The context of the AAS repository, i.e. information needed to communicate with it.
      */
     public RemoteAasRepositoryClient(Vault vault, RemoteAasRepositoryContext context) {

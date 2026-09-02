@@ -23,8 +23,19 @@ import okhttp3.Response;
 import org.eclipse.edc.spi.monitor.Monitor;
 
 
+/**
+ * AasDataProcessorFactory supporting all AAS services.
+ */
 public class AllAasDataProcessorFactory extends AasDataProcessorFactory {
 
+    /**
+     * Constructs an AllAasDataProcessorFactory.
+     *
+     * @param retriever the retriever for self-signed certificates
+     * @param edcOkHttpClient the EDC-provided OkHttpClient for non-self-signed certificates
+     * @param edcRetryPolicy the EDC-provided retry policy
+     * @param monitor the monitor
+     */
     public AllAasDataProcessorFactory(SelfSignedCertificateRetriever retriever, OkHttpClient edcOkHttpClient,
                                       RetryPolicy<Response> edcRetryPolicy, Monitor monitor) {
         super(retriever, edcOkHttpClient, edcRetryPolicy, monitor);

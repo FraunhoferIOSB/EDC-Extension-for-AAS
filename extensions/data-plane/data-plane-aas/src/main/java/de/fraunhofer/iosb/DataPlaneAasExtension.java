@@ -52,6 +52,15 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 @Extension(value = DataPlaneAasExtension.NAME)
 public class DataPlaneAasExtension implements ServiceExtension {
 
+    /**
+     * Default constructor.
+     */
+    public DataPlaneAasExtension() {
+    }
+
+    /**
+     * Name of the extension.
+     */
     public static final String NAME = "Data Plane AAS";
 
     private static final String FOREIGN_SELF_SIGNED = "edc.dataplane.aas.acceptForeignSelfSignedCertificates";

@@ -22,6 +22,10 @@ import java.io.InputStream;
 
 /**
  * Inspired by: HttpPart
+ *
+ * @param name the part name
+ * @param content the part content
+ * @param mediaType the media type of the content
  */
 public record AasPart(String name, InputStream content, String mediaType) implements DataSource.Part {
 

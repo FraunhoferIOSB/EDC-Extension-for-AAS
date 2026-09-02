@@ -42,6 +42,12 @@ public class CustomAuthenticationRequestFilter extends AuthenticationRequestFilt
     private final Collection<Endpoint> temporaryEndpoints;
 
 
+    /**
+     * Creates a new CustomAuthenticationRequestFilter.
+     *
+     * @param apiAuthenticationRegistry the API authentication registry.
+     * @param monitor the monitor for logging.
+     */
     public CustomAuthenticationRequestFilter(ApiAuthenticationRegistry apiAuthenticationRegistry, Monitor monitor) {
         super(apiAuthenticationRegistry, "default");
         this.monitor = monitor;
@@ -88,17 +94,34 @@ public class CustomAuthenticationRequestFilter extends AuthenticationRequestFilt
     }
 
 
+    /**
+     * Adds a collection of permanent public endpoints.
+     *
+     * @param endpoints the endpoints to add.
+     * @return true if the list of endpoints changed.
+     */
     public boolean addEndpoints(Collection<Endpoint> endpoints) {
         var newEndpoints = endpoints.stream().filter(newEndpoint -> !this.endpoints.contains(newEndpoint)).toList();
         return this.endpoints.addAll(newEndpoints);
     }
 
 
+    /**
+     * Removes a collection of permanent public endpoints.
+     *
+     * @param endpoints the endpoints to remove.
+     * @return true if the list of endpoints changed.
+     */
     public boolean removeEndpoints(Collection<Endpoint> endpoints) {
         return this.endpoints.removeAll(endpoints);
     }
 
 
+    /**
+     * Adds a temporary public endpoint that is only valid for a single request.
+     *
+     * @param endpoint the endpoint to add.
+     */
     public void addTemporaryEndpoint(Endpoint endpoint) {
         temporaryEndpoints.add(endpoint);
     }

@@ -44,6 +44,12 @@ import javax.net.ssl.X509TrustManager;
  */
 public class DefaultSelfSignedCertificateRetriever implements SelfSignedCertificateRetriever {
 
+    /**
+     * Default constructor.
+     */
+    public DefaultSelfSignedCertificateRetriever() {
+    }
+
     private static final TrustManager[] TRUST_ALL_MANAGER = new TrustManager[] {
             new X509TrustManager() {
                 public X509Certificate[] getAcceptedIssuers() {
@@ -58,27 +64,6 @@ public class DefaultSelfSignedCertificateRetriever implements SelfSignedCertific
             }
     };
 
-
-    public static boolean isTrusted(String uriString) {
-        HttpsURLConnection.setDefaultSSLSocketFactory((SSLSocketFactory) SSLSocketFactory.getDefault());
-        URI uri;
-        try {
-            uri = new URI(uriString);
-        }
-        catch (URISyntaxException e) {
-            return false;
-        }
-        try {
-            var conn = (HttpsURLConnection) uri.toURL().openConnection();
-            conn.connect();
-            // Connection with standard java library succeeded
-            // -> according to this system, the server has a trusted certificate
-            return true;
-        }
-        catch (IOException e) {
-            return false;
-        }
-    }
 
 
     public Result<Certificate[]> getSelfSignedCertificate(String urlString) {

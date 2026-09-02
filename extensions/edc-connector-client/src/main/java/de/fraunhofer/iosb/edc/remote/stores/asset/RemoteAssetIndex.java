@@ -112,7 +112,14 @@ public class RemoteAssetIndex extends ControlPlaneConnectionHandler<Asset> imple
     }
 
 
+    /**
+     * Builder for {@link RemoteAssetIndex} instances.
+     */
     public static class Builder extends ControlPlaneConnectionHandler.Builder<RemoteAssetIndex, Builder> {
+
+        /** Default constructor. */
+        public Builder() {
+        }
 
         @Override
         protected Builder self() {

@@ -40,7 +40,12 @@ import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.spi.WebService;
 
 
+/** EDC service extension providing the automated contract negotiation client. */
 public class ClientExtension implements ServiceExtension {
+
+    /** Default constructor. */
+    public ClientExtension() {
+    }
 
     // Non-public unified authentication request filter management service
     @Inject

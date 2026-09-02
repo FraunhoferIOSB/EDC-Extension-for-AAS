@@ -48,6 +48,13 @@ public class ConfigurationController {
     private final ObjectReader strictObjectReader;
     private Configuration configuration;
 
+    /**
+     * Creates a new configuration controller, initializing the AAS extension configuration from the given EDC system
+     * configuration.
+     *
+     * @param config EDC system configuration used to initialize the AAS extension configuration.
+     * @param monitor Monitor used for log outputs.
+     */
     public ConfigurationController(Config config, Monitor monitor) {
         this.sysConfig = config;
         this.monitor = monitor;

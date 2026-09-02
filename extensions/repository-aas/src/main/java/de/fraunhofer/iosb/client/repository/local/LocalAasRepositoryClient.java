@@ -32,9 +32,15 @@ import java.util.List;
  * @param <CTX> Context type of the AAS repository context.
  */
 public abstract class LocalAasRepositoryClient<CTX extends AasRepositoryContext> implements AasRepositoryClient {
+    /** The AAS repository context held by this client. */
     protected final CTX context;
 
 
+    /**
+     * Constructs a local AAS repository client.
+     *
+     * @param context the AAS repository context
+     */
     protected LocalAasRepositoryClient(CTX context) {
         this.context = context;
     }

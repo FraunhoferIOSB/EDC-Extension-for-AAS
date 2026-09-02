@@ -29,6 +29,7 @@ import java.io.StringReader;
 import java.util.List;
 
 
+/** Helper class for serializing and deserializing EDC types to and from JSON-LD. */
 public class Codec {
 
     private static final String COMPACTION_ERROR = "Failed compacting json-ld %s: %s";
@@ -39,12 +40,26 @@ public class Codec {
     private final JsonLd jsonLd;
 
 
+    /**
+     * Creates a new Codec.
+     *
+     * @param transformers the type transformer registry.
+     * @param jsonLd the JSON-LD service.
+     */
     public Codec(TypeTransformerRegistry transformers, JsonLd jsonLd) {
         this.transformers = transformers;
         this.jsonLd = jsonLd;
     }
 
 
+    /**
+     * Deserializes a JSON array of entities into a list of typed objects.
+     *
+     * @param <T> the entity type.
+     * @param entitiesJson JSON string representing an array of entities.
+     * @param type the target class.
+     * @return result containing the list of deserialized entities, or failure.
+     */
     public <T extends Entity> Result<List<T>> deserializeList(String entitiesJson, Class<T> type) {
         var assetsJsonArray = Json.createReader(new StringReader(entitiesJson)).readArray();
 
@@ -66,6 +81,14 @@ public class Codec {
     }
 
 
+    /**
+     * Deserializes a JSON entity string into a typed object.
+     *
+     * @param <T> the entity type.
+     * @param entityJson JSON string representing the entity.
+     * @param type the target class.
+     * @return result containing the deserialized entity, or failure.
+     */
     public <T> Result<T> deserialize(String entityJson, Class<T> type) {
         JsonObject jsonObject = Json.createReader(new StringReader(entityJson)).readObject();
         Result<JsonObject> expandedResult = jsonLd.expand(jsonObject);

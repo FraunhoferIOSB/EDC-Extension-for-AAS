@@ -55,9 +55,19 @@ import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 @Consumes(APPLICATION_JSON)
 @Path(REGISTRY_PATH)
 public class RegistryController extends AbstractAasServerController {
+    /** Path at which the registry endpoint is exposed. */
     public static final String REGISTRY_PATH = "registry";
 
 
+    /**
+     * Creates a new registry controller.
+     *
+     * @param monitor Monitor used for log outputs.
+     * @param aasServerStore AAS server store to store AAS servers.
+     * @param edcStoreHandler EDC store handler to manage registration of EDC assets, policies and contracts.
+     * @param vault Vault used to get secrets for authentication at AAS servers.
+     * @param oauth2Client OAuth2 client to get tokens for authentication at AAS servers.
+     */
     public RegistryController(Monitor monitor, AasServerStore aasServerStore, EdcStoreHandler edcStoreHandler, Vault vault, Oauth2Client oauth2Client) {
         super(monitor, aasServerStore, new VariableRateScheduler(1, monitor), edcStoreHandler, vault, oauth2Client);
     }
@@ -67,6 +77,7 @@ public class RegistryController extends AbstractAasServerController {
      * Register an AAS registry at the EDC.
      *
      * @param aasRegistryContextDTO registry DTO
+     * @return the URI of the registered AAS registry.
      */
     @POST
     public URI register(AasRegistryContextDTO aasRegistryContextDTO) {

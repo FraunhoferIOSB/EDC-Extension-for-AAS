@@ -33,13 +33,21 @@ import javax.annotation.Nullable;
  * DTO containing information to register a remote AAS repository.
  *
  * @param url URI to use to connect to the AAS repository, including any path prefixes (e.g., /api/v3.0)
- * @param auth The authentication method used to communicate with the registry.
+ * @param auth The authentication method used to communicate with the repository.
  * @param policyBindings List of {@link PolicyBinding}. If defined, only elements referred by the policyBindings are
  *            registered (optional, default: no custom
  *            PolicyBindings, register all elements).
+ * @param defaultAccessPolicyDefinitionId The default access PolicyDefinition id to apply to elements of this
+ *            repository.
+ * @param defaultContractPolicyDefinitionId The default contract PolicyDefinition id to apply to elements of this
+ *            repository.
  */
 public record RemoteAasRepositoryContextDTO(URI url, AuthenticationMethodDTO auth, List<PolicyBinding> policyBindings, String defaultAccessPolicyDefinitionId,
         String defaultContractPolicyDefinitionId) implements RemoteAasServerDTO {
+    /**
+     * Compact constructor validating the {@code url} and defaulting {@code auth} and {@code policyBindings} when
+     * {@code null}.
+     */
     public RemoteAasRepositoryContextDTO {
         Objects.requireNonNull(url, "'url' cannot be null!");
         auth = Objects.requireNonNullElse(auth, new NoAuthDTO());
@@ -47,16 +55,35 @@ public record RemoteAasRepositoryContextDTO(URI url, AuthenticationMethodDTO aut
     }
 
 
+    /**
+     * Constructor with custom URL and auth method.
+     *
+     * @param url URL of the repository.
+     * @param auth authentication method to access the repository.
+     */
     public RemoteAasRepositoryContextDTO(URI url, AuthenticationMethodDTO auth) {
         this(url, auth, List.of(), null, null);
     }
 
 
+    /**
+     * Constructor with custom URL.
+     *
+     * @param url URL of the repository.
+     */
     public RemoteAasRepositoryContextDTO(URI url) {
         this(url, new NoAuthDTO());
     }
 
 
+    /**
+     * Returns this DTO as a RemoteAasRepositoryContext with resolved authentication method.
+     *
+     * @param vault The vault where secrets related to access to the repository may be stored.
+     * @param oauth2Client The identity provider where access tokens may be retrieved, if necessary to access the
+     *            repository.
+     * @return The remote AAS repository context.
+     */
     public RemoteAasRepositoryContext asContext(@Nullable Vault vault, @Nullable Oauth2Client oauth2Client) {
         return new RemoteAasRepositoryContext.Builder()
                 .uri(this.url())

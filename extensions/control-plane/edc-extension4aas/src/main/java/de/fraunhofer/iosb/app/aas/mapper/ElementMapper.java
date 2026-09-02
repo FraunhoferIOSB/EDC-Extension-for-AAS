@@ -29,11 +29,23 @@ public class ElementMapper {
 
     private final AasServerClient client;
 
+    /**
+     * Creates a new element mapper bound to the given AAS server client.
+     *
+     * @param client Client used to communicate with the AAS server.
+     */
     protected ElementMapper(AasServerClient client) {
         this.client = client;
     }
 
 
+    /**
+     * Generates a unique and fixed asset id for the given AAS reference, based on the AAS server location and the
+     * reference itself.
+     *
+     * @param reference Location of the AAS element in its environment.
+     * @return A unique and fixed asset id.
+     */
     @NotNull
     public String generateId(Reference reference) {
         return AssetIdUtil.id(client.getUri().toString(), reference);
@@ -41,6 +53,13 @@ public class ElementMapper {
     }
 
 
+    /**
+     * Builds an {@link AasDataAddress} pointing at the given reference on the AAS server. If the underlying client
+     * requires authentication, the corresponding headers are added to the data address.
+     *
+     * @param reference Location of the AAS element in its environment.
+     * @return A data address pointing at the referenced AAS element.
+     */
     protected AasDataAddress createDataAddress(Reference reference) {
         AasDataAddress.Builder builder = AasDataAddress.Builder.newInstance()
                 .baseUrl(client.getUri().toString())

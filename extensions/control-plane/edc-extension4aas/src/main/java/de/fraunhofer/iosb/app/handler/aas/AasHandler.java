@@ -59,13 +59,24 @@ import java.util.stream.Collectors;
  */
 public abstract class AasHandler<C extends AasServerClient> {
 
+    /** Mapper for AAS identifiable (shells, submodels, concept descriptions). */
     protected final IdentifiableMapper identifiableMapper;
+    /** Mapper for submodel elements. */
     protected final SubmodelElementMapper submodelElementMapper;
+    /** Monitor used for logging. */
     protected final Monitor monitor;
+    /** Client used to communicate with the AAS server. */
     protected final C client;
     private final EdcStoreHandler edcStoreHandler;
 
 
+    /**
+     * Creates a new AAS handler.
+     *
+     * @param monitor Monitor used for logging.
+     * @param client Client used to communicate with the AAS server.
+     * @param edcStoreHandler Handler for interacting with the EDC stores.
+     */
     protected AasHandler(Monitor monitor, C client, EdcStoreHandler edcStoreHandler) {
         this.identifiableMapper = new IdentifiableMapper(client);
         this.submodelElementMapper = new SubmodelElementMapper(client);
@@ -105,6 +116,9 @@ public abstract class AasHandler<C extends AasServerClient> {
     }
 
 
+    /**
+     * Unregisters all AAS elements currently registered by this handler from the EDC stores.
+     */
     public void cleanUp() {
         monitor.info("Unregistering...");
         Map<PolicyBinding, Asset> filtered = getCurrentlyRegistered();
@@ -136,7 +150,12 @@ public abstract class AasHandler<C extends AasServerClient> {
     protected abstract Environment getEnvironment() throws ConnectivityException, StatusCodeException;
 
 
-    /* Override this if your implementation stores which assets are currently registered. */
+    /**
+     * Returns the assets currently registered by this handler. Override this if your implementation stores which assets
+     * are currently registered.
+     *
+     * @return Mapping of policy bindings to the currently registered assets.
+     */
     protected Map<PolicyBinding, Asset> getCurrentlyRegistered() {
         Environment currentEnvironment;
         try {
@@ -152,7 +171,13 @@ public abstract class AasHandler<C extends AasServerClient> {
     }
 
 
-    /* Initial population of EDC stores. */
+    /**
+     * Initial population of EDC stores with the AAS elements of the underlying server.
+     *
+     * @return Mapping of policy bindings to the assets that were registered.
+     * @throws StatusCodeException A call to the AAS was returned with a Status code != 2xx.
+     * @throws ConnectivityException A connection to the underlying AAS was unsuccessful.
+     */
     protected Map<PolicyBinding, Asset> initialize() throws StatusCodeException, ConnectivityException {
         Environment currentEnvironment = getEnvironment();
 
@@ -210,6 +235,13 @@ public abstract class AasHandler<C extends AasServerClient> {
     }
 
 
+    /**
+     * Registers a single asset under the given policy binding in the EDC stores.
+     *
+     * @param policyBinding Policy binding to register the asset with.
+     * @param asset Asset to register.
+     * @return Store result containing the state of the operation.
+     */
     protected StoreResult<Void> registerSingle(PolicyBinding policyBinding, Asset asset) {
         StoreResult<Void> storeResult = edcStoreHandler.register(policyBinding, asset);
         if (storeResult.succeeded()) {
@@ -221,6 +253,12 @@ public abstract class AasHandler<C extends AasServerClient> {
     }
 
 
+    /**
+     * Updates a single asset in the EDC stores.
+     *
+     * @param asset Asset to update.
+     * @return Store result containing the state of the operation.
+     */
     protected StoreResult<Void> updateSingle(Asset asset) {
         StoreResult<Asset> storeResultWithAsset = edcStoreHandler.update(asset);
         if (storeResultWithAsset.succeeded()) {
@@ -232,6 +270,13 @@ public abstract class AasHandler<C extends AasServerClient> {
     }
 
 
+    /**
+     * Unregisters a single asset from the EDC stores.
+     *
+     * @param policyBinding Policy binding the asset was registered with.
+     * @param assetId Id of the asset to unregister.
+     * @return Store result containing the state of the operation.
+     */
     protected StoreResult<Void> unregisterSingle(PolicyBinding policyBinding, String assetId) {
         StoreResult<Void> storeResult = edcStoreHandler.unregister(policyBinding, assetId);
         if (storeResult.succeeded() || storeResult.reason() == StoreFailure.Reason.NOT_FOUND) {
@@ -244,6 +289,11 @@ public abstract class AasHandler<C extends AasServerClient> {
     }
 
 
+    /**
+     * Returns a consumer that annotates identifiables with their EDC asset IDs as AAS extensions.
+     *
+     * @return Consumer mapping an identifiable to its self-description representation.
+     */
     protected Consumer<Identifiable> getSelfDescriptionIdentifiableMapper() {
         return identifiable -> {
             Reference reference = AasUtils.toReference(identifiable);
@@ -270,6 +320,13 @@ public abstract class AasHandler<C extends AasServerClient> {
     }
 
 
+    /**
+     * Recursively maps a submodel element, annotating eligible elements with their EDC asset IDs as AAS extensions.
+     *
+     * @param parent Reference of the parent element.
+     * @param submodelElement Submodel element to map.
+     * @return The mapped submodel element.
+     */
     protected SubmodelElement mapSubmodelElement(Reference parent, SubmodelElement submodelElement) {
         Reference submodelElementReference = AasUtils.toReference(parent, submodelElement);
         if (submodelElement instanceof SubmodelElementList list) {
@@ -297,6 +354,12 @@ public abstract class AasHandler<C extends AasServerClient> {
     }
 
 
+    /**
+     * Builds an AAS extension carrying the given EDC asset ID.
+     *
+     * @param assetId Asset id to embed in the extension.
+     * @return AAS extension holding the asset id.
+     */
     protected Extension buildExtension(String assetId) {
         return new DefaultExtension.Builder()
                 .name(Asset.PROPERTY_ID)
@@ -305,12 +368,15 @@ public abstract class AasHandler<C extends AasServerClient> {
     }
 
 
-    /*
-     * Top-down-search, bottom-up filtering of SME. If at least one child of an otherwise to-be-removed element needs to be
-     * kept, the element itself will not be removed.
-     * This element will be shown in the self-description but will not have an EDC asset ID. This could compromise
-     * confidentiality in some cases, self-description should be
-     * deactivated in that case.
+    /**
+     * Top-down-search, bottom-up filtering of submodel elements. If at least one child of an otherwise to-be-removed
+     * element needs to be kept, the element itself will not be removed. This element will be shown in the
+     * self-description but will not have an EDC asset ID. This could compromise confidentiality in some cases,
+     * self-description should be deactivated in that case.
+     *
+     * @param parent Reference of the parent element.
+     * @param submodelElement Submodel element to filter.
+     * @return The filtered submodel element, or {@code null} if it should be removed.
      */
     protected SubmodelElement filterSubmodelElementStructure(Reference parent, SubmodelElement submodelElement) {
         Reference submodelElementReference = AasUtils.toReference(parent, submodelElement);

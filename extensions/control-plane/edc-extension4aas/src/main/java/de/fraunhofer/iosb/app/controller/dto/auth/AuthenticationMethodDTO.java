@@ -24,6 +24,11 @@ import org.eclipse.edc.spi.security.Vault;
 import javax.annotation.Nonnull;
 
 
+/**
+ * DTO representing an authentication method used to access a remote AAS server. Implementations carry the required
+ * secrets and provide factory methods to build the corresponding {@link AuthenticationMethod}, optionally resolving
+ * secrets from a vault and tokens from an OAuth2 client.
+ */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes({
         @JsonSubTypes.Type(value = ApiKeyDTO.class, name = "api-key"),
@@ -32,24 +37,53 @@ import javax.annotation.Nonnull;
 })
 public interface AuthenticationMethodDTO {
 
+    /**
+     * Indicates whether this authentication method requires an OAuth2 client to obtain tokens.
+     *
+     * @return {@code true} if an OAuth2 client is required, {@code false} otherwise.
+     */
     default boolean requiresOauth2Client() {
         return false;
     }
 
 
+    /**
+     * Indicates whether this authentication method requires a vault to resolve secrets.
+     *
+     * @return {@code true} if a vault is required, {@code false} otherwise.
+     */
     default boolean requiresVault() {
         return true;
     }
 
 
+    /**
+     * Builds the authentication method using the given vault and OAuth2 client.
+     *
+     * @param vault The vault where secrets related to access the AAS server may be stored.
+     * @param client The OAuth2 client used to obtain tokens, if necessary.
+     * @return The resolved authentication method.
+     */
     @Nonnull
     AuthenticationMethod asAuth(@Nonnull Vault vault, @Nonnull Oauth2Client client);
 
 
+    /**
+     * Builds the authentication method using the given vault.
+     *
+     * @param vault The vault where secrets related to access the AAS server may be stored.
+     * @return The resolved authentication method.
+     */
     @Nonnull
     AuthenticationMethod asAuth(@Nonnull Vault vault);
 
 
+    /**
+     * Builds the authentication method without any vault or OAuth2 client. Only valid for authentication methods that
+     * do not require secrets (e.g. {@link NoAuthDTO}).
+     *
+     * @return The resolved authentication method.
+     */
     @Nonnull
     AuthenticationMethod asAuth();
 }

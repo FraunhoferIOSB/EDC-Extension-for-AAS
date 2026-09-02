@@ -33,15 +33,27 @@ import java.util.Map;
 
 /**
  * Superclass for remote AAS server handlers that implement Runnable to periodically fetch updates from AAS servers.
+ *
+ * @param <C> AAS server client implementation to communicate with the AAS server.
  */
 public abstract class RemoteAasHandler<C extends AasServerClient> extends AasHandler<C> implements RemoteHandler {
 
     // This map keeps tabs on the current state of registered assets/contracts.
     // If an asset or its contract could not be registered, they will not appear in this map.
     // We keep this "cache" to not flood the Asset/ContractStores with requests.
+    /** Currently registered assets keyed by their policy binding. */
     protected final Map<PolicyBinding, Asset> registeredAssets;
 
 
+    /**
+     * Creates a new remote AAS handler and initializes the registered assets from the AAS server.
+     *
+     * @param monitor Monitor used for log outputs.
+     * @param client Client used to communicate with the AAS server.
+     * @param edcStoreHandler Handler to manage registration of EDC assets, policies and contracts.
+     * @throws StatusCodeException if a call to the AAS server returned a status code other than 2xx.
+     * @throws ConnectivityException if a connection to the AAS server could not be established.
+     */
     protected RemoteAasHandler(Monitor monitor, C client, EdcStoreHandler edcStoreHandler) throws StatusCodeException, ConnectivityException {
         super(monitor, client, edcStoreHandler);
         registeredAssets = initialize();

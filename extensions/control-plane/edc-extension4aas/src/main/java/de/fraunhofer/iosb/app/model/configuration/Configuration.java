@@ -31,6 +31,10 @@ import static de.fraunhofer.iosb.constants.AasConstants.DEFAULT_EXPOSED_FIELDS;
  */
 public class Configuration {
 
+    /** Default constructor. */
+    public Configuration() {}
+
+
     private static final String SETTINGS_PREFIX = "edc.aas.";
     private static Configuration instance;
     @JsonProperty(SETTINGS_PREFIX + "syncPeriod")
@@ -60,6 +64,12 @@ public class Configuration {
     @JsonProperty(SETTINGS_PREFIX + "hercules.enabled")
     private boolean hercules;
 
+
+    /**
+     * Returns the singleton configuration instance, creating it lazily if needed.
+     *
+     * @return The singleton configuration instance.
+     */
     public static synchronized Configuration getInstance() {
         if (instance == null) {
             instance = new Configuration();
@@ -68,66 +78,132 @@ public class Configuration {
     }
 
 
+    /**
+     * Returns the remote AAS location.
+     *
+     * @return The remote AAS location.
+     */
     public URI getRemoteAasLocation() {
         return remoteAasLocation;
     }
 
 
+    /**
+     * Returns the local AAS model path.
+     *
+     * @return The local AAS model path.
+     */
     public String getLocalAasModelPath() {
         return localAasModelPath;
     }
 
 
+    /**
+     * Returns the local AAS service port.
+     *
+     * @return The local AAS service port.
+     */
     public Integer getLocalAasServicePort() {
         return localAasServicePort;
     }
 
 
+    /**
+     * Returns the AAS service configuration path.
+     *
+     * @return The AAS service configuration path.
+     */
     public String getAasServiceConfigPath() {
         return aasServiceConfigPath;
     }
 
 
+    /**
+     * Returns the sync period in seconds.
+     *
+     * @return The sync period in seconds.
+     */
     public int getSyncPeriod() {
         return syncPeriod;
     }
 
 
+    /**
+     * Returns whether only submodels should be registered.
+     *
+     * @return Whether only submodels should be registered.
+     */
     public boolean onlySubmodels() {
         return onlySubmodels;
     }
 
 
+    /**
+     * Returns whether the self-description should be exposed.
+     *
+     * @return Whether the self-description should be exposed.
+     */
     public boolean isExposeSelfDescription() {
         return exposeSelfDescription;
     }
 
 
+    /**
+     * Returns the default access policy path.
+     *
+     * @return The default access policy path.
+     */
     public String getDefaultAccessPolicyPath() {
         return defaultAccessPolicyPath;
     }
 
 
+    /**
+     * Returns the default contract policy path.
+     *
+     * @return The default contract policy path.
+     */
     public String getDefaultContractPolicyPath() {
         return defaultContractPolicyPath;
     }
 
 
+    /**
+     * Returns whether self-signed certificates are allowed.
+     *
+     * @return Whether self-signed certificates are allowed.
+     */
     public boolean isAllowSelfSignedCertificates() {
         return allowSelfSignedCertificates;
     }
 
 
+    /**
+     * Returns whether the AAS data plane should be used.
+     *
+     * @return Whether the AAS data plane should be used.
+     */
     public boolean useAasDataPlane() {
         return useAasDataPlane;
     }
 
 
+    /**
+     * Returns the exposed fields.
+     *
+     * @return The exposed fields.
+     */
     public Set<String> getExposedFields() {
         return exposedFields;
     }
 
 
+    /**
+     * Sets the exposed fields from a comma-separated string. If the value is {@code null}, the default exposed fields
+     * are used.
+     *
+     * @param exposedFields Comma-separated list of exposed fields.
+     */
     public void setExposedFields(String exposedFields) {
         Optional.ofNullable(exposedFields)
                 .ifPresentOrElse(
@@ -137,6 +213,11 @@ public class Configuration {
     }
 
 
+    /**
+     * Returns whether Hercules mode is enabled.
+     *
+     * @return Whether Hercules mode is enabled.
+     */
     public boolean isHercules() {
         return hercules;
     }

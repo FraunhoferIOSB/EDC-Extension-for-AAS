@@ -30,6 +30,11 @@ public class PolicyServiceConfig {
     private final Config config;
 
 
+    /**
+     * Creates a new PolicyServiceConfig wrapping the given configuration.
+     *
+     * @param config the underlying configuration.
+     */
     public PolicyServiceConfig(Config config) {
         this.config = config;
     }

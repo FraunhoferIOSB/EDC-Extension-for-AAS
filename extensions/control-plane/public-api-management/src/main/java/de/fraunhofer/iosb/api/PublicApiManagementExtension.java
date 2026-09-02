@@ -34,7 +34,12 @@ import org.eclipse.edc.web.spi.WebService;
 @Extension(value = PublicApiManagementExtension.NAME)
 public class PublicApiManagementExtension implements ServiceExtension {
 
+    /** Name of the extension. */
     public static final String NAME = "Public API Endpoint Management";
+
+    /** Default constructor. */
+    public PublicApiManagementExtension() {
+    }
 
     // Our authentication request filter needs this service to work:
     @Inject

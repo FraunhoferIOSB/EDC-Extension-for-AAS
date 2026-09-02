@@ -55,14 +55,23 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 @JsonDeserialize(builder = DataAddress.Builder.class)
 public class AasDataAddress extends DataAddress {
 
+    /** Type name identifying AAS data addresses. */
     public static final String AAS_DATA_TYPE = "AasData";
+    /** Property key for the proxied operation. */
     public static final String PROXY_OPERATION = AAS_V31_NAMESPACE + "proxyOperation";
+    /** Property key for the proxied HTTP method. */
     public static final String PROXY_METHOD = AAS_V31_NAMESPACE + "proxyMethod";
+    /** Property key for the proxied path. */
     public static final String PROXY_PATH = AAS_V31_NAMESPACE + "proxyPath";
+    /** Property key for the proxied request body. */
     public static final String PROXY_BODY = AAS_V31_NAMESPACE + "proxyBody";
+    /** Prefix for additional AAS header property keys. */
     public static final String ADDITIONAL_HEADER = "aas:header:";
+    /** Property key for the HTTP method. */
     public static final String METHOD = EDC_NAMESPACE + "method";
+    /** Property key for the serialized AAS reference. */
     public static final String REFERENCE = AAS_V31_NAMESPACE + "reference";
+    /** Property key for the path. */
     public static final String PATH = EDC_NAMESPACE + "path";
 
     private static final List<KeyTypes> IDENTIFIABLE_KEY_TYPES = List.of(ASSET_ADMINISTRATION_SHELL, SUBMODEL, CONCEPT_DESCRIPTION);
@@ -74,6 +83,12 @@ public class AasDataAddress extends DataAddress {
     }
 
 
+    /**
+     * Validates the given reference for use in an AAS data address.
+     *
+     * @param reference the reference to validate
+     * @return a list of validation problems, empty if the reference is valid
+     */
     public static List<String> validate(Reference reference) {
         List<String> problems = new ArrayList<>();
         if (reference == null || reference.getKeys() == null ||
@@ -117,18 +132,33 @@ public class AasDataAddress extends DataAddress {
     }
 
 
+    /**
+     * Returns the base URL of the AAS service.
+     *
+     * @return the base URL
+     */
     @JsonIgnore
     public String getBaseUrl() {
         return getStringProperty(BASE_URL);
     }
 
 
+    /**
+     * Returns the HTTP method, defaulting to GET.
+     *
+     * @return the HTTP method
+     */
     @JsonIgnore
     public String getMethod() {
         return getStringProperty(METHOD, "GET");
     }
 
 
+    /**
+     * Returns the additional headers configured for this AAS data address.
+     *
+     * @return the additional headers
+     */
     @JsonIgnore
     public Map<String, String> getAdditionalHeaders() {
         return getProperties().entrySet().stream()
@@ -181,6 +211,11 @@ public class AasDataAddress extends DataAddress {
     }
 
 
+    /**
+     * Returns the AAS reference stored in this data address.
+     *
+     * @return the reference, or an empty reference if none is set
+     */
     public Reference getReference() {
         var referenceString = Optional.ofNullable(getStringProperty(REFERENCE));
         if (referenceString.isEmpty()) {
@@ -191,6 +226,11 @@ public class AasDataAddress extends DataAddress {
     }
 
 
+    /**
+     * Converts this AAS data address into an HTTP data address.
+     *
+     * @return the HTTP data address representation
+     */
     public HttpDataAddress asHttpDataAddress() {
         HttpDataAddress.Builder httpDataAddress = HttpDataAddress.Builder.newInstance();
         this.getAdditionalHeaders().forEach(httpDataAddress::addAdditionalHeader);
@@ -202,6 +242,9 @@ public class AasDataAddress extends DataAddress {
     }
 
 
+    /**
+     * Builder for {@link AasDataAddress}.
+     */
     @JsonPOJOBuilder(withPrefix = "")
     public static final class Builder extends DataAddress.Builder<AasDataAddress, Builder> {
 
@@ -211,6 +254,11 @@ public class AasDataAddress extends DataAddress {
         }
 
 
+        /**
+         * Creates a new builder instance.
+         *
+         * @return a new builder
+         */
         @JsonCreator
         @SuppressWarnings("unchecked")
         public static Builder newInstance() {
@@ -218,48 +266,96 @@ public class AasDataAddress extends DataAddress {
         }
 
 
+        /**
+         * Sets the base URL.
+         *
+         * @param baseUrl the base URL
+         * @return this builder
+         */
         public Builder baseUrl(String baseUrl) {
             this.property(BASE_URL, baseUrl);
             return this;
         }
 
 
+        /**
+         * Sets the additional headers.
+         *
+         * @param headers the additional headers
+         * @return this builder
+         */
         public Builder additionalHeaders(Map<String, String> headers) {
             headers.forEach((k, v) -> this.property(ADDITIONAL_HEADER + k, v));
             return this;
         }
 
 
+        /**
+         * Sets the explicit path.
+         *
+         * @param path the path
+         * @return this builder
+         */
         public Builder path(String path) {
             this.property(PATH, path);
             return this;
         }
 
 
+        /**
+         * Sets the HTTP method.
+         *
+         * @param method the HTTP method
+         * @return this builder
+         */
         public Builder method(String method) {
             this.property(METHOD, method);
             return this;
         }
 
 
+        /**
+         * Sets the proxied operation.
+         *
+         * @param operation the proxied operation
+         * @return this builder
+         */
         public Builder proxyOperation(String operation) {
             this.property(PROXY_OPERATION, operation);
             return this;
         }
 
 
+        /**
+         * Sets the proxied request body.
+         *
+         * @param proxyBody the proxied request body
+         * @return this builder
+         */
         public Builder proxyBody(String proxyBody) {
             this.property(PROXY_BODY, proxyBody);
             return this;
         }
 
 
+        /**
+         * Sets the proxied HTTP method.
+         *
+         * @param proxyMethod the proxied HTTP method
+         * @return this builder
+         */
         public Builder proxyMethod(String proxyMethod) {
             this.property(PROXY_METHOD, proxyMethod);
             return this;
         }
 
 
+        /**
+         * Sets the proxied path.
+         *
+         * @param proxyPath the proxied path
+         * @return this builder
+         */
         public Builder proxyPath(String proxyPath) {
             this.property(PROXY_PATH, proxyPath);
             return this;
@@ -287,6 +383,12 @@ public class AasDataAddress extends DataAddress {
         }
 
 
+        /**
+         * Copies all properties from another data address into this builder.
+         *
+         * @param other the data address to copy from
+         * @return this builder
+         */
         public Builder copyFrom(DataAddress other) {
             Optional.ofNullable(other)
                     .map(DataAddress::getProperties)

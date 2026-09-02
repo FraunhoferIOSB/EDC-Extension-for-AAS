@@ -81,6 +81,8 @@ public class FilteredJsonSerializer extends JsonSerializer {
      * Extends the default write() method with a filter to avoid unwanted fields from being exposed via catalog.
      *
      * @param aasInstance the AAS instance to serialize
+     * @param allowedFields Fields of the AAS object to keep during serialization. Fields not mentioned here will be
+     *            removed.
      * @return the filtered map representation
      */
     public Map<String, Object> toMap(Object aasInstance, Set<String> allowedFields) {

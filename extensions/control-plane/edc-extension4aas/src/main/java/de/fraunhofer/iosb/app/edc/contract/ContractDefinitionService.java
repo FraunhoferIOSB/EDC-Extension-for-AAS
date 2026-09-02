@@ -42,7 +42,9 @@ import static org.eclipse.edc.spi.result.StoreFailure.Reason.NOT_FOUND;
  */
 public class ContractDefinitionService {
 
+    /** Name of the access policy ID field used in contract definitions. */
     public static final String ACCESS_POLICY_FIELD = "accessPolicyId";
+    /** Name of the contract policy ID field used in contract definitions. */
     public static final String CONTRACT_POLICY_FIELD = "contractPolicyId";
 
     private final ContractDefinitionStore store;
@@ -83,7 +85,7 @@ public class ContractDefinitionService {
 
 
     /**
-     * Adds the asset ID to the contract definition defined by the access&contract policy IDs. If no suitable contract
+     * Adds the asset ID to the contract definition defined by the access&amp;contract policy IDs. If no suitable contract
      * definition exists, one will be created and stored to the EDC
      * contract definition store.
      *
@@ -110,7 +112,7 @@ public class ContractDefinitionService {
 
 
     /**
-     * Removes the asset ID from the contract definition defined by the access&contract policy IDs. If multiple of such
+     * Removes the asset ID from the contract definition defined by the access&amp;contract policy IDs. If multiple of such
      * contract definition exist, the asset id will be removed from
      * all of them.
      *

@@ -38,6 +38,13 @@ public class BasicAuth extends AuthenticationMethod {
     private final Function<Vault, String> password;
 
 
+    /**
+     * Creates a new BasicAuth authentication.
+     *
+     * @param username the username.
+     * @param password the password.
+     * @param vault the vault to store the password in.
+     */
     public BasicAuth(String username, String password, Vault vault) {
         this.username = Objects.requireNonNull(username);
         this.password = getResolver(vault, password);

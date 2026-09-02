@@ -25,9 +25,15 @@ import org.eclipse.edc.validator.spi.DataAddressValidatorRegistry;
 import static de.fraunhofer.iosb.validator.dataaddress.aasdata.AasDataDataAddressValidatorExtension.NAME;
 
 
+/** EDC service extension registering the AAS data address validator. */
 @Extension(NAME)
 public class AasDataDataAddressValidatorExtension implements ServiceExtension {
+    /** Name of the extension. */
     public static final String NAME = "DataAddress AasData Validator";
+
+    /** Default constructor. */
+    public AasDataDataAddressValidatorExtension() {
+    }
 
     @Inject
     private DataAddressValidatorRegistry dataAddressValidatorRegistry;

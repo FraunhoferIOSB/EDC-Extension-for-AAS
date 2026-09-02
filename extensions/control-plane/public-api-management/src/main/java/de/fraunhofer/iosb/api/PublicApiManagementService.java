@@ -34,6 +34,12 @@ public class PublicApiManagementService {
     private final Monitor monitor;
 
 
+    /**
+     * Creates a new PublicApiManagementService.
+     *
+     * @param filter the authentication request filter managing endpoints.
+     * @param monitor the monitor for logging.
+     */
     public PublicApiManagementService(CustomAuthenticationRequestFilter filter, Monitor monitor) {
         this.filter = filter;
         this.monitor = monitor.withPrefix("PublicApiManagementService");

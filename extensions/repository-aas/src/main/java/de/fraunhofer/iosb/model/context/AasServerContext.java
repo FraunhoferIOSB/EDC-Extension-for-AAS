@@ -29,11 +29,20 @@ import static de.fraunhofer.iosb.constants.AasConstants.DEFAULT_USAGE_POLICY_DEF
  */
 public abstract class AasServerContext {
 
+    /** Default access policy definition ID used when none is explicitly configured. */
     protected final String defaultAccessPolicyDefinitionId;
+    /** Default contract policy definition ID used when none is explicitly configured. */
     protected final String defaultContractPolicyDefinitionId;
     private final URI uri;
 
 
+    /**
+     * Creates a new AAS server context.
+     *
+     * @param uri the URI of the AAS server.
+     * @param defaultAccessPolicyDefinitionId the default access policy definition ID.
+     * @param defaultContractPolicyDefinitionId the default contract policy definition ID.
+     */
     protected AasServerContext(URI uri, String defaultAccessPolicyDefinitionId, String defaultContractPolicyDefinitionId) {
         this.uri = uri;
         this.defaultAccessPolicyDefinitionId = defaultAccessPolicyDefinitionId;
@@ -53,17 +62,31 @@ public abstract class AasServerContext {
     /**
      * Get the full URI to access this AAS repository, including
      *
-     * @return The full accessor URI for this repository, e.g., <a href="">https://my-aas:1337/api/v3.0</a>.
+     * @return The full accessor URI for this repository.
      */
     public URI getUri() {
         return uri;
     }
 
 
+    /**
+     * Abstract builder for AAS server contexts.
+     *
+     * @param <T> the context type produced by this builder.
+     * @param <B> the builder subtype for fluent chaining.
+     */
     public abstract static class AbstractBuilder<T extends AasServerContext, B extends AasServerContext.AbstractBuilder<T, B>> {
+        /** Default access policy definition ID to set. */
         protected String defaultAccessPolicyDefinitionId;
+        /** Default contract policy definition ID to set. */
         protected String defaultContractPolicyDefinitionId;
+        /** URI of the AAS server. */
         protected URI uri;
+
+
+        /** Default constructor. */
+        public AbstractBuilder() {
+        }
 
 
         @SuppressWarnings("unchecked")
@@ -72,24 +95,45 @@ public abstract class AasServerContext {
         }
 
 
+        /**
+         * Sets the URI of the AAS server.
+         *
+         * @param uri the server URI.
+         * @return this builder.
+         */
         public B uri(URI uri) {
             this.uri = uri;
             return self();
         }
 
 
+        /**
+         * Sets the default access policy definition ID.
+         *
+         * @param defaultAccessPolicyDefinitionId the default access policy definition ID.
+         * @return this builder.
+         */
         public B defaultAccessPolicyDefinitionId(String defaultAccessPolicyDefinitionId) {
             this.defaultAccessPolicyDefinitionId = defaultAccessPolicyDefinitionId;
             return self();
         }
 
 
+        /**
+         * Sets the default contract policy definition ID.
+         *
+         * @param defaultContractPolicyDefinitionId the default contract policy definition ID.
+         * @return this builder.
+         */
         public B defaultContractPolicyDefinitionId(String defaultContractPolicyDefinitionId) {
             this.defaultContractPolicyDefinitionId = defaultContractPolicyDefinitionId;
             return self();
         }
 
 
+        /**
+         * Validates and fills in default values for unset fields.
+         */
         protected void validate() {
             defaultAccessPolicyDefinitionId = Objects.requireNonNullElse(defaultAccessPolicyDefinitionId, DEFAULT_ACCESS_POLICY_DEFINITION_ID);
             defaultContractPolicyDefinitionId = Objects.requireNonNullElse(defaultContractPolicyDefinitionId, DEFAULT_USAGE_POLICY_DEFINITION_ID);

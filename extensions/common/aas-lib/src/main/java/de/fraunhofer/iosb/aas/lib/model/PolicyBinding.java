@@ -33,22 +33,43 @@ import static de.fraunhofer.iosb.constants.AasConstants.DEFAULT_USAGE_POLICY_DEF
  * {@code dataAddressProperties} are merged onto the mapper-generated
  * {@link org.eclipse.edc.spi.types.domain.DataAddress},
  * with binding-provided properties taking precedence on key conflict.
+ *
+ * @param referredElement the AAS element reference this binding applies to.
+ * @param accessPolicyDefinitionId the access policy definition ID, or null for default.
+ * @param contractPolicyDefinitionId the contract policy definition ID, or null for default.
+ * @param dataAddressProperties additional data address properties merged onto the generated data address.
  */
 public record PolicyBinding(Reference referredElement, @JsonProperty("accessPolicyId") String accessPolicyDefinitionId,
         @JsonProperty("usagePolicyId") String contractPolicyDefinitionId,
         @JsonProperty("dataAddressProperties") @JsonInclude(JsonInclude.Include.NON_EMPTY) Map<String, String> dataAddressProperties) {
 
+    /**
+     * Compact constructor validating and normalizing the record components.
+     */
     public PolicyBinding {
         Objects.requireNonNull(referredElement);
         dataAddressProperties = dataAddressProperties == null ? Map.of() : Map.copyOf(dataAddressProperties);
     }
 
 
+    /**
+     * Creates a PolicyBinding with empty data address properties.
+     *
+     * @param referredElement the AAS element reference this binding applies to.
+     * @param accessPolicyDefinitionId the access policy definition ID.
+     * @param contractPolicyDefinitionId the contract policy definition ID.
+     */
     public PolicyBinding(Reference referredElement, String accessPolicyDefinitionId, String contractPolicyDefinitionId) {
         this(referredElement, accessPolicyDefinitionId, contractPolicyDefinitionId, Map.of());
     }
 
 
+    /**
+     * Creates a PolicyBinding with default access and usage policy definition IDs.
+     *
+     * @param reference the AAS element reference this binding applies to.
+     * @return a new PolicyBinding with default policy IDs.
+     */
     public static PolicyBinding ofDefaults(Reference reference) {
         return new PolicyBinding(reference, DEFAULT_ACCESS_POLICY_DEFINITION_ID, DEFAULT_USAGE_POLICY_DEFINITION_ID, Map.of());
     }

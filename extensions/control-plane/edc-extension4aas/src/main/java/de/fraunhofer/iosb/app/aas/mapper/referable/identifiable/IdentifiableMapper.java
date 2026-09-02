@@ -25,13 +25,29 @@ import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 
 
+/**
+ * Maps an AAS {@link Identifiable} (e.g. asset administration shell, submodel or concept description) to an EDC
+ * {@link Asset}, assigning a unique asset id and a data address pointing at the element on the AAS server.
+ */
 public class IdentifiableMapper extends ReferableMapper {
 
+    /**
+     * Creates a new identifiable mapper bound to the given AAS server client.
+     *
+     * @param client Client used to communicate with the AAS server.
+     */
     public IdentifiableMapper(AasServerClient client) {
         super(client);
     }
 
 
+    /**
+     * Maps the given identifiable to an EDC asset. The asset id is derived from the element's reference and the data
+     * address is built according to the current {@link Configuration} (AAS data plane vs. HTTP data plane).
+     *
+     * @param identifiable The AAS identifiable to map.
+     * @return The mapped EDC asset.
+     */
     public Asset map(Identifiable identifiable) {
         Reference reference = AasUtils.toReference(identifiable);
 

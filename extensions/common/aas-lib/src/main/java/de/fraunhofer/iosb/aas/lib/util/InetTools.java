@@ -20,6 +20,7 @@ import java.net.Socket;
 import java.util.Locale;
 
 
+/** Utility class for network-related operations. */
 public class InetTools {
 
     private InetTools() {

@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
+ * Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ * Copyright (c) 2025 SAP SE
+ * Copyright (c) 2026 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
  * Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
  * Forschung e.V.
  *
@@ -32,20 +34,31 @@ import static org.eclipse.tractusx.edc.core.utils.FileUtils.getResourceFile;
  * Provides JSON-LD structure for Factory-X policies.
  */
 public class JsonLdExtension implements ServiceExtension {
+    /** Namespace URI for Factory-X policies. */
     public static final String FX_POLICY_NS = "https://w3id.org/factoryx/policy/v1.0/";
+    /** Prefix used for Factory-X policy terms. */
     public static final String FX_POLICY_PREFIX = "fx-policy";
+    /** URL of the Factory-X policy JSON-LD context. */
     public static final String FX_POLICY_CONTEXT = FX_POLICY_NS + "context.jsonld";
 
+    /** URL of the Factory-X EDC JSON-LD context. */
     public static final String FX_CONTEXT = "https://w3id.org/factoryx/edc/v0.0.1";
 
+    /** Namespace URI for Factory-X credentials. */
     public static final String FX_CREDENTIAL_NS = "https://w3id.org/factoryx/credentials/v1.0/";
+    /** Prefix used for Factory-X credential terms. */
     public static final String FX_CREDENTIAL_PREFIX = "fx-credentials";
+    /** URL of the Factory-X credentials JSON-LD context. */
     public static final String FX_CREDENTIAL_CONTEXT = FX_CREDENTIAL_NS + "context.jsonld";
 
     private static final String PREFIX = "document" + File.separator;
     private static final Map<String, String> FILES = Map.of(
             FX_POLICY_CONTEXT, PREFIX + "fx-policy-v1.jsonld",
             FX_CREDENTIAL_CONTEXT, PREFIX + "fx-credentials-v1.jsonld");
+
+    /** Default constructor. */
+    public JsonLdExtension() {
+    }
 
     @Inject
     private JsonLd jsonLdService;

@@ -67,6 +67,15 @@ public class PolicyController {
     private final Monitor monitor;
 
 
+    /**
+     * Creates a new PolicyController.
+     *
+     * @param monitor the monitor for logging.
+     * @param catalogService service for catalog retrieval.
+     * @param participantContext the participant context.
+     * @param typeTransformerRegistry registry for type transformations.
+     * @param systemConfig system configuration.
+     */
     public PolicyController(Monitor monitor, CatalogService catalogService, ParticipantContext participantContext,
                             TypeTransformerRegistry typeTransformerRegistry, Config systemConfig) {
         var config = new PolicyServiceConfig(systemConfig);

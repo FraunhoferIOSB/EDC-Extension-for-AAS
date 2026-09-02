@@ -38,12 +38,25 @@ public class ApiKey extends AuthenticationMethod {
     private final Function<Vault, String> keyValueAlias;
 
 
+    /**
+     * Creates a new ApiKey authentication with a direct key value.
+     *
+     * @param keyName the header key name.
+     * @param keyValue the header key value.
+     * @param vault the vault to store the key value in.
+     */
     public ApiKey(@JsonProperty("keyName") String keyName, @JsonProperty("keyValue") String keyValue, Vault vault) {
         this.keyName = Objects.requireNonNull(keyName);
         this.keyValueAlias = getResolver(vault, keyValue);
     }
 
 
+    /**
+     * Creates a new ApiKey authentication with a vault alias for the key value.
+     *
+     * @param keyName the header key name.
+     * @param keyValueAlias the vault alias for the key value.
+     */
     @JsonCreator
     public ApiKey(@JsonProperty("keyName") String keyName, @JsonProperty("keyValueAlias") String keyValueAlias) {
         this.keyName = Objects.requireNonNull(keyName);

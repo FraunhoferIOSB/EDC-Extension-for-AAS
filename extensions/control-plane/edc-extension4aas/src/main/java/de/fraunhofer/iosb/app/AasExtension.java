@@ -62,7 +62,13 @@ import static de.fraunhofer.iosb.constants.AasConstants.EDC_SETTINGS_PREFIX;
 @Extension(value = AasExtension.NAME)
 public class AasExtension implements ServiceExtension {
 
+    /** Name of the extension. */
     public static final String NAME = "EDC4AAS Extension";
+
+
+    /** Default constructor. */
+    public AasExtension() {}
+
 
     @Inject // Register public endpoints
     private PublicApiManagementService publicApiManagementService;

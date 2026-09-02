@@ -21,13 +21,33 @@ import java.net.URI;
 import java.util.Set;
 
 
+/**
+ * Store holding AAS server handlers keyed by their URI.
+ */
 public class AasServerStore extends AasStore<AasHandler<?>> {
 
+    /**
+     * Creates a new, empty AAS server store.
+     */
+    public AasServerStore() {
+    }
+
+    /**
+     * Checks whether an AAS server is stored for the given URI.
+     *
+     * @param uri the URI of the server.
+     * @return {@code true} if a server is stored for the given URI, {@code false} otherwise.
+     */
     public boolean isStored(URI uri) {
         return store.containsKey(uri);
     }
 
 
+    /**
+     * Returns the URIs of all stored AAS servers.
+     *
+     * @return the URIs of all stored AAS servers.
+     */
     public Set<URI> keySet() {
         return store.keySet();
     }

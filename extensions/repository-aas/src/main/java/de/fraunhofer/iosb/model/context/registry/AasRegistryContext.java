@@ -24,6 +24,7 @@ import java.net.URI;
 import java.util.Objects;
 
 
+/** Context holding information about an AAS registry. */
 public class AasRegistryContext extends AasServerContext {
 
     private final AuthenticationMethod authenticationMethod;
@@ -64,26 +65,47 @@ public class AasRegistryContext extends AasServerContext {
     }
 
 
+    /**
+     * Builder for {@link AasRegistryContext}.
+     */
     public static class Builder extends AasServerContext.AbstractBuilder<AasRegistryContext, Builder> {
         private AuthenticationMethod authenticationMethod;
         private boolean allowSelfSigned;
 
 
+        /** Default constructor. */
         public Builder() {}
 
 
+        /**
+         * Sets the authentication method for connecting to this registry.
+         *
+         * @param authenticationMethod the authentication method.
+         * @return this builder.
+         */
         public Builder authenticationMethod(AuthenticationMethod authenticationMethod) {
             this.authenticationMethod = authenticationMethod;
             return this;
         }
 
 
+        /**
+         * Sets whether self-signed certificates are allowed.
+         *
+         * @param allowSelfSigned whether to allow self-signed certificates.
+         * @return this builder.
+         */
         public Builder allowSelfSigned(boolean allowSelfSigned) {
             this.allowSelfSigned = allowSelfSigned;
             return this;
         }
 
 
+        /**
+         * Builds the {@link AasRegistryContext} instance.
+         *
+         * @return the built context.
+         */
         public AasRegistryContext build() {
             Objects.requireNonNull(uri, "Access URI must be non-null");
             authenticationMethod = Objects.requireNonNullElse(authenticationMethod, new NoAuth());

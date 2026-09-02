@@ -43,11 +43,16 @@ import java.util.function.Function;
 })
 public abstract class AuthenticationMethod {
 
+    /** Default constructor. */
+    protected AuthenticationMethod() {
+    }
+
     /**
      * Get the header value to add to the request headers to communicate with the service. Headers: [... , (getHeader().key,
      * getHeader().value), ...] The secrets needed to produce
      * the header value are resolved from the vault.
      *
+     * @param vault Vault to retrieve secrets from.
      * @return The header to place in the request in order to authenticate
      */
     public Map.Entry<String, String> getHeader(Vault vault) {
@@ -73,6 +78,13 @@ public abstract class AuthenticationMethod {
     public abstract String getValue(Vault vault);
 
 
+    /**
+     * Returns a function that resolves a secret from a vault, storing the given secret if needed.
+     *
+     * @param vault the vault to store the secret in.
+     * @param secret the secret value or alias to resolve.
+     * @return a function that resolves the secret from a vault.
+     */
     protected Function<Vault, String> getResolver(Vault vault, String secret) {
         if (secret == null) {
             return (v) -> null;

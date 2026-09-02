@@ -59,7 +59,12 @@ import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 @Provides(Codec.class)
 public class CodecExtension implements ServiceExtension {
 
+    /** Name of the extension. */
     public static final String NAME = "Codec Extension";
+
+    /** Default constructor. */
+    public CodecExtension() {
+    }
 
     @Inject(required = false)
     private CriterionOperatorRegistry criterionOperatorRegistry;
@@ -79,6 +84,11 @@ public class CodecExtension implements ServiceExtension {
     }
 
 
+    /**
+     * Provides the default {@link Codec} instance.
+     *
+     * @return the codec instance.
+     */
     @Provider(isDefault = true)
     public Codec provideCodec() {
         return new Codec(typeTransformerRegistry, jsonLd);

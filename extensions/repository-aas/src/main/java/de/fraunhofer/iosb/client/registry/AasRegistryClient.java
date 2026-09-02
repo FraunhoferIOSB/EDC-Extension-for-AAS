@@ -51,6 +51,7 @@ public class AasRegistryClient implements AasServerClient {
     /**
      * Class constructor.
      *
+     * @param vault The vault holding credentials for authentication.
      * @param context Context holding information about communication with the AAS registry.
      */
     public AasRegistryClient(Vault vault, AasRegistryContext context) {

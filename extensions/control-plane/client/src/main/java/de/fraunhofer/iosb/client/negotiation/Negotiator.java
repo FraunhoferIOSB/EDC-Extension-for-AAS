@@ -40,6 +40,7 @@ public class Negotiator {
      *
      * @param commandHandlerRegistry Initiating a negotiation as a consumer.
      * @param contractNegotiationStore Check for existing agreements before negotiating
+     * @param participantContext the participant context used for negotiations.
      */
     public Negotiator(CommandHandlerRegistry commandHandlerRegistry,
                       ContractNegotiationStore contractNegotiationStore, ParticipantContext participantContext) {

@@ -20,7 +20,16 @@ import org.eclipse.edc.spi.result.Result;
 import java.security.cert.Certificate;
 
 
+/**
+ * Retrieves self-signed certificates of an AAS service by its URL.
+ */
 public interface SelfSignedCertificateRetriever {
 
+    /**
+     * Retrieves the self-signed certificate of the service at the given URL.
+     *
+     * @param urlString the URL of the service
+     * @return the certificate chain or a failure
+     */
     Result<Certificate[]> getSelfSignedCertificate(String urlString);
 }

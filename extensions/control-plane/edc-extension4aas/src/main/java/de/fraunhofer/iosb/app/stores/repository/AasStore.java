@@ -22,30 +22,63 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 
+/**
+ * Generic store for AAS server instances.
+ *
+ * @param <T> the type of AAS server (e.g., repository).
+ */
 public abstract class AasStore<T> {
+    /** Underlying map holding the stored AAS servers keyed by their URI. */
     protected final Map<URI, T> store;
 
 
+    /**
+     * Default constructor, initializing the store with a concurrent hash map.
+     */
     public AasStore() {
         this.store = new ConcurrentHashMap<>();
     }
 
 
+    /**
+     * Get an AAS server by its URI.
+     *
+     * @param uri the URI of the server.
+     * @return the AAS server.
+     */
     public Optional<T> get(URI uri) {
         return Optional.ofNullable(store.get(uri));
     }
 
 
+    /**
+     * Returns all stored AAS servers.
+     *
+     * @return all stored AAS servers.
+     */
     public List<T> getAll() {
         return store.values().stream().toList();
     }
 
 
+    /**
+     * Store a new AAS server or update an existing one.
+     *
+     * @param uri the URI of the AAS server.
+     * @param t the AAS server.
+     * @return true if no AAS server was stored for this URI, else false.
+     */
     public boolean put(URI uri, T t) {
         return null == store.put(uri, t);
     }
 
 
+    /**
+     * Remove an AAS store by its URI.
+     *
+     * @param uri the URI of the AAS server.
+     * @return the removed AAS server.
+     */
     public T remove(URI uri) {
         return store.remove(uri);
     }

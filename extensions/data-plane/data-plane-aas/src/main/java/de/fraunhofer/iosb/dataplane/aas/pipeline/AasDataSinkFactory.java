@@ -36,6 +36,12 @@ public class AasDataSinkFactory implements DataSinkFactory {
     private final AasDataProcessorFactory aasDataProcessorFactory;
 
 
+    /**
+     * Constructs an AasDataSinkFactory.
+     *
+     * @param monitor the monitor
+     * @param aasDataProcessorFactory the AAS data processor factory
+     */
     public AasDataSinkFactory(Monitor monitor, AasDataProcessorFactory aasDataProcessorFactory) {
         this.monitor = monitor;
         this.aasDataProcessorFactory = aasDataProcessorFactory;

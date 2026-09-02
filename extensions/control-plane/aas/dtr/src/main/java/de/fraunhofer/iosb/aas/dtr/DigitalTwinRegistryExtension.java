@@ -29,9 +29,20 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import java.util.function.Supplier;
 
 
+/**
+ * EDC extension that registers a Digital Twin Registry as an EDC asset on startup, creating the corresponding access
+ * and usage policies and contract definition, and cleans them up on shutdown.
+ */
 @Extension(value = DigitalTwinRegistryExtension.NAME)
 public class DigitalTwinRegistryExtension implements ServiceExtension {
+    /** Name of the Digital Twin Registry extension. */
     public static final String NAME = "Digital Twin Registry Extension";
+
+    /**
+     * Creates a new Digital Twin Registry extension instance.
+     */
+    public DigitalTwinRegistryExtension() {
+    }
 
     @Inject
     private AssetIndex assetIndex;

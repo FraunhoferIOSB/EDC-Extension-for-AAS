@@ -58,12 +58,6 @@ class DefaultSelfSignedCertificateRetrieverTest {
 
 
     @Test
-    void isTrusted() {
-        assertTrue(DefaultSelfSignedCertificateRetriever.isTrusted(VALID));
-    }
-
-
-    @Test
     void getExpiredCertificate() {
         var certResult = new DefaultSelfSignedCertificateRetriever().getSelfSignedCertificate(EXPIRED);
 

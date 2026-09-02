@@ -32,25 +32,48 @@ import javax.annotation.Nullable;
  *
  * @param url URI to use to connect to the AAS registry, including any path prefixes (e.g., /api/v3.0)
  * @param auth The authentication method used to communicate with the registry.
+ * @param defaultAccessPolicyDefinitionId The default access PolicyDefinition id to apply to this asset.
+ * @param defaultContractPolicyDefinitionId The default contract PolicyDefinition id to apply to this asset.
  */
 public record AasRegistryContextDTO(URI url, AuthenticationMethodDTO auth, String defaultAccessPolicyDefinitionId, String defaultContractPolicyDefinitionId)
         implements RemoteAasServerDTO {
+    /**
+     * Checks for constructions of this record: url non-null, auth non-null or "no auth".
+     */
     public AasRegistryContextDTO {
         Objects.requireNonNull(url, "'url' cannot be null!");
         auth = Objects.requireNonNullElse(auth, new NoAuthDTO());
     }
 
 
+    /**
+     * Constructor with custom URL.
+     *
+     * @param url URL of the registry.
+     */
     public AasRegistryContextDTO(URI url) {
         this(url, new NoAuthDTO());
     }
 
 
+    /**
+     * Constructor with custom URL and auth method.
+     *
+     * @param url URL of the registry.
+     * @param auth authentication method to access the registry.
+     */
     public AasRegistryContextDTO(URI url, AuthenticationMethodDTO auth) {
         this(url, auth, null, null);
     }
 
 
+    /**
+     * Returns this DTO as an AasRegistryContext with resolved authentication method.
+     *
+     * @param vault The vault where secrets related to access to the registry may be stored.
+     * @param oauth2Client The identity provider where access tokens may be retrieved, if necessary to access the registry.
+     * @return The AAS registry context.
+     */
     public AasRegistryContext asContext(@Nullable Vault vault, @Nullable Oauth2Client oauth2Client) {
         return new AasRegistryContext.Builder()
                 .defaultAccessPolicyDefinitionId(defaultAccessPolicyDefinitionId())

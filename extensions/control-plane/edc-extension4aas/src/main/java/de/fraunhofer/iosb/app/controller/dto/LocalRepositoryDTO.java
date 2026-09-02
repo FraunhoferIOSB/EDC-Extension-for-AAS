@@ -34,21 +34,45 @@ import java.util.Objects;
  * @param onlySubmodels If true, only register submodels. Default: true
  */
 public record LocalRepositoryDTO(String modelPath, Integer port, String configPath, List<PolicyBinding> policyBindings, boolean onlySubmodels) {
+    /**
+     * Compact constructor normalizing the {@code policyBindings} to an empty list when {@code null}.
+     */
     public LocalRepositoryDTO {
         policyBindings = Objects.requireNonNullElse(policyBindings, List.of());
     }
 
 
+    /**
+     * Convenience constructor delegating to the canonical constructor with {@code onlySubmodels} set to {@code true}.
+     *
+     * @param modelPath Path to the AAS environment (optional, default: empty environment).
+     * @param port Port to use for communications with AAS repository (optional, default: random available port).
+     * @param configPath Path to configuration for the AAS server (optional, default: no configuration/defaults).
+     * @param policyBindings List of {@link PolicyBinding}.
+     */
     public LocalRepositoryDTO(String modelPath, Integer port, String configPath, List<PolicyBinding> policyBindings) {
         this(modelPath, port, configPath, policyBindings, true);
     }
 
 
+    /**
+     * Convenience constructor delegating to the canonical constructor with no policy bindings and
+     * {@code onlySubmodels} set to {@code true}.
+     *
+     * @param modelPath Path to the AAS environment (optional, default: empty environment).
+     * @param port Port to use for communications with AAS repository (optional, default: random available port).
+     * @param configPath Path to configuration for the AAS server (optional, default: no configuration/defaults).
+     */
     public LocalRepositoryDTO(String modelPath, Integer port, String configPath) {
         this(modelPath, port, configPath, List.of(), true);
     }
 
 
+    /**
+     * Builds a {@link FaaastRepositoryConfig} from this DTO.
+     *
+     * @return The FA³ST repository configuration corresponding to this DTO.
+     */
     public FaaastRepositoryConfig asConfig() {
         return FaaastRepositoryConfig.Builder.newInstance()
                 .model(modelPath())

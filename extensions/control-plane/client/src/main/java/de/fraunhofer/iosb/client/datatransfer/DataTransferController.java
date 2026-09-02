@@ -49,12 +49,16 @@ import java.util.concurrent.TimeoutException;
 import static de.fraunhofer.iosb.client.ClientEndpoint.MISSING_QUERY_PARAMETER_MESSAGE;
 
 
+/** Controller for initiating and managing data transfer processes. */
 @Consumes({ MediaType.APPLICATION_JSON })
 @Path(ClientEndpoint.AUTOMATED_PATH)
 public class DataTransferController {
 
+    /** Field name for the operation property in data addresses. */
     public static final String OPERATION_FIELD = "operation";
+    /** API key field name used for data transfers. */
     static final String DATA_TRANSFER_API_KEY = "data-transfer-api-key";
+    /** Path segment for the transfer endpoint. */
     static final String TRANSFER_PATH = "transfer";
     private static final int WAIT_FOR_TRANSFER_TIMEOUT_DEFAULT = 20;
     private final Config config;
@@ -76,6 +80,9 @@ public class DataTransferController {
      * @param webService Register data transfer endpoint.
      * @param publicApiManagementService Creating and passing through custom api keys for each data transfer.
      * @param initiateTransferCommandHandler Initiating a transfer process as a consumer.
+     * @param participantContext the participant context.
+     * @param transferProcessObservable observable for transfer process events.
+     * @param hostname the hostname of the connector.
      */
     public DataTransferController(Monitor monitor, Config config, WebService webService,
                                   PublicApiManagementService publicApiManagementService,

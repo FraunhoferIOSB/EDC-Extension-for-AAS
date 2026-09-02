@@ -28,12 +28,23 @@ import java.util.List;
 import java.util.Optional;
 
 
+/** Configuration for a FA³ST-based AAS repository. */
 public class FaaastRepositoryConfig extends AasRepositoryConfig<ServiceConfig> {
 
+    /** Custom port for the FA³ST service, or null if none is set. */
     private final Integer customPort;
+    /** The underlying FA³ST service configuration. */
     private final ServiceConfig serviceConfig;
 
 
+    /**
+     * Creates a new FA³ST repository configuration.
+     *
+     * @param customPort custom port for the FA³ST service, or null.
+     * @param serviceConfig the FA³ST service configuration.
+     * @param policyBindings policy bindings for this repository.
+     * @param onlySubmodels whether only submodels should be registered.
+     */
     private FaaastRepositoryConfig(Integer customPort, ServiceConfig serviceConfig, List<PolicyBinding> policyBindings, boolean onlySubmodels) {
         super(policyBindings, onlySubmodels);
         this.customPort = customPort;
@@ -41,6 +52,11 @@ public class FaaastRepositoryConfig extends AasRepositoryConfig<ServiceConfig> {
     }
 
 
+    /**
+     * Returns the HTTP endpoint configuration for the FA³ST service.
+     *
+     * @return the HTTP endpoint configuration.
+     */
     public HttpEndpointConfig getPort() {
         List<HttpEndpointConfig> httpEndpoints = serviceConfig.getEndpoints().stream()
                 .filter(HttpEndpointConfig.class::isInstance)
@@ -59,50 +75,93 @@ public class FaaastRepositoryConfig extends AasRepositoryConfig<ServiceConfig> {
     }
 
 
+    /**
+     * Returns the FA³ST service configuration.
+     *
+     * @return the FA³ST service configuration.
+     */
     @Override
     public ServiceConfig get() {
         return this.serviceConfig;
     }
 
 
+    /**
+     * Builder for {@link FaaastRepositoryConfig}.
+     */
     public static class Builder extends AasRepositoryConfig.Builder<Builder, FaaastRepositoryConfig> {
         private Integer port = null;
         private Path configPath;
         private boolean ssl = true;
 
 
+        /** Default constructor. */
         private Builder() {}
 
 
+        /**
+         * Creates a new builder instance.
+         *
+         * @return a new builder.
+         */
         public static Builder newInstance() {
             return new Builder();
         }
 
 
+        /**
+         * Returns this builder instance for fluent chaining.
+         *
+         * @return this builder.
+         */
         @Override
         public Builder self() {
             return this;
         }
 
 
+        /**
+         * Sets the port for the FA³ST service.
+         *
+         * @param port the port number.
+         * @return this builder.
+         */
         public Builder port(Integer port) {
             this.port = port;
             return this;
         }
 
 
+        /**
+         * Sets whether SSL is enabled for the FA³ST service.
+         *
+         * @param ssl whether SSL is enabled.
+         * @return this builder.
+         */
         public Builder ssl(boolean ssl) {
             this.ssl = ssl;
             return this;
         }
 
 
+        /**
+         * Sets the path to the FA³ST configuration file.
+         *
+         * @param configPath path to the configuration file.
+         * @return this builder.
+         */
         public Builder configPath(Path configPath) {
             this.configPath = configPath;
             return this;
         }
 
 
+        /**
+         * Sets the path to the FA³ST configuration file from a string.
+         *
+         * @param configPath path to the configuration file as string.
+         * @return this builder.
+         */
         public Builder configPath(String configPath) {
             this.configPath = Optional.ofNullable(configPath)
                     .map(Path::of)
@@ -112,6 +171,11 @@ public class FaaastRepositoryConfig extends AasRepositoryConfig<ServiceConfig> {
         }
 
 
+        /**
+         * Builds the {@link FaaastRepositoryConfig} instance.
+         *
+         * @return the built configuration.
+         */
         public FaaastRepositoryConfig build() {
             ServiceConfig serviceConfig = Optional.ofNullable(configPath)
                     .map(Path::toFile)

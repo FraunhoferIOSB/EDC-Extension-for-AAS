@@ -31,6 +31,7 @@ import java.util.Objects;
  */
 public class RemoteAasRepositoryContext extends AasRepositoryContext {
 
+    /** Error message template used when remote repository operations fail. */
     public static final String ERR_MSG_TEMPLATE = "%s from %s failed.";
 
     private final AuthenticationMethod authenticationMethod;
@@ -55,31 +56,57 @@ public class RemoteAasRepositoryContext extends AasRepositoryContext {
     }
 
 
+    /**
+     * Returns the authentication method used to connect to this repository.
+     *
+     * @return the authentication method.
+     */
     public @NotNull AuthenticationMethod getAuthenticationMethod() {
         return authenticationMethod;
     }
 
 
+    /**
+     * Builder for {@link RemoteAasRepositoryContext}.
+     */
     public static class Builder extends AbstractBuilder<RemoteAasRepositoryContext, Builder> {
         private AuthenticationMethod authenticationMethod;
         private boolean allowSelfSigned;
 
 
+        /** Default constructor. */
         public Builder() {}
 
 
+        /**
+         * Sets the authentication method for connecting to this repository.
+         *
+         * @param authenticationMethod the authentication method.
+         * @return this builder.
+         */
         public Builder authenticationMethod(AuthenticationMethod authenticationMethod) {
             this.authenticationMethod = authenticationMethod;
             return this;
         }
 
 
+        /**
+         * Sets whether self-signed certificates are allowed.
+         *
+         * @param allowSelfSigned whether to allow self-signed certificates.
+         * @return this builder.
+         */
         public Builder allowSelfSigned(boolean allowSelfSigned) {
             this.allowSelfSigned = allowSelfSigned;
             return this;
         }
 
 
+        /**
+         * Builds the {@link RemoteAasRepositoryContext} instance.
+         *
+         * @return the built context.
+         */
         public RemoteAasRepositoryContext build() {
             super.validate();
             this.authenticationMethod = Objects.requireNonNullElse(authenticationMethod, new NoAuth());

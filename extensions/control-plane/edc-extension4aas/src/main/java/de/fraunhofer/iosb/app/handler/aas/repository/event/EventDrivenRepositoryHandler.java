@@ -38,6 +38,13 @@ import java.util.function.BiFunction;
  */
 public abstract class EventDrivenRepositoryHandler<C extends LocalAasRepositoryClient<?>> extends AasRepositoryHandler<C> {
 
+    /**
+     * Creates a new event-driven repository handler.
+     *
+     * @param monitor Monitor used for log outputs.
+     * @param client Client used to communicate with the AAS repository and to subscribe to events.
+     * @param edcStoreHandler Handler to manage registration of EDC assets, policies and contracts.
+     */
     protected EventDrivenRepositoryHandler(Monitor monitor, C client, EdcStoreHandler edcStoreHandler) {
         super(monitor, client, edcStoreHandler);
     }
@@ -58,12 +65,26 @@ public abstract class EventDrivenRepositoryHandler<C extends LocalAasRepositoryC
     }
 
 
+    /**
+     * Subscribes the handler to the relevant AAS repository events (create/update/delete).
+     */
     protected abstract void subscribe();
 
 
+    /**
+     * Unsubscribes the handler from the AAS repository events.
+     */
     protected abstract void unsubscribe();
 
 
+    /**
+     * Handles the element referenced by the given reference by applying the consumer to each of its policy-binding-
+     * specific assets.
+     *
+     * @param reference Reference of the AAS element to handle.
+     * @param consumer Function applied to each (policy binding, asset) pair, returning a store result.
+     * @return The aggregated store result of the operation.
+     */
     protected StoreResult<Void> doHandle(Reference reference, BiFunction<PolicyBinding, Asset, StoreResult<Void>> consumer) {
         Asset baseAsset = referenceToAsset(reference, client.getEnvironment());
 

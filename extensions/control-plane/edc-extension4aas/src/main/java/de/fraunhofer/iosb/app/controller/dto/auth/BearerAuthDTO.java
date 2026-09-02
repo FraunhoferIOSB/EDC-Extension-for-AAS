@@ -36,6 +36,9 @@ import javax.annotation.Nonnull;
  * @param password Password. Will be stored in vault when creating {@link BearerAuth}.
  */
 public record BearerAuthDTO(URI uri, String clientId, String clientSecret, String username, String password) implements AuthenticationMethodDTO {
+    /**
+     * Compact constructor validating that {@code clientId} and {@code clientSecret} are non-null.
+     */
     public BearerAuthDTO {
         Objects.requireNonNull(clientId);
         Objects.requireNonNull(clientSecret);

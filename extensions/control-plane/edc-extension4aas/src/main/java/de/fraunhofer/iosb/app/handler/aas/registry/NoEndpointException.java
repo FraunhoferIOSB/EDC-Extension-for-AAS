@@ -19,6 +19,11 @@ package de.fraunhofer.iosb.app.handler.aas.registry;
  * No endpoint was found for an AAS descriptor or submodel descriptor.
  */
 public class NoEndpointException extends Exception {
+    /**
+     * Constructs a new NoEndpointException with the specified detail message.
+     *
+     * @param s the detail message.
+     */
     public NoEndpointException(String s) {
         super(s);
     }

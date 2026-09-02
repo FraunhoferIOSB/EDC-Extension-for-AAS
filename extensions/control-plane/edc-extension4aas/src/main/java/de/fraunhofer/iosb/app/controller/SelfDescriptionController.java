@@ -52,6 +52,7 @@ import static de.fraunhofer.iosb.constants.AasConstants.EXPOSED_FIELDS_SELF_DESC
 @Path(SELF_DESCRIPTION_PATH)
 public class SelfDescriptionController {
 
+    /** Path at which the self-description endpoint is exposed. */
     public static final String SELF_DESCRIPTION_PATH = "selfDescription";
 
     private final Supplier<Set<String>> exposedFieldsSupplier = () -> Optional.ofNullable(Configuration.getInstance().getExposedFields())

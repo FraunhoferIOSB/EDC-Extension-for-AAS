@@ -92,6 +92,9 @@ public class AasDataSink implements DataSink {
     }
 
 
+    /**
+     * Builder for AasDataSink instances.
+     */
     public static class Builder {
         private final AasDataSink dataSink;
 
@@ -101,29 +104,57 @@ public class AasDataSink implements DataSink {
         }
 
 
+        /**
+         * Creates a new Builder instance.
+         *
+         * @return a new builder
+         */
         public static Builder newInstance() {
             return new Builder();
         }
 
 
+        /**
+         * Sets the AAS data address.
+         *
+         * @param aasDataAddress the AAS data address
+         * @return this builder
+         */
         public Builder aasDataAddress(AasDataAddress aasDataAddress) {
             dataSink.aasDataAddress = aasDataAddress;
             return this;
         }
 
 
+        /**
+         * Sets the AAS data processor factory.
+         *
+         * @param aasDataProcessor the AAS data processor factory
+         * @return this builder
+         */
         public Builder aasManipulator(AasDataProcessorFactory aasDataProcessor) {
             dataSink.aasDataProcessorFactory = aasDataProcessor;
             return this;
         }
 
 
+        /**
+         * Sets the monitor.
+         *
+         * @param monitor the monitor
+         * @return this builder
+         */
         public Builder monitor(Monitor monitor) {
             dataSink.monitor = monitor;
             return this;
         }
 
 
+        /**
+         * Builds the AasDataSink instance.
+         *
+         * @return the new AasDataSink instance
+         */
         public AasDataSink build() {
             Objects.requireNonNull(dataSink.aasDataProcessorFactory, "aasManipulator");
             Objects.requireNonNull(dataSink.aasDataAddress, "aasDataAddress");

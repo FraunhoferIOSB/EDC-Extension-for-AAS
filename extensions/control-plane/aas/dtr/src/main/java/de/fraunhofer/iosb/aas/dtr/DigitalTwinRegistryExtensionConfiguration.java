@@ -19,6 +19,10 @@ import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.runtime.metamodel.annotation.Settings;
 
 
+/**
+ * Configuration of the Digital Twin Registry extension, holding the DTR URL, AAS specification version and the
+ * access/usage policy definition IDs or paths used to register the DTR as an EDC asset.
+ */
 @Settings
 public class DigitalTwinRegistryExtensionConfiguration {
 
@@ -52,31 +56,67 @@ public class DigitalTwinRegistryExtensionConfiguration {
     @Setting(description = DTR + USAGE_POLICY + PATH, key = CONTEXT + ".usagePolicyPath", required = false)
     private String usagePolicyPath;
 
+    /**
+     * Creates a new Digital Twin Registry extension configuration; populated by the EDC configuration mechanism.
+     */
+    public DigitalTwinRegistryExtensionConfiguration() {
+    }
+
+    /**
+     * Returns the Digital Twin Registry URL.
+     *
+     * @return the Digital Twin Registry URL.
+     */
     public String getUrl() {
         return url;
     }
 
 
+    /**
+     * Returns the AAS specification version of the Digital Twin Registry.
+     *
+     * @return the AAS specification version.
+     */
     public String getSpecificationVersion() {
         return specificationVersion;
     }
 
 
+    /**
+     * Returns the access policy definition ID. Preferred over the access policy path.
+     *
+     * @return the access policy definition ID, or {@code null} if not configured.
+     */
     public String getAccessPolicyDefinitionId() {
         return accessPolicyDefinitionId;
     }
 
 
+    /**
+     * Returns the path to the access policy file.
+     *
+     * @return the access policy path, or {@code null} if not configured.
+     */
     public String getAccessPolicyPath() {
         return accessPolicyPath;
     }
 
 
+    /**
+     * Returns the usage policy definition ID. Preferred over the usage policy path.
+     *
+     * @return the usage policy definition ID, or {@code null} if not configured.
+     */
     public String getUsagePolicyDefinitionId() {
         return usagePolicyDefinitionId;
     }
 
 
+    /**
+     * Returns the path to the usage policy file.
+     *
+     * @return the usage policy path, or {@code null} if not configured.
+     */
     public String getUsagePolicyPath() {
         return usagePolicyPath;
     }

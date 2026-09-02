@@ -142,6 +142,9 @@ public class AasDataSource implements DataSource {
     private record ResponseBodyStream(ResponseBody responseBody, InputStream stream) {}
 
 
+    /**
+     * Builder for AasDataSource instances.
+     */
     public static class Builder {
         private final AasDataSource dataSource;
 
@@ -151,35 +154,69 @@ public class AasDataSource implements DataSource {
         }
 
 
+        /**
+         * Creates a new Builder instance.
+         *
+         * @return a new builder
+         */
         public static Builder newInstance() {
             return new Builder();
         }
 
 
+        /**
+         * Sets the request id.
+         *
+         * @param requestId the request id
+         * @return this builder
+         */
         public Builder requestId(String requestId) {
             dataSource.requestId = requestId;
             return this;
         }
 
 
+        /**
+         * Sets the AAS data processor factory.
+         *
+         * @param aasDataProcessor the AAS data processor factory
+         * @return this builder
+         */
         public Builder aasDataProcessorFactory(AasDataProcessorFactory aasDataProcessor) {
             dataSource.aasDataProcessorFactory = aasDataProcessor;
             return this;
         }
 
 
+        /**
+         * Sets the monitor.
+         *
+         * @param monitor the monitor
+         * @return this builder
+         */
         public Builder monitor(Monitor monitor) {
             dataSource.monitor = monitor;
             return this;
         }
 
 
+        /**
+         * Sets the AAS data address.
+         *
+         * @param aasDataAddress the AAS data address
+         * @return this builder
+         */
         public Builder aasDataAddress(AasDataAddress aasDataAddress) {
             dataSource.aasDataAddress = aasDataAddress;
             return this;
         }
 
 
+        /**
+         * Builds the AasDataSource instance.
+         *
+         * @return the new AasDataSource instance
+         */
         public AasDataSource build() {
             Objects.requireNonNull(dataSource.requestId, "requestId");
             Objects.requireNonNull(dataSource.aasDataProcessorFactory, "httpClient");

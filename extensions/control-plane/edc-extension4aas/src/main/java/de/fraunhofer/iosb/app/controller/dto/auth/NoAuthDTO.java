@@ -24,8 +24,16 @@ import org.jetbrains.annotations.NotNull;
 import javax.annotation.Nonnull;
 
 
+/**
+ * DTO representing the absence of authentication, i.e. no credentials are required to access the AAS server.
+ */
 public record NoAuthDTO() implements AuthenticationMethodDTO {
 
+    /**
+     * Indicates that no vault is required since no secrets need to be resolved.
+     *
+     * @return {@code false}.
+     */
     public boolean requiresVault() {
         return false;
     }

@@ -29,6 +29,10 @@ import java.util.stream.Collectors;
  */
 public abstract class DiffHelper {
 
+
+    private DiffHelper() {
+    }
+
     /**
      * For a list of assets and its updated counterpart, returns a list of the newly added assets.
      *

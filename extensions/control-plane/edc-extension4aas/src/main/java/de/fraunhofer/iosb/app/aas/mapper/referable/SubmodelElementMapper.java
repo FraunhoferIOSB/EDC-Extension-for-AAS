@@ -34,9 +34,15 @@ import java.util.Optional;
  */
 public class SubmodelElementMapper extends ReferableMapper {
 
+    /** Property name under which mapped child assets of a submodel element collection are stored. */
     public static final String SMC_CHILDREN_LOCATION = "value";
 
 
+    /**
+     * Creates a new submodel element mapper bound to the given AAS server client.
+     *
+     * @param client Client used to communicate with the AAS server.
+     */
     public SubmodelElementMapper(AasServerClient client) {
         super(client);
     }

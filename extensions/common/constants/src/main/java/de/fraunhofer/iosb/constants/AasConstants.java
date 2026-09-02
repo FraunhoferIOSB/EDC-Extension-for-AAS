@@ -19,14 +19,21 @@ import java.util.Set;
 import java.util.UUID;
 
 
+/** Constants for AAS-related configuration and default values. */
 public interface AasConstants {
+    /** Prefix used for AAS namespace registration. */
     String AAS_PREFIX = "aas";
+    /** Namespace URI for AAS version 3.1. */
     String AAS_V31_NAMESPACE = "https://admin-shell.io/aas/3/1/";
+    /** The AAS version supported by this extension. */
     String SUPPORTED_AAS_VERSION = "3.1";
 
+    /** Prefix for AAS-related EDC settings. */
     String EDC_SETTINGS_PREFIX = "edc.aas";
 
+    /** Default access policy definition ID generated at startup. */
     String DEFAULT_ACCESS_POLICY_DEFINITION_ID = UUID.randomUUID().toString();
+    /** Default usage policy definition ID generated at startup. */
     String DEFAULT_USAGE_POLICY_DEFINITION_ID = UUID.randomUUID().toString();
 
     /**

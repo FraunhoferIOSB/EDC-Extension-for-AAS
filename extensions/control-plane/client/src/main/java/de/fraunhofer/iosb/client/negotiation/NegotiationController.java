@@ -48,6 +48,15 @@ public class NegotiationController {
     private final ClientContractNegotiationListener listener;
 
 
+    /**
+     * Creates a new NegotiationController.
+     *
+     * @param commandHandlerRegistry registry for initiating negotiation commands.
+     * @param observable observable for contract negotiation events.
+     * @param contractNegotiationStore store for contract negotiations.
+     * @param participantContext the participant context.
+     * @param config configuration for negotiation timeouts.
+     */
     public NegotiationController(CommandHandlerRegistry commandHandlerRegistry,
                                  ContractNegotiationObservable observable,
                                  ContractNegotiationStore contractNegotiationStore,
@@ -60,6 +69,12 @@ public class NegotiationController {
     }
 
 
+    /**
+     * Negotiates a contract agreement for the given contract request.
+     *
+     * @param contractRequest the contract request to negotiate.
+     * @return the result of the negotiation containing the contract agreement.
+     */
     public Result<ContractAgreement> negotiateContract(ContractRequest contractRequest) {
         var negotiationStatusResult = negotiator.negotiate(contractRequest);
         if (!negotiationStatusResult.succeeded()) {

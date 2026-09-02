@@ -34,6 +34,7 @@ import java.util.function.UnaryOperator;
  */
 public class ControlPlaneConnection {
 
+    /** Media type used for control-plane request and response bodies. */
     public static final String APPLICATION_JSON = "application/json";
     private static final String CONTENT_TYPE = "content-type";
     private final HttpUrl connectionUri;
@@ -42,6 +43,14 @@ public class ControlPlaneConnection {
     private final UnaryOperator<Request.Builder> authSupplier;
 
 
+    /**
+     * Creates a new control-plane connection.
+     *
+     * @param connectionUri the base URL of the control plane.
+     * @param resourceName the resource name appended to the connection URL.
+     * @param vault the vault used to resolve authentication secrets.
+     * @param authenticationMethod the authentication method applied to requests.
+     */
     public ControlPlaneConnection(URI connectionUri, String resourceName, Vault vault, AuthenticationMethod authenticationMethod) {
         this.connectionUri = Objects.requireNonNull(HttpUrl.parse(connectionUri.toString()));
         this.resourceName = resourceName;

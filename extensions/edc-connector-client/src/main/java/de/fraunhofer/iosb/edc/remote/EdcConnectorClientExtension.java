@@ -38,6 +38,9 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import java.util.Optional;
 
 
+/**
+ * EDC service extension that registers remote control-plane store accessors for assets, policies, and contract definitions.
+ */
 @Provides({
         AssetIndex.class,
         PolicyDefinitionStore.class,
@@ -46,8 +49,15 @@ import java.util.Optional;
 @Extension(value = EdcConnectorClientExtension.NAME)
 public class EdcConnectorClientExtension implements ServiceExtension {
 
+    /** Default constructor. */
+    public EdcConnectorClientExtension() {
+    }
+
+    /** Name of the extension. */
     public static final String NAME = "Remote Control-Plane Store Accessors";
+    /** Configuration key prefix for control-plane settings. */
     public static final String CONTROL_PLANE = "edc.controlplane.";
+    /** Configuration key prefix for the management API settings. */
     public static final String MGMT_API = "edc.controlplane.management.";
 
     @Setting(description = "Remote control plane full management API URL", key = MGMT_API + "url")
@@ -79,6 +89,12 @@ public class EdcConnectorClientExtension implements ServiceExtension {
     }
 
 
+    /**
+     * Provides a remote {@link AssetIndex}.
+     *
+     * @param context the service extension context.
+     * @return the remote asset index.
+     */
     @Provider
     public AssetIndex provideAssetIndex(ServiceExtensionContext context) {
         return new RemoteAssetIndex.Builder()
@@ -92,6 +108,12 @@ public class EdcConnectorClientExtension implements ServiceExtension {
     }
 
 
+    /**
+     * Provides a remote {@link PolicyDefinitionStore}.
+     *
+     * @param context the service extension context.
+     * @return the remote policy definition store.
+     */
     @Provider
     public PolicyDefinitionStore providePolicyDefinitionStore(ServiceExtensionContext context) {
         return new RemotePolicyDefinitionStore.Builder()
@@ -105,6 +127,12 @@ public class EdcConnectorClientExtension implements ServiceExtension {
     }
 
 
+    /**
+     * Provides a remote {@link ContractDefinitionStore}.
+     *
+     * @param context the service extension context.
+     * @return the remote contract definition store.
+     */
     @Provider
     public ContractDefinitionStore provideContractDefinitionStore(ServiceExtensionContext context) {
         return new RemoteContractDefinitionStore.Builder()

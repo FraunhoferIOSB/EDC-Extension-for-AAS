@@ -28,6 +28,9 @@ import org.eclipse.edc.spi.result.StoreResult;
 import java.util.stream.Stream;
 
 
+/**
+ * PolicyDefinitionStore implementation where the control plane is reached via HTTP.
+ */
 public class RemotePolicyDefinitionStore extends ControlPlaneConnectionHandler<PolicyDefinition> implements PolicyDefinitionStore {
 
     private static final String MGMT_API_RESOURCE_ACCESSOR = "policydefinitions";
@@ -93,7 +96,14 @@ public class RemotePolicyDefinitionStore extends ControlPlaneConnectionHandler<P
     }
 
 
+    /**
+     * Builder for {@link RemotePolicyDefinitionStore} instances.
+     */
     public static class Builder extends ControlPlaneConnectionHandler.Builder<RemotePolicyDefinitionStore, Builder> {
+
+        /** Default constructor. */
+        public Builder() {
+        }
 
         @Override
         protected Builder self() {

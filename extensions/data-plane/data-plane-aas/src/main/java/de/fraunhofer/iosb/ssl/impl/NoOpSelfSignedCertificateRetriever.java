@@ -26,6 +26,13 @@ import java.security.cert.Certificate;
  * any self-signed certificates.
  */
 public class NoOpSelfSignedCertificateRetriever implements SelfSignedCertificateRetriever {
+
+    /**
+     * Default constructor.
+     */
+    public NoOpSelfSignedCertificateRetriever() {
+    }
+
     @Override
     public Result<Certificate[]> getSelfSignedCertificate(String urlString) {
         return Result.failure("Self-signed certificates not allowed");

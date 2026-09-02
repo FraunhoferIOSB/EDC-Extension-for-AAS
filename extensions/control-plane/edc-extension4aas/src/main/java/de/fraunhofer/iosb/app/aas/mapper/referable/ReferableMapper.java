@@ -31,6 +31,10 @@ import static de.fraunhofer.iosb.constants.AasConstants.AAS_V31_NAMESPACE;
 import static de.fraunhofer.iosb.constants.AasConstants.DEFAULT_EXPOSED_FIELDS;
 
 
+/**
+ * Abstract base mapper for AAS {@link Referable} elements. Serializes the referable's exposed fields into asset
+ * properties and adds the AAS modeling type as a property.
+ */
 public abstract class ReferableMapper extends ElementMapper {
 
     private final FilteredJsonSerializer jsonSerializer = new FilteredJsonSerializer();
@@ -38,11 +42,23 @@ public abstract class ReferableMapper extends ElementMapper {
             .orElse(DEFAULT_EXPOSED_FIELDS);
 
 
+    /**
+     * Creates a new referable mapper bound to the given AAS server client.
+     *
+     * @param client Client used to communicate with the AAS server.
+     */
     protected ReferableMapper(AasServerClient client) {
         super(client);
     }
 
 
+    /**
+     * Maps the given referable to an EDC asset builder pre-populated with the referable's exposed fields as properties
+     * and the AAS modeling type as a property.
+     *
+     * @param referable The AAS referable to map.
+     * @return An asset builder pre-populated with the referable's metadata.
+     */
     public Asset.Builder map(Referable referable) {
 
         var assetBuilder = Asset.Builder.newInstance();

@@ -33,6 +33,12 @@ public class AasTransferRequestBody extends RequestBody {
     private final String contentType;
 
 
+    /**
+     * Constructs an AasTransferRequestBody.
+     *
+     * @param bytes the payload bytes
+     * @param contentType the content type
+     */
     public AasTransferRequestBody(byte[] bytes, String contentType) {
         this.contentType = contentType;
         this.bytes = bytes;

@@ -38,6 +38,9 @@ import static de.fraunhofer.iosb.dataplane.aas.spi.AasDataAddress.validate;
  */
 public abstract class AssetIdUtil {
 
+    private AssetIdUtil() {
+    }
+
     /**
      * Generates a unique and fixed identifier for a given AAS reference and its
      * location in the network.
@@ -80,12 +83,28 @@ public abstract class AssetIdUtil {
     }
 
 
+    /**
+     * Generates a unique and fixed identifier for a given AAS identifiable and its location in the network. Depending on
+     * the {@link Configuration} (Hercules mode), either a hash of the identifiable id or of the access URL is used.
+     *
+     * @param url Location of the AAS element in the network.
+     * @param identifiable The AAS identifiable to generate an id for.
+     * @return A unique and fixed identifier based on the given arguments.
+     */
     public static String id(String url, Identifiable identifiable) {
         return Configuration.getInstance().isHercules() ? ofHashedIdentifiableId(AasUtils.toReference(identifiable))
                 : ofHashedAccessUrl(url, AasUtils.toReference(identifiable));
     }
 
 
+    /**
+     * Generates a unique and fixed identifier for a given AAS reference and its location in the network. Depending on
+     * the {@link Configuration} (Hercules mode), either a hash of the reference's root id or of the access URL is used.
+     *
+     * @param url Location of the AAS element in the network.
+     * @param reference Location of the AAS element in its environment.
+     * @return A unique and fixed identifier based on the given arguments.
+     */
     public static String id(String url, Reference reference) {
         return Configuration.getInstance().isHercules() ? ofHashedIdentifiableId(reference)
                 : ofHashedAccessUrl(url, reference);

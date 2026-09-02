@@ -26,9 +26,15 @@ import org.eclipse.edc.spi.result.Result;
 import static de.fraunhofer.iosb.aas.lib.http.HttpClientProvider.clientFor;
 
 
+/**
+ * Factory creating AAS data processors that accept the certificates of the target server.
+ */
 public abstract class AasDataProcessorFactory {
 
     private static final String HTTPS = "HTTPS";
+    /**
+     * Retriever for self-signed certificates of AAS services.
+     */
     protected final SelfSignedCertificateRetriever retriever;
     // EDC provided fields. Used for non-self-signed certificates
     private final OkHttpClient edcOkHttpClient;
@@ -36,6 +42,14 @@ public abstract class AasDataProcessorFactory {
     private final Monitor monitor;
 
 
+    /**
+     * Constructs an AasDataProcessorFactory.
+     *
+     * @param retriever the retriever for self-signed certificates
+     * @param edcOkHttpClient the EDC-provided OkHttpClient for non-self-signed certificates
+     * @param edcRetryPolicy the EDC-provided retry policy
+     * @param monitor the monitor
+     */
     public AasDataProcessorFactory(SelfSignedCertificateRetriever retriever,
                                    OkHttpClient edcOkHttpClient,
                                    RetryPolicy<Response> edcRetryPolicy,

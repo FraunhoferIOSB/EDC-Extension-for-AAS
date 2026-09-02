@@ -23,11 +23,27 @@ import org.eclipse.edc.spi.security.Vault;
 import javax.annotation.Nullable;
 
 
+/**
+ * DTO describing a remote AAS server (e.g. registry or repository) and exposing its authentication method. Provides
+ * helpers to resolve the authentication method into an {@link AuthenticationMethod} using a vault and an OAuth2 client.
+ */
 public interface RemoteAasServerDTO {
 
+    /**
+     * Get the authentication method DTO of a remote AAS server DTO.
+     *
+     * @return The AuthenticationMethodDTO of this RemoteAasServerDTO instance.
+     */
     AuthenticationMethodDTO getAuthenticationMethodDTO();
 
 
+    /**
+     * Convert this instance's authentication method DTO to an authentication method given the vault and oauth2 client.
+     *
+     * @param vault The vault where secrets related to access to the registry may be stored.
+     * @param oauth2Client The identity provider where access tokens may be retrieved, if necessary to access the registry.
+     * @return The authentication method.
+     */
     default AuthenticationMethod toAuthenticationMethod(@Nullable Vault vault, @Nullable Oauth2Client oauth2Client) {
         AuthenticationMethodDTO authenticationMethodDTO = getAuthenticationMethodDTO();
 

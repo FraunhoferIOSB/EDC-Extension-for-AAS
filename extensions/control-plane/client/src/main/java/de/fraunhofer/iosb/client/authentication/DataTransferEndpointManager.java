@@ -33,6 +33,11 @@ public class DataTransferEndpointManager {
     private final PublicApiManagementService publicApiManagementService;
 
 
+    /**
+     * Creates a new DataTransferEndpointManager.
+     *
+     * @param publicApiManagementService service for managing public API endpoints.
+     */
     public DataTransferEndpointManager(PublicApiManagementService publicApiManagementService) {
         this.publicApiManagementService = publicApiManagementService;
     }

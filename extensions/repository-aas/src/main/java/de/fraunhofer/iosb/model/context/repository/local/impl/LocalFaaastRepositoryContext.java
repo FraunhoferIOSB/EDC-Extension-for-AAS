@@ -123,26 +123,47 @@ public class LocalFaaastRepositoryContext extends AasRepositoryContext {
     }
 
 
+    /**
+     * Builder for {@link LocalFaaastRepositoryContext}.
+     */
     public static class Builder extends AbstractBuilder<LocalFaaastRepositoryContext, Builder> {
         private MessageBus<?> messageBus;
         private Persistence<?> persistence;
 
 
+        /** Default constructor. */
         public Builder() {}
 
 
+        /**
+         * Sets the FA³ST message bus.
+         *
+         * @param messageBus the message bus.
+         * @return this builder.
+         */
         public Builder messageBus(MessageBus<?> messageBus) {
             this.messageBus = messageBus;
             return this;
         }
 
 
+        /**
+         * Sets the FA³ST persistence.
+         *
+         * @param persistence the persistence.
+         * @return this builder.
+         */
         public Builder persistence(Persistence<?> persistence) {
             this.persistence = persistence;
             return this;
         }
 
 
+        /**
+         * Builds the {@link LocalFaaastRepositoryContext} instance.
+         *
+         * @return the built context.
+         */
         public LocalFaaastRepositoryContext build() {
             super.validate();
             Objects.requireNonNull(messageBus, "FA³ST MessageBus cannot be null");

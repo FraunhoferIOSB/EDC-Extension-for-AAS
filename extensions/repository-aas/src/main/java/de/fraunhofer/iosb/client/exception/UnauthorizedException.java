@@ -21,6 +21,11 @@ package de.fraunhofer.iosb.client.exception;
  */
 public class UnauthorizedException extends Exception {
 
+    /**
+     * Constructs a new unauthorized exception with the given cause.
+     *
+     * @param cause the cause of the unauthorized access
+     */
     public UnauthorizedException(Throwable cause) {
         super(cause);
     }

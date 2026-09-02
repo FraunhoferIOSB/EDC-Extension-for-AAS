@@ -29,12 +29,15 @@ import org.jetbrains.annotations.NotNull;
 import java.util.stream.Stream;
 
 
+/**
+ * ContractDefinitionStore implementation where the control plane is reached via HTTP.
+ */
 public class RemoteContractDefinitionStore extends ControlPlaneConnectionHandler<ContractDefinition> implements ContractDefinitionStore {
 
     private static final String MGMT_API_RESOURCE_ACCESSOR = "contractdefinitions";
 
 
-    public RemoteContractDefinitionStore(Monitor monitor, EdcHttpClient httpClient, Codec codec, ControlPlaneConnection connection) {
+    private RemoteContractDefinitionStore(Monitor monitor, EdcHttpClient httpClient, Codec codec, ControlPlaneConnection connection) {
         super(monitor, httpClient, codec, connection);
     }
 
@@ -102,7 +105,14 @@ public class RemoteContractDefinitionStore extends ControlPlaneConnectionHandler
     }
 
 
+    /**
+     * Builder for {@link RemoteContractDefinitionStore} instances.
+     */
     public static class Builder extends ControlPlaneConnectionHandler.Builder<RemoteContractDefinitionStore, RemoteContractDefinitionStore.Builder> {
+
+        /** Default constructor. */
+        public Builder() {
+        }
 
         @Override
         protected RemoteContractDefinitionStore.Builder self() {

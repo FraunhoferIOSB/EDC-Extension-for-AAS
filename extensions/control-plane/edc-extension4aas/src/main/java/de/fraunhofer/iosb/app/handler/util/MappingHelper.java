@@ -36,6 +36,9 @@ import java.util.function.Function;
  */
 public abstract class MappingHelper {
 
+    private MappingHelper() {
+    }
+
     /**
      * Maps an environment of AAS elements to T. The mapping rules are defined by the identifiableMapper and elementMapper.
      * The identifiableMapper will map all AAS, submodels and

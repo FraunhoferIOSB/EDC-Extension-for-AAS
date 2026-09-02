@@ -35,6 +35,7 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_USE_ACTION_AT
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.ALREADY_EXISTS;
 
 
+/** Helper class for registering default access and usage policies. */
 public abstract class PolicyHelper {
 
     private PolicyHelper() {}
@@ -47,6 +48,8 @@ public abstract class PolicyHelper {
      * @param monitor monitor to log messages.
      * @param policyDefinitionStore Store implementation to register policies.
      * @param participantId Used for the default policies.
+     * @param accessPolicyPath Path to the access policy file, or null for default.
+     * @param usagePolicyPath Path to the usage policy file, or null for default.
      */
     public static void registerDefaultPolicies(Codec codec, Monitor monitor, PolicyDefinitionStore policyDefinitionStore,
                                                String participantId, String accessPolicyPath, String usagePolicyPath) {
@@ -95,6 +98,13 @@ public abstract class PolicyHelper {
     }
 
 
+    /**
+     * Reads and deserializes a policy from a file.
+     *
+     * @param codec the codec used for deserialization.
+     * @param filePath path to the policy file.
+     * @return result containing the deserialized policy, or failure.
+     */
     public static Result<Policy> getPolicyFromFile(Codec codec, String filePath) {
         try {
             return codec.deserialize(Files.readString(Path.of(filePath)), Policy.class);

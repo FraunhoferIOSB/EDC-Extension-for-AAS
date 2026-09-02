@@ -38,6 +38,15 @@ public abstract class AasRepositoryContext extends AasServerContext {
     private final boolean onlySubmodels;
 
 
+    /**
+     * Creates a new AAS repository context.
+     *
+     * @param uri the URI of the AAS repository.
+     * @param defaultAccessPolicyDefinitionId the default access policy definition ID.
+     * @param defaultContractPolicyDefinitionId the default contract policy definition ID.
+     * @param policyBindings policy bindings for this repository.
+     * @param onlySubmodels whether only submodels should be registered.
+     */
     protected AasRepositoryContext(URI uri, String defaultAccessPolicyDefinitionId, String defaultContractPolicyDefinitionId, List<PolicyBinding> policyBindings,
                                    boolean onlySubmodels) {
         super(uri, defaultAccessPolicyDefinitionId, defaultContractPolicyDefinitionId);
@@ -125,12 +134,22 @@ public abstract class AasRepositoryContext extends AasServerContext {
     }
 
 
+    /**
+     * Abstract builder for AAS repository contexts.
+     *
+     * @param <T> the context type produced by this builder.
+     * @param <B> the builder subtype for fluent chaining.
+     */
     public abstract static class AbstractBuilder<T extends AasRepositoryContext, B extends AasServerContext.AbstractBuilder<T, B>> extends AasServerContext.AbstractBuilder<T, B> {
+        /** URI of the AAS repository. */
         protected URI uri;
+        /** Policy bindings to set on the context. */
         protected List<PolicyBinding> policyBindings;
+        /** Whether only submodels should be registered. */
         protected boolean onlySubmodels;
 
 
+        /** Default constructor. */
         protected AbstractBuilder() {}
 
 
@@ -140,24 +159,45 @@ public abstract class AasRepositoryContext extends AasServerContext {
         }
 
 
+        /**
+         * Sets the policy bindings.
+         *
+         * @param policyBindings policy bindings for this repository.
+         * @return this builder.
+         */
         public B policyBindings(List<PolicyBinding> policyBindings) {
             this.policyBindings = policyBindings;
             return self();
         }
 
 
+        /**
+         * Sets the URI of the AAS repository.
+         *
+         * @param uri the repository URI.
+         * @return this builder.
+         */
         public B uri(URI uri) {
             this.uri = uri;
             return self();
         }
 
 
+        /**
+         * Sets whether only submodels should be registered.
+         *
+         * @param onlySubmodels whether only submodels should be registered.
+         * @return this builder.
+         */
         public B onlySubmodels(boolean onlySubmodels) {
             this.onlySubmodels = onlySubmodels;
             return self();
         }
 
 
+        /**
+         * Validates and fills in default values for unset fields.
+         */
         protected void validate() {
             super.validate();
             Objects.requireNonNull(uri, "Access URI must be non-null");

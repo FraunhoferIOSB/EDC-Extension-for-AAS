@@ -30,6 +30,13 @@ import java.util.Objects;
  */
 public record Endpoint(String suffix, HttpMethod method, Map<String, List<String>> customHeaders) {
 
+    /**
+     * Compact constructor validating the record components.
+     *
+     * @param suffix The relevant suffix of the endpoint (i.e. the path of the URL).
+     * @param method The method through which the endpoint can be accessed.
+     * @param customHeaders Custom headers like special authentication keys can be passed here. This is a multivalued map.
+     */
     public Endpoint {
         Objects.requireNonNull(suffix);
         Objects.requireNonNull(method);

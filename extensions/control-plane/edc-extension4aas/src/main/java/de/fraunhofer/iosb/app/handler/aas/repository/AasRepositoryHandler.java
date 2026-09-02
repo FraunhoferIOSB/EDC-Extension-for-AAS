@@ -35,13 +35,33 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import java.util.List;
 
 
+/**
+ * Abstract handler for AAS repositories, providing access to the repository environment and the policy bindings
+ * configured per reference.
+ *
+ * @param <C> AAS repository client implementation to communicate with the AAS repository.
+ */
 public abstract class AasRepositoryHandler<C extends AasRepositoryClient> extends AasHandler<C> {
 
+    /**
+     * Creates a new AAS repository handler.
+     *
+     * @param monitor Monitor used for log outputs.
+     * @param client Client used to communicate with the AAS repository.
+     * @param edcStoreHandler Handler to manage registration of EDC assets, policies and contracts.
+     */
     protected AasRepositoryHandler(Monitor monitor, C client, EdcStoreHandler edcStoreHandler) {
         super(monitor, client, edcStoreHandler);
     }
 
 
+    /**
+     * Returns the environment of the AAS repository.
+     *
+     * @return The environment of the AAS repository.
+     * @throws StatusCodeException if a call to the AAS repository returned a status code other than 2xx.
+     * @throws ConnectivityException if a connection to the AAS repository could not be established.
+     */
     protected Environment getEnvironment() throws StatusCodeException, ConnectivityException {
         return client.getEnvironment();
     }
@@ -53,6 +73,14 @@ public abstract class AasRepositoryHandler<C extends AasRepositoryClient> extend
     }
 
 
+    /**
+     * Maps the referable referenced by the given reference (resolved against the given environment) to an EDC asset.
+     * Identifiables are mapped using the identifiable mapper, submodel elements using the submodel element mapper.
+     *
+     * @param reference Reference of the AAS element to map.
+     * @param environment The environment used to resolve the reference.
+     * @return The mapped EDC asset.
+     */
     protected Asset referenceToAsset(Reference reference, Environment environment) {
         Referable referable = AasUtils.resolve(reference, environment);
 

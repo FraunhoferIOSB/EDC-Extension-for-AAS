@@ -40,6 +40,11 @@ public class AasDataDataAddressValidator implements Validator<DataAddress> {
     private final List<String> allowedMethods = List.of("GET", "POST", "PUT", "DELETE", "PATCH");
 
 
+    /** Default constructor. */
+    public AasDataDataAddressValidator() {
+    }
+
+
     @Override
     public ValidationResult validate(DataAddress dataAddress) {
         var baseUrl = dataAddress.getStringProperty(BASE_URL);

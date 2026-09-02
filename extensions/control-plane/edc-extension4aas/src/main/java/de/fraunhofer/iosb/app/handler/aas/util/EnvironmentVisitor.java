@@ -38,30 +38,62 @@ import java.util.function.Predicate;
  */
 public record EnvironmentVisitor(Environment environment) {
 
+    /**
+     * Visits all asset administration shells applying the given consumer.
+     *
+     * @param visitor Consumer applied to each shell.
+     * @return This visitor for chaining.
+     */
     public EnvironmentVisitor visitShells(Consumer<Identifiable> visitor) {
         environment.getAssetAdministrationShells().forEach(visitor);
         return this;
     }
 
 
+    /**
+     * Filters the asset administration shells using the given predicate, removing those that do not match.
+     *
+     * @param eliminator Predicate used to filter the shells; shells for which it returns {@code false} are removed.
+     * @return This visitor for chaining.
+     */
     public EnvironmentVisitor visitShells(Predicate<Identifiable> eliminator) {
         environment.setAssetAdministrationShells(environment.getAssetAdministrationShells().stream().filter(eliminator).toList());
         return this;
     }
 
 
+    /**
+     * Visits all concept descriptions applying the given consumer.
+     *
+     * @param visitor Consumer applied to each concept description.
+     * @return This visitor for chaining.
+     */
     public EnvironmentVisitor visitConceptDescriptions(Consumer<Identifiable> visitor) {
         environment.getConceptDescriptions().forEach(visitor);
         return this;
     }
 
 
+    /**
+     * Filters the concept descriptions using the given predicate, removing those that do not match.
+     *
+     * @param eliminator Predicate used to filter the concept descriptions; descriptions for which it returns
+     *            {@code false} are removed.
+     * @return This visitor for chaining.
+     */
     public EnvironmentVisitor visitConceptDescriptions(Predicate<Identifiable> eliminator) {
         environment.setConceptDescriptions(environment.getConceptDescriptions().stream().filter(eliminator).toList());
         return this;
     }
 
 
+    /**
+     * Visits all submodels and their submodel elements applying the given visitors.
+     *
+     * @param visitor Consumer applied to each submodel.
+     * @param childVisitor BiFunction applied to each submodel element together with its parent submodel reference.
+     * @return This visitor for chaining.
+     */
     public EnvironmentVisitor visitSubmodels(Consumer<Identifiable> visitor,
                                              BiFunction<Reference, SubmodelElement, SubmodelElement> childVisitor) {
         environment.getSubmodels().forEach(submodel -> submodel.getSubmodelElements().forEach(submodelElement -> childVisitor.apply(AasUtils.toReference(submodel),
@@ -71,6 +103,17 @@ public record EnvironmentVisitor(Environment environment) {
     }
 
 
+    /**
+     * Filters the submodels and their submodel elements using the given predicates. Submodels for which the eliminator
+     * returns {@code false} are removed, and submodel elements for which the child eliminator returns {@code null} are
+     * removed.
+     *
+     * @param eliminator Predicate used to filter the submodels; submodels for which it returns {@code false} are
+     *            removed.
+     * @param childEliminator BiFunction applied to each submodel element together with its parent submodel reference;
+     *            elements for which it returns {@code null} are removed.
+     * @return This visitor for chaining.
+     */
     public EnvironmentVisitor visitSubmodels(Predicate<Identifiable> eliminator,
                                              BiFunction<Reference, SubmodelElement, SubmodelElement> childEliminator) {
         environment.getSubmodels().forEach(submodel -> submodel.setSubmodelElements(

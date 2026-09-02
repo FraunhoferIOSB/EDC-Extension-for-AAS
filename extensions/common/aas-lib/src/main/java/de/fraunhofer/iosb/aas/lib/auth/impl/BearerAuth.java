@@ -27,6 +27,7 @@ import java.util.function.Function;
 import javax.naming.OperationNotSupportedException;
 
 
+/** Bearer token authentication using OAuth2 client credentials. */
 public class BearerAuth extends AuthenticationMethod {
     private final Function<Vault, String> clientId;
     private final Function<Vault, String> clientSecret;
@@ -38,6 +39,17 @@ public class BearerAuth extends AuthenticationMethod {
     private final Oauth2Client client;
 
 
+    /**
+     * Creates a new BearerAuth authentication.
+     *
+     * @param clientId the OAuth2 client ID.
+     * @param clientSecret the OAuth2 client secret.
+     * @param username the username for the token request.
+     * @param password the password for the token request.
+     * @param identityProvider the URI of the identity provider.
+     * @param client the OAuth2 client for requesting tokens.
+     * @param vault the vault to store credentials in.
+     */
     public BearerAuth(String clientId, String clientSecret, String username, String password, URI identityProvider, Oauth2Client client, Vault vault) {
         this.identityProvider = identityProvider;
         this.client = client;

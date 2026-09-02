@@ -40,6 +40,12 @@ public class AasDataSourceFactory implements DataSourceFactory {
     private final AasDataProcessorFactory aasDataProcessorFactory;
 
 
+    /**
+     * Constructs an AasDataSourceFactory.
+     *
+     * @param monitor the monitor
+     * @param aasDataProcessorFactory the AAS data processor factory
+     */
     public AasDataSourceFactory(Monitor monitor, AasDataProcessorFactory aasDataProcessorFactory) {
         this.monitor = monitor;
         this.aasDataProcessorFactory = aasDataProcessorFactory;

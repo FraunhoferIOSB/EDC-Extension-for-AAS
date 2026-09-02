@@ -28,6 +28,7 @@ import java.util.Map;
  */
 public class NoAuth extends AuthenticationMethod {
 
+    /** Default constructor. */
     public NoAuth() {}
 
 

@@ -43,6 +43,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Manages internally created FA³ST instances.
  */
 public class FaaastRepositoryManager implements AasRepositoryManager<FaaastRepositoryConfig> {
+    /** Name of the FA³ST repository implementation. */
     public static final String FAAAST = "FA³ST";
     private static final String GENERIC_EXCEPTION_MESSAGE = "Exception thrown by %s service.".formatted(FAAAST);
 
@@ -50,6 +51,12 @@ public class FaaastRepositoryManager implements AasRepositoryManager<FaaastRepos
     private final Monitor monitor;
     private final Map<URI, Service> repository;
 
+    /**
+     * Constructs a new FA³ST repository manager.
+     *
+     * @param monitor the monitor used for logging
+     * @param hostname the hostname helper for building access URIs
+     */
     public FaaastRepositoryManager(Monitor monitor, Hostname hostname) {
         this.monitor = monitor;
         this.hostname = hostname;

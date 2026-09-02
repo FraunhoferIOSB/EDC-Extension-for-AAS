@@ -72,6 +72,16 @@ public class RepositoryController extends AbstractAasServerController {
     private final AasRepositoryManager<FaaastRepositoryConfig> aasRepositoryManager;
 
 
+    /**
+     * Creates a new repository controller.
+     *
+     * @param monitor Monitor used for log outputs.
+     * @param aasServerStore AAS server store to store AAS servers.
+     * @param hostname Hostname used to expose internally started repositories.
+     * @param edcStoreHandler EDC store handler to manage registration of EDC assets, policies and contracts.
+     * @param vault Vault used to get secrets for authentication at AAS servers.
+     * @param oauth2Client OAuth2 client to get tokens for authentication at AAS servers.
+     */
     public RepositoryController(Monitor monitor, AasServerStore aasServerStore,
                                 Hostname hostname,
                                 EdcStoreHandler edcStoreHandler,
@@ -86,6 +96,7 @@ public class RepositoryController extends AbstractAasServerController {
      * Starts a FA³ST service internally and registers it to the EDC.
      *
      * @param localRepositoryDTO Request DTO containing environment path, port and config path
+     * @return the URI of the started local FA³ST repository.
      * @throws WebApplicationException malformed request
      */
     @POST
@@ -121,6 +132,7 @@ public class RepositoryController extends AbstractAasServerController {
      * Register an AAS service at the EDC.
      *
      * @param remoteAasRepositoryContextDTO remoteRepositoryDTO
+     * @return the URI of the registered remote AAS repository.
      * @throws WebApplicationException malformed request
      */
     @POST
@@ -182,6 +194,8 @@ public class RepositoryController extends AbstractAasServerController {
     /**
      * Register an AAS service (e.g., FA³ST) to this extension.
      *
+     * @param remoteAasRepositoryContextDTO remoteRepositoryDTO
+     * @return the URI of the registered remote AAS repository.
      * @deprecated Consolidated endpoints to /repository/{local/remote}. Use POST /repository/remote
      */
     @POST
@@ -195,6 +209,8 @@ public class RepositoryController extends AbstractAasServerController {
     /**
      * Unregister an AAS service (e.g., FA³ST) from this extension.
      *
+     * @param request Request DTO containing environment path, port and config path
+     * @return the URI of the started local FA³ST repository.
      * @deprecated Consolidated endpoints to /repository/{local/remote}. Use POST /repository/local
      */
     @POST
@@ -209,6 +225,7 @@ public class RepositoryController extends AbstractAasServerController {
     /**
      * Unregister an AAS service (e.g., FA³ST) from this extension.
      *
+     * @param repositoryUri the URI of the AAS service to unregister.
      * @deprecated Renamed endpoint to /repository. Use DELETE /repository
      */
     @DELETE

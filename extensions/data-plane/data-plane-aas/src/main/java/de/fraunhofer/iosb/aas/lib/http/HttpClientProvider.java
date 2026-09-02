@@ -36,9 +36,12 @@ import javax.net.ssl.X509TrustManager;
 /**
  * Provides OkHttpClient instance allowing communication to a remote service with the given certificate.
  */
-public class HttpClientProvider {
+public abstract class HttpClientProvider {
 
-    public static final String SSL_PROTOCOL = "TLS";
+    private HttpClientProvider() {
+    }
+
+    private static final String SSL_PROTOCOL = "TLS";
 
 
     /**

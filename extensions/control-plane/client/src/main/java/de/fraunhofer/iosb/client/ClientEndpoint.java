@@ -42,8 +42,11 @@ import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DA
  */
 @Path(ClientEndpoint.AUTOMATED_PATH)
 public class ClientEndpoint {
+    /** Path segment for the automated negotiation endpoint. */
     public static final String AUTOMATED_PATH = "automated";
+    /** Message template for missing query parameters. */
     public static final String MISSING_QUERY_PARAMETER_MESSAGE = "Missing query parameter. Required parameters: %s";
+    /** Message template for missing request body. */
     public static final String MISSING_REQUEST_BODY_MESSAGE = "Missing request body of type %s";
     private static final String NEGOTIATE_CONTRACT_PATH = "negotiateContract";
     private static final String NEGOTIATE_PATH = "negotiate";
@@ -139,6 +142,7 @@ public class ClientEndpoint {
     }
 
 
+    /** Builder for {@link ClientEndpoint}. */
     public static class Builder {
         private Monitor monitor;
         private NegotiationController negotiationController;
@@ -149,35 +153,69 @@ public class ClientEndpoint {
         private Builder() {}
 
 
+        /**
+         * Creates a new builder instance.
+         *
+         * @return a new builder.
+         */
         public static Builder newInstance() {
             return new Builder();
         }
 
 
+        /**
+         * Sets the monitor.
+         *
+         * @param monitor the monitor.
+         * @return this builder.
+         */
         public Builder monitor(Monitor monitor) {
             this.monitor = monitor;
             return this;
         }
 
 
+        /**
+         * Sets the negotiation controller.
+         *
+         * @param negotiationController the negotiation controller.
+         * @return this builder.
+         */
         public Builder negotiationController(NegotiationController negotiationController) {
             this.negotiationController = negotiationController;
             return this;
         }
 
 
+        /**
+         * Sets the policy controller.
+         *
+         * @param policyController the policy controller.
+         * @return this builder.
+         */
         public Builder policyController(PolicyController policyController) {
             this.policyController = policyController;
             return this;
         }
 
 
+        /**
+         * Sets the data transfer controller.
+         *
+         * @param transferController the data transfer controller.
+         * @return this builder.
+         */
         public Builder transferController(DataTransferController transferController) {
             this.transferController = transferController;
             return this;
         }
 
 
+        /**
+         * Builds the {@link ClientEndpoint} instance.
+         *
+         * @return the built endpoint.
+         */
         public ClientEndpoint build() {
             return new ClientEndpoint(monitor, negotiationController, policyController, transferController);
         }

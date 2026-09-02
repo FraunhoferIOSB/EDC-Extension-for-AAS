@@ -15,8 +15,14 @@
  */
 package de.fraunhofer.iosb.client.repository.local.event;
 
+/**
+ * Kinds of events emitted by a local AAS repository.
+ */
 public enum EventTypes {
+    /** An element was created. */
     CREATED,
+    /** An element was updated. */
     UPDATED,
+    /** An element was deleted. */
     DELETED
 }

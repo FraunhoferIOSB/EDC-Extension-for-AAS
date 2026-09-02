@@ -29,6 +29,10 @@ import static de.fraunhofer.iosb.constants.AasConstants.AAS_V31_NAMESPACE;
  */
 public class JsonLdExtension implements ServiceExtension {
 
+    /** Default constructor. */
+    public JsonLdExtension() {
+    }
+
     @Inject
     private JsonLd jsonLdService;
 

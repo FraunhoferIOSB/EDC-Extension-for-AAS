@@ -15,9 +15,14 @@
  */
 package de.fraunhofer.iosb.edc.remote;
 
+/** HTTP methods supported for control-plane requests. */
 public enum HttpMethod {
+    /** HTTP GET method. */
     GET,
+    /** HTTP POST method. */
     POST,
+    /** HTTP PUT method. */
     PUT,
+    /** HTTP DELETE method. */
     DELETE
 }

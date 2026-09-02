@@ -1,0 +1,199 @@
+/*
+ * Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
+ * Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
+ * Forschung e.V.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package de.fraunhofer.iosb.ilt.dataspace.edc.remote.stores.policy;
+
+import de.fraunhofer.iosb.ilt.dataspace.aas.lib.auth.impl.ApiKey;
+import de.fraunhofer.iosb.ilt.dataspace.edc.remote.stores.AbstractControlPlaneConnectionHandlerTest;
+import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
+import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.Result;
+import org.junit.jupiter.api.Test;
+
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Stream;
+
+import static jakarta.ws.rs.core.Response.Status.UNAUTHORIZED;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+
+class RemotePolicyDefinitionStoreTest extends AbstractControlPlaneConnectionHandlerTest {
+
+    @Test
+    void remoteAssetIndex_queryContractDefinitionsFoundAndReturned() {
+        var querySpec = QuerySpec.none();
+        var testSubject = remotePolicyDefinitionStore();
+
+        when(mockCodec.serialize(querySpec)).thenReturn("test-body");
+
+        mockResponseForPost("/policydefinitions/request");
+
+        List<PolicyDefinition> policyDefinitions = List.of(getPolicyDefinition(), getPolicyDefinition());
+        when(mockCodec.deserializeList("test-return-body", PolicyDefinition.class)).thenReturn(Result.success(policyDefinitions));
+
+        var response = testSubject.findAll(querySpec);
+
+        assertEquals(policyDefinitions, response.toList());
+    }
+
+
+    @Test
+    void remoteAssetIndex_queryContractDefinitionsEmptyResponse() {
+        var querySpec = QuerySpec.none();
+        var testSubject = remotePolicyDefinitionStore();
+
+        when(mockCodec.serialize(querySpec)).thenReturn("test-body");
+
+        mockResponseForPost("/policydefinitions/request");
+
+        List<PolicyDefinition> policyDefinitions = List.of();
+        when(mockCodec.deserializeList("test-return-body", PolicyDefinition.class))
+                .thenReturn(Result.success(policyDefinitions));
+
+        var response = testSubject.findAll(querySpec);
+
+        assertEquals(policyDefinitions, response.toList());
+    }
+
+
+    @Test
+    void findAssetById_assetFoundAndReturned() {
+        var id = UUID.randomUUID().toString();
+        var testSubject = remotePolicyDefinitionStore();
+
+        var policyDefinition = getPolicyDefinition();
+        when(mockCodec.deserialize("test-return-body", PolicyDefinition.class))
+                .thenReturn(Result.success(policyDefinition));
+
+        mockResponseForGet(String.format("/policydefinitions/%s", id));
+
+        PolicyDefinition response = testSubject.findById(id);
+
+        assertEquals(policyDefinition, response);
+    }
+
+
+    @Test
+    void findAssetById_notFound() {
+        var id = UUID.randomUUID().toString();
+        var testSubject = remotePolicyDefinitionStore();
+
+        // Returns 404 for the id request
+        //mockResponseForGet(String.format("/policydefinitions/%s", id));
+
+        var response = testSubject.findById(id);
+
+        assertNull(response);
+    }
+
+
+    @Test
+    void findAssetById_unauthorized() {
+        var id = UUID.randomUUID().toString();
+        var testSubject = remotePolicyDefinitionStoreWrongAuth();
+
+        // Returns 404 for the id request
+        authorizedServer();
+
+        var response = testSubject.findById(id);
+
+        assertNull(response);
+
+        verify(monitor).severe(contains(UNAUTHORIZED.name()));
+    }
+
+
+    @Test
+    void connectionHandler_authorizes() {
+        authorizedServer();
+
+        var testSubject = remotePolicyDefinitionStore();
+
+        when(mockCodec.serialize(any())).thenReturn("test");
+
+        var response = testSubject.findAll(QuerySpec.max());
+        assertNotNull(response);
+    }
+
+
+    @Test
+    void connectionHandler_wrongPasswordNoFailure_andLogs() {
+        authorizedServer();
+
+        var testSubject = new RemotePolicyDefinitionStore.Builder()
+                .authenticationMethod(new ApiKey("x-api-key", apiKey.concat("prefixMakingApiKeyFalse"), vault))
+                .managementUri(String.format("http://localhost:%s", server.getPort()))
+                .codec(mockCodec)
+                .httpClient(httpClient)
+                .monitor(monitor)
+                .vault(vault)
+                .build();
+
+        when(mockCodec.serialize(any())).thenReturn(
+                "{" +
+                        "  \"@context\": {" +
+                        "    \"@vocab\": \"https://w3id.org/edc/v0.0.1/ns/\"" +
+                        "  }," +
+                        "  \"@type\": \"QuerySpec\"" +
+                        "}");
+
+        Stream<PolicyDefinition> response = testSubject.findAll(QuerySpec.max());
+        assertNotNull(response);
+        assertTrue(response.findAny().isEmpty());
+
+    }
+
+
+    private RemotePolicyDefinitionStore remotePolicyDefinitionStore() {
+        return new RemotePolicyDefinitionStore.Builder()
+                .authenticationMethod(new ApiKey("x-api-key", apiKey, vault))
+                .managementUri(String.format("http://localhost:%s", server.getPort()))
+                .codec(mockCodec)
+                .httpClient(httpClient)
+                .monitor(monitor)
+                .vault(vault)
+                .build();
+    }
+
+
+    private RemotePolicyDefinitionStore remotePolicyDefinitionStoreWrongAuth() {
+        return new RemotePolicyDefinitionStore.Builder()
+                .authenticationMethod(new ApiKey("x-api-key", apiKey.concat("wrong"), vault))
+                .managementUri(String.format("http://localhost:%s", server.getPort()))
+                .codec(mockCodec)
+                .httpClient(httpClient)
+                .monitor(monitor)
+                .vault(vault)
+                .build();
+    }
+
+
+    private PolicyDefinition getPolicyDefinition() {
+        return PolicyDefinition.Builder.newInstance()
+                .policy(Policy.Builder.newInstance()
+                        .target(UUID.randomUUID().toString())
+                        .build())
+                .build();
+    }
+}

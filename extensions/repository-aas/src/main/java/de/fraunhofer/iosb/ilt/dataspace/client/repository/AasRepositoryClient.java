@@ -1,0 +1,61 @@
+/*
+ * Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
+ * Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
+ * Forschung e.V.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package de.fraunhofer.iosb.ilt.dataspace.client.repository;
+
+import de.fraunhofer.iosb.ilt.dataspace.aas.lib.model.PolicyBinding;
+import de.fraunhofer.iosb.ilt.dataspace.client.AasServerClient;
+import de.fraunhofer.iosb.ilt.faaast.client.exception.ConnectivityException;
+import de.fraunhofer.iosb.ilt.faaast.client.exception.StatusCodeException;
+import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
+import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
+
+import java.util.List;
+
+
+/**
+ * Clients used to communicate with AAS repositories (e.g., FA³ST service).
+ */
+public interface AasRepositoryClient extends AasServerClient {
+
+    /**
+     * Return the environment that is stored with the AAS repository.
+     *
+     * @return Environment of AAS repository.
+     * @throws ConnectivityException Connection to the repository failed.
+     * @throws StatusCodeException Any status code other than 2xx coming from the repository.
+     */
+    Environment getEnvironment() throws StatusCodeException, ConnectivityException;
+
+
+    /**
+     * Returns a policy binding stored with the context pertaining to the AAS repository behind this client.
+     *
+     * @param reference Reference of the policy binding to return
+     * @return The policy binding.
+     */
+    PolicyBinding getPolicyBinding(Reference reference);
+
+
+    /**
+     * Returns all policy bindings stored with the context pertaining to the AAS repository behind this client for the
+     * given reference. In register-all mode a single default binding is returned; in selective mode only the matching
+     * bindings are returned (possibly empty).
+     *
+     * @param reference Reference of the policy bindings to return
+     * @return List of policy bindings for the reference (never null, possibly empty in selective mode).
+     */
+    List<PolicyBinding> getPolicyBindings(Reference reference);
+}

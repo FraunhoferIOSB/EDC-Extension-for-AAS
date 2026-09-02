@@ -62,6 +62,97 @@ Interfaces, dependencies and configuration variables are defined in the respecti
 
 [EDC Connector Client Extension](./extensions/edc-connector-client/README.md)
 
+## Consuming the Artifacts
+
+All `extensions/*` modules are published to
+[GitHub Packages](https://github.com/FraunhoferIOSB/EDC-Extension-for-AAS/packages)
+under the group `de.fraunhofer.iosb.ilt.dataspace`. The published set is self-contained: every
+inter-module dependency resolves within the same registry, so pulling one
+artifact transitively fetches the others it needs (e.g. `edc-extension4aas`
+pulls `aas-lib`, `codec`, `policy-util`, ...).
+
+> GitHub Packages requires authentication **even for public packages**. Create
+> a
+> [Personal Access Token (classic)](https://github.com/settings/tokens) with the
+> `read:packages` scope and use your GitHub username as the credentials user.
+
+### Gradle
+
+Add the repository in `settings.gradle.kts`:
+
+```kotlin
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+        maven("https://maven.pkg.github.com/FraunhoferIOSB/EDC-Extension-for-AAS") {
+            credentials {
+                username = providers.gradleProperty("gpr.user").orNull
+                    ?: System.getenv("GITHUB_ACTOR")
+                password = providers.gradleProperty("gpr.key").orNull
+                    ?: System.getenv("GITHUB_TOKEN")
+            }
+        }
+    }
+}
+```
+
+Then depend on the extension you need:
+
+```kotlin
+dependencies {
+    implementation("de.fraunhofer.iosb.ilt.dataspace:edc-extension4aas:2.4.0")
+}
+```
+
+### Maven
+
+Add a `<repository>` (and `<server>` credentials) to `settings.xml`:
+
+```xml
+<settings>
+  <servers>
+    <server>
+      <id>github</id>
+      <username>YOUR_GITHUB_USERNAME</username>
+      <password>YOUR_PAT_WITH_read_packages_SCOPE</password>
+    </server>
+  </servers>
+  <profiles>
+    <profile>
+      <id>github</id>
+      <repositories>
+        <repository>
+          <id>github</id>
+          <url>https://maven.pkg.github.com/FraunhoferIOSB/EDC-Extension-for-AAS</url>
+          <snapshots><enabled>true</enabled></snapshots>
+        </repository>
+      </repositories>
+    </profile>
+  </profiles>
+  <activeProfiles>
+    <activeProfile>github</activeProfile>
+  </activeProfiles>
+</settings>
+```
+
+```xml
+<dependency>
+  <groupId>de.fraunhofer.iosb.ilt.dataspace</groupId>
+  <artifactId>edc-extension4aas</artifactId>
+  <version>2.4.0</version>
+</dependency>
+```
+
+### Notes
+
+- The artifacts depend on
+  [FA³ST Service](https://github.com/FraunhoferIOSB/FAAAST-Service) `1.4.0-SNAPSHOT`,
+  so consumers must also add the Sonatype snapshots repository:
+  `https://central.sonatype.com/repository/maven-snapshots`. Once FA³ST `1.4.0`
+  is released, this requirement disappears for non-snapshot versions.
+- Snapshots of the extension itself (`...-SNAPSHOT`) are published from `main`
+  and can be consumed the same way.
+
 ## Terminology
 
 | Term          | Description                                                                                                                                                                                                                                              |

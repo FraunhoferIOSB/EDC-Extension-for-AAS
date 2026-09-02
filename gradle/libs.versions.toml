@@ -3,19 +3,19 @@ format.version = "1.1"
 
 [versions]
 fa3st = "1.4.0-SNAPSHOT"
+fa3st-client = "1.1.0"
 aas4j = "2.0.2"
 edc = "0.17.0"
 edc-build = "1.5.2"
-fa3st-client = "1.1.0"
-
+tractusx = "0.12.1"
 commons-io = "2.22.0"
 jersey = "4.0.2"
-junit-bom = "6.1.3"
-junit-platform-launcher = "6.1.3"
-jupiter = "6.1.3"
+junit = "6.1.3"
 mockito = "5.23.0"
-tractusx = "0.12.1"
 wiremock = "3.13.2"
+shadow = "9.6.1"
+docker = "10.0.0"
+spotless = "8.10.1"
 
 [libraries]
 fa3st-core = { module = "de.fraunhofer.iosb.ilt.faaast.service:core", version.ref = "fa3st" }
@@ -23,11 +23,14 @@ fa3st-model = { module = "de.fraunhofer.iosb.ilt.faaast.service:model", version.
 fa3st-dataformat-json = { module = "de.fraunhofer.iosb.ilt.faaast.service:dataformat-json", version.ref = "fa3st" }
 fa3st-starter = { module = "de.fraunhofer.iosb.ilt.faaast.service:starter", version.ref = "fa3st" }
 fa3st-client = { module = "de.fraunhofer.iosb.ilt.faaast.client:core", version.ref = "fa3st-client" }
-aas4j-dataformat-json = { module = "org.eclipse.digitaltwin.aas4j:aas4j-dataformat-json", version.ref = "aas4j" }
-aas4j-model = { module = "org.eclipse.digitaltwin.aas4j:aas4j-model", version.ref = "aas4j" }
+
 edc-controlplane-base-bom = { module = "org.eclipse.edc:controlplane-base-bom", version.ref = "edc" }
 edc-dataplane-base-bom = { module = "org.eclipse.edc:dataplane-base-bom", version.ref = "edc" }
+
 tx-edc-runtime-memory = { module = "org.eclipse.tractusx.edc:edc-runtime-memory", version.ref = "tractusx" }
+
+aas4j-dataformat-json = { module = "org.eclipse.digitaltwin.aas4j:aas4j-dataformat-json", version.ref = "aas4j" }
+aas4j-model = { module = "org.eclipse.digitaltwin.aas4j:aas4j-model", version.ref = "aas4j" }
 
 edc-api-core = { module = "org.eclipse.edc:api-core", version.ref = "edc" }
 edc-asset-spi = { module = "org.eclipse.edc:asset-spi", version.ref = "edc" }
@@ -47,7 +50,6 @@ edc-control-plane-transform = { module = "org.eclipse.edc:control-plane-transfor
 edc-core-spi = { module = "org.eclipse.edc:core-spi", version.ref = "edc" }
 edc-data-plane-http-spi = { module = "org.eclipse.edc:data-plane-http-spi", version.ref = "edc" }
 edc-data-plane-spi = { module = "org.eclipse.edc:data-plane-spi", version.ref = "edc" }
-edc-data-plane-signaling = { module = "org.eclipse.edc:data-plane-signaling", version.ref = "edc" }
 edc-dsp-catalog-http-dispatcher = { module = "org.eclipse.edc:dsp-catalog-http-dispatcher", version.ref = "edc" }
 edc-dsp-spi2025 = { module = "org.eclipse.edc:dsp-spi-2025", version.ref = "edc" }
 edc-federated-catalog-core = { module = "org.eclipse.edc:federated-catalog-core", version.ref = "edc" }
@@ -59,13 +61,11 @@ edc-jetty-core = { module = "org.eclipse.edc:jetty-core", version.ref = "edc" }
 edc-json-ld = { module = "org.eclipse.edc:json-ld", version.ref = "edc" }
 edc-json-ld-lib = { module = "org.eclipse.edc:json-ld-lib", version.ref = "edc" }
 edc-json-ld-spi = { module = "org.eclipse.edc:json-ld-spi", version.ref = "edc" }
-edc-json-lib = { module = "org.eclipse.edc:json-lib", version.ref = "edc" }
 edc-junit = { module = "org.eclipse.edc:junit", version.ref = "edc" }
 edc-management-api-configuration = { module = "org.eclipse.edc:management-api-configuration", version.ref = "edc" }
 edc-oauth2-spi = { module = "org.eclipse.edc:oauth2-spi", version.ref = "edc" }
 edc-oauth2-client = { module = "org.eclipse.edc:oauth2-client", version.ref = "edc" }
 edc-participant-context-connector-classic-core = { module = "org.eclipse.edc:participant-context-connector-classic-core", version.ref = "edc" }
-edc-participant-context-connector-core = { module = "org.eclipse.edc:participant-context-connector-core", version.ref = "edc" }
 edc-participant-context-config-core = { module = "org.eclipse.edc:participant-context-config-core", version.ref = "edc" }
 edc-participant-context-single-spi = { module = "org.eclipse.edc:participant-context-single-spi", version.ref = "edc" }
 edc-participant-context-core = { module = "org.eclipse.edc:participant-context-core", version.ref = "edc" }
@@ -76,21 +76,16 @@ edc-transform-lib = { module = "org.eclipse.edc:transform-lib", version.ref = "e
 edc-util-lib = { module = "org.eclipse.edc:util-lib", version.ref = "edc" }
 edc-validator-spi = { module = "org.eclipse.edc:validator-spi", version.ref = "edc" }
 edc-vault-hashicorp = { module = "org.eclipse.edc:vault-hashicorp", version.ref = "edc" }
-eclipse-tractusx-core-spi = { module = "org.eclipse.tractusx.edc:core-spi", version.ref = "tractusx" }
-eclipse-tractusx-core-utils = { module = "org.eclipse.tractusx.edc:core-utils", version.ref = "tractusx" }
-
-
-shadow-gradle-plugin = { module = "com.gradleup.shadow:shadow-gradle-plugin", version = "9.6.1" }
-docker-gradle-plugin = { module = "com.bmuschko:gradle-docker-plugin", version = "10.0.0" }
-spotless-gradle-plugin = { module = "com.diffplug.spotless:spotless-plugin-gradle", version = "8.10.1" }
 
 commons-io = { module = "commons-io:commons-io", version.ref = "commons-io" }
 jersey-common = { module = "org.glassfish.jersey.core:jersey-common", version.ref = "jersey" }
-junit-bom = { module = "org.junit:junit-bom", version.ref = "junit-bom" }
-junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junit-platform-launcher" }
-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "jupiter" }
+junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junit" }
+jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
 mockito = { module = "org.mockito:mockito-core", version.ref = "mockito" }
 wiremock = { module = "org.wiremock:wiremock-jetty12", version.ref = "wiremock" }
 
-[plugins]
-edc-build = { id = "org.eclipse.edc.edc-build", version.ref = "edc-build" }
+shadow-gradle-plugin = { module = "com.gradleup.shadow:shadow-gradle-plugin", version.ref = "shadow" }
+docker-gradle-plugin = { module = "com.bmuschko:gradle-docker-plugin", version.ref = "docker" }
+spotless-gradle-plugin = { module = "com.diffplug.spotless:spotless-plugin-gradle", version.ref = "spotless" }
+edc-build-gradle-plugin = { module = "org.eclipse.edc:edc-build", version.ref = "edc-build" }

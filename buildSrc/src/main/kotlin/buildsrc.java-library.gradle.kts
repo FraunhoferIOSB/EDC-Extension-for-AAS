@@ -1,5 +1,6 @@
 plugins {
     id("com.diffplug.spotless")
+    id("buildsrc.publish-to-github-packages")
 }
 
 spotless {
@@ -23,6 +24,17 @@ spotless {
 }
 
 project.plugins.apply("jacoco")
+project.plugins.apply("org.eclipse.edc.edc-build")
+
+configure<CheckstyleExtension> {
+    configFile = rootProject.file("misc/checkstyle/checkstyle.xml")
+    configDirectory.set(rootProject.file("misc/checkstyle"))
+}
+
+// Remove mavenLocal added by edc-build's RepositoriesConvention to prevent
+// stale local POMs (e.g. FA³ST snapshots with unresolved properties) from
+// overriding remote snapshot resolution
+repositories.findByName("MavenLocal")?.let { repositories.remove(it) }
 
 tasks.named<JacocoReport>("jacocoTestReport") {
     dependsOn(tasks.named("test"))

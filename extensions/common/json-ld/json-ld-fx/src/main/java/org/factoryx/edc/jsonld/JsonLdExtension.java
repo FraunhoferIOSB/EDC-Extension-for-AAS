@@ -23,9 +23,12 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Map;
 
-import static org.eclipse.tractusx.edc.core.utils.FileUtils.getResourceFile;
+import static java.lang.String.format;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 
 /**
@@ -71,8 +74,6 @@ public class JsonLdExtension implements ServiceExtension {
 
         for (var file: files) {
             if (file.succeeded()) {
-                var x = file.getContent().getKey();
-                var y = file.getContent().getValue().toURI();
                 jsonLdService.registerCachedDocument(file.getContent().getKey(), file.getContent().getValue().toURI());
             }
         }
@@ -86,6 +87,24 @@ public class JsonLdExtension implements ServiceExtension {
     private Result<Map.Entry<String, File>> mapToFile(Map.Entry<String, String> fileEntry) {
         return getResourceFile(fileEntry.getValue())
                 .map(file1 -> Map.entry(fileEntry.getKey(), file1));
+    }
+
+
+    private static Result<File> getResourceFile(String name) {
+        try (var stream = JsonLdExtension.class.getClassLoader().getResourceAsStream(name)) {
+            if (stream == null) {
+                return Result.failure(format("Cannot find resource %s", name));
+            }
+
+            var filename = Path.of(name).getFileName().toString();
+            var parts = filename.split("\\.");
+            var tempFile = Files.createTempFile(parts[0], "." + parts[1]);
+            Files.copy(stream, tempFile, REPLACE_EXISTING);
+            return Result.success(tempFile.toFile());
+        }
+        catch (Exception e) {
+            return Result.failure(format("Cannot read resource %s: ", name));
+        }
     }
 
 }

@@ -1,0 +1,141 @@
+/*
+ * Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
+ * Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
+ * Forschung e.V.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package de.fraunhofer.iosb.ilt.dataspace.client.registry;
+
+import de.fraunhofer.iosb.ilt.dataspace.aas.lib.auth.AuthenticationMethod;
+import de.fraunhofer.iosb.ilt.dataspace.aas.lib.auth.impl.BasicAuth;
+import de.fraunhofer.iosb.ilt.dataspace.aas.lib.auth.impl.BearerAuth;
+import de.fraunhofer.iosb.ilt.dataspace.aas.lib.util.InetTools;
+import de.fraunhofer.iosb.ilt.dataspace.client.AasServerClient;
+import de.fraunhofer.iosb.ilt.dataspace.model.context.registry.AasRegistryContext;
+import de.fraunhofer.iosb.ilt.faaast.client.exception.ConnectivityException;
+import de.fraunhofer.iosb.ilt.faaast.client.exception.StatusCodeException;
+import de.fraunhofer.iosb.ilt.faaast.client.interfaces.AASRegistryInterface;
+import de.fraunhofer.iosb.ilt.faaast.client.interfaces.SubmodelRegistryInterface;
+import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
+import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultAssetAdministrationShellDescriptor;
+import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultSubmodelDescriptor;
+import org.eclipse.edc.spi.security.Vault;
+
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.util.List;
+import java.util.Map;
+
+
+/**
+ * Client for AAS registries implementing the /shell-descriptors, /submodel-descriptors APIs.
+ */
+public class AasRegistryClient implements AasServerClient {
+
+    private final Vault vault;
+    // FA³ST client
+    private final AASRegistryInterface aasRegistryInterface;
+    private final SubmodelRegistryInterface submodelRegistryInterface;
+    private final AasRegistryContext context;
+
+
+    /**
+     * Class constructor.
+     *
+     * @param vault The vault holding credentials for authentication.
+     * @param context Context holding information about communication with the AAS registry.
+     */
+    public AasRegistryClient(Vault vault, AasRegistryContext context) {
+        this.vault = vault;
+        this.context = context;
+
+        var aasRegistryInterfaceBuilder = new AASRegistryInterface.Builder()
+                .endpoint(context.getUri());
+        var submodelRegistryInterfaceBuilder = new SubmodelRegistryInterface.Builder()
+                .endpoint(context.getUri());
+
+        AuthenticationMethod authMethod = context.getAuthenticationMethod();
+
+        if (authMethod instanceof BasicAuth || authMethod instanceof BearerAuth) {
+            aasRegistryInterfaceBuilder.authenticationHeaderProvider(() -> authMethod.getValue(vault));
+            submodelRegistryInterfaceBuilder.authenticationHeaderProvider(() -> authMethod.getValue(vault));
+        }
+        else {
+            var customHttpClient = authMethod.httpClientBuilderFor(vault).version(HttpClient.Version.HTTP_1_1);
+            aasRegistryInterfaceBuilder.customHttpClientBuilder(customHttpClient);
+            submodelRegistryInterfaceBuilder.customHttpClientBuilder(customHttpClient);
+        }
+
+        if (context.allowSelfSigned()) {
+            aasRegistryInterfaceBuilder.useTrustAllHttpClient();
+            submodelRegistryInterfaceBuilder.useTrustAllHttpClient();
+        }
+
+        this.aasRegistryInterface = aasRegistryInterfaceBuilder.build();
+        this.submodelRegistryInterface = submodelRegistryInterfaceBuilder.build();
+    }
+
+
+    @Override
+    public boolean eligibleForRegistration(Reference reference) {
+        return context.eligibleForRegistration(reference);
+    }
+
+
+    @Override
+    public boolean isAvailable() {
+        return InetTools.pingHost(context.getUri().getHost(), context.getUri().getPort());
+    }
+
+
+    @Override
+    public boolean requiresAuthentication() {
+        return context.getAuthenticationMethod().getHeader(vault) != null;
+    }
+
+
+    @Override
+    public Map<String, String> getHeaders() {
+        return Map.ofEntries(context.getAuthenticationMethod().getHeader(vault));
+    }
+
+
+    /**
+     * Get all AAS descriptors published by the registry.
+     *
+     * @return List of AAS descriptors as published by the registry.
+     * @throws StatusCodeException A call to this registry failed with status code != 2xx.
+     * @throws ConnectivityException A call to this registry was not possible due to a connection issue.
+     */
+    public List<DefaultAssetAdministrationShellDescriptor> getShellDescriptors() throws StatusCodeException, ConnectivityException {
+        return aasRegistryInterface.getAll();
+    }
+
+
+    /**
+     * Get all submodel descriptors published by the registry.
+     *
+     * @return List of submodel descriptors as published by the registry.
+     * @throws StatusCodeException A call to this registry failed with status code != 2xx.
+     * @throws ConnectivityException A call to this registry was not possible due to a connection issue.
+     */
+    public List<DefaultSubmodelDescriptor> getSubmodelDescriptors() throws StatusCodeException, ConnectivityException {
+        return submodelRegistryInterface.getAll();
+
+    }
+
+
+    @Override
+    public URI getUri() {
+        return context.getUri();
+    }
+}

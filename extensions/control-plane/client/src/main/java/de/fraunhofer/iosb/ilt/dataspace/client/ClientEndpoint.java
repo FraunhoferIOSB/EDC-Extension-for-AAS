@@ -1,0 +1,224 @@
+/*
+ * Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
+ * Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
+ * Forschung e.V.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package de.fraunhofer.iosb.ilt.dataspace.client;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import de.fraunhofer.iosb.ilt.dataspace.client.datatransfer.DataTransferController;
+import de.fraunhofer.iosb.ilt.dataspace.client.negotiation.NegotiationController;
+import de.fraunhofer.iosb.ilt.dataspace.client.policy.PolicyController;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.QueryParam;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
+import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.web.spi.exception.InvalidRequestException;
+
+import java.net.URI;
+import java.util.Objects;
+
+import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
+
+
+/**
+ * Automated contract negotiation
+ */
+@Path(ClientEndpoint.AUTOMATED_PATH)
+public class ClientEndpoint {
+    /** Path segment for the automated negotiation endpoint. */
+    public static final String AUTOMATED_PATH = "automated";
+    /** Message template for missing query parameters. */
+    public static final String MISSING_QUERY_PARAMETER_MESSAGE = "Missing query parameter. Required parameters: %s";
+    /** Message template for missing request body. */
+    public static final String MISSING_REQUEST_BODY_MESSAGE = "Missing request body of type %s";
+    private static final String NEGOTIATE_CONTRACT_PATH = "negotiateContract";
+    private static final String NEGOTIATE_PATH = "negotiate";
+    private final Monitor monitor;
+
+    private final NegotiationController negotiationController;
+    private final PolicyController policyController;
+    private final DataTransferController transferController;
+
+
+    private ClientEndpoint(Monitor monitor,
+                           NegotiationController negotiationController,
+                           PolicyController policyController,
+                           DataTransferController transferController) {
+        this.monitor = monitor;
+        this.policyController = policyController;
+        this.negotiationController = negotiationController;
+        this.transferController = transferController;
+    }
+
+
+    /**
+     * Negotiate a contract agreement using the given contract offer if no agreement exists for this constellation.
+     *
+     * @param counterPartyUri Provider EDCs URI (DSP endpoint)
+     * @param counterPartyId Provider EDCs ID
+     * @param assetId ID of the asset to be retrieved
+     * @param dataAddress DataAddress of destination data sink.
+     * @return Asset data
+     */
+    @POST
+    @Path(NEGOTIATE_PATH)
+    public JsonNode negotiateContract(@QueryParam("providerUrl") URI counterPartyUri,
+                                      @QueryParam("providerId") String counterPartyId,
+                                      @QueryParam("assetId") String assetId,
+                                      DataAddress dataAddress) {
+        monitor.info("POST /%s".formatted(NEGOTIATE_PATH));
+        if (counterPartyUri == null || counterPartyId == null || assetId == null ||
+                assetId.isEmpty()) {
+            throw new InvalidRequestException(String.format(MISSING_QUERY_PARAMETER_MESSAGE, "providerUrl, providerId, assetId"));
+        }
+
+        Result<ContractOffer> contractOfferResult = policyController.getAcceptableContractOfferForAssetId(counterPartyId, counterPartyUri, assetId);
+
+        if (contractOfferResult.failed()) {
+            monitor.severe("Getting policies failed for provider %s and asset %s: %s".formatted(
+                    counterPartyUri, assetId, contractOfferResult.getFailureDetail()));
+            throw new EdcException(contractOfferResult.getFailureDetail());
+        }
+
+        var contractRequest = ContractRequest.Builder.newInstance()
+                .protocol(DATASPACE_PROTOCOL_HTTP)
+                .counterPartyAddress(counterPartyUri.toString())
+                .contractOffer(contractOfferResult.getContent())
+                .build();
+
+        Result<ContractAgreement> agreementResult = negotiationController.negotiateContract(contractRequest);
+
+        if (agreementResult.failed()) {
+            monitor.severe("Negotiation failed for provider %s and contractOffer %s: %s".formatted(
+                    counterPartyUri, contractOfferResult.getContent().getId(), agreementResult.getFailureDetail()));
+            throw new EdcException(agreementResult.getFailureDetail());
+        }
+
+        return transferController.getData(counterPartyUri, agreementResult.getContent().getId(), dataAddress);
+    }
+
+
+    /**
+     * Negotiates a contract agreement using the given contract offer if no agreement exists for this constellation.
+     *
+     * @param contractRequest The contract request to be sent.
+     * @return contractAgreement of the completed negotiation.
+     */
+    @POST
+    @Path(NEGOTIATE_CONTRACT_PATH)
+    public Result<ContractAgreement> negotiateContract(ContractRequest contractRequest) {
+        monitor.info("POST /%s".formatted(NEGOTIATE_CONTRACT_PATH));
+        if (Objects.isNull(contractRequest)) {
+            throw new InvalidRequestException(MISSING_REQUEST_BODY_MESSAGE.formatted("ContractRequest"));
+        }
+
+        Result<ContractAgreement> agreementResult = negotiationController.negotiateContract(contractRequest);
+
+        if (agreementResult.failed()) {
+            monitor.severe("Negotiation failed for provider %s and contractOffer %s: %s".formatted(
+                    contractRequest.getProviderId(), contractRequest.getContractOffer().getId(),
+                    agreementResult.getFailureDetail()));
+            throw new EdcException(agreementResult.getFailureDetail());
+        }
+
+        return agreementResult;
+    }
+
+
+    /** Builder for {@link ClientEndpoint}. */
+    public static class Builder {
+        private Monitor monitor;
+        private NegotiationController negotiationController;
+        private PolicyController policyController;
+        private DataTransferController transferController;
+
+
+        private Builder() {}
+
+
+        /**
+         * Creates a new builder instance.
+         *
+         * @return a new builder.
+         */
+        public static Builder newInstance() {
+            return new Builder();
+        }
+
+
+        /**
+         * Sets the monitor.
+         *
+         * @param monitor the monitor.
+         * @return this builder.
+         */
+        public Builder monitor(Monitor monitor) {
+            this.monitor = monitor;
+            return this;
+        }
+
+
+        /**
+         * Sets the negotiation controller.
+         *
+         * @param negotiationController the negotiation controller.
+         * @return this builder.
+         */
+        public Builder negotiationController(NegotiationController negotiationController) {
+            this.negotiationController = negotiationController;
+            return this;
+        }
+
+
+        /**
+         * Sets the policy controller.
+         *
+         * @param policyController the policy controller.
+         * @return this builder.
+         */
+        public Builder policyController(PolicyController policyController) {
+            this.policyController = policyController;
+            return this;
+        }
+
+
+        /**
+         * Sets the data transfer controller.
+         *
+         * @param transferController the data transfer controller.
+         * @return this builder.
+         */
+        public Builder transferController(DataTransferController transferController) {
+            this.transferController = transferController;
+            return this;
+        }
+
+
+        /**
+         * Builds the {@link ClientEndpoint} instance.
+         *
+         * @return the built endpoint.
+         */
+        public ClientEndpoint build() {
+            return new ClientEndpoint(monitor, negotiationController, policyController, transferController);
+        }
+
+    }
+}

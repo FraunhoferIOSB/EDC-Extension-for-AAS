@@ -1,7 +1,5 @@
 /*
- * Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
- * Copyright (c) 2025 SAP SE
- * Copyright (c) 2026 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
+ * Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
  * Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
  * Forschung e.V.
  *
@@ -57,8 +55,7 @@ public class JsonLdExtension implements ServiceExtension {
             FX_CREDENTIAL_CONTEXT, PREFIX + "fx-credentials-v1.jsonld");
 
     /** Default constructor. */
-    public JsonLdExtension() {
-    }
+    public JsonLdExtension() {}
 
     @Inject
     private JsonLd jsonLdService;

@@ -4,6 +4,10 @@
 
 ### New Features
 
+* **GitHub Packages publishing**
+    * All `extensions/*` modules are published to GitHub Packages under the group `de.fraunhofer.iosb.ilt.dataspace`.
+    * Snapshots publish on every push to `main`; releases publish on `v*` tags.
+    * Consumer setup instructions (Gradle and Maven) added to `README.md`.
 * Add **Hercules** compatibility
     * With config `edc.aas.hercules.enabled=true`, the extension will register only submodels without metadata and use the HTTP data plane.
     * Also, added a new sample: `/samples/hercules`, providing a close-to-complete deployment of an MX-Port Hercules.
@@ -28,17 +32,23 @@
 * Fixed aas4j 2.0.2 compatibility: updated AAS namespace from 3/0 to 3/1 to match `@IRI` annotations
 * Excluded `fa3st.starter` fat-jar from `fa3st.client` transitive dependencies to prevent old aas4j 1.0.x classes from shadowing aas4j-model 2.0.2 on the compile classpath
 * Fixed `ConfigurationController` to reject unknown configuration keys with `InvalidRequestException`
+* Fixed all 146+ Javadoc warnings across 34 files
 
 ### Miscellaneous
 
+* **Package rename**: all source code moved from `de.fraunhofer.iosb` to `de.fraunhofer.iosb.ilt.dataspace`.
+  The Maven groupId changed accordingly. `de.fraunhofer.iosb.ilt.faaast.*` (FA³ST library) imports are untouched.
 * Asset IDs now include a binding-specific suffix so that multiple bindings for the same element produce distinct
   assets. Existing assets get new IDs on upgrade, causing a one-time remove/add churn on the first synchronization
   cycle; re-register the affected services to apply the new IDs.
 * Updated `SUPPORTED_AAS_VERSION` from `3.0` to `3.1` to match aas4j 2.0.2; AAS registry endpoint interface short
   names now use `AAS-3.1` / `SUBMODEL-3.1`.
 * **Build pipeline optimization**
-    * `edc-build` plugin now applied to all projects, providing consistent checkstyle, JUnit Platform, test logging,
-      and jar conventions (LICENSE/NOTICE in META-INF) across the whole build.
+    * `edc-build` plugin is now applied only to `extensions/*` modules via the `buildsrc.java-library` convention
+      plugin, instead of globally. Launchers and samples no longer inherit `maven-publish`, signing, or other
+      publishing conventions.
+    * Cleaned up `libs.versions.toml`: removed 3 unused library entries, removed the `[plugins]` section,
+      consolidated JUnit version entries, and moved inline plugin versions to `[versions]`.
     * Removed redundant `java-library` and `useJUnitPlatform()` declarations from `buildsrc.java-library.gradle.kts`
       — `edc-build` handles both.
     * Checkstyle is now wired up with `misc/checkstyle/checkstyle.xml` for all modules; `CustomImportOrder` and

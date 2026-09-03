@@ -41,7 +41,7 @@ import static de.fraunhofer.iosb.ilt.dataspace.constants.AasConstants.DEFAULT_US
  */
 public record PolicyBinding(Reference referredElement, @JsonProperty("accessPolicyId") String accessPolicyDefinitionId,
         @JsonProperty("usagePolicyId") String contractPolicyDefinitionId,
-        @JsonProperty("dataAddressProperties") @JsonInclude(JsonInclude.Include.NON_EMPTY) Map<String, String> dataAddressProperties) {
+        @JsonProperty("dataAddressProperties") @JsonInclude(JsonInclude.Include.NON_EMPTY) Map<String, Object> dataAddressProperties) {
 
     /**
      * Compact constructor validating and normalizing the record components.

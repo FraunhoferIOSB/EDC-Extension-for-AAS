@@ -39,7 +39,7 @@ public final class DataAddressMerger {
      * @param override Properties to apply on top of the base (nullable).
      * @return The merged data address.
      */
-    public static DataAddress merge(DataAddress base, Map<String, String> override) {
+    public static DataAddress merge(DataAddress base, Map<String, Object> override) {
         if (override == null || override.isEmpty()) {
             return base;
         }

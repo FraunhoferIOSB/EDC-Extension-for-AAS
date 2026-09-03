@@ -44,4 +44,4 @@ jobs:
         env:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew publishMavenPublicationToGithubPackagesRepository --parallel
+        run: ./gradlew publishMavenPublicationToGithubPackagesRepository --parallel -Pskip.signing

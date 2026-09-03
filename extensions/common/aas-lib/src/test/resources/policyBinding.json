@@ -1,0 +1,9 @@
+{
+  "referredElement": "[ModelRef](Submodel)xyz, (SubmodelElementCollection)coll, (Property)prop",
+  "accessPolicyId": "default-access-policy",
+  "usagePolicyId": "default-usage-policy",
+  "dataAddressProperties": {
+    "method": "POST",
+    "custom": "value"
+  }
+}

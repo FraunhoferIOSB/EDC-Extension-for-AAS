@@ -15,8 +15,10 @@
  */
 package de.fraunhofer.iosb.ilt.dataspace.aas.lib.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import de.fraunhofer.iosb.ilt.faaast.service.util.ReferenceHelper;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 
 import java.util.Map;
@@ -42,6 +44,20 @@ import static de.fraunhofer.iosb.ilt.dataspace.constants.AasConstants.DEFAULT_US
 public record PolicyBinding(Reference referredElement, @JsonProperty("accessPolicyId") String accessPolicyDefinitionId,
         @JsonProperty("usagePolicyId") String contractPolicyDefinitionId,
         @JsonProperty("dataAddressProperties") @JsonInclude(JsonInclude.Include.NON_EMPTY) Map<String, Object> dataAddressProperties) {
+
+    @JsonCreator
+    public static PolicyBinding create(
+                                       @JsonProperty("referredElement") String referredElement,
+                                       @JsonProperty("accessPolicyId") String accessPolicyDefinitionId,
+                                       @JsonProperty("usagePolicyId") String contractPolicyDefinitionId,
+                                       @JsonProperty("dataAddressProperties") Map<String, Object> dataAddressProperties) {
+        return new PolicyBinding(
+                ReferenceHelper.parse(Objects.requireNonNull(referredElement)),
+                accessPolicyDefinitionId,
+                contractPolicyDefinitionId,
+                dataAddressProperties != null ? dataAddressProperties : Map.of());
+    }
+
 
     /**
      * Compact constructor validating and normalizing the record components.

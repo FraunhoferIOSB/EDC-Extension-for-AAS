@@ -130,7 +130,7 @@ public abstract class AssetIdUtil {
     private static String bindingSuffix(PolicyBinding policyBinding) {
         String accessPolicyId = String.valueOf(policyBinding.accessPolicyDefinitionId());
         String contractPolicyId = String.valueOf(policyBinding.contractPolicyDefinitionId());
-        Map<String, String> dataAddressProperties = policyBinding.dataAddressProperties();
+        Map<String, Object> dataAddressProperties = policyBinding.dataAddressProperties();
         String dataAddressPart = dataAddressProperties == null ? ""
                 : dataAddressProperties.entrySet().stream()
                         .sorted(Map.Entry.comparingByKey())

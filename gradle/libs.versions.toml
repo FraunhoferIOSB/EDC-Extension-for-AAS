@@ -15,7 +15,7 @@ mockito = "5.23.0"
 wiremock = "3.13.2"
 shadow = "9.6.1"
 docker = "10.0.0"
-spotless = "8.10.1"
+spotless = "8.10.2"
 
 [libraries]
 fa3st-core = { module = "de.fraunhofer.iosb.ilt.faaast.service:core", version.ref = "fa3st" }

@@ -19,49 +19,46 @@ import de.fraunhofer.iosb.ilt.dataspace.aas.lib.auth.AuthenticationMethod;
 import de.fraunhofer.iosb.ilt.dataspace.aas.test.defaults.DefaultVault;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
 import org.eclipse.edc.spi.security.Vault;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 
-class ApiKeyTest {
+class NoAuthTest {
 
-    private final String keyName = "my-api-key-name";
-    private final String keyValue = "my-api-key-value";
     private AuthenticationMethod testSubject;
-
     private final Vault vault = new DefaultVault();
 
 
     @BeforeEach
     void setUp() {
-        testSubject = new ApiKey(keyName, keyValue, vault);
-    }
-
-
-    @AfterEach
-    void tearDown() {
-        testSubject = null;
+        testSubject = new NoAuth();
     }
 
 
     @Test
-    void getHeader() {
-        assertEquals(keyName, testSubject.getKey());
-        assertEquals(keyValue, testSubject.getValue(vault));
+    void getKey_returnsNull() {
+        assertNull(testSubject.getKey());
     }
 
 
     @Test
-    void decorate_setsAuthKeyAndSecretName() {
+    void getValue_returnsNull() {
+        assertNull(testSubject.getValue(vault));
+    }
+
+
+    @Test
+    void decorate_doesNotAddAnyProperties() {
         var builder = HttpDataAddress.Builder.newInstance()
                 .baseUrl("http://test.local");
         testSubject.decorate(builder);
         var address = builder.build();
 
-        assertEquals(keyName, address.getAuthKey());
-        assertEquals(keyValue, vault.resolveSecret(address.getSecretName()));
+        assertEquals("HttpData", address.getType());
+        assertNull(address.getAuthKey());
+        assertNull(address.getSecretName());
     }
 }

@@ -7,7 +7,6 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *     http://www.apache.org/licenses/LICENSE-2.0
- *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -138,7 +137,8 @@ class AasHandlerTest {
     void getReferences_returnsAllBindingReferences() {
         var handler = handlerWith(contextWith(URI.create("http://test.local"),
                 List.of(PolicyBinding.ofDefaults(submodelReference),
-                        PolicyBinding.ofDefaults(shellReference)), false));
+                        PolicyBinding.ofDefaults(shellReference)),
+                false));
 
         var references = handler.getReferences();
         assertEquals(2, references.size());

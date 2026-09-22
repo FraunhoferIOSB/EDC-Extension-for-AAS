@@ -44,4 +44,17 @@ jobs:
         env:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew publishMavenPublicationToGithubPackagesRepository --parallel -Pskip.signing
+        run: |
+          ./gradlew \
+            :extensions:common:constants:publishMavenPublicationToGithubPackagesRepository \
+            :extensions:common:data-plane-aas-spi:publishMavenPublicationToGithubPackagesRepository \
+            :extensions:common:validator:validator-data-address-aas-data:publishMavenPublicationToGithubPackagesRepository \
+            :extensions:common:aas-lib:publishMavenPublicationToGithubPackagesRepository \
+            :extensions:common:json-ld:json-ld-aas:publishMavenPublicationToGithubPackagesRepository \
+            :extensions:common:util:policy-util:publishMavenPublicationToGithubPackagesRepository \
+            :extensions:control-plane:codec:publishMavenPublicationToGithubPackagesRepository \
+            :extensions:control-plane:public-api-management:publishMavenPublicationToGithubPackagesRepository \
+            :extensions:repository-aas:publishMavenPublicationToGithubPackagesRepository \
+            :extensions:control-plane:edc-extension4aas:publishMavenPublicationToGithubPackagesRepository \
+            :extensions:edc-connector-client:publishMavenPublicationToGithubPackagesRepository \
+            --parallel -Pskip.signing

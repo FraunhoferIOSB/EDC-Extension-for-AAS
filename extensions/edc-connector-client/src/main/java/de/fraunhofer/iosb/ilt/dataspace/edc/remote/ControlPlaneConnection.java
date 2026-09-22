@@ -16,6 +16,7 @@
 package de.fraunhofer.iosb.ilt.dataspace.edc.remote;
 
 import de.fraunhofer.iosb.ilt.dataspace.aas.lib.auth.AuthenticationMethod;
+import de.fraunhofer.iosb.ilt.dataspace.aas.lib.auth.impl.NoAuth;
 import okhttp3.Headers;
 import okhttp3.HttpUrl;
 import okhttp3.MediaType;
@@ -53,9 +54,13 @@ public class ControlPlaneConnection {
     public ControlPlaneConnection(URI connectionUri, String resourceName, Vault vault, AuthenticationMethod authenticationMethod) {
         this.connectionUri = Objects.requireNonNull(HttpUrl.parse(connectionUri.toString()));
         this.resourceName = resourceName;
-
-        this.authSupplier = request -> request
-                .headers(Headers.of(authenticationMethod.getKey(), vault.resolveSecret(authenticationMethod.getValue(vault))));
+        if (authenticationMethod instanceof NoAuth) {
+            this.authSupplier = request -> request;
+        }
+        else {
+            this.authSupplier = request -> request
+                    .headers(Headers.of(authenticationMethod.getKey(), authenticationMethod.getValue(vault)));
+        }
     }
 
 

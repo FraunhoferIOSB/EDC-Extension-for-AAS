@@ -84,7 +84,7 @@ public class LocalFaaastRepositoryHandler extends EventDrivenRepositoryHandler {
 
 
     private void updated(Reference element, Class<?> clazz) {
-        doHandleWrap(element, clazz, (_, asset) -> updateSingle(asset));
+        doHandleWrap(element, clazz, (ignored, asset) -> updateSingle(asset));
     }
 
 

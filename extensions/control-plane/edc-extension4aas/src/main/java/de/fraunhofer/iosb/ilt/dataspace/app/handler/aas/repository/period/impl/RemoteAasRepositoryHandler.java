@@ -18,10 +18,12 @@ package de.fraunhofer.iosb.ilt.dataspace.app.handler.aas.repository.period.impl;
 import de.fraunhofer.iosb.ilt.dataspace.app.handler.aas.RemoteAasHandler;
 import de.fraunhofer.iosb.ilt.dataspace.app.handler.edc.EdcStoreHandler;
 import de.fraunhofer.iosb.ilt.dataspace.client.repository.remote.impl.RemoteAasRepositoryClient;
+import de.fraunhofer.iosb.ilt.dataspace.model.context.repository.remote.RemoteAasRepositoryContext;
 import de.fraunhofer.iosb.ilt.faaast.client.exception.ConnectivityException;
 import de.fraunhofer.iosb.ilt.faaast.client.exception.StatusCodeException;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.security.Vault;
 
 
 /**
@@ -29,25 +31,33 @@ import org.eclipse.edc.spi.monitor.Monitor;
  * handlers is that here, we have to poll the AAS repository
  * periodically instead of listening to events.
  */
-public class RemoteAasRepositoryHandler extends RemoteAasHandler<RemoteAasRepositoryClient> {
+public class RemoteAasRepositoryHandler extends RemoteAasHandler<RemoteAasRepositoryClient, RemoteAasRepositoryContext> {
 
     /**
      * Create a new remote AAS repository handler and populate EDC stores.
      *
      * @param monitor Log messages.
-     * @param client Client to communicate with remote AAS repository.
+     * @param vault Provides secrets such as certificates and keys.
+     * @param context Context holding information about an AAS repository.
      * @param edcStoreHandler Keep EDC stores up-to-date
      * @throws StatusCodeException Initial connection to the repository failed due to unauthorized error.
      * @throws ConnectivityException Initial connection to the repository failed due to connection error.
      */
-    public RemoteAasRepositoryHandler(Monitor monitor, RemoteAasRepositoryClient client, EdcStoreHandler edcStoreHandler) throws StatusCodeException,
+    public RemoteAasRepositoryHandler(Monitor monitor, Vault vault, RemoteAasRepositoryContext context, EdcStoreHandler edcStoreHandler) throws StatusCodeException,
             ConnectivityException {
-        super(monitor, client, edcStoreHandler);
+        super(monitor, context, vault, edcStoreHandler);
     }
 
 
     @Override
-    protected Environment getEnvironment() throws StatusCodeException, ConnectivityException {
+    protected RemoteAasRepositoryClient clientFrom(Vault vault, RemoteAasRepositoryContext context) {
+        return new RemoteAasRepositoryClient(vault, context);
+    }
+
+
+    @Override
+    protected Environment getEnvironment() throws ConnectivityException, StatusCodeException {
         return client.getEnvironment();
     }
+
 }

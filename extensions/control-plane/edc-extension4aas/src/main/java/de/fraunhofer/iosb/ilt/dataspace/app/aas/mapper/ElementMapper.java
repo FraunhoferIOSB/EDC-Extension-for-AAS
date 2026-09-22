@@ -16,9 +16,10 @@
 package de.fraunhofer.iosb.ilt.dataspace.app.aas.mapper;
 
 import de.fraunhofer.iosb.ilt.dataspace.app.aas.mapper.util.AssetIdUtil;
-import de.fraunhofer.iosb.ilt.dataspace.client.AasServerClient;
 import de.fraunhofer.iosb.ilt.dataspace.dataplane.aas.spi.AasDataAddress;
+import de.fraunhofer.iosb.ilt.dataspace.model.context.AasServerContext;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
+import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
 import org.jetbrains.annotations.NotNull;
 
 
@@ -27,15 +28,16 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ElementMapper {
 
-    private final AasServerClient client;
+    private final AasServerContext context;
+
 
     /**
      * Creates a new element mapper bound to the given AAS server client.
      *
-     * @param client Client used to communicate with the AAS server.
+     * @param context Client used to communicate with the AAS server.
      */
-    protected ElementMapper(AasServerClient client) {
-        this.client = client;
+    protected ElementMapper(AasServerContext context) {
+        this.context = context;
     }
 
 
@@ -48,7 +50,7 @@ public class ElementMapper {
      */
     @NotNull
     public String generateId(Reference reference) {
-        return AssetIdUtil.id(client.getUri().toString(), reference);
+        return AssetIdUtil.id(context.getUri().toString(), reference);
 
     }
 
@@ -60,13 +62,13 @@ public class ElementMapper {
      * @param reference Location of the AAS element in its environment.
      * @return A data address pointing at the referenced AAS element.
      */
-    protected AasDataAddress createDataAddress(Reference reference) {
-        AasDataAddress.Builder builder = AasDataAddress.Builder.newInstance()
-                .baseUrl(client.getUri().toString())
-                .reference(reference);
+    protected HttpDataAddress createDataAddress(Reference reference) {
+        HttpDataAddress.Builder builder = HttpDataAddress.Builder.newInstance()
+                .baseUrl(context.getUri().toString())
+                .path(AasDataAddress.pathFromReference(reference));
 
-        if (client.requiresAuthentication()) {
-            builder.additionalHeaders(client.getHeaders());
+        if (context.requiresAuthentication()) {
+            context.getAuthenticationMethod().decorate(builder);
         }
 
         return builder.build();

@@ -45,6 +45,15 @@ public record PolicyBinding(Reference referredElement, @JsonProperty("accessPoli
         @JsonProperty("usagePolicyId") String contractPolicyDefinitionId,
         @JsonProperty("dataAddressProperties") @JsonInclude(JsonInclude.Include.NON_EMPTY) Map<String, Object> dataAddressProperties) {
 
+    /**
+     * Custom deserializer for policy bindings. Uses ReferenceHelper to deserialize the reference.
+     *
+     * @param referredElement the AAS element reference this binding applies to.
+     * @param accessPolicyDefinitionId the access policy definition ID, or null for default.
+     * @param contractPolicyDefinitionId the contract policy definition ID, or null for default.
+     * @param dataAddressProperties additional data address properties merged onto the generated data address.
+     * @return PolicyBinding element.
+     */
     @JsonCreator
     public static PolicyBinding create(
                                        @JsonProperty("referredElement") String referredElement,
@@ -88,6 +97,28 @@ public record PolicyBinding(Reference referredElement, @JsonProperty("accessPoli
      */
     public static PolicyBinding ofDefaults(Reference reference) {
         return new PolicyBinding(reference, DEFAULT_ACCESS_POLICY_DEFINITION_ID, DEFAULT_USAGE_POLICY_DEFINITION_ID, Map.of());
+    }
+
+
+    /**
+     * Creates a PolicyBinding from an existing one with the defined access policy definition ID.
+     *
+     * @param accessPolicyId the accessPolicyId.
+     * @return a new PolicyBinding with the accessPolicyId.
+     */
+    public PolicyBinding withAccessPolicy(String accessPolicyId) {
+        return new PolicyBinding(referredElement(), accessPolicyId, contractPolicyDefinitionId(), dataAddressProperties());
+    }
+
+
+    /**
+     * Creates a PolicyBinding from an existing one with the defined contract policy definition ID.
+     *
+     * @param contractPolicyId the contractPolicyId.
+     * @return a new PolicyBinding with the contractPolicyId.
+     */
+    public PolicyBinding withContractPolicy(String contractPolicyId) {
+        return new PolicyBinding(referredElement(), accessPolicyDefinitionId(), contractPolicyId, dataAddressProperties());
     }
 
 }

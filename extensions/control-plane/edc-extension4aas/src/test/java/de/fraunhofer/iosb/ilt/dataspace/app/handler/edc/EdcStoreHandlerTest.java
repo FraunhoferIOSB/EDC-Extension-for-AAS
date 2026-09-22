@@ -16,11 +16,9 @@
 package de.fraunhofer.iosb.ilt.dataspace.app.handler.edc;
 
 import de.fraunhofer.iosb.ilt.dataspace.aas.lib.model.PolicyBinding;
-import de.fraunhofer.iosb.ilt.dataspace.aas.test.defaults.DefaultVault;
 import de.fraunhofer.iosb.ilt.dataspace.app.aas.mapper.referable.identifiable.IdentifiableMapper;
 import de.fraunhofer.iosb.ilt.dataspace.app.aas.mapper.util.AssetIdUtil;
 import de.fraunhofer.iosb.ilt.dataspace.app.handler.util.DataAddressMerger;
-import de.fraunhofer.iosb.ilt.dataspace.client.repository.remote.impl.RemoteAasRepositoryClient;
 import de.fraunhofer.iosb.ilt.dataspace.model.context.repository.remote.RemoteAasRepositoryContext;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.util.AasUtils;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
@@ -56,9 +54,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class EdcStoreHandlerTest {
 
     private final CriterionOperatorRegistry criterionOperatorRegistry = CriterionOperatorRegistryImpl.ofDefaults();
-    private final IdentifiableMapper identifiableMapper = new IdentifiableMapper(new RemoteAasRepositoryClient(new DefaultVault(), new RemoteAasRepositoryContext.Builder()
+    private final IdentifiableMapper identifiableMapper = new IdentifiableMapper(new RemoteAasRepositoryContext.Builder()
             .uri(URI.create("http://invalid.local"))
-            .build()));
+            .build());
     private EdcStoreHandler testSubject;
     private InMemoryAssetIndex assetIndex;
     private InMemoryContractDefinitionStore contractDefinitionStore;

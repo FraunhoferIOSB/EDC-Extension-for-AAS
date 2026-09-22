@@ -24,12 +24,15 @@ import de.fraunhofer.iosb.ilt.dataspace.app.handler.edc.EdcStoreHandler;
 import de.fraunhofer.iosb.ilt.dataspace.app.handler.util.DataAddressMerger;
 import de.fraunhofer.iosb.ilt.dataspace.app.handler.util.MappingHelper;
 import de.fraunhofer.iosb.ilt.dataspace.client.AasServerClient;
+import de.fraunhofer.iosb.ilt.dataspace.model.context.AasServerContext;
 import de.fraunhofer.iosb.ilt.faaast.client.exception.ConnectivityException;
 import de.fraunhofer.iosb.ilt.faaast.client.exception.StatusCodeException;
+import de.fraunhofer.iosb.ilt.faaast.service.util.ReferenceHelper;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.util.AasUtils;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
 import org.eclipse.digitaltwin.aas4j.v3.model.Extension;
 import org.eclipse.digitaltwin.aas4j.v3.model.Identifiable;
+import org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.digitaltwin.aas4j.v3.model.Submodel;
 import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElement;
@@ -41,12 +44,14 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.StoreFailure;
 import org.eclipse.edc.spi.result.StoreResult;
+import org.eclipse.edc.spi.security.Vault;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -55,9 +60,10 @@ import java.util.stream.Collectors;
 /**
  * Superclass for AAS server handlers to bundle shared functionality.
  *
- * @param <C> AAS server client implementation to communicate with AAS server.
+ * @param <C> AAS server client implementation to communicate with the AAS server.
+ * @param <CTX> Context holding information about an AAS server.
  */
-public abstract class AasHandler<C extends AasServerClient> {
+public abstract class AasHandler<C extends AasServerClient, CTX extends AasServerContext> {
 
     /** Mapper for AAS identifiable (shells, submodels, concept descriptions). */
     protected final IdentifiableMapper identifiableMapper;
@@ -67,23 +73,39 @@ public abstract class AasHandler<C extends AasServerClient> {
     protected final Monitor monitor;
     /** Client used to communicate with the AAS server. */
     protected final C client;
+
+    private final List<PolicyBinding> policyBindings;
     private final EdcStoreHandler edcStoreHandler;
+    private final boolean onlySubmodels;
 
 
     /**
      * Creates a new AAS handler.
      *
      * @param monitor Monitor used for logging.
-     * @param client Client used to communicate with the AAS server.
+     * @param context Context holding information about an AAS server.
+     * @param vault Provides secrets such as certificates and keys.
      * @param edcStoreHandler Handler for interacting with the EDC stores.
      */
-    protected AasHandler(Monitor monitor, C client, EdcStoreHandler edcStoreHandler) {
-        this.identifiableMapper = new IdentifiableMapper(client);
-        this.submodelElementMapper = new SubmodelElementMapper(client);
+    protected AasHandler(Monitor monitor, CTX context, Vault vault, EdcStoreHandler edcStoreHandler) {
+        this.identifiableMapper = new IdentifiableMapper(context);
+        this.submodelElementMapper = new SubmodelElementMapper(context);
         this.monitor = monitor;
+        this.policyBindings = context.getPolicyBindings();
         this.edcStoreHandler = edcStoreHandler;
-        this.client = client;
+        this.client = clientFrom(vault, context);
+        this.onlySubmodels = context.isOnlySubmodels();
     }
+
+
+    /**
+     * Creates the AAS server client used to communicate with the AAS server.
+     *
+     * @param vault Provides secrets such as certificates and keys.
+     * @param context Context holding information about an AAS server.
+     * @return the AAS server client.
+     */
+    protected abstract C clientFrom(Vault vault, CTX context);
 
 
     /**
@@ -99,7 +121,7 @@ public abstract class AasHandler<C extends AasServerClient> {
     public final Environment buildSelfDescription() throws StatusCodeException, ConnectivityException {
         Consumer<Identifiable> identifiableVisitor = getSelfDescriptionIdentifiableMapper();
         Predicate<Identifiable> identifiableFilter = identifiable -> {
-            if (client.eligibleForRegistration(AasUtils.toReference(identifiable))) {
+            if (eligibleForRegistration(AasUtils.toReference(identifiable))) {
                 return true;
             }
             return (identifiable instanceof Submodel submodel) && !submodel.getSubmodelElements().isEmpty();
@@ -206,13 +228,56 @@ public abstract class AasHandler<C extends AasServerClient> {
     protected Map<PolicyBinding, Asset> expandBindings(Map<Reference, Asset> mapped) {
         Map<PolicyBinding, Asset> result = new HashMap<>();
         mapped.forEach((reference, baseAsset) -> {
-            if (client.eligibleForRegistration(reference)) {
+            if (eligibleForRegistration(reference)) {
                 for (PolicyBinding binding: policyBindingsFor(reference)) {
                     result.put(binding, assetForBinding(reference, baseAsset, binding));
                 }
             }
         });
         return result;
+    }
+
+
+    /**
+     * Returns references that shall be registered by this extension. If all elements shall be registered, the list will
+     * be empty.
+     *
+     * @return References to register to EDC.
+     */
+    public List<Reference> getReferences() {
+        return policyBindings.stream()
+                .map(PolicyBinding::referredElement).toList();
+    }
+
+
+    /**
+     * Returns whether the given reference should be registered. An element is eligible when it matches a configured
+     * policy binding (or no bindings are configured), and either it is a submodel or submodel-only registration is
+     * disabled.
+     *
+     * @param reference Element to register or not.
+     * @return Whether to register it.
+     */
+    public boolean eligibleForRegistration(Reference reference) {
+        return (policyBindings.isEmpty() || policyBindingIfPresent(reference).isPresent()) &&
+                (ReferenceHelper.getEffectiveKeyType(reference) == KeyTypes.SUBMODEL || !isOnlySubmodels());
+    }
+
+
+    private Optional<PolicyBinding> policyBindingIfPresent(Reference reference) {
+        return policyBindings.stream()
+                .filter(policyBinding -> Objects.equals(reference, policyBinding.referredElement()))
+                .findFirst();
+    }
+
+
+    /**
+     * Returns whether only submodels are to be registered.
+     *
+     * @return True if only submodels are to be registered, else false.
+     */
+    public boolean isOnlySubmodels() {
+        return onlySubmodels;
     }
 
 
@@ -297,7 +362,7 @@ public abstract class AasHandler<C extends AasServerClient> {
     protected Consumer<Identifiable> getSelfDescriptionIdentifiableMapper() {
         return identifiable -> {
             Reference reference = AasUtils.toReference(identifiable);
-            if (!(identifiable instanceof Submodel) || client.eligibleForRegistration(reference)) {
+            if (!(identifiable instanceof Submodel) || eligibleForRegistration(reference)) {
                 List<Extension> extensions = policyBindingsFor(reference).stream()
                         .map(binding -> buildExtension(AssetIdUtil.id(client.getUri().toString(), reference, binding)))
                         .toList();
@@ -344,7 +409,7 @@ public abstract class AasHandler<C extends AasServerClient> {
         }
 
         // We don't want AAS elements that are not registered to be annotated with IDs
-        if (client.eligibleForRegistration(submodelElementReference)) {
+        if (eligibleForRegistration(submodelElementReference)) {
             List<Extension> extensions = policyBindingsFor(submodelElementReference).stream()
                     .map(binding -> buildExtension(AssetIdUtil.id(client.getUri().toString(), submodelElementReference, binding)))
                     .toList();
@@ -405,7 +470,7 @@ public abstract class AasHandler<C extends AasServerClient> {
                     .toList());
         }
 
-        if (client.eligibleForRegistration(AasUtils.toReference(parent, submodelElement)) ||
+        if (eligibleForRegistration(AasUtils.toReference(parent, submodelElement)) ||
                 submodelElement instanceof SubmodelElementList list && !list.getValue().isEmpty() ||
                 submodelElement instanceof SubmodelElementCollection collection && !collection.getValue().isEmpty()) {
             return submodelElement;

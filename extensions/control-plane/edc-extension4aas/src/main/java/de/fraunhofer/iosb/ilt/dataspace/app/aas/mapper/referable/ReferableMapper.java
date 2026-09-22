@@ -18,7 +18,7 @@ package de.fraunhofer.iosb.ilt.dataspace.app.aas.mapper.referable;
 import de.fraunhofer.iosb.ilt.dataspace.app.aas.mapper.ElementMapper;
 import de.fraunhofer.iosb.ilt.dataspace.app.aas.mapper.util.FilteredJsonSerializer;
 import de.fraunhofer.iosb.ilt.dataspace.app.model.configuration.Configuration;
-import de.fraunhofer.iosb.ilt.dataspace.client.AasServerClient;
+import de.fraunhofer.iosb.ilt.dataspace.model.context.AasServerContext;
 import org.eclipse.digitaltwin.aas4j.v3.model.Referable;
 import org.eclipse.digitaltwin.aas4j.v3.model.annotations.IRI;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
@@ -45,10 +45,10 @@ public abstract class ReferableMapper extends ElementMapper {
     /**
      * Creates a new referable mapper bound to the given AAS server client.
      *
-     * @param client Client used to communicate with the AAS server.
+     * @param context Context holding information about an AAS server.
      */
-    protected ReferableMapper(AasServerClient client) {
-        super(client);
+    protected ReferableMapper(AasServerContext context) {
+        super(context);
     }
 
 

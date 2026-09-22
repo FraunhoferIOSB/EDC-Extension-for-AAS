@@ -13,42 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.ilt.dataspace.aas.lib.auth.impl;
+package de.fraunhofer.iosb.ilt.dataspace.model.context;
 
 import de.fraunhofer.iosb.ilt.dataspace.aas.lib.auth.AuthenticationMethod;
-import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
-import org.eclipse.edc.spi.security.Vault;
 
-import java.net.http.HttpClient;
+import java.net.URI;
 
 
 /**
- * Describes unauthenticated state of resources. Returns null upon request of header.
+ * Client-specific view of a context
  */
-public class NoAuth extends AuthenticationMethod {
+public interface RemoteClientContext {
 
-    /** Default constructor. */
-    public NoAuth() {}
-
-
-    @Override
-    public void decorate(HttpDataAddress.Builder addressBuilder) {}
-
-
-    @Override
-    public HttpClient.Builder httpClientBuilderFor(Vault vault) {
-        return HttpClient.newBuilder();
-    }
+    /**
+     * Returns the URI of the remote server.
+     *
+     * @return the server URI.
+     */
+    URI getUri();
 
 
-    @Override
-    public String getKey() {
-        return null;
-    }
+    /**
+     * Returns the authentication method for connecting to the remote server.
+     *
+     * @return the authentication method.
+     */
+    AuthenticationMethod getAuthenticationMethod();
 
 
-    @Override
-    public String getValue(Vault vault) {
-        return null;
-    }
+    /**
+     * Returns whether self-signed certificates are allowed when connecting to the remote server.
+     *
+     * @return true if self-signed certificates are allowed, else false.
+     */
+    boolean allowSelfSigned();
 }

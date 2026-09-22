@@ -15,13 +15,14 @@
  */
 package de.fraunhofer.iosb.ilt.dataspace.model.context;
 
-import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
+import de.fraunhofer.iosb.ilt.dataspace.aas.lib.auth.AuthenticationMethod;
+import de.fraunhofer.iosb.ilt.dataspace.aas.lib.auth.impl.NoAuth;
+import de.fraunhofer.iosb.ilt.dataspace.aas.lib.model.PolicyBinding;
 
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
-
-import static de.fraunhofer.iosb.ilt.dataspace.constants.AasConstants.DEFAULT_ACCESS_POLICY_DEFINITION_ID;
-import static de.fraunhofer.iosb.ilt.dataspace.constants.AasConstants.DEFAULT_USAGE_POLICY_DEFINITION_ID;
 
 
 /**
@@ -29,38 +30,83 @@ import static de.fraunhofer.iosb.ilt.dataspace.constants.AasConstants.DEFAULT_US
  */
 public abstract class AasServerContext {
 
-    /** Default access policy definition ID used when none is explicitly configured. */
-    protected final String defaultAccessPolicyDefinitionId;
-    /** Default contract policy definition ID used when none is explicitly configured. */
-    protected final String defaultContractPolicyDefinitionId;
     private final URI uri;
+    private final List<PolicyBinding> policyBindings;
+    private final boolean onlySubmodels;
+    private final AuthenticationMethod authenticationMethod;
+    private final boolean allowSelfSigned;
 
 
     /**
      * Creates a new AAS server context.
      *
      * @param uri the URI of the AAS server.
-     * @param defaultAccessPolicyDefinitionId the default access policy definition ID.
-     * @param defaultContractPolicyDefinitionId the default contract policy definition ID.
+     * @param policyBindings policy bindings for this repository.
+     * @param onlySubmodels whether only submodels should be registered.
+     * @param authenticationMethod the authentication method for connecting to this AAS server.
+     * @param allowSelfSigned whether to allow self-signed certificates when connecting to this AAS server.
      */
-    protected AasServerContext(URI uri, String defaultAccessPolicyDefinitionId, String defaultContractPolicyDefinitionId) {
+    protected AasServerContext(URI uri, List<PolicyBinding> policyBindings, boolean onlySubmodels, AuthenticationMethod authenticationMethod, boolean allowSelfSigned) {
         this.uri = uri;
-        this.defaultAccessPolicyDefinitionId = defaultAccessPolicyDefinitionId;
-        this.defaultContractPolicyDefinitionId = defaultContractPolicyDefinitionId;
+        this.policyBindings = policyBindings;
+        this.onlySubmodels = onlySubmodels;
+        this.authenticationMethod = authenticationMethod;
+        this.allowSelfSigned = allowSelfSigned;
     }
 
 
     /**
-     * Returns whether to register a referred element. Does not
+     * Returns whether authentication is required to connect to this AAS server.
      *
-     * @param reference Element to register or not.
-     * @return Whether to register it.
+     * @return true if authentication is required, else false.
      */
-    public abstract boolean eligibleForRegistration(Reference reference);
+    public boolean requiresAuthentication() {
+        return !(authenticationMethod instanceof NoAuth);
+    }
 
 
     /**
-     * Get the full URI to access this AAS repository, including
+     * Returns the authentication method required to connect to this AAS server.
+     *
+     * @return The authentication method.
+     */
+    public AuthenticationMethod getAuthenticationMethod() {
+        return authenticationMethod;
+    }
+
+
+    /**
+     * Returns whether to allow self-signed certificates when connecting to this AAS server.
+     *
+     * @return Whether to allow self-signed certificates.
+     */
+    public boolean allowSelfSigned() {
+        return allowSelfSigned;
+    }
+
+
+    /**
+     * Returns the policy bindings for this AAS server.
+     *
+     * @return the policy bindings.
+     */
+    public List<PolicyBinding> getPolicyBindings() {
+        return policyBindings;
+    }
+
+
+    /**
+     * Returns whether only submodels are to be registered.
+     *
+     * @return True if only submodels are to be registered, else false.
+     */
+    public boolean isOnlySubmodels() {
+        return onlySubmodels;
+    }
+
+
+    /**
+     * Returns the full URI to access this AAS repository.
      *
      * @return The full accessor URI for this repository.
      */
@@ -75,23 +121,29 @@ public abstract class AasServerContext {
      * @param <T> the context type produced by this builder.
      * @param <B> the builder subtype for fluent chaining.
      */
-    public abstract static class AbstractBuilder<T extends AasServerContext, B extends AasServerContext.AbstractBuilder<T, B>> {
-        /** Default access policy definition ID to set. */
-        protected String defaultAccessPolicyDefinitionId;
-        /** Default contract policy definition ID to set. */
-        protected String defaultContractPolicyDefinitionId;
+    public abstract static class AbstractBuilder<T extends AasServerContext, B extends AbstractBuilder<T, B>> {
         /** URI of the AAS server. */
         protected URI uri;
+        /** Policy bindings to set on the context. */
+        protected List<PolicyBinding> policyBindings = new ArrayList<>();
+        /** Whether only submodels should be registered. */
+        protected boolean onlySubmodels;
+        /** Authentication method for connecting to this AAS server. */
+        protected AuthenticationMethod authenticationMethod = new NoAuth();
+        /** Whether self-signed certificates are allowed. */
+        protected boolean allowSelfSigned = false;
 
 
         /** Default constructor. */
-        public AbstractBuilder() {}
+        protected AbstractBuilder() {}
 
 
-        @SuppressWarnings("unchecked")
-        private B self() {
-            return (B) this;
-        }
+        /**
+         * Returns this builder instance for fluent chaining.
+         *
+         * @return this builder.
+         */
+        protected abstract B self();
 
 
         /**
@@ -107,25 +159,49 @@ public abstract class AasServerContext {
 
 
         /**
-         * Sets the default access policy definition ID.
+         * Sets the policy bindings.
          *
-         * @param defaultAccessPolicyDefinitionId the default access policy definition ID.
+         * @param policyBindings policy bindings for this repository.
          * @return this builder.
          */
-        public B defaultAccessPolicyDefinitionId(String defaultAccessPolicyDefinitionId) {
-            this.defaultAccessPolicyDefinitionId = defaultAccessPolicyDefinitionId;
+        public B policyBindings(List<PolicyBinding> policyBindings) {
+            this.policyBindings = policyBindings;
             return self();
         }
 
 
         /**
-         * Sets the default contract policy definition ID.
+         * Sets whether only submodels should be registered.
          *
-         * @param defaultContractPolicyDefinitionId the default contract policy definition ID.
+         * @param onlySubmodels whether only submodels should be registered.
          * @return this builder.
          */
-        public B defaultContractPolicyDefinitionId(String defaultContractPolicyDefinitionId) {
-            this.defaultContractPolicyDefinitionId = defaultContractPolicyDefinitionId;
+        public B onlySubmodels(boolean onlySubmodels) {
+            this.onlySubmodels = onlySubmodels;
+            return self();
+        }
+
+
+        /**
+         * Sets the authentication method for connecting to this AAS server.
+         *
+         * @param authenticationMethod the authentication method.
+         * @return this builder.
+         */
+        public B authenticationMethod(AuthenticationMethod authenticationMethod) {
+            this.authenticationMethod = authenticationMethod;
+            return self();
+        }
+
+
+        /**
+         * Sets whether self-signed certificates are allowed.
+         *
+         * @param allowSelfSigned whether to allow self-signed certificates.
+         * @return this builder.
+         */
+        public B allowSelfSigned(boolean allowSelfSigned) {
+            this.allowSelfSigned = allowSelfSigned;
             return self();
         }
 
@@ -134,8 +210,8 @@ public abstract class AasServerContext {
          * Validates and fills in default values for unset fields.
          */
         protected void validate() {
-            defaultAccessPolicyDefinitionId = Objects.requireNonNullElse(defaultAccessPolicyDefinitionId, DEFAULT_ACCESS_POLICY_DEFINITION_ID);
-            defaultContractPolicyDefinitionId = Objects.requireNonNullElse(defaultContractPolicyDefinitionId, DEFAULT_USAGE_POLICY_DEFINITION_ID);
+            Objects.requireNonNull(uri, "Access URI must be non-null");
         }
+
     }
 }

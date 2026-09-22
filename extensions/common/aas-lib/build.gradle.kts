@@ -11,6 +11,8 @@ dependencies {
     implementation(libs.edc.oauth2.spi)
     implementation(libs.fa3st.model) // ReferenceHelper
 
+    implementation(libs.edc.data.plane.http.spi)
+
     testImplementation(libs.edc.junit)
     testImplementation(platform(libs.junit.bom))
     testImplementation(libs.jupiter)

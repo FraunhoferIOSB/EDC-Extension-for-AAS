@@ -15,18 +15,14 @@
  */
 package de.fraunhofer.iosb.ilt.dataspace.aas.lib.auth.impl;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import de.fraunhofer.iosb.ilt.dataspace.aas.lib.auth.AuthenticationMethod;
+import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
 import org.eclipse.edc.spi.security.Vault;
 
 import java.net.Authenticator;
 import java.net.PasswordAuthentication;
 import java.net.http.HttpClient;
-import java.util.AbstractMap;
-import java.util.Map;
 import java.util.Objects;
-import java.util.function.Function;
 
 
 /**
@@ -35,7 +31,7 @@ import java.util.function.Function;
 public class ApiKey extends AuthenticationMethod {
 
     private final String keyName;
-    private final Function<Vault, String> keyValueAlias;
+    private final String keyValueAlias;
 
 
     /**
@@ -45,9 +41,9 @@ public class ApiKey extends AuthenticationMethod {
      * @param keyValue the header key value.
      * @param vault the vault to store the key value in.
      */
-    public ApiKey(@JsonProperty("keyName") String keyName, @JsonProperty("keyValue") String keyValue, Vault vault) {
+    public ApiKey(String keyName, String keyValue, Vault vault) {
         this.keyName = Objects.requireNonNull(keyName);
-        this.keyValueAlias = getResolver(vault, keyValue);
+        this.keyValueAlias = store(vault, keyValue);
     }
 
 
@@ -57,23 +53,16 @@ public class ApiKey extends AuthenticationMethod {
      * @param keyName the header key name.
      * @param keyValueAlias the vault alias for the key value.
      */
-    @JsonCreator
-    public ApiKey(@JsonProperty("keyName") String keyName, @JsonProperty("keyValueAlias") String keyValueAlias) {
+    public ApiKey(String keyName, String keyValueAlias) {
         this.keyName = Objects.requireNonNull(keyName);
-
-        Objects.requireNonNull(keyValueAlias);
-        this.keyValueAlias = (v) -> v.resolveSecret(keyValueAlias);
+        this.keyValueAlias = Objects.requireNonNull(keyValueAlias);
     }
 
 
     @Override
-    public Map.Entry<String, String> getHeader(Vault vault) {
-        return new AbstractMap.SimpleEntry<>(keyName, getValue(vault));
-    }
-
-
-    public String getValue(Vault vault) {
-        return keyValueAlias.apply(vault);
+    public void decorate(HttpDataAddress.Builder addressBuilder) {
+        addressBuilder.authKey(keyName);
+        addressBuilder.secretName(keyValueAlias);
     }
 
 
@@ -84,5 +73,17 @@ public class ApiKey extends AuthenticationMethod {
                 return new PasswordAuthentication(keyName, getValue(vault).toCharArray());
             }
         });
+    }
+
+
+    @Override
+    public String getKey() {
+        return keyName;
+    }
+
+
+    @Override
+    public String getValue(Vault vault) {
+        return vault.resolveSecret(keyValueAlias);
     }
 }

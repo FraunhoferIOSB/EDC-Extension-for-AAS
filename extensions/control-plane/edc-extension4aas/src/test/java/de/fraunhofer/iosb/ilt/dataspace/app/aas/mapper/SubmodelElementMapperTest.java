@@ -15,9 +15,7 @@
  */
 package de.fraunhofer.iosb.ilt.dataspace.app.aas.mapper;
 
-import de.fraunhofer.iosb.ilt.dataspace.aas.test.defaults.DefaultVault;
 import de.fraunhofer.iosb.ilt.dataspace.app.aas.mapper.referable.SubmodelElementMapper;
-import de.fraunhofer.iosb.ilt.dataspace.client.repository.remote.impl.RemoteAasRepositoryClient;
 import de.fraunhofer.iosb.ilt.dataspace.dataplane.aas.spi.AasDataAddress;
 import de.fraunhofer.iosb.ilt.dataspace.model.context.repository.remote.RemoteAasRepositoryContext;
 import org.eclipse.digitaltwin.aas4j.v3.model.KeyTypes;
@@ -64,7 +62,7 @@ class SubmodelElementMapperTest {
 
     @BeforeEach
     void setUp() {
-        testSubject = new SubmodelElementMapper(new RemoteAasRepositoryClient(new DefaultVault(), new RemoteAasRepositoryContext.Builder().uri(uri).build()));
+        testSubject = new SubmodelElementMapper(new RemoteAasRepositoryContext.Builder().uri(uri).build());
     }
 
 

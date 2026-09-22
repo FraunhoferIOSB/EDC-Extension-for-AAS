@@ -15,111 +15,52 @@
  */
 package de.fraunhofer.iosb.ilt.dataspace.model.context.repository.local.impl;
 
+import de.fraunhofer.iosb.ilt.dataspace.aas.lib.auth.impl.NoAuth;
 import de.fraunhofer.iosb.ilt.dataspace.aas.lib.model.PolicyBinding;
-import de.fraunhofer.iosb.ilt.dataspace.model.context.repository.AasRepositoryContext;
-import de.fraunhofer.iosb.ilt.faaast.service.exception.MessageBusException;
+import de.fraunhofer.iosb.ilt.dataspace.model.context.AasServerContext;
 import de.fraunhofer.iosb.ilt.faaast.service.messagebus.MessageBus;
-import de.fraunhofer.iosb.ilt.faaast.service.model.api.modifier.QueryModifier;
-import de.fraunhofer.iosb.ilt.faaast.service.model.api.paging.PagingInfo;
-import de.fraunhofer.iosb.ilt.faaast.service.model.exception.PersistenceException;
-import de.fraunhofer.iosb.ilt.faaast.service.model.messagebus.SubscriptionId;
-import de.fraunhofer.iosb.ilt.faaast.service.model.messagebus.SubscriptionInfo;
 import de.fraunhofer.iosb.ilt.faaast.service.persistence.Persistence;
-import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShell;
-import org.eclipse.digitaltwin.aas4j.v3.model.ConceptDescription;
-import org.eclipse.digitaltwin.aas4j.v3.model.Submodel;
-import org.eclipse.edc.spi.EdcException;
 
 import java.net.URI;
 import java.util.List;
 import java.util.Objects;
 
-import static de.fraunhofer.iosb.ilt.dataspace.model.context.repository.remote.RemoteAasRepositoryContext.ERR_MSG_TEMPLATE;
-
 
 /**
  * Context holding information specifically about a FA³ST service.
  */
-public class LocalFaaastRepositoryContext extends AasRepositoryContext {
+public class LocalFaaastRepositoryContext extends AasServerContext {
 
     private final MessageBus<?> messageBus;
     private final Persistence<?> persistence;
 
 
-    private LocalFaaastRepositoryContext(URI uri, String defaultAccessPolicyDefinitionId, String defaultContractPolicyDefinitionId, MessageBus<?> messageBus,
+    private LocalFaaastRepositoryContext(URI uri, MessageBus<?> messageBus,
                                          Persistence<?> persistence, List<PolicyBinding> policyBindings,
                                          boolean onlySubmodels) {
-        super(uri, defaultAccessPolicyDefinitionId, defaultContractPolicyDefinitionId, policyBindings, onlySubmodels);
+        super(uri, policyBindings, onlySubmodels, new NoAuth(), false);
         this.messageBus = messageBus;
         this.persistence = persistence;
     }
 
 
     /**
-     * Subscribe to an event with a consumer, both defined by the subscription info.
+     * Returns the FA³ST message bus.
      *
-     * @param subscriptionInfo Contains all info regarding event and handling.
-     * @return Subscription ID for traceability.
-     * @throws MessageBusException If the message bus of FA³ST does not work as intended.
+     * @return the message bus.
      */
-    public SubscriptionId subscribe(SubscriptionInfo subscriptionInfo) throws MessageBusException {
-        return messageBus.subscribe(subscriptionInfo);
+    public MessageBus<?> getMessageBus() {
+        return messageBus;
     }
 
 
     /**
-     * Unsubscribe from an event.
+     * Returns the FA³ST persistence.
      *
-     * @param id Handle for the subscription to be removed.
-     * @throws MessageBusException If the message bus of FA³ST does not work as intended.
+     * @return the persistence.
      */
-    public void unsubscribe(SubscriptionId id) throws MessageBusException {
-        messageBus.unsubscribe(id);
-    }
-
-
-    /**
-     * Returns all AAS currently stored in the FA³ST service.
-     *
-     * @return All AAS currently stored.
-     */
-    public List<AssetAdministrationShell> getAllAas() {
-        try {
-            return persistence.getAllAssetAdministrationShells(QueryModifier.DEFAULT, PagingInfo.ALL).getContent();
-        }
-        catch (PersistenceException persistenceException) {
-            throw new EdcException(String.format(ERR_MSG_TEMPLATE, "Getting all AAS", getUri()), persistenceException);
-        }
-    }
-
-
-    /**
-     * Returns all submodels currently stored in the FA³ST service.
-     *
-     * @return All submodels currently stored.
-     */
-    public List<Submodel> getAllSubmodels() {
-        try {
-            return persistence.getAllSubmodels(QueryModifier.DEFAULT, PagingInfo.ALL).getContent();
-        }
-        catch (PersistenceException persistenceException) {
-            throw new EdcException(String.format(ERR_MSG_TEMPLATE, "Getting all Submodels", getUri()), persistenceException);
-        }
-    }
-
-
-    /**
-     * Returns all concept descriptions currently stored in the FA³ST service.
-     *
-     * @return All concept descriptions currently stored.
-     */
-    public List<ConceptDescription> getAllConceptDescriptions() {
-        try {
-            return persistence.getAllConceptDescriptions(QueryModifier.DEFAULT, PagingInfo.ALL).getContent();
-        }
-        catch (PersistenceException persistenceException) {
-            throw new EdcException(String.format(ERR_MSG_TEMPLATE, "Getting all ConceptDescriptions", getUri()), persistenceException);
-        }
+    public Persistence<?> getPersistence() {
+        return persistence;
     }
 
 
@@ -133,6 +74,12 @@ public class LocalFaaastRepositoryContext extends AasRepositoryContext {
 
         /** Default constructor. */
         public Builder() {}
+
+
+        @Override
+        protected Builder self() {
+            return this;
+        }
 
 
         /**
@@ -169,7 +116,7 @@ public class LocalFaaastRepositoryContext extends AasRepositoryContext {
             Objects.requireNonNull(messageBus, "FA³ST MessageBus cannot be null");
             Objects.requireNonNull(persistence, "FA³ST Persistence cannot be null");
 
-            return new LocalFaaastRepositoryContext(uri, defaultAccessPolicyDefinitionId, defaultContractPolicyDefinitionId, messageBus, persistence, policyBindings,
+            return new LocalFaaastRepositoryContext(uri, messageBus, persistence, policyBindings,
                     onlySubmodels);
         }
     }

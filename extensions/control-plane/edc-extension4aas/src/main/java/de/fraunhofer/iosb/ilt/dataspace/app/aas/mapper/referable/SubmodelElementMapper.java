@@ -16,7 +16,7 @@
 package de.fraunhofer.iosb.ilt.dataspace.app.aas.mapper.referable;
 
 import de.fraunhofer.iosb.ilt.dataspace.app.model.configuration.Configuration;
-import de.fraunhofer.iosb.ilt.dataspace.client.AasServerClient;
+import de.fraunhofer.iosb.ilt.dataspace.model.context.AasServerContext;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.util.AasUtils;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElement;
@@ -27,6 +27,8 @@ import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import static de.fraunhofer.iosb.ilt.dataspace.dataplane.aas.spi.AasDataAddress.fromHttpDataAddress;
 
 
 /**
@@ -41,10 +43,10 @@ public class SubmodelElementMapper extends ReferableMapper {
     /**
      * Creates a new submodel element mapper bound to the given AAS server client.
      *
-     * @param client Client used to communicate with the AAS server.
+     * @param context Context holding information about an AAS server.
      */
-    public SubmodelElementMapper(AasServerClient client) {
-        super(client);
+    public SubmodelElementMapper(AasServerContext context) {
+        super(context);
     }
 
 
@@ -77,10 +79,10 @@ public class SubmodelElementMapper extends ReferableMapper {
                 .id(generateId(reference));
 
         if (Configuration.getInstance().useAasDataPlane() && !Configuration.getInstance().isHercules()) {
-            assetBuilder.dataAddress(dataAddress);
+            assetBuilder.dataAddress(fromHttpDataAddress(dataAddress));
         }
         else {
-            assetBuilder.dataAddress(dataAddress.asHttpDataAddress());
+            assetBuilder.dataAddress(dataAddress);
         }
 
         Optional<List<Asset>> childrenMaybe = handleChildren(reference, submodelElement);

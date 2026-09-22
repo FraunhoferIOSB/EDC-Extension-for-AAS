@@ -21,13 +21,11 @@ import de.fraunhofer.iosb.ilt.dataspace.aas.lib.auth.impl.ApiKey;
 import de.fraunhofer.iosb.ilt.dataspace.aas.lib.auth.impl.BasicAuth;
 import de.fraunhofer.iosb.ilt.dataspace.aas.lib.auth.impl.BearerAuth;
 import de.fraunhofer.iosb.ilt.dataspace.aas.lib.auth.impl.NoAuth;
+import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
 import org.eclipse.edc.spi.security.Vault;
 
 import java.net.http.HttpClient;
-import java.util.AbstractMap;
-import java.util.Map;
 import java.util.UUID;
-import java.util.function.Function;
 
 
 /**
@@ -48,20 +46,15 @@ public abstract class AuthenticationMethod {
 
 
     /**
-     * Get the header value to add to the request headers to communicate with the service. Headers: [... , (getHeader().key,
-     * getHeader().value), ...] The secrets needed to produce
-     * the header value are resolved from the vault.
+     * Decorates the given HTTP data address builder with the authentication-specific properties.
      *
-     * @param vault Vault to retrieve secrets from.
-     * @return The header to place in the request in order to authenticate
+     * @param addressBuilder the builder to decorate.
      */
-    public Map.Entry<String, String> getHeader(Vault vault) {
-        return new AbstractMap.SimpleEntry<>("Authorization", getValue(vault));
-    }
+    public abstract void decorate(HttpDataAddress.Builder addressBuilder);
 
 
     /**
-     * Get HttpClient builder for this authentication method.
+     * Returns the HttpClient builder for this authentication method.
      *
      * @param vault Vault needed to retrieve secrets.
      * @return HttpClient.Builder for use in FA³ST client.
@@ -70,31 +63,30 @@ public abstract class AuthenticationMethod {
 
 
     /**
-     * Get the value of the authorization header.
+     * Returns the header key to set for this authentication method.
      *
-     * @param vault Vault to retrieve secrets from.
-     * @return The value of the authorization header
+     * @return the header key.
+     */
+    public abstract String getKey();
+
+
+    /**
+     * Returns the header value for this authentication method, resolving any secrets from the vault.
+     *
+     * @param vault the vault to resolve secrets from.
+     * @return the header value.
      */
     public abstract String getValue(Vault vault);
 
 
     /**
-     * Returns a function that resolves a secret from a vault, storing the given secret if needed.
+     * Stores a secret in the vault under a new random alias and returns the alias.
      *
      * @param vault the vault to store the secret in.
-     * @param secret the secret value or alias to resolve.
-     * @return a function that resolves the secret from a vault.
+     * @param secret the secret value to store.
+     * @return the alias under which the secret was stored.
      */
-    protected Function<Vault, String> getResolver(Vault vault, String secret) {
-        if (secret == null) {
-            return (v) -> null;
-        }
-        String alias = store(vault, secret);
-        return (Vault v) -> v.resolveSecret(alias);
-    }
-
-
-    private String store(Vault vault, String secret) {
+    protected String store(Vault vault, String secret) {
         String alias = UUID.randomUUID().toString();
         var storeResult = vault.storeSecret(alias, secret);
         if (storeResult.failed()) {

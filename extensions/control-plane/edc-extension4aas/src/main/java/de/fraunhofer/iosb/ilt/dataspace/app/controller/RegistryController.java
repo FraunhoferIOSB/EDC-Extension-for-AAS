@@ -22,7 +22,6 @@ import de.fraunhofer.iosb.ilt.dataspace.app.handler.aas.AasHandler;
 import de.fraunhofer.iosb.ilt.dataspace.app.handler.aas.registry.RemoteAasRegistryHandler;
 import de.fraunhofer.iosb.ilt.dataspace.app.handler.edc.EdcStoreHandler;
 import de.fraunhofer.iosb.ilt.dataspace.app.stores.repository.AasServerStore;
-import de.fraunhofer.iosb.ilt.dataspace.client.registry.AasRegistryClient;
 import de.fraunhofer.iosb.ilt.dataspace.model.context.registry.AasRegistryContext;
 import de.fraunhofer.iosb.ilt.faaast.client.exception.ConnectivityException;
 import de.fraunhofer.iosb.ilt.faaast.client.exception.ForbiddenException;
@@ -87,19 +86,18 @@ public class RegistryController extends AbstractAasServerController {
         }
 
         AasRegistryContext context = aasRegistryContextDTO.asContext(vault, oauth2Client);
-        AasRegistryClient client = new AasRegistryClient(vault, context);
 
         RemoteAasRegistryHandler handler;
         try {
-            handler = new RemoteAasRegistryHandler(monitor, client, edcStoreHandler);
+            handler = new RemoteAasRegistryHandler(monitor, vault, context, edcStoreHandler);
         }
         catch (UnauthorizedException | ForbiddenException unauthorizedException) {
-            monitor.warning(String.format(UNAUTHORIZED_EXCEPTION_TEMPLATE, client.getUri()), unauthorizedException);
-            throw new NotAuthorizedException(String.format(UNAUTHORIZED_EXCEPTION_TEMPLATE, client.getUri()));
+            monitor.warning(String.format(UNAUTHORIZED_EXCEPTION_TEMPLATE, context.getUri()), unauthorizedException);
+            throw new NotAuthorizedException(String.format(UNAUTHORIZED_EXCEPTION_TEMPLATE, context.getUri()));
         }
         catch (ConnectivityException | StatusCodeException connectException) {
-            monitor.warning(String.format(CONNECT_EXCEPTION_TEMPLATE, client.getUri()), connectException);
-            throw new BadGatewayException(String.format(CONNECT_EXCEPTION_TEMPLATE, client.getUri()));
+            monitor.warning(String.format(CONNECT_EXCEPTION_TEMPLATE, context.getUri()), connectException);
+            throw new BadGatewayException(String.format(CONNECT_EXCEPTION_TEMPLATE, context.getUri()));
         }
 
         aasServerStore.put(context.getUri(), handler);
@@ -117,7 +115,7 @@ public class RegistryController extends AbstractAasServerController {
     @DELETE
     @Override
     public void unregister(@QueryParam("url") URI registryUri) {
-        AasHandler<?> handlerMaybe = aasServerStore.remove(registryUri);
+        AasHandler<?, ?> handlerMaybe = aasServerStore.remove(registryUri);
 
         var handler = Optional.ofNullable(handlerMaybe)
                 .orElseThrow(() -> new NotFoundException(String.format(NOT_FOUND_TEMPLATE, registryUri)));

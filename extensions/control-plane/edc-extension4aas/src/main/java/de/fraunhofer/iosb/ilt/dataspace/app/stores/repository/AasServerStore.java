@@ -24,7 +24,7 @@ import java.util.Set;
 /**
  * Store holding AAS server handlers keyed by their URI.
  */
-public class AasServerStore extends AasStore<AasHandler<?>> {
+public class AasServerStore extends AasStore<AasHandler<?, ?>> {
 
     /**
      * Creates a new, empty AAS server store.

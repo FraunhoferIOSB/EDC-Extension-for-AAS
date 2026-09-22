@@ -15,14 +15,11 @@
  */
 package de.fraunhofer.iosb.ilt.dataspace.client.repository.local;
 
-import de.fraunhofer.iosb.ilt.dataspace.aas.lib.model.PolicyBinding;
 import de.fraunhofer.iosb.ilt.dataspace.client.repository.AasRepositoryClient;
-import de.fraunhofer.iosb.ilt.dataspace.model.context.repository.AasRepositoryContext;
+import de.fraunhofer.iosb.ilt.dataspace.model.context.AasServerContext;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
-import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 
 import java.net.URI;
-import java.util.List;
 
 
 /**
@@ -31,7 +28,7 @@ import java.util.List;
  *
  * @param <CTX> Context type of the AAS repository context.
  */
-public abstract class LocalAasRepositoryClient<CTX extends AasRepositoryContext> implements AasRepositoryClient {
+public abstract class LocalAasRepositoryClient<CTX extends AasServerContext> implements AasRepositoryClient {
     /** The AAS repository context held by this client. */
     protected final CTX context;
 
@@ -49,30 +46,6 @@ public abstract class LocalAasRepositoryClient<CTX extends AasRepositoryContext>
     @Override
     public URI getUri() {
         return context.getUri();
-    }
-
-
-    @Override
-    public boolean isAvailable() {
-        return context.isAvailable();
-    }
-
-
-    @Override
-    public boolean eligibleForRegistration(Reference reference) {
-        return context.eligibleForRegistration(reference);
-    }
-
-
-    @Override
-    public PolicyBinding getPolicyBinding(Reference reference) {
-        return context.getPolicyBinding(reference);
-    }
-
-
-    @Override
-    public List<PolicyBinding> getPolicyBindings(Reference reference) {
-        return context.getPolicyBindings(reference);
     }
 
 

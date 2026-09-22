@@ -16,7 +16,6 @@
 package de.fraunhofer.iosb.ilt.dataspace.repository.impl.faaast;
 
 import de.fraunhofer.iosb.ilt.dataspace.model.config.impl.faaast.FaaastRepositoryConfig;
-import de.fraunhofer.iosb.ilt.dataspace.model.context.repository.AasRepositoryContext;
 import de.fraunhofer.iosb.ilt.dataspace.model.context.repository.local.impl.LocalFaaastRepositoryContext;
 import de.fraunhofer.iosb.ilt.dataspace.repository.AasRepositoryManager;
 import de.fraunhofer.iosb.ilt.faaast.service.Service;
@@ -66,7 +65,7 @@ public class FaaastRepositoryManager implements AasRepositoryManager<FaaastRepos
 
 
     @Override
-    public AasRepositoryContext startRepository(FaaastRepositoryConfig config) {
+    public LocalFaaastRepositoryContext startRepository(FaaastRepositoryConfig config) {
         ServiceConfig serviceConfig = config.get();
 
         Service service = createAndStartService(serviceConfig);

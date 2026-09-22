@@ -24,7 +24,6 @@ import okhttp3.RequestBody;
 import org.eclipse.edc.spi.security.Vault;
 
 import java.net.URI;
-import java.util.Map;
 import java.util.Objects;
 import java.util.function.UnaryOperator;
 
@@ -55,7 +54,8 @@ public class ControlPlaneConnection {
         this.connectionUri = Objects.requireNonNull(HttpUrl.parse(connectionUri.toString()));
         this.resourceName = resourceName;
 
-        this.authSupplier = request -> request.headers(Headers.of(Map.ofEntries(authenticationMethod.getHeader(vault))));
+        this.authSupplier = request -> request
+                .headers(Headers.of(authenticationMethod.getKey(), vault.resolveSecret(authenticationMethod.getValue(vault))));
     }
 
 

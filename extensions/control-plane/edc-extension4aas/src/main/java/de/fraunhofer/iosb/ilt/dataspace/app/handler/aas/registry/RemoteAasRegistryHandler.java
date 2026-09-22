@@ -18,6 +18,7 @@ package de.fraunhofer.iosb.ilt.dataspace.app.handler.aas.registry;
 import de.fraunhofer.iosb.ilt.dataspace.app.handler.aas.RemoteAasHandler;
 import de.fraunhofer.iosb.ilt.dataspace.app.handler.edc.EdcStoreHandler;
 import de.fraunhofer.iosb.ilt.dataspace.client.registry.AasRegistryClient;
+import de.fraunhofer.iosb.ilt.dataspace.model.context.registry.AasRegistryContext;
 import de.fraunhofer.iosb.ilt.faaast.client.exception.ConnectivityException;
 import de.fraunhofer.iosb.ilt.faaast.client.exception.StatusCodeException;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.util.AasUtils;
@@ -42,6 +43,7 @@ import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultSubmodel;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultSubmodelDescriptor;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.security.Vault;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -57,7 +59,7 @@ import static de.fraunhofer.iosb.ilt.dataspace.constants.AasConstants.SUPPORTED_
 /**
  * Handles synchronization of AAS registries shell/submodel descriptors and EDC stores.
  */
-public class RemoteAasRegistryHandler extends RemoteAasHandler<AasRegistryClient> {
+public class RemoteAasRegistryHandler extends RemoteAasHandler<AasRegistryClient, AasRegistryContext> {
     private static final List<String> SUPPORTED_PROTOCOLS = List.of("HTTP", "HTTPS", "http", "https");
 
 
@@ -65,13 +67,20 @@ public class RemoteAasRegistryHandler extends RemoteAasHandler<AasRegistryClient
      * Class constructor.
      *
      * @param monitor Logging.
-     * @param client Communication with AAS registry.
+     * @param vault Provides secrets such as certificates and keys.
+     * @param context Context holding information about an AAS registry.
      * @param edcStoreHandler EDC API.
      * @throws StatusCodeException Initial communication with AAS registry failed with code != 2xx.
      * @throws ConnectivityException Initial communication with AAS registry failed due to a connection exception.
      */
-    public RemoteAasRegistryHandler(Monitor monitor, AasRegistryClient client, EdcStoreHandler edcStoreHandler) throws StatusCodeException, ConnectivityException {
-        super(monitor, client, edcStoreHandler);
+    public RemoteAasRegistryHandler(Monitor monitor, Vault vault, AasRegistryContext context, EdcStoreHandler edcStoreHandler) throws StatusCodeException, ConnectivityException {
+        super(monitor, context, vault, edcStoreHandler);
+    }
+
+
+    @Override
+    protected AasRegistryClient clientFrom(Vault vault, AasRegistryContext context) {
+        return new AasRegistryClient(vault, context);
     }
 
 

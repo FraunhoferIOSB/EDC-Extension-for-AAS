@@ -16,53 +16,26 @@
 package de.fraunhofer.iosb.ilt.dataspace.model.context.repository.remote;
 
 import de.fraunhofer.iosb.ilt.dataspace.aas.lib.auth.AuthenticationMethod;
-import de.fraunhofer.iosb.ilt.dataspace.aas.lib.auth.impl.NoAuth;
 import de.fraunhofer.iosb.ilt.dataspace.aas.lib.model.PolicyBinding;
-import de.fraunhofer.iosb.ilt.dataspace.model.context.repository.AasRepositoryContext;
-import org.jetbrains.annotations.NotNull;
+import de.fraunhofer.iosb.ilt.dataspace.model.context.AasServerContext;
+import de.fraunhofer.iosb.ilt.dataspace.model.context.RemoteClientContext;
 
 import java.net.URI;
 import java.util.List;
-import java.util.Objects;
 
 
 /**
- * Context holding information about an AAS registry.
+ * Context holding information about an AAS repository.
  */
-public class RemoteAasRepositoryContext extends AasRepositoryContext {
+public class RemoteAasRepositoryContext extends AasServerContext implements RemoteClientContext {
 
     /** Error message template used when remote repository operations fail. */
     public static final String ERR_MSG_TEMPLATE = "%s from %s failed.";
 
-    private final AuthenticationMethod authenticationMethod;
-    private final boolean allowSelfSigned;
 
-
-    private RemoteAasRepositoryContext(URI uri, String defaultAccessPolicyDefinitionId, String defaultContractPolicyDefinitionId, List<PolicyBinding> policyBindings,
+    private RemoteAasRepositoryContext(URI uri, List<PolicyBinding> policyBindings,
                                        AuthenticationMethod authenticationMethod, boolean allowSelfSigned, boolean onlySubmodels) {
-        super(uri, defaultAccessPolicyDefinitionId, defaultContractPolicyDefinitionId, policyBindings, onlySubmodels);
-        this.authenticationMethod = authenticationMethod;
-        this.allowSelfSigned = allowSelfSigned;
-    }
-
-
-    /**
-     * Returns whether to allow connections to this repository if it holds self-signed certificates.
-     *
-     * @return True if allowing connections to this repository if holding self-signed certificates, else false.
-     */
-    public boolean allowSelfSigned() {
-        return allowSelfSigned;
-    }
-
-
-    /**
-     * Returns the authentication method used to connect to this repository.
-     *
-     * @return the authentication method.
-     */
-    public @NotNull AuthenticationMethod getAuthenticationMethod() {
-        return authenticationMethod;
+        super(uri, policyBindings, onlySubmodels, authenticationMethod, allowSelfSigned);
     }
 
 
@@ -70,34 +43,14 @@ public class RemoteAasRepositoryContext extends AasRepositoryContext {
      * Builder for {@link RemoteAasRepositoryContext}.
      */
     public static class Builder extends AbstractBuilder<RemoteAasRepositoryContext, Builder> {
-        private AuthenticationMethod authenticationMethod;
-        private boolean allowSelfSigned;
 
 
         /** Default constructor. */
         public Builder() {}
 
 
-        /**
-         * Sets the authentication method for connecting to this repository.
-         *
-         * @param authenticationMethod the authentication method.
-         * @return this builder.
-         */
-        public Builder authenticationMethod(AuthenticationMethod authenticationMethod) {
-            this.authenticationMethod = authenticationMethod;
-            return this;
-        }
-
-
-        /**
-         * Sets whether self-signed certificates are allowed.
-         *
-         * @param allowSelfSigned whether to allow self-signed certificates.
-         * @return this builder.
-         */
-        public Builder allowSelfSigned(boolean allowSelfSigned) {
-            this.allowSelfSigned = allowSelfSigned;
+        @Override
+        protected Builder self() {
             return this;
         }
 
@@ -109,9 +62,7 @@ public class RemoteAasRepositoryContext extends AasRepositoryContext {
          */
         public RemoteAasRepositoryContext build() {
             super.validate();
-            this.authenticationMethod = Objects.requireNonNullElse(authenticationMethod, new NoAuth());
-
-            return new RemoteAasRepositoryContext(uri, defaultAccessPolicyDefinitionId, defaultContractPolicyDefinitionId, policyBindings, authenticationMethod, allowSelfSigned,
+            return new RemoteAasRepositoryContext(uri, policyBindings, authenticationMethod, allowSelfSigned,
                     onlySubmodels);
         }
     }

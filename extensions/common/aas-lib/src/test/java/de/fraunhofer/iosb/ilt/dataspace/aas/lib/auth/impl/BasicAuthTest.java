@@ -64,8 +64,8 @@ class BasicAuthTest {
         String encodedAuthString = Base64.getEncoder().encodeToString(unencodedAuthString.getBytes(StandardCharsets.UTF_8));
         String authHeaderValue = "Basic %s".formatted(encodedAuthString);
 
-        assertEquals(authHeaderValue, testSubject.getHeader(vault).getValue());
-        assertEquals("Authorization", testSubject.getHeader(vault).getKey());
+        assertEquals(authHeaderValue, testSubject.getValue(vault));
+        assertEquals("Authorization", testSubject.getKey());
 
     }
 }

@@ -17,12 +17,14 @@ package de.fraunhofer.iosb.ilt.dataspace.app.aas.mapper.referable.identifiable;
 
 import de.fraunhofer.iosb.ilt.dataspace.app.aas.mapper.referable.ReferableMapper;
 import de.fraunhofer.iosb.ilt.dataspace.app.model.configuration.Configuration;
-import de.fraunhofer.iosb.ilt.dataspace.client.AasServerClient;
-import de.fraunhofer.iosb.ilt.dataspace.dataplane.aas.spi.AasDataAddress;
+import de.fraunhofer.iosb.ilt.dataspace.model.context.AasServerContext;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.util.AasUtils;
 import org.eclipse.digitaltwin.aas4j.v3.model.Identifiable;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
+import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
+
+import static de.fraunhofer.iosb.ilt.dataspace.dataplane.aas.spi.AasDataAddress.fromHttpDataAddress;
 
 
 /**
@@ -34,10 +36,10 @@ public class IdentifiableMapper extends ReferableMapper {
     /**
      * Creates a new identifiable mapper bound to the given AAS server client.
      *
-     * @param client Client used to communicate with the AAS server.
+     * @param context Context holding information about an AAS server.
      */
-    public IdentifiableMapper(AasServerClient client) {
-        super(client);
+    public IdentifiableMapper(AasServerContext context) {
+        super(context);
     }
 
 
@@ -51,16 +53,16 @@ public class IdentifiableMapper extends ReferableMapper {
     public Asset map(Identifiable identifiable) {
         Reference reference = AasUtils.toReference(identifiable);
 
-        AasDataAddress dataAddress = createDataAddress(reference);
+        HttpDataAddress dataAddress = createDataAddress(reference);
 
         Asset.Builder builder = super.map(identifiable)
                 .id(generateId(reference));
 
         if (Configuration.getInstance().useAasDataPlane() && !Configuration.getInstance().isHercules()) {
-            builder.dataAddress(dataAddress);
+            builder.dataAddress(fromHttpDataAddress(dataAddress));
         }
         else {
-            builder.dataAddress(dataAddress.asHttpDataAddress());
+            builder.dataAddress(dataAddress);
         }
 
         return builder.build();

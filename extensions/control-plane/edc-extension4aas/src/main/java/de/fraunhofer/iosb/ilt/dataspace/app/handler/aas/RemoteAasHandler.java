@@ -21,12 +21,14 @@ import de.fraunhofer.iosb.ilt.dataspace.app.handler.edc.EdcStoreHandler;
 import de.fraunhofer.iosb.ilt.dataspace.app.handler.util.DiffHelper;
 import de.fraunhofer.iosb.ilt.dataspace.app.handler.util.MappingHelper;
 import de.fraunhofer.iosb.ilt.dataspace.client.AasServerClient;
+import de.fraunhofer.iosb.ilt.dataspace.model.context.AasServerContext;
 import de.fraunhofer.iosb.ilt.faaast.client.exception.ConnectivityException;
 import de.fraunhofer.iosb.ilt.faaast.client.exception.StatusCodeException;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.security.Vault;
 
 import java.util.Map;
 
@@ -35,8 +37,9 @@ import java.util.Map;
  * Superclass for remote AAS server handlers that implement Runnable to periodically fetch updates from AAS servers.
  *
  * @param <C> AAS server client implementation to communicate with the AAS server.
+ * @param <CTX> Context holding information about an AAS server.
  */
-public abstract class RemoteAasHandler<C extends AasServerClient> extends AasHandler<C> implements RemoteHandler {
+public abstract class RemoteAasHandler<C extends AasServerClient, CTX extends AasServerContext> extends AasHandler<C, CTX> implements RemoteHandler {
 
     // This map keeps tabs on the current state of registered assets/contracts.
     // If an asset or its contract could not be registered, they will not appear in this map.
@@ -49,13 +52,15 @@ public abstract class RemoteAasHandler<C extends AasServerClient> extends AasHan
      * Creates a new remote AAS handler and initializes the registered assets from the AAS server.
      *
      * @param monitor Monitor used for log outputs.
-     * @param client Client used to communicate with the AAS server.
+     * @param context Context holding information about an AAS server.
+     * @param vault Provides secrets such as certificates and keys.
      * @param edcStoreHandler Handler to manage registration of EDC assets, policies and contracts.
      * @throws StatusCodeException if a call to the AAS server returned a status code other than 2xx.
      * @throws ConnectivityException if a connection to the AAS server could not be established.
      */
-    protected RemoteAasHandler(Monitor monitor, C client, EdcStoreHandler edcStoreHandler) throws StatusCodeException, ConnectivityException {
-        super(monitor, client, edcStoreHandler);
+    protected RemoteAasHandler(Monitor monitor, CTX context, Vault vault, EdcStoreHandler edcStoreHandler) throws StatusCodeException,
+            ConnectivityException {
+        super(monitor, context, vault, edcStoreHandler);
         registeredAssets = initialize();
     }
 

@@ -15,7 +15,6 @@
  */
 package de.fraunhofer.iosb.ilt.dataspace.client;
 
-import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 
 import java.net.URI;
 import java.util.Map;
@@ -42,17 +41,6 @@ public interface AasServerClient {
      * @return The URI of the AAS server.
      */
     URI getUri();
-
-
-    /**
-     * Returns whether a given reference is eligible for registration. An element is eligible if all elements are to be
-     * registered or a selection of elements are to be registered
-     * and this element is part of that selection.
-     *
-     * @param reference Reference of the element whose eligibility is to be checked
-     * @return Whether the element behind the reference is eligible for registration
-     */
-    boolean eligibleForRegistration(Reference reference);
 
 
     /**

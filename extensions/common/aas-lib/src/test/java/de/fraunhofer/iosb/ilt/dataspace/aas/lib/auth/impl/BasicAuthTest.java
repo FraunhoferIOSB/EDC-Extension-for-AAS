@@ -16,6 +16,7 @@
 package de.fraunhofer.iosb.ilt.dataspace.aas.lib.auth.impl;
 
 import de.fraunhofer.iosb.ilt.dataspace.aas.test.defaults.DefaultVault;
+import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
 import org.eclipse.edc.spi.security.Vault;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -64,8 +65,20 @@ class BasicAuthTest {
         String encodedAuthString = Base64.getEncoder().encodeToString(unencodedAuthString.getBytes(StandardCharsets.UTF_8));
         String authHeaderValue = "Basic %s".formatted(encodedAuthString);
 
-        assertEquals(authHeaderValue, testSubject.getHeader(vault).getValue());
-        assertEquals("Authorization", testSubject.getHeader(vault).getKey());
+        assertEquals(authHeaderValue, testSubject.getValue(vault));
+        assertEquals("Authorization", testSubject.getKey());
 
+    }
+
+
+    @Test
+    void decorate_setsAuthKeyAndSecretName() {
+        var builder = HttpDataAddress.Builder.newInstance()
+                .baseUrl("http://test.local");
+        testSubject.decorate(builder);
+        var address = builder.build();
+
+        assertEquals("Authorization", address.getAuthKey());
+        assertEquals(testSubject.getValue(vault), vault.resolveSecret(address.getSecretName()));
     }
 }

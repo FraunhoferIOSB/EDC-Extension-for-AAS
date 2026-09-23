@@ -48,8 +48,8 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 
 /**
- * Inspired by org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress Enables more specific communication with AAS
- * services
+ * Inspired by {@link org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress}, enables more specific communication
+ * with AAS services.
  */
 @JsonTypeName
 @JsonDeserialize(builder = DataAddress.Builder.class)
@@ -184,7 +184,17 @@ public class AasDataAddress extends DataAddress {
         }
 
         Reference reference = this.getReference();
+        return pathFromReference(reference);
+    }
 
+
+    /**
+     * Converts an AAS reference into the corresponding HTTP path segment for the AAS repository API.
+     *
+     * @param reference the AAS reference to convert.
+     * @return the path segment corresponding to the reference.
+     */
+    public static String pathFromReference(Reference reference) {
         List<String> problems = validate(reference);
         if (!problems.isEmpty()) {
             throw new IllegalStateException(String.format("Malformed reference in AasDataAddress: %s \n problems:\n\t%s", reference,
@@ -243,6 +253,25 @@ public class AasDataAddress extends DataAddress {
 
 
     /**
+     * Converts an HTTP data address into an AAS data address.
+     *
+     * @param httpDataAddress the HTTP data address to convert.
+     * @return the AAS data address representation.
+     */
+    public static AasDataAddress fromHttpDataAddress(HttpDataAddress httpDataAddress) {
+        Builder aasDataAddressBuilder = Builder.newInstance();
+        aasDataAddressBuilder.properties(httpDataAddress.getProperties());
+        httpDataAddress.getAdditionalHeaders().forEach(aasDataAddressBuilder::additionalHeader);
+
+        return aasDataAddressBuilder
+                .baseUrl(httpDataAddress.getBaseUrl())
+                .path(httpDataAddress.getPath())
+                .method(httpDataAddress.getMethod())
+                .build();
+    }
+
+
+    /**
      * Builder for {@link AasDataAddress}.
      */
     @JsonPOJOBuilder(withPrefix = "")
@@ -286,6 +315,19 @@ public class AasDataAddress extends DataAddress {
          */
         public Builder additionalHeaders(Map<String, String> headers) {
             headers.forEach((k, v) -> this.property(ADDITIONAL_HEADER + k, v));
+            return this;
+        }
+
+
+        /**
+         * Sets the additional headers.
+         *
+         * @param key the additional header key
+         * @param value the additional header value
+         * @return this builder
+         */
+        public Builder additionalHeader(String key, String value) {
+            this.property(ADDITIONAL_HEADER + key, value);
             return this;
         }
 

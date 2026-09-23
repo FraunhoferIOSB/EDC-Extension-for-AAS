@@ -52,7 +52,7 @@ public record BearerAuthDTO(URI uri, String clientId, String clientSecret, Strin
 
 
     public @Nonnull AuthenticationMethod asAuth(@NotNull Vault vault, @NotNull Oauth2Client client) {
-        return new BearerAuth(clientId, clientSecret, username, password, uri, client, vault);
+        return new BearerAuth(clientId, clientSecret, uri, client, vault);
     }
 
 

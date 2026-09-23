@@ -16,7 +16,7 @@
 package de.fraunhofer.iosb.ilt.dataspace.repository;
 
 import de.fraunhofer.iosb.ilt.dataspace.model.config.AasRepositoryConfig;
-import de.fraunhofer.iosb.ilt.dataspace.model.context.repository.AasRepositoryContext;
+import de.fraunhofer.iosb.ilt.dataspace.model.context.AasServerContext;
 
 import java.net.URI;
 
@@ -35,7 +35,7 @@ public interface AasRepositoryManager<CFG extends AasRepositoryConfig<?>> {
      * @param config AAS repository configuration
      * @return A repository context containing meta-information and possibly accessor logic to the AAS repository.
      */
-    <CTX extends AasRepositoryContext> CTX startRepository(CFG config);
+    <CTX extends AasServerContext> CTX startRepository(CFG config);
 
 
     /**

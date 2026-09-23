@@ -17,7 +17,7 @@ package de.fraunhofer.iosb.ilt.dataspace.repository.impl.faaast;
 
 import de.fraunhofer.iosb.ilt.dataspace.aas.test.defaults.DefaultEdcHttpClient;
 import de.fraunhofer.iosb.ilt.dataspace.model.config.impl.faaast.FaaastRepositoryConfig;
-import de.fraunhofer.iosb.ilt.dataspace.model.context.repository.AasRepositoryContext;
+import de.fraunhofer.iosb.ilt.dataspace.model.context.repository.local.impl.LocalFaaastRepositoryContext;
 import okhttp3.Request;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.junit.jupiter.api.AfterEach;
@@ -80,7 +80,7 @@ class FaaastRepositoryManagerTest {
         Path testPath = Path.of("./src/test/resources/aasEnvironment.json");
         // Fa³st config path irrelevant, configHelper creates new config with port 443
         var freePort = getFreePort();
-        AasRepositoryContext response = testSubject.startRepository(
+        LocalFaaastRepositoryContext response = testSubject.startRepository(
                 FaaastRepositoryConfig.Builder.newInstance()
                         .model(testPath)
                         .port(freePort)

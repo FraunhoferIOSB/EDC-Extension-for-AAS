@@ -18,13 +18,22 @@ package de.fraunhofer.iosb.ilt.dataspace.app.handler.aas.repository.event;
 import de.fraunhofer.iosb.ilt.dataspace.aas.lib.model.PolicyBinding;
 import de.fraunhofer.iosb.ilt.dataspace.app.handler.aas.repository.AasRepositoryHandler;
 import de.fraunhofer.iosb.ilt.dataspace.app.handler.edc.EdcStoreHandler;
-import de.fraunhofer.iosb.ilt.dataspace.client.repository.local.LocalAasRepositoryClient;
+import de.fraunhofer.iosb.ilt.dataspace.client.repository.local.impl.LocalFaaastRepositoryClient;
+import de.fraunhofer.iosb.ilt.dataspace.model.context.repository.local.impl.LocalFaaastRepositoryContext;
 import de.fraunhofer.iosb.ilt.faaast.client.exception.ConnectivityException;
 import de.fraunhofer.iosb.ilt.faaast.client.exception.StatusCodeException;
+import de.fraunhofer.iosb.ilt.faaast.service.util.ReferenceHelper;
+import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.util.AasUtils;
+import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
+import org.eclipse.digitaltwin.aas4j.v3.model.Identifiable;
+import org.eclipse.digitaltwin.aas4j.v3.model.Referable;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
+import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElement;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.StoreResult;
+import org.eclipse.edc.spi.security.Vault;
 
 import java.util.Map;
 import java.util.function.BiFunction;
@@ -33,20 +42,19 @@ import java.util.function.BiFunction;
 /**
  * Handler for any event-driven AAS repository, i.e. repositories where the corresponding clients allow subscriptions to
  * events for created/updated/deleted AAS elements.
- *
- * @param <C> A client supporting subscribing to AAS repository events.
  */
-public abstract class EventDrivenRepositoryHandler<C extends LocalAasRepositoryClient<?>> extends AasRepositoryHandler<C> {
+public abstract class EventDrivenRepositoryHandler extends AasRepositoryHandler<LocalFaaastRepositoryClient, LocalFaaastRepositoryContext> {
 
     /**
      * Creates a new event-driven repository handler.
      *
      * @param monitor Monitor used for log outputs.
-     * @param client Client used to communicate with the AAS repository and to subscribe to events.
+     * @param context Context holding information specifically about a FA³ST service.
+     * @param vault Provides secrets such as certificates and keys.
      * @param edcStoreHandler Handler to manage registration of EDC assets, policies and contracts.
      */
-    protected EventDrivenRepositoryHandler(Monitor monitor, C client, EdcStoreHandler edcStoreHandler) {
-        super(monitor, client, edcStoreHandler);
+    protected EventDrivenRepositoryHandler(Monitor monitor, LocalFaaastRepositoryContext context, Vault vault, EdcStoreHandler edcStoreHandler) {
+        super(monitor, context, vault, edcStoreHandler);
     }
 
 
@@ -101,5 +109,32 @@ public abstract class EventDrivenRepositoryHandler<C extends LocalAasRepositoryC
             result = singleResult;
         }
         return result;
+    }
+
+
+    /**
+     * Maps the referable referenced by the given reference (resolved against the given environment) to an EDC asset.
+     * Identifiables are mapped using the identifiable mapper,
+     * submodel elements using the submodel element mapper.
+     *
+     * @param reference Reference of the AAS element to map.
+     * @param environment The environment used to resolve the reference.
+     * @return The mapped EDC asset.
+     */
+    private Asset referenceToAsset(Reference reference, Environment environment) {
+        Referable referable = AasUtils.resolve(reference, environment);
+
+        Asset mapped;
+        if (referable instanceof Identifiable identifiable) {
+            mapped = identifiableMapper.map(identifiable);
+        }
+        else if (referable instanceof SubmodelElement submodelElement) {
+            mapped = submodelElementMapper.map(ReferenceHelper.getParent(reference), submodelElement);
+        }
+        else {
+            throw new EdcException("Could not resolve event message reference.");
+        }
+
+        return mapped;
     }
 }

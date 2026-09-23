@@ -25,8 +25,6 @@ import de.fraunhofer.iosb.ilt.dataspace.app.handler.aas.repository.event.impl.Lo
 import de.fraunhofer.iosb.ilt.dataspace.app.handler.aas.repository.period.impl.RemoteAasRepositoryHandler;
 import de.fraunhofer.iosb.ilt.dataspace.app.handler.edc.EdcStoreHandler;
 import de.fraunhofer.iosb.ilt.dataspace.app.stores.repository.AasServerStore;
-import de.fraunhofer.iosb.ilt.dataspace.client.repository.local.impl.LocalFaaastRepositoryClient;
-import de.fraunhofer.iosb.ilt.dataspace.client.repository.remote.impl.RemoteAasRepositoryClient;
 import de.fraunhofer.iosb.ilt.dataspace.model.config.impl.faaast.FaaastRepositoryConfig;
 import de.fraunhofer.iosb.ilt.dataspace.model.context.repository.local.impl.LocalFaaastRepositoryContext;
 import de.fraunhofer.iosb.ilt.dataspace.model.context.repository.remote.RemoteAasRepositoryContext;
@@ -107,19 +105,18 @@ public class RepositoryController extends AbstractAasServerController {
         FaaastRepositoryConfig config = localRepositoryDTO.asConfig();
 
         LocalFaaastRepositoryContext context = aasRepositoryManager.startRepository(config);
-        LocalFaaastRepositoryClient client = new LocalFaaastRepositoryClient(context);
 
         LocalFaaastRepositoryHandler handler;
         try {
-            handler = new LocalFaaastRepositoryHandler(monitor, client, edcStoreHandler);
+            handler = new LocalFaaastRepositoryHandler(monitor, context, vault, edcStoreHandler);
         }
         catch (UnauthorizedException | ForbiddenException unauthorizedException) {
-            monitor.warning(String.format(UNAUTHORIZED_EXCEPTION_TEMPLATE, client.getUri()), unauthorizedException);
-            throw new NotAuthorizedException(String.format(UNAUTHORIZED_EXCEPTION_TEMPLATE, client.getUri()));
+            monitor.warning(String.format(UNAUTHORIZED_EXCEPTION_TEMPLATE, context.getUri()), unauthorizedException);
+            throw new NotAuthorizedException(String.format(UNAUTHORIZED_EXCEPTION_TEMPLATE, context.getUri()));
         }
         catch (ConnectivityException | StatusCodeException connectException) {
-            monitor.warning(String.format(CONNECT_EXCEPTION_TEMPLATE, client.getUri()), connectException);
-            throw new BadGatewayException(String.format(CONNECT_EXCEPTION_TEMPLATE, client.getUri()));
+            monitor.warning(String.format(CONNECT_EXCEPTION_TEMPLATE, context.getUri()), connectException);
+            throw new BadGatewayException(String.format(CONNECT_EXCEPTION_TEMPLATE, context.getUri()));
         }
 
         aasServerStore.put(context.getUri(), handler);
@@ -144,19 +141,18 @@ public class RepositoryController extends AbstractAasServerController {
         }
 
         RemoteAasRepositoryContext context = remoteAasRepositoryContextDTO.asContext(vault, oauth2Client);
-        RemoteAasRepositoryClient client = new RemoteAasRepositoryClient(vault, context);
 
         RemoteAasRepositoryHandler handler;
         try {
-            handler = new RemoteAasRepositoryHandler(monitor, client, edcStoreHandler);
+            handler = new RemoteAasRepositoryHandler(monitor, vault, context, edcStoreHandler);
         }
         catch (UnauthorizedException | ForbiddenException unauthorizedException) {
-            monitor.warning(String.format(UNAUTHORIZED_EXCEPTION_TEMPLATE, client.getUri()), unauthorizedException);
-            throw new NotAuthorizedException(String.format(UNAUTHORIZED_EXCEPTION_TEMPLATE, client.getUri()));
+            monitor.warning(String.format(UNAUTHORIZED_EXCEPTION_TEMPLATE, context.getUri()), unauthorizedException);
+            throw new NotAuthorizedException(String.format(UNAUTHORIZED_EXCEPTION_TEMPLATE, context.getUri()));
         }
         catch (ConnectivityException | StatusCodeException connectException) {
-            monitor.warning(String.format(CONNECT_EXCEPTION_TEMPLATE, client.getUri()), connectException);
-            throw new BadGatewayException(String.format(CONNECT_EXCEPTION_TEMPLATE, client.getUri()));
+            monitor.warning(String.format(CONNECT_EXCEPTION_TEMPLATE, context.getUri()), connectException);
+            throw new BadGatewayException(String.format(CONNECT_EXCEPTION_TEMPLATE, context.getUri()));
         }
 
         aasServerStore.put(context.getUri(), handler);
@@ -175,7 +171,7 @@ public class RepositoryController extends AbstractAasServerController {
     @Path("repository")
     @Override
     public void unregister(@QueryParam("url") URI uri) {
-        AasHandler<?> handlerMaybe = aasServerStore.remove(uri);
+        AasHandler<?, ?> handlerMaybe = aasServerStore.remove(uri);
 
         var handler = Optional.ofNullable(handlerMaybe)
                 .orElseThrow(() -> new NotFoundException(String.format(NOT_FOUND_TEMPLATE, uri)));

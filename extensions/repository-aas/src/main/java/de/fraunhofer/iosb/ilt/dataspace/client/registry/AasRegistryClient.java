@@ -25,7 +25,6 @@ import de.fraunhofer.iosb.ilt.faaast.client.exception.ConnectivityException;
 import de.fraunhofer.iosb.ilt.faaast.client.exception.StatusCodeException;
 import de.fraunhofer.iosb.ilt.faaast.client.interfaces.AASRegistryInterface;
 import de.fraunhofer.iosb.ilt.faaast.client.interfaces.SubmodelRegistryInterface;
-import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultAssetAdministrationShellDescriptor;
 import org.eclipse.digitaltwin.aas4j.v3.model.impl.DefaultSubmodelDescriptor;
 import org.eclipse.edc.spi.security.Vault;
@@ -33,7 +32,6 @@ import org.eclipse.edc.spi.security.Vault;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.util.List;
-import java.util.Map;
 
 
 /**
@@ -41,7 +39,6 @@ import java.util.Map;
  */
 public class AasRegistryClient implements AasServerClient {
 
-    private final Vault vault;
     // FA³ST client
     private final AASRegistryInterface aasRegistryInterface;
     private final SubmodelRegistryInterface submodelRegistryInterface;
@@ -55,7 +52,6 @@ public class AasRegistryClient implements AasServerClient {
      * @param context Context holding information about communication with the AAS registry.
      */
     public AasRegistryClient(Vault vault, AasRegistryContext context) {
-        this.vault = vault;
         this.context = context;
 
         var aasRegistryInterfaceBuilder = new AASRegistryInterface.Builder()
@@ -86,26 +82,8 @@ public class AasRegistryClient implements AasServerClient {
 
 
     @Override
-    public boolean eligibleForRegistration(Reference reference) {
-        return context.eligibleForRegistration(reference);
-    }
-
-
-    @Override
     public boolean isAvailable() {
         return InetTools.pingHost(context.getUri().getHost(), context.getUri().getPort());
-    }
-
-
-    @Override
-    public boolean requiresAuthentication() {
-        return context.getAuthenticationMethod().getHeader(vault) != null;
-    }
-
-
-    @Override
-    public Map<String, String> getHeaders() {
-        return Map.ofEntries(context.getAuthenticationMethod().getHeader(vault));
     }
 
 

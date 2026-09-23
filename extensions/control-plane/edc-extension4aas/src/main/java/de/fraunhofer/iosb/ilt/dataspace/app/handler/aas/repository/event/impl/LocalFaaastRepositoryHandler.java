@@ -21,12 +21,14 @@ import de.fraunhofer.iosb.ilt.dataspace.app.handler.aas.repository.event.EventDr
 import de.fraunhofer.iosb.ilt.dataspace.app.handler.edc.EdcStoreHandler;
 import de.fraunhofer.iosb.ilt.dataspace.client.repository.local.event.EventTypes;
 import de.fraunhofer.iosb.ilt.dataspace.client.repository.local.impl.LocalFaaastRepositoryClient;
+import de.fraunhofer.iosb.ilt.dataspace.model.context.repository.local.impl.LocalFaaastRepositoryContext;
 import de.fraunhofer.iosb.ilt.faaast.client.exception.ConnectivityException;
 import de.fraunhofer.iosb.ilt.faaast.client.exception.StatusCodeException;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.StoreResult;
+import org.eclipse.edc.spi.security.Vault;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +41,7 @@ import java.util.function.BiFunction;
  * events and obtain changes instantly as opposed to remote
  * AAS, where updates have to be polled.
  */
-public class LocalFaaastRepositoryHandler extends EventDrivenRepositoryHandler<LocalFaaastRepositoryClient> {
+public class LocalFaaastRepositoryHandler extends EventDrivenRepositoryHandler {
 
     private final List<UUID> subscriptions = new ArrayList<>();
 
@@ -48,14 +50,22 @@ public class LocalFaaastRepositoryHandler extends EventDrivenRepositoryHandler<L
      * Class constructor.
      *
      * @param monitor Logging.
-     * @param client Handles connections to the FA³ST service.
+     * @param context Context holding information specifically about a FA³ST service.
+     * @param vault Provides secrets such as certificates and keys.
      * @param edcStoreHandler API to the EDC's management stores.
      * @throws StatusCodeException Initial connection to the FA³ST service failed with status code != 2xx.
      * @throws ConnectivityException Initial connection to the FA³ST service failed due to connection issues.
      */
-    public LocalFaaastRepositoryHandler(Monitor monitor, LocalFaaastRepositoryClient client, EdcStoreHandler edcStoreHandler) throws StatusCodeException, ConnectivityException {
-        super(monitor, client, edcStoreHandler);
+    public LocalFaaastRepositoryHandler(Monitor monitor, LocalFaaastRepositoryContext context, Vault vault, EdcStoreHandler edcStoreHandler) throws StatusCodeException,
+            ConnectivityException {
+        super(monitor, context, vault, edcStoreHandler);
         initialize();
+    }
+
+
+    @Override
+    protected LocalFaaastRepositoryClient clientFrom(Vault vault, LocalFaaastRepositoryContext context) {
+        return new LocalFaaastRepositoryClient(context);
     }
 
 
@@ -74,7 +84,7 @@ public class LocalFaaastRepositoryHandler extends EventDrivenRepositoryHandler<L
 
 
     private void updated(Reference element, Class<?> clazz) {
-        doHandleWrap(element, clazz, (policyBinding, asset) -> updateSingle(asset));
+        doHandleWrap(element, clazz, (ignored, asset) -> updateSingle(asset));
     }
 
 
@@ -124,6 +134,6 @@ public class LocalFaaastRepositoryHandler extends EventDrivenRepositoryHandler<L
 
 
     private boolean eventInvalid(Reference element) {
-        return element == null || !client.eligibleForRegistration(element);
+        return element == null || !eligibleForRegistration(element);
     }
 }

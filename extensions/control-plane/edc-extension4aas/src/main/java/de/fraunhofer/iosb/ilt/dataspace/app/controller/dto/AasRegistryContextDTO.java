@@ -76,9 +76,7 @@ public record AasRegistryContextDTO(URI url, AuthenticationMethodDTO auth, Strin
      */
     public AasRegistryContext asContext(@Nullable Vault vault, @Nullable Oauth2Client oauth2Client) {
         return new AasRegistryContext.Builder()
-                .defaultAccessPolicyDefinitionId(defaultAccessPolicyDefinitionId())
-                .defaultContractPolicyDefinitionId(defaultContractPolicyDefinitionId())
-                .uri(this.url())
+                .uri(url())
                 .authenticationMethod(toAuthenticationMethod(vault, oauth2Client))
                 .allowSelfSigned(Configuration.getInstance().isAllowSelfSignedCertificates())
                 .build();

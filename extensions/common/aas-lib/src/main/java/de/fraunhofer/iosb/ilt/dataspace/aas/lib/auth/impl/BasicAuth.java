@@ -16,14 +16,11 @@
 package de.fraunhofer.iosb.ilt.dataspace.aas.lib.auth.impl;
 
 import de.fraunhofer.iosb.ilt.dataspace.aas.lib.auth.AuthenticationMethod;
+import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
 import org.eclipse.edc.spi.security.Vault;
 
-import java.net.Authenticator;
-import java.net.PasswordAuthentication;
 import java.net.http.HttpClient;
 import java.util.Base64;
-import java.util.Objects;
-import java.util.function.Function;
 
 
 /**
@@ -34,8 +31,7 @@ public class BasicAuth extends AuthenticationMethod {
 
     private static final Base64.Encoder BASE64_ENCODER = Base64.getEncoder();
 
-    private final String username;
-    private final Function<Vault, String> password;
+    private final String passwordAlias;
 
 
     /**
@@ -46,23 +42,31 @@ public class BasicAuth extends AuthenticationMethod {
      * @param vault the vault to store the password in.
      */
     public BasicAuth(String username, String password, Vault vault) {
-        this.username = Objects.requireNonNull(username);
-        this.password = getResolver(vault, password);
+        this.passwordAlias = store(vault, String.format("Basic %s", BASE64_ENCODER.encodeToString(String.format("%s:%s", username, password).getBytes())));
     }
 
 
     @Override
-    public String getValue(Vault vault) {
-        return "Basic %s".formatted(BASE64_ENCODER.encodeToString("%s:%s".formatted(username, password.apply(vault)).getBytes()));
+    public void decorate(HttpDataAddress.Builder addressBuilder) {
+        addressBuilder.authKey("Authorization");
+        addressBuilder.secretName(passwordAlias);
     }
 
 
     @Override
     public HttpClient.Builder httpClientBuilderFor(Vault vault) {
-        return HttpClient.newBuilder().authenticator(new Authenticator() {
-            protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(username, getValue(vault).toCharArray());
-            }
-        });
+        throw new RuntimeException("Use auth header instead");
+    }
+
+
+    @Override
+    public String getKey() {
+        return "Authorization";
+    }
+
+
+    @Override
+    public String getValue(Vault vault) {
+        return vault.resolveSecret(passwordAlias);
     }
 }

@@ -15,10 +15,8 @@
  */
 package de.fraunhofer.iosb.ilt.dataspace.app.aas.mapper;
 
-import de.fraunhofer.iosb.ilt.dataspace.aas.test.defaults.DefaultVault;
 import de.fraunhofer.iosb.ilt.dataspace.app.aas.mapper.referable.identifiable.IdentifiableMapper;
 import de.fraunhofer.iosb.ilt.dataspace.app.model.configuration.Configuration;
-import de.fraunhofer.iosb.ilt.dataspace.client.repository.remote.impl.RemoteAasRepositoryClient;
 import de.fraunhofer.iosb.ilt.dataspace.model.context.repository.remote.RemoteAasRepositoryContext;
 import org.eclipse.digitaltwin.aas4j.v3.model.Submodel;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
@@ -37,8 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 class ReferableMapperTest {
 
-    private final IdentifiableMapper testSubject = new IdentifiableMapper(new RemoteAasRepositoryClient(
-            new DefaultVault(), new RemoteAasRepositoryContext.Builder().uri(URI.create("http://invalid.local")).build()));
+    private final IdentifiableMapper testSubject = new IdentifiableMapper(new RemoteAasRepositoryContext.Builder().uri(URI.create("http://invalid.local")).build());
 
 
     private static void resetExposedFields() throws Exception {

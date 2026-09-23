@@ -52,6 +52,11 @@ public record RemoteAasRepositoryContextDTO(URI url, AuthenticationMethodDTO aut
         Objects.requireNonNull(url, "'url' cannot be null!");
         auth = Objects.requireNonNullElse(auth, new NoAuthDTO());
         policyBindings = Objects.requireNonNullElse(policyBindings, List.of());
+        // Assign global defaults to all policy bindings if undefined
+        policyBindings = policyBindings.stream()
+                .map(b -> b.accessPolicyDefinitionId() == null ? b.withAccessPolicy(defaultAccessPolicyDefinitionId) : b)
+                .map(b -> b.contractPolicyDefinitionId() == null ? b.withContractPolicy(defaultContractPolicyDefinitionId) : b)
+                .toList();
     }
 
 
@@ -87,8 +92,6 @@ public record RemoteAasRepositoryContextDTO(URI url, AuthenticationMethodDTO aut
     public RemoteAasRepositoryContext asContext(@Nullable Vault vault, @Nullable Oauth2Client oauth2Client) {
         return new RemoteAasRepositoryContext.Builder()
                 .uri(this.url())
-                .defaultAccessPolicyDefinitionId(defaultAccessPolicyDefinitionId())
-                .defaultContractPolicyDefinitionId(defaultContractPolicyDefinitionId())
                 .policyBindings(this.policyBindings())
                 .authenticationMethod(toAuthenticationMethod(vault, oauth2Client))
                 .onlySubmodels(Configuration.getInstance().onlySubmodels() || Configuration.getInstance().isHercules())

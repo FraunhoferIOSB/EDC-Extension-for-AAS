@@ -15,24 +15,15 @@
  */
 package de.fraunhofer.iosb.ilt.dataspace.app.handler.aas.repository;
 
-import de.fraunhofer.iosb.ilt.dataspace.aas.lib.model.PolicyBinding;
 import de.fraunhofer.iosb.ilt.dataspace.app.handler.aas.AasHandler;
 import de.fraunhofer.iosb.ilt.dataspace.app.handler.edc.EdcStoreHandler;
 import de.fraunhofer.iosb.ilt.dataspace.client.repository.AasRepositoryClient;
+import de.fraunhofer.iosb.ilt.dataspace.model.context.AasServerContext;
 import de.fraunhofer.iosb.ilt.faaast.client.exception.ConnectivityException;
 import de.fraunhofer.iosb.ilt.faaast.client.exception.StatusCodeException;
-import de.fraunhofer.iosb.ilt.faaast.service.util.ReferenceHelper;
-import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.util.AasUtils;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
-import org.eclipse.digitaltwin.aas4j.v3.model.Identifiable;
-import org.eclipse.digitaltwin.aas4j.v3.model.Referable;
-import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
-import org.eclipse.digitaltwin.aas4j.v3.model.SubmodelElement;
-import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
-
-import java.util.List;
+import org.eclipse.edc.spi.security.Vault;
 
 
 /**
@@ -40,62 +31,25 @@ import java.util.List;
  * configured per reference.
  *
  * @param <C> AAS repository client implementation to communicate with the AAS repository.
+ * @param <CTX> Context holding information about an AAS server.
  */
-public abstract class AasRepositoryHandler<C extends AasRepositoryClient> extends AasHandler<C> {
+public abstract class AasRepositoryHandler<C extends AasRepositoryClient, CTX extends AasServerContext> extends AasHandler<C, CTX> {
 
     /**
      * Creates a new AAS repository handler.
      *
      * @param monitor Monitor used for log outputs.
-     * @param client Client used to communicate with the AAS repository.
+     * @param context Context holding information about an AAS repository.
+     * @param vault Provides secrets such as certificates and keys.
      * @param edcStoreHandler Handler to manage registration of EDC assets, policies and contracts.
      */
-    protected AasRepositoryHandler(Monitor monitor, C client, EdcStoreHandler edcStoreHandler) {
-        super(monitor, client, edcStoreHandler);
-    }
-
-
-    /**
-     * Returns the environment of the AAS repository.
-     *
-     * @return The environment of the AAS repository.
-     * @throws StatusCodeException if a call to the AAS repository returned a status code other than 2xx.
-     * @throws ConnectivityException if a connection to the AAS repository could not be established.
-     */
-    protected Environment getEnvironment() throws StatusCodeException, ConnectivityException {
-        return client.getEnvironment();
+    protected AasRepositoryHandler(Monitor monitor, CTX context, Vault vault, EdcStoreHandler edcStoreHandler) {
+        super(monitor, context, vault, edcStoreHandler);
     }
 
 
     @Override
-    protected List<PolicyBinding> policyBindingsFor(Reference reference) {
-        return client.getPolicyBindings(reference);
+    protected Environment getEnvironment() throws ConnectivityException, StatusCodeException {
+        return client.getEnvironment();
     }
-
-
-    /**
-     * Maps the referable referenced by the given reference (resolved against the given environment) to an EDC asset.
-     * Identifiables are mapped using the identifiable mapper, submodel elements using the submodel element mapper.
-     *
-     * @param reference Reference of the AAS element to map.
-     * @param environment The environment used to resolve the reference.
-     * @return The mapped EDC asset.
-     */
-    protected Asset referenceToAsset(Reference reference, Environment environment) {
-        Referable referable = AasUtils.resolve(reference, environment);
-
-        Asset mapped;
-        if (referable instanceof Identifiable identifiable) {
-            mapped = identifiableMapper.map(identifiable);
-        }
-        else if (referable instanceof SubmodelElement submodelElement) {
-            mapped = submodelElementMapper.map(ReferenceHelper.getParent(reference), submodelElement);
-        }
-        else {
-            throw new EdcException("Could not resolve event message reference.");
-        }
-
-        return mapped;
-    }
-
 }

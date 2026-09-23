@@ -85,7 +85,7 @@ public class SelfDescriptionController {
     public String getSelfDescription(@QueryParam("url") URI uri) {
         monitor.debug(String.format("GET %s", SELF_DESCRIPTION_PATH));
 
-        List<AasHandler<?>> handlers = new ArrayList<>();
+        List<AasHandler<?, ?>> handlers = new ArrayList<>();
 
         Optional.ofNullable(uri)
                 .ifPresentOrElse(u -> handlers.addAll(aasRepositoryStore.get(u)
@@ -95,7 +95,7 @@ public class SelfDescriptionController {
                         () -> handlers.addAll(aasRepositoryStore.getAll()));
 
         List<Environment> selfDescriptions = new ArrayList<>();
-        for (AasHandler<?> handler: handlers) {
+        for (AasHandler<?, ?> handler: handlers) {
             try {
                 selfDescriptions.add(handler.buildSelfDescription());
             }

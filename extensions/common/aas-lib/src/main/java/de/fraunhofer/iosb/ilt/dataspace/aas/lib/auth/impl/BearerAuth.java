@@ -16,6 +16,7 @@
 package de.fraunhofer.iosb.ilt.dataspace.aas.lib.auth.impl;
 
 import de.fraunhofer.iosb.ilt.dataspace.aas.lib.auth.AuthenticationMethod;
+import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2CredentialsRequest;
 import org.eclipse.edc.iam.oauth2.spi.client.SharedSecretOauth2CredentialsRequest;
@@ -23,18 +24,13 @@ import org.eclipse.edc.spi.security.Vault;
 
 import java.net.URI;
 import java.net.http.HttpClient;
-import java.util.function.Function;
 import javax.naming.OperationNotSupportedException;
 
 
 /** Bearer token authentication using OAuth2 client credentials. */
 public class BearerAuth extends AuthenticationMethod {
-    private final Function<Vault, String> clientId;
-    private final Function<Vault, String> clientSecret;
-
-    private final Function<Vault, String> username;
-    private final Function<Vault, String> password;
-
+    private final String clientId;
+    private final String clientSecretAlias;
     private final URI identityProvider;
     private final Oauth2Client client;
 
@@ -44,37 +40,44 @@ public class BearerAuth extends AuthenticationMethod {
      *
      * @param clientId the OAuth2 client ID.
      * @param clientSecret the OAuth2 client secret.
-     * @param username the username for the token request.
-     * @param password the password for the token request.
-     * @param identityProvider the URI of the identity provider.
-     * @param client the OAuth2 client for requesting tokens.
+     * @param identityProvider the URI of the OAuth2 identity provider.
+     * @param client the OAuth2 client used to request tokens.
      * @param vault the vault to store credentials in.
      */
-    public BearerAuth(String clientId, String clientSecret, String username, String password, URI identityProvider, Oauth2Client client, Vault vault) {
-        this.identityProvider = identityProvider;
+    public BearerAuth(String clientId, String clientSecret, URI identityProvider, Oauth2Client client, Vault vault) {
+        this.clientId = clientId;
         this.client = client;
-        this.clientId = getResolver(vault, clientId);
-        this.clientSecret = getResolver(vault, clientSecret);
-        this.username = getResolver(vault, username);
-        this.password = getResolver(vault, password);
+        this.identityProvider = identityProvider;
+        this.clientSecretAlias = store(vault, clientSecret);
     }
 
 
     @Override
+    public String getKey() {
+        return "Authorization";
+    }
+
+
     public String getValue(Vault vault) {
         Oauth2CredentialsRequest req = SharedSecretOauth2CredentialsRequest.Builder.newInstance()
                 .url(identityProvider.toString())
                 .grantType("client_credentials")
-                .clientId(clientId.apply(vault))
-                .clientSecret(clientSecret.apply(vault))
-                .param("username", username.apply(vault))
-                .param("password", password.apply(vault))
+                .clientId(clientId)
+                .clientSecret(vault.resolveSecret(clientSecretAlias))
                 .build();
+
         String token = client.requestToken(req)
                 .orElseThrow((failure) -> new RuntimeException(failure.getFailureDetail()))
                 .getToken();
+        return String.format("Bearer %s", token);
+    }
 
-        return "Bearer ".concat(token);
+
+    @Override
+    public void decorate(HttpDataAddress.Builder addressBuilder) {
+        addressBuilder.property("oauth2:tokenUrl", identityProvider);
+        addressBuilder.property("oauth2:clientId", clientId);
+        addressBuilder.property("oauth2:clientSecretKey", clientSecretAlias);
     }
 
 

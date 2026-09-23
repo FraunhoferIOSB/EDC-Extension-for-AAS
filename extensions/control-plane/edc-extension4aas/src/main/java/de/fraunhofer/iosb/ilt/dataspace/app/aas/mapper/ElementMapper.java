@@ -15,9 +15,11 @@
  */
 package de.fraunhofer.iosb.ilt.dataspace.app.aas.mapper;
 
+import de.fraunhofer.iosb.ilt.dataspace.api.model.HttpMethod;
 import de.fraunhofer.iosb.ilt.dataspace.app.aas.mapper.util.AssetIdUtil;
 import de.fraunhofer.iosb.ilt.dataspace.dataplane.aas.spi.AasDataAddress;
 import de.fraunhofer.iosb.ilt.dataspace.model.context.AasServerContext;
+import de.fraunhofer.iosb.ilt.faaast.service.util.ReferenceHelper;
 import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
 import org.jetbrains.annotations.NotNull;
@@ -65,7 +67,9 @@ public class ElementMapper {
     protected HttpDataAddress createDataAddress(Reference reference) {
         HttpDataAddress.Builder builder = HttpDataAddress.Builder.newInstance()
                 .baseUrl(context.getUri().toString())
-                .path(AasDataAddress.pathFromReference(reference));
+                .path(AasDataAddress.pathFromReference(reference))
+                .method(HttpMethod.GET.name())
+                .property(AasDataAddress.REFERENCE, ReferenceHelper.asString(reference));
 
         if (context.requiresAuthentication()) {
             context.getAuthenticationMethod().decorate(builder);

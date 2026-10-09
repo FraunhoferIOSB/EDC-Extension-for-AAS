@@ -112,7 +112,7 @@ services:
     container_name: wallet
     # Any identityhub can be used which uses upstream version =0.18.0
     # Docker image source https://github.com/project-construct-x/wallet/tree/develop/launcher/con-x-wallet-sql-vault
-    image: wallet-sql-vault:0.18.0-1
+    image: wallet:0.18.0-1
     depends_on:
       vault:
         condition: service_healthy
@@ -180,7 +180,7 @@ services:
   issuer-service:
     container_name: issuer-service
     # Docker image source https://github.com/project-construct-x/wallet/tree/develop/launcher/con-x-wallet-sql-vault
-    image: wallet-sql-vault:0.18.0-1
+    image: wallet:0.18.0-1
     depends_on:
       vault:
         condition: service_healthy

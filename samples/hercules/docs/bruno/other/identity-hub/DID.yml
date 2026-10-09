@@ -5,10 +5,10 @@ info:
 
 http:
   method: GET
-  url: http://localhost:8084/participant1
+  url: http://localhost:10100/participant1
   headers:
     - name: Host
-      value: hercules-wallet:8084
+      value: wallet:10100
   auth: inherit
 
 settings:

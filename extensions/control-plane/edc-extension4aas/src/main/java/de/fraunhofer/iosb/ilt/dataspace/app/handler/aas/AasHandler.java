@@ -381,7 +381,7 @@ public abstract class AasHandler<C extends AasServerClient, CTX extends AasServe
      * @return List of policy bindings for the reference (never null, possibly empty).
      */
     protected List<PolicyBinding> policyBindingsFor(Reference identifiableReference) {
-        return List.of(PolicyBinding.ofDefaults(identifiableReference));
+        return policyBindings.stream().filter(b -> b.referredElement().equals(identifiableReference)).toList();
     }
 
 

@@ -95,9 +95,12 @@ Services expose the following ports for external access via `localhost`:
 
 3. ** Build the Wallet (IdentityHub):
    ```bash
+   rm -r samples/hercules/project-construct-x-wallet
+   git submodule update --init --recursive
    cd samples/hercules/project-construct-x-wallet
-   ./gradlew :launcher:identityhub:shadowJar
-   docker build -t wallet-sql-vault:0.18.0-1 ./launcher/identityhub
+   rm -r extensions/super-user-seed-extension
+   git submodule update --init --recursive
+   ./gradlew :launcher:con-x-wallet:dockerize
    ```
 
 4. **Start all services**:

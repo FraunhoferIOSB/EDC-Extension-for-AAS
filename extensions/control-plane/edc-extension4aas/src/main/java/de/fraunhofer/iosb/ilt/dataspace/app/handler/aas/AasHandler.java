@@ -109,10 +109,12 @@ public abstract class AasHandler<C extends AasServerClient, CTX extends AasServe
 
 
     /**
-     * Returns the self-description entity for this AAS. The self-description is essentially a representation of this AAS preserving its structure, extended by EDC information for
+     * Returns the self-description entity for this AAS. The self-description is essentially a representation of this AAS
+     * preserving its structure, extended by EDC information for
      * data space consumers to get the necessary information to negotiate the data represented by an AAS element.
      *
-     * @return The self-description (An AAS Environment with EDC information added as AAS.Extensions using the HasExtension property of an AAS referable).
+     * @return The self-description (An AAS Environment with EDC information added as AAS.Extensions using the HasExtension
+     *         property of an AAS referable).
      * @throws StatusCodeException A call to the AAS was returned with a Status code != 2xx.
      * @throws ConnectivityException A connection to the underlying AAS was unsuccessful.
      */
@@ -159,7 +161,8 @@ public abstract class AasHandler<C extends AasServerClient, CTX extends AasServe
 
 
     /**
-     * Returns the environment of the AAS server. This could be the environment of an AAS repository or the shell/submodel descriptors of an AAS registry converted into an
+     * Returns the environment of the AAS server. This could be the environment of an AAS repository or the shell/submodel
+     * descriptors of an AAS registry converted into an
      * environment.
      *
      * @return The environment representing this AAS server
@@ -170,7 +173,8 @@ public abstract class AasHandler<C extends AasServerClient, CTX extends AasServe
 
 
     /**
-     * Returns the assets currently registered by this handler. Override this if your implementation stores which assets are currently registered.
+     * Returns the assets currently registered by this handler. Override this if your implementation stores which assets are
+     * currently registered.
      *
      * @return Mapping of policy bindings to the currently registered assets.
      */
@@ -214,8 +218,10 @@ public abstract class AasHandler<C extends AasServerClient, CTX extends AasServe
 
 
     /**
-     * Expands the single-asset-per-reference mapping into one asset per applicable policy binding. For each eligible reference, the base asset (as produced by the mappers) is
-     * cloned per binding, assigning a binding-specific asset ID and merging the binding's data address properties onto the base data address.
+     * Expands the single-asset-per-reference mapping into one asset per applicable policy binding. For each eligible
+     * reference, the base asset (as produced by the mappers) is
+     * cloned per binding, assigning a binding-specific asset ID and merging the binding's data address properties onto the
+     * base data address.
      *
      * @param mapped Base mapping of references to assets (one asset per reference).
      * @return Mapping of policy bindings to binding-specific assets.
@@ -234,7 +240,8 @@ public abstract class AasHandler<C extends AasServerClient, CTX extends AasServe
 
 
     /**
-     * Returns references that shall be registered by this extension. If all elements shall be registered, the list will be empty.
+     * Returns references that shall be registered by this extension. If all elements shall be registered, the list will be
+     * empty.
      *
      * @return References to register to EDC.
      */
@@ -245,7 +252,8 @@ public abstract class AasHandler<C extends AasServerClient, CTX extends AasServe
 
 
     /**
-     * Returns whether the given reference should be registered. An element is eligible when it matches a configured policy binding (or no bindings are configured), and either it
+     * Returns whether the given reference should be registered. An element is eligible when it matches a configured policy
+     * binding (or no bindings are configured), and either it
      * is a submodel or submodel-only registration is disabled.
      *
      * @param reference Element to register or not.
@@ -275,7 +283,8 @@ public abstract class AasHandler<C extends AasServerClient, CTX extends AasServe
 
 
     /**
-     * Builds a binding-specific asset by cloning the base asset and overriding its ID and data address. The binding's {@code dataAddressProperties} are merged onto the base data
+     * Builds a binding-specific asset by cloning the base asset and overriding its ID and data address. The binding's
+     * {@code dataAddressProperties} are merged onto the base data
      * address, with binding-provided properties taking precedence on key conflict.
      *
      * @param reference Reference of the AAS element.
@@ -365,7 +374,8 @@ public abstract class AasHandler<C extends AasServerClient, CTX extends AasServe
 
 
     /**
-     * Returns all policy bindings applicable to the given reference. The default implementation returns a single default binding; subclasses backed by an AAS repository override
+     * Returns all policy bindings applicable to the given reference. The default implementation returns a single default
+     * binding; subclasses backed by an AAS repository override
      * this to return the configured bindings (one per registered policy/data-address combination).
      *
      * @param identifiableReference Reference of the AAS element.
@@ -426,8 +436,10 @@ public abstract class AasHandler<C extends AasServerClient, CTX extends AasServe
 
 
     /**
-     * Top-down-search, bottom-up filtering of submodel elements. If at least one child of an otherwise to-be-removed element needs to be kept, the element itself will not be
-     * removed. This element will be shown in the self-description but will not have an EDC asset ID. This could compromise confidentiality in some cases, self-description should
+     * Top-down-search, bottom-up filtering of submodel elements. If at least one child of an otherwise to-be-removed
+     * element needs to be kept, the element itself will not be
+     * removed. This element will be shown in the self-description but will not have an EDC asset ID. This could compromise
+     * confidentiality in some cases, self-description should
      * be deactivated in that case.
      *
      * @param parent Reference of the parent element.

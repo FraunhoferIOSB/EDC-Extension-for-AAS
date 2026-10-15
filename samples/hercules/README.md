@@ -81,25 +81,24 @@ Services expose the following ports for external access via `localhost`:
 
 1. **Copy environment file** (optional, defaults will be used):
    ```bash
-   cd samples/hercules
+   cd samples/hercules/docker
    cp .env.example .env
    ```
 
 2. **Build the standalone extension** (if modified):
    ```bash
-   cd samples/hercules/standalone-hercules
-   ./gradlew shadowJar
-   cd ../..
-   docker compose build standalone
+   # Make sure to use jdk 17 or lower for this:
+   ./gradlew samples:hercules:standalone-hercules:dockerize
    ```
 
-3. ** Build the Wallet (IdentityHub):
+3. **Build the Wallet and Issuer** (IdentityHub):
    ```bash
    rm -r samples/hercules/project-construct-x-wallet
    git submodule update --init --recursive
    cd samples/hercules/project-construct-x-wallet
    rm -r extensions/super-user-seed-extension
    git submodule update --init --recursive
+   # Make sure to use jdk 17 or lower for this:
    ./gradlew :launcher:con-x-wallet:dockerize
    ```
 

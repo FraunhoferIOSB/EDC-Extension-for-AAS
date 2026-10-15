@@ -65,14 +65,6 @@ public class AasDataProcessor {
 
         var requestUrlBuilder = HttpUrl.get(accessUrl).newBuilder();
 
-        var requestPath = sourceDataAddress.getPath();
-
-        if (!requestPath.isEmpty()) {
-            // Remove leading forward slash
-            requestPath = requestPath.startsWith("/") ? requestPath.substring(1) : requestPath;
-            requestUrlBuilder.addPathSegments(requestPath);
-        }
-
         var requestBuilder = new Request.Builder()
                 .headers(Headers.of(sourceDataAddress.getAdditionalHeaders()));
 

@@ -54,12 +54,11 @@ public class RepositoryControllerIT extends AbstractAasServerControllerIT<Reposi
         mockEmptyShellRequest();
         mockEmptySubmodelRequest();
         mockEmptyConceptDescriptionRequest();
+        var context = new RemoteAasRepositoryContextDTO(getUri());
 
-        var result = testSubject.register(new RemoteAasRepositoryContextDTO(getUri()));
+        testSubject.register(context);
 
-        assertEquals(result, getUri());
-
-        var handler = aasServerStore.get(result).orElseThrow();
+        var handler = aasServerStore.get(context.url()).orElseThrow();
 
         var selfDescription = handler.buildSelfDescription();
 
@@ -70,7 +69,6 @@ public class RepositoryControllerIT extends AbstractAasServerControllerIT<Reposi
     }
 
 
-    @SuppressWarnings("resource")
     @Test
     void test_registerRepository_filledEnvironmentAllRegistered() throws SerializationException, UnsupportedModifierException, StatusCodeException, ConnectivityException {
         Environment environment = getEnvironment();
@@ -81,11 +79,12 @@ public class RepositoryControllerIT extends AbstractAasServerControllerIT<Reposi
 
         var uri = getUri();
         new ConfigurationController(ConfigFactory.empty(), new ConsoleMonitor()).updateConfiguration("{\"" + EDC_SETTINGS_PREFIX + ".onlySubmodels\":false}");
-        var result = testSubject.register(new RemoteAasRepositoryContextDTO(uri));
 
-        assertEquals(result, uri);
+        var context = new RemoteAasRepositoryContextDTO(uri);
 
-        var handler = aasServerStore.get(result).orElseThrow();
+        testSubject.register(context);
+
+        var handler = aasServerStore.get(context.url()).orElseThrow();
 
         var selfDescription = handler.buildSelfDescription();
 
@@ -108,11 +107,13 @@ public class RepositoryControllerIT extends AbstractAasServerControllerIT<Reposi
 
         var base = getUri();
 
-        var result = testSubject.register(new RemoteAasRepositoryContextDTO(base));
+        var context = new RemoteAasRepositoryContextDTO(base);
 
-        assertEquals(result, getUri());
+        testSubject.register(new RemoteAasRepositoryContextDTO(base));
 
-        var handler = aasServerStore.get(result).orElseThrow();
+        assertEquals(context.url(), getUri());
+
+        var handler = aasServerStore.get(context.url()).orElseThrow();
 
         var selfDescription = handler.buildSelfDescription();
 

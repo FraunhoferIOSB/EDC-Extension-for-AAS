@@ -21,7 +21,7 @@
       "method": "GET",
       "type": "AasData",
       "https://admin-shell.io/aas/3/1/reference": "[ModelRef](ConceptDescription)https://acplt.org/System_Test_ConceptDescription",
-      "baseUrl": "https://localhost:60875/api/v3.1"
+      "baseUrl": "https://localhost:60875/api/v3.1/concept-descriptions/aHR0cHM6Ly9hY3BsdC5vcmcvU3lzdGVtX1Rlc3RfQ29uY2VwdERlc2NyaXB0aW9u"
     },
     "@context": [
       "https://w3id.org/edc/connector/management/v2"
@@ -49,7 +49,7 @@
       "method": "GET",
       "type": "AasData",
       "https://admin-shell.io/aas/3/1/reference": "[ModelRef](AssetAdministrationShell)https://acplt.org/System_Test_AssetAdministrationShell",
-      "baseUrl": "https://localhost:60875/api/v3.1"
+      "baseUrl": "https://localhost:60875/api/v3.1/shells/aHR0cHM6Ly9hY3BsdC5vcmcvU3lzdGVtX1Rlc3RfQXNzZXRBZG1pbmlzdHJhdGlvblNoZWxs"
     },
     "@context": [
       "https://w3id.org/edc/connector/management/v2"
@@ -83,7 +83,7 @@
       "method": "GET",
       "type": "AasData",
       "https://admin-shell.io/aas/3/1/reference": "[ModelRef](Submodel)http://acplt.org/Submodels/Assets/TestAsset/System_Test_Submodel, (SubmodelElementCollection)SystemTestSubmodelElementCollection",
-      "baseUrl": "https://localhost:60875/api/v3.1"
+      "baseUrl": "https://localhost:60875/api/v3.1/submodels/aHR0cDovL2FjcGx0Lm9yZy9TdWJtb2RlbHMvQXNzZXRzL1Rlc3RBc3NldC9TeXN0ZW1fVGVzdF9TdWJtb2RlbA==/submodel-elements/SystemTestSubmodelElementCollection"
     },
     "@context": [
       "https://w3id.org/edc/connector/management/v2"
@@ -121,7 +121,7 @@
       "method": "GET",
       "type": "AasData",
       "https://admin-shell.io/aas/3/1/reference": "[ModelRef](Submodel)http://acplt.org/Submodels/Assets/TestAsset/System_Test_Submodel, (SubmodelElementCollection)SystemTestSubmodelElementCollection, (Property)ManufacturerName",
-      "baseUrl": "https://localhost:60875/api/v3.1"
+      "baseUrl": "https://localhost:60875/api/v3.1/submodels/aHR0cDovL2FjcGx0Lm9yZy9TdWJtb2RlbHMvQXNzZXRzL1Rlc3RBc3NldC9TeXN0ZW1fVGVzdF9TdWJtb2RlbA==/submodel-elements/SystemTestSubmodelElementCollection.ManufacturerName"
     },
     "@context": [
       "https://w3id.org/edc/connector/management/v2"
@@ -156,7 +156,7 @@
       "method": "GET",
       "type": "AasData",
       "https://admin-shell.io/aas/3/1/reference": "[ModelRef](Submodel)http://acplt.org/Submodels/Assets/TestAsset/System_Test_Submodel",
-      "baseUrl": "https://localhost:60875/api/v3.1"
+      "baseUrl": "https://localhost:60875/api/v3.1/submodels/aHR0cDovL2FjcGx0Lm9yZy9TdWJtb2RlbHMvQXNzZXRzL1Rlc3RBc3NldC9TeXN0ZW1fVGVzdF9TdWJtb2RlbA=="
     },
     "@context": [
       "https://w3id.org/edc/connector/management/v2"

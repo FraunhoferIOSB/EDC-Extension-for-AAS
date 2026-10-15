@@ -18,7 +18,7 @@ http:
         },
         "@type": "CatalogRequest",
         "counterPartyAddress": "http://control-plane:8084/api/v1/dsp/2025-1",
-        "counterPartyId": "did:web:wallet%3A10100:participant1",
+        "counterPartyId": "{{p1-did}}",
         "protocol": "dataspace-protocol-http:2025-1",
         "additionalScopes": [
           "org.eclipse.dspace.dcp.vc.type:MembershipCredential:read"
@@ -54,9 +54,18 @@ runtime:
       variable:
         name: p1-dsp
         scope: runtime
+    - type: set-variable
+      phase: after-response
+      selector:
+        expression: res.body.dataset[1]['@id']
+        method: jsonq
+      variable:
+        name: asset-id
+        scope: runtime
 
 settings:
   encodeUrl: true
   timeout: 0
   followRedirects: true
   maxRedirects: 5
+  forwardAuthorizationHeader: true

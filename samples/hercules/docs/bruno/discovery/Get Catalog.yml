@@ -49,7 +49,7 @@ runtime:
     - type: set-variable
       phase: after-response
       selector:
-        expression: res.body.dataset[0].distribution[0].accessService.endpointURL
+        expression: res.body.dataset[0].distribution[1].accessService.endpointURL
         method: jsonq
       variable:
         name: p1-dsp

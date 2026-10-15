@@ -165,26 +165,22 @@ class SubmodelElementMapperTest {
         Asset mappedProperty = mappedChildren.get(0);
         assertEquals("Property", mappedProperty.getProperty(AAS_V31_NAMESPACE.concat("modelingType")));
         assertInstanceOf(AasDataAddress.class, mappedProperty.getDataAddress());
-        assertEquals(uri.toString(), ((AasDataAddress) mappedProperty.getDataAddress()).getBaseUrl());
-        assertEquals(String.format(listAccessorPathTemplate, "0"), ((AasDataAddress) mappedProperty.getDataAddress()).getPath());
+        assertEquals(uri.toString().concat("/").concat(String.format(listAccessorPathTemplate, "0")), ((AasDataAddress) mappedProperty.getDataAddress()).getBaseUrl());
 
         Asset mappedList = mappedChildren.get(1);
         assertEquals("SubmodelElementList", mappedList.getProperty(AAS_V31_NAMESPACE.concat("modelingType")));
         assertInstanceOf(AasDataAddress.class, mappedList.getDataAddress());
-        assertEquals(uri.toString(), ((AasDataAddress) mappedList.getDataAddress()).getBaseUrl());
-        assertEquals(String.format(listAccessorPathTemplate, "1"), ((AasDataAddress) mappedList.getDataAddress()).getPath());
+        assertEquals(uri.toString().concat("/").concat(String.format(listAccessorPathTemplate, "1")), ((AasDataAddress) mappedList.getDataAddress()).getBaseUrl());
 
         Asset mappedCollection = mappedChildren.get(2);
         assertEquals("SubmodelElementCollection",
                 mappedCollection.getProperty(AAS_V31_NAMESPACE.concat("modelingType")));
         assertInstanceOf(AasDataAddress.class, mappedCollection.getDataAddress());
-        assertEquals(uri.toString(), ((AasDataAddress) mappedCollection.getDataAddress()).getBaseUrl());
-        assertEquals(String.format(listAccessorPathTemplate, "2"), ((AasDataAddress) mappedCollection.getDataAddress()).getPath());
+        assertEquals(uri.toString().concat("/").concat(String.format(listAccessorPathTemplate, "2")), ((AasDataAddress) mappedCollection.getDataAddress()).getBaseUrl());
 
         Asset mappedBlob = mappedChildren.get(3);
         assertEquals("Blob", mappedBlob.getProperty(AAS_V31_NAMESPACE.concat("modelingType")));
         assertInstanceOf(AasDataAddress.class, mappedBlob.getDataAddress());
-        assertEquals(uri.toString(), ((AasDataAddress) mappedBlob.getDataAddress()).getBaseUrl());
-        assertEquals(String.format(listAccessorPathTemplate, "3"), ((AasDataAddress) mappedBlob.getDataAddress()).getPath());
+        assertEquals(uri.toString().concat("/").concat(String.format(listAccessorPathTemplate, "3")), ((AasDataAddress) mappedBlob.getDataAddress()).getBaseUrl());
     }
 }

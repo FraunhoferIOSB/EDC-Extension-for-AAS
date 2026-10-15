@@ -148,8 +148,8 @@ public class AasExtension implements ServiceExtension {
 
         if (Objects.nonNull(configInstance.getRemoteAasLocation())) {
             var remoteRepositoryDto = new RemoteAasRepositoryContextDTO(configInstance.getRemoteAasLocation());
-            URI serviceUri = repositoryController.register(remoteRepositoryDto);
-            monitor.debug(String.format("Registered AAS repository with url %s", serviceUri));
+            var assetIds = repositoryController.register(remoteRepositoryDto);
+            monitor.debug(String.format("Registered AAS repository with url %s, asset IDs: [%s]", remoteRepositoryDto.url(), assetIds));
         }
 
         if (Objects.isNull(configInstance.getLocalAasModelPath()) && Objects.isNull(configInstance.getAasServiceConfigPath())) {

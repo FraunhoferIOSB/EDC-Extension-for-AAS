@@ -43,12 +43,9 @@ http:
             "@id": "did:web:wallet%3A10100:participant1"
           },
           "odrl:target": {
-            "@id": "1990331179"
+            "@id": "{{asset-id}}"
           }
-        },
-        "additionalScopes": [
-          "org.eclipse.dspace.dcp.vc.type:MembershipCredential:read"
-        ]
+        }
       }
   auth: inherit
 
@@ -68,5 +65,6 @@ settings:
   timeout: 0
   followRedirects: true
   maxRedirects: 5
+  forwardAuthorizationHeader: true
 
 docs: Initiates an EDR negotiation by handling a contract negotiation first and then a transfer process for a given offer and with the given counter part. Please note that successfully invoking this endpoint only means that the negotiation was initiated.

@@ -15,6 +15,7 @@ plugins {
 dependencies {
     implementation(project(":extensions:control-plane:aas:dtr"))
     runtimeOnly(project(":launchers:standalone"))
+    runtimeOnly(libs.edc.vault.hashicorp)
 
     runtimeOnly(project(":extensions:common:json-ld:json-ld-fx"))
     runtimeOnly("org.eclipse.tractusx.edc:json-ld-cx:0.12.1")

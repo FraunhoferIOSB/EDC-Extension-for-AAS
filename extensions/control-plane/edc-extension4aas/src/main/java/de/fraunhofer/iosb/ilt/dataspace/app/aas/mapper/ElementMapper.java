@@ -66,8 +66,7 @@ public class ElementMapper {
      */
     protected HttpDataAddress createDataAddress(Reference reference) {
         HttpDataAddress.Builder builder = HttpDataAddress.Builder.newInstance()
-                .baseUrl(context.getUri().toString())
-                .path(AasDataAddress.pathFromReference(reference))
+                .baseUrl(context.getUri().toString().concat("/").concat(AasDataAddress.pathFromReference(reference)))
                 .method(HttpMethod.GET.name())
                 .property(AasDataAddress.REFERENCE, ReferenceHelper.asString(reference));
 

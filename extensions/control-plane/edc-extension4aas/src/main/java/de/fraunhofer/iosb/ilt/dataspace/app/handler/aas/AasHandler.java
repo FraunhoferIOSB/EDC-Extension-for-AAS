@@ -173,6 +173,18 @@ public abstract class AasHandler<C extends AasServerClient, CTX extends AasServe
 
 
     /**
+     * Returns the asset ids of the assets currently registered by this handler.
+     *
+     * @return A list of asset IDs.
+     */
+    public final List<String> registeredAssetIds() {
+        return getCurrentlyRegistered().values().stream()
+                .map(Asset::getId)
+                .toList();
+    }
+
+
+    /**
      * Returns the assets currently registered by this handler. Override this if your implementation stores which assets are
      * currently registered.
      *

@@ -16,6 +16,7 @@
 package de.fraunhofer.iosb.ilt.dataspace.app.controller;
 
 import de.fraunhofer.iosb.ilt.dataspace.app.controller.dto.LocalRepositoryDTO;
+import de.fraunhofer.iosb.ilt.dataspace.app.controller.dto.RegisteredAssetIdsDTO;
 import de.fraunhofer.iosb.ilt.dataspace.app.controller.dto.RemoteAasRepositoryContextDTO;
 import de.fraunhofer.iosb.ilt.dataspace.app.executor.VariableRateScheduler;
 import de.fraunhofer.iosb.ilt.dataspace.app.handler.RemoteHandler;
@@ -134,7 +135,7 @@ public class RepositoryController extends AbstractAasServerController {
      */
     @POST
     @Path(REMOTE_REPOSITORY_PATH)
-    public URI register(RemoteAasRepositoryContextDTO remoteAasRepositoryContextDTO) {
+    public RegisteredAssetIdsDTO register(RemoteAasRepositoryContextDTO remoteAasRepositoryContextDTO) {
         monitor.debug(String.format("Registering AAS repository with URL %s.", remoteAasRepositoryContextDTO.url()));
         if (aasServerStore.isStored(remoteAasRepositoryContextDTO.url())) {
             throw new WebApplicationException(String.format(EXISTS_TEMPLATE, remoteAasRepositoryContextDTO.url()), Response.Status.CONFLICT);
@@ -158,7 +159,7 @@ public class RepositoryController extends AbstractAasServerController {
         aasServerStore.put(context.getUri(), handler);
         scheduler.addRunnable(handler);
 
-        return context.getUri();
+        return new RegisteredAssetIdsDTO(handler.registeredAssetIds());
     }
 
 
@@ -198,7 +199,8 @@ public class RepositoryController extends AbstractAasServerController {
     @Path("service")
     @Deprecated(since = "2.3.0")
     public URI registerService(RemoteAasRepositoryContextDTO remoteAasRepositoryContextDTO) {
-        return register(remoteAasRepositoryContextDTO);
+        register(remoteAasRepositoryContextDTO);
+        return remoteAasRepositoryContextDTO.url();
     }
 
 

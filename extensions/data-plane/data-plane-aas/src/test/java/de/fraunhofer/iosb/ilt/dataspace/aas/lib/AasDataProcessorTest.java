@@ -83,14 +83,15 @@ class AasDataProcessorTest {
 
 
     private AasDataAddress getAddress() {
+        var reference = new DefaultReference.Builder()
+                .type(ReferenceTypes.MODEL_REFERENCE)
+                .keys(List.of(new DefaultKey.Builder().type(KeyTypes.ASSET_ADMINISTRATION_SHELL)
+                        .value(UUID.randomUUID().toString()).build()))
+                .build();
         return AasDataAddress.Builder.newInstance()
-                .baseUrl(aasUri.toString())
+                .baseUrl(String.format("%s/%s", aasUri.toString(), AasDataAddress.pathFromReference(reference)))
                 .method(HttpMethod.GET)
-                .reference(new DefaultReference.Builder()
-                        .type(ReferenceTypes.MODEL_REFERENCE)
-                        .keys(List.of(new DefaultKey.Builder().type(KeyTypes.ASSET_ADMINISTRATION_SHELL)
-                                .value(UUID.randomUUID().toString()).build()))
-                        .build())
+                .reference(reference)
                 .build();
     }
 }

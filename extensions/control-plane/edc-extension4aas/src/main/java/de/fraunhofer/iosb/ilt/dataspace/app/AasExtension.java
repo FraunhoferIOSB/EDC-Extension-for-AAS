@@ -163,7 +163,7 @@ public class AasExtension implements ServiceExtension {
                 List.of(),
                 configInstance.onlySubmodels() || Configuration.getInstance().isHercules());
 
-        URI serviceUri = repositoryController.register(localRepositoryDto);
+        URI serviceUri = repositoryController.register(localRepositoryDto).aasRepositoryUrl();
         monitor.debug(String.format("Started FA³ST service with url %s", serviceUri));
     }
 

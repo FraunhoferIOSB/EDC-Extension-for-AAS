@@ -1,6 +1,8 @@
 # Set default behavior to automatically normalize line endings.
 * text=auto
 
+*.java test eol=lf
+
 *.{md,json,xml,yaml,yml,properties,gradle,kts} text eol=lf
 
 gradlew text eol=lf

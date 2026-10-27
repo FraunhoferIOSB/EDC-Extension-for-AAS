@@ -91,10 +91,35 @@ public abstract class AasHandler<C extends AasServerClient, CTX extends AasServe
         this.identifiableMapper = new IdentifiableMapper(context);
         this.submodelElementMapper = new SubmodelElementMapper(context);
         this.monitor = monitor;
-        this.policyBindings = context.getPolicyBindings();
+        this.policyBindings = new ArrayList<>(context.getPolicyBindings());
         this.edcStoreHandler = edcStoreHandler;
         this.client = clientFrom(vault, context);
         this.onlySubmodels = context.isOnlySubmodels();
+    }
+
+
+    /**
+     * Update existing list of policy bindings, overwriting all existing. An AAS element can be registered under multiple
+     * policy combinations, so there can be no check of whether a
+     * policy binding already exists.
+     *
+     * @param updatedPolicyBindings the updated policy bindings.
+     */
+    public void updatePolicyBindings(List<PolicyBinding> updatedPolicyBindings) {
+        this.policyBindings.clear();
+        this.policyBindings.addAll(updatedPolicyBindings);
+    }
+
+
+    /**
+     * Update existing list of policy bindings, overwriting all existing. An AAS element can be registered under multiple
+     * policy combinations, so there can be no check of whether a
+     * policy binding already exists.
+     *
+     * @param updatedPolicyBindings the updated policy bindings.
+     */
+    public void patchPolicyBindings(List<PolicyBinding> updatedPolicyBindings) {
+        this.policyBindings.addAll(updatedPolicyBindings);
     }
 
 
@@ -177,9 +202,9 @@ public abstract class AasHandler<C extends AasServerClient, CTX extends AasServe
      *
      * @return A list of asset IDs.
      */
-    public final List<String> registeredAssetIds() {
-        return getCurrentlyRegistered().values().stream()
-                .map(Asset::getId)
+    public final List<Map.Entry<String, String>> registeredAssetIds() {
+        return getCurrentlyRegistered().entrySet()
+                .stream().map(entry -> Map.entry(ReferenceHelper.asString(entry.getKey().referredElement()), entry.getValue().getId()))
                 .toList();
     }
 

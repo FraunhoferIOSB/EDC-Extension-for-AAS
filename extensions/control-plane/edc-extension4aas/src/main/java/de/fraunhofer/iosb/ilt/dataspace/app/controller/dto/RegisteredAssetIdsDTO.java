@@ -15,12 +15,14 @@
  */
 package de.fraunhofer.iosb.ilt.dataspace.app.controller.dto;
 
+import java.net.URI;
 import java.util.List;
+import java.util.Map;
 
 
 /**
- * A list of IDs of assets that were created during the process of registering an AAS server.
+ * A list of references and asset ids for assets that were created during the process of registering an AAS server.
  *
- * @param registeredAssetIds The asset IDs.
+ * @param registeredAssets The asset IDs.
  */
-public record RegisteredAssetIdsDTO(List<String> registeredAssetIds) {}
+public record RegisteredAssetIdsDTO(URI aasRepositoryUrl, List<Map.Entry<String, String>> registeredAssets) {}

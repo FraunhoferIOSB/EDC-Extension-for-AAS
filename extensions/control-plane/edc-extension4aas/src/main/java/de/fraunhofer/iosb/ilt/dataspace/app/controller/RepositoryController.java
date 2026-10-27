@@ -21,6 +21,8 @@ import de.fraunhofer.iosb.ilt.dataspace.app.controller.dto.RemoteAasRepositoryCo
 import de.fraunhofer.iosb.ilt.dataspace.app.executor.VariableRateScheduler;
 import de.fraunhofer.iosb.ilt.dataspace.app.handler.RemoteHandler;
 import de.fraunhofer.iosb.ilt.dataspace.app.handler.aas.AasHandler;
+import de.fraunhofer.iosb.ilt.dataspace.app.handler.aas.RemoteAasHandler;
+import de.fraunhofer.iosb.ilt.dataspace.app.handler.aas.repository.AasRepositoryHandler;
 import de.fraunhofer.iosb.ilt.dataspace.app.handler.aas.repository.event.EventDrivenRepositoryHandler;
 import de.fraunhofer.iosb.ilt.dataspace.app.handler.aas.repository.event.impl.LocalFaaastRepositoryHandler;
 import de.fraunhofer.iosb.ilt.dataspace.app.handler.aas.repository.period.impl.RemoteAasRepositoryHandler;
@@ -35,11 +37,16 @@ import de.fraunhofer.iosb.ilt.faaast.client.exception.ConnectivityException;
 import de.fraunhofer.iosb.ilt.faaast.client.exception.ForbiddenException;
 import de.fraunhofer.iosb.ilt.faaast.client.exception.StatusCodeException;
 import de.fraunhofer.iosb.ilt.faaast.client.exception.UnauthorizedException;
+import de.fraunhofer.iosb.ilt.faaast.service.util.EncodingHelper;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
 import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.PATCH;
 import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.WebApplicationException;
@@ -65,8 +72,9 @@ import static jakarta.ws.rs.core.MediaType.TEXT_PLAIN;
 @Path("/")
 public class RepositoryController extends AbstractAasServerController {
 
-    private static final String LOCAL_REPOSITORY_PATH = "repository/local";
-    private static final String REMOTE_REPOSITORY_PATH = "repository/remote";
+    private static final String REPOSITORY_PATH = "repository";
+    private static final String LOCAL_REPOSITORY_PATH = REPOSITORY_PATH + "/local";
+    private static final String REMOTE_REPOSITORY_PATH = REPOSITORY_PATH + "/remote";
 
     private final AasRepositoryManager<FaaastRepositoryConfig> aasRepositoryManager;
 
@@ -95,13 +103,13 @@ public class RepositoryController extends AbstractAasServerController {
      * Starts a FA³ST service internally and registers it to the EDC.
      *
      * @param localRepositoryDTO Request DTO containing environment path, port and config path
-     * @return the URI of the started local FA³ST repository.
+     * @return the registered AAS elements and their EDC asset counterparts.
      * @throws WebApplicationException malformed request
      */
     @POST
     @Path(LOCAL_REPOSITORY_PATH)
     @Produces(TEXT_PLAIN)
-    public URI register(LocalRepositoryDTO localRepositoryDTO) {
+    public RegisteredAssetIdsDTO register(LocalRepositoryDTO localRepositoryDTO) {
         monitor.debug(String.format("Starting FA³ST repository with model file at %s.", localRepositoryDTO.modelPath()));
         FaaastRepositoryConfig config = localRepositoryDTO.asConfig();
 
@@ -122,7 +130,7 @@ public class RepositoryController extends AbstractAasServerController {
 
         aasServerStore.put(context.getUri(), handler);
 
-        return context.getUri();
+        return new RegisteredAssetIdsDTO(context.getUri(), handler.registeredAssetIds());
     }
 
 
@@ -130,7 +138,7 @@ public class RepositoryController extends AbstractAasServerController {
      * Register an AAS service at the EDC.
      *
      * @param remoteAasRepositoryContextDTO remoteRepositoryDTO
-     * @return the URI of the registered remote AAS repository.
+     * @return the registered AAS elements and their EDC asset counterparts.
      * @throws WebApplicationException malformed request
      */
     @POST
@@ -159,7 +167,83 @@ public class RepositoryController extends AbstractAasServerController {
         aasServerStore.put(context.getUri(), handler);
         scheduler.addRunnable(handler);
 
-        return new RegisteredAssetIdsDTO(handler.registeredAssetIds());
+        return new RegisteredAssetIdsDTO(context.getUri(), handler.registeredAssetIds());
+    }
+
+
+    /**
+     * Find registered assets for a registered AAS repository.
+     *
+     * @param aasRepositoryUrlB64Encoded The base64-urlencoded url of the registered url
+     * @return the registered AAS elements and their EDC asset counterparts.
+     * @throws NotFoundException if the URL was not found.
+     */
+    @GET
+    @Path(REPOSITORY_PATH + "/{url}")
+    public RegisteredAssetIdsDTO findByUrl(@PathParam("url") String aasRepositoryUrlB64Encoded) {
+        String uriString = EncodingHelper.base64UrlDecode(aasRepositoryUrlB64Encoded);
+        monitor.debug(String.format("Getting AAS repository for URL %s.", EncodingHelper.base64UrlDecode(aasRepositoryUrlB64Encoded)));
+
+        URI uri = URI.create(uriString);
+
+        if (!aasServerStore.isStored(uri)) {
+            throw new NotFoundException("AAS Repository with url %s not found in registered AAS repositories");
+        }
+
+        return aasServerStore.get(uri)
+                .filter(RemoteAasHandler.class::isInstance)
+                .map(h -> new RegisteredAssetIdsDTO(uri, h.registeredAssetIds()))
+                .orElseThrow(() -> new NotFoundException("AAS Repository with url %s not found in registered AAS repositories"));
+    }
+
+
+    /**
+     * Update the to-register assets of a registered repository.
+     *
+     * @param remoteAasRepositoryContextDTO remoteRepositoryDTO
+     * @return "No Content" if the operation was successful.
+     * @throws NotFoundException if the URL was not found.
+     */
+    @PUT
+    @Path(REPOSITORY_PATH)
+    public Response updateRegisteredRepository(RemoteAasRepositoryContextDTO remoteAasRepositoryContextDTO) {
+        monitor.debug(String.format("Updating registered AAS repository with URL %s.", remoteAasRepositoryContextDTO.url()));
+
+        if (!aasServerStore.isStored(remoteAasRepositoryContextDTO.url())) {
+            throw new NotFoundException("AAS Repository with url %s not found in registered AAS repositories.");
+        }
+
+        aasServerStore.get(remoteAasRepositoryContextDTO.url())
+                .filter(h -> h instanceof RemoteAasHandler<?, ?> || h instanceof AasRepositoryHandler<?, ?>)
+                .orElseThrow(() -> new NotFoundException("AAS Repository with url %s not found in registered AAS repositories"))
+                .updatePolicyBindings(remoteAasRepositoryContextDTO.policyBindings());
+
+        return Response.noContent().build();
+    }
+
+
+    /**
+     * Update the to-register assets of a registered repository. Does not remove existing bindings.
+     *
+     * @param remoteAasRepositoryContextDTO remoteRepositoryDTO
+     * @return "No Content" if the operation was successful.
+     * @throws NotFoundException if the URL was not found.
+     */
+    @PATCH
+    @Path(REPOSITORY_PATH)
+    public Response patchRegisteredRepository(RemoteAasRepositoryContextDTO remoteAasRepositoryContextDTO) {
+        monitor.debug(String.format("Patching registered AAS repository with URL %s.", remoteAasRepositoryContextDTO.url()));
+
+        if (!aasServerStore.isStored(remoteAasRepositoryContextDTO.url())) {
+            throw new NotFoundException("AAS Repository with url %s not found in registered AAS repositories.");
+        }
+
+        aasServerStore.get(remoteAasRepositoryContextDTO.url())
+                .filter(h -> h instanceof RemoteAasHandler<?, ?> || h instanceof AasRepositoryHandler<?, ?>)
+                .orElseThrow(() -> new NotFoundException("An AAS Repository with url %s was not found."))
+                .patchPolicyBindings(remoteAasRepositoryContextDTO.policyBindings());
+
+        return Response.noContent().build();
     }
 
 
@@ -216,7 +300,7 @@ public class RepositoryController extends AbstractAasServerController {
     @Deprecated(since = "2.3.0")
     public URI start(LocalRepositoryDTO request) {
         monitor.warning(String.format("/environment is deprecated, please use POST %s", LOCAL_REPOSITORY_PATH));
-        return register(request);
+        return register(request).aasRepositoryUrl();
     }
 
 

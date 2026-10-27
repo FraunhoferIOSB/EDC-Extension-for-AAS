@@ -25,5 +25,4 @@ import java.util.Map;
  *
  * @param registeredAssets The asset IDs.
  */
-public record RegisteredAssetIdsDTO(URI aasRepositoryUrl, List<Map.Entry<String, String>> registeredAssets) {
-}
+public record RegisteredAssetIdsDTO(URI aasRepositoryUrl, List<Map.Entry<String, String>> registeredAssets) {}

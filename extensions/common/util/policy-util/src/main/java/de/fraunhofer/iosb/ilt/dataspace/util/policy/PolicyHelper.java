@@ -21,7 +21,6 @@ import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionS
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.StoreResult;
 
@@ -29,8 +28,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import static de.fraunhofer.iosb.ilt.dataspace.constants.AasConstants.DEFAULT_ACCESS_POLICY_DEFINITION_ID;
-import static de.fraunhofer.iosb.ilt.dataspace.constants.AasConstants.DEFAULT_USAGE_POLICY_DEFINITION_ID;
+import static de.fraunhofer.iosb.ilt.dataspace.constants.AasConstants.DEFAULT_POLICY_DEFINITION_ID;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_USE_ACTION_ATTRIBUTE;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.ALREADY_EXISTS;
 
@@ -45,46 +43,30 @@ public abstract class PolicyHelper {
      * Register default access and contract policies.
      *
      * @param codec Deserialize policy
-     * @param monitor monitor to log messages.
      * @param policyDefinitionStore Store implementation to register policies.
      * @param participantId Used for the default policies.
-     * @param accessPolicyPath Path to the access policy file, or null for default.
-     * @param usagePolicyPath Path to the usage policy file, or null for default.
+     * @param policyPath Path to the access policy file, or null for default.
      */
-    public static void registerDefaultPolicies(Codec codec, Monitor monitor, PolicyDefinitionStore policyDefinitionStore,
-                                               String participantId, String accessPolicyPath, String usagePolicyPath) {
+    public static void registerDefaultPolicy(Codec codec, PolicyDefinitionStore policyDefinitionStore,
+                                             String participantId, String policyPath) {
 
-        Policy defaultAccessPolicy = getPolicy(codec, monitor, participantId, accessPolicyPath);
-        Policy defaultUsagePolicy = getPolicy(codec, monitor, participantId, usagePolicyPath);
+        Policy defaultPolicy = getPolicy(codec, participantId, policyPath);
 
         var defaultAccessPolicyDefinition = PolicyDefinition.Builder.newInstance()
-                .id(DEFAULT_ACCESS_POLICY_DEFINITION_ID)
-                .policy(defaultAccessPolicy)
+                .id(DEFAULT_POLICY_DEFINITION_ID)
+                .policy(defaultPolicy)
                 .participantContextId(participantId)
                 .build();
 
-        StoreResult<PolicyDefinition> accessPolicyDefinitionStoreResult = policyDefinitionStore.create(defaultAccessPolicyDefinition);
+        StoreResult<PolicyDefinition> policyDefinitionStoreResult = policyDefinitionStore.create(defaultAccessPolicyDefinition);
 
-        if (accessPolicyDefinitionStoreResult.failed() && ALREADY_EXISTS != accessPolicyDefinitionStoreResult.reason()) {
-            throw new IllegalArgumentException(accessPolicyDefinitionStoreResult.getFailureDetail());
+        if (policyDefinitionStoreResult.failed() && ALREADY_EXISTS != policyDefinitionStoreResult.reason()) {
+            throw new IllegalArgumentException(policyDefinitionStoreResult.getFailureDetail());
         }
-
-        var defaultUsagePolicyDefinition = PolicyDefinition.Builder.newInstance()
-                .id(DEFAULT_USAGE_POLICY_DEFINITION_ID)
-                .policy(defaultUsagePolicy)
-                .participantContextId(participantId)
-                .build();
-
-        StoreResult<PolicyDefinition> usagePolicyDefinitionStoreResult = policyDefinitionStore.create(defaultUsagePolicyDefinition);
-
-        if (usagePolicyDefinitionStoreResult.failed() && ALREADY_EXISTS != usagePolicyDefinitionStoreResult.reason()) {
-            throw new IllegalArgumentException(usagePolicyDefinitionStoreResult.getFailureDetail());
-        }
-
     }
 
 
-    private static Policy getPolicy(Codec codec, Monitor monitor, String participantId, String path) {
+    private static Policy getPolicy(Codec codec, String participantId, String path) {
         Policy policy;
         if (path != null) {
             policy = getPolicyFromFile(codec, path).orElse(failure -> {

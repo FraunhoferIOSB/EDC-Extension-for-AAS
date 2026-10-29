@@ -49,7 +49,6 @@ import java.net.ConnectException;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Supplier;
 
 import static de.fraunhofer.iosb.ilt.dataspace.app.controller.SelfDescriptionController.SELF_DESCRIPTION_PATH;
@@ -129,8 +128,6 @@ public class AasExtension implements ServiceExtension {
     @Override
     public void start() {
         try {
-            PolicyHelper.registerDefaultPolicies(codec, monitor, policyDefinitionStore, participantId.get(), Configuration.getInstance().getDefaultAccessPolicyPath(),
-                    Configuration.getInstance().getDefaultContractPolicyPath());
             bootstrapRepositories();
         }
         catch (UnauthorizedException e) {
@@ -146,25 +143,29 @@ public class AasExtension implements ServiceExtension {
     private void bootstrapRepositories() throws UnauthorizedException, ConnectException {
         var configInstance = Configuration.getInstance();
 
-        if (Objects.nonNull(configInstance.getRemoteAasLocation())) {
+        if (configInstance.getRemoteAasLocation() == null && configInstance.getLocalAasModelPath() == null) {
+            return;
+        }
+
+        PolicyHelper.registerDefaultPolicy(codec, policyDefinitionStore, participantId.get(), Configuration.getInstance().getDefaultPolicyPath());
+
+        if (configInstance.getRemoteAasLocation() != null) {
             var remoteRepositoryDto = new RemoteAasRepositoryContextDTO(configInstance.getRemoteAasLocation());
             var assetIds = repositoryController.register(remoteRepositoryDto);
             monitor.debug(String.format("Registered AAS repository with url %s, asset IDs: [%s]", remoteRepositoryDto.url(), assetIds));
         }
 
-        if (Objects.isNull(configInstance.getLocalAasModelPath()) && Objects.isNull(configInstance.getAasServiceConfigPath())) {
-            return;
+        if (configInstance.getLocalAasModelPath() != null) {
+            var localRepositoryDto = new LocalRepositoryDTO(
+                    configInstance.getLocalAasModelPath(),
+                    configInstance.getLocalAasServicePort(),
+                    configInstance.getAasServiceConfigPath(),
+                    List.of(),
+                    configInstance.onlySubmodels() || Configuration.getInstance().isHercules());
+
+            URI serviceUri = repositoryController.register(localRepositoryDto).aasRepositoryUrl();
+            monitor.debug(String.format("Started FA³ST service with url %s", serviceUri));
         }
-
-        var localRepositoryDto = new LocalRepositoryDTO(
-                configInstance.getLocalAasModelPath(),
-                configInstance.getLocalAasServicePort(),
-                configInstance.getAasServiceConfigPath(),
-                List.of(),
-                configInstance.onlySubmodels() || Configuration.getInstance().isHercules());
-
-        URI serviceUri = repositoryController.register(localRepositoryDto).aasRepositoryUrl();
-        monitor.debug(String.format("Started FA³ST service with url %s", serviceUri));
     }
 
 

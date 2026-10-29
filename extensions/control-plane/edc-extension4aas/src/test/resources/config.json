@@ -5,6 +5,5 @@
   "edc.aas.localaasserviceconfigpath": "/test/path/to/setAasServiceConfigPath",
   "edc.aas.syncperiod": 123456,
   "edc.aas.exposeselfdescription": false,
-  "edc.aas.defaultaccesspolicypath": "/test/path/to/defaultAccessPolicyPath",
-  "edc.aas.defaultcontractpolicypath": "test/path/to/defaultContractPolicyPath"
+  "edc.aas.defaultaccesspolicypath": "/test/path/to/defaultAccessPolicyPath"
 }

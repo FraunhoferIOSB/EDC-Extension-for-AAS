@@ -16,7 +16,6 @@
 package de.fraunhofer.iosb.ilt.dataspace.constants;
 
 import java.util.Set;
-import java.util.UUID;
 
 
 /** Constants for AAS-related configuration and default values. */
@@ -32,9 +31,7 @@ public interface AasConstants {
     String EDC_SETTINGS_PREFIX = "edc.aas";
 
     /** Default access policy definition ID generated at startup. */
-    String DEFAULT_ACCESS_POLICY_DEFINITION_ID = UUID.randomUUID().toString();
-    /** Default usage policy definition ID generated at startup. */
-    String DEFAULT_USAGE_POLICY_DEFINITION_ID = UUID.randomUUID().toString();
+    String DEFAULT_POLICY_DEFINITION_ID = "allow_all_use";
 
     /**
      * The fields in this set are added as additional metadata in the catalog and self-description, unless configured

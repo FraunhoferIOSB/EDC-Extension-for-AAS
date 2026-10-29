@@ -24,8 +24,7 @@ import org.eclipse.digitaltwin.aas4j.v3.model.Reference;
 import java.util.Map;
 import java.util.Objects;
 
-import static de.fraunhofer.iosb.ilt.dataspace.constants.AasConstants.DEFAULT_ACCESS_POLICY_DEFINITION_ID;
-import static de.fraunhofer.iosb.ilt.dataspace.constants.AasConstants.DEFAULT_USAGE_POLICY_DEFINITION_ID;
+import static de.fraunhofer.iosb.ilt.dataspace.constants.AasConstants.DEFAULT_POLICY_DEFINITION_ID;
 
 
 /**
@@ -96,7 +95,7 @@ public record PolicyBinding(Reference referredElement, @JsonProperty("accessPoli
      * @return a new PolicyBinding with default policy IDs.
      */
     public static PolicyBinding ofDefaults(Reference reference) {
-        return new PolicyBinding(reference, DEFAULT_ACCESS_POLICY_DEFINITION_ID, DEFAULT_USAGE_POLICY_DEFINITION_ID, Map.of());
+        return new PolicyBinding(reference, DEFAULT_POLICY_DEFINITION_ID, DEFAULT_POLICY_DEFINITION_ID, Map.of());
     }
 
 

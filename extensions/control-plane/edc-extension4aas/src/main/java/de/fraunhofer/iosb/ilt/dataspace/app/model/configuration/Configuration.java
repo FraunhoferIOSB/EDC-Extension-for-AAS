@@ -54,9 +54,7 @@ public class Configuration {
     @JsonProperty(SETTINGS_PREFIX + "localAASServiceConfigPath")
     private String aasServiceConfigPath;
     @JsonProperty(SETTINGS_PREFIX + "defaultAccessPolicyPath")
-    private String defaultAccessPolicyPath;
-    @JsonProperty(SETTINGS_PREFIX + "defaultContractPolicyPath")
-    private String defaultContractPolicyPath;
+    private String defaultPolicyPath;
     @JsonProperty(SETTINGS_PREFIX + "useAasDataPlane")
     private boolean useAasDataPlane = true;
     @JsonProperty(SETTINGS_PREFIX + "exposedFields")
@@ -153,18 +151,8 @@ public class Configuration {
      *
      * @return The default access policy path.
      */
-    public String getDefaultAccessPolicyPath() {
-        return defaultAccessPolicyPath;
-    }
-
-
-    /**
-     * Returns the default contract policy path.
-     *
-     * @return The default contract policy path.
-     */
-    public String getDefaultContractPolicyPath() {
-        return defaultContractPolicyPath;
+    public String getDefaultPolicyPath() {
+        return defaultPolicyPath;
     }
 
 

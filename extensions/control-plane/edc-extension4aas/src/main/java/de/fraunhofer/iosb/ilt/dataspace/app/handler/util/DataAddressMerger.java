@@ -19,6 +19,8 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 
 import java.util.Map;
 
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
+
 
 /**
  * Merges {@link DataAddress} properties, letting binding-provided properties override the base ones on key conflict.
@@ -32,8 +34,9 @@ public final class DataAddressMerger {
 
     /**
      * Returns a new {@link DataAddress} carrying all properties of the base address, with the given override properties
-     * applied on top (override wins on key conflict). The address {@code type} is preserved from the base address. If the
-     * override map is null or empty, the base address is returned unchanged.
+     * applied on top (override wins on key conflict). The address
+     * {@code type} is preserved from the base address. If the override map is null or empty, the base address is returned
+     * unchanged.
      *
      * @param base The base data address.
      * @param override Properties to apply on top of the base (nullable).
@@ -45,7 +48,7 @@ public final class DataAddressMerger {
         }
         var builder = DataAddress.Builder.newInstance().type(base.getType());
         base.getProperties().forEach((key, value) -> builder.property(key, String.valueOf(value)));
-        override.forEach(builder::property);
+        override.forEach((key, value) -> builder.property(!key.startsWith(EDC_NAMESPACE) ? EDC_NAMESPACE + key : key, value));
         return builder.build();
     }
 }

@@ -49,6 +49,7 @@ import org.eclipse.edc.transform.transformer.edc.to.JsonValueToGenericTypeTransf
 import java.util.Map;
 import java.util.Objects;
 
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 
@@ -79,6 +80,7 @@ public class CodecExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
+        jsonLd.registerNamespace("@vocab", EDC_NAMESPACE);
         registerTransformers();
     }
 

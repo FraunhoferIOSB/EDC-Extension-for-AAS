@@ -21,8 +21,8 @@ import de.fraunhofer.iosb.ilt.dataspace.app.handler.edc.EdcStoreHandler;
 import de.fraunhofer.iosb.ilt.dataspace.app.testutils.MockServerTestExtension;
 import de.fraunhofer.iosb.ilt.faaast.client.exception.ConnectivityException;
 import de.fraunhofer.iosb.ilt.faaast.client.exception.StatusCodeException;
-import de.fraunhofer.iosb.ilt.faaast.service.dataformat.SerializationException;
 import de.fraunhofer.iosb.ilt.faaast.service.model.exception.UnsupportedModifierException;
+import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.SerializationException;
 import org.eclipse.digitaltwin.aas4j.v3.model.AssetAdministrationShellDescriptor;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
 import org.eclipse.edc.spi.security.Vault;
@@ -54,8 +54,8 @@ public class RegistryControllerIT extends AbstractAasServerControllerIT<Registry
 
     @Test
     void test_register_singleShellDescriptorIncludingASubmodelDescriptor()
-            throws UnsupportedModifierException, de.fraunhofer.iosb.ilt.faaast.service.dataformat.SerializationException,
-            StatusCodeException, ConnectivityException {
+            throws UnsupportedModifierException,
+            StatusCodeException, ConnectivityException, org.eclipse.digitaltwin.aas4j.v3.dataformat.core.SerializationException {
         AssetAdministrationShellDescriptor shellDescriptor = getShellDescriptor();
 
         mockResponse(MockServerTestExtension.Method.GET, String.format("/%s", "shell-descriptors"), asPage(List.of(shellDescriptor)), 200);
@@ -113,12 +113,12 @@ public class RegistryControllerIT extends AbstractAasServerControllerIT<Registry
     }
 
 
-    private void mockEmptyShellDescriptorRequest() throws SerializationException, UnsupportedModifierException {
+    private void mockEmptyShellDescriptorRequest() throws SerializationException {
         mockResponse(Method.GET, String.format("/%s", "shell-descriptors"), emptyPage(), 200);
     }
 
 
-    private void mockEmptySubmodelDescriptorRequest() throws de.fraunhofer.iosb.ilt.faaast.service.dataformat.SerializationException, UnsupportedModifierException {
+    private void mockEmptySubmodelDescriptorRequest() throws SerializationException, UnsupportedModifierException {
         mockResponse(Method.GET, String.format("/%s", "submodel-descriptors"), emptyPage(), 200);
     }
 

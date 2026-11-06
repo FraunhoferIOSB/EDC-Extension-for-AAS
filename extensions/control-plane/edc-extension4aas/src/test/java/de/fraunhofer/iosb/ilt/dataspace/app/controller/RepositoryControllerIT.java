@@ -19,8 +19,7 @@ import de.fraunhofer.iosb.ilt.dataspace.app.controller.dto.RemoteAasRepositoryCo
 import de.fraunhofer.iosb.ilt.dataspace.app.handler.edc.EdcStoreHandler;
 import de.fraunhofer.iosb.ilt.faaast.client.exception.ConnectivityException;
 import de.fraunhofer.iosb.ilt.faaast.client.exception.StatusCodeException;
-import de.fraunhofer.iosb.ilt.faaast.service.dataformat.SerializationException;
-import de.fraunhofer.iosb.ilt.faaast.service.model.exception.UnsupportedModifierException;
+import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.SerializationException;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
@@ -50,7 +49,7 @@ public class RepositoryControllerIT extends AbstractAasServerControllerIT<Reposi
 
 
     @Test
-    void test_registerRepository_emptyEnvironmentNoFailure() throws SerializationException, UnsupportedModifierException, StatusCodeException, ConnectivityException {
+    void test_registerRepository_emptyEnvironmentNoFailure() throws SerializationException, StatusCodeException, ConnectivityException {
         mockEmptyShellRequest();
         mockEmptySubmodelRequest();
         mockEmptyConceptDescriptionRequest();
@@ -70,7 +69,7 @@ public class RepositoryControllerIT extends AbstractAasServerControllerIT<Reposi
 
 
     @Test
-    void test_registerRepository_filledEnvironmentAllRegistered() throws SerializationException, UnsupportedModifierException, StatusCodeException, ConnectivityException {
+    void test_registerRepository_filledEnvironmentAllRegistered() throws SerializationException, StatusCodeException, ConnectivityException {
         Environment environment = getEnvironment();
 
         mockResponse(Method.GET, "/shells", asPage(environment.getAssetAdministrationShells()), 200);
@@ -97,7 +96,7 @@ public class RepositoryControllerIT extends AbstractAasServerControllerIT<Reposi
 
 
     @Test
-    void test_registerRepository_emtpyEnvironmentNoFault() throws SerializationException, UnsupportedModifierException, StatusCodeException, ConnectivityException {
+    void test_registerRepository_emtpyEnvironmentNoFault() throws SerializationException, StatusCodeException, ConnectivityException {
         Environment environment = getEmptyEnvironment();
 
         mockResponse(Method.GET, "/environment", getEmptyEnvironment(), 200);
@@ -131,17 +130,17 @@ public class RepositoryControllerIT extends AbstractAasServerControllerIT<Reposi
     }
 
 
-    private void mockEmptyShellRequest() throws SerializationException, UnsupportedModifierException {
+    private void mockEmptyShellRequest() throws SerializationException {
         mockResponse(Method.GET, "/shells", emptyPage(), 200);
     }
 
 
-    private void mockEmptySubmodelRequest() throws SerializationException, UnsupportedModifierException {
+    private void mockEmptySubmodelRequest() throws SerializationException {
         mockResponse(Method.GET, "/submodels", emptyPage(), 200);
     }
 
 
-    private void mockEmptyConceptDescriptionRequest() throws SerializationException, UnsupportedModifierException {
+    private void mockEmptyConceptDescriptionRequest() throws SerializationException {
         mockResponse(Method.GET, "/concept-descriptions", emptyPage(), 200);
     }
 

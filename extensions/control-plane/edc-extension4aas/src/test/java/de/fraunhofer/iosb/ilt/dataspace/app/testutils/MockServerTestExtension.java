@@ -17,11 +17,11 @@ package de.fraunhofer.iosb.ilt.dataspace.app.testutils;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
-import de.fraunhofer.iosb.ilt.faaast.service.dataformat.SerializationException;
-import de.fraunhofer.iosb.ilt.faaast.service.dataformat.json.JsonApiSerializer;
-import de.fraunhofer.iosb.ilt.faaast.service.model.exception.UnsupportedModifierException;
+import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.SerializationException;
+import org.eclipse.digitaltwin.aas4j.v3.dataformat.json.JsonSerializer;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.net.URI;
@@ -38,16 +38,12 @@ public class MockServerTestExtension {
             .options(wireMockConfig().dynamicPort())
             .build();
     protected final Monitor monitor = new ConsoleMonitor().withPrefix("test");
-    private final JsonApiSerializer jsonApiSerializer = new JsonApiSerializer();
-
 
     protected static URI getUri() {
         return URI.create(server.baseUrl());
     }
 
-
-    protected void mockResponse(Method method, String requestPath, Object responseBody, int responseStatus) throws SerializationException,
-            UnsupportedModifierException {
+    protected void mockResponse(Method method, String requestPath, Object responseBody, int responseStatus) throws SerializationException {
         switch (method) {
             case GET -> mockGetResponse(requestPath, responseBody, responseStatus);
             case PUT -> mockPutResponse(requestPath, responseBody, responseStatus);
@@ -58,26 +54,21 @@ public class MockServerTestExtension {
         }
     }
 
-
-    private void mockGetResponse(String requestPath, Object responseBody, int responseStatus) throws SerializationException,
-            UnsupportedModifierException {
+    private void mockGetResponse(String requestPath, Object responseBody, int responseStatus) throws SerializationException {
         server.stubFor(WireMock.get(urlPathEqualTo(requestPath))
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
-                        .withBody(jsonApiSerializer.write(responseBody))
+                        .withBody(new Result(responseBody).toString())
                         .withStatus(responseStatus)));
     }
 
-
-    private void mockPutResponse(String requestPath, Object responseBody, int responseStatus) throws SerializationException,
-            UnsupportedModifierException {
+    private void mockPutResponse(String requestPath, Object responseBody, int responseStatus) throws SerializationException {
         server.stubFor(WireMock.put(urlPathEqualTo(requestPath))
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
-                        .withBody(jsonApiSerializer.write(responseBody))
+                        .withBody(new Result(responseBody).toString())
                         .withStatus(responseStatus)));
     }
-
 
     private void mockDeleteResponse(String requestPath, int responseStatus) {
         server.stubFor(WireMock.delete(urlPathEqualTo(requestPath))
@@ -85,14 +76,30 @@ public class MockServerTestExtension {
                         .withStatus(responseStatus)));
     }
 
-
-    private void mockPostResponse(String requestPath, Object responseBody, int responseStatus) throws SerializationException,
-            UnsupportedModifierException {
+    private void mockPostResponse(String requestPath, Object responseBody, int responseStatus) throws SerializationException {
         server.stubFor(WireMock.post(urlPathEqualTo(requestPath))
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
-                        .withBody(jsonApiSerializer.write(responseBody))
+                        .withBody(new Result(responseBody).toString())
                         .withStatus(responseStatus)));
+    }
+
+    private String wrapInResult(String toWrap) {
+        return String.format("{\"result\":[%s],\"pagingMetadata\"}", toWrap);
+    }
+
+    private record Result(Object object) {
+        private static final JsonSerializer jsonSerializer = new JsonSerializer();
+
+        @Override
+        public @NotNull String toString() {
+            try {
+                return String.format("{\"result\":[%s],\"paging_metadata\":{}}", jsonSerializer.write(object));
+            }
+            catch (SerializationException e) {
+                throw new RuntimeException(String.format("Could not serialize %s", object), e);
+            }
+        }
     }
 
 

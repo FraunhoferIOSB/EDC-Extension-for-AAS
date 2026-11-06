@@ -19,9 +19,9 @@ import de.fraunhofer.iosb.ilt.dataspace.app.handler.aas.repository.AasRepository
 import de.fraunhofer.iosb.ilt.dataspace.app.model.configuration.Configuration;
 import de.fraunhofer.iosb.ilt.faaast.client.exception.ConnectivityException;
 import de.fraunhofer.iosb.ilt.faaast.client.exception.StatusCodeException;
-import de.fraunhofer.iosb.ilt.faaast.service.dataformat.SerializationException;
 import de.fraunhofer.iosb.ilt.faaast.service.model.exception.UnsupportedModifierException;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.DeserializationException;
+import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.SerializationException;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.json.JsonDeserializer;
 import org.eclipse.digitaltwin.aas4j.v3.model.Environment;
 import org.junit.jupiter.api.Test;
@@ -36,7 +36,7 @@ public class SelfDescriptionControllerIT extends AbstractAasServerControllerIT<S
 
     @Test
     public void getSelfDescription_noExposedFields_shouldNotBeEmpty()
-            throws SerializationException, UnsupportedModifierException, DeserializationException, StatusCodeException, ConnectivityException {
+            throws SerializationException, DeserializationException, StatusCodeException, ConnectivityException {
         Environment environment = getEnvironment();
 
         mockResponse(Method.GET, "/shells", asPage(environment.getAssetAdministrationShells()), 200);

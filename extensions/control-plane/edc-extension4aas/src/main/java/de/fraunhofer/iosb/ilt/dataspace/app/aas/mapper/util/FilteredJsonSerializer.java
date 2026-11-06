@@ -16,25 +16,26 @@
 package de.fraunhofer.iosb.ilt.dataspace.app.aas.mapper.util;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.BeanDescription;
-import com.fasterxml.jackson.databind.PropertyName;
-import com.fasterxml.jackson.databind.SerializationConfig;
-import com.fasterxml.jackson.databind.introspect.Annotated;
-import com.fasterxml.jackson.databind.introspect.AnnotatedMember;
-import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
-import com.fasterxml.jackson.databind.ser.BeanSerializerModifier;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.core.SerializationException;
 import org.eclipse.digitaltwin.aas4j.v3.dataformat.json.JsonSerializer;
 import org.eclipse.digitaltwin.aas4j.v3.model.annotations.IRI;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.BeanDescription;
+import tools.jackson.databind.PropertyName;
+import tools.jackson.databind.SerializationConfig;
+import tools.jackson.databind.cfg.MapperConfig;
+import tools.jackson.databind.introspect.Annotated;
+import tools.jackson.databind.introspect.AnnotatedMember;
+import tools.jackson.databind.introspect.JacksonAnnotationIntrospector;
+import tools.jackson.databind.module.SimpleModule;
+import tools.jackson.databind.ser.BeanPropertyWriter;
+import tools.jackson.databind.ser.ValueSerializerModifier;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.fasterxml.jackson.annotation.JsonInclude.Value.construct;
 import static de.fraunhofer.iosb.ilt.dataspace.constants.AasConstants.AAS_V31_NAMESPACE;
 
 
@@ -44,14 +45,24 @@ import static de.fraunhofer.iosb.ilt.dataspace.constants.AasConstants.AAS_V31_NA
 public class FilteredJsonSerializer extends JsonSerializer {
     private static final TypeReference<Map<String, Object>> JSON_MAP_TYPE_REF = new TypeReference<>() {};
 
-
     /**
      * Constructor of class
      */
     public FilteredJsonSerializer() {
-        mapper.setDefaultPropertyInclusion(JsonInclude.Value.construct(JsonInclude.Include.NON_EMPTY, // drop empty lists/maps/arrays and empty strings
-                JsonInclude.Include.NON_NULL // optional: drop null elements inside containers
-        ));
+        super();
+        Class<?> type = JsonSerializer.class;
+
+        System.out.println("Loaded from: "
+                + type.getProtectionDomain().getCodeSource().getLocation());
+
+        for (var field: type.getDeclaredFields()) {
+            System.out.println(field.getName() + ": " + field.getType().getName());
+        }
+
+        mapper = mapper.rebuild()
+                // drop empty lists/maps/arrays,empty strings, null elements
+                .changeDefaultPropertyInclusion(inclusion -> construct(JsonInclude.Include.NON_EMPTY, JsonInclude.Include.NON_NULL))
+                .build();
     }
 
 
@@ -65,14 +76,14 @@ public class FilteredJsonSerializer extends JsonSerializer {
      */
     public String write(Object aasInstance, Set<String> allowedFields) throws SerializationException {
         // Store copy of unmodified mapper
-        JsonMapper mapperCopy = mapper.copy();
+        var mapperRebuilder = mapper.rebuild();
         try {
-            mapper.registerModule(moduleFor(allowedFields));
+            mapperRebuilder.addModule(moduleFor(allowedFields));
             return super.write(aasInstance);
         }
         finally {
             // Be sure to not keep modified mapper
-            mapper = mapperCopy;
+            mapper = mapperRebuilder.build();
         }
     }
 
@@ -86,9 +97,10 @@ public class FilteredJsonSerializer extends JsonSerializer {
      * @return the filtered map representation
      */
     public Map<String, Object> toMap(Object aasInstance, Set<String> allowedFields) {
-        return mapper.copy()
-                .setAnnotationIntrospector(new NamespacingIntrospector())
-                .registerModule(moduleFor(allowedFields))
+        return mapper.rebuild()
+                .annotationIntrospector(new NamespacingIntrospector())
+                .addModule(moduleFor(allowedFields))
+                .build()
                 .convertValue(aasInstance, JSON_MAP_TYPE_REF);
     }
 
@@ -100,9 +112,9 @@ public class FilteredJsonSerializer extends JsonSerializer {
 
         SimpleModule module = new SimpleModule();
         // Ignore fields that should not be exposed in the self-description / catalog
-        module.setSerializerModifier(new BeanSerializerModifier() {
+        module.setSerializerModifier(new ValueSerializerModifier() {
             @Override
-            public List<BeanPropertyWriter> changeProperties(SerializationConfig config, BeanDescription beanDesc, List<BeanPropertyWriter> beanProperties) {
+            public List<BeanPropertyWriter> changeProperties(SerializationConfig config, BeanDescription.Supplier beanDesc, List<BeanPropertyWriter> beanProperties) {
                 return beanProperties.stream()
                         .filter(w -> {
                             String iri = getIriValue(w);
@@ -126,16 +138,15 @@ public class FilteredJsonSerializer extends JsonSerializer {
         return module;
     }
 
-
     private static class NamespacingIntrospector extends JacksonAnnotationIntrospector {
 
         @Override
-        public PropertyName findNameForSerialization(Annotated a) {
+        public PropertyName findNameForSerialization(MapperConfig<?> config, Annotated a) {
             IRI iri = a.getAnnotation(IRI.class);
             if (iri != null && iri.value().length > 0) {
                 return PropertyName.construct(iri.value()[0]);
             }
-            return super.findNameForSerialization(a);
+            return super.findNameForSerialization(config, a);
         }
     }
 }

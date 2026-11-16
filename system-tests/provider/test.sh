@@ -83,17 +83,24 @@ agreement_id=$(echo "$resp" | jq -r '.contractAgreementId')
 echo "Agreement achieved: $agreement_id" >&2
 
 ################################ Step 6.4: Using client extension, get data from agreement directly as response to check if data transfer works ################################
+pull_request_dto="$(envsubst < system-tests/resources/request_data/pull_request_dto.json)"
 
-received_data=$(curl \
+echo "$pull_request_dto"
+
+edr=$(curl \
   --silent \
   --show-error \
   --request POST \
-  --url "http://localhost:23337/api/automated/transfer?providerUrl=http%3A%2F%2Flocalhost%3A13340%2Fdsp%2F2025-1&agreementId=$agreement_id" \
+  --url "http://localhost:23337/api/v1/dspclient/negotiate?starttransfer=true" \
+  --data "$pull_request_dto" \
   --header "x-api-key: password" \
-  --header "Content-Type: application/json" \
-  | jq -S -r)
+  --header "Content-Type: application/json")
 
-should_be_data=$(< system-tests/resources/aas.json jq -S -r '.conceptDescriptions[0]')
+mkdir -p logs
+printf '%s\n' "$edr" > logs/edr.log
+
+received_data=$(printf '%s\n' "$edr" | jq -S -r '.')
+should_be_data=$(jq -S -r '.conceptDescriptions[0]' system-tests/resources/edr.json)
 
 diff -w <(echo "$received_data") <(echo "$should_be_data") > /dev/null
 

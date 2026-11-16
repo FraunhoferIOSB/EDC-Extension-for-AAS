@@ -52,7 +52,7 @@ Interfaces, dependencies and configuration variables are defined in the respecti
 
 [AAS Extension](./extensions/control-plane/edc-extension4aas/README.md)
 
-[Client Extension](./extensions/control-plane/client/README.md)
+[DSP Client Extension](extensions/control-plane/dsp-client/README.md)
 
 [Public API Management Extension](./extensions/control-plane/public-api-management/README.md)
 

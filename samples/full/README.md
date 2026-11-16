@@ -102,7 +102,7 @@ __Important__:
 - If the (consumer's) config value `edc.client.acceptAllProviderOffers` is set to `false` (default): This command
   will request the provider's offered policy for the asset and check it against its own accepted policyDefinitions by
   comparing the permissions, prohibitions and obligations of both the provider's policyDefinition and the ones in the
-  policyDefinitionStore. The assetID or other IDs must not be equal for the policyDefinitions to match. Initially, this
+  acceptedPolicyStore. The assetID or other IDs must not be equal for the policyDefinitions to match. Initially, this
   store is empty and can be filled up by the request `Client/Add accepted policyDefinition` (tip: with the
   request `EDC API/GET catalog`, policyDefinitions for all assets of the provider can be viewed and added to the
   consumer connector).

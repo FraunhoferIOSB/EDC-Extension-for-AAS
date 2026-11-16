@@ -1,0 +1,35 @@
+/*
+ * Copyright (c) 2021 Fraunhofer IOSB, eine rechtlich nicht selbstaendige
+ * Einrichtung der Fraunhofer-Gesellschaft zur Foerderung der angewandten
+ * Forschung e.V.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package de.fraunhofer.iosb.ilt.dataspace.client.dto;
+
+import java.util.Objects;
+
+
+/**
+ * DTO for a negotiation and data transfer (PULL-type) request.
+ *
+ * @param counterPartyAddress Counter-party address.
+ * @param counterPartyId Counter-party id.
+ * @param assetId Asset id.
+ */
+public record PullRequestDTO(String counterPartyAddress, String counterPartyId, String assetId, String participantContextId, String transferType) {
+    public PullRequestDTO {
+        transferType = Objects.requireNonNullElse(transferType, "ProxyHttpData");
+        Objects.requireNonNull(counterPartyId);
+        Objects.requireNonNull(counterPartyAddress);
+        Objects.requireNonNull(assetId);
+    }
+}

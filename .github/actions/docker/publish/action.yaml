@@ -35,7 +35,7 @@ runs:
     - name: Set up JDK
       uses: actions/setup-java@v5
       with:
-        java-version: '17'
+        java-version: '21'
         distribution: 'temurin'
     - name: Build project and docker image
       uses: ./.github/actions/setup/build

@@ -4,7 +4,7 @@ plugins {
 
 
 dependencies {
-    runtimeOnly("org.eclipse.tractusx.edc:json-ld-cx:0.12.1")
+    runtimeOnly(libs.tx.edc.json.ld.cx)
 
     //implementation(project(":extensions:common:aas-lib"))
     implementation(project(":extensions:repository-aas"))

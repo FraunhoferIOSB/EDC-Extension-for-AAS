@@ -10,6 +10,11 @@ val testProvider = tasks.register("testSystemProvider", Exec::class) {
     commandLine("${rootProject.projectDir}/system-tests/provider/test.sh")
 }
 
+val testProviderDockerized = tasks.register("testSystemProviderDockerized", Exec::class) {
+    description = "Execute the provider system test using docker-compose instead of local gradle runs"
+    commandLine("${rootProject.projectDir}/system-tests/provider-dockerized/test.sh")
+}
+
 val testAasDataPlane = tasks.register("testSystemAasDataPlane", Exec::class) {
     description = "Execute the AAS data plane system test"
     commandLine("${rootProject.projectDir}/system-tests/aas-data-plane/test.sh")
@@ -29,4 +34,23 @@ tasks.register("testSystem", Task::class) {
 
 tasks.check {
     dependsOn(tasks.named<JacocoReport>("testCodeCoverageReport"))
+}
+
+allprojects {
+    plugins.withType<JavaPlugin> {
+        extensions.configure<JavaPluginExtension> {
+            toolchain {
+                languageVersion.set(JavaLanguageVersion.of(21))
+            }
+        }
+    }
+    tasks.withType<JavaCompile>().configureEach {
+        options.release.set(21)
+    }
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    }
 }

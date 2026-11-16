@@ -44,7 +44,7 @@ import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DATASPACE_P
 /**
  * Automated contract negotiation
  */
-@Path("v1/" + ApiConstants.DSP_CLIENT)
+@Path("v1/" + ApiConstants.DSP_CLIENT_V1)
 public class DspClientController {
     /** Message template for missing query parameters. */
     public static final String MISSING_QUERY_PARAMETER_MESSAGE = "Missing query parameter. Required parameters: %s";

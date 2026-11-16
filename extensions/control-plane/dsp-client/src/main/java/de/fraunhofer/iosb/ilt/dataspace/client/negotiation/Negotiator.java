@@ -99,10 +99,11 @@ public class Negotiator {
             negotiation = agreementFuture.get(timeout, TimeUnit.SECONDS);
         }
         catch (TimeoutException timeoutWhileWaitingException) {
-            return ServiceResult.unexpected("Timed out while waiting for agreement", timeoutWhileWaitingException.getMessage());
+            return ServiceResult.unexpected("Timed out while waiting for agreement");
         }
         catch (InterruptedException interruptedWhileWaitingException) {
-            return ServiceResult.unexpected("Interrupted while waiting for agreement", interruptedWhileWaitingException.getMessage());
+            Thread.currentThread().interrupt();
+            return ServiceResult.unexpected("Interrupted while waiting for agreement");
         }
         catch (ExecutionException executionException) {
             return ServiceResult.unexpected("ExecutionException thrown while waiting for agreement", executionException.getMessage());

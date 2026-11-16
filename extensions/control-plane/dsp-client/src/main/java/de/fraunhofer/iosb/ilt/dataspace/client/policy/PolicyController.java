@@ -36,7 +36,7 @@ import java.util.Objects;
 import static de.fraunhofer.iosb.ilt.dataspace.client.DspClientController.MISSING_QUERY_PARAMETER_MESSAGE;
 import static de.fraunhofer.iosb.ilt.dataspace.client.DspClientController.MISSING_REQUEST_BODY_MESSAGE;
 import static de.fraunhofer.iosb.ilt.dataspace.client.constants.ApiConstants.ACCEPTED_POLICIES;
-import static de.fraunhofer.iosb.ilt.dataspace.client.constants.ApiConstants.DSP_CLIENT;
+import static de.fraunhofer.iosb.ilt.dataspace.client.constants.ApiConstants.DSP_CLIENT_V1;
 import static de.fraunhofer.iosb.ilt.dataspace.client.constants.ApiConstants.SEP;
 
 
@@ -45,7 +45,7 @@ import static de.fraunhofer.iosb.ilt.dataspace.client.constants.ApiConstants.SEP
  */
 @Consumes({ MediaType.APPLICATION_JSON })
 @Produces({ MediaType.APPLICATION_JSON })
-@Path(DSP_CLIENT + SEP + ACCEPTED_POLICIES)
+@Path(DSP_CLIENT_V1 + SEP + ACCEPTED_POLICIES)
 public class PolicyController {
 
     private final AcceptedPolicyStore acceptedPolicyStore;
@@ -97,7 +97,7 @@ public class PolicyController {
         if (Objects.isNull(policyDefinitionId)) {
             throw new InvalidRequestException(String.format(MISSING_QUERY_PARAMETER_MESSAGE, "policyDefinitionId"));
         }
-        if (acceptedPolicyStore.removePolicyDefinition(policyDefinitionId)) {
+        if (!acceptedPolicyStore.removePolicyDefinition(policyDefinitionId)) {
             throw new ObjectNotFoundException(PolicyDefinition.class, policyDefinitionId);
         }
     }

@@ -16,7 +16,7 @@
 package de.fraunhofer.iosb.ilt.dataspace.client.constants;
 
 public class ApiConstants {
-    public static final String DSP_CLIENT = "dspclient";
+    public static final String DSP_CLIENT_V1 = "v1/dspclient";
     public static final String SEP = "/";
     public static final String ACCEPTED_POLICIES = "policydefinitions/accepted";
     public static final String NEGOTIATE = "negotiate";

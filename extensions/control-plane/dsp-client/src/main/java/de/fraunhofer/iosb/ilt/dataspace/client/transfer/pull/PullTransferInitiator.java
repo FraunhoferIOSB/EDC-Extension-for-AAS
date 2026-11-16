@@ -75,15 +75,14 @@ public class PullTransferInitiator extends TransferInitiator {
             return StatusResult.success(dataAddressFuture.get(timeout, TimeUnit.SECONDS));
         }
         catch (TimeoutException timeoutException) {
-            return StatusResult.failure(ResponseStatus.ERROR_RETRY, timeoutException.getMessage());
+            return StatusResult.failure(ResponseStatus.ERROR_RETRY);
         }
         catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            return StatusResult.failure(ResponseStatus.ERROR_RETRY, String.format("Interrupted while waiting for transfer process to start: %s", e.getMessage()));
+            return StatusResult.failure(ResponseStatus.ERROR_RETRY, "Interrupted while waiting for transfer process to start");
         }
         catch (ExecutionException e) {
-            return StatusResult.fatalError(String.format("%s while waiting for transfer to start: %s", e.getCause().getClass().getSimpleName(),
-                    e.getMessage()));
+            return StatusResult.fatalError(String.format("ExecutionException while waiting for transfer to start: %s", e.getMessage()));
         }
     }
 

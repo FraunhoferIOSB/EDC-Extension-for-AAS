@@ -87,8 +87,8 @@ public class AcceptedPolicyStore {
         var policyDefinitionId = policyDefinition.getId();
         Objects.requireNonNull(policyDefinitionId, "policyDefinitionId");
         Objects.requireNonNull(policyDefinition.getPolicy(), "policy");
-        int len = policyDefinitions.size();
+        boolean added = !policyDefinitions.removeIf(def -> def.getId().equals(policyDefinitionId));
         policyDefinitions.add(policyDefinition);
-        return len != policyDefinitions.size();
+        return added;
     }
 }

@@ -17,7 +17,7 @@ The common key for configurations is `edc.client.dsp.`
 ## Interfaces
 
 The client extension publishes all of its API over the EDC default api endpoint. Thus, all endpoints start with
-`/api/v1/dsp-client/`
+`/api/v1/dspclient/`
 
 | HTTP Method | Endpoint                   | Parameters ((r) = required)                         | Request Body     | Description                                                                                                |
 |:------------|:---------------------------|:----------------------------------------------------|:-----------------|:-----------------------------------------------------------------------------------------------------------|

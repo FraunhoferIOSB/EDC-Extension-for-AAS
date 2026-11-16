@@ -16,7 +16,6 @@
 package de.fraunhofer.iosb.ilt.dataspace.client.negotiation;
 
 import de.fraunhofer.iosb.ilt.dataspace.client.config.NegotiationConfiguration;
-import de.fraunhofer.iosb.ilt.dataspace.client.store.CounterPartyAddressStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
@@ -57,7 +56,6 @@ class NegotiatorTest {
     private ContractNegotiationService contractNegotiationService;
     private ContractNegotiationStore contractNegotiationStore;
     private ParticipantContextStore participantContextStore;
-    private CounterPartyAddressStore counterPartyAddressStore;
     private DspClientContractNegotiationListener registeredListener;
     private ContractRequest contractRequest;
     private ContractNegotiation negotiation;
@@ -65,18 +63,16 @@ class NegotiatorTest {
 
     private Negotiator testSubject;
 
-
     @BeforeEach
     void setUp() {
         contractNegotiationService = mock();
         contractNegotiationStore = mock();
         participantContextStore = mock();
-        counterPartyAddressStore = mock();
         ContractNegotiationObservable observable = mock();
         NegotiationConfiguration configuration = mock();
         when(configuration.getNegotiationTimeout()).thenReturn(1);
 
-        testSubject = new Negotiator(contractNegotiationService, contractNegotiationStore, participantContextStore, counterPartyAddressStore, observable, configuration);
+        testSubject = new Negotiator(contractNegotiationService, contractNegotiationStore, participantContextStore, observable, configuration);
 
         var listenerCaptor = ArgumentCaptor.forClass(DspClientContractNegotiationListener.class);
         verify(observable).registerListener(listenerCaptor.capture());
@@ -114,7 +110,6 @@ class NegotiatorTest {
         assertTrue(result.succeeded());
         assertEquals(agreement, result.getContent());
         verify(contractNegotiationService).initiateNegotiation(any(), any());
-        verify(counterPartyAddressStore).put(PROVIDER_ID, COUNTER_PARTY_ADDRESS);
     }
 
 
@@ -126,7 +121,6 @@ class NegotiatorTest {
 
         assertTrue(result.failed());
         assertTrue(result.getFailureDetail().contains("Could not initiate negotiation"));
-        verify(counterPartyAddressStore, never()).put(any(), any());
     }
 
 
@@ -145,7 +139,6 @@ class NegotiatorTest {
         assertTrue(result.succeeded());
         assertEquals(existingAgreement, result.getContent());
         verify(contractNegotiationService, never()).initiateNegotiation(any(), any());
-        verify(counterPartyAddressStore, never()).put(any(), any());
     }
 
 
@@ -157,7 +150,6 @@ class NegotiatorTest {
 
         assertTrue(exception.getMessage().contains(String.format("Could not find participant context for %s", CONTEXT_ID)));
         verify(contractNegotiationService, never()).initiateNegotiation(any(), any());
-        verify(counterPartyAddressStore, never()).put(any(), any());
     }
 
 
@@ -174,7 +166,6 @@ class NegotiatorTest {
 
         assertTrue(result.failed());
         assertTrue(result.getFailureDetail().contains("ExecutionException thrown while waiting for agreement"));
-        verify(counterPartyAddressStore).put(PROVIDER_ID, COUNTER_PARTY_ADDRESS);
     }
 
 

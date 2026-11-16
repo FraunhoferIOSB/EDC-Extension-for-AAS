@@ -11,6 +11,8 @@ dependencies {
 
     testImplementation(testFixtures(project(":extensions:common:aas-lib")))
 
-    testImplementation(libs.aas4j.model)
-    testImplementation(libs.edc.data.plane.http.spi)
+    testRuntimeOnly(libs.edc.controlplane.base.bom) // EDC control-plane runtime for embedded-runtime integration tests
+    testRuntimeOnly(libs.edc.auth.tokenbased) // x-api-key authentication for the default api context
+    testRuntimeOnly(libs.edc.auth.configuration) // binds web.http.default.auth.* config to the api contexts
+    testRuntimeOnly(libs.edc.iam.mock) // IdentityService, AudienceResolver and DefaultParticipantIdExtractionFunction for the auto-loaded dsp/control-plane extensions
 }

@@ -15,7 +15,7 @@ plugins {
 dependencies {
     runtimeOnly(libs.edc.controlplane.base.bom)
     runtimeOnly(project(":extensions:control-plane:edc-extension4aas"))
-    runtimeOnly(project(":extensions:control-plane:client"))
+    runtimeOnly(project(":extensions:control-plane:dsp-client"))
 
     runtimeOnly(libs.edc.iam.mock) // Only for participant ID extraction function
 

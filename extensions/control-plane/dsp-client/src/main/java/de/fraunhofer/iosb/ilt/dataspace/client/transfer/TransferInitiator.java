@@ -64,5 +64,4 @@ public abstract class TransferInitiator {
         return participantContextStore.findById(participantId).orElseThrow((failure) -> new EdcException(
                 String.format("Could not retrieve participant context for id %s. Failure message: %s", participantId, failure.getReason())));
     }
-
 }

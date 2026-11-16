@@ -1,104 +1,46 @@
 [
   {
+    "@id": "799534785:35ea9aac658269a9833108ca08c7425dbaf7fb77741822fa2944025b31f2717d",
     "@type": "Asset",
     "properties": {
       "aas:Referable/description": [
         {
           "aas:AbstractLangString/language": "en-us",
-          "aas:AbstractLangString/text": "This is my system test ConceptDescription description"
+          "aas:AbstractLangString/text": "An example asset identification submodel for the test application"
         },
         {
           "aas:AbstractLangString/language": "de",
-          "aas:AbstractLangString/text": "Das ist meine system test ConceptDescription beschreibung"
+          "aas:AbstractLangString/text": "Ein Beispiel-Identifikations-Submodel für eine Test-Anwendung"
         }
       ],
-      "aas:modelingType": "ConceptDescription",
-      "aas:Referable/idShort": "SystemTestConceptDescription",
-      "aas:Identifiable/id": "https://acplt.org/System_Test_ConceptDescription"
-    },
-    "dataAddress": {
-      "@type": "DataAddress",
-      "method": "GET",
-      "type": "AasData",
-      "aas:reference": "[ModelRef](ConceptDescription)https://acplt.org/System_Test_ConceptDescription",
-      "baseUrl": "https://localhost:60875/api/v3.1/concept-descriptions/aHR0cHM6Ly9hY3BsdC5vcmcvU3lzdGVtX1Rlc3RfQ29uY2VwdERlc2NyaXB0aW9u"
-    },
-    "@context": [
-      "https://w3id.org/edc/connector/management/v2",
-      {
-        "aas": "https://admin-shell.io/aas/3/1/"
-      }
-    ]
-  },
-  {
-    "@type": "Asset",
-    "properties": {
-      "aas:Referable/description": [
-        {
-          "aas:AbstractLangString/language": "en-us",
-          "aas:AbstractLangString/text": "This is my system test AAS description"
-        },
-        {
-          "aas:AbstractLangString/language": "de",
-          "aas:AbstractLangString/text": "Das ist meine system test AAS beschreibung"
-        }
-      ],
-      "aas:modelingType": "AssetAdministrationShell",
-      "aas:Referable/idShort": "SystemTestAssetAdministrationShell",
-      "aas:Identifiable/id": "https://acplt.org/System_Test_AssetAdministrationShell"
-    },
-    "dataAddress": {
-      "@type": "DataAddress",
-      "method": "GET",
-      "type": "AasData",
-      "aas:reference": "[ModelRef](AssetAdministrationShell)https://acplt.org/System_Test_AssetAdministrationShell",
-      "baseUrl": "https://localhost:60875/api/v3.1/shells/aHR0cHM6Ly9hY3BsdC5vcmcvU3lzdGVtX1Rlc3RfQXNzZXRBZG1pbmlzdHJhdGlvblNoZWxs"
-    },
-    "@context": [
-      "https://w3id.org/edc/connector/management/v2",
-      {
-        "aas": "https://admin-shell.io/aas/3/1/"
-      }
-    ]
-  },
-  {
-    "@type": "Asset",
-    "properties": {
-      "aas:Referable/description": [
-        {
-          "aas:AbstractLangString/language": "en-us",
-          "aas:AbstractLangString/text": "This is my system test SMC description"
-        },
-        {
-          "aas:AbstractLangString/language": "de",
-          "aas:AbstractLangString/text": "Das ist meine system test SMC beschreibung"
-        }
-      ],
-      "aas:Referable/idShort": "SystemTestSubmodelElementCollection",
-      "aas:modelingType": "SubmodelElementCollection",
+      "aas:Identifiable/id": "http://acplt.org/Submodels/Assets/TestAsset/System_Test_Submodel",
+      "aas:Referable/idShort": "SystemTestSubmodel",
+      "aas:modelingType": "Submodel",
       "aas:HasSemantics/semanticId": {
         "aas:Reference/keys": {
-          "aas:Key/type": "GlobalReference",
-          "aas:Key/value": "http://acplt.org/SubmodelElementCollections/System_Test_SubmodelElementCollection"
+          "aas:Key/type": "Submodel",
+          "aas:Key/value": "http://acplt.org/SubmodelTemplates/SystemTest"
         },
         "aas:Reference/type": "ExternalReference"
-      }
+      },
+      "id": "799534785:35ea9aac658269a9833108ca08c7425dbaf7fb77741822fa2944025b31f2717d"
     },
     "dataAddress": {
       "@type": "DataAddress",
-      "method": "GET",
-      "type": "AasData",
-      "aas:reference": "[ModelRef](Submodel)http://acplt.org/Submodels/Assets/TestAsset/System_Test_Submodel, (SubmodelElementCollection)SystemTestSubmodelElementCollection",
-      "baseUrl": "https://localhost:60875/api/v3.1/submodels/aHR0cDovL2FjcGx0Lm9yZy9TdWJtb2RlbHMvQXNzZXRzL1Rlc3RBc3NldC9TeXN0ZW1fVGVzdF9TdWJtb2RlbA==/submodel-elements/SystemTestSubmodelElementCollection"
+      "aas:reference": "[ModelRef](Submodel)http://acplt.org/Submodels/Assets/TestAsset/System_Test_Submodel",
+      "type": "HttpData",
+      "baseUrl": "http://localhost:60875/api/v3.1/submodels/aHR0cDovL2FjcGx0Lm9yZy9TdWJtb2RlbHMvQXNzZXRzL1Rlc3RBc3NldC9TeXN0ZW1fVGVzdF9TdWJtb2RlbA=="
     },
     "@context": [
       "https://w3id.org/edc/connector/management/v2",
       {
+        "@vocab": "https://w3id.org/edc/v0.0.1/ns/",
         "aas": "https://admin-shell.io/aas/3/1/"
       }
     ]
   },
   {
+    "@id": "1288796988:35ea9aac658269a9833108ca08c7425dbaf7fb77741822fa2944025b31f2717d",
     "@type": "Asset",
     "properties": {
       "aas:Referable/description": [
@@ -120,6 +62,7 @@
         },
         "aas:Reference/type": "ExternalReference"
       },
+      "id": "1288796988:35ea9aac658269a9833108ca08c7425dbaf7fb77741822fa2944025b31f2717d",
       "aas:Referable/displayName": {
         "aas:AbstractLangString/language": "en-us",
         "aas:AbstractLangString/text": "Manufacturer Name"
@@ -127,52 +70,119 @@
     },
     "dataAddress": {
       "@type": "DataAddress",
-      "method": "GET",
-      "type": "AasData",
       "aas:reference": "[ModelRef](Submodel)http://acplt.org/Submodels/Assets/TestAsset/System_Test_Submodel, (SubmodelElementCollection)SystemTestSubmodelElementCollection, (Property)ManufacturerName",
-      "baseUrl": "https://localhost:60875/api/v3.1/submodels/aHR0cDovL2FjcGx0Lm9yZy9TdWJtb2RlbHMvQXNzZXRzL1Rlc3RBc3NldC9TeXN0ZW1fVGVzdF9TdWJtb2RlbA==/submodel-elements/SystemTestSubmodelElementCollection.ManufacturerName"
+      "type": "HttpData",
+      "baseUrl": "http://localhost:60875/api/v3.1/submodels/aHR0cDovL2FjcGx0Lm9yZy9TdWJtb2RlbHMvQXNzZXRzL1Rlc3RBc3NldC9TeXN0ZW1fVGVzdF9TdWJtb2RlbA==/submodel-elements/SystemTestSubmodelElementCollection.ManufacturerName"
     },
     "@context": [
       "https://w3id.org/edc/connector/management/v2",
       {
+        "@vocab": "https://w3id.org/edc/v0.0.1/ns/",
         "aas": "https://admin-shell.io/aas/3/1/"
       }
     ]
   },
   {
+    "@id": "-132389682:35ea9aac658269a9833108ca08c7425dbaf7fb77741822fa2944025b31f2717d",
     "@type": "Asset",
     "properties": {
       "aas:Referable/description": [
         {
           "aas:AbstractLangString/language": "en-us",
-          "aas:AbstractLangString/text": "An example asset identification submodel for the test application"
+          "aas:AbstractLangString/text": "This is my system test SMC description"
         },
         {
           "aas:AbstractLangString/language": "de",
-          "aas:AbstractLangString/text": "Ein Beispiel-Identifikations-Submodel für eine Test-Anwendung"
+          "aas:AbstractLangString/text": "Das ist meine system test SMC beschreibung"
         }
       ],
-      "aas:Referable/idShort": "SystemTestSubmodel",
-      "aas:Identifiable/id": "http://acplt.org/Submodels/Assets/TestAsset/System_Test_Submodel",
-      "aas:modelingType": "Submodel",
+      "aas:Referable/idShort": "SystemTestSubmodelElementCollection",
+      "aas:modelingType": "SubmodelElementCollection",
       "aas:HasSemantics/semanticId": {
         "aas:Reference/keys": {
-          "aas:Key/type": "Submodel",
-          "aas:Key/value": "http://acplt.org/SubmodelTemplates/SystemTest"
+          "aas:Key/type": "GlobalReference",
+          "aas:Key/value": "http://acplt.org/SubmodelElementCollections/System_Test_SubmodelElementCollection"
         },
         "aas:Reference/type": "ExternalReference"
-      }
+      },
+      "id": "-132389682:35ea9aac658269a9833108ca08c7425dbaf7fb77741822fa2944025b31f2717d"
     },
     "dataAddress": {
       "@type": "DataAddress",
-      "method": "GET",
-      "type": "AasData",
-      "aas:reference": "[ModelRef](Submodel)http://acplt.org/Submodels/Assets/TestAsset/System_Test_Submodel",
-      "baseUrl": "https://localhost:60875/api/v3.1/submodels/aHR0cDovL2FjcGx0Lm9yZy9TdWJtb2RlbHMvQXNzZXRzL1Rlc3RBc3NldC9TeXN0ZW1fVGVzdF9TdWJtb2RlbA=="
+      "aas:reference": "[ModelRef](Submodel)http://acplt.org/Submodels/Assets/TestAsset/System_Test_Submodel, (SubmodelElementCollection)SystemTestSubmodelElementCollection",
+      "type": "HttpData",
+      "baseUrl": "http://localhost:60875/api/v3.1/submodels/aHR0cDovL2FjcGx0Lm9yZy9TdWJtb2RlbHMvQXNzZXRzL1Rlc3RBc3NldC9TeXN0ZW1fVGVzdF9TdWJtb2RlbA==/submodel-elements/SystemTestSubmodelElementCollection"
     },
     "@context": [
       "https://w3id.org/edc/connector/management/v2",
       {
+        "@vocab": "https://w3id.org/edc/v0.0.1/ns/",
+        "aas": "https://admin-shell.io/aas/3/1/"
+      }
+    ]
+  },
+  {
+    "@id": "-595428282:35ea9aac658269a9833108ca08c7425dbaf7fb77741822fa2944025b31f2717d",
+    "@type": "Asset",
+    "properties": {
+      "aas:Referable/description": [
+        {
+          "aas:AbstractLangString/language": "en-us",
+          "aas:AbstractLangString/text": "This is my system test AAS description"
+        },
+        {
+          "aas:AbstractLangString/language": "de",
+          "aas:AbstractLangString/text": "Das ist meine system test AAS beschreibung"
+        }
+      ],
+      "aas:Identifiable/id": "https://acplt.org/System_Test_AssetAdministrationShell",
+      "aas:Referable/idShort": "SystemTestAssetAdministrationShell",
+      "aas:modelingType": "AssetAdministrationShell",
+      "id": "-595428282:35ea9aac658269a9833108ca08c7425dbaf7fb77741822fa2944025b31f2717d"
+    },
+    "dataAddress": {
+      "@type": "DataAddress",
+      "aas:reference": "[ModelRef](AssetAdministrationShell)https://acplt.org/System_Test_AssetAdministrationShell",
+      "type": "HttpData",
+      "baseUrl": "http://localhost:60875/api/v3.1/shells/aHR0cHM6Ly9hY3BsdC5vcmcvU3lzdGVtX1Rlc3RfQXNzZXRBZG1pbmlzdHJhdGlvblNoZWxs"
+    },
+    "@context": [
+      "https://w3id.org/edc/connector/management/v2",
+      {
+        "@vocab": "https://w3id.org/edc/v0.0.1/ns/",
+        "aas": "https://admin-shell.io/aas/3/1/"
+      }
+    ]
+  },
+  {
+    "@id": "680259192:35ea9aac658269a9833108ca08c7425dbaf7fb77741822fa2944025b31f2717d",
+    "@type": "Asset",
+    "properties": {
+      "aas:Referable/description": [
+        {
+          "aas:AbstractLangString/language": "en-us",
+          "aas:AbstractLangString/text": "This is my system test ConceptDescription description"
+        },
+        {
+          "aas:AbstractLangString/language": "de",
+          "aas:AbstractLangString/text": "Das ist meine system test ConceptDescription beschreibung"
+        }
+      ],
+      "aas:Identifiable/id": "https://acplt.org/System_Test_ConceptDescription",
+      "aas:Referable/idShort": "SystemTestConceptDescription",
+      "aas:modelingType": "ConceptDescription",
+      "id": "680259192:35ea9aac658269a9833108ca08c7425dbaf7fb77741822fa2944025b31f2717d"
+    },
+    "dataAddress": {
+      "@type": "DataAddress",
+      "aas:reference": "[ModelRef](ConceptDescription)https://acplt.org/System_Test_ConceptDescription",
+      "type": "HttpData",
+      "baseUrl": "http://localhost:60875/api/v3.1/concept-descriptions/aHR0cHM6Ly9hY3BsdC5vcmcvU3lzdGVtX1Rlc3RfQ29uY2VwdERlc2NyaXB0aW9u"
+    },
+    "@context": [
+      "https://w3id.org/edc/connector/management/v2",
+      {
+        "@vocab": "https://w3id.org/edc/v0.0.1/ns/",
         "aas": "https://admin-shell.io/aas/3/1/"
       }
     ]

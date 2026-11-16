@@ -21,6 +21,7 @@ import de.fraunhofer.iosb.ilt.dataspace.client.constants.ApiConstants;
 import de.fraunhofer.iosb.ilt.dataspace.client.dto.PullRequestDTO;
 import de.fraunhofer.iosb.ilt.dataspace.client.negotiation.Negotiator;
 import de.fraunhofer.iosb.ilt.dataspace.client.policy.PolicyService;
+import de.fraunhofer.iosb.ilt.dataspace.client.store.CounterPartyAddressStore;
 import de.fraunhofer.iosb.ilt.dataspace.client.transfer.pull.PullTransferInitiator;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
@@ -44,25 +45,27 @@ import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DATASPACE_P
 /**
  * Automated contract negotiation
  */
-@Path("v1/" + ApiConstants.DSP_CLIENT_V1)
+@Path(ApiConstants.DSP_CLIENT_V1)
 public class DspClientController {
     /** Message template for missing query parameters. */
     public static final String MISSING_QUERY_PARAMETER_MESSAGE = "Missing query parameter. Required parameters: %s";
     /** Message template for missing request body. */
     public static final String MISSING_REQUEST_BODY_MESSAGE = "Missing request body of type %s";
-    private static final String NEGOTIATE_CONTRACT_PATH = "negotiateContract";
     private static final int UNPROCESSABLE_CONTENT = 422;
     private final Monitor monitor;
 
+    private final CounterPartyAddressStore counterPartyAddressStore;
     private final PolicyService policyService;
     private final Negotiator negotiator;
     private final PullTransferInitiator pullTransferInitiator;
 
     public DspClientController(Monitor monitor,
+                               CounterPartyAddressStore counterPartyAddressStore,
                                PolicyService policyService,
                                Negotiator negotiator,
                                PullTransferInitiator pullTransferInitiator) {
         this.monitor = monitor;
+        this.counterPartyAddressStore = counterPartyAddressStore;
         this.policyService = policyService;
         this.negotiator = negotiator;
         this.pullTransferInitiator = pullTransferInitiator;
@@ -76,8 +79,10 @@ public class DspClientController {
      */
     @POST
     @Path(ApiConstants.NEGOTIATE)
-    public JsonNode negotiateContract(@QueryParam("startTransfer") Boolean startTransfer, PullRequestDTO pullRequestDTO) {
+    public JsonNode negotiateContract(@QueryParam("starttransfer") Boolean startTransfer, PullRequestDTO pullRequestDTO) {
         monitor.debug("POST /%s".formatted(ApiConstants.NEGOTIATE));
+        counterPartyAddressStore.put(pullRequestDTO.counterPartyId(), pullRequestDTO.counterPartyAddress());
+
         boolean transfer = ofNullable(startTransfer).orElse(true);
         ServiceResult<ContractOffer> contractOfferResult = policyService.getDataset(pullRequestDTO.participantContextId(),
                 pullRequestDTO.counterPartyId(),
@@ -107,14 +112,15 @@ public class DspClientController {
             return toJson(agreementResult.getContent());
         }
 
-        StatusResult<DataAddress> transferResult = pullTransferInitiator.startTransferProcess(pullRequestDTO.participantContextId(), agreementResult.getContent().getId());
+        StatusResult<DataAddress> transferResult = pullTransferInitiator.startTransferProcess(pullRequestDTO.participantContextId(), agreementResult.getContent().getId(),
+                pullRequestDTO.transferType());
         if (transferResult.succeeded()) {
             return toJson(transferResult.getContent());
         }
 
         throw new WebApplicationException(
                 Response.status(UNPROCESSABLE_CONTENT)
-                        .entity(transferResult.getFailureMessages().get(transferResult.getFailureMessages().size() - 1))
+                        .entity(transferResult.getFailureMessages().getLast())
                         .type(MediaType.TEXT_PLAIN)
                         .build());
     }

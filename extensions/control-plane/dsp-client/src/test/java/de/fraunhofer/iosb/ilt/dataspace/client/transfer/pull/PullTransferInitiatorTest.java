@@ -49,6 +49,7 @@ import static org.mockito.Mockito.when;
 class PullTransferInitiatorTest {
     private static final String CONTEXT_ID = "test-context-id";
     private static final String AGREEMENT_ID = "agreement-id";
+    private static final String TRANSFER_TYPE = "ProxyHttpData";
     private static final String TRANSFER_PROCESS_ID = "transfer-process-id";
     private static final String COUNTER_PARTY_ADDRESS = "https://provider.example.com/dsp";
 
@@ -58,7 +59,6 @@ class PullTransferInitiatorTest {
     private TransferProcess transferProcess;
 
     private PullTransferInitiator testSubject;
-
 
     @BeforeEach
     void setUp() {
@@ -89,7 +89,7 @@ class PullTransferInitiatorTest {
     void startTransferProcessReturnsDataAddressAfterCompletionTest() {
         var dataAddress = mock(DataAddress.class);
         when(transferProcess.getContentDataAddress()).thenReturn(dataAddress);
-        var resultFuture = CompletableFuture.supplyAsync(() -> testSubject.startTransferProcess(CONTEXT_ID, AGREEMENT_ID));
+        var resultFuture = CompletableFuture.supplyAsync(() -> testSubject.startTransferProcess(CONTEXT_ID, AGREEMENT_ID, TRANSFER_TYPE));
 
         var deadline = System.currentTimeMillis() + 5000;
         while (!resultFuture.isDone() && System.currentTimeMillis() < deadline) {
@@ -114,7 +114,7 @@ class PullTransferInitiatorTest {
     void startTransferProcessThrowsWhenInitiationFailsTest() {
         when(transferProcessService.initiateTransfer(any(), any())).thenReturn(ServiceResult.unexpected("initiation failed"));
 
-        var exception = assertThrows(EdcException.class, () -> testSubject.startTransferProcess(CONTEXT_ID, AGREEMENT_ID));
+        var exception = assertThrows(EdcException.class, () -> testSubject.startTransferProcess(CONTEXT_ID, AGREEMENT_ID, TRANSFER_TYPE));
 
         assertTrue(exception.getMessage().contains("Initiating transfer request failed"));
         verify(transferProcessService).initiateTransfer(any(), any());
@@ -123,7 +123,7 @@ class PullTransferInitiatorTest {
 
     @Test
     void startTransferProcessTimesOutWhileWaitingForTransferToStartTest() {
-        var result = CompletableFuture.supplyAsync(() -> testSubject.startTransferProcess(CONTEXT_ID, AGREEMENT_ID)).join();
+        var result = CompletableFuture.supplyAsync(() -> testSubject.startTransferProcess(CONTEXT_ID, AGREEMENT_ID, TRANSFER_TYPE)).join();
 
         assertTrue(result.failed());
         assertEquals(ResponseStatus.ERROR_RETRY, result.getFailure().status());
@@ -133,7 +133,7 @@ class PullTransferInitiatorTest {
     @Test
     void startTransferProcessFailsWhenInterruptedWhileWaitingForTransferToStartTest() {
         var holding = new AtomicReference<StatusResult<DataAddress>>();
-        var worker = new Thread(() -> holding.set(testSubject.startTransferProcess(CONTEXT_ID, AGREEMENT_ID)));
+        var worker = new Thread(() -> holding.set(testSubject.startTransferProcess(CONTEXT_ID, AGREEMENT_ID, TRANSFER_TYPE)));
         worker.start();
         worker.interrupt();
         try {
@@ -155,7 +155,7 @@ class PullTransferInitiatorTest {
         when(transferProcess.stateAsString()).thenReturn("TERMINATED");
         when(transferProcess.getErrorDetail()).thenReturn("transfer failed");
 
-        var resultFuture = CompletableFuture.supplyAsync(() -> testSubject.startTransferProcess(CONTEXT_ID, AGREEMENT_ID));
+        var resultFuture = CompletableFuture.supplyAsync(() -> testSubject.startTransferProcess(CONTEXT_ID, AGREEMENT_ID, TRANSFER_TYPE));
 
         var deadline = System.currentTimeMillis() + 5000;
         while (!resultFuture.isDone() && System.currentTimeMillis() < deadline) {
@@ -173,7 +173,7 @@ class PullTransferInitiatorTest {
     void startTransferProcessThrowsWhenParticipantContextIsMissingTest() {
         when(participantContextStore.findById(any())).thenReturn(StoreResult.notFound("context not found"));
 
-        var exception = assertThrows(EdcException.class, () -> testSubject.startTransferProcess(CONTEXT_ID, AGREEMENT_ID));
+        var exception = assertThrows(EdcException.class, () -> testSubject.startTransferProcess(CONTEXT_ID, AGREEMENT_ID, TRANSFER_TYPE));
 
         assertTrue(exception.getMessage().contains("Could not retrieve participant context for id"));
         verify(transferProcessService, never()).initiateTransfer(any(), any());

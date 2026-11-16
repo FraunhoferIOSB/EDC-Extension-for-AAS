@@ -48,8 +48,8 @@ public class DefaultingParticipantContextStore implements ParticipantContextStor
             return store.findById(defaultParticipantContextId);
         }
 
-        return StoreResult.generalError(String.format("Tried to get default participant context with no "
-                + "configured participant context id: %s", PARTICIPANT_CONTEXT_ID_KEY));
+        return StoreResult.generalError(String.format("Tried to get default participant context with no " +
+                "configured participant context id: %s", PARTICIPANT_CONTEXT_ID_KEY));
     }
 
 

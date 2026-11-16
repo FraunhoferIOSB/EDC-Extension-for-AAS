@@ -1,0 +1,19 @@
+{
+  "@id": "e042a6b5-6903-41de-a30d-4b9d26ec6964",
+  "@type": "dcat:Catalog",
+  "dcat:dataset": [],
+  "dcat:service": {
+    "@id": "69e2ae2c-39ee-4f81-b460-f2f1aa02c50a",
+    "@type": "dcat:DataService",
+    "dct:terms": "connector",
+    "dct:endpointUrl": "http://localhost:8282/dsp"
+  },
+  "edc:participantId": "anonymous",
+  "@context": {
+    "dct": "https://purl.org/dc/terms/",
+    "edc": "https://w3id.org/edc/v0.0.1/ns/",
+    "dcat": "http://www.w3.org/ns/dcat#",
+    "odrl": "http://www.w3.org/ns/odrl/2/",
+    "dspace": "https://w3id.org/dspace/v0.8/"
+  }
+}

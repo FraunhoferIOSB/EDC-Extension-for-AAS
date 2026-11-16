@@ -16,7 +16,6 @@
 package de.fraunhofer.iosb.ilt.dataspace.client.negotiation;
 
 import de.fraunhofer.iosb.ilt.dataspace.client.config.NegotiationConfiguration;
-import de.fraunhofer.iosb.ilt.dataspace.client.store.CounterPartyAddressStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
@@ -44,7 +43,6 @@ public class Negotiator {
     private final ContractNegotiationService contractNegotiationService;
     private final ContractNegotiationStore contractNegotiationStore;
     private final ParticipantContextStore participantContextStore;
-    private final CounterPartyAddressStore counterPartyAddressStore;
     private final DspClientContractNegotiationListener listener;
     private final Integer timeout;
 
@@ -56,12 +54,11 @@ public class Negotiator {
      * @param participantContextStore the participant context store used for negotiations.
      */
     public Negotiator(ContractNegotiationService contractNegotiationService, ContractNegotiationStore contractNegotiationStore,
-                      ParticipantContextStore participantContextStore, CounterPartyAddressStore counterPartyAddressStore,
+                      ParticipantContextStore participantContextStore,
                       ContractNegotiationObservable observable, NegotiationConfiguration configuration) {
         this.contractNegotiationService = contractNegotiationService;
         this.contractNegotiationStore = contractNegotiationStore;
         this.participantContextStore = participantContextStore;
-        this.counterPartyAddressStore = counterPartyAddressStore;
         this.timeout = Objects.requireNonNullElse(configuration.getNegotiationTimeout(), AGREEMENT_TIMEOUT_DEFAULT);
         this.listener = new DspClientContractNegotiationListener();
         observable.registerListener(listener);
@@ -76,7 +73,7 @@ public class Negotiator {
                 .toList();
 
         if (!relevantAgreements.isEmpty()) {
-            return ServiceResult.success(relevantAgreements.get(0));
+            return ServiceResult.success(relevantAgreements.getFirst());
         }
 
         ServiceResult<ContractNegotiation> negotiation = contractNegotiationService.initiateNegotiation(participantContextStore.findById(contextId)
@@ -87,7 +84,6 @@ public class Negotiator {
             return ServiceResult.unexpected("Could not initiate negotiation", negotiation.getFailureDetail());
         }
 
-        counterPartyAddressStore.put(contractRequest.getProviderId(), contractRequest.getCounterPartyAddress());
         return waitForAgreement(negotiation.getContent().getId());
     }
 

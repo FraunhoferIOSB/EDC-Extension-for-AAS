@@ -25,9 +25,11 @@ import java.util.Objects;
  * @param counterPartyId Counter-party id.
  * @param assetId Asset id.
  */
-public record PullRequestDTO(String counterPartyAddress, String counterPartyId, String assetId, String participantContextId) {
+public record PullRequestDTO(String counterPartyAddress, String counterPartyId, String assetId, String participantContextId, String transferType) {
     public PullRequestDTO {
+        transferType = Objects.requireNonNullElse(transferType, "ProxyHttpData");
         Objects.requireNonNull(counterPartyId);
+        Objects.requireNonNull(counterPartyAddress);
         Objects.requireNonNull(assetId);
     }
 }

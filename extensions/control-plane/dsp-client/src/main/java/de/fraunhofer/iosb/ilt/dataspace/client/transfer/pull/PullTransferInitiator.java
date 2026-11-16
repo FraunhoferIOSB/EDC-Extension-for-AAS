@@ -64,8 +64,8 @@ public class PullTransferInitiator extends TransferInitiator {
     }
 
 
-    public StatusResult<DataAddress> startTransferProcess(String participantContextId, String agreementId) {
-        TransferProcess transferProcess = initiate(participantContextId, buildRequest(agreementId));
+    public StatusResult<DataAddress> startTransferProcess(String participantContextId, String agreementId, String transferType) {
+        TransferProcess transferProcess = initiate(participantContextId, buildRequest(agreementId, transferType));
         return waitForTransfer(listener.register(transferProcess));
     }
 
@@ -87,13 +87,13 @@ public class PullTransferInitiator extends TransferInitiator {
     }
 
 
-    private TransferRequest buildRequest(String agreementId) {
+    private TransferRequest buildRequest(String agreementId, String transferType) {
         return TransferRequest.Builder.newInstance()
                 .protocol(getTransferProtocol())
                 .contractId(agreementId)
                 .counterPartyAddress(getCounterPartyAddress(agreementId))
                 // TODO make this configurable / via API / ...
-                .transferType(String.format("%s-%s", "ProxyHttpData", PULL))
+                .transferType(String.format("%s-%s", transferType, PULL))
                 .build();
     }
 }

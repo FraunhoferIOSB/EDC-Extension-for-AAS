@@ -87,13 +87,13 @@ public class DspClientExtension implements ServiceExtension {
                 acceptedPolicyStore, jsonLd, counterPartyAddressStore);
 
         Negotiator negotiator = new Negotiator(contractNegotiationService, contractNegotiationStore, defaultingParticipantContextStore,
-                counterPartyAddressStore, contractNegotiationObservable, configuration);
+                contractNegotiationObservable, configuration);
 
         PullTransferInitiator pullTransferInitiator = new PullTransferInitiator(transferProcessService, defaultingParticipantContextStore, counterPartyAddressStore,
                 transferProcessObservable, monitor, configuration);
 
         var policyController = new PolicyController(acceptedPolicyStore);
-        var dspClientController = new DspClientController(monitor, policyService, negotiator, pullTransferInitiator);
+        var dspClientController = new DspClientController(monitor, counterPartyAddressStore, policyService, negotiator, pullTransferInitiator);
 
         webService.registerResource(policyController);
         webService.registerResource(dspClientController);

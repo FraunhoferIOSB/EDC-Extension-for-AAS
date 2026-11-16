@@ -24,6 +24,9 @@
       mapper-generated data address, with binding-provided properties taking precedence on key conflict.
     * This allows overriding or extending the data address (e.g. HTTP method, headers) per binding without changing the
       AAS service configuration.
+* **DSP Client PULL-Support**
+    * The DSP client now supports only PULL transfers. It will return an EDR once negotiation and transfer-start succeeded
+    * Also, updated API and configuration. See [here](./extensions/control-plane/dsp-client/README.md)
 
 ### Bugfixes
 

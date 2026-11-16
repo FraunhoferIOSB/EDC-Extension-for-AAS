@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.fraunhofer.iosb.ilt.dataspace.app.util;
+package de.fraunhofer.iosb.ilt.dataspace.seed.util;
 
 import java.io.ByteArrayOutputStream;
 import java.math.BigInteger;
@@ -108,8 +108,8 @@ public final class RsaKeyUtils {
         String base64 = Base64.getMimeEncoder(
                 64, new byte[] { '\n' }).encodeToString(encoded);
 
-        return "-----BEGIN " + label + "-----\n"
-                + base64 + "\n"
-                + "-----END " + label + "-----\n";
+        return "-----BEGIN " + label + "-----\n" +
+                base64 + "\n" +
+                "-----END " + label + "-----\n";
     }
 }

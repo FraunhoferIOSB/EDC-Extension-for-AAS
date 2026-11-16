@@ -53,6 +53,7 @@ jobs:
             :extensions:common:json-ld:json-ld-aas:publishMavenPublicationToGithubPackagesRepository \
             :extensions:common:util:policy-util:publishMavenPublicationToGithubPackagesRepository \
             :extensions:control-plane:codec:publishMavenPublicationToGithubPackagesRepository \
+            :extensions:control-plane:dsp-client:publishMavenPublicationToGithubPackagesRepository \
             :extensions:control-plane:public-api-management:publishMavenPublicationToGithubPackagesRepository \
             :extensions:repository-aas:publishMavenPublicationToGithubPackagesRepository \
             :extensions:control-plane:edc-extension4aas:publishMavenPublicationToGithubPackagesRepository \

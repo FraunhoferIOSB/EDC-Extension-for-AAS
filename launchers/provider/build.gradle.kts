@@ -33,3 +33,11 @@ dependencies {
         exclude("org.eclipse.edc", "vault-hashicorp")
     }
 }
+
+configurations.configureEach {
+    resolutionStrategy.dependencySubstitution {
+        substitute(module("org.eclipse.edc:data-plane-util"))
+            .using(module(libs.tx.edc.dataplane.util.get().toString()))
+            .because("Tractus-X ships a binary fork of data-plane-util (AsyncResponseCallback with statusCode()/proxyHeaders()) required by DataPlanePublicApiV2Controller; keeping both on the classpath/shadowJar causes duplicate classes and NoSuchMethodError")
+    }
+}

@@ -29,8 +29,9 @@ edc-dataplane-base-bom = { module = "org.eclipse.edc:dataplane-base-bom", versio
 
 tx-edc-runtime-memory = { module = "org.eclipse.tractusx.edc:edc-runtime-memory", version.ref = "tractusx" }
 tx-edc-dataplane-proxy-http = { module = "org.eclipse.tractusx.edc:dataplane-proxy-http", version.ref = "tractusx" }
-tx-edc-json-ld-cx = { module = "org.eclipse.tractusx.edc:json-ld-cx", version.ref = "tractusx" }
 tx-edc-dataplane-public-api-v2 = { module = "org.eclipse.tractusx.edc:dataplane-public-api-v2", version.ref = "tractusx" }
+tx-edc-dataplane-util = { module = "org.eclipse.tractusx.edc:dataplane-util", version.ref = "tractusx" }
+tx-edc-json-ld-cx = { module = "org.eclipse.tractusx.edc:json-ld-cx", version.ref = "tractusx" }
 
 aas4j-dataformat-json = { module = "org.eclipse.digitaltwin.aas4j:aas4j-dataformat-json", version.ref = "aas4j" }
 aas4j-model = { module = "org.eclipse.digitaltwin.aas4j:aas4j-model", version.ref = "aas4j" }

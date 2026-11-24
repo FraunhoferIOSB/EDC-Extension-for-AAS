@@ -27,8 +27,8 @@ runs:
       run: |
         docker run --rm --network host \
           -v /var/run/docker.sock:/var/run/docker.sock \
-          -v "$PWD":/work \
+          -v "$PWD":"$PWD" \
           -v "$HOME/.gradle":/root/.gradle \
-          -w /work \
+          -w "$PWD" \
           edc-systest \
           bash "system-tests/${{ inputs.test_name }}/test.sh"

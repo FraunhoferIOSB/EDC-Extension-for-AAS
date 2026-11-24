@@ -32,6 +32,8 @@ dump_logs() {
 }
 
 shutdown() {
+    "${COMPOSE[@]}" logs consumer || true
+    "${COMPOSE[@]}" logs provider || true
     local exit_code=$?
     cleanup_all > /dev/null 2>&1 || true
     dump_logs

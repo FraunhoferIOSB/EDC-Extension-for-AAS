@@ -101,11 +101,10 @@ public class FakeTransferProcessService implements TransferProcessService {
 
     @Override
     public @NotNull ServiceResult<TransferProcess> initiateTransfer(ParticipantContext participantContext, TransferRequest request) {
-        capturedRequest.set(request);
-        callCount.incrementAndGet();
+        var invocation = callCount.incrementAndGet();
         var dataAddress = Objects.requireNonNull(edrDataAddress.get(), "no EDR arranged; call respondWithEdr first");
         var process = TransferProcess.Builder.newInstance()
-                .id("transfer-process-%s-%s".formatted(callCount.get(), participantContext.getParticipantContextId()))
+                .id("transfer-process-%s-%s".formatted(invocation, participantContext.getParticipantContextId()))
                 .type(TransferProcess.Type.CONSUMER)
                 .state(TransferProcessStates.STARTED.code())
                 .protocol(request.getProtocol())
@@ -116,7 +115,10 @@ public class FakeTransferProcessService implements TransferProcessService {
                 .participantContextId(participantContext.getParticipantContextId())
                 .contentDataAddress(dataAddress)
                 .build();
+
         lastTransferProcess.set(process);
+        // Publish the request only after the process is available to the test thread.
+        capturedRequest.set(request);
         return ServiceResult.success(process);
     }
 

@@ -166,7 +166,7 @@ class DspClientControllerHttpTest extends DspClientTestBase {
 
     /**
      * Case 1.2: explicit {@code starttransfer=false} omits the transfer: the response body is the serialized
-     * {@link ContractAgreement} and the transfer service is never called.
+     * {@link org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement} and the transfer service is never called.
      */
     @Test
     void startTransferFalseReturnsAgreementWithoutTransferTest() throws Exception {
@@ -201,7 +201,7 @@ class DspClientControllerHttpTest extends DspClientTestBase {
      * intent.
      */
     @Test
-    void wrongCasedStartTransferParameterIsIgnoredTest() throws Exception {
+    void wrongCasedStartTransferParameterIsIgnoredTest() {
         var agreementId = "agreement-" + UUID.randomUUID();
         var responseFuture = CompletableFuture.supplyAsync(
                 () -> postNegotiateRawQuery(dspClientPullRequest(ASSET_ID), "startTransfer=false"));
@@ -225,7 +225,7 @@ class DspClientControllerHttpTest extends DspClientTestBase {
      * and the controller answers 422 text/plain with the failure detail.
      */
     @Test
-    void terminatedTransferIsUnprocessableTest() throws Exception {
+    void terminatedTransferIsUnprocessableTest() {
         var agreementId = "agreement-" + UUID.randomUUID();
         var responseFuture = CompletableFuture.supplyAsync(() -> postNegotiate(dspClientPullRequest(ASSET_ID), null));
 
@@ -474,8 +474,8 @@ class DspClientControllerHttpTest extends DspClientTestBase {
 
 
     /**
-     * Fires the finalized negotiation until the transfer step has picked it up and initiated the pull transfer; the
-     * production flow only continues after the transfer request is issued and its future registered.
+     * Fires the finalized negotiation until the transfer fake publishes the request.
+     * The fake publishes its process first; the production transfer future may be registered later.
      */
     private TransferRequest awaitTransferRequest(ContractNegotiation finalized) {
         NegotiationFlow.fireUntil(() -> TRANSFER_SERVICE.capturedRequest() != null, "negotiation into transfer",
@@ -491,7 +491,7 @@ class DspClientControllerHttpTest extends DspClientTestBase {
         assertEquals(DSP_PROTOCOL_2025_1, catalogRequest.protocol());
         var filter = catalogRequest.querySpec().getFilterExpression();
         assertEquals(1, filter.size(), "the catalog request filters by the requested asset id");
-        var criterion = filter.get(0);
+        var criterion = filter.getFirst();
         assertEquals(Asset.PROPERTY_ID, criterion.getOperandLeft());
         assertEquals("=", criterion.getOperator());
         assertEquals(assetId, criterion.getOperandRight());
@@ -509,7 +509,7 @@ class DspClientControllerHttpTest extends DspClientTestBase {
         assertEquals(ASSET_ID, policy.getTarget(), "the acceptable offer policy target is overridden with the asset id");
         assertEquals(COUNTER_PARTY_ID, policy.getAssigner());
         assertEquals(1, policy.getPermissions().size());
-        assertEquals("USE", policy.getPermissions().get(0).getAction().getType());
+        assertEquals("USE", policy.getPermissions().getFirst().getAction().getType());
         assertTrue(policy.getProhibitions().isEmpty());
         assertTrue(policy.getObligations().isEmpty());
     }

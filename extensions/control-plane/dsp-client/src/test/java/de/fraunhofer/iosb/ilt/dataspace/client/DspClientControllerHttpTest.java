@@ -166,7 +166,8 @@ class DspClientControllerHttpTest extends DspClientTestBase {
 
     /**
      * Case 1.2: explicit {@code starttransfer=false} omits the transfer: the response body is the serialized
-     * {@link org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement} and the transfer service is never called.
+     * {@link org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement} and the transfer
+     * service is never called.
      */
     @Test
     void startTransferFalseReturnsAgreementWithoutTransferTest() throws Exception {

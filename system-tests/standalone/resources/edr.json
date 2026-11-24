@@ -1,0 +1,8 @@
+{
+  "properties": {
+    "https://w3id.org/edc/v0.0.1/ns/type": "https://w3id.org/idsa/v4.1/HTTP",
+    "https://w3id.org/edc/v0.0.1/ns/endpoint": "http://localhost:8185/api/public",
+    "https://w3id.org/edc/v0.0.1/ns/authType": "bearer",
+    "https://w3id.org/edc/v0.0.1/ns/endpointType": "https://w3id.org/idsa/v4.1/HTTP"
+  }
+}

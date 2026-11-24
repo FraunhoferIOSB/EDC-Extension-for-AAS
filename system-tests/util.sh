@@ -71,11 +71,13 @@ cleanup_all() {
 
 verify_request() {
   local url="$1"
-  local resource_name="$2"
-  local method="${3:-POST}"
-  local body="${4:-}"
+  local test_dir="$2"
+  local resource_name="$3"
+  local method="${4:-POST}"
+  local body="${5:-}"
 
-  local log_file="logs/${resource_name}_is.log"
+  local log_file="${test_dir}/logs/${resource_name}_is.log"
+  mkdir -p "$(dirname "$log_file")"
 
   local curl_args=(
     --silent
@@ -99,7 +101,7 @@ verify_request() {
     exit 1
   fi
 
-  if ! python3 'system-tests/json_subset.py' "system-tests/resources/${resource_name}.json" "${log_file}";
+  if ! python3 'system-tests/json_subset.py' "${test_dir}/resources/${resource_name}.json" "${log_file}";
     then
       echo "ERR: $resource_name: Response JSON does not match expected. Failing test and dumping actual response."
       jq < "$log_file" >&2

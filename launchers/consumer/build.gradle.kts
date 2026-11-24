@@ -26,7 +26,6 @@ dependencies {
         // This requires edc.dpf.selector.url which we don't need here as the dataplane is running in the same instance
         // as the control-plane.
         exclude("org.eclipse.edc", "data-plane-selector-client")
-        // An example of vault integration is given in other launchers.
         exclude("org.eclipse.edc", "vault-hashicorp")
     }
 }

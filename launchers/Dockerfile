@@ -7,8 +7,6 @@ FROM eclipse-temurin:21-jre-alpine
 ARG PROJECT
 ARG ADDITIONAL_FILES
 
-ENV EDC_FS_CONFIG=$EDC_FS_CONFIG
-
 COPY ./build/libs/${PROJECT}.jar app.jar
 COPY ${ADDITIONAL_FILES} ./
 

@@ -1,5 +1,5 @@
 {
-  "counterPartyAddress": "http://localhost:13340/dsp/2025-1",
+  "counterPartyAddress": "http://provider:13340/dsp/2025-1",
   "counterPartyId": "provider",
   "assetId": "680259192:35ea9aac658269a9833108ca08c7425dbaf7fb77741822fa2944025b31f2717d",
   "participantContextId": "consumer"

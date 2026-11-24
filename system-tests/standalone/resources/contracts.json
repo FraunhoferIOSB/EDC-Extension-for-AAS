@@ -1,0 +1,19 @@
+[
+  {
+    "@type": "ContractDefinition",
+    "assetsSelector": [
+      {
+        "@type": "Criterion",
+        "operandLeft": "https://w3id.org/edc/v0.0.1/ns/id",
+        "operator": "in",
+        "operandRight": []
+      }
+    ],
+    "privateProperties": {
+      "creator": "EDC4AAS Extension"
+    },
+    "@context": [
+      "https://w3id.org/edc/connector/management/v2"
+    ]
+  }
+]

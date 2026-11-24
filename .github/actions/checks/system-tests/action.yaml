@@ -24,10 +24,11 @@ runs:
   steps:
     - name: Run test
       shell: bash
-      run: >-
-        docker run --rm --network host
-        -v /var/run/docker.sock:/var/run/docker.sock \
-        -v "$PWD":/work
-        -v "$HOME/.gradle":/root/.gradle
-        -w /work
-        edc-systest bash system-tests/${{ inputs.test_name }}/test.sh
+      run: |
+        docker run --rm --network host \
+          -v /var/run/docker.sock:/var/run/docker.sock \
+          -v "$PWD":"$PWD" \
+          -v "$HOME/.gradle":/root/.gradle \
+          -w "$PWD" \
+          edc-systest \
+          bash "system-tests/${{ inputs.test_name }}/test.sh"

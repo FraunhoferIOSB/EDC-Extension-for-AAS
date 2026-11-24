@@ -1,0 +1,83 @@
+name: standalone-dockerized
+
+services:
+  vault:
+    image: hashicorp/vault:1.18
+    command:
+      - sh
+      - -c
+      - |
+        set -e
+        vault server -dev -dev-root-token-id=root -dev-listen-address=0.0.0.0:8200 &
+        until vault status >/dev/null 2>&1; do sleep 0.1; done
+        # alias 'consumer' is resolved for the management API key
+        # (web.http.management.auth.key.alias) and must match the 'x-api-key: password'
+        # headers used by the test steps.
+        VAULT_TOKEN=root vault kv put secret/consumer content=password value=password
+        wait
+    cap_add:
+      - IPC_LOCK
+    environment:
+      VAULT_ADDR: http://127.0.0.1:8200
+      VAULT_TOKEN: root
+      SKIP_SETCAP: true
+      SKIP_CHOWN: true
+    healthcheck:
+      test: ["CMD-SHELL", "vault status >/dev/null 2>&1 && vault kv get secret/consumer >/dev/null 2>&1"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+      start_period: 5s
+
+  provider:
+    image: ${PROVIDER_IMAGE:-provider:latest}
+    environment:
+      EDC_FS_CONFIG: /config/provider.properties
+    ports:
+      - "13338:13338"
+      - "13341:13341"
+      - "8185:8185"
+    volumes:
+      - ./config:/config:ro
+      - ./resources:/system-tests/resources:ro
+    depends_on:
+      vault:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -q -O - --header="x-api-key: password" --header="Content-Type: application/json" --post-file=/system-tests/resources/request_data/catalog_request.json http://localhost:13338/management/v4/catalog/request | grep -aqF "edc"']
+      interval: 5s
+      timeout: 10s
+      retries: 60
+      start_period: 30s
+
+  standalone:
+    image: ${STANDALONE_IMAGE:-standalone:latest}
+    environment:
+      EDC_FS_CONFIG: /config/aas-extension.properties
+    volumes:
+      - ./config:/config:ro
+      - ./resources:/system-tests/resources:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -S -O /dev/null http://localhost:18281 2>&1 | grep -qE "HTTP/[0-9.]+ 404([[:space:]]|$)"']
+      interval: 5s
+      timeout: 10s
+      retries: 60
+      start_period: 30s
+
+  consumer:
+    image: ${CONSUMER_IMAGE:-consumer:latest}
+    environment:
+      EDC_FS_CONFIG: /config/consumer.properties
+    ports:
+      - "23337:23337"
+      - "23338:23338"
+    volumes:
+      - ./config:/config:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -q -O /dev/null --header="x-api-key: password" http://localhost:23337/api/v1/dspclient/policydefinitions/accepted']
+      interval: 5s
+      timeout: 10s
+      retries: 36
+      start_period: 30s
+    depends_on:
+      - provider

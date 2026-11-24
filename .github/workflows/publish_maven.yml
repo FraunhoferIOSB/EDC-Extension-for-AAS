@@ -33,10 +33,10 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v7
 
-      - name: Set up JDK 17
+      - name: Set up JDK 21
         uses: actions/setup-java@v6
         with:
-          java-version: '17'
+          java-version: '21'
           distribution: 'temurin'
 
       - name: Publish to GitHub Packages
@@ -53,6 +53,7 @@ jobs:
             :extensions:common:json-ld:json-ld-aas:publishMavenPublicationToGithubPackagesRepository \
             :extensions:common:util:policy-util:publishMavenPublicationToGithubPackagesRepository \
             :extensions:control-plane:codec:publishMavenPublicationToGithubPackagesRepository \
+            :extensions:control-plane:dsp-client:publishMavenPublicationToGithubPackagesRepository \
             :extensions:control-plane:public-api-management:publishMavenPublicationToGithubPackagesRepository \
             :extensions:repository-aas:publishMavenPublicationToGithubPackagesRepository \
             :extensions:control-plane:edc-extension4aas:publishMavenPublicationToGithubPackagesRepository \

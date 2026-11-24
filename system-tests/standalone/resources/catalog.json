@@ -1,0 +1,369 @@
+{
+  "@type": "Catalog",
+  "dataset": [
+    {
+      "@type": "Dataset",
+      "hasPolicy": [
+        {
+          "@type": "Offer",
+          "permission": [
+            {
+              "action": "use"
+            }
+          ],
+          "assigner": "provider"
+        }
+      ],
+      "distribution": [
+        {
+          "@type": "Distribution",
+          "format": "AasData-PUSH",
+          "accessService": {
+            "@type": "DataService",
+            "endpointDescription": "dspace:connector",
+            "endpointURL": "http://localhost:13340/dsp/2025-1"
+          }
+        },
+        {
+          "@type": "Distribution",
+          "format": "HttpData-PULL",
+          "accessService": {
+            "@type": "DataService",
+            "endpointDescription": "dspace:connector",
+            "endpointURL": "http://localhost:13340/dsp/2025-1"
+          }
+        },
+        {
+          "@type": "Distribution",
+          "format": "HttpData-PUSH",
+          "accessService": {
+            "@type": "DataService",
+            "endpointDescription": "dspace:connector",
+            "endpointURL": "http://localhost:13340/dsp/2025-1"
+          }
+        },
+        {
+          "@type": "Distribution",
+          "format": "ProxyHttpData-PULL",
+          "accessService": {
+            "@type": "DataService",
+            "endpointDescription": "dspace:connector",
+            "endpointURL": "http://localhost:13340/dsp/2025-1"
+          }
+        }
+      ],
+      "aas:Referable/description": [
+        {
+          "aas:AbstractLangString/language": "en-us",
+          "aas:AbstractLangString/text": "An example asset identification submodel for the test application"
+        },
+        {
+          "aas:AbstractLangString/language": "de",
+          "aas:AbstractLangString/text": "Ein Beispiel-Identifikations-Submodel für eine Test-Anwendung"
+        }
+      ],
+      "aas:Identifiable/id": "http://acplt.org/Submodels/Assets/TestAsset/System_Test_Submodel",
+      "aas:Referable/idShort": "SystemTestSubmodel",
+      "aas:modelingType": "Submodel",
+      "aas:HasSemantics/semanticId": {
+        "aas:Reference/keys": {
+          "aas:Key/type": "Submodel",
+          "aas:Key/value": "http://acplt.org/SubmodelTemplates/SystemTest"
+        },
+        "aas:Reference/type": "ExternalReference"
+      }
+    },
+    {
+      "@type": "Dataset",
+      "hasPolicy": [
+        {
+          "@type": "Offer",
+          "permission": [
+            {
+              "action": "use"
+            }
+          ],
+          "assigner": "provider"
+        }
+      ],
+      "distribution": [
+        {
+          "@type": "Distribution",
+          "format": "AasData-PUSH",
+          "accessService": {
+            "@type": "DataService",
+            "endpointDescription": "dspace:connector",
+            "endpointURL": "http://localhost:13340/dsp/2025-1"
+          }
+        },
+        {
+          "@type": "Distribution",
+          "format": "HttpData-PULL",
+          "accessService": {
+            "@type": "DataService",
+            "endpointDescription": "dspace:connector",
+            "endpointURL": "http://localhost:13340/dsp/2025-1"
+          }
+        },
+        {
+          "@type": "Distribution",
+          "format": "HttpData-PUSH",
+          "accessService": {
+            "@type": "DataService",
+            "endpointDescription": "dspace:connector",
+            "endpointURL": "http://localhost:13340/dsp/2025-1"
+          }
+        },
+        {
+          "@type": "Distribution",
+          "format": "ProxyHttpData-PULL",
+          "accessService": {
+            "@type": "DataService",
+            "endpointDescription": "dspace:connector",
+            "endpointURL": "http://localhost:13340/dsp/2025-1"
+          }
+        }
+      ],
+      "aas:Referable/description": [
+        {
+          "aas:AbstractLangString/language": "en-us",
+          "aas:AbstractLangString/text": "This is my system test SMC description"
+        },
+        {
+          "aas:AbstractLangString/language": "de",
+          "aas:AbstractLangString/text": "Das ist meine system test SMC beschreibung"
+        }
+      ],
+      "aas:Referable/idShort": "SystemTestSubmodelElementCollection",
+      "aas:modelingType": "SubmodelElementCollection",
+      "aas:HasSemantics/semanticId": {
+        "aas:Reference/keys": {
+          "aas:Key/type": "GlobalReference",
+          "aas:Key/value": "http://acplt.org/SubmodelElementCollections/System_Test_SubmodelElementCollection"
+        },
+        "aas:Reference/type": "ExternalReference"
+      }
+    },
+    {
+      "@type": "Dataset",
+      "hasPolicy": [
+        {
+          "@type": "Offer",
+          "permission": [
+            {
+              "action": "use"
+            }
+          ],
+          "assigner": "provider"
+        }
+      ],
+      "distribution": [
+        {
+          "@type": "Distribution",
+          "format": "AasData-PUSH",
+          "accessService": {
+            "@type": "DataService",
+            "endpointDescription": "dspace:connector",
+            "endpointURL": "http://localhost:13340/dsp/2025-1"
+          }
+        },
+        {
+          "@type": "Distribution",
+          "format": "HttpData-PULL",
+          "accessService": {
+            "@type": "DataService",
+            "endpointDescription": "dspace:connector",
+            "endpointURL": "http://localhost:13340/dsp/2025-1"
+          }
+        },
+        {
+          "@type": "Distribution",
+          "format": "HttpData-PUSH",
+          "accessService": {
+            "@type": "DataService",
+            "endpointDescription": "dspace:connector",
+            "endpointURL": "http://localhost:13340/dsp/2025-1"
+          }
+        },
+        {
+          "@type": "Distribution",
+          "format": "ProxyHttpData-PULL",
+          "accessService": {
+            "@type": "DataService",
+            "endpointDescription": "dspace:connector",
+            "endpointURL": "http://localhost:13340/dsp/2025-1"
+          }
+        }
+      ],
+      "aas:Referable/description": [
+        {
+          "aas:AbstractLangString/language": "en-us",
+          "aas:AbstractLangString/text": "Legally valid designation of the natural or judicial person which is directly responsible for the design, production, packaging and labeling of a product in respect to its being brought into circulation."
+        },
+        {
+          "aas:AbstractLangString/language": "de",
+          "aas:AbstractLangString/text": "Bezeichnung für eine natürliche oder juristische Person, die für die Auslegung, Herstellung und Verpackung sowie die Etikettierung eines Produkts im Hinblick auf das 'Inverkehrbringen' im eigenen Namen verantwortlich ist"
+        }
+      ],
+      "aas:Referable/idShort": "ManufacturerName",
+      "aas:modelingType": "Property",
+      "aas:HasSemantics/semanticId": {
+        "aas:Reference/keys": {
+          "aas:Key/type": "GlobalReference",
+          "aas:Key/value": "0173-1#02-AAO677#002"
+        },
+        "aas:Reference/type": "ExternalReference"
+      },
+      "aas:Referable/displayName": {
+        "aas:AbstractLangString/language": "en-us",
+        "aas:AbstractLangString/text": "Manufacturer Name"
+      }
+    },
+    {
+      "@type": "Dataset",
+      "hasPolicy": [
+        {
+          "@type": "Offer",
+          "permission": [
+            {
+              "action": "use"
+            }
+          ],
+          "assigner": "provider"
+        }
+      ],
+      "distribution": [
+        {
+          "@type": "Distribution",
+          "format": "AasData-PUSH",
+          "accessService": {
+            "@type": "DataService",
+            "endpointDescription": "dspace:connector",
+            "endpointURL": "http://localhost:13340/dsp/2025-1"
+          }
+        },
+        {
+          "@type": "Distribution",
+          "format": "HttpData-PULL",
+          "accessService": {
+            "@type": "DataService",
+            "endpointDescription": "dspace:connector",
+            "endpointURL": "http://localhost:13340/dsp/2025-1"
+          }
+        },
+        {
+          "@type": "Distribution",
+          "format": "HttpData-PUSH",
+          "accessService": {
+            "@type": "DataService",
+            "endpointDescription": "dspace:connector",
+            "endpointURL": "http://localhost:13340/dsp/2025-1"
+          }
+        },
+        {
+          "@type": "Distribution",
+          "format": "ProxyHttpData-PULL",
+          "accessService": {
+            "@type": "DataService",
+            "endpointDescription": "dspace:connector",
+            "endpointURL": "http://localhost:13340/dsp/2025-1"
+          }
+        }
+      ],
+      "aas:Referable/description": [
+        {
+          "aas:AbstractLangString/language": "en-us",
+          "aas:AbstractLangString/text": "This is my system test AAS description"
+        },
+        {
+          "aas:AbstractLangString/language": "de",
+          "aas:AbstractLangString/text": "Das ist meine system test AAS beschreibung"
+        }
+      ],
+      "aas:Identifiable/id": "https://acplt.org/System_Test_AssetAdministrationShell",
+      "aas:Referable/idShort": "SystemTestAssetAdministrationShell",
+      "aas:modelingType": "AssetAdministrationShell"
+    },
+    {
+      "@type": "Dataset",
+      "hasPolicy": [
+        {
+          "@type": "Offer",
+          "permission": [
+            {
+              "action": "use"
+            }
+          ],
+          "assigner": "provider"
+        }
+      ],
+      "distribution": [
+        {
+          "@type": "Distribution",
+          "format": "AasData-PUSH",
+          "accessService": {
+            "@type": "DataService",
+            "endpointDescription": "dspace:connector",
+            "endpointURL": "http://localhost:13340/dsp/2025-1"
+          }
+        },
+        {
+          "@type": "Distribution",
+          "format": "HttpData-PULL",
+          "accessService": {
+            "@type": "DataService",
+            "endpointDescription": "dspace:connector",
+            "endpointURL": "http://localhost:13340/dsp/2025-1"
+          }
+        },
+        {
+          "@type": "Distribution",
+          "format": "HttpData-PUSH",
+          "accessService": {
+            "@type": "DataService",
+            "endpointDescription": "dspace:connector",
+            "endpointURL": "http://localhost:13340/dsp/2025-1"
+          }
+        },
+        {
+          "@type": "Distribution",
+          "format": "ProxyHttpData-PULL",
+          "accessService": {
+            "@type": "DataService",
+            "endpointDescription": "dspace:connector",
+            "endpointURL": "http://localhost:13340/dsp/2025-1"
+          }
+        }
+      ],
+      "aas:Referable/description": [
+        {
+          "aas:AbstractLangString/language": "en-us",
+          "aas:AbstractLangString/text": "This is my system test ConceptDescription description"
+        },
+        {
+          "aas:AbstractLangString/language": "de",
+          "aas:AbstractLangString/text": "Das ist meine system test ConceptDescription beschreibung"
+        }
+      ],
+      "aas:Identifiable/id": "https://acplt.org/System_Test_ConceptDescription",
+      "aas:Referable/idShort": "SystemTestConceptDescription",
+      "aas:modelingType": "ConceptDescription"
+    }
+  ],
+  "service": [
+    {
+      "@type": "DataService",
+      "endpointDescription": "dspace:connector",
+      "endpointURL": "http://localhost:13340/dsp/2025-1"
+    }
+  ],
+  "participantId": "provider",
+  "@context": [
+    "https://w3id.org/dspace/2025/1/context.jsonld",
+    "https://w3id.org/edc/dspace/v0.0.1",
+    {
+      "@vocab": "https://w3id.org/edc/v0.0.1/ns/",
+      "aas": "https://admin-shell.io/aas/3/1/"
+    }
+  ]
+}

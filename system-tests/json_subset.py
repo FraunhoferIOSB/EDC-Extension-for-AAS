@@ -47,9 +47,14 @@ if __name__ == "__main__":
 
     contained_ptr = sys.argv[1]
     container_ptr = sys.argv[2]
-
-    contained_dict = json.load(open(contained_ptr))
-    container_dict = json.load(open(container_ptr))
+    try:
+        contained_dict = json.load(open(contained_ptr))
+        container_dict = json.load(open(container_ptr))
+    except FileNotFoundError as f:
+        print(contained_ptr, end="\n")
+        print(container_ptr, end="\n")
+        print(f, end="\n")
+        exit(1)
 
     if contains(container_dict, contained_dict):
         exit(0)

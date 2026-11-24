@@ -1,0 +1,26 @@
+{
+  "@type": "ContractRequest",
+  "protocol": "dataspace-protocol-http:2025-1",
+  "counterPartyAddress": "http://localhost:13340/dsp/2025-1",
+  "policy": {
+    "@context": "http://www.w3.org/ns/odrl.jsonld",
+    "@type": "odrl:Offer",
+    "@id": "${offer_id}",
+    "permission": [
+      {
+        "action": "use"
+      }
+    ],
+    "prohibition": [],
+    "obligation": [],
+    "assigner": "provider",
+    "target": "680259192:35ea9aac658269a9833108ca08c7425dbaf7fb77741822fa2944025b31f2717d"
+  },
+  "callbackAddresses": [],
+  "@context": {
+    "aas": "https://admin-shell.io/aas/3/1/",
+    "@vocab": "https://w3id.org/edc/v0.0.1/ns/",
+    "edc": "https://w3id.org/edc/v0.0.1/ns/",
+    "odrl": "http://www.w3.org/ns/odrl/2/"
+  }
+}

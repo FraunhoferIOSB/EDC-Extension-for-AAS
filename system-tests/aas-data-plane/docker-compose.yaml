@@ -1,0 +1,29 @@
+name: aas-data-plane-dockerized
+
+services:
+  aas-data-plane:
+    image: ${AAS_DATA_PLANE_IMAGE:-aas-data-plane:latest}
+    environment:
+      EDC_FS_CONFIG: /config/aas-data-plane.properties
+    volumes:
+      - ./config:/config:ro
+      - ./resources:/system-tests/resources:ro
+    depends_on:
+      consumer:
+        condition: service_healthy
+
+  consumer:
+    image: ${CONSUMER_IMAGE:-consumer:latest}
+    environment:
+      EDC_FS_CONFIG: /config/consumer.properties
+    ports:
+      - "23339:23339"
+    volumes:
+      - ./config:/config:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -q -O /dev/null --header="x-api-key: password" http://localhost:23337/api/v1/dspclient/policydefinitions/accepted']
+      interval: 5s
+      timeout: 10s
+      retries: 36
+      start_period: 30s
+

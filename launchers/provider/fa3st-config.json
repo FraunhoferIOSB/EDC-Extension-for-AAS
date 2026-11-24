@@ -1,0 +1,10 @@
+{
+  "endpoints": [
+    {
+      "@class": "de.fraunhofer.iosb.ilt.faaast.service.endpoint.http.HttpEndpoint",
+      "port": 60875,
+      "sniEnabled": false,
+      "sslEnabled": false
+    }
+  ]
+}

@@ -79,17 +79,18 @@ public class FakeContractNegotiationService implements ContractNegotiationServic
 
     @Override
     public ServiceResult<ContractNegotiation> initiateNegotiation(ParticipantContext participantContext, ContractRequest request) {
-        capturedRequest.set(request);
-        callCount.incrementAndGet();
+        var invocation = callCount.incrementAndGet();
         var negotiation = ContractNegotiation.Builder.newInstance()
-                .id("negotiation-%s-%s".formatted(callCount.get(), participantContext.getParticipantContextId()))
+                .id("negotiation-%s-%s".formatted(invocation, participantContext.getParticipantContextId()))
                 .type(ContractNegotiation.Type.CONSUMER)
                 .protocol(request.getProtocol())
                 .counterPartyId(Objects.requireNonNullElse(request.getProviderId(), "unknown-provider"))
                 .counterPartyAddress(request.getCounterPartyAddress())
                 .participantContextId(participantContext.getParticipantContextId())
                 .build();
+
         lastNegotiation.set(negotiation);
+        capturedRequest.set(request);
         return ServiceResult.success(negotiation);
     }
 

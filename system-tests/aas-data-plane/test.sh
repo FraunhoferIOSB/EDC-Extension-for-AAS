@@ -31,6 +31,9 @@ dump_logs() {
 }
 
 shutdown() {
+    docker logs aas-data-plane-dockerized-consumer-1 || true
+    docker inspect --format '{{json .State}}' aas-data-plane-dockerized-consumer-1 || true
+    docker inspect --format '{{json .Mounts}}' aas-data-plane-dockerized-consumer-1 || true
     local exit_code=$?
     cleanup_all > /dev/null 2>&1 || true
     dump_logs

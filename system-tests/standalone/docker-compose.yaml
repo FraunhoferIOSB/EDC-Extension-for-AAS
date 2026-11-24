@@ -1,4 +1,4 @@
-name: provider-dockerized
+name: standalone-dockerized
 
 services:
   vault:

@@ -25,8 +25,22 @@
     * This allows overriding or extending the data address (e.g. HTTP method, headers) per binding without changing the
       AAS service configuration.
 * **DSP Client PULL-Support**
+    * The old `extensions/control-plane/client` extension was replaced by the new `extensions/control-plane/dsp-client`.
     * The DSP client now supports only PULL transfers. It will return an EDR once negotiation and transfer-start succeeded
-    * Also, updated API and configuration. See [here](./extensions/control-plane/dsp-client/README.md)
+    * A single `POST /api/v1/dspclient/negotiate` request now fetches the provider catalog, negotiates a contract,
+      starts the PULL transfer and returns the EDR; accepted policy definitions are managed via new CRUD endpoints.
+    * Configuration moved to the `edc.client.dsp.*` namespace: `edc.client.dsp.policy.accepted.all` (replaces
+      `edc.client.acceptAllProviderOffers`), `edc.client.dsp.timeout.negotiation` (replaces
+      `edc.client.waitForAgreementTimeout`) and `edc.client.dsp.timeout.transfer` (replaces
+      `edc.client.waitForTransferTimeout`); `edc.client.acceptedPolicyDefinitionsPath` was removed.
+    * See [here](./extensions/control-plane/dsp-client/README.md) for the updated API and configuration.
+    * Added extensive unit and integration tests (fake catalog/negotiation/transfer services, full-flow checks
+      including the returned EDR).
+* **Provider launcher now supports HttpData-PULL transfers**
+    * The launcher ships the Tractus-X data-plane proxy and public API v2 and seeds an RSA key pair into the vault at
+      startup, enabling consumer-pull transfers with EDRs (`edc.provider.seed.proxy.token=true`).
+    * The internally started FA³ST service is now configured via `fa3st-config.json`; AAS data is served via the HTTP
+      data plane (`edc.aas.useAasDataPlane=False`).
 
 ### Bugfixes
 
@@ -36,6 +50,8 @@
 * Excluded `fa3st.starter` fat-jar from `fa3st.client` transitive dependencies to prevent old aas4j 1.0.x classes from shadowing aas4j-model 2.0.2 on the compile classpath
 * Fixed `ConfigurationController` to reject unknown configuration keys with `InvalidRequestException`
 * Fixed all 146+ Javadoc warnings across 34 files
+* Removed the broken `ENV EDC_FS_CONFIG=$EDC_FS_CONFIG` line from the launcher Dockerfile (no such build argument
+  exists, so it always expanded to an empty value)
 
 ### Miscellaneous
 
@@ -66,6 +82,19 @@
     * PR workflow now uses `concurrency: cancel-in-progress` to cancel stale runs and `paths-ignore` to skip
       doc-only changes.
     * PR workflow split into two parallel jobs (`build`, `system-tests`) for faster feedback.
+* **Java 21**
+    * The build now requires JDK 21: Gradle Java toolchains are pinned to 21 and compilation uses `--release 21`.
+    * All CI workflows were updated from JDK 17 to JDK 21.
+* **System tests are now Docker-based**
+    * The provider and standalone system tests boot the connectors as Docker containers built from the launcher
+      sources instead of running them on the host via Gradle; the compose stacks include an ephemeral dev-mode
+      HashiCorp Vault. This removes the launcher build-file patching (and possible `build.gradle.kts.bak` leftovers)
+      of the previous test setup.
+    * Gradle task `testSystemProvider` was replaced by `testSystemProviderDockerized`; the `testSystem` chain is now
+      `testSystemProviderDockerized` → `testSystemAasDataPlane` → `testSystemStandalone`.
+    * Each system test now keeps its own configuration and expected resources (`config/`, `resources/`,
+      `docker-compose.yaml`) under its `system-tests/<test>` directory.
+* Updated Gradle wrapper to 9.9.2
 
 ## V2.3.0
 

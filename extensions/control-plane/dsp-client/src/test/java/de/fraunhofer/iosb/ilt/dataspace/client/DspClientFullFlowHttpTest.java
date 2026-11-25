@@ -316,8 +316,8 @@ class DspClientFullFlowHttpTest extends DspClientTestBase {
         assertTrue(authorization != null && !authorization.isBlank(),
                 "the dispatcher obtains mock-IAM credentials and sends them as Authorization header");
         assertTrue(authorization.contains("\"clientId\":\"dsp-client-test\""), "unexpected Authorization token: " + authorization);
-        assertTrue(authorization.contains("\"audience\":\"" + counterPartyAddress() + "\""),
-                "the mock IAM resolves the audience as the counter-party address: " + authorization);
+        assertTrue(authorization.contains("\"audience\":null"),
+                "since EDC 0.18.x the mock IAM no longer resolves the audience from the counter-party address: " + authorization);
 
         var bodyJson = MAPPER.readTree(request.getBodyAsString());
         assertEquals("CatalogRequestMessage", bodyJson.path("@type").asText(), "request body: " + request.getBodyAsString());

@@ -2,6 +2,8 @@
 
 ## Current development version (V2.4.0-SNAPSHOT)
 
+Compatibility: **Eclipse Dataspace Connector v0.18.2**
+
 ### New Features
 
 * **GitHub Packages publishing**

@@ -1,6 +1,6 @@
 # Changelog
 
-## Current development version (V2.4.0-SNAPSHOT)
+## V2.4.0
 
 Compatibility: **Eclipse Dataspace Connector v0.18.2**
 

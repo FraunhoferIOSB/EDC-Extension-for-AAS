@@ -12,28 +12,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: Bump to next development version
-description: Bumps to next development version
+name: Verify version snapshot
+description: Verify that the current version is equal to the input version without the "snapshot" suffix
 
 inputs:
   version:
     description: 'Release version (x.y.z)'
-    required: true
-  next_version:
-    description: 'Next development SNAPSHOT version (x.y.z-SNAPSHOT) - input must include -SNAPSHOT'
     required: true
 
 
 runs:
   using: "composite"
   steps:
-    - name: Create release commit and tag
+    - name: Verify version snapshot
       shell: bash
       run: |
-        sed -i "s/^version=.*/version=${{ inputs.next_version }}/" gradle.properties
-        NEXT="## Current development version (V${{ inputs.next_version }})"
-        RELEASE="## V${{ inputs.version }}"
-        SECTIONS="### New Features\n\n### Bugfixes\n\n### Miscellaneous"
-        sed -i "s/^${RELEASE}/${NEXT}\n\n${SECTIONS}\n\n${RELEASE}/" changelog.md
-        git add gradle.properties changelog.md
-        git commit -m "chore: bump to ${{ inputs.next_version }}"
+        SNAPSHOT="${{ inputs.version }}-SNAPSHOT"
+        CURRENT=$(grep '^version=' gradle.properties | cut -d= -f2)
+        if [ "$CURRENT" != "$SNAPSHOT" ]; then
+          echo "Expected version=$SNAPSHOT in gradle.properties but found version=$CURRENT" >&2
+          exit 1
+        fi
+        echo "Version matches: $CURRENT"
